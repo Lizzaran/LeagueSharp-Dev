@@ -122,11 +122,11 @@ namespace SFXLibrary
                     }
                     else if (consumersToRun < consumers)
                     {
-                        if (CheckInterval + _lastCheck > Environment.TickCount)
+                        if (CheckInterval + _lastCheck <= Environment.TickCount)
                         {
                             StopConsumers(consumers - consumersToRun);
+                            _lastCheck = Environment.TickCount;
                         }
-                        _lastCheck = Environment.TickCount;
                     }
                 }
             }
