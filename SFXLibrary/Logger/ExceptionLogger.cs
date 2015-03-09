@@ -33,35 +33,38 @@ namespace SFXLibrary.Logger
 
     #endregion
 
-    public class ExceptionLogger : ProducerConsumer<ExceptionLogger.Item>, ILogger<ExceptionLogger.Item>
+    public class ExceptionLogger : ProducerConsumer<LogItem>, ILogger
     {
-        private readonly HashSet<string> _cache = new HashSet<string>();
         private readonly string _fileName;
         private readonly string _logDir;
+        private readonly HashSet<string> _unique = new HashSet<string>();
 
-        public ExceptionLogger(string logDir, string fileName = "{1}_{0}.txt")
+        public ExceptionLogger(string logDir, string fileName = "{1}_{0}.txt", JSONParameters jsonParams = null,
+            LogLevel logLevel = LogLevel.High)
         {
             _logDir = logDir;
             _fileName = fileName;
+            JSONParams = jsonParams;
+            LogLevel = logLevel;
         }
 
         public JSONParameters JSONParams { get; set; }
         public LogLevel LogLevel { get; set; }
 
-        public new void AddItem(Item item)
+        public new void AddItem(LogItem item)
         {
             if (LogLevel == LogLevel.None || item == null || string.IsNullOrEmpty(item.Exception))
                 return;
 
-            var cache = item.Exception.ToBase64();
-            if (!_cache.Contains(cache))
+            var uniqueValue = (item.Exception + item.AdditionalInformation.ToDebugString()).Trim().ToBase64();
+            if (!_unique.Contains(uniqueValue))
             {
-                _cache.Add(cache);
+                _unique.Add(uniqueValue);
                 base.AddItem(item);
             }
         }
 
-        protected override void ProcessItem(Item item)
+        protected override void ProcessItem(LogItem item)
         {
             if (item == null || string.IsNullOrWhiteSpace(item.Exception))
                 return;
@@ -85,6 +88,7 @@ namespace SFXLibrary.Logger
                         case LogLevel.Low:
                             log = JSON.ToJSON(item.Exception, JSONParams);
                             break;
+
                         case LogLevel.Medium:
                         case LogLevel.High:
                             log = JSON.ToJSON(item, JSONParams);
@@ -98,20 +102,6 @@ namespace SFXLibrary.Logger
             {
                 Console.WriteLine(ex);
             }
-        }
-
-        public class Item
-        {
-            public readonly string Exception;
-            public Dictionary<string, string> AdditionalInformation;
-
-            public Item(Exception exception)
-            {
-                if (exception != null)
-                    Exception = exception.ToString();
-            }
-
-            public object Object { get; set; }
         }
     }
 }

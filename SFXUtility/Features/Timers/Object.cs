@@ -34,6 +34,7 @@ namespace SFXUtility.Features.Timers
     using SFXLibrary;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
+    using SFXLibrary.Logger;
     using SharpDX;
     using Color = System.Drawing.Color;
     using Draw = SFXLibrary.Draw;
@@ -48,7 +49,8 @@ namespace SFXUtility.Features.Timers
         private float _lastCheck = Environment.TickCount;
         private Timers _timers;
 
-        public Object(IContainer container) : base(container)
+        public Object(IContainer container)
+            : base(container)
         {
             CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
@@ -130,7 +132,7 @@ namespace SFXUtility.Features.Timers
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -138,8 +140,6 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
-                Logger.Prefix = string.Format("{0} - {1}", BaseName, Name);
-
                 if (IoC.IsRegistered<Timers>() && IoC.Resolve<Timers>().Initialized)
                 {
                     TimersLoaded(IoC.Resolve<Timers>());
@@ -154,7 +154,7 @@ namespace SFXUtility.Features.Timers
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -222,7 +222,7 @@ namespace SFXUtility.Features.Timers
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -276,7 +276,7 @@ namespace SFXUtility.Features.Timers
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 

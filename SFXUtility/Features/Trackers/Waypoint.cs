@@ -32,6 +32,7 @@ namespace SFXUtility.Features.Trackers
     using SFXLibrary;
     using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.IoCContainer;
+    using SFXLibrary.Logger;
     using SharpDX;
     using Color = System.Drawing.Color;
     using Draw = SFXLibrary.Draw;
@@ -42,7 +43,8 @@ namespace SFXUtility.Features.Trackers
     {
         private Trackers _trackers;
 
-        public Waypoint(IContainer container) : base(container)
+        public Waypoint(IContainer container)
+            : base(container)
         {
             CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
@@ -104,7 +106,7 @@ namespace SFXUtility.Features.Trackers
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -112,8 +114,6 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                Logger.Prefix = string.Format("{0} - {1}", BaseName, Name);
-
                 if (IoC.IsRegistered<Trackers>() && IoC.Resolve<Trackers>().Initialized)
                 {
                     TrackersLoaded(IoC.Resolve<Trackers>());
@@ -128,7 +128,7 @@ namespace SFXUtility.Features.Trackers
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -162,7 +162,7 @@ namespace SFXUtility.Features.Trackers
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
     }

@@ -209,7 +209,9 @@ namespace SFXLibrary.JSON
                 param.UseExtensions = false;
                 param.UsingGlobalTypes = false;
             }
-            return param.FilterSensitiveData ? FilterSensitiveData(new JSONSerializer(param).ConvertToJSON(obj), param.SensitiveData) : new JSONSerializer(param).ConvertToJSON(obj);
+            return param.FilterSensitiveData
+                ? FilterSensitiveData(new JSONSerializer(param).ConvertToJSON(obj), param.SensitiveData)
+                : new JSONSerializer(param).ConvertToJSON(obj);
         }
 
         /// <summary>

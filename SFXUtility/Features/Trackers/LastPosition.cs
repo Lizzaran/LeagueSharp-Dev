@@ -44,7 +44,8 @@ namespace SFXUtility.Features.Trackers
         private readonly List<LastPositionObject> _lastPositionObjects = new List<LastPositionObject>();
         private Trackers _trackers;
 
-        public LastPosition(IContainer container) : base(container)
+        public LastPosition(IContainer container)
+            : base(container)
         {
             CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
@@ -69,8 +70,6 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                Logger.Prefix = string.Format("{0} - {1}", BaseName, Name);
-
                 if (IoC.IsRegistered<Trackers>() && IoC.Resolve<Trackers>().Initialized)
                 {
                     TrackersLoaded(IoC.Resolve<Trackers>());
@@ -94,7 +93,7 @@ namespace SFXUtility.Features.Trackers
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -176,7 +175,7 @@ namespace SFXUtility.Features.Trackers
                         }
                         catch (Exception ex)
                         {
-                            Logger.WriteBlock(ex);
+                            Logger.AddItem(new LogItem(ex) {Object = this});
                         }
                     }
 
@@ -185,7 +184,7 @@ namespace SFXUtility.Features.Trackers
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -226,7 +225,7 @@ namespace SFXUtility.Features.Trackers
                                 }
                                 catch (Exception ex)
                                 {
-                                    logger.WriteBlock(ex);
+                                    logger.AddItem(new LogItem(ex) {Object = this});
                                     return false;
                                 }
                             },
@@ -248,7 +247,7 @@ namespace SFXUtility.Features.Trackers
                                 }
                                 catch (Exception ex)
                                 {
-                                    logger.WriteBlock(ex);
+                                    logger.AddItem(new LogItem(ex) {Object = this});
                                     return default(Vector2);
                                 }
                             }
@@ -264,7 +263,7 @@ namespace SFXUtility.Features.Trackers
                                 }
                                 catch (Exception ex)
                                 {
-                                    logger.WriteBlock(ex);
+                                    logger.AddItem(new LogItem(ex) {Object = this});
                                     return false;
                                 }
                             },
@@ -278,7 +277,7 @@ namespace SFXUtility.Features.Trackers
                                 }
                                 catch (Exception ex)
                                 {
-                                    logger.WriteBlock(ex);
+                                    logger.AddItem(new LogItem(ex) {Object = this});
                                     return default(Vector2);
                                 }
                             }
@@ -286,7 +285,7 @@ namespace SFXUtility.Features.Trackers
                 }
                 catch (Exception ex)
                 {
-                    logger.WriteBlock(ex);
+                    logger.AddItem(new LogItem(ex) {Object = this});
                 }
             }
 

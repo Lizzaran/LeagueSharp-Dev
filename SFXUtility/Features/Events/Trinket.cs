@@ -35,6 +35,7 @@ namespace SFXUtility.Features.Events
     using SFXLibrary.Extensions.LeagueSharp;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
+    using SFXLibrary.Logger;
 
     #endregion
 
@@ -44,7 +45,8 @@ namespace SFXUtility.Features.Events
         private Events _events;
         private float _lastCheck = Environment.TickCount;
 
-        public Trinket(IContainer container) : base(container)
+        public Trinket(IContainer container)
+            : base(container)
         {
             CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
@@ -66,8 +68,6 @@ namespace SFXUtility.Features.Events
         {
             try
             {
-                Logger.Prefix = string.Format("{0} - {1}", BaseName, Name);
-
                 if (IoC.IsRegistered<Events>() && IoC.Resolve<Events>().Initialized)
                 {
                     EventsLoaded(IoC.Resolve<Others>());
@@ -82,7 +82,7 @@ namespace SFXUtility.Features.Events
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -171,7 +171,7 @@ namespace SFXUtility.Features.Events
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -298,7 +298,7 @@ namespace SFXUtility.Features.Events
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -321,7 +321,7 @@ namespace SFXUtility.Features.Events
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 

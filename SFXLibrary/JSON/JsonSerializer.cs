@@ -33,7 +33,6 @@ namespace SFXLibrary.JSON
     using System.Globalization;
     using System.IO;
     using System.Text;
-    using LeagueSharp;
 
     #endregion
 

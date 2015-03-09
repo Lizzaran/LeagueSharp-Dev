@@ -32,6 +32,7 @@ namespace SFXUtility.Features.Activators
     using LeagueSharp.Common;
     using SFXLibrary;
     using SFXLibrary.IoCContainer;
+    using SFXLibrary.Logger;
 
     #endregion
 
@@ -67,7 +68,8 @@ namespace SFXUtility.Features.Activators
             }
         };
 
-        public Potion(IContainer container) : base(container)
+        public Potion(IContainer container)
+            : base(container)
         {
             CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
@@ -122,7 +124,7 @@ namespace SFXUtility.Features.Activators
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -146,8 +148,6 @@ namespace SFXUtility.Features.Activators
         {
             try
             {
-                Logger.Prefix = string.Format("{0} - {1}", BaseName, Name);
-
                 if (IoC.IsRegistered<Activators>() && IoC.Resolve<Activators>().Initialized)
                 {
                     ActivatorsLoaded(IoC.Resolve<Activators>());
@@ -162,7 +162,7 @@ namespace SFXUtility.Features.Activators
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -197,7 +197,7 @@ namespace SFXUtility.Features.Activators
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 

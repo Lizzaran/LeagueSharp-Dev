@@ -32,6 +32,7 @@ namespace SFXUtility.Features.Drawings
     using LeagueSharp.Common;
     using SFXLibrary;
     using SFXLibrary.IoCContainer;
+    using SFXLibrary.Logger;
     using SharpDX;
     using Color = System.Drawing.Color;
 
@@ -42,7 +43,8 @@ namespace SFXUtility.Features.Drawings
         private Drawings _drawings;
         private List<Obj_AI_Minion> _minions = new List<Obj_AI_Minion>();
 
-        public LasthitMarker(IContainer container) : base(container)
+        public LasthitMarker(IContainer container)
+            : base(container)
         {
             CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
@@ -111,7 +113,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -168,7 +170,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -176,8 +178,6 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                Logger.Prefix = string.Format("{0} - {1}", BaseName, Name);
-
                 if (IoC.IsRegistered<Drawings>() && IoC.Resolve<Drawings>().Initialized)
                 {
                     DrawingsLoaded(IoC.Resolve<Drawings>());
@@ -192,7 +192,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -213,7 +213,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
     }

@@ -32,6 +32,7 @@ namespace SFXUtility.Features.Drawings
     using LeagueSharp.Common;
     using SFXLibrary;
     using SFXLibrary.IoCContainer;
+    using SFXLibrary.Logger;
     using Draw = SFXLibrary.Draw;
 
     #endregion
@@ -40,7 +41,8 @@ namespace SFXUtility.Features.Drawings
     {
         private Drawings _drawings;
 
-        public Health(IContainer container) : base(container)
+        public Health(IContainer container)
+            : base(container)
         {
             CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
@@ -89,7 +91,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -128,7 +130,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -136,8 +138,6 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                Logger.Prefix = string.Format("{0} - {1}", BaseName, Name);
-
                 if (IoC.IsRegistered<Drawings>() && IoC.Resolve<Drawings>().Initialized)
                 {
                     DrawingsLoaded(IoC.Resolve<Drawings>());
@@ -152,7 +152,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 

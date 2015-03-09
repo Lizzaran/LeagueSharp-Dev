@@ -29,6 +29,7 @@ namespace SFXUtility.Features.Drawings
     using LeagueSharp.Common;
     using SFXLibrary;
     using SFXLibrary.IoCContainer;
+    using SFXLibrary.Logger;
 
     // TODO: Option for percentage
 
@@ -36,7 +37,8 @@ namespace SFXUtility.Features.Drawings
 
     internal class Drawings : Base
     {
-        public Drawings(IContainer container) : base(container)
+        public Drawings(IContainer container)
+            : base(container)
         {
             CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
@@ -55,8 +57,6 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                Logger.Prefix = string.Format("{0} - {1}", BaseName, Name);
-
                 Menu = new Menu(Name, Name);
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(true));
@@ -72,7 +72,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
     }

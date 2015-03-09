@@ -30,6 +30,7 @@ namespace SFXUtility
     using Classes;
     using SFXLibrary;
     using SFXLibrary.IoCContainer;
+    using SFXLibrary.JSON;
     using SFXLibrary.Logger;
 
     #endregion
@@ -40,7 +41,11 @@ namespace SFXUtility
         private static void Main(string[] args)
         {
             var container = new Container();
-            container.Register<ILogger, ConsoleLogger>();
+
+            container.Register(typeof (ILogger),
+                () =>
+                    Activator.CreateInstance(typeof (ExceptionLogger), AppDomain.CurrentDomain.BaseDirectory,
+                        "{1}_{0}.txt", new JSONParameters {FilterSensitiveData = true}, LogLevel.High));
 
             AppDomain.CurrentDomain.UnhandledException +=
                 delegate(object sender, UnhandledExceptionEventArgs eventArgs)
@@ -48,7 +53,7 @@ namespace SFXUtility
                     var ex = sender as Exception ??
                              new NotSupportedException("Unhandled exception doesn't derive from System.Exception: " +
                                                        sender);
-                    container.Resolve<ILogger>().WriteBlock(ex);
+                    container.Resolve<ILogger>().AddItem(new LogItem(ex));
                 };
 
             container.Register<Mediator, Mediator>(true);
@@ -71,7 +76,7 @@ namespace SFXUtility
                 }
                 catch (Exception ex)
                 {
-                    container.Resolve<ILogger>().WriteBlock(ex);
+                    container.Resolve<ILogger>().AddItem(new LogItem(ex));
                 }
             }
         }

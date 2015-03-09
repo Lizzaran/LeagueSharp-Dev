@@ -32,6 +32,7 @@ namespace SFXUtility.Features.Drawings
     using SFXLibrary;
     using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.IoCContainer;
+    using SFXLibrary.Logger;
 
     #endregion
 
@@ -41,7 +42,8 @@ namespace SFXUtility.Features.Drawings
         private const float TurretRange = 900f;
         private Drawings _drawings;
 
-        public Range(IContainer container) : base(container)
+        public Range(IContainer container)
+            : base(container)
         {
             CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
@@ -239,7 +241,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -326,7 +328,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -334,8 +336,6 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                Logger.Prefix = string.Format("{0} - {1}", BaseName, Name);
-
                 if (IoC.IsRegistered<Drawings>() && IoC.Resolve<Drawings>().Initialized)
                 {
                     DrawingsLoaded(IoC.Resolve<Drawings>());
@@ -350,7 +350,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
     }

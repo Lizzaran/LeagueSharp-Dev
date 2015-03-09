@@ -29,12 +29,14 @@ namespace SFXUtility.Features.Detectors
     using LeagueSharp.Common;
     using SFXLibrary;
     using SFXLibrary.IoCContainer;
+    using SFXLibrary.Logger;
 
     #endregion
 
     internal class Detectors : Base
     {
-        public Detectors(IContainer container) : base(container)
+        public Detectors(IContainer container)
+            : base(container)
         {
             CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
@@ -53,8 +55,6 @@ namespace SFXUtility.Features.Detectors
         {
             try
             {
-                Logger.Prefix = string.Format("{0} - {1}", BaseName, Name);
-
                 Menu = new Menu(Name, Name);
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(true));
@@ -70,7 +70,7 @@ namespace SFXUtility.Features.Detectors
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
     }

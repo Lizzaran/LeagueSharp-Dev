@@ -33,6 +33,7 @@ namespace SFXUtility.Features.Trackers
     using SFXLibrary;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
+    using SFXLibrary.Logger;
 
     #endregion
 
@@ -41,7 +42,8 @@ namespace SFXUtility.Features.Trackers
         private readonly string[] _cloneHeroes = {"Shaco", "LeBlanc", "MonkeyKing", "Yorick"};
         private Trackers _trackers;
 
-        public Clone(IContainer container) : base(container)
+        public Clone(IContainer container)
+            : base(container)
         {
             CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
@@ -84,7 +86,7 @@ namespace SFXUtility.Features.Trackers
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -92,8 +94,6 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                Logger.Prefix = string.Format("{0} - {1}", BaseName, Name);
-
                 if (IoC.IsRegistered<Trackers>() && IoC.Resolve<Trackers>().Initialized)
                 {
                     TrackersLoaded(IoC.Resolve<Trackers>());
@@ -108,7 +108,7 @@ namespace SFXUtility.Features.Trackers
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -178,7 +178,7 @@ namespace SFXUtility.Features.Trackers
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
     }

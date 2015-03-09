@@ -22,23 +22,44 @@
 
 namespace SFXLibrary.Logger
 {
+    #region
+
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel;
+
+    #endregion
 
     #region
 
     #endregion
 
-    public interface ILogger<in T>
+    public interface ILogger
     {
-        void AddItem(T item);
-
         LogLevel LogLevel { get; set; }
+        void AddItem(LogItem item);
     }
 
+    [DefaultValue(High)]
     public enum LogLevel
     {
-        High,
-        Medium,
-        Low,
-        None
+        None = 0,
+        Low = 1,
+        Medium = 2,
+        High = 3
+    }
+
+    public class LogItem
+    {
+        public readonly string Exception;
+        public Dictionary<string, string> AdditionalInformation;
+
+        public LogItem(Exception exception)
+        {
+            if (exception != null)
+                Exception = exception.ToString();
+        }
+
+        public object Object { get; set; }
     }
 }

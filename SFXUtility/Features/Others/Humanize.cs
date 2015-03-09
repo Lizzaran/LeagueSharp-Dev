@@ -31,6 +31,7 @@ namespace SFXUtility.Features.Others
     using LeagueSharp.Common;
     using SFXLibrary;
     using SFXLibrary.IoCContainer;
+    using SFXLibrary.Logger;
 
     #endregion
 
@@ -40,7 +41,8 @@ namespace SFXUtility.Features.Others
         private float _lastMovement;
         private Others _others;
 
-        public Humanize(IContainer container) : base(container)
+        public Humanize(IContainer container)
+            : base(container)
         {
             CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
@@ -62,8 +64,6 @@ namespace SFXUtility.Features.Others
         {
             try
             {
-                Logger.Prefix = string.Format("{0} - {1}", BaseName, Name);
-
                 if (IoC.IsRegistered<Others>() && IoC.Resolve<Others>().Initialized)
                 {
                     OthersLoaded(IoC.Resolve<Others>());
@@ -78,7 +78,7 @@ namespace SFXUtility.Features.Others
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -112,7 +112,7 @@ namespace SFXUtility.Features.Others
             }
             catch (Exception ex)
             {
-                Logger.WriteBlock(ex);
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 

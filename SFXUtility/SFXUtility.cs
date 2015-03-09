@@ -47,8 +47,6 @@ namespace SFXUtility
             {
                 _logger = container.Resolve<ILogger>();
 
-                _logger.Prefix = string.Format(Name);
-
                 Menu = new Menu(Name, Name, true);
 
                 var infoMenu = new Menu("Info", Name + "Info");
@@ -67,7 +65,7 @@ namespace SFXUtility
             }
             catch (Exception ex)
             {
-                _logger.WriteBlock(ex);
+                _logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -94,7 +92,7 @@ namespace SFXUtility
             }
             catch (Exception ex)
             {
-                _logger.WriteBlock(ex);
+                _logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -106,7 +104,7 @@ namespace SFXUtility
             }
             catch (Exception ex)
             {
-                _logger.WriteBlock(ex);
+                _logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -119,7 +117,7 @@ namespace SFXUtility
             }
             catch (Exception ex)
             {
-                _logger.WriteBlock(ex);
+                _logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
     }
