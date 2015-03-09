@@ -38,10 +38,6 @@ namespace SFXLibrary.Extensions.SharpDX
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Common;
-    using Common;
-    using Common;
-    using Common;
 
     #endregion
 

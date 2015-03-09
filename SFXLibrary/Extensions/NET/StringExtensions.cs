@@ -27,6 +27,7 @@ namespace SFXLibrary.Extensions.NET
     using System;
     using System.Globalization;
     using System.IO;
+    using System.Linq;
     using System.Security.Cryptography;
     using System.Text;
     using System.Xml;
@@ -92,6 +93,9 @@ namespace SFXLibrary.Extensions.NET
 
         public static bool? ToBoolean(this string value)
         {
+            if (string.IsNullOrWhiteSpace(value))
+                return null;
+
             if (String.Compare("T", value, StringComparison.OrdinalIgnoreCase) == 0)
             {
                 return true;
@@ -108,23 +112,18 @@ namespace SFXLibrary.Extensions.NET
             return null;
         }
 
-        public static string Truncate(this string text, int maxLength, string suffix = "...")
+        public static string Truncate(this string value, int maxLength, string suffix = "...")
         {
-            var truncatedString = text;
-            if (maxLength <= 0)
-            {
-                return truncatedString;
-            }
+            if (string.IsNullOrEmpty(value) || maxLength <= 0 || value.Length <= maxLength)
+                return string.Empty;
+
+            var truncatedString = value;
             var strLength = maxLength - suffix.Length;
             if (strLength <= 0)
             {
                 return truncatedString;
             }
-            if (text == null || text.Length <= maxLength)
-            {
-                return truncatedString;
-            }
-            truncatedString = text.Substring(0, strLength);
+            truncatedString = value.Substring(0, strLength);
             truncatedString = truncatedString.TrimEnd();
             truncatedString += suffix;
             return truncatedString;
@@ -140,49 +139,66 @@ namespace SFXLibrary.Extensions.NET
             return value != null && value.Length > length ? value.Substring(0, length) : value;
         }
 
-        public static bool IsNumeric(this string theValue)
+        public static bool IsNumeric(this string value)
         {
             long retNum;
-            return long.TryParse(theValue, NumberStyles.Integer, NumberFormatInfo.InvariantInfo, out retNum);
+            return long.TryParse(value, NumberStyles.Integer, NumberFormatInfo.InvariantInfo, out retNum);
         }
 
-        public static string ToMd5Hash(this string value)
+        public static string ToMd5Hash(this string value, bool toLower = true)
         {
-            if (string.IsNullOrEmpty(value))
-            {
-                return value;
-            }
+            if (string.IsNullOrWhiteSpace(value))
+                return string.Empty;
 
             using (MD5 md5 = new MD5CryptoServiceProvider())
             {
                 var originalBytes = Encoding.Default.GetBytes(value);
                 var encodedBytes = md5.ComputeHash(originalBytes);
-                return BitConverter.ToString(encodedBytes).Replace("-", string.Empty);
+                var stripped = BitConverter.ToString(encodedBytes).Replace("-", string.Empty);
+                return toLower ? stripped.ToLower() : stripped;
             }
         }
 
-        public static bool Contains(this string source, string toCheck, StringComparison comp)
+        public static string ToBase64(this string value)
         {
-            return source.IndexOf(toCheck, 0, comp) != -1;
+            return string.IsNullOrWhiteSpace(value) ? string.Empty : Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
         }
 
-        public static bool Contains(this string[] source, string toCheck, StringComparison comp)
+        public static string FromBase64(this string value)
         {
-            try
+            return string.IsNullOrWhiteSpace(value) ? string.Empty : Encoding.UTF8.GetString(Convert.FromBase64String(value));
+        }
+
+        public static bool Contains(this string source, string toCheck, StringComparison comp = StringComparison.OrdinalIgnoreCase)
+        {
+            return !string.IsNullOrEmpty(source) && !string.IsNullOrEmpty(toCheck) && source.IndexOf(toCheck, 0, comp) != -1;
+        }
+
+        /// <exception cref="OverflowException">The array is multidimensional and contains more than <see cref="F:System.Int32.MaxValue" /> elements.</exception>
+        public static bool Contains(this string[] source, string toCheck, StringComparison comp = StringComparison.OrdinalIgnoreCase)
+        {
+            if (source.IsNullOrEmpty() || string.IsNullOrEmpty(toCheck))
+                return false;
+
+            for (int i = 0, l = source.Length; l > i; i++)
             {
-                for (int i = 0, l = source.Length; l > i; i++)
+                if (source[i].IndexOf(toCheck, 0, comp) != -1)
                 {
-                    if (source[i].IndexOf(toCheck, 0, comp) != -1)
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
-            catch (OverflowException)
-            {
-                return false;
-            }
+
             return false;
+        }
+
+        public static string Replace(this string value, string[] search, string replace)
+        {
+            return string.IsNullOrEmpty(value) || search.IsNullOrEmpty() ? value : search.Aggregate(value, (current, s) => current.Replace(s, replace));
+        }
+
+        public static bool IsNullOrEmpty(this string[] value)
+        {
+            return value == null || value.Length > 0;
         }
     }
 }

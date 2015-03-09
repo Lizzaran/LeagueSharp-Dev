@@ -35,12 +35,12 @@ namespace SFXLibrary.Extensions.LeagueSharp
     {
         public static bool HasItem(this Obj_AI_Hero hero, int id)
         {
-            return Items.HasItem(id, hero);
+            return hero != null && Items.HasItem(id, hero);
         }
 
         public static bool HasItem(this Obj_AI_Hero hero, ItemId item)
         {
-            return Items.HasItem((int) item, hero);
+            return hero != null && Items.HasItem((int) item, hero);
         }
     }
 }

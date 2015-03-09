@@ -22,17 +22,23 @@
 
 namespace SFXLibrary.Logger
 {
-    #region
 
-    using System;
+    #region
 
     #endregion
 
-    public interface ILogger
+    public interface ILogger<in T>
     {
-        string Prefix { get; set; }
-        void Write(Exception ex);
-        void WriteBlock(Exception ex);
-        void WriteLine(Exception ex);
+        void AddItem(T item);
+
+        LogLevel LogLevel { get; set; }
+    }
+
+    public enum LogLevel
+    {
+        High,
+        Medium,
+        Low,
+        None
     }
 }

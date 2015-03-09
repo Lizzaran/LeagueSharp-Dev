@@ -38,11 +38,13 @@
     <Reference Include="LeagueSharp.Common">
       <HintPath>G:\LeagueSharp\System\LeagueSharp.Common.dll</HintPath>
     </Reference>
+    <Reference Include="PresentationCore" />
     <Reference Include="SharpDX">
       <HintPath>G:\LeagueSharp\System\SharpDX.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -60,10 +62,15 @@
     <Compile Include="IoCContainer\Container.cs" />
     <Compile Include="IoCContainer\IContainer.cs" />
     <Compile Include="IoCContainer\MappingKey.cs" />
-    <Compile Include="Logger\ConsoleLogger.cs" />
+    <Compile Include="JSON\Formatter.cs" />
+    <Compile Include="JSON\Getters.cs" />
+    <Compile Include="JSON\JSON.cs" />
+    <Compile Include="JSON\JsonSerializer.cs" />
+    <Compile Include="JSON\Reflection.cs" />
+    <Compile Include="JSON\SafeDictionary.cs" />
     <Compile Include="Logger\ILogger.cs" />
-    <Compile Include="Logger\ReportLogger.cs" />
-    <Compile Include="Logger\UselessLogger.cs" />
+    <Compile Include="ProducerConsumer.cs" />
+    <Compile Include="Logger\ExceptionLogger.cs" />
     <Compile Include="Mediator.cs" />
     <Compile Include="MessageToActionsMap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

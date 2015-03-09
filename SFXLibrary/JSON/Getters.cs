@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- UselessLogger.cs is part of SFXLibrary.
+ Getters.cs is part of SFXLibrary.
 
  SFXLibrary is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,28 +20,17 @@
 
 #endregion License
 
-namespace SFXLibrary.Logger
+namespace SFXLibrary.JSON
 {
     #region
 
-    using System;
+    using System.Collections.Generic;
 
     #endregion
 
-    public class UselessLogger : ILogger
+    public sealed class DatasetSchema
     {
-        public string Prefix { get; set; }
-
-        public void Write(Exception ex)
-        {
-        }
-
-        public void WriteBlock(Exception ex)
-        {
-        }
-
-        public void WriteLine(Exception ex)
-        {
-        }
+        public List<string> Info;
+        public string Name;
     }
 }

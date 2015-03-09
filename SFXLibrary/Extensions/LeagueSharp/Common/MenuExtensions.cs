@@ -39,6 +39,8 @@ namespace SFXLibrary.Extensions.LeagueSharp.Common
     {
         public static void AddItems(this Menu menu, List<MenuItem> menuItems)
         {
+            if (menu == null || menuItems == null)
+                return;
             foreach (var menuItem in menuItems)
             {
                 menu.AddItem(menuItem);
