@@ -22,13 +22,6 @@
 
 namespace SFXUtility.Features.Activators
 {
-
-    #region
-
-    // TODO: Rewrite like Meta Smite
-
-    #endregion
-
     internal class Smite
     {
     }

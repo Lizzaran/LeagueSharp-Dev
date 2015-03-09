@@ -25,7 +25,9 @@ namespace SFXUtility.Features.Drawings
     #region
 
     using System;
+    using System.Collections.Generic;
     using System.Drawing;
+    using System.Linq;
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
@@ -41,6 +43,8 @@ namespace SFXUtility.Features.Drawings
         private const float ExperienceRange = 1400f;
         private const float TurretRange = 900f;
         private Drawings _drawings;
+        private List<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
+        private List<Obj_AI_Turret> _turrets = new List<Obj_AI_Turret>();
 
         public Range(IContainer container)
             : base(container)
@@ -74,21 +78,15 @@ namespace SFXUtility.Features.Drawings
             var color = Menu.Item(Name + "AttackColor").GetValue<Color>();
             var circleThickness = BaseMenu.Item("MiscCircleThickness").GetValue<Slider>().Value;
 
-            var distanceLimitEnabled = Menu.Item(Name + "DistanceEnabled").GetValue<bool>();
-            var distanceLimit = Menu.Item(Name + "DistanceLimit").GetValue<Slider>().Value;
-
-            foreach (var hero in ObjectManager.Get<Obj_AI_Hero>())
+            foreach (var hero in _heroes)
             {
                 var radius = hero.BoundingRadius + hero.AttackRange;
-                if (hero.IsValid && !hero.IsDead && hero.IsVisible && hero.Position.IsOnScreen(radius))
+                if (!hero.IsDead && hero.IsVisible)
                 {
                     if ((hero.IsAlly && drawFriendly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) &&
-                        !(hero.IsMe && !drawSelf))
+                        !(hero.IsMe && !drawSelf) && hero.Position.IsOnScreen(radius))
                     {
-                        if (!distanceLimitEnabled || hero.Distance(ObjectManager.Player.Position) <= distanceLimit)
-                        {
-                            Render.Circle.DrawCircle(hero.Position, radius, color, circleThickness);
-                        }
+                        Render.Circle.DrawCircle(hero.Position, radius, color, circleThickness);
                     }
                 }
             }
@@ -106,20 +104,14 @@ namespace SFXUtility.Features.Drawings
             var color = Menu.Item(Name + "ExperienceColor").GetValue<Color>();
             var circleThickness = BaseMenu.Item("MiscCircleThickness").GetValue<Slider>().Value;
 
-            var distanceLimitEnabled = Menu.Item(Name + "DistanceEnabled").GetValue<bool>();
-            var distanceLimit = Menu.Item(Name + "DistanceLimit").GetValue<Slider>().Value;
-
-            foreach (var hero in ObjectManager.Get<Obj_AI_Hero>())
+            foreach (var hero in _heroes)
             {
-                if (hero.IsValid && !hero.IsDead && hero.IsVisible && hero.Position.IsOnScreen(ExperienceRange))
+                if (!hero.IsDead && hero.IsVisible)
                 {
                     if ((hero.IsAlly && drawFriendly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) &&
-                        !(hero.IsMe && !drawSelf))
+                        !(hero.IsMe && !drawSelf) && hero.Position.IsOnScreen(ExperienceRange))
                     {
-                        if (!distanceLimitEnabled || hero.Distance(ObjectManager.Player.Position) <= distanceLimit)
-                        {
-                            Render.Circle.DrawCircle(hero.Position, ExperienceRange, color, circleThickness);
-                        }
+                        Render.Circle.DrawCircle(hero.Position, ExperienceRange, color, circleThickness);
                     }
                 }
             }
@@ -150,48 +142,42 @@ namespace SFXUtility.Features.Drawings
 
             var circleThickness = BaseMenu.Item("MiscCircleThickness").GetValue<Slider>().Value;
 
-            var distanceLimitEnabled = Menu.Item(Name + "DistanceEnabled").GetValue<bool>();
-            var distanceLimit = Menu.Item(Name + "DistanceLimit").GetValue<Slider>().Value;
-
             var spellMaxRange = Menu.Item(Name + "SpellMaxRange").GetValue<Slider>().Value;
 
-            foreach (var hero in ObjectManager.Get<Obj_AI_Hero>())
+            foreach (var hero in _heroes)
             {
-                if (hero.IsValid && !hero.IsDead && hero.IsVisible)
+                if (!hero.IsDead && hero.IsVisible)
                 {
-                    if (!distanceLimitEnabled || hero.Distance(ObjectManager.Player.Position) <= distanceLimit)
+                    var color =
+                        Menu.Item(Name + "Spell" + (hero.IsMe ? "Self" : (hero.IsEnemy ? "Enemy" : "Friendly")) +
+                                  "Color").GetValue<Color>();
+                    if ((hero.IsAlly && drawFriendlyQ || hero.IsEnemy && drawEnemyQ || hero.IsMe && drawSelfQ) &&
+                        !(hero.IsMe && !drawSelfQ))
                     {
-                        var color =
-                            Menu.Item(Name + "Spell" + (hero.IsMe ? "Self" : (hero.IsEnemy ? "Enemy" : "Friendly")) +
-                                      "Color").GetValue<Color>();
-                        if ((hero.IsAlly && drawFriendlyQ || hero.IsEnemy && drawEnemyQ || hero.IsMe && drawSelfQ) &&
-                            !(hero.IsMe && !drawSelfQ))
-                        {
-                            var range = hero.Spellbook.GetSpell(SpellSlot.Q).SData.CastRange[0];
-                            if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                                Render.Circle.DrawCircle(hero.Position, range, color, circleThickness);
-                        }
-                        if ((hero.IsAlly && drawFriendlyW || hero.IsEnemy && drawEnemyW || hero.IsMe && drawSelfW) &&
-                            !(hero.IsMe && !drawSelfW))
-                        {
-                            var range = hero.Spellbook.GetSpell(SpellSlot.W).SData.CastRange[0];
-                            if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                                Render.Circle.DrawCircle(hero.Position, range, color, circleThickness);
-                        }
-                        if ((hero.IsAlly && drawFriendlyE || hero.IsEnemy && drawEnemyE || hero.IsMe && drawSelfE) &&
-                            !(hero.IsMe && !drawSelfE))
-                        {
-                            var range = hero.Spellbook.GetSpell(SpellSlot.E).SData.CastRange[0];
-                            if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                                Render.Circle.DrawCircle(hero.Position, range, color, circleThickness);
-                        }
-                        if ((hero.IsAlly && drawFriendlyR || hero.IsEnemy && drawEnemyR || hero.IsMe && drawSelfR) &&
-                            !(hero.IsMe && !drawSelfR))
-                        {
-                            var range = hero.Spellbook.GetSpell(SpellSlot.R).SData.CastRange[0];
-                            if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                                Render.Circle.DrawCircle(hero.Position, range, color, circleThickness);
-                        }
+                        var range = hero.Spellbook.GetSpell(SpellSlot.Q).SData.CastRange[0];
+                        if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
+                            Render.Circle.DrawCircle(hero.Position, range, color, circleThickness);
+                    }
+                    if ((hero.IsAlly && drawFriendlyW || hero.IsEnemy && drawEnemyW || hero.IsMe && drawSelfW) &&
+                        !(hero.IsMe && !drawSelfW))
+                    {
+                        var range = hero.Spellbook.GetSpell(SpellSlot.W).SData.CastRange[0];
+                        if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
+                            Render.Circle.DrawCircle(hero.Position, range, color, circleThickness);
+                    }
+                    if ((hero.IsAlly && drawFriendlyE || hero.IsEnemy && drawEnemyE || hero.IsMe && drawSelfE) &&
+                        !(hero.IsMe && !drawSelfE))
+                    {
+                        var range = hero.Spellbook.GetSpell(SpellSlot.E).SData.CastRange[0];
+                        if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
+                            Render.Circle.DrawCircle(hero.Position, range, color, circleThickness);
+                    }
+                    if ((hero.IsAlly && drawFriendlyR || hero.IsEnemy && drawEnemyR || hero.IsMe && drawSelfR) &&
+                        !(hero.IsMe && !drawSelfR))
+                    {
+                        var range = hero.Spellbook.GetSpell(SpellSlot.R).SData.CastRange[0];
+                        if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
+                            Render.Circle.DrawCircle(hero.Position, range, color, circleThickness);
                     }
                 }
             }
@@ -207,21 +193,16 @@ namespace SFXUtility.Features.Drawings
 
             var circleThickness = BaseMenu.Item("MiscCircleThickness").GetValue<Slider>().Value;
 
-            var distanceLimitEnabled = Menu.Item(Name + "DistanceEnabled").GetValue<bool>();
-            var distanceLimit = Menu.Item(Name + "DistanceLimit").GetValue<Slider>().Value;
-
-            foreach (var turret in ObjectManager.Get<Obj_AI_Turret>())
+            foreach (var turret in _turrets)
             {
-                if (turret.IsValid && !turret.IsDead && turret.IsVisible && turret.Position.IsOnScreen(TurretRange))
+                if (!turret.IsDead && turret.IsVisible)
                 {
-                    if (turret.IsAlly && drawFriendly || turret.IsEnemy && drawEnemy)
+                    if (turret.IsAlly && drawFriendly ||
+                        turret.IsEnemy && drawEnemy && turret.Position.IsOnScreen(TurretRange))
                     {
-                        if (!distanceLimitEnabled || turret.Distance(ObjectManager.Player.Position) <= distanceLimit)
-                        {
-                            Render.Circle.DrawCircle(turret.Position, TurretRange,
-                                Menu.Item(Name + "Turret" + (turret.IsAlly ? "Friendly" : "Enemy") + "Color")
-                                    .GetValue<Color>(), circleThickness);
-                        }
+                        Render.Circle.DrawCircle(turret.Position, TurretRange,
+                            Menu.Item(Name + "Turret" + (turret.IsAlly ? "Friendly" : "Enemy") + "Color")
+                                .GetValue<Color>(), circleThickness);
                     }
                 }
             }
@@ -231,9 +212,6 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                if (!Enabled)
-                    return;
-
                 DrawExperience();
                 DrawAttack();
                 DrawTurret();
@@ -306,22 +284,54 @@ namespace SFXUtility.Features.Drawings
 
                     spellMenu.AddSubMenu(spellEnemyMenu);
 
-                    var distanceMenu = new Menu("Distance", Name + "Distance");
-                    distanceMenu.AddItem(new MenuItem(Name + "DistanceEnabled", "Limit by Distance").SetValue(true));
-                    distanceMenu.AddItem(
-                        new MenuItem(Name + "DistanceLimit", "Distance Limit").SetValue(new Slider(1500, 500, 3000)));
-
                     Menu.AddSubMenu(experienceMenu);
                     Menu.AddSubMenu(attackMenu);
                     Menu.AddSubMenu(turretMenu);
                     Menu.AddSubMenu(spellMenu);
-                    Menu.AddSubMenu(distanceMenu);
 
                     Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                     _drawings.Menu.AddSubMenu(Menu);
 
-                    Drawing.OnDraw += OnDraw;
+                    _drawings.Menu.Item(_drawings.Name + "Enabled").ValueChanged +=
+                        delegate(object sender, OnValueChangeEventArgs args)
+                        {
+                            if (args.GetNewValue<bool>())
+                            {
+                                if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
+                                {
+                                    Drawing.OnDraw += OnDraw;
+                                }
+                            }
+                            else
+                            {
+                                Drawing.OnDraw -= OnDraw;
+                            }
+                        };
+
+                    Menu.Item(Name + "Enabled").ValueChanged +=
+                        delegate(object sender, OnValueChangeEventArgs args)
+                        {
+                            if (args.GetNewValue<bool>())
+                            {
+                                if (_drawings != null && _drawings.Enabled)
+                                {
+                                    Drawing.OnDraw += OnDraw;
+                                }
+                            }
+                            else
+                            {
+                                Drawing.OnDraw -= OnDraw;
+                            }
+                        };
+
+                    if (Enabled)
+                    {
+                        Drawing.OnDraw += OnDraw;
+                    }
+
+                    _turrets = ObjectManager.Get<Obj_AI_Turret>().Where(turret => turret.IsValid).ToList();
+                    _heroes = ObjectManager.Get<Obj_AI_Hero>().Where(hero => hero.IsValid).ToList();
 
                     Initialized = true;
                 }

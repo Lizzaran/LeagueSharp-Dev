@@ -33,7 +33,6 @@ namespace SFXUtility.Features.Drawings
     using SFXLibrary;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
-    using Draw = SFXLibrary.Draw;
 
     #endregion
 
@@ -83,9 +82,6 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                if (!Enabled)
-                    return;
-
                 InhibitorHealth();
                 TurretHealth();
             }
@@ -123,7 +119,42 @@ namespace SFXUtility.Features.Drawings
 
                     _drawings.Menu.AddSubMenu(Menu);
 
-                    Drawing.OnDraw += OnDraw;
+                    _drawings.Menu.Item(_drawings.Name + "Enabled").ValueChanged +=
+                        delegate(object sender, OnValueChangeEventArgs args)
+                        {
+                            if (args.GetNewValue<bool>())
+                            {
+                                if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
+                                {
+                                    Drawing.OnDraw += OnDraw;
+                                }
+                            }
+                            else
+                            {
+                                Drawing.OnDraw -= OnDraw;
+                            }
+                        };
+
+                    Menu.Item(Name + "Enabled").ValueChanged +=
+                        delegate(object sender, OnValueChangeEventArgs args)
+                        {
+                            if (args.GetNewValue<bool>())
+                            {
+                                if (_drawings != null && _drawings.Enabled)
+                                {
+                                    Drawing.OnDraw += OnDraw;
+                                }
+                            }
+                            else
+                            {
+                                Drawing.OnDraw -= OnDraw;
+                            }
+                        };
+
+                    if (Enabled)
+                    {
+                        Drawing.OnDraw += OnDraw;
+                    }
 
                     Initialized = true;
                 }

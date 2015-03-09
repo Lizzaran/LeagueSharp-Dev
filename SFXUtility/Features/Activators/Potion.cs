@@ -117,7 +117,42 @@ namespace SFXUtility.Features.Activators
 
                     _activators.Menu.AddSubMenu(Menu);
 
-                    Game.OnGameUpdate += OnGameUpdate;
+                    _activators.Menu.Item(_activators.Name + "Enabled").ValueChanged +=
+                        delegate(object sender, OnValueChangeEventArgs args)
+                        {
+                            if (args.GetNewValue<bool>())
+                            {
+                                if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
+                                {
+                                    Game.OnGameUpdate += OnGameUpdate;
+                                }
+                            }
+                            else
+                            {
+                                Game.OnGameUpdate -= OnGameUpdate;
+                            }
+                        };
+
+                    Menu.Item(Name + "Enabled").ValueChanged +=
+                        delegate(object sender, OnValueChangeEventArgs args)
+                        {
+                            if (args.GetNewValue<bool>())
+                            {
+                                if (_activators != null && _activators.Enabled)
+                                {
+                                    Game.OnGameUpdate += OnGameUpdate;
+                                }
+                            }
+                            else
+                            {
+                                Game.OnGameUpdate -= OnGameUpdate;
+                            }
+                        };
+
+                    if (Enabled)
+                    {
+                        Game.OnGameUpdate += OnGameUpdate;
+                    }
 
                     Initialized = true;
                 }
@@ -170,9 +205,6 @@ namespace SFXUtility.Features.Activators
         {
             try
             {
-                if (!Enabled)
-                    return;
-
                 if (Menu.Item(Name + "HealthPotion").GetValue<bool>())
                 {
                     if (ObjectManager.Player.HealthPercentage() <=

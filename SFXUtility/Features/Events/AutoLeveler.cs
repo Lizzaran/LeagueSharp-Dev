@@ -82,7 +82,7 @@ namespace SFXUtility.Features.Events
             }.OrderBy(x => x.Value).Reverse().First(s => s.Value == priority);
         }
 
-        private IEnumerable<MenuInfo> GetOrderedList()
+        private List<MenuInfo> GetOrderedList()
         {
             return new List<MenuInfo>
             {
@@ -157,7 +157,42 @@ namespace SFXUtility.Features.Events
 
                     _events.Menu.AddSubMenu(Menu);
 
-                    CustomEvents.Unit.OnLevelUp += OnLevelUp;
+                    _events.Menu.Item(_events.Name + "Enabled").ValueChanged +=
+                        delegate(object sender, OnValueChangeEventArgs args)
+                        {
+                            if (args.GetNewValue<bool>())
+                            {
+                                if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
+                                {
+                                    CustomEvents.Unit.OnLevelUp += OnLevelUp;
+                                }
+                            }
+                            else
+                            {
+                                CustomEvents.Unit.OnLevelUp -= OnLevelUp;
+                            }
+                        };
+
+                    Menu.Item(Name + "Enabled").ValueChanged +=
+                        delegate(object sender, OnValueChangeEventArgs args)
+                        {
+                            if (args.GetNewValue<bool>())
+                            {
+                                if (_events != null && _events.Enabled)
+                                {
+                                    CustomEvents.Unit.OnLevelUp += OnLevelUp;
+                                }
+                            }
+                            else
+                            {
+                                CustomEvents.Unit.OnLevelUp -= OnLevelUp;
+                            }
+                        };
+
+                    if (Enabled)
+                    {
+                        CustomEvents.Unit.OnLevelUp += OnLevelUp;
+                    }
 
                     Initialized = true;
                 }
@@ -172,9 +207,6 @@ namespace SFXUtility.Features.Events
         {
             try
             {
-                if (!Enabled)
-                    return;
-
                 if (!sender.IsValid || !sender.IsMe)
                     return;
 

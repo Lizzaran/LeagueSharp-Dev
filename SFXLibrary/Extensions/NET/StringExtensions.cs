@@ -174,7 +174,7 @@ namespace SFXLibrary.Extensions.NET
         }
 
         public static bool Contains(this string source, string toCheck,
-            StringComparison comp = StringComparison.OrdinalIgnoreCase)
+            StringComparison comp = StringComparison.Ordinal)
         {
             return !string.IsNullOrEmpty(source) && !string.IsNullOrEmpty(toCheck) &&
                    source.IndexOf(toCheck, 0, comp) != -1;
@@ -185,7 +185,7 @@ namespace SFXLibrary.Extensions.NET
         ///     <see cref="F:System.Int32.MaxValue" /> elements.
         /// </exception>
         public static bool Contains(this string[] source, string toCheck,
-            StringComparison comp = StringComparison.OrdinalIgnoreCase)
+            StringComparison comp = StringComparison.Ordinal)
         {
             if (source.IsNullOrEmpty() || string.IsNullOrEmpty(toCheck))
                 return false;

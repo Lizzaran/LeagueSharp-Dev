@@ -52,6 +52,7 @@
     <Compile Include="Chat.cs" />
     <Compile Include="Draw.cs" />
     <Compile Include="Extensions\LeagueSharp\Common\MenuExtensions.cs" />
+    <Compile Include="Extensions\NET\FloatExtensions.cs" />
     <Compile Include="Extensions\NET\IntegerExtensions.cs" />
     <Compile Include="Extensions\NET\GenericExtensions.cs" />
     <Compile Include="Extensions\LeagueSharp\Obj_AI_HeroExtensions.cs" />

@@ -42,7 +42,7 @@ namespace SFXUtility.Features.Trackers
 
     internal class Recall : Base
     {
-        private readonly List<RecallObject> _recallObjects = new List<RecallObject>();
+        private List<RecallObject> _recallObjects = new List<RecallObject>();
         private Trackers _trackers;
 
         public Recall(IContainer container)
@@ -69,8 +69,6 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                if (!Enabled)
-                    return;
                 var count = 0;
                 foreach (var recall in _recallObjects)
                 {
@@ -124,23 +122,62 @@ namespace SFXUtility.Features.Trackers
 
                     Menu = new Menu(Name, Name);
 
-                    var eMenuItem = new MenuItem(Name + "Enabled", "Enabled").SetValue(true);
+                    Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(true));
 
-                    eMenuItem.ValueChanged +=
+                    Menu.Item(Name + "Enabled").ValueChanged +=
                         (sender, args) =>
                             IoC.Resolve<Mediator>().NotifyColleagues(Name + "_Enabled", args.GetNewValue<bool>());
 
-                    Menu.AddItem(eMenuItem);
-
                     _trackers.Menu.AddSubMenu(Menu);
 
-                    foreach (var hero in ObjectManager.Get<Obj_AI_Hero>().Where(hero => hero.IsValid && hero.IsEnemy))
+                    _trackers.Menu.Item(_trackers.Name + "Enabled").ValueChanged +=
+                        delegate(object sender, OnValueChangeEventArgs args)
+                        {
+                            if (args.GetNewValue<bool>())
+                            {
+                                if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
+                                {
+                                    Obj_AI_Base.OnTeleport += OnObjAiBaseOnTeleport;
+                                    Drawing.OnDraw += OnDraw;
+                                }
+                            }
+                            else
+                            {
+                                Obj_AI_Base.OnTeleport -= OnObjAiBaseOnTeleport;
+                                Drawing.OnDraw -= OnDraw;
+                            }
+                        };
+
+                    Menu.Item(Name + "Enabled").ValueChanged +=
+                        delegate(object sender, OnValueChangeEventArgs args)
+                        {
+                            if (args.GetNewValue<bool>())
+                            {
+                                if (_trackers != null && _trackers.Menu != null &&
+                                    _trackers.Menu.Item(_trackers.Name + "Enabled").GetValue<bool>())
+                                {
+                                    Obj_AI_Base.OnTeleport += OnObjAiBaseOnTeleport;
+                                    Drawing.OnDraw += OnDraw;
+                                }
+                            }
+                            else
+                            {
+                                Obj_AI_Base.OnTeleport -= OnObjAiBaseOnTeleport;
+                                Drawing.OnDraw -= OnDraw;
+                            }
+                        };
+
+                    if (Enabled)
                     {
-                        _recallObjects.Add(new RecallObject(hero));
+                        Obj_AI_Base.OnTeleport += OnObjAiBaseOnTeleport;
+                        Drawing.OnDraw += OnDraw;
                     }
 
-                    Obj_AI_Base.OnTeleport += OnObjAiBaseOnTeleport;
-                    Drawing.OnDraw += OnDraw;
+                    _recallObjects =
+                        ObjectManager.Get<Obj_AI_Hero>()
+                            .Where(hero => hero.IsValid && hero.IsEnemy)
+                            .Select(hero => new RecallObject(hero))
+                            .ToList();
 
                     IoC.Resolve<Mediator>().NotifyColleagues(Name + "_Enabled", Menu.Item(Name + "Enabled"));
 
@@ -157,9 +194,6 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                if (!Enabled)
-                    return;
-
                 var packet = Packet.S2C.Teleport.Decoded(sender, args);
                 var recall = _recallObjects.FirstOrDefault(r => r.Hero.NetworkId == packet.UnitNetworkId);
                 if (!Equals(recall, default(RecallObject)))

@@ -36,7 +36,6 @@ namespace SFXUtility
 
     internal class SFXUtility
     {
-        // TODO: Maybe comment some complexer stuff
         // TODO: Option for time to display as ss / mm:ss
 
         private readonly ILogger _logger;

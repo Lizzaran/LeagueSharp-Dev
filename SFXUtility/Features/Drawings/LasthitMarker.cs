@@ -54,9 +54,7 @@ namespace SFXUtility.Features.Drawings
             get
             {
                 return _drawings != null && _drawings.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>() &&
-                       (Menu.Item(Name + "DrawingHpBarEnabled").GetValue<bool>() ||
-                        Menu.Item(Name + "DrawingCircleEnabled").GetValue<bool>());
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
             }
         }
 
@@ -69,9 +67,6 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                if (!Enabled)
-                    return;
-
                 if (_minions.Count > 0)
                 {
                     var circleColor = Menu.Item(Name + "DrawingCircleColor").GetValue<Color>();
@@ -87,26 +82,23 @@ namespace SFXUtility.Features.Drawings
                     {
                         var aaDamage = ObjectManager.Player.GetAutoAttackDamage(minion, true);
                         var killable = minion.Health <= aaDamage;
-                        if (minion.Position.IsOnScreen())
+                        if (hpBar && minion.IsHPBarRendered)
                         {
-                            if (hpBar && minion.IsHPBarRendered)
-                            {
-                                var barPos = minion.HPBarPosition;
-                                var offset = 62/(minion.MaxHealth/aaDamage);
-                                offset = offset > 62 ? 62 : offset;
-                                var tmpThk = (int) (62 - offset);
-                                hpLinesThickness = tmpThk > hpLinesThickness
-                                    ? hpLinesThickness
-                                    : (tmpThk == 0 ? 1 : tmpThk);
-                                Drawing.DrawLine(new Vector2(barPos.X + 45 + (float) offset, barPos.Y + 18),
-                                    new Vector2(barPos.X + 45 + (float) offset, barPos.Y + 23), hpLinesThickness,
-                                    killable ? hpKillableColor : hpUnkillableColor);
-                            }
-                            if (circle && killable)
-                            {
-                                Render.Circle.DrawCircle(minion.Position, minion.BoundingRadius + radius, circleColor,
-                                    circleThickness);
-                            }
+                            var barPos = minion.HPBarPosition;
+                            var offset = 62/(minion.MaxHealth/aaDamage);
+                            offset = offset > 62 ? 62 : offset;
+                            var tmpThk = (int) (62 - offset);
+                            hpLinesThickness = tmpThk > hpLinesThickness
+                                ? hpLinesThickness
+                                : (tmpThk == 0 ? 1 : tmpThk);
+                            Drawing.DrawLine(new Vector2(barPos.X + 45 + (float) offset, barPos.Y + 18),
+                                new Vector2(barPos.X + 45 + (float) offset, barPos.Y + 23), hpLinesThickness,
+                                killable ? hpKillableColor : hpUnkillableColor);
+                        }
+                        if (circle && killable)
+                        {
+                            Render.Circle.DrawCircle(minion.Position, minion.BoundingRadius + radius, circleColor,
+                                circleThickness);
                         }
                     }
                 }
@@ -150,20 +142,53 @@ namespace SFXUtility.Features.Drawings
                     drawingMenu.AddSubMenu(drawingHpBarMenu);
                     drawingMenu.AddSubMenu(drawingCirclesMenu);
 
-                    var distanceMenu = new Menu("Distance", Name + "Distance");
-                    distanceMenu.AddItem(new MenuItem(Name + "DistanceEnabled", "Limit by Distance").SetValue(true));
-                    distanceMenu.AddItem(
-                        new MenuItem(Name + "DistanceLimit", "Distance Limit").SetValue(new Slider(1000, 500, 3000)));
-
                     Menu.AddSubMenu(drawingMenu);
-                    Menu.AddSubMenu(distanceMenu);
 
                     Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(true));
 
                     _drawings.Menu.AddSubMenu(Menu);
 
-                    Game.OnGameUpdate += OnGameUpdate;
-                    Drawing.OnDraw += OnDraw;
+                    _drawings.Menu.Item(_drawings.Name + "Enabled").ValueChanged +=
+                        delegate(object sender, OnValueChangeEventArgs args)
+                        {
+                            if (args.GetNewValue<bool>())
+                            {
+                                if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
+                                {
+                                    Game.OnGameUpdate += OnGameUpdate;
+                                    Drawing.OnDraw += OnDraw;
+                                }
+                            }
+                            else
+                            {
+                                Game.OnGameUpdate -= OnGameUpdate;
+                                Drawing.OnDraw -= OnDraw;
+                            }
+                        };
+
+                    Menu.Item(Name + "Enabled").ValueChanged +=
+                        delegate(object sender, OnValueChangeEventArgs args)
+                        {
+                            if (args.GetNewValue<bool>())
+                            {
+                                if (_drawings != null && _drawings.Enabled)
+                                {
+                                    Game.OnGameUpdate += OnGameUpdate;
+                                    Drawing.OnDraw += OnDraw;
+                                }
+                            }
+                            else
+                            {
+                                Game.OnGameUpdate -= OnGameUpdate;
+                                Drawing.OnDraw -= OnDraw;
+                            }
+                        };
+
+                    if (Enabled)
+                    {
+                        Game.OnGameUpdate += OnGameUpdate;
+                        Drawing.OnDraw += OnDraw;
+                    }
 
                     Initialized = true;
                 }
@@ -200,15 +225,10 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                if (!Enabled)
-                    return;
-                var distanceEnabled = Menu.Item(Name + "DistanceEnabled").GetValue<bool>();
-                var distanceLimit = Menu.Item(Name + "DistanceLimit").GetValue<Slider>().Value;
-
                 _minions = (from minion in ObjectManager.Get<Obj_AI_Minion>()
                     where
                         minion != null && minion.IsValid && minion.Health > 0.1f && minion.IsEnemy &&
-                        (!distanceEnabled || minion.Distance(ObjectManager.Player.Position) <= distanceLimit)
+                        minion.Position.IsOnScreen()
                     select minion).ToList();
             }
             catch (Exception ex)

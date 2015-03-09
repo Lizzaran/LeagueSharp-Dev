@@ -25,6 +25,7 @@ namespace SFXUtility.Features.Trackers
     #region
 
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using Classes;
     using LeagueSharp;
@@ -35,13 +36,13 @@ namespace SFXUtility.Features.Trackers
     using SFXLibrary.Logger;
     using SharpDX;
     using Color = System.Drawing.Color;
-    using Draw = SFXLibrary.Draw;
 
     #endregion
 
     internal class Waypoint : Base
     {
         private Trackers _trackers;
+        private List<List<Vector2>> _waypoints = new List<List<Vector2>>();
 
         public Waypoint(IContainer container)
             : base(container)
@@ -63,24 +64,32 @@ namespace SFXUtility.Features.Trackers
             get { return "Waypoint"; }
         }
 
+        private void OnGameUpdate(EventArgs args)
+        {
+            try
+            {
+                _waypoints = (from hero in ObjectManager.Get<Obj_AI_Hero>()
+                    where hero.IsValid && !hero.IsDead
+                    where Menu.Item(Name + "DrawAlly").GetValue<bool>() || !hero.IsAlly
+                    where Menu.Item(Name + "DrawEnemy").GetValue<bool>() || !hero.IsEnemy
+                    select hero).Select(hero => hero.GetWaypoints()).ToList();
+            }
+            catch (Exception ex)
+            {
+                Logger.AddItem(new LogItem(ex) {Object = this});
+            }
+        }
+
         private void OnDraw(EventArgs args)
         {
             try
             {
-                if (!Enabled)
-                    return;
-
                 var crossColor = Menu.Item(Name + "DrawingCrossColor").GetValue<Color>();
                 var lineColor = Menu.Item(Name + "DrawingLineColor").GetValue<Color>();
 
-                foreach (var hero in from hero in ObjectManager.Get<Obj_AI_Hero>()
-                    where hero.IsValid && !hero.IsDead
-                    where Menu.Item(Name + "DrawAlly").GetValue<Boolean>() || !hero.IsAlly
-                    where Menu.Item(Name + "DrawEnemy").GetValue<Boolean>() || !hero.IsEnemy
-                    select hero)
+                foreach (var waypoints in _waypoints)
                 {
                     var arrivalTime = 0.0f;
-                    var waypoints = hero.GetWaypoints();
                     for (int i = 0, l = waypoints.Count - 1; i < l; i++)
                     {
                         if (waypoints[i].IsValid() && waypoints[i + 1].IsValid())
@@ -155,7 +164,48 @@ namespace SFXUtility.Features.Trackers
 
                     _trackers.Menu.AddSubMenu(Menu);
 
-                    Drawing.OnDraw += OnDraw;
+                    _trackers.Menu.Item(_trackers.Name + "Enabled").ValueChanged +=
+                        delegate(object sender, OnValueChangeEventArgs args)
+                        {
+                            if (args.GetNewValue<bool>())
+                            {
+                                if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
+                                {
+                                    Drawing.OnDraw += OnDraw;
+                                    Game.OnGameUpdate += OnGameUpdate;
+                                }
+                            }
+                            else
+                            {
+                                Drawing.OnDraw -= OnDraw;
+                                Game.OnGameUpdate -= OnGameUpdate;
+                            }
+                        };
+
+                    Menu.Item(Name + "Enabled").ValueChanged +=
+                        delegate(object sender, OnValueChangeEventArgs args)
+                        {
+                            if (args.GetNewValue<bool>())
+                            {
+                                if (_trackers != null && _trackers.Menu != null &&
+                                    _trackers.Menu.Item(_trackers.Name + "Enabled").GetValue<bool>())
+                                {
+                                    Drawing.OnDraw += OnDraw;
+                                    Game.OnGameUpdate += OnGameUpdate;
+                                }
+                            }
+                            else
+                            {
+                                Drawing.OnDraw -= OnDraw;
+                                Game.OnGameUpdate -= OnGameUpdate;
+                            }
+                        };
+
+                    if (Enabled)
+                    {
+                        Drawing.OnDraw += OnDraw;
+                        Game.OnGameUpdate += OnGameUpdate;
+                    }
 
                     Initialized = true;
                 }

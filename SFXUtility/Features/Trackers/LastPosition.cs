@@ -33,9 +33,11 @@ namespace SFXUtility.Features.Trackers
     using LeagueSharp.Common;
     using Properties;
     using SFXLibrary;
+    using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
+    using Color = SharpDX.Color;
 
     #endregion
 
@@ -63,8 +65,6 @@ namespace SFXUtility.Features.Trackers
         {
             get { return "Last Position"; }
         }
-
-        // TODO: Add SS Timer
 
         private void OnGameLoad(EventArgs args)
         {
@@ -144,11 +144,33 @@ namespace SFXUtility.Features.Trackers
 
                     Menu = new Menu(Name, Name);
 
-                    var eMenuItem = new MenuItem(Name + "Enabled", "Enabled").SetValue(true);
-                    eMenuItem.ValueChanged +=
-                        (sender, args) => _lastPositionObjects.ForEach(enemy => enemy.Active = args.GetNewValue<bool>());
+                    var drawingMenu = new Menu("Drawing", Name + "Drawing");
+                    drawingMenu.AddItem(
+                        new MenuItem(Name + "DrawingTimeFormat", "Time Format").SetValue(
+                            new StringList(new[] {"mm:ss", "ss"})));
+                    drawingMenu.AddItem(
+                        new MenuItem(Name + "DrawingFontSize", "Font Size").SetValue(new Slider(13, 3, 30)));
+                    drawingMenu.AddItem(
+                        new MenuItem(Name + "DrawingSSTimerOffset", "SS Timer Offset").SetValue(new Slider(5, 0, 50)));
 
-                    Menu.AddItem(eMenuItem);
+                    Menu.AddItem(new MenuItem(Name + "SSTimer", "SS Timer").SetValue(true));
+                    Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(true));
+
+                    Menu.Item(Name + "DrawingTimeFormat").ValueChanged +=
+                        (sender, args) =>
+                            _lastPositionObjects.ForEach(
+                                enemy => enemy.TextTotalSeconds = args.GetNewValue<StringList>().SelectedIndex == 1);
+                    Menu.Item(Name + "DrawingFontSize").ValueChanged +=
+                        (sender, args) =>
+                            _lastPositionObjects.ForEach(enemy => enemy.TextSize = args.GetNewValue<Slider>().Value);
+                    Menu.Item(Name + "DrawingSSTimerOffset").ValueChanged +=
+                        (sender, args) =>
+                            _lastPositionObjects.ForEach(enemy => enemy.TextOffset = args.GetNewValue<Slider>().Value);
+                    Menu.Item(Name + "SSTimer").ValueChanged +=
+                        (sender, args) =>
+                            _lastPositionObjects.ForEach(enemy => enemy.SSTimer = args.GetNewValue<bool>());
+                    Menu.Item(Name + "Enabled").ValueChanged +=
+                        (sender, args) => _lastPositionObjects.ForEach(enemy => enemy.Active = args.GetNewValue<bool>());
 
                     _trackers.Menu.AddSubMenu(Menu);
 
@@ -170,6 +192,11 @@ namespace SFXUtility.Features.Trackers
                             _lastPositionObjects.Add(new LastPositionObject(hero, Logger)
                             {
                                 Active = Enabled,
+                                TextTotalSeconds =
+                                    Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1,
+                                TextSize = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
+                                TextOffset = Menu.Item(Name + "DrawingSSTimerOffset").GetValue<Slider>().Value,
+                                SSTimer = Menu.Item(Name + "SSTimer").GetValue<bool>(),
                                 Recall = recall
                             });
                         }
@@ -190,14 +217,22 @@ namespace SFXUtility.Features.Trackers
 
         private class LastPositionObject
         {
+            private readonly Render.Sprite _championSprite;
             private readonly Render.Sprite _recallSprite;
-            private readonly Render.Sprite _sprite;
+            private readonly Render.Text _text;
             public readonly Obj_AI_Hero Hero;
             private bool _active;
             private bool _added;
             public bool IsRecalling;
+            // ReSharper disable once InconsistentNaming
+            public bool SSTimer;
+
+            public int TextSize = 13;
+            public int TextOffset = 5;
+            public bool TextTotalSeconds;
             public bool Recall;
             public bool Recalled;
+            private float _lastSeen;
 
             public LastPositionObject(Obj_AI_Hero hero, ILogger logger)
             {
@@ -208,7 +243,7 @@ namespace SFXUtility.Features.Trackers
                     var spawnPoint =
                         ObjectManager.Get<GameObject>().FirstOrDefault(s => s is Obj_SpawnPoint && s.IsEnemy);
 
-                    _sprite =
+                    _championSprite =
                         new Render.Sprite(
                             (Bitmap) Resources.ResourceManager.GetObject(string.Format("LP_{0}", hero.ChampionName)) ??
                             Resources.LP_Aatrox, new Vector2(mPos.X, mPos.Y))
@@ -237,13 +272,14 @@ namespace SFXUtility.Features.Trackers
                                     {
                                         if (!Equals(spawnPoint, default(Obj_SpawnPoint)))
                                         {
-                                            var p =
-                                                Drawing.WorldToMinimap(spawnPoint.Position);
-                                            return new Vector2(p.X - (_sprite.Size.X/2), p.Y - (_sprite.Size.Y/2));
+                                            var p = Drawing.WorldToMinimap(spawnPoint.Position);
+                                            return new Vector2(p.X - (_championSprite.Size.X/2),
+                                                p.Y - (_championSprite.Size.Y/2));
                                         }
                                     }
                                     var pos = Drawing.WorldToMinimap(hero.Position);
-                                    return new Vector2(pos.X - (_sprite.Size.X/2), pos.Y - (_sprite.Size.Y/2));
+                                    return new Vector2(pos.X - (_championSprite.Size.X/2),
+                                        pos.Y - (_championSprite.Size.Y/2));
                                 }
                                 catch (Exception ex)
                                 {
@@ -252,6 +288,39 @@ namespace SFXUtility.Features.Trackers
                                 }
                             }
                         };
+                    _text = new Render.Text(string.Empty, new Vector2(mPos.X, mPos.Y), TextSize, Color.White)
+                    {
+                        Centered = true,
+                        PositionUpdate = delegate
+                        {
+                            try
+                            {
+                                return new Vector2(_championSprite.Position.X - (_championSprite.Size.X/2),
+                                    _championSprite.Position.Y - (_championSprite.Size.Y/2) + TextOffset);
+                            }
+                            catch (Exception ex)
+                            {
+                                logger.AddItem(new LogItem(ex) {Object = this});
+                                return default(Vector2);
+                            }
+                        },
+                        VisibleCondition = delegate
+                        {
+                            try
+                            {
+                                _lastSeen = !_championSprite.Visible ? Game.ClockTime : 0f;
+                                return SSTimer && _championSprite.Visible && Game.ClockTime - _lastSeen > 10f;
+                            }
+                            catch (Exception ex)
+                            {
+                                logger.AddItem(new LogItem(ex) {Object = this});
+                                return false;
+                            }
+                        },
+                        TextUpdate =
+                            () =>
+                                _text.Visible ? (Game.ClockTime - _lastSeen).FormatTime(TextTotalSeconds) : string.Empty
+                    };
                     _recallSprite =
                         new Render.Sprite(Resources.LP_Recall, new Vector2(mPos.X, mPos.Y))
                         {
@@ -259,7 +328,7 @@ namespace SFXUtility.Features.Trackers
                             {
                                 try
                                 {
-                                    return Active && !Hero.IsVisible && !Hero.IsDead && Recall && IsRecalling;
+                                    return _championSprite.Visible && Recall && IsRecalling;
                                 }
                                 catch (Exception ex)
                                 {
@@ -271,9 +340,8 @@ namespace SFXUtility.Features.Trackers
                             {
                                 try
                                 {
-                                    var pos = Drawing.WorldToMinimap(hero.Position);
-                                    return new Vector2(pos.X - (_recallSprite.Size.X/2),
-                                        pos.Y - (_recallSprite.Size.Y/2));
+                                    return new Vector2(_championSprite.Position.X - (_recallSprite.Size.X/2),
+                                        _championSprite.Position.Y - (_recallSprite.Size.Y/2));
                                 }
                                 catch (Exception ex)
                                 {
@@ -295,25 +363,27 @@ namespace SFXUtility.Features.Trackers
                 set
                 {
                     _active = value;
-                    Update();
+                    Toggle();
                 }
             }
 
-            private void Update()
+            private void Toggle()
             {
-                if (_sprite == null)
+                if (_championSprite == null)
                     return;
 
                 if (_active && !_added)
                 {
                     _recallSprite.Add(0);
-                    _sprite.Add(1);
+                    _championSprite.Add(1);
+                    _text.Add(2);
                     _added = true;
                 }
                 else if (!_active && _added)
                 {
                     _recallSprite.Remove();
-                    _sprite.Remove();
+                    _championSprite.Remove();
+                    _text.Remove();
                     _added = false;
                 }
             }

@@ -20,6 +20,8 @@
 
 #endregion License
 
+// Credits: https://fastjson.codeplex.com/ & me for fixing & implementing new stuff
+
 namespace SFXLibrary.JSON
 {
     #region
@@ -102,7 +104,7 @@ namespace SFXLibrary.JSON
         public bool UseEscapedUnicode = true;
 
         /// <summary>
-        ///     Enable fastJSON extensions $types, $type, $map (default = True)
+        ///     Enable extensions $types, $type, $map (default = True)
         /// </summary>
         public bool UseExtensions = true;
 

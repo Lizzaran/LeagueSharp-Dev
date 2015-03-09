@@ -104,8 +104,47 @@ namespace SFXUtility.Features.Others
 
                     _others.Menu.AddSubMenu(Menu);
 
-                    Obj_AI_Base.OnIssueOrder += OnObjAiBaseOnIssueOrder;
-                    Spellbook.OnCastSpell += OnSpellbookOnCastSpell;
+                    _others.Menu.Item(_others.Name + "Enabled").ValueChanged +=
+                        delegate(object sender, OnValueChangeEventArgs args)
+                        {
+                            if (args.GetNewValue<bool>())
+                            {
+                                if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
+                                {
+                                    Obj_AI_Base.OnIssueOrder += OnObjAiBaseOnIssueOrder;
+                                    Spellbook.OnCastSpell += OnSpellbookOnCastSpell;
+                                }
+                            }
+                            else
+                            {
+                                Obj_AI_Base.OnIssueOrder -= OnObjAiBaseOnIssueOrder;
+                                Spellbook.OnCastSpell -= OnSpellbookOnCastSpell;
+                            }
+                        };
+
+                    Menu.Item(Name + "Enabled").ValueChanged +=
+                        delegate(object sender, OnValueChangeEventArgs args)
+                        {
+                            if (args.GetNewValue<bool>())
+                            {
+                                if (_others != null && _others.Enabled)
+                                {
+                                    Obj_AI_Base.OnIssueOrder += OnObjAiBaseOnIssueOrder;
+                                    Spellbook.OnCastSpell += OnSpellbookOnCastSpell;
+                                }
+                            }
+                            else
+                            {
+                                Obj_AI_Base.OnIssueOrder -= OnObjAiBaseOnIssueOrder;
+                                Spellbook.OnCastSpell -= OnSpellbookOnCastSpell;
+                            }
+                        };
+
+                    if (Enabled)
+                    {
+                        Obj_AI_Base.OnIssueOrder += OnObjAiBaseOnIssueOrder;
+                        Spellbook.OnCastSpell += OnSpellbookOnCastSpell;
+                    }
 
                     Initialized = true;
                 }
@@ -120,7 +159,7 @@ namespace SFXUtility.Features.Others
         {
             if (sender == null || !sender.Owner.IsMe ||
                 !(args.Slot == SpellSlot.Q || args.Slot == SpellSlot.W || args.Slot == SpellSlot.E ||
-                  args.Slot == SpellSlot.R) || !Enabled)
+                  args.Slot == SpellSlot.R))
             {
                 return;
             }
@@ -137,7 +176,7 @@ namespace SFXUtility.Features.Others
 
         private void OnObjAiBaseOnIssueOrder(Obj_AI_Base sender, GameObjectIssueOrderEventArgs args)
         {
-            if (sender == null || !sender.IsValid || !sender.IsMe || args.Order != GameObjectOrder.MoveTo || !Enabled)
+            if (sender == null || !sender.IsValid || !sender.IsMe || args.Order != GameObjectOrder.MoveTo)
             {
                 return;
             }

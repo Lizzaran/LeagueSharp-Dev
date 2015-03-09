@@ -44,7 +44,7 @@ namespace SFXUtility.Features.Trackers
 
     internal class Cooldown : Base
     {
-        private readonly List<CooldownObject> _cooldownObjects = new List<CooldownObject>();
+        private List<CooldownObject> _cooldownObjects = new List<CooldownObject>();
         private Trackers _trackers;
 
         public Cooldown(IContainer container)
@@ -100,61 +100,53 @@ namespace SFXUtility.Features.Trackers
 
                     Menu = new Menu(Name, Name);
 
-                    var eEMenuItem = new MenuItem(Name + "EnemyEnabled", "Track Enemy").SetValue(true);
-                    var aAMenuItem = new MenuItem(Name + "AllyEnabled", "Track Ally").SetValue(true);
-                    var eMenuItem = new MenuItem(Name + "Enabled", "Enabled").SetValue(true);
+                    Menu.AddItem(new MenuItem(Name + "EnemyEnabled", "Track Enemy").SetValue(true));
+                    Menu.AddItem(new MenuItem(Name + "AllyEnabled", "Track Ally").SetValue(true));
+                    Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(true));
 
-                    Menu.AddItem(eEMenuItem);
-                    Menu.AddItem(aAMenuItem);
-                    Menu.AddItem(eMenuItem);
-
-                    eEMenuItem.ValueChanged +=
-                        (sender, args) =>
-                            _cooldownObjects.ForEach(
-                                cd =>
-                                    cd.Active =
-                                        Menu.Item(Name + "Enabled").GetValue<bool>() &&
-                                        (cd.Hero.IsEnemy && args.GetNewValue<bool>() ||
-                                         cd.Hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>()));
-
-                    aAMenuItem.ValueChanged +=
-                        (sender, args) =>
-                            _cooldownObjects.ForEach(
-                                cd =>
-                                    cd.Active =
-                                        Menu.Item(Name + "Enabled").GetValue<bool>() &&
+                    Menu.Item(Name + "EnemyEnabled").ValueChanged +=
+                        delegate(object sender, OnValueChangeEventArgs args)
+                        {
+                            foreach (var cd in _cooldownObjects)
+                            {
+                                cd.Active =
+                                    Menu.Item(Name + "Enabled").GetValue<bool>() &&
+                                    (cd.Hero.IsEnemy && args.GetNewValue<bool>() ||
+                                     cd.Hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>());
+                            }
+                        };
+                    Menu.Item(Name + "AllyEnabled").ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        foreach (var cd in _cooldownObjects)
+                        {
+                            cd.Active =
+                                Menu.Item(Name + "Enabled").GetValue<bool>() &&
+                                (cd.Hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>() ||
+                                 cd.Hero.IsAlly && args.GetNewValue<bool>());
+                        }
+                    };
+                    Menu.Item(Name + "Enabled").ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        foreach (var cd in _cooldownObjects)
+                        {
+                            cd.Active = args.GetNewValue<bool>() &&
                                         (cd.Hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>() ||
-                                         cd.Hero.IsAlly && args.GetNewValue<bool>()));
-
-                    eMenuItem.ValueChanged +=
-                        (sender, args) =>
-                            _cooldownObjects.ForEach(
-                                cd =>
-                                    cd.Active =
-                                        args.GetNewValue<bool>() &&
-                                        (cd.Hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>() ||
-                                         cd.Hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>()));
+                                         cd.Hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>());
+                        }
+                    };
 
                     _trackers.Menu.AddSubMenu(Menu);
 
-                    foreach (
-                        var hero in ObjectManager.Get<Obj_AI_Hero>().Where(hero => hero.IsValid && !hero.IsMe))
-                    {
-                        try
-                        {
-                            _cooldownObjects.Add(new CooldownObject(hero, Logger)
+                    _cooldownObjects =
+                        ObjectManager.Get<Obj_AI_Hero>()
+                            .Where(hero => hero.IsValid && !hero.IsMe)
+                            .Select(hero => new CooldownObject(hero, Logger)
                             {
                                 Active =
                                     Enabled &&
                                     (hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>() ||
                                      hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>())
-                            });
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.AddItem(new LogItem(ex) {Object = this});
-                        }
-                    }
+                            }).ToList();
 
                     Initialized = true;
                 }
@@ -445,7 +437,8 @@ namespace SFXUtility.Features.Trackers
                 get
                 {
                     return Active && Hero.IsVisible && !Hero.IsDead && Hero.IsHPBarRendered &&
-                           HpBarPostion.IsOnScreen(new Vector2(HpBarPostion.X + 150f, HpBarPostion.Y + 30f));
+                           HpBarPostion.IsOnScreen(new Vector2(HpBarPostion.X + 150f, HpBarPostion.Y + 30f)) &&
+                           !ObjectManager.Player.InShop();
                 }
             }
 

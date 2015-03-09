@@ -25,6 +25,7 @@ namespace SFXUtility.Features.Trackers
     #region
 
     using System;
+    using System.Collections.Generic;
     using System.Drawing;
     using System.Linq;
     using Classes;
@@ -40,6 +41,7 @@ namespace SFXUtility.Features.Trackers
     internal class Clone : Base
     {
         private readonly string[] _cloneHeroes = {"Shaco", "LeBlanc", "MonkeyKing", "Yorick"};
+        private List<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
         private Trackers _trackers;
 
         public Clone(IContainer container)
@@ -66,20 +68,10 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                if (!Enabled)
-                    return;
-
                 var circleColor = Menu.Item(Name + "DrawingCircleColor").GetValue<Color>();
                 var radius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value;
 
-                foreach (
-                    var hero in
-                        ObjectManager.Get<Obj_AI_Hero>()
-                            .Where(hero => hero.IsValid && hero.IsEnemy && !hero.IsDead && hero.IsVisible)
-                            .Where(
-                                hero =>
-                                    _cloneHeroes.Contains(hero.ChampionName, StringComparison.OrdinalIgnoreCase) &&
-                                    hero.Position.IsOnScreen()))
+                foreach (var hero in _heroes.Where(hero => hero.Position.IsOnScreen()))
                 {
                     Render.Circle.DrawCircle(hero.ServerPosition, hero.BoundingRadius + radius, circleColor);
                 }
@@ -147,7 +139,7 @@ namespace SFXUtility.Features.Trackers
                             }
                             else
                             {
-                                Drawing.OnDraw += OnDraw;
+                                Drawing.OnDraw -= OnDraw;
                             }
                         };
 
@@ -164,7 +156,7 @@ namespace SFXUtility.Features.Trackers
                             }
                             else
                             {
-                                Drawing.OnDraw += OnDraw;
+                                Drawing.OnDraw -= OnDraw;
                             }
                         };
 
@@ -172,6 +164,12 @@ namespace SFXUtility.Features.Trackers
                     {
                         Drawing.OnDraw += OnDraw;
                     }
+
+                    _heroes =
+                        ObjectManager.Get<Obj_AI_Hero>()
+                            .Where(hero => hero.IsValid && hero.IsEnemy && !hero.IsDead && hero.IsVisible)
+                            .Where(hero => _cloneHeroes.Contains(hero.ChampionName, StringComparison.OrdinalIgnoreCase))
+                            .ToList();
 
                     Initialized = true;
                 }
