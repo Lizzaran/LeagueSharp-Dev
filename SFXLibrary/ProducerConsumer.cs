@@ -27,13 +27,12 @@ namespace SFXLibrary
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
     #endregion
 
-    public abstract class ProducerConsumer<T>
+    public abstract class ProducerConsumer<T> : IDisposable
     {
         private const int CheckInterval = 6000;
         private readonly int _minConsumers;
@@ -55,18 +54,42 @@ namespace SFXLibrary
             ManageConsumers();
         }
 
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~ProducerConsumer()
+        {
+            Dispose(false);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                foreach (var consumer in _pool)
+                {
+                    consumer.Value.Dispose();
+                    consumer.Key.Dispose();
+                }
+                _queue.Dispose();
+            }
+        }
+
         public void AddItem(T item)
         {
-            if (_queue != null)
+            if (_queue != null && !_queue.IsAddingCompleted)
             {
                 _queue.Add(item);
                 ManageConsumers();
             }
         }
 
-        public void CompleteLogging()
+        public void CompleteAdding()
         {
-            if (_queue != null)
+            if (_queue != null && !_queue.IsAddingCompleted)
             {
                 _queue.CompleteAdding();
             }
@@ -86,7 +109,7 @@ namespace SFXLibrary
         {
             _requestedStopping += count;
             var i = 0;
-            foreach (var consumer in _pool.ToList())
+            foreach (var consumer in _pool)
             {
                 if (i >= count)
                     break;

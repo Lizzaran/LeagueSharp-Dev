@@ -76,7 +76,6 @@ namespace SFXUtility.Features.Drawings
                 return;
 
             var color = Menu.Item(Name + "AttackColor").GetValue<Color>();
-            var circleThickness = BaseMenu.Item("MiscCircleThickness").GetValue<Slider>().Value;
 
             foreach (var hero in _heroes)
             {
@@ -86,7 +85,7 @@ namespace SFXUtility.Features.Drawings
                     if ((hero.IsAlly && drawFriendly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) &&
                         !(hero.IsMe && !drawSelf) && hero.Position.IsOnScreen(radius))
                     {
-                        Render.Circle.DrawCircle(hero.Position, radius, color, circleThickness);
+                        Render.Circle.DrawCircle(hero.Position, radius, color);
                     }
                 }
             }
@@ -102,7 +101,6 @@ namespace SFXUtility.Features.Drawings
                 return;
 
             var color = Menu.Item(Name + "ExperienceColor").GetValue<Color>();
-            var circleThickness = BaseMenu.Item("MiscCircleThickness").GetValue<Slider>().Value;
 
             foreach (var hero in _heroes)
             {
@@ -111,7 +109,7 @@ namespace SFXUtility.Features.Drawings
                     if ((hero.IsAlly && drawFriendly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) &&
                         !(hero.IsMe && !drawSelf) && hero.Position.IsOnScreen(ExperienceRange))
                     {
-                        Render.Circle.DrawCircle(hero.Position, ExperienceRange, color, circleThickness);
+                        Render.Circle.DrawCircle(hero.Position, ExperienceRange, color);
                     }
                 }
             }
@@ -140,45 +138,43 @@ namespace SFXUtility.Features.Drawings
             if (!drawFriendly && !drawEnemy && !drawSelf)
                 return;
 
-            var circleThickness = BaseMenu.Item("MiscCircleThickness").GetValue<Slider>().Value;
-
             var spellMaxRange = Menu.Item(Name + "SpellMaxRange").GetValue<Slider>().Value;
 
             foreach (var hero in _heroes)
             {
-                if (!hero.IsDead && hero.IsVisible)
+                if (hero.IsDead || !hero.IsVisible)
+                    continue;
+
+                var color =
+                    Menu.Item(Name + "Spell" + (hero.IsMe ? "Self" : (hero.IsEnemy ? "Enemy" : "Friendly")) +
+                              "Color").GetValue<Color>();
+                if ((hero.IsAlly && drawFriendlyQ || hero.IsEnemy && drawEnemyQ || hero.IsMe && drawSelfQ) &&
+                    !(hero.IsMe && !drawSelfQ))
                 {
-                    var color =
-                        Menu.Item(Name + "Spell" + (hero.IsMe ? "Self" : (hero.IsEnemy ? "Enemy" : "Friendly")) +
-                                  "Color").GetValue<Color>();
-                    if ((hero.IsAlly && drawFriendlyQ || hero.IsEnemy && drawEnemyQ || hero.IsMe && drawSelfQ) &&
-                        !(hero.IsMe && !drawSelfQ))
-                    {
-                        var range = hero.Spellbook.GetSpell(SpellSlot.Q).SData.CastRange[0];
-                        if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                            Render.Circle.DrawCircle(hero.Position, range, color, circleThickness);
-                    }
-                    if ((hero.IsAlly && drawFriendlyW || hero.IsEnemy && drawEnemyW || hero.IsMe && drawSelfW) &&
-                        !(hero.IsMe && !drawSelfW))
-                    {
-                        var range = hero.Spellbook.GetSpell(SpellSlot.W).SData.CastRange[0];
-                        if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                            Render.Circle.DrawCircle(hero.Position, range, color, circleThickness);
-                    }
-                    if ((hero.IsAlly && drawFriendlyE || hero.IsEnemy && drawEnemyE || hero.IsMe && drawSelfE) &&
-                        !(hero.IsMe && !drawSelfE))
-                    {
-                        var range = hero.Spellbook.GetSpell(SpellSlot.E).SData.CastRange[0];
-                        if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                            Render.Circle.DrawCircle(hero.Position, range, color, circleThickness);
-                    }
-                    if ((hero.IsAlly && drawFriendlyR || hero.IsEnemy && drawEnemyR || hero.IsMe && drawSelfR) &&
-                        !(hero.IsMe && !drawSelfR))
-                    {
-                        var range = hero.Spellbook.GetSpell(SpellSlot.R).SData.CastRange[0];
-                        if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                            Render.Circle.DrawCircle(hero.Position, range, color, circleThickness);
-                    }
+                    var range = hero.Spellbook.GetSpell(SpellSlot.Q).SData.CastRange;
+                    if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
+                        Render.Circle.DrawCircle(hero.Position, range, color);
+                }
+                if ((hero.IsAlly && drawFriendlyW || hero.IsEnemy && drawEnemyW || hero.IsMe && drawSelfW) &&
+                    !(hero.IsMe && !drawSelfW))
+                {
+                    var range = hero.Spellbook.GetSpell(SpellSlot.W).SData.CastRange;
+                    if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
+                        Render.Circle.DrawCircle(hero.Position, range, color);
+                }
+                if ((hero.IsAlly && drawFriendlyE || hero.IsEnemy && drawEnemyE || hero.IsMe && drawSelfE) &&
+                    !(hero.IsMe && !drawSelfE))
+                {
+                    var range = hero.Spellbook.GetSpell(SpellSlot.E).SData.CastRange;
+                    if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
+                        Render.Circle.DrawCircle(hero.Position, range, color);
+                }
+                if ((hero.IsAlly && drawFriendlyR || hero.IsEnemy && drawEnemyR || hero.IsMe && drawSelfR) &&
+                    !(hero.IsMe && !drawSelfR))
+                {
+                    var range = hero.Spellbook.GetSpell(SpellSlot.R).SData.CastRange;
+                    if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
+                        Render.Circle.DrawCircle(hero.Position, range, color);
                 }
             }
         }
@@ -191,8 +187,6 @@ namespace SFXUtility.Features.Drawings
             if (!drawFriendly && !drawEnemy)
                 return;
 
-            var circleThickness = BaseMenu.Item("MiscCircleThickness").GetValue<Slider>().Value;
-
             foreach (var turret in _turrets)
             {
                 if (!turret.IsDead && turret.IsVisible)
@@ -202,7 +196,7 @@ namespace SFXUtility.Features.Drawings
                     {
                         Render.Circle.DrawCircle(turret.Position, TurretRange,
                             Menu.Item(Name + "Turret" + (turret.IsAlly ? "Friendly" : "Enemy") + "Color")
-                                .GetValue<Color>(), circleThickness);
+                                .GetValue<Color>());
                     }
                 }
             }

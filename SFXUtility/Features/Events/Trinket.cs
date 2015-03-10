@@ -41,7 +41,7 @@ namespace SFXUtility.Features.Events
 
     internal class Trinket : Base
     {
-        private const float CheckInterval = 125f;
+        private const float CheckInterval = 300f;
         private Events _events;
         private float _lastCheck = Environment.TickCount;
 
@@ -136,12 +136,12 @@ namespace SFXUtility.Features.Events
                             {
                                 if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
                                 {
-                                    Game.OnGameUpdate += OnGameUpdate;
+                                    Game.OnUpdate += OnGameUpdate;
                                 }
                             }
                             else
                             {
-                                Game.OnGameUpdate -= OnGameUpdate;
+                                Game.OnUpdate -= OnGameUpdate;
                             }
                         };
 
@@ -152,18 +152,18 @@ namespace SFXUtility.Features.Events
                             {
                                 if (_events != null && _events.Enabled)
                                 {
-                                    Game.OnGameUpdate += OnGameUpdate;
+                                    Game.OnUpdate += OnGameUpdate;
                                 }
                             }
                             else
                             {
-                                Game.OnGameUpdate -= OnGameUpdate;
+                                Game.OnUpdate -= OnGameUpdate;
                             }
                         };
 
                     if (Enabled)
                     {
-                        Game.OnGameUpdate += OnGameUpdate;
+                        Game.OnUpdate += OnGameUpdate;
                     }
 
                     Initialized = true;
@@ -183,6 +183,7 @@ namespace SFXUtility.Features.Events
                     return;
 
                 _lastCheck = Environment.TickCount;
+
                 if (ObjectManager.Player.IsDead || ObjectManager.Player.InShop())
                 {
                     if (!Menu.Item(Name + "SellUpgraded").GetValue<bool>())
@@ -308,9 +309,9 @@ namespace SFXUtility.Features.Events
             {
                 if (itemId == 0)
                     return;
-
-                var iItem = ObjectManager.Player.InventoryItems.FirstOrDefault(
+                var iItem = ObjectManager.Player.InventoryItems.First(
                     slot =>
+                        slot.IsValidSlot() &&
                         slot.Name.Contains("Trinket", StringComparison.OrdinalIgnoreCase) ||
                         slot.DisplayName.Contains("Trinket", StringComparison.OrdinalIgnoreCase));
                 if (iItem != null)

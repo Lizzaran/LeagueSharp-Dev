@@ -124,12 +124,12 @@ namespace SFXUtility.Features.Activators
                             {
                                 if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
                                 {
-                                    Game.OnGameUpdate += OnGameUpdate;
+                                    Game.OnUpdate += OnGameUpdate;
                                 }
                             }
                             else
                             {
-                                Game.OnGameUpdate -= OnGameUpdate;
+                                Game.OnUpdate -= OnGameUpdate;
                             }
                         };
 
@@ -140,18 +140,18 @@ namespace SFXUtility.Features.Activators
                             {
                                 if (_activators != null && _activators.Enabled)
                                 {
-                                    Game.OnGameUpdate += OnGameUpdate;
+                                    Game.OnUpdate += OnGameUpdate;
                                 }
                             }
                             else
                             {
-                                Game.OnGameUpdate -= OnGameUpdate;
+                                Game.OnUpdate -= OnGameUpdate;
                             }
                         };
 
                     if (Enabled)
                     {
-                        Game.OnGameUpdate += OnGameUpdate;
+                        Game.OnUpdate += OnGameUpdate;
                     }
 
                     Initialized = true;

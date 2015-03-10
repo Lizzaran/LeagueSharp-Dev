@@ -74,7 +74,6 @@ namespace SFXUtility.Features.Drawings
                     var hpUnkillableColor = Menu.Item(Name + "DrawingHpBarUnkillableColor").GetValue<Color>();
                     var hpLinesThickness = Menu.Item(Name + "DrawingHpBarLinesThickness").GetValue<Slider>().Value;
                     var radius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value;
-                    var circleThickness = BaseMenu.Item("MiscCircleThickness").GetValue<Slider>().Value;
                     var hpBar = Menu.Item(Name + "DrawingHpBarEnabled").GetValue<bool>();
                     var circle = Menu.Item(Name + "DrawingCircleEnabled").GetValue<bool>();
 
@@ -97,8 +96,7 @@ namespace SFXUtility.Features.Drawings
                         }
                         if (circle && killable)
                         {
-                            Render.Circle.DrawCircle(minion.Position, minion.BoundingRadius + radius, circleColor,
-                                circleThickness);
+                            Render.Circle.DrawCircle(minion.Position, minion.BoundingRadius + radius, circleColor);
                         }
                     }
                 }
@@ -155,13 +153,13 @@ namespace SFXUtility.Features.Drawings
                             {
                                 if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
                                 {
-                                    Game.OnGameUpdate += OnGameUpdate;
+                                    Game.OnUpdate += OnGameUpdate;
                                     Drawing.OnDraw += OnDraw;
                                 }
                             }
                             else
                             {
-                                Game.OnGameUpdate -= OnGameUpdate;
+                                Game.OnUpdate -= OnGameUpdate;
                                 Drawing.OnDraw -= OnDraw;
                             }
                         };
@@ -173,20 +171,20 @@ namespace SFXUtility.Features.Drawings
                             {
                                 if (_drawings != null && _drawings.Enabled)
                                 {
-                                    Game.OnGameUpdate += OnGameUpdate;
+                                    Game.OnUpdate += OnGameUpdate;
                                     Drawing.OnDraw += OnDraw;
                                 }
                             }
                             else
                             {
-                                Game.OnGameUpdate -= OnGameUpdate;
+                                Game.OnUpdate -= OnGameUpdate;
                                 Drawing.OnDraw -= OnDraw;
                             }
                         };
 
                     if (Enabled)
                     {
-                        Game.OnGameUpdate += OnGameUpdate;
+                        Game.OnUpdate += OnGameUpdate;
                         Drawing.OnDraw += OnDraw;
                     }
 

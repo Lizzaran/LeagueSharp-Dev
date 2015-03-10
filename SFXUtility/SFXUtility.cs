@@ -28,16 +28,21 @@ namespace SFXUtility
     using LeagueSharp;
     using LeagueSharp.Common;
     using SFXLibrary;
+    using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using Version = System.Version;
 
     #endregion
 
+    /*
+     * TODO: Thickness from circles option
+     * TODO: Time Format mm:ss | ss option
+     * TODO: Add comments?
+     */
+
     internal class SFXUtility
     {
-        // TODO: Option for time to display as ss / mm:ss
-
         private readonly ILogger _logger;
 
         public SFXUtility(IContainer container)
@@ -51,7 +56,7 @@ namespace SFXUtility
                 var infoMenu = new Menu("Info", Name + "Info");
                 infoMenu.AddItem(new MenuItem(Name + "InfoVersion", string.Format("Version: {0}", Version)));
                 infoMenu.AddItem(new MenuItem(Name + "InfoForum", "Forum: Lizzaran"));
-                infoMenu.AddItem(new MenuItem(Name + "InfoGithub", "GitHub: Sentryfox"));
+                infoMenu.AddItem(new MenuItem(Name + "InfoGithub", "GitHub: Lizzaran"));
                 infoMenu.AddItem(new MenuItem(Name + "InfoIRC", "IRC: Appril"));
 
                 infoMenu.AddSubMenu(infoMenu);
@@ -59,7 +64,7 @@ namespace SFXUtility
                 AppDomain.CurrentDomain.DomainUnload += OnExit;
                 AppDomain.CurrentDomain.ProcessExit += OnExit;
                 CustomEvents.Game.OnGameEnd += OnGameEnd;
-                Game.OnGameEnd += OnGameEnd;
+                Game.OnEnd += OnGameEnd;
                 CustomEvents.Game.OnGameLoad += OnGameLoad;
             }
             catch (Exception ex)
@@ -86,8 +91,7 @@ namespace SFXUtility
         {
             try
             {
-                var handler = OnUnload;
-                if (null != handler) handler(this, EventArgs.Empty);
+                OnUnload.RaiseEvent(this, EventArgs.Empty);
             }
             catch (Exception ex)
             {

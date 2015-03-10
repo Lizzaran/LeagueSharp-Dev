@@ -54,7 +54,6 @@
     <Compile Include="Extensions\LeagueSharp\Common\MenuExtensions.cs" />
     <Compile Include="Extensions\NET\FloatExtensions.cs" />
     <Compile Include="Extensions\NET\IntegerExtensions.cs" />
-    <Compile Include="Extensions\NET\GenericExtensions.cs" />
     <Compile Include="Extensions\LeagueSharp\Obj_AI_HeroExtensions.cs" />
     <Compile Include="Extensions\NET\OtherExtensions.cs" />
     <Compile Include="Extensions\NET\StringExtensions.cs" />
@@ -75,6 +74,7 @@
     <Compile Include="Mediator.cs" />
     <Compile Include="MessageToActionsMap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Data\Sensitive.cs" />
     <Compile Include="WeakAction.cs" />
   </ItemGroup>
   <ItemGroup>

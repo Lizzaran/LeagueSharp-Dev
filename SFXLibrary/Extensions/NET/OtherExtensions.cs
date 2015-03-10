@@ -27,7 +27,11 @@ namespace SFXLibrary.Extensions.NET
     using System;
     using System.Collections.Generic;
     using System.Globalization;
+    using System.IO;
     using System.Linq;
+    using System.Runtime.Serialization;
+    using System.Runtime.Serialization.Formatters.Binary;
+    using System.Threading.Tasks;
 
     #endregion
 
@@ -58,6 +62,50 @@ namespace SFXLibrary.Extensions.NET
             return dictionary == null
                 ? string.Empty
                 : string.Join("," + Environment.NewLine, dictionary.Select(kv => kv.Key + " = " + kv.Value));
+        }
+
+        public static Task<List<T>> ToListAsync<T>(this IQueryable<T> list)
+        {
+            return Task.Run(() => list.ToList());
+        }
+
+        public static IEnumerable<T> Randomize<T>(this IEnumerable<T> target)
+        {
+            var r = new Random();
+            return target.OrderBy(x => (r.Next()));
+        }
+
+        public static T DeepClone<T>(this T input) where T : ISerializable
+        {
+            using (var stream = new MemoryStream())
+            {
+                var formatter = new BinaryFormatter();
+                try
+                {
+                    formatter.Serialize(stream, input);
+                    stream.Position = 0;
+                    return (T) formatter.Deserialize(stream);
+                }
+                catch
+                {
+                    return default(T);
+                }
+            }
+        }
+
+        /// <exception cref="Exception">A delegate callback throws an exception. </exception>
+        public static void RaiseEvent(this EventHandler @event, object sender, EventArgs e)
+        {
+            if (@event != null)
+                @event(sender, e);
+        }
+
+        /// <exception cref="Exception">A delegate callback throws an exception. </exception>
+        public static void RaiseEvent<T>(this EventHandler<T> @event, object sender, T e)
+            where T : EventArgs
+        {
+            if (@event != null)
+                @event(sender, e);
         }
     }
 }

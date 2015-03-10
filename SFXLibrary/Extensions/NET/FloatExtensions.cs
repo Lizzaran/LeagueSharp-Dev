@@ -20,22 +20,27 @@
 
 #endregion License
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace SFXLibrary.Extensions.NET
 {
+    #region
+
+    using System;
+
+    #endregion
+
     public static class FloatExtensions
     {
-        /// <exception cref="OverflowException"><paramref name="value" /> is less than <see cref="F:System.TimeSpan.MinValue" /> or greater than <see cref="F:System.TimeSpan.MaxValue" />.-or-<paramref name="value" /> is <see cref="F:System.Double.PositiveInfinity" />.-or-<paramref name="value" /> is <see cref="F:System.Double.NegativeInfinity" />. </exception>
+        /// <exception cref="OverflowException">
+        ///     <paramref name="value" /> is less than <see cref="F:System.TimeSpan.MinValue" /> or
+        ///     greater than <see cref="F:System.TimeSpan.MaxValue" />.-or-<paramref name="value" /> is
+        ///     <see cref="F:System.Double.PositiveInfinity" />.-or-<paramref name="value" /> is
+        ///     <see cref="F:System.Double.NegativeInfinity" />.
+        /// </exception>
         public static string FormatTime(this float value, bool totalSeconds = false)
         {
             var ts = TimeSpan.FromSeconds(value);
-            return string.Format(totalSeconds ? "{1}" : "{0}:{1:00}", (int)ts.TotalMinutes, totalSeconds ? ts.TotalSeconds : ts.Seconds);
+            return string.Format(totalSeconds ? "{1}" : "{0}:{1:00}", (int) ts.TotalMinutes,
+                totalSeconds ? ts.TotalSeconds : ts.Seconds);
         }
-
     }
 }

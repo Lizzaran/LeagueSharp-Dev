@@ -90,14 +90,14 @@
     <Compile Include="Features\Others\PerfectWard.cs" />
     <Compile Include="Features\Others\SummonerInfo.cs" />
     <Compile Include="Features\Others\TurnAround.cs" />
-    <Compile Include="Features\Trackers\Blink.cs" />
+    <Compile Include="Features\Detectors\Blink.cs" />
     <Compile Include="Features\Trackers\Clone.cs" />
     <Compile Include="Features\Trackers\Cooldown.cs" />
     <Compile Include="Features\Trackers\Gold.cs" />
     <Compile Include="Features\Trackers\LastPosition.cs" />
-    <Compile Include="Features\Trackers\Object.cs" />
+    <Compile Include="Features\Trackers\Trap.cs" />
     <Compile Include="Features\Trackers\Recall.cs" />
-    <Compile Include="Features\Timers\Immune.cs" />
+    <Compile Include="Features\Timers\Ability.cs" />
     <Compile Include="Features\Timers\Jungle.cs" />
     <Compile Include="Features\Drawings\LasthitMarker.cs" />
     <Compile Include="Features\Timers\Object.cs" />

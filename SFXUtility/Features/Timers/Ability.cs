@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Blinks.cs is part of SFXUtility.
+ Ability.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,9 +20,9 @@
 
 #endregion License
 
-namespace SFXUtility.Features.Trackers
+namespace SFXUtility.Features.Timers
 {
-    internal class Blink
+    internal class Immune
     {
     }
 }

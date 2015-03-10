@@ -22,8 +22,11 @@
 
 namespace SFXLibrary.Extensions.NET
 {
+    #region
+
     using System;
-    using System.Globalization;
+
+    #endregion
 
     public static class IntegerExtensions
     {
@@ -192,10 +195,15 @@ namespace SFXLibrary.Extensions.NET
             return start >= end && value >= start && value <= end;
         }
 
-        /// <exception cref="OverflowException"><paramref name="value" /> is less than <see cref="F:System.TimeSpan.MinValue" /> or greater than <see cref="F:System.TimeSpan.MaxValue" />.-or-<paramref name="value" /> is <see cref="F:System.Double.PositiveInfinity" />.-or-<paramref name="value" /> is <see cref="F:System.Double.NegativeInfinity" />. </exception>
+        /// <exception cref="OverflowException">
+        ///     <paramref name="value" /> is less than <see cref="F:System.TimeSpan.MinValue" /> or
+        ///     greater than <see cref="F:System.TimeSpan.MaxValue" />.-or-<paramref name="value" /> is
+        ///     <see cref="F:System.Double.PositiveInfinity" />.-or-<paramref name="value" /> is
+        ///     <see cref="F:System.Double.NegativeInfinity" />.
+        /// </exception>
         public static string FormatTime(this int value, bool totalSeconds = false)
         {
-            return ((float)value).FormatTime(totalSeconds);
+            return ((float) value).FormatTime(totalSeconds);
         }
     }
 }

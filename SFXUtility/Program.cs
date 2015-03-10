@@ -29,6 +29,7 @@ namespace SFXUtility
     using System.Reflection;
     using Classes;
     using SFXLibrary;
+    using SFXLibrary.Data;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.JSON;
     using SFXLibrary.Logger;
@@ -45,7 +46,8 @@ namespace SFXUtility
             container.Register(typeof (ILogger),
                 () =>
                     Activator.CreateInstance(typeof (ExceptionLogger), AppDomain.CurrentDomain.BaseDirectory,
-                        "{1}_{0}.txt", new JSONParameters {FilterSensitiveData = true}, LogLevel.High));
+                        "{1}_{0}.txt", new JSONParameters {FilterSensitiveData = true, SensitiveData = Sensitive.Data},
+                        LogLevel.High), true);
 
             AppDomain.CurrentDomain.UnhandledException +=
                 delegate(object sender, UnhandledExceptionEventArgs eventArgs)

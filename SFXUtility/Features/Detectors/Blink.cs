@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Immune.cs is part of SFXUtility.
+ Blink.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,9 +20,9 @@
 
 #endregion License
 
-namespace SFXUtility.Features.Timers
+namespace SFXUtility.Features.Detectors
 {
-    internal class Immune
+    internal class Blink
     {
     }
 }

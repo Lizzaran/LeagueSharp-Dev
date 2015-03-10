@@ -22,7 +22,7 @@
 
 namespace SFXUtility.Features.Trackers
 {
-    internal class Object
+    internal class Trap
     {
     }
 }

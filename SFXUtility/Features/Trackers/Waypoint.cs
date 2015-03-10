@@ -41,8 +41,10 @@ namespace SFXUtility.Features.Trackers
 
     internal class Waypoint : Base
     {
+        private const float UpdateInterval = 300f;
+        private float _lastUpdate;
         private Trackers _trackers;
-        private List<List<Vector2>> _waypoints = new List<List<Vector2>>();
+        private IEnumerable<List<Vector2>> _waypoints = new List<List<Vector2>>();
 
         public Waypoint(IContainer container)
             : base(container)
@@ -68,11 +70,15 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                _waypoints = (from hero in ObjectManager.Get<Obj_AI_Hero>()
-                    where hero.IsValid && !hero.IsDead
-                    where Menu.Item(Name + "DrawAlly").GetValue<bool>() || !hero.IsAlly
-                    where Menu.Item(Name + "DrawEnemy").GetValue<bool>() || !hero.IsEnemy
-                    select hero).Select(hero => hero.GetWaypoints()).ToList();
+                if (_lastUpdate + UpdateInterval > Environment.TickCount)
+                    return;
+
+                _lastUpdate = Environment.TickCount;
+
+                _waypoints = (HeroManager.AllHeroes.Where(hero => hero.IsValid && !hero.IsDead)
+                    .Where(hero => hero.IsAlly && Menu.Item(Name + "DrawAlly").GetValue<bool>())
+                    .Where(hero => hero.IsEnemy && Menu.Item(Name + "DrawEnemy").GetValue<bool>())).Select(
+                        hero => hero.GetWaypoints());
             }
             catch (Exception ex)
             {
@@ -92,22 +98,23 @@ namespace SFXUtility.Features.Trackers
                     var arrivalTime = 0.0f;
                     for (int i = 0, l = waypoints.Count - 1; i < l; i++)
                     {
-                        if (waypoints[i].IsValid() && waypoints[i + 1].IsValid())
-                        {
-                            var current = Drawing.WorldToScreen(waypoints[i].To3D());
-                            var next = Drawing.WorldToScreen(waypoints[i + 1].To3D());
+                        if (!waypoints[i].IsValid() || !waypoints[i + 1].IsValid())
+                            continue;
 
-                            if (current.IsOnScreen(next))
+                        var current = Drawing.WorldToScreen(waypoints[i].To3D());
+                        var next = Drawing.WorldToScreen(waypoints[i + 1].To3D());
+
+                        arrivalTime += (Vector3.Distance(waypoints[i].To3D(), waypoints[i + 1].To3D())/
+                                        (ObjectManager.Player.MoveSpeed/1000))/1000;
+
+                        if (current.IsOnScreen(next))
+                        {
+                            Drawing.DrawLine(current.X, current.Y, next.X, next.Y, 1, lineColor);
+                            if (i == l - 1 && arrivalTime > 0.1f)
                             {
-                                arrivalTime += (Vector3.Distance(waypoints[i].To3D(), waypoints[i + 1].To3D())/
-                                                (ObjectManager.Player.MoveSpeed/1000))/1000;
-                                Drawing.DrawLine(current.X, current.Y, next.X, next.Y, 1, lineColor);
-                                if (i == l - 1 && arrivalTime > 0.1f)
-                                {
-                                    Draw.Cross(next, 10f, 2f, crossColor);
-                                    Draw.TextCentered(new Vector2(next.X - 5, next.Y + 15), crossColor,
-                                        arrivalTime.ToString("0.0"));
-                                }
+                                Draw.Cross(next, 10f, 2f, crossColor);
+                                Draw.TextCentered(new Vector2(next.X - 5, next.Y + 15), crossColor,
+                                    arrivalTime.ToString("0.0"));
                             }
                         }
                     }
@@ -172,13 +179,13 @@ namespace SFXUtility.Features.Trackers
                                 if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
                                 {
                                     Drawing.OnDraw += OnDraw;
-                                    Game.OnGameUpdate += OnGameUpdate;
+                                    Game.OnUpdate += OnGameUpdate;
                                 }
                             }
                             else
                             {
                                 Drawing.OnDraw -= OnDraw;
-                                Game.OnGameUpdate -= OnGameUpdate;
+                                Game.OnUpdate -= OnGameUpdate;
                             }
                         };
 
@@ -191,20 +198,20 @@ namespace SFXUtility.Features.Trackers
                                     _trackers.Menu.Item(_trackers.Name + "Enabled").GetValue<bool>())
                                 {
                                     Drawing.OnDraw += OnDraw;
-                                    Game.OnGameUpdate += OnGameUpdate;
+                                    Game.OnUpdate += OnGameUpdate;
                                 }
                             }
                             else
                             {
                                 Drawing.OnDraw -= OnDraw;
-                                Game.OnGameUpdate -= OnGameUpdate;
+                                Game.OnUpdate -= OnGameUpdate;
                             }
                         };
 
                     if (Enabled)
                     {
                         Drawing.OnDraw += OnDraw;
-                        Game.OnGameUpdate += OnGameUpdate;
+                        Game.OnUpdate += OnGameUpdate;
                     }
 
                     Initialized = true;
