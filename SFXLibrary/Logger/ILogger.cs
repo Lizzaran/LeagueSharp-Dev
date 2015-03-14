@@ -52,7 +52,6 @@ namespace SFXLibrary.Logger
     public class LogItem
     {
         public readonly string Exception;
-        public Dictionary<string, string> AdditionalInformation;
 
         public LogItem(Exception exception)
         {

@@ -29,7 +29,6 @@ namespace SFXLibrary.JSON
     using System;
     using System.Collections.Generic;
     using System.Xml.Serialization;
-    using Extensions.NET;
 
     #endregion
 
@@ -46,11 +45,6 @@ namespace SFXLibrary.JSON
         ///     Anonymous types have read only properties
         /// </summary>
         public bool EnableAnonymousTypes = false;
-
-        /// <summary>
-        ///     Enable to filter sensitive data (default = False)
-        /// </summary>
-        public bool FilterSensitiveData = true;
 
         /// <summary>
         ///     Ignore attributes to check for (default : XmlIgnoreAttribute)
@@ -72,11 +66,6 @@ namespace SFXLibrary.JSON
         ///     IMPORTANT NOTE : If True then all initial values within the class will be ignored and will be not set
         /// </summary>
         public bool ParametricConstructorOverride = false;
-
-        /// <summary>
-        ///     Sensitive data which should be filtered
-        /// </summary>
-        public string[] SensitiveData;
 
         /// <summary>
         ///     Serialize null values to the output (default = True)
@@ -211,9 +200,7 @@ namespace SFXLibrary.JSON
                 param.UseExtensions = false;
                 param.UsingGlobalTypes = false;
             }
-            return param.FilterSensitiveData
-                ? FilterSensitiveData(new JSONSerializer(param).ConvertToJSON(obj), param.SensitiveData)
-                : new JSONSerializer(param).ConvertToJSON(obj);
+            return new JSONSerializer(param).ConvertToJSON(obj);
         }
 
         /// <summary>
@@ -242,11 +229,6 @@ namespace SFXLibrary.JSON
         public static void ClearReflectionCache()
         {
             Reflection.Instance.ClearReflectionCache();
-        }
-
-        private static string FilterSensitiveData(string json, string[] sensitiveData)
-        {
-            return json.Replace(sensitiveData, "[filtered]");
         }
     }
 }

@@ -223,11 +223,13 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                _minions = (from minion in ObjectManager.Get<Obj_AI_Minion>()
-                    where
-                        minion != null && minion.IsValid && minion.Health > 0.1f && minion.IsEnemy &&
-                        minion.Position.IsOnScreen()
-                    select minion).ToList();
+                _minions =
+                    ObjectManager.Get<Obj_AI_Minion>()
+                        .Where(
+                            minion =>
+                                minion != null && minion.IsValid && minion.Health > 0.1f && minion.IsEnemy &&
+                                minion.Position.IsOnScreen())
+                        .ToList();
             }
             catch (Exception ex)
             {

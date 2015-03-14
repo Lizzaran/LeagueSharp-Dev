@@ -32,7 +32,7 @@ namespace SFXLibrary
     {
         public const string DefaultColor = "#F7A100";
 
-        public static void Print(string message, string hexColor = DefaultColor)
+        public static void Local(string message, string hexColor = DefaultColor)
         {
             Game.PrintChat(string.Format("<font color='{0}'>{1}</font>", hexColor, message));
         }

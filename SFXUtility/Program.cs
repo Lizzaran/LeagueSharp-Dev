@@ -36,6 +36,13 @@ namespace SFXUtility
 
     #endregion
 
+    /*
+     * TODO: Thickness from circles option
+     * TODO: Time Format mm:ss | ss option
+     * TODO: Add comments?
+     * TODO: Logger: L# Version, directory etc.
+     */
+
     internal class Program
     {
         // ReSharper disable once UnusedParameter.Local
@@ -44,17 +51,19 @@ namespace SFXUtility
             var container = new Container();
 
             container.Register(typeof (ILogger),
-                () =>
-                    Activator.CreateInstance(typeof (ExceptionLogger), AppDomain.CurrentDomain.BaseDirectory,
-                        "{1}_{0}.txt", new JSONParameters {FilterSensitiveData = true, SensitiveData = Sensitive.Data},
-                        LogLevel.High), true);
+                delegate
+                {
+                    var logger = (ExceptionLogger)Activator.CreateInstance(typeof (ExceptionLogger), AppDomain.CurrentDomain.BaseDirectory);
+                    logger.FilterSensitiveData = true;
+                    logger.LogLevel = LogLevel.High;
+                    logger.SensitiveData = Sensitive.Data.ToArray();
+                    return logger;
+                }, true);
 
             AppDomain.CurrentDomain.UnhandledException +=
                 delegate(object sender, UnhandledExceptionEventArgs eventArgs)
                 {
-                    var ex = sender as Exception ??
-                             new NotSupportedException("Unhandled exception doesn't derive from System.Exception: " +
-                                                       sender);
+                    var ex = sender as Exception ?? new NotSupportedException("Unhandled exception doesn't derive from System.Exception: " + sender);
                     container.Resolve<ILogger>().AddItem(new LogItem(ex));
                 };
 

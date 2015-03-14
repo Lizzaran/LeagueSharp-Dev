@@ -28,18 +28,13 @@ namespace SFXUtility
     using LeagueSharp;
     using LeagueSharp.Common;
     using SFXLibrary;
+    using SFXLibrary.Data;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using Version = System.Version;
 
     #endregion
-
-    /*
-     * TODO: Thickness from circles option
-     * TODO: Time Format mm:ss | ss option
-     * TODO: Add comments?
-     */
 
     internal class SFXUtility
     {
@@ -115,7 +110,15 @@ namespace SFXUtility
         {
             try
             {
-                Chat.Print(string.Format("{0} v{1}.{2}.{3} loaded.", Name, Version.Major, Version.Minor, Version.Build));
+                var logger = _logger as ExceptionLogger;
+                if (logger != null)
+                {
+                    logger.FilterSensitiveData = true;
+                    logger.SensitiveData = Sensitive.Data.ToArray();
+                    logger.AdditionalData = Additional.Data;
+                }
+
+                Chat.Local(string.Format("{0} v{1}.{2}.{3} loaded.", Name, Version.Major, Version.Minor, Version.Build));
                 Menu.AddToMainMenu();
             }
             catch (Exception ex)

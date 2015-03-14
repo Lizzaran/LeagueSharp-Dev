@@ -32,28 +32,19 @@ namespace SFXLibrary.Data
 
     public static class Sensitive
     {
-        private static string[] _data;
-
-        public static string[] Data
+        public static List<string> Data
         {
             get
             {
-                if (_data == null)
-                    SetData();
-                return _data;
+                var data = ObjectManager.Get<Obj_AI_Hero>().Select(hero => hero.Name).ToList();
+                data.AddRange(new List<string>
+                {
+                    Game.IP,
+                    Game.Region,
+                    Game.Id.ToString()
+                });
+                return data;
             }
-        }
-
-        private static void SetData()
-        {
-            var data = ObjectManager.Get<Obj_AI_Hero>().Select(hero => hero.Name).ToList();
-            data.AddRange(new List<string>
-            {
-                Game.IP,
-                Game.Region,
-                Game.Id.ToString()
-            });
-            _data = data.ToArray();
         }
     }
 }

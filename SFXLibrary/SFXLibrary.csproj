@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Chat.cs" />
+    <Compile Include="Data\Additional.cs" />
     <Compile Include="Draw.cs" />
     <Compile Include="Extensions\LeagueSharp\Common\MenuExtensions.cs" />
     <Compile Include="Extensions\NET\FloatExtensions.cs" />

@@ -95,5 +95,10 @@ namespace SFXLibrary.Extensions.SharpDX
             }
             return sMinion;
         }
+
+        public static Obj_AI_Minion GetNearestMinionByNames(this Vector2 position, string[] names)
+        {
+            return GetNearestMinionByNames(Geometry.To3D(position), names);
+        }
     }
 }

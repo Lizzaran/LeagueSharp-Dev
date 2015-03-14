@@ -22,6 +22,7 @@
 
 #region
 
+using Game = LeagueSharp.Game;
 using ItemId = LeagueSharp.ItemId;
 using Items = LeagueSharp.Common.Items;
 using Obj_AI_Hero = LeagueSharp.Obj_AI_Hero;
