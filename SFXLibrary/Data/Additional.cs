@@ -28,6 +28,7 @@ namespace SFXLibrary.Data
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using LeagueSharp;
     using Microsoft.Win32;
 
     #endregion
@@ -35,110 +36,125 @@ namespace SFXLibrary.Data
     public static class Additional
     {
         private const string Unknown = "Unknown";
+        private static Dictionary<string, string> _data;
 
         public static Dictionary<string, string> Data
         {
             get
             {
-                return new Dictionary<string, string>
+                if (_data != null)
+                    return _data;
+
+                _data = new Dictionary<string, string>
                 {
                     {
                         "Operating System", OperatingSystem()
                     },
                     {
                         "NET Version", NETVersion()
+                    },
+                    {
+                        "Game Version", Game.Version
                     }
                 };
+                return _data;
             }
         }
 
         private static string OperatingSystem()
         {
-            var name = Unknown;
-            var osVersion = Environment.OSVersion;
-            var majorVersion = osVersion.Version.Major;
-            var minorVersion = osVersion.Version.Minor;
-
-            switch (osVersion.Platform)
+            try
             {
-                case PlatformID.Win32S:
-                    name = "Windows 3.1";
-                    break;
-                case PlatformID.WinCE:
-                    name = "Windows CE";
-                    break;
-                case PlatformID.Win32Windows:
+                var name = Unknown;
+                var osVersion = Environment.OSVersion;
+                var majorVersion = osVersion.Version.Major;
+                var minorVersion = osVersion.Version.Minor;
+
+                switch (osVersion.Platform)
                 {
-                    if (majorVersion == 4)
+                    case PlatformID.Win32S:
+                        name = "Windows 3.1";
+                        break;
+                    case PlatformID.WinCE:
+                        name = "Windows CE";
+                        break;
+                    case PlatformID.Win32Windows:
                     {
-                        switch (minorVersion)
+                        if (majorVersion == 4)
                         {
-                            case 0:
-                                name = "Windows 95";
+                            switch (minorVersion)
+                            {
+                                case 0:
+                                    name = "Windows 95";
+                                    break;
+                                case 10:
+                                    name = "Windows 98";
+                                    break;
+                                case 90:
+                                    name = "Windows Me";
+                                    break;
+                            }
+                        }
+                        break;
+                    }
+                    case PlatformID.Win32NT:
+                    {
+                        switch (majorVersion)
+                        {
+                            case 3:
+                                name = "Windows NT 3.51";
                                 break;
-                            case 10:
-                                name = "Windows 98";
+                            case 4:
+                                name = "Windows NT 4.0";
                                 break;
-                            case 90:
-                                name = "Windows Me";
+                            case 5:
+                                switch (minorVersion)
+                                {
+                                    case 0:
+                                        name = "Windows 2000";
+                                        break;
+                                    case 1:
+                                        name = "Windows XP";
+                                        break;
+                                    case 2:
+                                        name = "Windows Server 2003";
+                                        break;
+                                }
+                                break;
+                            case 6:
+                                switch (minorVersion)
+                                {
+                                    case 0:
+                                        name = "Windows Vista";
+                                        break;
+                                    case 1:
+                                        name = "Windows 7";
+                                        break;
+                                    case 2:
+                                        name = "Windows 8";
+                                        break;
+                                }
                                 break;
                         }
+                        break;
                     }
-                    break;
                 }
-                case PlatformID.Win32NT:
+
+                if (name != Unknown)
                 {
-                    switch (majorVersion)
+                    if (osVersion.ServicePack != "")
                     {
-                        case 3:
-                            name = "Windows NT 3.51";
-                            break;
-                        case 4:
-                            name = "Windows NT 4.0";
-                            break;
-                        case 5:
-                            switch (minorVersion)
-                            {
-                                case 0:
-                                    name = "Windows 2000";
-                                    break;
-                                case 1:
-                                    name = "Windows XP";
-                                    break;
-                                case 2:
-                                    name = "Windows Server 2003";
-                                    break;
-                            }
-                            break;
-                        case 6:
-                            switch (minorVersion)
-                            {
-                                case 0:
-                                    name = "Windows Vista";
-                                    break;
-                                case 1:
-                                    name = "Windows 7";
-                                    break;
-                                case 2:
-                                    name = "Windows 8";
-                                    break;
-                            }
-                            break;
+                        name += " " + osVersion.ServicePack;
                     }
-                    break;
+                    name += " " + (Environment.Is64BitOperatingSystem ? "64" : "32") + "-bit";
                 }
-            }
 
-            if (name != Unknown)
+                return name;
+            }
+            catch
             {
-                if (osVersion.ServicePack != "")
-                {
-                    name += " " + osVersion.ServicePack;
-                }
-                name += " " + (Environment.Is64BitOperatingSystem ? "64" : "32") + "-bit";
             }
-
-            return name;
+            return Unknown;
         }
 
         private static string NETVersion()

@@ -25,13 +25,12 @@ namespace SFXUtility
     #region
 
     using System;
+    using System.Globalization;
     using System.Linq;
     using System.Reflection;
     using Classes;
     using SFXLibrary;
-    using SFXLibrary.Data;
     using SFXLibrary.IoCContainer;
-    using SFXLibrary.JSON;
     using SFXLibrary.Logger;
 
     #endregion
@@ -48,29 +47,35 @@ namespace SFXUtility
         // ReSharper disable once UnusedParameter.Local
         private static void Main(string[] args)
         {
-            var container = new Container();
+            const BindingFlags bFlags = BindingFlags.CreateInstance | BindingFlags.Public | BindingFlags.Instance |
+                                        BindingFlags.OptionalParamBinding;
 
-            container.Register(typeof (ILogger),
-                delegate
-                {
-                    var logger = (ExceptionLogger)Activator.CreateInstance(typeof (ExceptionLogger), AppDomain.CurrentDomain.BaseDirectory);
-                    logger.FilterSensitiveData = true;
-                    logger.LogLevel = LogLevel.High;
-                    logger.SensitiveData = Sensitive.Data.ToArray();
-                    return logger;
-                }, true);
+            var container = new Container();
 
             AppDomain.CurrentDomain.UnhandledException +=
                 delegate(object sender, UnhandledExceptionEventArgs eventArgs)
                 {
-                    var ex = sender as Exception ?? new NotSupportedException("Unhandled exception doesn't derive from System.Exception: " + sender);
-                    container.Resolve<ILogger>().AddItem(new LogItem(ex));
+                    if (container.IsRegistered<ILogger>())
+                    {
+                        var ex = sender as Exception ??
+                                 new NotSupportedException(
+                                     "Unhandled exception doesn't derive from System.Exception: " +
+                                     sender);
+                        container.Resolve<ILogger>().AddItem(new LogItem(ex));
+                    }
                 };
+
+            container.Register(typeof (ILogger),
+                () =>
+                    Activator.CreateInstance(typeof (ExceptionLogger), bFlags, null,
+                        new object[] {AppDomain.CurrentDomain.BaseDirectory}, CultureInfo.CurrentCulture), true);
 
             container.Register<Mediator, Mediator>(true);
 
-            container.Register(typeof (SFXUtility), () => Activator.CreateInstance(typeof (SFXUtility), container), true,
-                true);
+            container.Register(typeof (SFXUtility),
+                () =>
+                    Activator.CreateInstance(typeof (SFXUtility), bFlags, null, new object[] {container},
+                        CultureInfo.CurrentCulture), true, true);
 
             var bType = typeof (Base);
             foreach (
@@ -83,7 +88,10 @@ namespace SFXUtility
                 try
                 {
                     var tmpType = type;
-                    container.Register(type, () => Activator.CreateInstance(tmpType, container), true, true);
+                    container.Register(tmpType,
+                        () =>
+                            Activator.CreateInstance(tmpType, bFlags, null, new object[] {container},
+                                CultureInfo.CurrentCulture), true, true);
                 }
                 catch (Exception ex)
                 {

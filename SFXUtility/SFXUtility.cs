@@ -113,8 +113,7 @@ namespace SFXUtility
                 var logger = _logger as ExceptionLogger;
                 if (logger != null)
                 {
-                    logger.FilterSensitiveData = true;
-                    logger.SensitiveData = Sensitive.Data.ToArray();
+                    logger.SensitiveData = Sensitive.Data;
                     logger.AdditionalData = Additional.Data;
                 }
 

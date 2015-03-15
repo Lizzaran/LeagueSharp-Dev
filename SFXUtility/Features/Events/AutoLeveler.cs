@@ -60,21 +60,21 @@ namespace SFXUtility.Features.Events
             get { return "Auto Leveler"; }
         }
 
-        private MenuInfo GetMenuInfoByPriority(int priority)
+        private SpellInfoStruct GetMenuInfoByPriority(int priority)
         {
-            return new List<MenuInfo>
+            return new List<SpellInfoStruct>
             {
-                new MenuInfo
+                new SpellInfoStruct
                 {
                     Slot = SpellSlot.Q,
                     Value = Menu.Item(Name + "PatternQ").GetValue<Slider>().Value
                 },
-                new MenuInfo
+                new SpellInfoStruct
                 {
                     Slot = SpellSlot.W,
                     Value = Menu.Item(Name + "PatternW").GetValue<Slider>().Value
                 },
-                new MenuInfo
+                new SpellInfoStruct
                 {
                     Slot = SpellSlot.E,
                     Value = Menu.Item(Name + "PatternE").GetValue<Slider>().Value
@@ -82,21 +82,21 @@ namespace SFXUtility.Features.Events
             }.OrderBy(x => x.Value).Reverse().First(s => s.Value == priority);
         }
 
-        private List<MenuInfo> GetOrderedList()
+        private List<SpellInfoStruct> GetOrderedList()
         {
-            return new List<MenuInfo>
+            return new List<SpellInfoStruct>
             {
-                new MenuInfo
+                new SpellInfoStruct
                 {
                     Slot = SpellSlot.Q,
                     Value = Menu.Item(Name + "PatternQ").GetValue<Slider>().Value
                 },
-                new MenuInfo
+                new SpellInfoStruct
                 {
                     Slot = SpellSlot.W,
                     Value = Menu.Item(Name + "PatternW").GetValue<Slider>().Value
                 },
-                new MenuInfo
+                new SpellInfoStruct
                 {
                     Slot = SpellSlot.E,
                     Value = Menu.Item(Name + "PatternE").GetValue<Slider>().Value
@@ -231,7 +231,7 @@ namespace SFXUtility.Features.Events
                     return;
 
                 var patternIndex = Menu.Item(Name + "PatternEarly").GetValue<StringList>().SelectedIndex;
-                MenuInfo mf = null;
+                SpellInfoStruct mf = default(SpellInfoStruct);
                 switch (args.NewLevel)
                 {
                     case 2:
@@ -276,7 +276,7 @@ namespace SFXUtility.Features.Events
                         }
                         break;
                 }
-                if (mf != null && points > 0)
+                if (!mf.Equals(default(SpellInfoStruct)) && points > 0)
                 {
                     ObjectManager.Player.Spellbook.LevelUpSpell(mf.Slot);
                     points--;
@@ -296,7 +296,7 @@ namespace SFXUtility.Features.Events
             }
         }
 
-        private class MenuInfo
+        private struct SpellInfoStruct
         {
             public SpellSlot Slot { get; set; }
             public int Value { get; set; }

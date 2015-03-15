@@ -28,6 +28,7 @@ namespace SFXLibrary.Logger
     using System.Collections.Generic;
     using System.IO;
     using System.IO.Compression;
+    using System.Linq;
     using System.Text;
     using Extensions.NET;
     using JSON;
@@ -40,6 +41,8 @@ namespace SFXLibrary.Logger
         private readonly string _fileName;
         private readonly string _logDir;
         private readonly HashSet<string> _unique = new HashSet<string>();
+        private bool _filterSensitiveData = true;
+        private string[] _sensitiveData;
 
         public ExceptionLogger(string logDir, string fileName = "{1}_{0}.gz", bool compression = true,
             LogLevel logLevel = LogLevel.High)
@@ -52,8 +55,19 @@ namespace SFXLibrary.Logger
 
         public JSONParameters JSONParams { get; set; }
         public Dictionary<string, string> AdditionalData { get; set; }
-        public bool FilterSensitiveData { get; set; }
-        public string[] SensitiveData { get; set; }
+
+        public bool FilterSensitiveData
+        {
+            get { return _filterSensitiveData; }
+            set { _filterSensitiveData = value; }
+        }
+
+        public List<string> SensitiveData
+        {
+            get { return _sensitiveData.ToList(); }
+            set { _sensitiveData = value.ToArray(); }
+        }
+
         public LogLevel LogLevel { get; set; }
 
         public new void AddItem(LogItem item)
@@ -102,7 +116,7 @@ namespace SFXLibrary.Logger
                     }
 
                     if (FilterSensitiveData)
-                        log = FilterData(log, SensitiveData);
+                        log = FilterData(log, _sensitiveData);
 
                     var logByte = new UTF8Encoding(true).GetBytes(log);
 
