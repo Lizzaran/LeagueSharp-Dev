@@ -43,7 +43,7 @@ namespace SFXUtility.Features.Trackers
     {
         private const float UpdateInterval = 300f;
         private float _lastUpdate;
-        private Trackers _trackers;
+        private Trackers _parent;
         private IEnumerable<List<Vector2>> _waypoints = new List<List<Vector2>>();
 
         public Waypoint(IContainer container)
@@ -56,7 +56,7 @@ namespace SFXUtility.Features.Trackers
         {
             get
             {
-                return _trackers != null && _trackers.Enabled && Menu != null &&
+                return _parent != null && _parent.Enabled && Menu != null &&
                        Menu.Item(Name + "Enabled").GetValue<bool>();
             }
         }
@@ -64,6 +64,20 @@ namespace SFXUtility.Features.Trackers
         public override string Name
         {
             get { return "Waypoint"; }
+        }
+
+        protected override void OnEnable()
+        {
+            Game.OnUpdate += OnGameUpdate;
+            Drawing.OnDraw += OnDrawingDraw;
+            base.OnEnable();
+        }
+
+        protected override void OnDisable()
+        {
+            Game.OnUpdate -= OnGameUpdate;
+            Drawing.OnDraw -= OnDrawingDraw;
+            base.OnDisable();
         }
 
         private void OnGameUpdate(EventArgs args)
@@ -86,7 +100,7 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private void OnDraw(EventArgs args)
+        private void OnDrawingDraw(EventArgs args)
         {
             try
             {
@@ -130,16 +144,13 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                if (IoC.IsRegistered<Trackers>() && IoC.Resolve<Trackers>().Initialized)
+                if (IoC.IsRegistered<Trackers>())
                 {
-                    TrackersLoaded(IoC.Resolve<Trackers>());
-                }
-                else
-                {
-                    if (IoC.IsRegistered<Mediator>())
-                    {
-                        IoC.Resolve<Mediator>().Register("Trackers_initialized", TrackersLoaded);
-                    }
+                    _parent = IoC.Resolve<Trackers>();
+                    if (_parent.Initialized)
+                        OnParentLoaded(null, null);
+                    else
+                        _parent.OnInitialized += OnParentLoaded;
                 }
             }
             catch (Exception ex)
@@ -148,74 +159,29 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private void TrackersLoaded(object o)
+        private void OnParentLoaded(object sender, EventArgs eventArgs)
         {
             try
             {
-                var trackers = o as Trackers;
-                if (trackers != null && trackers.Menu != null)
-                {
-                    _trackers = trackers;
+                if (_parent.Menu == null)
+                    return;
 
-                    Menu = new Menu(Name, Name);
+                Menu = new Menu(Name, Name);
 
-                    var drawingMenu = new Menu("Drawing", Name + "Drawing");
-                    drawingMenu.AddItem(new MenuItem(Name + "DrawingCrossColor", "Cross Color").SetValue(Color.DarkRed));
-                    drawingMenu.AddItem(new MenuItem(Name + "DrawingLineColor", "Line Color").SetValue(Color.White));
+                var drawingMenu = new Menu("Drawing", Name + "Drawing");
+                drawingMenu.AddItem(new MenuItem(Name + "DrawingCrossColor", "Cross Color").SetValue(Color.DarkRed));
+                drawingMenu.AddItem(new MenuItem(Name + "DrawingLineColor", "Line Color").SetValue(Color.White));
 
-                    Menu.AddSubMenu(drawingMenu);
+                Menu.AddSubMenu(drawingMenu);
 
-                    Menu.AddItem(new MenuItem(Name + "DrawAlly", "Ally").SetValue(false));
-                    Menu.AddItem(new MenuItem(Name + "DrawEnemy", "Enemy").SetValue(true));
-                    Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "DrawAlly", "Ally").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "DrawEnemy", "Enemy").SetValue(true));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
-                    _trackers.Menu.AddSubMenu(Menu);
+                _parent.Menu.AddSubMenu(Menu);
 
-                    _trackers.Menu.Item(_trackers.Name + "Enabled").ValueChanged +=
-                        delegate(object sender, OnValueChangeEventArgs args)
-                        {
-                            if (args.GetNewValue<bool>())
-                            {
-                                if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
-                                {
-                                    Drawing.OnDraw += OnDraw;
-                                    Game.OnUpdate += OnGameUpdate;
-                                }
-                            }
-                            else
-                            {
-                                Drawing.OnDraw -= OnDraw;
-                                Game.OnUpdate -= OnGameUpdate;
-                            }
-                        };
-
-                    Menu.Item(Name + "Enabled").ValueChanged +=
-                        delegate(object sender, OnValueChangeEventArgs args)
-                        {
-                            if (args.GetNewValue<bool>())
-                            {
-                                if (_trackers != null && _trackers.Menu != null &&
-                                    _trackers.Menu.Item(_trackers.Name + "Enabled").GetValue<bool>())
-                                {
-                                    Drawing.OnDraw += OnDraw;
-                                    Game.OnUpdate += OnGameUpdate;
-                                }
-                            }
-                            else
-                            {
-                                Drawing.OnDraw -= OnDraw;
-                                Game.OnUpdate -= OnGameUpdate;
-                            }
-                        };
-
-                    if (Enabled)
-                    {
-                        Drawing.OnDraw += OnDraw;
-                        Game.OnUpdate += OnGameUpdate;
-                    }
-
-                    Initialized = true;
-                }
+                HandleEvents(_parent);
+                RaiseOnInitialized();
             }
             catch (Exception ex)
             {

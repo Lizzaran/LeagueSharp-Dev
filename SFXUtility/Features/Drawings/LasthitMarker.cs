@@ -30,7 +30,6 @@ namespace SFXUtility.Features.Drawings
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
@@ -40,8 +39,8 @@ namespace SFXUtility.Features.Drawings
 
     internal class LasthitMarker : Base
     {
-        private Drawings _drawings;
         private List<Obj_AI_Minion> _minions = new List<Obj_AI_Minion>();
+        private Drawings _parent;
 
         public LasthitMarker(IContainer container)
             : base(container)
@@ -53,7 +52,7 @@ namespace SFXUtility.Features.Drawings
         {
             get
             {
-                return _drawings != null && _drawings.Enabled && Menu != null &&
+                return _parent != null && _parent.Enabled && Menu != null &&
                        Menu.Item(Name + "Enabled").GetValue<bool>();
             }
         }
@@ -63,7 +62,7 @@ namespace SFXUtility.Features.Drawings
             get { return "Lasthit Marker"; }
         }
 
-        private void OnDraw(EventArgs args)
+        private void OnDrawingDraw(EventArgs args)
         {
             try
             {
@@ -107,89 +106,45 @@ namespace SFXUtility.Features.Drawings
             }
         }
 
-        private void DrawingsLoaded(object o)
+        private void OnParentLoaded(object sender, EventArgs eventArgs)
         {
             try
             {
-                var drawings = o as Drawings;
-                if (drawings != null && drawings.Menu != null)
-                {
-                    _drawings = drawings;
+                if (_parent.Menu == null)
+                    return;
 
-                    Menu = new Menu(Name, Name);
+                Menu = new Menu(Name, Name);
 
-                    var drawingMenu = new Menu("Drawing", Name + "Drawing");
-                    var drawingHpBarMenu = new Menu("HPBar", Name + "HPBar");
+                var drawingMenu = new Menu("Drawing", Name + "Drawing");
+                var drawingHpBarMenu = new Menu("HPBar", Name + "HPBar");
 
-                    drawingHpBarMenu.AddItem(
-                        new MenuItem(Name + "DrawingHpBarKillableColor", "Killable Color").SetValue(Color.Green));
-                    drawingHpBarMenu.AddItem(
-                        new MenuItem(Name + "DrawingHpBarUnkillableColor", "Unkillable Color").SetValue(Color.White));
-                    drawingHpBarMenu.AddItem(
-                        new MenuItem(Name + "DrawingHpBarLinesThickness", "Lines Thickness").SetValue(new Slider(1, 1,
-                            10)));
-                    drawingHpBarMenu.AddItem(new MenuItem(Name + "DrawingHpBarEnabled", "Enabled").SetValue(true));
+                drawingHpBarMenu.AddItem(
+                    new MenuItem(Name + "DrawingHpBarKillableColor", "Killable Color").SetValue(Color.Green));
+                drawingHpBarMenu.AddItem(
+                    new MenuItem(Name + "DrawingHpBarUnkillableColor", "Unkillable Color").SetValue(Color.White));
+                drawingHpBarMenu.AddItem(
+                    new MenuItem(Name + "DrawingHpBarLinesThickness", "Lines Thickness").SetValue(new Slider(1, 1,
+                        10)));
+                drawingHpBarMenu.AddItem(new MenuItem(Name + "DrawingHpBarEnabled", "Enabled").SetValue(false));
 
-                    var drawingCirclesMenu = new Menu("Circle", Name + "Circle");
-                    drawingCirclesMenu.AddItem(
-                        new MenuItem(Name + "DrawingCircleColor", "Circle Color").SetValue(Color.Fuchsia));
-                    drawingCirclesMenu.AddItem(
-                        new MenuItem(Name + "DrawingCircleRadius", "Circle Radius").SetValue(new Slider(30)));
-                    drawingCirclesMenu.AddItem(new MenuItem(Name + "DrawingCircleEnabled", "Enabled").SetValue(true));
+                var drawingCirclesMenu = new Menu("Circle", Name + "Circle");
+                drawingCirclesMenu.AddItem(
+                    new MenuItem(Name + "DrawingCircleColor", "Circle Color").SetValue(Color.Fuchsia));
+                drawingCirclesMenu.AddItem(
+                    new MenuItem(Name + "DrawingCircleRadius", "Circle Radius").SetValue(new Slider(30)));
+                drawingCirclesMenu.AddItem(new MenuItem(Name + "DrawingCircleEnabled", "Enabled").SetValue(false));
 
-                    drawingMenu.AddSubMenu(drawingHpBarMenu);
-                    drawingMenu.AddSubMenu(drawingCirclesMenu);
+                drawingMenu.AddSubMenu(drawingHpBarMenu);
+                drawingMenu.AddSubMenu(drawingCirclesMenu);
 
-                    Menu.AddSubMenu(drawingMenu);
+                Menu.AddSubMenu(drawingMenu);
 
-                    Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(true));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
-                    _drawings.Menu.AddSubMenu(Menu);
+                _parent.Menu.AddSubMenu(Menu);
 
-                    _drawings.Menu.Item(_drawings.Name + "Enabled").ValueChanged +=
-                        delegate(object sender, OnValueChangeEventArgs args)
-                        {
-                            if (args.GetNewValue<bool>())
-                            {
-                                if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
-                                {
-                                    Game.OnUpdate += OnGameUpdate;
-                                    Drawing.OnDraw += OnDraw;
-                                }
-                            }
-                            else
-                            {
-                                Game.OnUpdate -= OnGameUpdate;
-                                Drawing.OnDraw -= OnDraw;
-                            }
-                        };
-
-                    Menu.Item(Name + "Enabled").ValueChanged +=
-                        delegate(object sender, OnValueChangeEventArgs args)
-                        {
-                            if (args.GetNewValue<bool>())
-                            {
-                                if (_drawings != null && _drawings.Enabled)
-                                {
-                                    Game.OnUpdate += OnGameUpdate;
-                                    Drawing.OnDraw += OnDraw;
-                                }
-                            }
-                            else
-                            {
-                                Game.OnUpdate -= OnGameUpdate;
-                                Drawing.OnDraw -= OnDraw;
-                            }
-                        };
-
-                    if (Enabled)
-                    {
-                        Game.OnUpdate += OnGameUpdate;
-                        Drawing.OnDraw += OnDraw;
-                    }
-
-                    Initialized = true;
-                }
+                HandleEvents(_parent);
+                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
@@ -197,20 +152,31 @@ namespace SFXUtility.Features.Drawings
             }
         }
 
+        protected override void OnEnable()
+        {
+            Game.OnUpdate += OnGameUpdate;
+            Drawing.OnDraw += OnDrawingDraw;
+            base.OnEnable();
+        }
+
+        protected override void OnDisable()
+        {
+            Game.OnUpdate -= OnGameUpdate;
+            Drawing.OnDraw -= OnDrawingDraw;
+            base.OnDisable();
+        }
+
         private void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Drawings>() && IoC.Resolve<Drawings>().Initialized)
+                if (IoC.IsRegistered<Drawings>())
                 {
-                    DrawingsLoaded(IoC.Resolve<Drawings>());
-                }
-                else
-                {
-                    if (IoC.IsRegistered<Mediator>())
-                    {
-                        IoC.Resolve<Mediator>().Register("Drawings_initialized", DrawingsLoaded);
-                    }
+                    _parent = IoC.Resolve<Drawings>();
+                    if (_parent.Initialized)
+                        OnParentLoaded(null, null);
+                    else
+                        _parent.OnInitialized += OnParentLoaded;
                 }
             }
             catch (Exception ex)

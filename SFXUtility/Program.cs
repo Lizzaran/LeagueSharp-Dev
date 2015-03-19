@@ -38,8 +38,8 @@ namespace SFXUtility
     /*
      * TODO: Thickness from circles option
      * TODO: Time Format mm:ss | ss option
-     * TODO: Add comments?
      * TODO: Logger: L# Version, directory etc.
+     * TODO: Simple usage tracker.. which features are enabled/disabled?!
      */
 
     internal class Program

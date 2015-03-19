@@ -30,7 +30,6 @@ namespace SFXUtility.Features.Activators
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
@@ -38,34 +37,14 @@ namespace SFXUtility.Features.Activators
 
     internal class Potion : Base
     {
-        private Activators _activators;
+        private Activators _parent;
 
         private List<PotionStruct> _potions = new List<PotionStruct>
         {
-            new PotionStruct
-            {
-                BuffName = "ItemCrystalFlask",
-                MinCharges = 1,
-                ItemId = ItemId.Crystalline_Flask,
-                Priority = 1,
-                TypeList = new List<PotionType> {PotionType.Health, PotionType.Mana}
-            },
-            new PotionStruct
-            {
-                BuffName = "RegenerationPotion",
-                MinCharges = 0,
-                ItemId = ItemId.Health_Potion,
-                Priority = 2,
-                TypeList = new List<PotionType> {PotionType.Health}
-            },
-            new PotionStruct
-            {
-                BuffName = "FlaskOfCrystalWater",
-                MinCharges = 0,
-                ItemId = ItemId.Mana_Potion,
-                Priority = 3,
-                TypeList = new List<PotionType> {PotionType.Mana}
-            }
+            new PotionStruct("ItemCrystalFlask", ItemId.Crystalline_Flask, 1, 1,
+                new[] {PotionType.Health, PotionType.Mana}),
+            new PotionStruct("RegenerationPotion", ItemId.Health_Potion, 0, 2, new[] {PotionType.Health}),
+            new PotionStruct("FlaskOfCrystalWater", ItemId.Mana_Potion, 0, 3, new[] {PotionType.Mana})
         };
 
         public Potion(IContainer container)
@@ -78,7 +57,7 @@ namespace SFXUtility.Features.Activators
         {
             get
             {
-                return _activators != null && _activators.Enabled && Menu != null &&
+                return _parent != null && _parent.Enabled && Menu != null &&
                        Menu.Item(Name + "Enabled").GetValue<bool>();
             }
         }
@@ -88,74 +67,40 @@ namespace SFXUtility.Features.Activators
             get { return "Potion"; }
         }
 
-        private void ActivatorsLoaded(object o)
+        protected override void OnEnable()
+        {
+            Game.OnUpdate += OnGameUpdate;
+            base.OnEnable();
+        }
+
+        protected override void OnDisable()
+        {
+            Game.OnUpdate -= OnGameUpdate;
+            base.OnDisable();
+        }
+
+        private void OnParentLoaded(object sender, EventArgs eventArgs)
         {
             try
             {
-                var activators = o as Activators;
-                if (activators != null && activators.Menu != null)
-                {
-                    _activators = activators;
+                if (_parent.Menu == null)
+                    return;
 
-                    _potions = _potions.OrderBy(x => x.Priority).ToList();
-
-                    Menu = new Menu(Name, Name);
-
-                    var healthMenu = new Menu("Health", Name + "Health");
-                    healthMenu.AddItem(new MenuItem(Name + "HealthPotion", "Use Health Potion").SetValue(true));
-                    healthMenu.AddItem(
-                        new MenuItem(Name + "HealthPercent", "HP Trigger Percent").SetValue(new Slider(60)));
-
-                    var manaMenu = new Menu("Mana", Name + "Mana");
-                    manaMenu.AddItem(new MenuItem(Name + "ManaPotion", "Use Mana Potion").SetValue(true));
-                    manaMenu.AddItem(new MenuItem(Name + "ManaPercent", "MP Trigger Percent").SetValue(new Slider(60)));
-
-                    Menu.AddSubMenu(healthMenu);
-                    Menu.AddSubMenu(manaMenu);
-
-                    Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
-
-                    _activators.Menu.AddSubMenu(Menu);
-
-                    _activators.Menu.Item(_activators.Name + "Enabled").ValueChanged +=
-                        delegate(object sender, OnValueChangeEventArgs args)
-                        {
-                            if (args.GetNewValue<bool>())
-                            {
-                                if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
-                                {
-                                    Game.OnUpdate += OnGameUpdate;
-                                }
-                            }
-                            else
-                            {
-                                Game.OnUpdate -= OnGameUpdate;
-                            }
-                        };
-
-                    Menu.Item(Name + "Enabled").ValueChanged +=
-                        delegate(object sender, OnValueChangeEventArgs args)
-                        {
-                            if (args.GetNewValue<bool>())
-                            {
-                                if (_activators != null && _activators.Enabled)
-                                {
-                                    Game.OnUpdate += OnGameUpdate;
-                                }
-                            }
-                            else
-                            {
-                                Game.OnUpdate -= OnGameUpdate;
-                            }
-                        };
-
-                    if (Enabled)
-                    {
-                        Game.OnUpdate += OnGameUpdate;
-                    }
-
-                    Initialized = true;
-                }
+                _potions = _potions.OrderBy(x => x.Priority).ToList();
+                Menu = new Menu(Name, Name);
+                var healthMenu = new Menu("Health", Name + "Health");
+                healthMenu.AddItem(new MenuItem(Name + "HealthPotion", "Use Health Potion").SetValue(true));
+                healthMenu.AddItem(
+                    new MenuItem(Name + "HealthPercent", "HP Trigger Percent").SetValue(new Slider(60)));
+                var manaMenu = new Menu("Mana", Name + "Mana");
+                manaMenu.AddItem(new MenuItem(Name + "ManaPotion", "Use Mana Potion").SetValue(true));
+                manaMenu.AddItem(new MenuItem(Name + "ManaPercent", "MP Trigger Percent").SetValue(new Slider(60)));
+                Menu.AddSubMenu(healthMenu);
+                Menu.AddSubMenu(manaMenu);
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+                _parent.Menu.AddSubMenu(Menu);
+                HandleEvents(_parent);
+                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
@@ -183,16 +128,13 @@ namespace SFXUtility.Features.Activators
         {
             try
             {
-                if (IoC.IsRegistered<Activators>() && IoC.Resolve<Activators>().Initialized)
+                if (IoC.IsRegistered<Activators>())
                 {
-                    ActivatorsLoaded(IoC.Resolve<Activators>());
-                }
-                else
-                {
-                    if (IoC.IsRegistered<Mediator>())
-                    {
-                        IoC.Resolve<Mediator>().Register("Activators_initialized", ActivatorsLoaded);
-                    }
+                    _parent = IoC.Resolve<Activators>();
+                    if (_parent.Initialized)
+                        OnParentLoaded(null, null);
+                    else
+                        _parent.OnInitialized += OnParentLoaded;
                 }
             }
             catch (Exception ex)
@@ -241,11 +183,21 @@ namespace SFXUtility.Features.Activators
 
         private struct PotionStruct
         {
-            public string BuffName { get; set; }
-            public ItemId ItemId { get; set; }
-            public int MinCharges { get; set; }
-            public int Priority { get; set; }
-            public List<PotionType> TypeList { get; set; }
+            public PotionStruct(string buffName, ItemId itemId, int minCharges, int priority, PotionType[] typeList)
+                : this()
+            {
+                BuffName = buffName;
+                ItemId = itemId;
+                MinCharges = minCharges;
+                Priority = priority;
+                TypeList = typeList;
+            }
+
+            public string BuffName { get; private set; }
+            public ItemId ItemId { get; private set; }
+            public int MinCharges { get; private set; }
+            public int Priority { get; private set; }
+            public PotionType[] TypeList { get; private set; }
         }
     }
 }

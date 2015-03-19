@@ -31,7 +31,6 @@ namespace SFXUtility.Features.Drawings
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary;
     using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
@@ -42,8 +41,8 @@ namespace SFXUtility.Features.Drawings
     {
         private const float ExperienceRange = 1400f;
         private const float TurretRange = 900f;
-        private Drawings _drawings;
         private List<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
+        private Drawings _parent;
         private List<Obj_AI_Turret> _turrets = new List<Obj_AI_Turret>();
 
         public Range(IContainer container)
@@ -56,7 +55,7 @@ namespace SFXUtility.Features.Drawings
         {
             get
             {
-                return _drawings != null && _drawings.Enabled && Menu != null &&
+                return _parent != null && _parent.Enabled && Menu != null &&
                        Menu.Item(Name + "Enabled").GetValue<bool>();
             }
         }
@@ -202,7 +201,7 @@ namespace SFXUtility.Features.Drawings
             }
         }
 
-        private void OnDraw(EventArgs args)
+        private void OnDrawingDraw(EventArgs args)
         {
             try
             {
@@ -217,118 +216,80 @@ namespace SFXUtility.Features.Drawings
             }
         }
 
-        private void DrawingsLoaded(object o)
+        private void OnParentLoaded(object sender, EventArgs eventArgs)
         {
             try
             {
-                var drawings = o as Drawings;
-                if (drawings != null && drawings.Menu != null)
-                {
-                    _drawings = drawings;
+                if (_parent.Menu == null)
+                    return;
 
-                    Menu = new Menu(Name, Name);
+                Menu = new Menu(Name, Name);
 
-                    var experienceMenu = new Menu("Experience", Name + "Experience");
-                    experienceMenu.AddItem(new MenuItem(Name + "ExperienceColor", "Color").SetValue(Color.Gray));
-                    experienceMenu.AddItem(new MenuItem(Name + "ExperienceSelf", "Self").SetValue(true));
-                    experienceMenu.AddItem(new MenuItem(Name + "ExperienceFriendly", "Friendly").SetValue(true));
-                    experienceMenu.AddItem(new MenuItem(Name + "ExperienceEnemy", "Enemy").SetValue(true));
+                var experienceMenu = new Menu("Experience", Name + "Experience");
+                experienceMenu.AddItem(new MenuItem(Name + "ExperienceColor", "Color").SetValue(Color.Gray));
+                experienceMenu.AddItem(new MenuItem(Name + "ExperienceSelf", "Self").SetValue(true));
+                experienceMenu.AddItem(new MenuItem(Name + "ExperienceFriendly", "Friendly").SetValue(true));
+                experienceMenu.AddItem(new MenuItem(Name + "ExperienceEnemy", "Enemy").SetValue(true));
 
-                    var attackMenu = new Menu("Attack", Name + "Attack");
-                    attackMenu.AddItem(new MenuItem(Name + "AttackColor", "Color").SetValue(Color.Yellow));
-                    attackMenu.AddItem(new MenuItem(Name + "AttackSelf", "Self").SetValue(true));
-                    attackMenu.AddItem(new MenuItem(Name + "AttackFriendly", "Friendly").SetValue(true));
-                    attackMenu.AddItem(new MenuItem(Name + "AttackEnemy", "Enemy").SetValue(true));
+                var attackMenu = new Menu("Attack", Name + "Attack");
+                attackMenu.AddItem(new MenuItem(Name + "AttackColor", "Color").SetValue(Color.Yellow));
+                attackMenu.AddItem(new MenuItem(Name + "AttackSelf", "Self").SetValue(true));
+                attackMenu.AddItem(new MenuItem(Name + "AttackFriendly", "Friendly").SetValue(true));
+                attackMenu.AddItem(new MenuItem(Name + "AttackEnemy", "Enemy").SetValue(true));
 
-                    var turretMenu = new Menu("Turret", Name + "Turret");
-                    turretMenu.AddItem(
-                        new MenuItem(Name + "TurretFriendlyColor", "Friendly Color").SetValue(Color.DarkGreen));
-                    turretMenu.AddItem(new MenuItem(Name + "TurretEnemyColor", "Enemy Color").SetValue(Color.DarkRed));
-                    turretMenu.AddItem(new MenuItem(Name + "TurretFriendly", "Friendly").SetValue(true));
-                    turretMenu.AddItem(new MenuItem(Name + "TurretEnemy", "Enemy").SetValue(true));
+                var turretMenu = new Menu("Turret", Name + "Turret");
+                turretMenu.AddItem(
+                    new MenuItem(Name + "TurretFriendlyColor", "Friendly Color").SetValue(Color.DarkGreen));
+                turretMenu.AddItem(new MenuItem(Name + "TurretEnemyColor", "Enemy Color").SetValue(Color.DarkRed));
+                turretMenu.AddItem(new MenuItem(Name + "TurretFriendly", "Friendly").SetValue(true));
+                turretMenu.AddItem(new MenuItem(Name + "TurretEnemy", "Enemy").SetValue(true));
 
-                    var spellMenu = new Menu("Spell", Name + "Spell");
-                    spellMenu.AddItem(
-                        new MenuItem(Name + "SpellMaxRange", "Max Spell Range").SetValue(new Slider(1000, 500, 3000)));
+                var spellMenu = new Menu("Spell", Name + "Spell");
+                spellMenu.AddItem(
+                    new MenuItem(Name + "SpellMaxRange", "Max Spell Range").SetValue(new Slider(1000, 500, 3000)));
 
-                    var spellSelfMenu = new Menu("Self", Name + "SpellSelf");
-                    spellSelfMenu.AddItem(new MenuItem(Name + "SpellSelfColor", "Color").SetValue(Color.Purple));
-                    spellSelfMenu.AddItem(new MenuItem(Name + "SpellSelfQ", "Q").SetValue(true));
-                    spellSelfMenu.AddItem(new MenuItem(Name + "SpellSelfW", "W").SetValue(true));
-                    spellSelfMenu.AddItem(new MenuItem(Name + "SpellSelfE", "E").SetValue(true));
-                    spellSelfMenu.AddItem(new MenuItem(Name + "SpellSelfR", "R").SetValue(true));
+                var spellSelfMenu = new Menu("Self", Name + "SpellSelf");
+                spellSelfMenu.AddItem(new MenuItem(Name + "SpellSelfColor", "Color").SetValue(Color.Purple));
+                spellSelfMenu.AddItem(new MenuItem(Name + "SpellSelfQ", "Q").SetValue(true));
+                spellSelfMenu.AddItem(new MenuItem(Name + "SpellSelfW", "W").SetValue(true));
+                spellSelfMenu.AddItem(new MenuItem(Name + "SpellSelfE", "E").SetValue(true));
+                spellSelfMenu.AddItem(new MenuItem(Name + "SpellSelfR", "R").SetValue(true));
 
-                    spellMenu.AddSubMenu(spellSelfMenu);
+                spellMenu.AddSubMenu(spellSelfMenu);
 
-                    var spellFriendlyMenu = new Menu("Friendly", Name + "SpellFriendly");
-                    spellFriendlyMenu.AddItem(new MenuItem(Name + "SpellFriendlyColor", "Color").SetValue(Color.Green));
-                    spellFriendlyMenu.AddItem(new MenuItem(Name + "SpellFriendlyQ", "Q").SetValue(true));
-                    spellFriendlyMenu.AddItem(new MenuItem(Name + "SpellFriendlyW", "W").SetValue(true));
-                    spellFriendlyMenu.AddItem(new MenuItem(Name + "SpellFriendlyE", "E").SetValue(true));
-                    spellFriendlyMenu.AddItem(new MenuItem(Name + "SpellFriendlyR", "R").SetValue(true));
+                var spellFriendlyMenu = new Menu("Friendly", Name + "SpellFriendly");
+                spellFriendlyMenu.AddItem(new MenuItem(Name + "SpellFriendlyColor", "Color").SetValue(Color.Green));
+                spellFriendlyMenu.AddItem(new MenuItem(Name + "SpellFriendlyQ", "Q").SetValue(true));
+                spellFriendlyMenu.AddItem(new MenuItem(Name + "SpellFriendlyW", "W").SetValue(true));
+                spellFriendlyMenu.AddItem(new MenuItem(Name + "SpellFriendlyE", "E").SetValue(true));
+                spellFriendlyMenu.AddItem(new MenuItem(Name + "SpellFriendlyR", "R").SetValue(true));
 
-                    spellMenu.AddSubMenu(spellFriendlyMenu);
+                spellMenu.AddSubMenu(spellFriendlyMenu);
 
-                    var spellEnemyMenu = new Menu("Enemy", Name + "SpellEnemy");
-                    spellEnemyMenu.AddItem(new MenuItem(Name + "SpellEnemyColor", "Color").SetValue(Color.Red));
-                    spellEnemyMenu.AddItem(new MenuItem(Name + "SpellEnemyQ", "Q").SetValue(true));
-                    spellEnemyMenu.AddItem(new MenuItem(Name + "SpellEnemyW", "W").SetValue(true));
-                    spellEnemyMenu.AddItem(new MenuItem(Name + "SpellEnemyE", "E").SetValue(true));
-                    spellEnemyMenu.AddItem(new MenuItem(Name + "SpellEnemyR", "R").SetValue(true));
+                var spellEnemyMenu = new Menu("Enemy", Name + "SpellEnemy");
+                spellEnemyMenu.AddItem(new MenuItem(Name + "SpellEnemyColor", "Color").SetValue(Color.Red));
+                spellEnemyMenu.AddItem(new MenuItem(Name + "SpellEnemyQ", "Q").SetValue(true));
+                spellEnemyMenu.AddItem(new MenuItem(Name + "SpellEnemyW", "W").SetValue(true));
+                spellEnemyMenu.AddItem(new MenuItem(Name + "SpellEnemyE", "E").SetValue(true));
+                spellEnemyMenu.AddItem(new MenuItem(Name + "SpellEnemyR", "R").SetValue(true));
 
-                    spellMenu.AddSubMenu(spellEnemyMenu);
+                spellMenu.AddSubMenu(spellEnemyMenu);
 
-                    Menu.AddSubMenu(experienceMenu);
-                    Menu.AddSubMenu(attackMenu);
-                    Menu.AddSubMenu(turretMenu);
-                    Menu.AddSubMenu(spellMenu);
+                Menu.AddSubMenu(experienceMenu);
+                Menu.AddSubMenu(attackMenu);
+                Menu.AddSubMenu(turretMenu);
+                Menu.AddSubMenu(spellMenu);
 
-                    Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
-                    _drawings.Menu.AddSubMenu(Menu);
+                _parent.Menu.AddSubMenu(Menu);
 
-                    _drawings.Menu.Item(_drawings.Name + "Enabled").ValueChanged +=
-                        delegate(object sender, OnValueChangeEventArgs args)
-                        {
-                            if (args.GetNewValue<bool>())
-                            {
-                                if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
-                                {
-                                    Drawing.OnDraw += OnDraw;
-                                }
-                            }
-                            else
-                            {
-                                Drawing.OnDraw -= OnDraw;
-                            }
-                        };
+                HandleEvents(_parent);
 
-                    Menu.Item(Name + "Enabled").ValueChanged +=
-                        delegate(object sender, OnValueChangeEventArgs args)
-                        {
-                            if (args.GetNewValue<bool>())
-                            {
-                                if (_drawings != null && _drawings.Enabled)
-                                {
-                                    Drawing.OnDraw += OnDraw;
-                                }
-                            }
-                            else
-                            {
-                                Drawing.OnDraw -= OnDraw;
-                            }
-                        };
+                _turrets = ObjectManager.Get<Obj_AI_Turret>().Where(turret => turret.IsValid).ToList();
+                _heroes = ObjectManager.Get<Obj_AI_Hero>().Where(hero => hero.IsValid).ToList();
 
-                    if (Enabled)
-                    {
-                        Drawing.OnDraw += OnDraw;
-                    }
-
-                    _turrets = ObjectManager.Get<Obj_AI_Turret>().Where(turret => turret.IsValid).ToList();
-                    _heroes = ObjectManager.Get<Obj_AI_Hero>().Where(hero => hero.IsValid).ToList();
-
-                    Initialized = true;
-                }
+                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
@@ -336,20 +297,29 @@ namespace SFXUtility.Features.Drawings
             }
         }
 
+        protected override void OnEnable()
+        {
+            Drawing.OnDraw += OnDrawingDraw;
+            base.OnEnable();
+        }
+
+        protected override void OnDisable()
+        {
+            Drawing.OnDraw -= OnDrawingDraw;
+            base.OnDisable();
+        }
+
         private void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Drawings>() && IoC.Resolve<Drawings>().Initialized)
+                if (IoC.IsRegistered<Drawings>())
                 {
-                    DrawingsLoaded(IoC.Resolve<Drawings>());
-                }
-                else
-                {
-                    if (IoC.IsRegistered<Mediator>())
-                    {
-                        IoC.Resolve<Mediator>().Register("Drawings_initialized", DrawingsLoaded);
-                    }
+                    _parent = IoC.Resolve<Drawings>();
+                    if (_parent.Initialized)
+                        OnParentLoaded(null, null);
+                    else
+                        _parent.OnInitialized += OnParentLoaded;
                 }
             }
             catch (Exception ex)

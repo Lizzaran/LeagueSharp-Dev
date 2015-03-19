@@ -76,6 +76,7 @@
     <Compile Include="MessageToActionsMap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Data\Sensitive.cs" />
+    <Compile Include="Utils.cs" />
     <Compile Include="WeakAction.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -46,7 +46,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>G:\LeagueSharp\\System\LeagueSharp.Common.dll</HintPath>
     </Reference>
-    <Reference Include="SFXLibrary">
+    <Reference Include="SFXLibrary, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\SFXLibrary\bin\Release\SFXLibrary.dll</HintPath>
     </Reference>
     <Reference Include="SharpDX, Version=2.5.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -72,8 +73,7 @@
     <Compile Include="Features\Detectors\SharedExperience.cs" />
     <Compile Include="Features\Drawings\Clock.cs" />
     <Compile Include="Features\Drawings\Drawings.cs" />
-    <Compile Include="Features\Drawings\JungleSpot.cs" />
-    <Compile Include="Features\Drawings\MinionWave.cs" />
+    <Compile Include="Features\Drawings\SafeJungleSpot.cs" />
     <Compile Include="Features\Drawings\Sidebar.cs" />
     <Compile Include="Features\Drawings\WallJumpSpot.cs" />
     <Compile Include="Features\Events\AutoLeveler.cs" />
@@ -85,7 +85,7 @@
     <Compile Include="Features\Others\AntiTrap.cs" />
     <Compile Include="Features\Others\Humanize.cs" />
     <Compile Include="Features\Others\Killability.cs" />
-    <Compile Include="Features\Others\Latern.cs" />
+    <Compile Include="Features\Others\AutoLantern.cs" />
     <Compile Include="Features\Others\Others.cs" />
     <Compile Include="Features\Others\PerfectWard.cs" />
     <Compile Include="Features\Others\SummonerInfo.cs" />

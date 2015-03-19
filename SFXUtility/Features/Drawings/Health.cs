@@ -38,7 +38,7 @@ namespace SFXUtility.Features.Drawings
 
     internal class Health : Base
     {
-        private Drawings _drawings;
+        private Drawings _parent;
 
         public Health(IContainer container)
             : base(container)
@@ -50,7 +50,7 @@ namespace SFXUtility.Features.Drawings
         {
             get
             {
-                return _drawings != null && _drawings.Enabled && Menu != null &&
+                return _parent != null && _parent.Enabled && Menu != null &&
                        Menu.Item(Name + "Enabled").GetValue<bool>();
             }
         }
@@ -78,7 +78,7 @@ namespace SFXUtility.Features.Drawings
             }
         }
 
-        private void OnDraw(EventArgs args)
+        private void OnDrawingDraw(EventArgs args)
         {
             try
             {
@@ -91,73 +91,34 @@ namespace SFXUtility.Features.Drawings
             }
         }
 
-        private void DrawingsLoaded(object o)
+        private void OnParentLoaded(object sender, EventArgs eventArgs)
         {
             try
             {
-                var drawings = o as Drawings;
-                if (drawings != null && drawings.Menu != null)
-                {
-                    _drawings = drawings;
+                if (_parent.Menu == null)
+                    return;
 
-                    Menu = new Menu(Name, Name);
+                Menu = new Menu(Name, Name);
 
-                    var inhibitorMenu = new Menu("Inhibitor", Name + "Inhibitor");
-                    inhibitorMenu.AddItem(new MenuItem(Name + "InhibitorColor", "Color").SetValue(Color.Yellow));
-                    inhibitorMenu.AddItem(new MenuItem(Name + "InhibitorEnabled", "Enabled").SetValue(true));
-                    inhibitorMenu.AddItem(new MenuItem(Name + "InhibitorPercentage", "Percentage").SetValue(true));
+                var inhibitorMenu = new Menu("Inhibitor", Name + "Inhibitor");
+                inhibitorMenu.AddItem(new MenuItem(Name + "InhibitorColor", "Color").SetValue(Color.Yellow));
+                inhibitorMenu.AddItem(new MenuItem(Name + "InhibitorEnabled", "Enabled").SetValue(false));
+                inhibitorMenu.AddItem(new MenuItem(Name + "InhibitorPercentage", "Percentage").SetValue(true));
 
-                    var turretMenu = new Menu("Turret", Name + "Turret");
-                    turretMenu.AddItem(new MenuItem(Name + "TurretColor", "Color").SetValue(Color.Yellow));
-                    turretMenu.AddItem(new MenuItem(Name + "TurretEnabled", "Enabled").SetValue(true));
-                    turretMenu.AddItem(new MenuItem(Name + "TurretPercentage", "Percentage").SetValue(true));
+                var turretMenu = new Menu("Turret", Name + "Turret");
+                turretMenu.AddItem(new MenuItem(Name + "TurretColor", "Color").SetValue(Color.Yellow));
+                turretMenu.AddItem(new MenuItem(Name + "TurretEnabled", "Enabled").SetValue(false));
+                turretMenu.AddItem(new MenuItem(Name + "TurretPercentage", "Percentage").SetValue(true));
 
-                    Menu.AddSubMenu(inhibitorMenu);
-                    Menu.AddSubMenu(turretMenu);
+                Menu.AddSubMenu(inhibitorMenu);
+                Menu.AddSubMenu(turretMenu);
 
-                    Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
-                    _drawings.Menu.AddSubMenu(Menu);
+                _parent.Menu.AddSubMenu(Menu);
 
-                    _drawings.Menu.Item(_drawings.Name + "Enabled").ValueChanged +=
-                        delegate(object sender, OnValueChangeEventArgs args)
-                        {
-                            if (args.GetNewValue<bool>())
-                            {
-                                if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
-                                {
-                                    Drawing.OnDraw += OnDraw;
-                                }
-                            }
-                            else
-                            {
-                                Drawing.OnDraw -= OnDraw;
-                            }
-                        };
-
-                    Menu.Item(Name + "Enabled").ValueChanged +=
-                        delegate(object sender, OnValueChangeEventArgs args)
-                        {
-                            if (args.GetNewValue<bool>())
-                            {
-                                if (_drawings != null && _drawings.Enabled)
-                                {
-                                    Drawing.OnDraw += OnDraw;
-                                }
-                            }
-                            else
-                            {
-                                Drawing.OnDraw -= OnDraw;
-                            }
-                        };
-
-                    if (Enabled)
-                    {
-                        Drawing.OnDraw += OnDraw;
-                    }
-
-                    Initialized = true;
-                }
+                HandleEvents(_parent);
+                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
@@ -165,20 +126,29 @@ namespace SFXUtility.Features.Drawings
             }
         }
 
+        protected override void OnEnable()
+        {
+            Drawing.OnDraw += OnDrawingDraw;
+            base.OnEnable();
+        }
+
+        protected override void OnDisable()
+        {
+            Drawing.OnDraw -= OnDrawingDraw;
+            base.OnDisable();
+        }
+
         private void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Drawings>() && IoC.Resolve<Drawings>().Initialized)
+                if (IoC.IsRegistered<Drawings>())
                 {
-                    DrawingsLoaded(IoC.Resolve<Drawings>());
-                }
-                else
-                {
-                    if (IoC.IsRegistered<Mediator>())
-                    {
-                        IoC.Resolve<Mediator>().Register("Drawings_initialized", DrawingsLoaded);
-                    }
+                    _parent = IoC.Resolve<Drawings>();
+                    if (_parent.Initialized)
+                        OnParentLoaded(null, null);
+                    else
+                        _parent.OnInitialized += OnParentLoaded;
                 }
             }
             catch (Exception ex)

@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Clone.cs is part of SFXUtility.
+ AutoLantern.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,13 +20,11 @@
 
 #endregion License
 
-namespace SFXUtility.Features.Trackers
+namespace SFXUtility.Features.Others
 {
     #region
 
     using System;
-    using System.Collections.Generic;
-    using System.Drawing;
     using System.Linq;
     using Classes;
     using LeagueSharp;
@@ -37,13 +35,11 @@ namespace SFXUtility.Features.Trackers
 
     #endregion
 
-    internal class Clone : Base
+    internal class AutoLantern : Base
     {
-        private readonly string[] _cloneHeroes = {"Shaco", "LeBlanc", "MonkeyKing", "Yorick"};
-        private List<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
-        private Trackers _parent;
+        private Others _parent;
 
-        public Clone(IContainer container)
+        public AutoLantern(IContainer container)
             : base(container)
         {
             CustomEvents.Game.OnGameLoad += OnGameLoad;
@@ -53,54 +49,34 @@ namespace SFXUtility.Features.Trackers
         {
             get
             {
-                return _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
+                return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>();
             }
         }
 
         public override string Name
         {
-            get { return "Clone"; }
+            get { return "Auto Lantern"; }
         }
 
         protected override void OnEnable()
         {
-            Drawing.OnDraw += OnDrawingDraw;
+            Game.OnUpdate += OnGameUpdate;
             base.OnEnable();
         }
 
         protected override void OnDisable()
         {
-            Drawing.OnDraw -= OnDrawingDraw;
+            Game.OnUpdate -= OnGameUpdate;
             base.OnDisable();
-        }
-
-        private void OnDrawingDraw(EventArgs args)
-        {
-            try
-            {
-                var circleColor = Menu.Item(Name + "DrawingCircleColor").GetValue<Color>();
-                var radius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value;
-
-                foreach (var hero in _heroes.Where(hero => !hero.IsDead && hero.IsVisible && hero.Position.IsOnScreen())
-                    )
-                {
-                    Render.Circle.DrawCircle(hero.ServerPosition, hero.BoundingRadius + radius, circleColor);
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.AddItem(new LogItem(ex) {Object = this});
-            }
         }
 
         private void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Trackers>())
+                if (IoC.IsRegistered<Others>())
                 {
-                    _parent = IoC.Resolve<Trackers>();
+                    _parent = IoC.Resolve<Others>();
                     if (_parent.Initialized)
                         OnParentLoaded(null, null);
                     else
@@ -122,31 +98,49 @@ namespace SFXUtility.Features.Trackers
 
                 Menu = new Menu(Name, Name);
 
-                var drawingMenu = new Menu("Drawing", Name + "Drawing");
-                drawingMenu.AddItem(
-                    new MenuItem(Name + "DrawingCircleColor", "Circle Color").SetValue(Color.YellowGreen));
-                drawingMenu.AddItem(
-                    new MenuItem(Name + "DrawingCircleRadius", "Circle Radius").SetValue(new Slider(30)));
-
-                Menu.AddSubMenu(drawingMenu);
+                Menu.AddItem(new MenuItem(Name + "LowPercent", "@ HP Percent").SetValue(new Slider(20, 0, 50)));
+                Menu.AddItem(new MenuItem(Name + "Hotkey", "Hotkey").SetValue(new KeyBind('U', KeyBindType.Press)));
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _heroes =
-                    ObjectManager.Get<Obj_AI_Hero>()
-                        .Where(
-                            hero =>
-                                hero.IsValid && hero.IsEnemy &&
-                                _cloneHeroes.Contains(hero.ChampionName, StringComparison.OrdinalIgnoreCase))
-                        .ToList();
-
-                if (_heroes.Count == 0)
+                if (
+                    !ObjectManager.Get<Obj_AI_Hero>()
+                        .Any(h => h.IsValid && h.IsAlly && !h.IsMe && h.ChampionName == "Thresh"))
                     return;
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();
+            }
+            catch (Exception ex)
+            {
+                Logger.AddItem(new LogItem(ex) {Object = this});
+            }
+        }
+
+        private void OnGameUpdate(EventArgs args)
+        {
+            try
+            {
+                if (ObjectManager.Player.IsDead)
+                    return;
+
+                if (ObjectManager.Player.HealthPercentage() <= Menu.Item(Name + "LowPercent").GetValue<Slider>().Value ||
+                    Menu.Item(Name + "Hotkey").IsActive())
+                {
+                    var lantern =
+                        ObjectManager.Get<Obj_AI_Base>()
+                            .FirstOrDefault(
+                                o =>
+                                    o.IsValid && o.IsAlly &&
+                                    o.Name.Contains("ThreshLantern", StringComparison.OrdinalIgnoreCase));
+                    if (!Equals(lantern, default(Obj_AI_Base)) &&
+                        lantern.IsValidTarget(500, false, ObjectManager.Player.ServerPosition))
+                    {
+                        lantern.UseObject();
+                    }
+                }
             }
             catch (Exception ex)
             {

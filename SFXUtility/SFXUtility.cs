@@ -39,6 +39,7 @@ namespace SFXUtility
     internal class SFXUtility
     {
         private readonly ILogger _logger;
+        private bool _unloadFired;
 
         public SFXUtility(IContainer container)
         {
@@ -60,6 +61,7 @@ namespace SFXUtility
                 AppDomain.CurrentDomain.ProcessExit += OnExit;
                 CustomEvents.Game.OnGameEnd += OnGameEnd;
                 Game.OnEnd += OnGameEnd;
+                Game.OnNotify += OnGameNotify;
                 CustomEvents.Game.OnGameLoad += OnGameLoad;
             }
             catch (Exception ex)
@@ -77,7 +79,23 @@ namespace SFXUtility
 
         public Version Version
         {
-            get { return new Version(0, 7, 6, 0); }
+            get { return new Version(0, 6, 5, 0); }
+        }
+
+        private void OnGameNotify(GameNotifyEventArgs args)
+        {
+            if (args.EventId == GameEventId.OnLeave || args.EventId == GameEventId.OnEndGame ||
+                args.EventId == GameEventId.OnQuit)
+            {
+                try
+                {
+                    OnExit(null, null);
+                }
+                catch (Exception ex)
+                {
+                    _logger.AddItem(new LogItem(ex) {Object = this});
+                }
+            }
         }
 
         public event EventHandler OnUnload;
@@ -86,7 +104,11 @@ namespace SFXUtility
         {
             try
             {
-                OnUnload.RaiseEvent(this, EventArgs.Empty);
+                if (!_unloadFired)
+                {
+                    OnUnload.RaiseEvent(null, null);
+                    _unloadFired = true;
+                }
             }
             catch (Exception ex)
             {
@@ -111,6 +133,7 @@ namespace SFXUtility
             try
             {
                 var logger = _logger as ExceptionLogger;
+
                 if (logger != null)
                 {
                     logger.SensitiveData = Sensitive.Data;
@@ -118,6 +141,7 @@ namespace SFXUtility
                 }
 
                 Chat.Local(string.Format("{0} v{1}.{2}.{3} loaded.", Name, Version.Major, Version.Minor, Version.Build));
+
                 Menu.AddToMainMenu();
             }
             catch (Exception ex)

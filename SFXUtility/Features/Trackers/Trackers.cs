@@ -27,7 +27,6 @@ namespace SFXUtility.Features.Trackers
     using System;
     using Classes;
     using LeagueSharp.Common;
-    using SFXLibrary;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
@@ -57,16 +56,11 @@ namespace SFXUtility.Features.Trackers
             {
                 Menu = new Menu(Name, Name);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(true));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 BaseMenu.AddSubMenu(Menu);
 
-                if (IoC.IsRegistered<Mediator>())
-                {
-                    IoC.Resolve<Mediator>().NotifyColleagues(Name + "_initialized", this);
-                }
-
-                Initialized = true;
+                RaiseOnInitialized();
             }
             catch (Exception ex)
             {

@@ -32,7 +32,6 @@ namespace SFXUtility.Features.Trackers
     using LeagueSharp;
     using LeagueSharp.Common;
     using Properties;
-    using SFXLibrary;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
@@ -44,7 +43,7 @@ namespace SFXUtility.Features.Trackers
     internal class LastPosition : Base
     {
         private readonly List<LastPositionObject> _lastPositionObjects = new List<LastPositionObject>();
-        private Trackers _trackers;
+        private Trackers _parent;
 
         public LastPosition(IContainer container)
             : base(container)
@@ -56,7 +55,7 @@ namespace SFXUtility.Features.Trackers
         {
             get
             {
-                return _trackers != null && _trackers.Enabled && Menu != null &&
+                return _parent != null && _parent.Enabled && Menu != null &&
                        Menu.Item(Name + "Enabled").GetValue<bool>();
             }
         }
@@ -70,25 +69,24 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                if (IoC.IsRegistered<Trackers>() && IoC.Resolve<Trackers>().Initialized)
+                if (IoC.IsRegistered<Trackers>())
                 {
-                    TrackersLoaded(IoC.Resolve<Trackers>());
-                }
-                else
-                {
-                    if (IoC.IsRegistered<Mediator>())
-                    {
-                        IoC.Resolve<Mediator>().Register("Trackers_initialized", TrackersLoaded);
-                    }
-                }
+                    _parent = IoC.Resolve<Trackers>();
+                    if (_parent.Initialized)
+                        OnParentLoaded(null, null);
+                    else
+                        _parent.OnInitialized += OnParentLoaded;
 
-                if (IoC.IsRegistered<Mediator>())
-                {
-                    IoC.Resolve<Mediator>().Register("Recall_Finish", RecallFinish);
-                    IoC.Resolve<Mediator>().Register("Recall_Start", RecallStart);
-                    IoC.Resolve<Mediator>().Register("Recall_Abort", RecallAbort);
-                    IoC.Resolve<Mediator>().Register("Recall_Unknown", RecallAbort);
-                    IoC.Resolve<Mediator>().Register("Recall_Enabled", RecallEnabled);
+                    if (IoC.IsRegistered<Recall>())
+                    {
+                        var recall = IoC.Resolve<Recall>();
+                        recall.OnEnabled += RecallEnabled;
+                        recall.OnDisabled += RecallDisabled;
+                        recall.OnFinish += RecallFinish;
+                        recall.OnStart += RecallStart;
+                        recall.OnAbort += RecallAbort;
+                        recall.OnUnknown += RecallAbort;
+                    }
                 }
             }
             catch (Exception ex)
@@ -97,25 +95,30 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private void RecallAbort(object o)
+        private void RecallAbort(object sender, RecallEventArgs recallEventArgs)
         {
-            var unitId = o as int? ?? 0;
-            var lastPosition = _lastPositionObjects.FirstOrDefault(e => e.Hero.NetworkId == unitId);
+            var lastPosition =
+                _lastPositionObjects.FirstOrDefault(e => e.Hero.NetworkId == recallEventArgs.UnitNetworkId);
             if (!Equals(lastPosition, default(LastPositionObject)))
             {
                 lastPosition.IsRecalling = false;
             }
         }
 
-        private void RecallEnabled(object o)
+        private void RecallEnabled(object sender, EventArgs eventArgs)
         {
-            _lastPositionObjects.ForEach(e => e.Recall = o is bool && (bool) o);
+            _lastPositionObjects.ForEach(e => e.Recall = true);
         }
 
-        private void RecallFinish(object o)
+        private void RecallDisabled(object sender, EventArgs eventArgs)
         {
-            var unitId = o as int? ?? 0;
-            var lastPosition = _lastPositionObjects.FirstOrDefault(e => e.Hero.NetworkId == unitId);
+            _lastPositionObjects.ForEach(e => e.Recall = false);
+        }
+
+        private void RecallFinish(object sender, RecallEventArgs recallEventArgs)
+        {
+            var lastPosition =
+                _lastPositionObjects.FirstOrDefault(e => e.Hero.NetworkId == recallEventArgs.UnitNetworkId);
             if (!Equals(lastPosition, default(LastPositionObject)))
             {
                 lastPosition.Recalled = true;
@@ -123,91 +126,88 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private void RecallStart(object o)
+        private void RecallStart(object sender, RecallEventArgs recallEventArgs)
         {
-            var unitId = o as int? ?? 0;
-            var lastPosition = _lastPositionObjects.FirstOrDefault(e => e.Hero.NetworkId == unitId);
+            var lastPosition =
+                _lastPositionObjects.FirstOrDefault(e => e.Hero.NetworkId == recallEventArgs.UnitNetworkId);
             if (!Equals(lastPosition, default(LastPositionObject)))
             {
                 lastPosition.IsRecalling = true;
             }
         }
 
-        private void TrackersLoaded(object o)
+        private void OnParentLoaded(object sender, EventArgs eventArgs)
         {
             try
             {
-                var trackers = o as Trackers;
-                if (trackers != null && trackers.Menu != null)
+                if (_parent.Menu == null)
+                    return;
+
+                Menu = new Menu(Name, Name);
+
+                var drawingMenu = new Menu("Drawing", Name + "Drawing");
+                drawingMenu.AddItem(
+                    new MenuItem(Name + "DrawingTimeFormat", "Time Format").SetValue(
+                        new StringList(new[] {"mm:ss", "ss"})));
+                drawingMenu.AddItem(
+                    new MenuItem(Name + "DrawingFontSize", "Font Size").SetValue(new Slider(13, 3, 30)));
+                drawingMenu.AddItem(
+                    new MenuItem(Name + "DrawingSSTimerOffset", "SS Timer Offset").SetValue(new Slider(5, 0, 50)));
+
+                Menu.AddItem(new MenuItem(Name + "SSTimer", "SS Timer").SetValue(true));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+
+                Menu.Item(Name + "DrawingTimeFormat").ValueChanged +=
+                    (o, args) =>
+                        _lastPositionObjects.ForEach(
+                            enemy => enemy.TextTotalSeconds = args.GetNewValue<StringList>().SelectedIndex == 1);
+                Menu.Item(Name + "DrawingFontSize").ValueChanged +=
+                    (o, args) =>
+                        _lastPositionObjects.ForEach(enemy => enemy.TextSize = args.GetNewValue<Slider>().Value);
+                Menu.Item(Name + "DrawingSSTimerOffset").ValueChanged +=
+                    (o, args) =>
+                        _lastPositionObjects.ForEach(enemy => enemy.TextOffset = args.GetNewValue<Slider>().Value);
+                Menu.Item(Name + "SSTimer").ValueChanged +=
+                    (o, args) =>
+                        _lastPositionObjects.ForEach(enemy => enemy.SSTimer = args.GetNewValue<bool>());
+                Menu.Item(Name + "Enabled").ValueChanged +=
+                    (o, args) => _lastPositionObjects.ForEach(enemy => enemy.Active = args.GetNewValue<bool>());
+
+                _parent.Menu.AddSubMenu(Menu);
+
+                var recall = false;
+
+                if (IoC.IsRegistered<Recall>())
                 {
-                    _trackers = trackers;
-
-                    Menu = new Menu(Name, Name);
-
-                    var drawingMenu = new Menu("Drawing", Name + "Drawing");
-                    drawingMenu.AddItem(
-                        new MenuItem(Name + "DrawingTimeFormat", "Time Format").SetValue(
-                            new StringList(new[] {"mm:ss", "ss"})));
-                    drawingMenu.AddItem(
-                        new MenuItem(Name + "DrawingFontSize", "Font Size").SetValue(new Slider(13, 3, 30)));
-                    drawingMenu.AddItem(
-                        new MenuItem(Name + "DrawingSSTimerOffset", "SS Timer Offset").SetValue(new Slider(5, 0, 50)));
-
-                    Menu.AddItem(new MenuItem(Name + "SSTimer", "SS Timer").SetValue(true));
-                    Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(true));
-
-                    Menu.Item(Name + "DrawingTimeFormat").ValueChanged +=
-                        (sender, args) =>
-                            _lastPositionObjects.ForEach(
-                                enemy => enemy.TextTotalSeconds = args.GetNewValue<StringList>().SelectedIndex == 1);
-                    Menu.Item(Name + "DrawingFontSize").ValueChanged +=
-                        (sender, args) =>
-                            _lastPositionObjects.ForEach(enemy => enemy.TextSize = args.GetNewValue<Slider>().Value);
-                    Menu.Item(Name + "DrawingSSTimerOffset").ValueChanged +=
-                        (sender, args) =>
-                            _lastPositionObjects.ForEach(enemy => enemy.TextOffset = args.GetNewValue<Slider>().Value);
-                    Menu.Item(Name + "SSTimer").ValueChanged +=
-                        (sender, args) =>
-                            _lastPositionObjects.ForEach(enemy => enemy.SSTimer = args.GetNewValue<bool>());
-                    Menu.Item(Name + "Enabled").ValueChanged +=
-                        (sender, args) => _lastPositionObjects.ForEach(enemy => enemy.Active = args.GetNewValue<bool>());
-
-                    _trackers.Menu.AddSubMenu(Menu);
-
-                    var recall = false;
-
-                    if (IoC.IsRegistered<Recall>())
+                    var rt = IoC.Resolve<Recall>();
+                    if (rt.Initialized)
                     {
-                        var rt = IoC.Resolve<Recall>();
-                        if (rt.Initialized)
-                        {
-                            recall = rt.Menu.Item(rt.Name + "Enabled").GetValue<bool>();
-                        }
+                        recall = rt.Menu.Item(rt.Name + "Enabled").GetValue<bool>();
                     }
-
-                    foreach (var hero in ObjectManager.Get<Obj_AI_Hero>().Where(hero => hero.IsValid && hero.IsEnemy))
-                    {
-                        try
-                        {
-                            _lastPositionObjects.Add(new LastPositionObject(hero, Logger)
-                            {
-                                Active = Enabled,
-                                TextTotalSeconds =
-                                    Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1,
-                                TextSize = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
-                                TextOffset = Menu.Item(Name + "DrawingSSTimerOffset").GetValue<Slider>().Value,
-                                SSTimer = Menu.Item(Name + "SSTimer").GetValue<bool>(),
-                                Recall = recall
-                            });
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.AddItem(new LogItem(ex) {Object = this});
-                        }
-                    }
-
-                    Initialized = true;
                 }
+
+                foreach (var hero in ObjectManager.Get<Obj_AI_Hero>().Where(hero => hero.IsValid && hero.IsEnemy))
+                {
+                    try
+                    {
+                        _lastPositionObjects.Add(new LastPositionObject(hero, Logger)
+                        {
+                            Active = Enabled,
+                            TextTotalSeconds =
+                                Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1,
+                            TextSize = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
+                            TextOffset = Menu.Item(Name + "DrawingSSTimerOffset").GetValue<Slider>().Value,
+                            SSTimer = Menu.Item(Name + "SSTimer").GetValue<bool>(),
+                            Recall = recall
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.AddItem(new LogItem(ex) {Object = this});
+                    }
+                }
+
+                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
@@ -215,7 +215,7 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private class LastPositionObject
+        internal class LastPositionObject
         {
             private readonly Render.Sprite _championSprite;
             private readonly Render.Sprite _recallSprite;

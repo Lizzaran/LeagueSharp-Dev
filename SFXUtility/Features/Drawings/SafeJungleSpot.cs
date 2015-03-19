@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Clone.cs is part of SFXUtility.
+ SafeJungleSpot.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,30 +20,44 @@
 
 #endregion License
 
-namespace SFXUtility.Features.Trackers
+namespace SFXUtility.Features.Drawings
 {
     #region
 
     using System;
     using System.Collections.Generic;
-    using System.Drawing;
     using System.Linq;
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
+    using SharpDX;
+    using Color = System.Drawing.Color;
 
     #endregion
 
-    internal class Clone : Base
+    internal class SafeJungleSpots : Base
     {
-        private readonly string[] _cloneHeroes = {"Shaco", "LeBlanc", "MonkeyKing", "Yorick"};
-        private List<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
-        private Trackers _parent;
+        // Credits: Screeder
+        private readonly List<Vector3> _jungleSpots = new List<Vector3>
+        {
+            new Vector3(7600f, 3140f, 60f),
+            new Vector3(7160, 4600f, 60f),
+            new Vector3(4570f, 6170f, 60f),
+            new Vector3(3370f, 8610f, 60f),
+            new Vector3(7650f, 2120f, 60f),
+            new Vector3(7320f, 11610f, 60f),
+            new Vector3(7290f, 10090f, 60f),
+            new Vector3(10220f, 9000f, 60f),
+            new Vector3(11550f, 6230f, 60f),
+            new Vector3(7120f, 12800f, 60f),
+            new Vector3(10930f, 5400f, 60f)
+        };
 
-        public Clone(IContainer container)
+        private Drawings _parent;
+
+        public SafeJungleSpots(IContainer container)
             : base(container)
         {
             CustomEvents.Game.OnGameLoad += OnGameLoad;
@@ -60,7 +74,25 @@ namespace SFXUtility.Features.Trackers
 
         public override string Name
         {
-            get { return "Clone"; }
+            get { return "Safe Jungle Spot"; }
+        }
+
+        private void OnDrawingDraw(EventArgs args)
+        {
+            try
+            {
+                var radius = Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value;
+                var color = Menu.Item(Name + "DrawingColor").GetValue<Color>();
+
+                foreach (var jungleSpot in _jungleSpots.Where(jungleSpot => jungleSpot.IsOnScreen()))
+                {
+                    Render.Circle.DrawCircle(jungleSpot, radius, color);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.AddItem(new LogItem(ex) {Object = this});
+            }
         }
 
         protected override void OnEnable()
@@ -75,32 +107,13 @@ namespace SFXUtility.Features.Trackers
             base.OnDisable();
         }
 
-        private void OnDrawingDraw(EventArgs args)
-        {
-            try
-            {
-                var circleColor = Menu.Item(Name + "DrawingCircleColor").GetValue<Color>();
-                var radius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value;
-
-                foreach (var hero in _heroes.Where(hero => !hero.IsDead && hero.IsVisible && hero.Position.IsOnScreen())
-                    )
-                {
-                    Render.Circle.DrawCircle(hero.ServerPosition, hero.BoundingRadius + radius, circleColor);
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.AddItem(new LogItem(ex) {Object = this});
-            }
-        }
-
         private void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Trackers>())
+                if (IoC.IsRegistered<Drawings>())
                 {
-                    _parent = IoC.Resolve<Trackers>();
+                    _parent = IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
                         OnParentLoaded(null, null);
                     else
@@ -123,10 +136,8 @@ namespace SFXUtility.Features.Trackers
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu("Drawing", Name + "Drawing");
-                drawingMenu.AddItem(
-                    new MenuItem(Name + "DrawingCircleColor", "Circle Color").SetValue(Color.YellowGreen));
-                drawingMenu.AddItem(
-                    new MenuItem(Name + "DrawingCircleRadius", "Circle Radius").SetValue(new Slider(30)));
+                drawingMenu.AddItem(new MenuItem(Name + "DrawingRadius", "Radius").SetValue(new Slider(50, 5, 250)));
+                drawingMenu.AddItem(new MenuItem(Name + "DrawingColor", "Color").SetValue(Color.Fuchsia));
 
                 Menu.AddSubMenu(drawingMenu);
 
@@ -134,15 +145,7 @@ namespace SFXUtility.Features.Trackers
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _heroes =
-                    ObjectManager.Get<Obj_AI_Hero>()
-                        .Where(
-                            hero =>
-                                hero.IsValid && hero.IsEnemy &&
-                                _cloneHeroes.Contains(hero.ChampionName, StringComparison.OrdinalIgnoreCase))
-                        .ToList();
-
-                if (_heroes.Count == 0)
+                if (Game.MapId != GameMapId.SummonersRift)
                     return;
 
                 HandleEvents(_parent);

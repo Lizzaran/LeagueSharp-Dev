@@ -30,16 +30,15 @@ namespace SFXUtility.Features.Events
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using Others;
-    using SFXLibrary;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
+    using Utils = SFXLibrary.Utils;
 
     #endregion
 
     internal class AutoLeveler : Base
     {
-        private Events _events;
+        private Events _parent;
 
         public AutoLeveler(IContainer container)
             : base(container)
@@ -51,7 +50,7 @@ namespace SFXUtility.Features.Events
         {
             get
             {
-                return _events != null && _events.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>();
+                return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>();
             }
         }
 
@@ -60,47 +59,29 @@ namespace SFXUtility.Features.Events
             get { return "Auto Leveler"; }
         }
 
-        private SpellInfoStruct GetMenuInfoByPriority(int priority)
+        protected override void OnEnable()
         {
-            return new List<SpellInfoStruct>
-            {
-                new SpellInfoStruct
-                {
-                    Slot = SpellSlot.Q,
-                    Value = Menu.Item(Name + "PatternQ").GetValue<Slider>().Value
-                },
-                new SpellInfoStruct
-                {
-                    Slot = SpellSlot.W,
-                    Value = Menu.Item(Name + "PatternW").GetValue<Slider>().Value
-                },
-                new SpellInfoStruct
-                {
-                    Slot = SpellSlot.E,
-                    Value = Menu.Item(Name + "PatternE").GetValue<Slider>().Value
-                }
-            }.OrderBy(x => x.Value).Reverse().First(s => s.Value == priority);
+            CustomEvents.Unit.OnLevelUp += OnUnitLevelUp;
+            base.OnEnable();
         }
 
-        private List<SpellInfoStruct> GetOrderedList()
+        protected override void OnDisable()
+        {
+            CustomEvents.Unit.OnLevelUp -= OnUnitLevelUp;
+            base.OnDisable();
+        }
+
+        private List<SpellInfoStruct> GetOrderedPriorityList()
         {
             return new List<SpellInfoStruct>
             {
-                new SpellInfoStruct
-                {
-                    Slot = SpellSlot.Q,
-                    Value = Menu.Item(Name + "PatternQ").GetValue<Slider>().Value
-                },
-                new SpellInfoStruct
-                {
-                    Slot = SpellSlot.W,
-                    Value = Menu.Item(Name + "PatternW").GetValue<Slider>().Value
-                },
-                new SpellInfoStruct
-                {
-                    Slot = SpellSlot.E,
-                    Value = Menu.Item(Name + "PatternE").GetValue<Slider>().Value
-                }
+                new SpellInfoStruct(SpellSlot.Q,
+                    Menu.Item(Name + ObjectManager.Player.ChampionName + "PatternQ").GetValue<Slider>().Value),
+                new SpellInfoStruct(SpellSlot.W,
+                    Menu.Item(Name + ObjectManager.Player.ChampionName + "PatternW").GetValue<Slider>().Value),
+                new SpellInfoStruct(SpellSlot.E,
+                    Menu.Item(Name + ObjectManager.Player.ChampionName + "PatternE").GetValue<Slider>().Value),
+                new SpellInfoStruct(SpellSlot.R, 4)
             }.OrderBy(x => x.Value).Reverse().ToList();
         }
 
@@ -108,16 +89,13 @@ namespace SFXUtility.Features.Events
         {
             try
             {
-                if (IoC.IsRegistered<Events>() && IoC.Resolve<Events>().Initialized)
+                if (IoC.IsRegistered<Events>())
                 {
-                    EventsLoaded(IoC.Resolve<Others>());
-                }
-                else
-                {
-                    if (IoC.IsRegistered<Mediator>())
-                    {
-                        IoC.Resolve<Mediator>().Register("Events_initialized", EventsLoaded);
-                    }
+                    _parent = IoC.Resolve<Events>();
+                    if (_parent.Initialized)
+                        OnParentLoaded(null, null);
+                    else
+                        _parent.OnInitialized += OnParentLoaded;
                 }
             }
             catch (Exception ex)
@@ -126,76 +104,51 @@ namespace SFXUtility.Features.Events
             }
         }
 
-        private void EventsLoaded(object o)
+        private void OnParentLoaded(object sender, EventArgs eventArgs)
         {
             try
             {
-                var events = o as Events;
-                if (events != null && events.Menu != null)
-                {
-                    _events = events;
+                if (_parent.Menu == null)
+                    return;
 
-                    Menu = new Menu(Name, Name);
+                Menu = new Menu(Name, Name);
 
-                    var patternMenu = new Menu("Pattern", Name + "Pattern");
-                    patternMenu.AddItem(
-                        new MenuItem(Name + "PatternEarly", "Early Pattern").SetValue(new StringList(new[]
-                        {
-                            "x 2 3 1",
-                            "x 2 1",
-                            "x 1 3",
-                            "x 1 2"
-                        })));
-                    patternMenu.AddItem(new MenuItem(Name + "PatternQ", "Q").SetValue(new Slider(3, 3, 1)));
-                    patternMenu.AddItem(new MenuItem(Name + "PatternW", "W").SetValue(new Slider(1, 3, 1)));
-                    patternMenu.AddItem(new MenuItem(Name + "PatternE", "E").SetValue(new Slider(2, 3, 1)));
-
-                    Menu.AddSubMenu(patternMenu);
-
-                    Menu.AddItem(new MenuItem(Name + "OnlyR", "Only R").SetValue(false));
-                    Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
-
-                    _events.Menu.AddSubMenu(Menu);
-
-                    _events.Menu.Item(_events.Name + "Enabled").ValueChanged +=
-                        delegate(object sender, OnValueChangeEventArgs args)
-                        {
-                            if (args.GetNewValue<bool>())
-                            {
-                                if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
-                                {
-                                    CustomEvents.Unit.OnLevelUp += OnLevelUp;
-                                }
-                            }
-                            else
-                            {
-                                CustomEvents.Unit.OnLevelUp -= OnLevelUp;
-                            }
-                        };
-
-                    Menu.Item(Name + "Enabled").ValueChanged +=
-                        delegate(object sender, OnValueChangeEventArgs args)
-                        {
-                            if (args.GetNewValue<bool>())
-                            {
-                                if (_events != null && _events.Enabled)
-                                {
-                                    CustomEvents.Unit.OnLevelUp += OnLevelUp;
-                                }
-                            }
-                            else
-                            {
-                                CustomEvents.Unit.OnLevelUp -= OnLevelUp;
-                            }
-                        };
-
-                    if (Enabled)
+                var championMenu = new Menu(ObjectManager.Player.ChampionName,
+                    Name + ObjectManager.Player.ChampionName);
+                championMenu.AddItem(
+                    new MenuItem(Name + "PatternEarly", "Early Pattern").SetValue(new StringList(new[]
                     {
-                        CustomEvents.Unit.OnLevelUp += OnLevelUp;
-                    }
+                        "Q W",
+                        "Q E",
+                        "Q W E",
+                        "Q E W",
+                        "W Q",
+                        "W E",
+                        "W Q E",
+                        "W E Q",
+                        "E Q",
+                        "E W",
+                        "E Q W",
+                        "E W Q"
+                    })));
+                championMenu.AddItem(new MenuItem(Name + "PatternQ", "Q").SetValue(new Slider(3, 3, 1)));
+                championMenu.AddItem(new MenuItem(Name + "PatternW", "W").SetValue(new Slider(1, 3, 1)));
+                championMenu.AddItem(new MenuItem(Name + "PatternE", "E").SetValue(new Slider(2, 3, 1)));
+                championMenu.AddItem(new MenuItem(Name + "OnlyR", "Only R").SetValue(true));
 
-                    Initialized = true;
-                }
+                Menu.AddSubMenu(championMenu);
+
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+
+                _parent.Menu.AddSubMenu(Menu);
+
+                HandleEvents(_parent);
+
+                if (ObjectManager.Player.Level == 1)
+                    OnUnitLevelUp(ObjectManager.Player,
+                        new CustomEvents.Unit.OnLevelUpEventArgs {NewLevel = 1, RemainingPoints = 1});
+
+                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
@@ -203,91 +156,53 @@ namespace SFXUtility.Features.Events
             }
         }
 
-        private void OnLevelUp(Obj_AI_Base sender, CustomEvents.Unit.OnLevelUpEventArgs args)
+        private void OnUnitLevelUp(Obj_AI_Base sender, CustomEvents.Unit.OnLevelUpEventArgs args)
         {
             try
             {
                 if (!sender.IsValid || !sender.IsMe)
                     return;
 
-                var map = Utility.Map.GetMap().Type;
-                var points = args.RemainingPoints;
+                var availablePoints = args.RemainingPoints;
 
-                if ((map == Utility.Map.MapType.SummonersRift || map == Utility.Map.MapType.TwistedTreeline) &&
-                    args.NewLevel <= 1)
-                    return;
-
-                if ((map == Utility.Map.MapType.CrystalScar || map == Utility.Map.MapType.HowlingAbyss) &&
-                    args.NewLevel <= 3)
-                    return;
-
-                if (args.NewLevel == 6 || args.NewLevel == 11 || args.NewLevel == 16)
+                var splittedPattern =
+                    Menu.Item(Name + ObjectManager.Player.ChampionName + "PatternEarly")
+                        .GetValue<StringList>()
+                        .SelectedValue.Split(' ');
+                if (splittedPattern.Length >= args.NewLevel)
                 {
-                    ObjectManager.Player.Spellbook.LevelUpSpell(SpellSlot.R);
-                    points--;
-                }
-
-                if (Menu.Item(Name + "OnlyR").GetValue<bool>())
-                    return;
-
-                var patternIndex = Menu.Item(Name + "PatternEarly").GetValue<StringList>().SelectedIndex;
-                SpellInfoStruct mf = default(SpellInfoStruct);
-                switch (args.NewLevel)
-                {
-                    case 2:
-                        switch (patternIndex)
-                        {
-                            case 0:
-                            case 1:
-                                mf = GetMenuInfoByPriority(2);
-                                break;
-
-                            case 2:
-                            case 3:
-                                mf = GetMenuInfoByPriority(1);
-                                break;
-                        }
-                        break;
-
-                    case 3:
-                        switch (patternIndex)
-                        {
-                            case 0:
-                            case 2:
-                                mf = GetMenuInfoByPriority(3);
-                                break;
-
-                            case 1:
-                                mf = GetMenuInfoByPriority(1);
-                                break;
-
-                            case 3:
-                                mf = GetMenuInfoByPriority(2);
-                                break;
-                        }
-                        break;
-
-                    case 4:
-                        switch (patternIndex)
-                        {
-                            case 0:
-                                mf = GetMenuInfoByPriority(1);
-                                break;
-                        }
-                        break;
-                }
-                if (!mf.Equals(default(SpellInfoStruct)) && points > 0)
-                {
-                    ObjectManager.Player.Spellbook.LevelUpSpell(mf.Slot);
-                    points--;
-                }
-                foreach (var mi in GetOrderedList())
-                {
-                    if (points > 0)
+                    for (var i = 0; availablePoints > i; i++)
                     {
-                        ObjectManager.Player.Spellbook.LevelUpSpell(mi.Slot);
-                        points--;
+                        if (availablePoints <= 0)
+                            break;
+
+                        var slot = Utils.GetSpellSlotByChar(splittedPattern[args.NewLevel - availablePoints]);
+                        if (slot != SpellSlot.Unknown)
+                        {
+                            ObjectManager.Player.Spellbook.LevelUpSpell(slot);
+                        }
                     }
+                    return;
+                }
+
+                foreach (var pItem in GetOrderedPriorityList())
+                {
+                    if (availablePoints <= 0)
+                        return;
+
+                    var pointsToLevelSlot = MaxSpellLevel(pItem.Slot, args.NewLevel) -
+                                            ObjectManager.Player.Spellbook.GetSpell(pItem.Slot).Level;
+                    pointsToLevelSlot = pointsToLevelSlot > availablePoints ? availablePoints : pointsToLevelSlot;
+
+                    for (var i = 0; pointsToLevelSlot > i; i++)
+                    {
+                        ObjectManager.Player.Spellbook.LevelUpSpell(pItem.Slot);
+                        availablePoints--;
+                    }
+
+                    if (pItem.Slot == SpellSlot.R &&
+                        Menu.Item(Name + ObjectManager.Player.ChampionName + "OnlyR").GetValue<bool>())
+                        return;
                 }
             }
             catch (Exception ex)
@@ -296,10 +211,25 @@ namespace SFXUtility.Features.Events
             }
         }
 
+        private int MaxSpellLevel(SpellSlot slot, int level)
+        {
+            if (slot == SpellSlot.R)
+            {
+                return level >= 16 ? 3 : level >= 11 ? 2 : level >= 6 ? 1 : 0;
+            }
+            return level >= 9 ? 5 : level >= 7 ? 4 : level >= 5 ? 3 : level >= 3 ? 2 : 1;
+        }
+
         private struct SpellInfoStruct
         {
-            public SpellSlot Slot { get; set; }
-            public int Value { get; set; }
+            public SpellInfoStruct(SpellSlot slot, int value) : this()
+            {
+                Slot = slot;
+                Value = value;
+            }
+
+            public SpellSlot Slot { get; private set; }
+            public int Value { get; private set; }
         }
     }
 }

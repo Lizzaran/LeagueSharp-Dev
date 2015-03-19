@@ -74,6 +74,64 @@ namespace SFXLibrary.Extensions.SharpDX
             }.Any(intersection => intersection.Intersects);
         }
 
+        public static Vector2 ClosestIntersection(this List<Geometry.IntersectionResult> intersections,
+            Vector2 lineStart)
+        {
+            if (intersections.Count == 1)
+                return intersections[0].Point;
+
+            var point = new Vector2();
+            var distance = float.MaxValue;
+            foreach (var intersection in intersections.Where(intersection => intersection.Intersects))
+            {
+                var dist = Vector2.Distance(lineStart, intersection.Point);
+                if (dist < distance)
+                {
+                    distance = dist;
+                    point = intersection.Point;
+                }
+            }
+            return point;
+        }
+
+        // Find the points of intersection.
+        public static List<Geometry.IntersectionResult> FindLineCircleIntersections(this Vector2 lineStart,
+            Vector2 lineEnd, Vector2 circleCenter, float circleRadius)
+        {
+            var intersections = new List<Geometry.IntersectionResult>();
+            float t;
+            var dx = lineEnd.X - lineStart.X;
+            var dy = lineEnd.Y - lineStart.Y;
+            var a = dx*dx + dy*dy;
+            var b = 2*(dx*(lineStart.X - circleCenter.X) + dy*(lineStart.Y - circleCenter.Y));
+            var c = (lineStart.X - circleCenter.X)*(lineStart.X - circleCenter.X) +
+                    (lineStart.Y - circleCenter.Y)*(lineStart.Y - circleCenter.Y) - circleRadius*circleRadius;
+
+            var det = b*b - 4*a*c;
+            if ((a <= 0.0000001) || (det < 0))
+            {
+                return intersections;
+            }
+            if (det == 0)
+            {
+                t = -b/(2*a);
+                intersections.Add(new Geometry.IntersectionResult(true,
+                    new Vector2(lineStart.X + t*dx, lineStart.X + t*dx)));
+            }
+            else
+            {
+                t = (float) ((-b + Math.Sqrt(det))/(2*a));
+                var point1 = new Vector2(lineStart.X + t*dx, lineStart.Y + t*dy);
+                point1.Normalize();
+                intersections.Add(new Geometry.IntersectionResult(true, point1));
+                t = (float) ((-b - Math.Sqrt(det))/(2*a));
+                var point2 = new Vector2(lineStart.X + t*dx, lineStart.Y + t*dy);
+                point2.Normalize();
+                intersections.Add(new Geometry.IntersectionResult(true, point2));
+            }
+            return intersections;
+        }
+
         public static Obj_AI_Minion GetNearestMinionByNames(this Vector3 position, string[] names)
         {
             var nearest = float.MaxValue;

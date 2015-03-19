@@ -34,7 +34,7 @@ namespace SFXUtility.Features.Trackers
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary;
+    using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
@@ -42,8 +42,8 @@ namespace SFXUtility.Features.Trackers
 
     internal class Recall : Base
     {
+        private Trackers _parent;
         private List<RecallObject> _recallObjects = new List<RecallObject>();
-        private Trackers _trackers;
 
         public Recall(IContainer container)
             : base(container)
@@ -55,7 +55,7 @@ namespace SFXUtility.Features.Trackers
         {
             get
             {
-                return _trackers != null && _trackers.Enabled && Menu != null &&
+                return _parent != null && _parent.Enabled && Menu != null &&
                        Menu.Item(Name + "Enabled").GetValue<bool>();
             }
         }
@@ -65,7 +65,26 @@ namespace SFXUtility.Features.Trackers
             get { return "Recall"; }
         }
 
-        private void OnDraw(EventArgs args)
+        public event EventHandler<RecallEventArgs> OnStart;
+        public event EventHandler<RecallEventArgs> OnFinish;
+        public event EventHandler<RecallEventArgs> OnAbort;
+        public event EventHandler<RecallEventArgs> OnUnknown;
+
+        protected override void OnEnable()
+        {
+            Obj_AI_Base.OnTeleport += OnObjAiBaseTeleport;
+            Drawing.OnDraw += OnDrawingDraw;
+            base.OnEnable();
+        }
+
+        protected override void OnDisable()
+        {
+            Obj_AI_Base.OnTeleport += OnObjAiBaseTeleport;
+            Drawing.OnDraw += OnDrawingDraw;
+            base.OnDisable();
+        }
+
+        private void OnDrawingDraw(EventArgs args)
         {
             try
             {
@@ -93,16 +112,13 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                if (IoC.IsRegistered<Trackers>() && IoC.Resolve<Trackers>().Initialized)
+                if (IoC.IsRegistered<Trackers>())
                 {
-                    TrackersLoaded(IoC.Resolve<Trackers>());
-                }
-                else
-                {
-                    if (IoC.IsRegistered<Mediator>())
-                    {
-                        IoC.Resolve<Mediator>().Register("Trackers_initialized", TrackersLoaded);
-                    }
+                    _parent = IoC.Resolve<Trackers>();
+                    if (_parent.Initialized)
+                        OnParentLoaded(null, null);
+                    else
+                        _parent.OnInitialized += OnParentLoaded;
                 }
             }
             catch (Exception ex)
@@ -111,78 +127,28 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private void TrackersLoaded(object o)
+        private void OnParentLoaded(object sender, EventArgs eventArgs)
         {
             try
             {
-                var trackers = o as Trackers;
-                if (trackers != null && trackers.Menu != null)
-                {
-                    _trackers = trackers;
+                if (_parent.Menu == null)
+                    return;
 
-                    Menu = new Menu(Name, Name);
+                Menu = new Menu(Name, Name);
 
-                    Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(true));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
-                    Menu.Item(Name + "Enabled").ValueChanged +=
-                        (sender, args) =>
-                            IoC.Resolve<Mediator>().NotifyColleagues(Name + "_Enabled", args.GetNewValue<bool>());
+                _parent.Menu.AddSubMenu(Menu);
 
-                    _trackers.Menu.AddSubMenu(Menu);
+                HandleEvents(_parent);
 
-                    _trackers.Menu.Item(_trackers.Name + "Enabled").ValueChanged +=
-                        delegate(object sender, OnValueChangeEventArgs args)
-                        {
-                            if (args.GetNewValue<bool>())
-                            {
-                                if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
-                                {
-                                    Obj_AI_Base.OnTeleport += OnObjAiBaseOnTeleport;
-                                    Drawing.OnDraw += OnDraw;
-                                }
-                            }
-                            else
-                            {
-                                Obj_AI_Base.OnTeleport -= OnObjAiBaseOnTeleport;
-                                Drawing.OnDraw -= OnDraw;
-                            }
-                        };
+                _recallObjects =
+                    ObjectManager.Get<Obj_AI_Hero>()
+                        .Where(hero => hero.IsValid && hero.IsEnemy)
+                        .Select(hero => new RecallObject(hero))
+                        .ToList();
 
-                    Menu.Item(Name + "Enabled").ValueChanged +=
-                        delegate(object sender, OnValueChangeEventArgs args)
-                        {
-                            if (args.GetNewValue<bool>())
-                            {
-                                if (_trackers != null && _trackers.Menu != null &&
-                                    _trackers.Menu.Item(_trackers.Name + "Enabled").GetValue<bool>())
-                                {
-                                    Obj_AI_Base.OnTeleport += OnObjAiBaseOnTeleport;
-                                    Drawing.OnDraw += OnDraw;
-                                }
-                            }
-                            else
-                            {
-                                Obj_AI_Base.OnTeleport -= OnObjAiBaseOnTeleport;
-                                Drawing.OnDraw -= OnDraw;
-                            }
-                        };
-
-                    if (Enabled)
-                    {
-                        Obj_AI_Base.OnTeleport += OnObjAiBaseOnTeleport;
-                        Drawing.OnDraw += OnDraw;
-                    }
-
-                    _recallObjects =
-                        ObjectManager.Get<Obj_AI_Hero>()
-                            .Where(hero => hero.IsValid && hero.IsEnemy)
-                            .Select(hero => new RecallObject(hero))
-                            .ToList();
-
-                    IoC.Resolve<Mediator>().NotifyColleagues(Name + "_Enabled", Menu.Item(Name + "Enabled"));
-
-                    Initialized = true;
-                }
+                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
@@ -190,7 +156,7 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private void OnObjAiBaseOnTeleport(GameObject sender, GameObjectTeleportEventArgs args)
+        private void OnObjAiBaseTeleport(GameObject sender, GameObjectTeleportEventArgs args)
         {
             try
             {
@@ -204,19 +170,19 @@ namespace SFXUtility.Features.Trackers
                     switch (packet.Status)
                     {
                         case Packet.S2C.Teleport.Status.Start:
-                            IoC.Resolve<Mediator>().NotifyColleagues(Name + "_Start", packet.UnitNetworkId);
+                            OnStart.RaiseEvent(null, new RecallEventArgs(packet.UnitNetworkId));
                             break;
 
                         case Packet.S2C.Teleport.Status.Finish:
-                            IoC.Resolve<Mediator>().NotifyColleagues(Name + "_Finish", packet.UnitNetworkId);
+                            OnFinish.RaiseEvent(null, new RecallEventArgs(packet.UnitNetworkId));
                             break;
 
                         case Packet.S2C.Teleport.Status.Abort:
-                            IoC.Resolve<Mediator>().NotifyColleagues(Name + "_Abort", packet.UnitNetworkId);
+                            OnAbort.RaiseEvent(null, new RecallEventArgs(packet.UnitNetworkId));
                             break;
 
                         case Packet.S2C.Teleport.Status.Unknown:
-                            IoC.Resolve<Mediator>().NotifyColleagues(Name + "_Unknown", packet.UnitNetworkId);
+                            OnUnknown.RaiseEvent(null, new RecallEventArgs(packet.UnitNetworkId));
                             break;
                     }
                 }
@@ -312,6 +278,21 @@ namespace SFXUtility.Features.Trackers
                 }
                 return true;
             }
+        }
+    }
+
+    public class RecallEventArgs : EventArgs
+    {
+        private readonly int _unitNetworkId;
+
+        public RecallEventArgs(int unitNetworkId)
+        {
+            _unitNetworkId = unitNetworkId;
+        }
+
+        public int UnitNetworkId
+        {
+            get { return _unitNetworkId; }
         }
     }
 }

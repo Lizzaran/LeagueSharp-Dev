@@ -29,7 +29,6 @@ namespace SFXUtility.Features.Others
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
@@ -39,7 +38,7 @@ namespace SFXUtility.Features.Others
     {
         private readonly List<float> _lastSpell = new List<float>();
         private float _lastMovement;
-        private Others _others;
+        private Others _parent;
 
         public Humanize(IContainer container)
             : base(container)
@@ -51,7 +50,7 @@ namespace SFXUtility.Features.Others
         {
             get
             {
-                return _others != null && _others.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>();
+                return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>();
             }
         }
 
@@ -60,20 +59,31 @@ namespace SFXUtility.Features.Others
             get { return "Humanize"; }
         }
 
+        protected override void OnEnable()
+        {
+            Obj_AI_Base.OnIssueOrder += OnObjAiBaseIssueOrder;
+            Spellbook.OnCastSpell += OnSpellbookCastSpell;
+            base.OnEnable();
+        }
+
+        protected override void OnDisable()
+        {
+            Obj_AI_Base.OnIssueOrder -= OnObjAiBaseIssueOrder;
+            Spellbook.OnCastSpell -= OnSpellbookCastSpell;
+            base.OnDisable();
+        }
+
         private void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Others>() && IoC.Resolve<Others>().Initialized)
+                if (IoC.IsRegistered<Others>())
                 {
-                    OthersLoaded(IoC.Resolve<Others>());
-                }
-                else
-                {
-                    if (IoC.IsRegistered<Mediator>())
-                    {
-                        IoC.Resolve<Mediator>().Register("Others_initialized", OthersLoaded);
-                    }
+                    _parent = IoC.Resolve<Others>();
+                    if (_parent.Initialized)
+                        OnParentLoaded(null, null);
+                    else
+                        _parent.OnInitialized += OnParentLoaded;
                 }
             }
             catch (Exception ex)
@@ -82,72 +92,28 @@ namespace SFXUtility.Features.Others
             }
         }
 
-        private void OthersLoaded(object o)
+        private void OnParentLoaded(object sender, EventArgs eventArgs)
         {
             try
             {
-                var others = o as Others;
-                if (others != null && others.Menu != null)
-                {
-                    _others = others;
+                if (_parent.Menu == null)
+                    return;
 
-                    Menu = new Menu(Name, Name);
+                Menu = new Menu(Name, Name);
 
-                    var delayMenu = new Menu("Delay", Name + "Delay");
-                    delayMenu.AddItem(new MenuItem(Name + "DelaySpells", "Spells (ms)").SetValue(new Slider(50, 0, 250)));
-                    delayMenu.AddItem(
-                        new MenuItem(Name + "DelayMovement", "Movement (ms)").SetValue(new Slider(50, 0, 250)));
+                var delayMenu = new Menu("Delay", Name + "Delay");
+                delayMenu.AddItem(new MenuItem(Name + "DelaySpells", "Spells (ms)").SetValue(new Slider(50, 0, 250)));
+                delayMenu.AddItem(
+                    new MenuItem(Name + "DelayMovement", "Movement (ms)").SetValue(new Slider(50, 0, 250)));
 
-                    Menu.AddSubMenu(delayMenu);
+                Menu.AddSubMenu(delayMenu);
 
-                    Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(true));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
-                    _others.Menu.AddSubMenu(Menu);
+                _parent.Menu.AddSubMenu(Menu);
 
-                    _others.Menu.Item(_others.Name + "Enabled").ValueChanged +=
-                        delegate(object sender, OnValueChangeEventArgs args)
-                        {
-                            if (args.GetNewValue<bool>())
-                            {
-                                if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
-                                {
-                                    Obj_AI_Base.OnIssueOrder += OnObjAiBaseOnIssueOrder;
-                                    Spellbook.OnCastSpell += OnSpellbookOnCastSpell;
-                                }
-                            }
-                            else
-                            {
-                                Obj_AI_Base.OnIssueOrder -= OnObjAiBaseOnIssueOrder;
-                                Spellbook.OnCastSpell -= OnSpellbookOnCastSpell;
-                            }
-                        };
-
-                    Menu.Item(Name + "Enabled").ValueChanged +=
-                        delegate(object sender, OnValueChangeEventArgs args)
-                        {
-                            if (args.GetNewValue<bool>())
-                            {
-                                if (_others != null && _others.Enabled)
-                                {
-                                    Obj_AI_Base.OnIssueOrder += OnObjAiBaseOnIssueOrder;
-                                    Spellbook.OnCastSpell += OnSpellbookOnCastSpell;
-                                }
-                            }
-                            else
-                            {
-                                Obj_AI_Base.OnIssueOrder -= OnObjAiBaseOnIssueOrder;
-                                Spellbook.OnCastSpell -= OnSpellbookOnCastSpell;
-                            }
-                        };
-
-                    if (Enabled)
-                    {
-                        Obj_AI_Base.OnIssueOrder += OnObjAiBaseOnIssueOrder;
-                        Spellbook.OnCastSpell += OnSpellbookOnCastSpell;
-                    }
-
-                    Initialized = true;
-                }
+                HandleEvents(_parent);
+                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
@@ -155,7 +121,7 @@ namespace SFXUtility.Features.Others
             }
         }
 
-        private void OnSpellbookOnCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
+        private void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
         {
             if (sender == null || !sender.Owner.IsMe ||
                 !(args.Slot == SpellSlot.Q || args.Slot == SpellSlot.W || args.Slot == SpellSlot.E ||
@@ -174,7 +140,7 @@ namespace SFXUtility.Features.Others
             _lastSpell[(int) args.Slot] = Environment.TickCount;
         }
 
-        private void OnObjAiBaseOnIssueOrder(Obj_AI_Base sender, GameObjectIssueOrderEventArgs args)
+        private void OnObjAiBaseIssueOrder(Obj_AI_Base sender, GameObjectIssueOrderEventArgs args)
         {
             if (sender == null || !sender.IsValid || !sender.IsMe || args.Order != GameObjectOrder.MoveTo)
             {

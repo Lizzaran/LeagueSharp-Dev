@@ -26,6 +26,7 @@ namespace SFXUtility.Classes
 
     using System;
     using LeagueSharp.Common;
+    using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
@@ -58,5 +59,87 @@ namespace SFXUtility.Classes
         protected string BaseName { get; private set; }
         protected IContainer IoC { get; private set; }
         protected ILogger Logger { get; set; }
+        public event EventHandler OnInitialized;
+        public event EventHandler OnEnabled;
+        public event EventHandler OnDisabled;
+
+        protected virtual void OnEnable()
+        {
+            try
+            {
+                OnEnabled.RaiseEvent(null, null);
+            }
+            catch (Exception ex)
+            {
+                if (Logger != null)
+                    Logger.AddItem(new LogItem(ex) {Object = this});
+            }
+        }
+
+        protected virtual void OnDisable()
+        {
+            try
+            {
+                OnDisabled.RaiseEvent(null, null);
+            }
+            catch (Exception ex)
+            {
+                if (Logger != null)
+                    Logger.AddItem(new LogItem(ex) {Object = this});
+            }
+        }
+
+        protected virtual void RaiseOnInitialized()
+        {
+            try
+            {
+                Initialized = true;
+                OnInitialized.RaiseEvent(this, null);
+            }
+            catch (Exception ex)
+            {
+                if (Logger != null)
+                    Logger.AddItem(new LogItem(ex) {Object = this});
+            }
+        }
+
+        protected virtual void HandleEvents(Base parent)
+        {
+            parent.Menu.Item(parent.Name + "Enabled").ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args)
+                {
+                    if (args.GetNewValue<bool>())
+                    {
+                        if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
+                        {
+                            OnEnable();
+                        }
+                    }
+                    else
+                    {
+                        OnDisable();
+                    }
+                };
+            Menu.Item(Name + "Enabled").ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args)
+                {
+                    if (args.GetNewValue<bool>())
+                    {
+                        if (parent.Menu != null && parent.Menu.Item(parent.Name + "Enabled").GetValue<bool>())
+                        {
+                            OnEnable();
+                        }
+                    }
+                    else
+                    {
+                        OnDisable();
+                    }
+                };
+
+            if (Enabled)
+            {
+                OnEnable();
+            }
+        }
     }
 }
