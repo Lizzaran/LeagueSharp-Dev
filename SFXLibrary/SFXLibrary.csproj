@@ -53,6 +53,7 @@
     <Compile Include="Data\Additional.cs" />
     <Compile Include="Draw.cs" />
     <Compile Include="Extensions\LeagueSharp\Common\MenuExtensions.cs" />
+    <Compile Include="Extensions\NET\ColorExtensions.cs" />
     <Compile Include="Extensions\NET\FloatExtensions.cs" />
     <Compile Include="Extensions\NET\IntegerExtensions.cs" />
     <Compile Include="Extensions\LeagueSharp\Obj_AI_HeroExtensions.cs" />

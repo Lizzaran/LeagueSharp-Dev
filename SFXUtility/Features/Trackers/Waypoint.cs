@@ -166,7 +166,7 @@ namespace SFXUtility.Features.Trackers
                 if (_parent.Menu == null)
                     return;
 
-                Menu = new Menu(Name, Name);
+                Menu = new Menu(Name, BaseName + Name);
 
                 var drawingMenu = new Menu("Drawing", Name + "Drawing");
                 drawingMenu.AddItem(new MenuItem(Name + "DrawingCrossColor", "Cross Color").SetValue(Color.DarkRed));

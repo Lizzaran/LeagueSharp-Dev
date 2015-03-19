@@ -36,7 +36,8 @@ namespace SFXUtility
     #endregion
 
     /*
-     * TODO: Thickness from circles option
+     * TODO: Thickness option for lines & circles
+     * TODO: Custom font size...
      * TODO: Time Format mm:ss | ss option
      * TODO: Logger: L# Version, directory etc.
      * TODO: Simple usage tracker.. which features are enabled/disabled?!
@@ -69,8 +70,6 @@ namespace SFXUtility
                 () =>
                     Activator.CreateInstance(typeof (ExceptionLogger), bFlags, null,
                         new object[] {AppDomain.CurrentDomain.BaseDirectory}, CultureInfo.CurrentCulture), true);
-
-            container.Register<Mediator, Mediator>(true);
 
             container.Register(typeof (SFXUtility),
                 () =>

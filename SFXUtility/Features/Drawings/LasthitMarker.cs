@@ -113,7 +113,7 @@ namespace SFXUtility.Features.Drawings
                 if (_parent.Menu == null)
                     return;
 
-                Menu = new Menu(Name, Name);
+                Menu = new Menu(Name, BaseName + Name);
 
                 var drawingMenu = new Menu("Drawing", Name + "Drawing");
                 var drawingHpBarMenu = new Menu("HPBar", Name + "HPBar");

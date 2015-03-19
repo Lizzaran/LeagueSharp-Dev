@@ -87,7 +87,7 @@ namespace SFXUtility.Features.Activators
                     return;
 
                 _potions = _potions.OrderBy(x => x.Priority).ToList();
-                Menu = new Menu(Name, Name);
+                Menu = new Menu(Name, BaseName + Name);
                 var healthMenu = new Menu("Health", Name + "Health");
                 healthMenu.AddItem(new MenuItem(Name + "HealthPotion", "Use Health Potion").SetValue(true));
                 healthMenu.AddItem(

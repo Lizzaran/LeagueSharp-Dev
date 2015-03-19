@@ -98,7 +98,7 @@ namespace SFXUtility.Features.Drawings
                 if (_parent.Menu == null)
                     return;
 
-                Menu = new Menu(Name, Name);
+                Menu = new Menu(Name, BaseName + Name);
 
                 var inhibitorMenu = new Menu("Inhibitor", Name + "Inhibitor");
                 inhibitorMenu.AddItem(new MenuItem(Name + "InhibitorColor", "Color").SetValue(Color.Yellow));

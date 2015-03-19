@@ -100,7 +100,7 @@ namespace SFXUtility.Features.Events
                 if (_parent.Menu == null)
                     return;
 
-                Menu = new Menu(Name, Name);
+                Menu = new Menu(Name, BaseName + Name);
 
                 var timersMenu = new Menu("Timers", Name + "Timers");
                 timersMenu.AddItem(

@@ -84,7 +84,7 @@
     <Compile Include="Features\Others\AntiFountain.cs" />
     <Compile Include="Features\Others\AntiTrap.cs" />
     <Compile Include="Features\Others\Humanize.cs" />
-    <Compile Include="Features\Others\Killability.cs" />
+    <Compile Include="Features\Drawings\DamageIndicator.cs" />
     <Compile Include="Features\Others\AutoLantern.cs" />
     <Compile Include="Features\Others\Others.cs" />
     <Compile Include="Features\Others\PerfectWard.cs" />

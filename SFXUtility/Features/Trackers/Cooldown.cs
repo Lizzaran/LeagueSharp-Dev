@@ -32,7 +32,6 @@ namespace SFXUtility.Features.Trackers
     using LeagueSharp;
     using LeagueSharp.Common;
     using Properties;
-    using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
@@ -92,7 +91,7 @@ namespace SFXUtility.Features.Trackers
                 if (_parent.Menu == null)
                     return;
 
-                Menu = new Menu(Name, Name);
+                Menu = new Menu(Name, BaseName + Name);
 
                 Menu.AddItem(new MenuItem(Name + "EnemyEnabled", "Track Enemy").SetValue(true));
                 Menu.AddItem(new MenuItem(Name + "AllyEnabled", "Track Ally").SetValue(true));
@@ -430,8 +429,7 @@ namespace SFXUtility.Features.Trackers
                 get
                 {
                     return Active && Hero.IsVisible && !Hero.IsDead && Hero.IsHPBarRendered &&
-                           HpBarPostion.IsOnScreen(new Vector2(HpBarPostion.X + 150f, HpBarPostion.Y + 30f)) &&
-                           !ObjectManager.Player.InShop();
+                           Hero.Position.IsOnScreen() && !ObjectManager.Player.InShop();
                 }
             }
 

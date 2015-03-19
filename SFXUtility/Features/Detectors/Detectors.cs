@@ -54,7 +54,7 @@ namespace SFXUtility.Features.Detectors
         {
             try
             {
-                Menu = new Menu(Name, Name);
+                Menu = new Menu(Name, BaseName + Name);
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 

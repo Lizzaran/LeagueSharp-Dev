@@ -223,7 +223,7 @@ namespace SFXUtility.Features.Drawings
                 if (_parent.Menu == null)
                     return;
 
-                Menu = new Menu(Name, Name);
+                Menu = new Menu(Name, BaseName + Name);
 
                 var experienceMenu = new Menu("Experience", Name + "Experience");
                 experienceMenu.AddItem(new MenuItem(Name + "ExperienceColor", "Color").SetValue(Color.Gray));
