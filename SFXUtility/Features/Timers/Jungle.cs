@@ -308,27 +308,27 @@ namespace SFXUtility.Features.Timers
                     _camps.AddRange(new List<Camp>
                     {
                         //Order: Wraiths
-                        new Camp(125, 50, new Vector3(3550f, 6250f, 60f),
+                        new Camp(100, 75, new Vector3(3550f, 6250f, 60f),
                             new[] {new Mob("TT_NWraith1.1.1"), new Mob("TT_NWraith21.1.2"), new Mob("TT_NWraith21.1.3")}),
                         //Order: Golems
-                        new Camp(125, 50, new Vector3(4500f, 8550f, 60f),
+                        new Camp(100, 75, new Vector3(4500f, 8550f, 60f),
                             new[] {new Mob("TT_NGolem2.1.1"), new Mob("TT_NGolem22.1.2")}),
                         //Order: Wolves
-                        new Camp(125, 50, new Vector3(5600f, 6400f, 60f),
+                        new Camp(100, 75, new Vector3(5600f, 6400f, 60f),
                             new[] {new Mob("TT_NWolf3.1.1"), new Mob("TT_NWolf23.1.2"), new Mob("TT_NWolf23.1.3")}),
 
                         //Chaos: Wraiths
-                        new Camp(125, 50, new Vector3(10300f, 6250f, 60f),
+                        new Camp(100, 75, new Vector3(10300f, 6250f, 60f),
                             new[] {new Mob("TT_NWraith4.1.1"), new Mob("TT_NWraith24.1.2"), new Mob("TT_NWraith24.1.3")}),
                         //Chaos: Golems
-                        new Camp(125, 50, new Vector3(9800f, 8550f, 60f),
+                        new Camp(100, 75, new Vector3(9800f, 8550f, 60f),
                             new[] {new Mob("TT_NGolem5.1.1"), new Mob("TT_NGolem25.1.2")}),
                         //Chaos: Wolves
-                        new Camp(125, 50, new Vector3(8600f, 6400f, 60f),
+                        new Camp(100, 75, new Vector3(8600f, 6400f, 60f),
                             new[] {new Mob("TT_NWolf6.1.1"), new Mob("TT_NWolf26.1.2"), new Mob("TT_NWolf26.1.3")}),
 
                         //Neutral: Vilemaw
-                        new Camp(125, 300, new Vector3(7150f, 11100f, 60f), new[] {new Mob("TT_Spiderboss8.1.1")})
+                        new Camp(600, 300, new Vector3(7150f, 11100f, 60f), new[] {new Mob("TT_Spiderboss8.1.1")})
                     });
                     break;
             }
