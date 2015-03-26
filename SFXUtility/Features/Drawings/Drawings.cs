@@ -27,6 +27,7 @@ namespace SFXUtility.Features.Drawings
     using System;
     using Classes;
     using LeagueSharp.Common;
+    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
@@ -39,7 +40,7 @@ namespace SFXUtility.Features.Drawings
         public Drawings(IContainer container)
             : base(container)
         {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
+            Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
@@ -52,7 +53,7 @@ namespace SFXUtility.Features.Drawings
             get { return "Drawings"; }
         }
 
-        private void OnGameLoad(EventArgs args)
+        private void OnLoad(EventArgs args)
         {
             try
             {

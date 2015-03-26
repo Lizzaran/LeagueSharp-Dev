@@ -30,9 +30,14 @@ namespace SFXUtility.Features.Drawings
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using LeagueSharp.CommonEx.Core.Enumerations;
+    using LeagueSharp.CommonEx.Core.Events;
+    using LeagueSharp.CommonEx.Core.Extensions.SharpDX;
+    using LeagueSharp.CommonEx.Core.Wrappers;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
+    using Circle = LeagueSharp.CommonEx.Core.Render._2D.Circle;
     using Color = System.Drawing.Color;
 
     #endregion
@@ -60,7 +65,7 @@ namespace SFXUtility.Features.Drawings
         public SafeJungleSpots(IContainer container)
             : base(container)
         {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
+            Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
@@ -84,9 +89,9 @@ namespace SFXUtility.Features.Drawings
                 var radius = Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value;
                 var color = Menu.Item(Name + "DrawingColor").GetValue<Color>();
 
-                foreach (var jungleSpot in _jungleSpots.Where(jungleSpot => jungleSpot.IsOnScreen()))
+                foreach (var jungleSpot in _jungleSpots.Where(jungleSpot => Utility.IsOnScreen(jungleSpot)))
                 {
-                    Render.Circle.DrawCircle(jungleSpot, radius, color);
+                    Circle.Draw(jungleSpot.ToVector2(), radius, 1, CircleType.Full, false, 1, color);
                 }
             }
             catch (Exception ex)
@@ -107,7 +112,7 @@ namespace SFXUtility.Features.Drawings
             base.OnDisable();
         }
 
-        private void OnGameLoad(EventArgs args)
+        private void OnLoad(EventArgs args)
         {
             try
             {
@@ -115,9 +120,9 @@ namespace SFXUtility.Features.Drawings
                 {
                     _parent = IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
-                        OnParentLoaded(null, null);
+                        OnParentInitialized(null, null);
                     else
-                        _parent.OnInitialized += OnParentLoaded;
+                        _parent.OnInitialized += OnParentInitialized;
                 }
             }
             catch (Exception ex)
@@ -126,7 +131,7 @@ namespace SFXUtility.Features.Drawings
             }
         }
 
-        private void OnParentLoaded(object sender, EventArgs eventArgs)
+        private void OnParentInitialized(object sender, EventArgs eventArgs)
         {
             try
             {
@@ -145,7 +150,7 @@ namespace SFXUtility.Features.Drawings
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                if (Game.MapId != GameMapId.SummonersRift)
+                if (Map.GetMap().Type != MapType.SummonersRift)
                     return;
 
                 HandleEvents(_parent);

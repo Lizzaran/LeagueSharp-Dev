@@ -29,6 +29,7 @@ namespace SFXUtility.Features.Others
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
@@ -43,7 +44,7 @@ namespace SFXUtility.Features.Others
         public Humanize(IContainer container)
             : base(container)
         {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
+            Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
@@ -73,7 +74,7 @@ namespace SFXUtility.Features.Others
             base.OnDisable();
         }
 
-        private void OnGameLoad(EventArgs args)
+        private void OnLoad(EventArgs args)
         {
             try
             {
@@ -81,9 +82,9 @@ namespace SFXUtility.Features.Others
                 {
                     _parent = IoC.Resolve<Others>();
                     if (_parent.Initialized)
-                        OnParentLoaded(null, null);
+                        OnParentInitialized(null, null);
                     else
-                        _parent.OnInitialized += OnParentLoaded;
+                        _parent.OnInitialized += OnParentInitialized;
                 }
             }
             catch (Exception ex)
@@ -92,7 +93,7 @@ namespace SFXUtility.Features.Others
             }
         }
 
-        private void OnParentLoaded(object sender, EventArgs eventArgs)
+        private void OnParentInitialized(object sender, EventArgs eventArgs)
         {
             try
             {

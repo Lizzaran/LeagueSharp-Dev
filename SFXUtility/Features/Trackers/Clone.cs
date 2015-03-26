@@ -31,22 +31,27 @@ namespace SFXUtility.Features.Trackers
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using LeagueSharp.CommonEx.Core.Enumerations;
+    using LeagueSharp.CommonEx.Core.Events;
+    using LeagueSharp.CommonEx.Core.Extensions.SharpDX;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
+    using Circle = LeagueSharp.CommonEx.Core.Render._2D.Circle;
+    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
     internal class Clone : Base
     {
         private readonly string[] _cloneHeroes = {"Shaco", "LeBlanc", "MonkeyKing", "Yorick"};
-        private List<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
+        private IEnumerable<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
         private Trackers _parent;
 
         public Clone(IContainer container)
             : base(container)
         {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
+            Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
@@ -82,10 +87,13 @@ namespace SFXUtility.Features.Trackers
                 var circleColor = Menu.Item(Name + "DrawingCircleColor").GetValue<Color>();
                 var radius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value;
 
-                foreach (var hero in _heroes.Where(hero => !hero.IsDead && hero.IsVisible && hero.Position.IsOnScreen())
+                foreach (
+                    var hero in
+                        _heroes.Where(hero => !hero.IsDead && hero.IsVisible && Utility.IsOnScreen(hero.Position))
                     )
                 {
-                    Render.Circle.DrawCircle(hero.ServerPosition, hero.BoundingRadius + radius, circleColor);
+                    Circle.Draw(hero.ServerPosition.ToVector2(), hero.BoundingRadius + radius, 1, CircleType.Full, false,
+                        1, circleColor);
                 }
             }
             catch (Exception ex)
@@ -94,7 +102,7 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private void OnGameLoad(EventArgs args)
+        private void OnLoad(EventArgs args)
         {
             try
             {
@@ -102,9 +110,9 @@ namespace SFXUtility.Features.Trackers
                 {
                     _parent = IoC.Resolve<Trackers>();
                     if (_parent.Initialized)
-                        OnParentLoaded(null, null);
+                        OnParentInitialized(null, null);
                     else
-                        _parent.OnInitialized += OnParentLoaded;
+                        _parent.OnInitialized += OnParentInitialized;
                 }
             }
             catch (Exception ex)
@@ -113,7 +121,7 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private void OnParentLoaded(object sender, EventArgs eventArgs)
+        private void OnParentInitialized(object sender, EventArgs eventArgs)
         {
             try
             {
@@ -135,14 +143,10 @@ namespace SFXUtility.Features.Trackers
                 _parent.Menu.AddSubMenu(Menu);
 
                 _heroes =
-                    ObjectManager.Get<Obj_AI_Hero>()
-                        .Where(
-                            hero =>
-                                hero.IsValid && hero.IsEnemy &&
-                                _cloneHeroes.Contains(hero.ChampionName, StringComparison.OrdinalIgnoreCase))
-                        .ToList();
+                    ObjectHandler.EnemyHeroes.Where(
+                        e => _cloneHeroes.Contains(e.ChampionName, StringComparison.OrdinalIgnoreCase));
 
-                if (_heroes.Count == 0)
+                if (_heroes.Any())
                     return;
 
                 HandleEvents(_parent);

@@ -27,6 +27,7 @@ namespace SFXLibrary
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -71,10 +72,22 @@ namespace SFXLibrary
         {
             if (disposing)
             {
-                foreach (var consumer in _pool)
+                if (_pool != null)
                 {
-                    consumer.Value.Dispose();
-                    consumer.Key.Dispose();
+                    foreach (var consumer in _pool.ToList())
+                    {
+                        if (consumer.Key != null && !consumer.Key.IsCancellationRequested)
+                        {
+                            try
+                            {
+                                consumer.Key.Cancel();
+                                consumer.Key.Dispose();
+                            }
+                            catch
+                            {
+                            }
+                        }
+                    }
                 }
                 _queue.Dispose();
             }

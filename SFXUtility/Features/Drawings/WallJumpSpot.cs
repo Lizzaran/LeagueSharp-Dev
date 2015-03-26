@@ -30,10 +30,15 @@ namespace SFXUtility.Features.Drawings
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using LeagueSharp.CommonEx.Core.Enumerations;
+    using LeagueSharp.CommonEx.Core.Events;
+    using LeagueSharp.CommonEx.Core.Extensions.SharpDX;
+    using LeagueSharp.CommonEx.Core.Wrappers;
     using SFXLibrary;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
+    using Circle = LeagueSharp.CommonEx.Core.Render._2D.Circle;
     using Color = System.Drawing.Color;
 
     #endregion
@@ -46,7 +51,7 @@ namespace SFXUtility.Features.Drawings
         public WallJumpSpot(IContainer container)
             : base(container)
         {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
+            Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
@@ -71,11 +76,12 @@ namespace SFXUtility.Features.Drawings
                 var fromColor = Menu.Item(Name + "DrawingFromColor").GetValue<Color>();
                 var toColor = Menu.Item(Name + "DrawingToColor").GetValue<Color>();
 
-                foreach (var walljumpSpot in _walljumpSpots.Where(walljumpSpot => walljumpSpot.Start.IsOnScreen()))
+                foreach (
+                    var walljumpSpot in _walljumpSpots.Where(walljumpSpot => Utility.IsOnScreen(walljumpSpot.Start)))
                 {
-                    Render.Circle.DrawCircle(walljumpSpot.Start, radius, fromColor);
-                    Drawing.DrawLine(walljumpSpot.Start.To2D(), walljumpSpot.End.To2D(), 2, toColor);
-                    Draw.Cross(walljumpSpot.End.To2D(), 10f, 2f, toColor);
+                    Circle.Draw(walljumpSpot.Start.ToVector2(), radius, 1, CircleType.Full, false, 1, fromColor);
+                    Drawing.DrawLine(walljumpSpot.Start.ToVector2(), walljumpSpot.End.ToVector2(), 2, toColor);
+                    Draw.Cross(walljumpSpot.End.ToVector2(), 10f, 2f, toColor);
                 }
             }
             catch (Exception ex)
@@ -96,7 +102,7 @@ namespace SFXUtility.Features.Drawings
             base.OnDisable();
         }
 
-        private void OnGameLoad(EventArgs args)
+        private void OnLoad(EventArgs args)
         {
             try
             {
@@ -104,9 +110,9 @@ namespace SFXUtility.Features.Drawings
                 {
                     _parent = IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
-                        OnParentLoaded(null, null);
+                        OnParentInitialized(null, null);
                     else
-                        _parent.OnInitialized += OnParentLoaded;
+                        _parent.OnInitialized += OnParentInitialized;
                 }
             }
             catch (Exception ex)
@@ -115,7 +121,7 @@ namespace SFXUtility.Features.Drawings
             }
         }
 
-        private void OnParentLoaded(object sender, EventArgs eventArgs)
+        private void OnParentInitialized(object sender, EventArgs eventArgs)
         {
             try
             {
@@ -135,7 +141,7 @@ namespace SFXUtility.Features.Drawings
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                if (Game.MapId != GameMapId.SummonersRift)
+                if (Map.GetMap().Type != MapType.SummonersRift)
                     return;
 
                 SetupPositions();

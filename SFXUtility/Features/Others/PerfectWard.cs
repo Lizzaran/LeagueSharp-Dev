@@ -31,9 +31,13 @@ namespace SFXUtility.Features.Others
     using LeagueSharp;
     using LeagueSharp.Common;
     using LeagueSharp.Common.Data;
+    using LeagueSharp.CommonEx.Core.Enumerations;
+    using LeagueSharp.CommonEx.Core.Events;
+    using LeagueSharp.CommonEx.Core.Extensions.SharpDX;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
+    using Circle = LeagueSharp.CommonEx.Core.Render._2D.Circle;
     using Color = System.Drawing.Color;
 
     #endregion
@@ -233,7 +237,7 @@ namespace SFXUtility.Features.Others
 
         public PerfectWard(IContainer container) : base(container)
         {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
+            Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
@@ -265,7 +269,7 @@ namespace SFXUtility.Features.Others
             base.OnDisable();
         }
 
-        private void OnGameLoad(EventArgs args)
+        private void OnLoad(EventArgs args)
         {
             try
             {
@@ -273,9 +277,9 @@ namespace SFXUtility.Features.Others
                 {
                     _parent = IoC.Resolve<Others>();
                     if (_parent.Initialized)
-                        OnParentLoaded(null, null);
+                        OnParentInitialized(null, null);
                     else
-                        _parent.OnInitialized += OnParentLoaded;
+                        _parent.OnInitialized += OnParentInitialized;
                 }
             }
             catch (Exception ex)
@@ -284,7 +288,7 @@ namespace SFXUtility.Features.Others
             }
         }
 
-        private void OnParentLoaded(object sender, EventArgs eventArgs)
+        private void OnParentInitialized(object sender, EventArgs eventArgs)
         {
             try
             {
@@ -326,12 +330,12 @@ namespace SFXUtility.Features.Others
 
                 foreach (var spot in _wardSpots)
                 {
-                    if (spot.MagneticPosition.IsOnScreen())
+                    if (Utility.IsOnScreen(spot.MagneticPosition))
                     {
-                        Render.Circle.DrawCircle(spot.MagneticPosition, radius, color);
+                        Circle.Draw(spot.MagneticPosition.ToVector2(), radius, 1, CircleType.Full, false, 1, color);
                         if (spot.SafeSpot)
                         {
-                            Drawing.DrawLine(spot.MagneticPosition.To2D(), spot.WardPosition.To2D(), 2f, color);
+                            Drawing.DrawLine(spot.MagneticPosition.ToVector2(), spot.WardPosition.ToVector2(), 2f, color);
                         }
                     }
                 }
@@ -352,7 +356,7 @@ namespace SFXUtility.Features.Others
                 var spot = GetNearestWardSpot(Game.CursorPos);
                 if (!Equals(spot, default(WardSpot)))
                 {
-                    if (Game.CursorPos.Distance(spot.MagneticPosition) <=
+                    if (Geometry.Distance(Game.CursorPos, spot.MagneticPosition) <=
                         Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value)
                     {
                         args.Process = false;
@@ -412,7 +416,7 @@ namespace SFXUtility.Features.Others
                 if (ObjectManager.Player.IsDead || Equals(_lastWardSpot, default(WardSpot)))
                     return;
 
-                if (ObjectManager.Player.Position.Distance(_lastWardSpot.ClickPosition) <= 650f)
+                if (Geometry.Distance(ObjectManager.Player.Position, _lastWardSpot.ClickPosition) <= 650f)
                 {
                     ObjectManager.Player.Spellbook.CastSpell(_lastWardSlot, _lastWardSpot.ClickPosition);
                     _lastWardSpot = default(WardSpot);

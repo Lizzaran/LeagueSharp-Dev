@@ -71,8 +71,7 @@ namespace SFXUtility.Classes
             }
             catch (Exception ex)
             {
-                if (Logger != null)
-                    Logger.AddItem(new LogItem(ex) {Object = this});
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -84,8 +83,7 @@ namespace SFXUtility.Classes
             }
             catch (Exception ex)
             {
-                if (Logger != null)
-                    Logger.AddItem(new LogItem(ex) {Object = this});
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
@@ -98,47 +96,53 @@ namespace SFXUtility.Classes
             }
             catch (Exception ex)
             {
-                if (Logger != null)
-                    Logger.AddItem(new LogItem(ex) {Object = this});
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
 
         protected virtual void HandleEvents(Base parent)
         {
-            parent.Menu.Item(parent.Name + "Enabled").ValueChanged +=
-                delegate(object sender, OnValueChangeEventArgs args)
-                {
-                    if (args.GetNewValue<bool>())
-                    {
-                        if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
-                        {
-                            OnEnable();
-                        }
-                    }
-                    else
-                    {
-                        OnDisable();
-                    }
-                };
-            Menu.Item(Name + "Enabled").ValueChanged +=
-                delegate(object sender, OnValueChangeEventArgs args)
-                {
-                    if (args.GetNewValue<bool>())
-                    {
-                        if (parent.Menu != null && parent.Menu.Item(parent.Name + "Enabled").GetValue<bool>())
-                        {
-                            OnEnable();
-                        }
-                    }
-                    else
-                    {
-                        OnDisable();
-                    }
-                };
-
-            if (Enabled)
+            try
             {
-                OnEnable();
+                parent.Menu.Item(parent.Name + "Enabled").ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        if (args.GetNewValue<bool>())
+                        {
+                            if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
+                            {
+                                OnEnable();
+                            }
+                        }
+                        else
+                        {
+                            OnDisable();
+                        }
+                    };
+                Menu.Item(Name + "Enabled").ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        if (args.GetNewValue<bool>())
+                        {
+                            if (parent.Menu != null && parent.Menu.Item(parent.Name + "Enabled").GetValue<bool>())
+                            {
+                                OnEnable();
+                            }
+                        }
+                        else
+                        {
+                            OnDisable();
+                        }
+                    };
+
+                if (Enabled)
+                {
+                    OnEnable();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
     }

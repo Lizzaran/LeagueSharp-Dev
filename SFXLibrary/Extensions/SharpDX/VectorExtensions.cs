@@ -24,7 +24,7 @@
 
 using Drawing = LeagueSharp.Drawing;
 using Geometry = LeagueSharp.Common.Geometry;
-using ObjectManager = LeagueSharp.ObjectManager;
+using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 using Obj_AI_Minion = LeagueSharp.Obj_AI_Minion;
 using Vector2 = SharpDX.Vector2;
 using Vector3 = SharpDX.Vector3;
@@ -62,7 +62,6 @@ namespace SFXLibrary.Extensions.SharpDX
             {
                 return true;
             }
-
             return new List<Geometry.IntersectionResult>
             {
                 Geometry.Intersection(new Vector2(0, 0), new Vector2(0, Drawing.Width), start, end),
@@ -136,7 +135,7 @@ namespace SFXLibrary.Extensions.SharpDX
         {
             var nearest = float.MaxValue;
             var sMinion = default(Obj_AI_Minion);
-            foreach (var minion in ObjectManager.Get<Obj_AI_Minion>()
+            foreach (var minion in ObjectHandler.GetFast<Obj_AI_Minion>()
                 .Where(
                     minion =>
                         minion != null &&

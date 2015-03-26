@@ -27,6 +27,7 @@ namespace SFXUtility.Features.Events
     using System;
     using Classes;
     using LeagueSharp.Common;
+    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
@@ -37,7 +38,7 @@ namespace SFXUtility.Features.Events
         public Events(IContainer container)
             : base(container)
         {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
+            Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
@@ -50,7 +51,7 @@ namespace SFXUtility.Features.Events
             get { return "Events"; }
         }
 
-        private void OnGameLoad(EventArgs args)
+        private void OnLoad(EventArgs args)
         {
             try
             {

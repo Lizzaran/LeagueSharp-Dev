@@ -29,9 +29,11 @@ namespace SFXUtility.Features.Others
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
+    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
@@ -42,7 +44,7 @@ namespace SFXUtility.Features.Others
         public AutoLantern(IContainer container)
             : base(container)
         {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
+            Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
@@ -70,7 +72,7 @@ namespace SFXUtility.Features.Others
             base.OnDisable();
         }
 
-        private void OnGameLoad(EventArgs args)
+        private void OnLoad(EventArgs args)
         {
             try
             {
@@ -78,9 +80,9 @@ namespace SFXUtility.Features.Others
                 {
                     _parent = IoC.Resolve<Others>();
                     if (_parent.Initialized)
-                        OnParentLoaded(null, null);
+                        OnParentInitialized(null, null);
                     else
-                        _parent.OnInitialized += OnParentLoaded;
+                        _parent.OnInitialized += OnParentInitialized;
                 }
             }
             catch (Exception ex)
@@ -89,7 +91,7 @@ namespace SFXUtility.Features.Others
             }
         }
 
-        private void OnParentLoaded(object sender, EventArgs eventArgs)
+        private void OnParentInitialized(object sender, EventArgs eventArgs)
         {
             try
             {
@@ -105,9 +107,7 @@ namespace SFXUtility.Features.Others
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                if (
-                    !ObjectManager.Get<Obj_AI_Hero>()
-                        .Any(h => h.IsValid && h.IsAlly && !h.IsMe && h.ChampionName == "Thresh"))
+                if (ObjectHandler.AllyHeroes.Any(a => !a.IsMe && a.ChampionName == "Thresh"))
                     return;
 
                 HandleEvents(_parent);
@@ -130,13 +130,12 @@ namespace SFXUtility.Features.Others
                     Menu.Item(Name + "Hotkey").IsActive())
                 {
                     var lantern =
-                        ObjectManager.Get<Obj_AI_Base>()
+                        ObjectHandler.GetFast<Obj_AI_Base>()
                             .FirstOrDefault(
                                 o =>
                                     o.IsValid && o.IsAlly &&
                                     o.Name.Contains("ThreshLantern", StringComparison.OrdinalIgnoreCase));
-                    if (!Equals(lantern, default(Obj_AI_Base)) &&
-                        lantern.IsValidTarget(500, false, ObjectManager.Player.ServerPosition))
+                    if (lantern != null && lantern.IsValidTarget(500, false, ObjectManager.Player.ServerPosition))
                     {
                         lantern.UseObject();
                     }

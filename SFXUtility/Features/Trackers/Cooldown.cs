@@ -31,6 +31,7 @@ namespace SFXUtility.Features.Trackers
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using LeagueSharp.CommonEx.Core.Events;
     using Properties;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
@@ -42,13 +43,13 @@ namespace SFXUtility.Features.Trackers
 
     internal class Cooldown : Base
     {
-        private List<CooldownObject> _cooldownObjects = new List<CooldownObject>();
+        private IEnumerable<CooldownObject> _cooldownObjects = new List<CooldownObject>();
         private Trackers _parent;
 
         public Cooldown(IContainer container)
             : base(container)
         {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
+            Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
@@ -65,7 +66,7 @@ namespace SFXUtility.Features.Trackers
             get { return "Cooldown"; }
         }
 
-        private void OnGameLoad(EventArgs args)
+        private void OnLoad(EventArgs args)
         {
             try
             {
@@ -73,9 +74,9 @@ namespace SFXUtility.Features.Trackers
                 {
                     _parent = IoC.Resolve<Trackers>();
                     if (_parent.Initialized)
-                        OnParentLoaded(null, null);
+                        OnParentInitialized(null, null);
                     else
-                        _parent.OnInitialized += OnParentLoaded;
+                        _parent.OnInitialized += OnParentInitialized;
                 }
             }
             catch (Exception ex)
@@ -84,7 +85,7 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private void OnParentLoaded(object sender, EventArgs eventArgs)
+        private void OnParentInitialized(object sender, EventArgs eventArgs)
         {
             try
             {
@@ -130,16 +131,14 @@ namespace SFXUtility.Features.Trackers
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _cooldownObjects =
-                    ObjectManager.Get<Obj_AI_Hero>()
-                        .Where(hero => hero.IsValid && !hero.IsMe)
-                        .Select(hero => new CooldownObject(hero, Logger)
-                        {
-                            Active =
-                                Enabled &&
-                                (hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>() ||
-                                 hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>())
-                        }).ToList();
+                _cooldownObjects = HeroManager.AllHeroes.Where(hero => !hero.IsMe)
+                    .Select(hero => new CooldownObject(hero, Logger)
+                    {
+                        Active =
+                            Enabled &&
+                            (hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>() ||
+                             hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>())
+                    });
 
                 RaiseOnInitialized();
             }

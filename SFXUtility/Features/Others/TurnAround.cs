@@ -30,10 +30,13 @@ namespace SFXUtility.Features.Others
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using LeagueSharp.CommonEx.Core.Events;
+    using LeagueSharp.CommonEx.Core.Extensions.SharpDX;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
+    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
@@ -52,7 +55,7 @@ namespace SFXUtility.Features.Others
         public TurnAround(IContainer container)
             : base(container)
         {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
+            Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
@@ -124,7 +127,7 @@ namespace SFXUtility.Features.Others
                             ObjectManager.Player.ServerPosition.Y +
                             (sender.ServerPosition.Y - ObjectManager.Player.ServerPosition.Y)*
                             (spellInfo.TurnOpposite ? 100 : -100)/
-                            ObjectManager.Player.ServerPosition.Distance(sender.ServerPosition)).To3D());
+                            ObjectManager.Player.ServerPosition.Distance(sender.ServerPosition)).ToVector3());
                     }
                 }
             }
@@ -134,7 +137,7 @@ namespace SFXUtility.Features.Others
             }
         }
 
-        private void OnGameLoad(EventArgs args)
+        private void OnLoad(EventArgs args)
         {
             try
             {
@@ -142,9 +145,9 @@ namespace SFXUtility.Features.Others
                 {
                     _parent = IoC.Resolve<Others>();
                     if (_parent.Initialized)
-                        OnParentLoaded(null, null);
+                        OnParentInitialized(null, null);
                     else
-                        _parent.OnInitialized += OnParentLoaded;
+                        _parent.OnInitialized += OnParentInitialized;
                 }
             }
             catch (Exception ex)
@@ -153,7 +156,7 @@ namespace SFXUtility.Features.Others
             }
         }
 
-        private void OnParentLoaded(object sender, EventArgs eventArgs)
+        private void OnParentInitialized(object sender, EventArgs eventArgs)
         {
             try
             {
@@ -166,9 +169,7 @@ namespace SFXUtility.Features.Others
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                if (!ObjectManager.Get<Obj_AI_Hero>()
-                    .Where(hero => hero.IsValid && hero.IsEnemy)
-                    .Any(h => _spellInfos.Any(i => i.Owner == h.ChampionName)))
+                if (!ObjectHandler.EnemyHeroes.Any(h => _spellInfos.Any(i => i.Owner == h.ChampionName)))
                     return;
 
                 HandleEvents(_parent);

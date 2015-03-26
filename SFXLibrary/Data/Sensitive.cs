@@ -27,6 +27,7 @@ namespace SFXLibrary.Data
     using System.Collections.Generic;
     using System.Linq;
     using LeagueSharp;
+    using LeagueSharp.Common;
 
     #endregion
 
@@ -38,10 +39,10 @@ namespace SFXLibrary.Data
         {
             get
             {
-                if (_data != null) 
+                if (_data != null)
                     return _data;
 
-                _data = ObjectManager.Get<Obj_AI_Hero>().Select(hero => hero.Name).ToList();
+                _data = HeroManager.AllHeroes.Select(hero => hero.Name).ToList();
                 _data.AddRange(new List<string>
                 {
                     Game.IP,

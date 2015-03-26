@@ -31,9 +31,14 @@ namespace SFXUtility.Features.Drawings
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using LeagueSharp.CommonEx.Core.Enumerations;
+    using LeagueSharp.CommonEx.Core.Events;
+    using LeagueSharp.CommonEx.Core.Extensions.SharpDX;
     using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
+    using Circle = LeagueSharp.CommonEx.Core.Render._2D.Circle;
+    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
@@ -41,14 +46,13 @@ namespace SFXUtility.Features.Drawings
     {
         private const float ExperienceRange = 1400f;
         private const float TurretRange = 900f;
-        private List<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
         private Drawings _parent;
-        private List<Obj_AI_Turret> _turrets = new List<Obj_AI_Turret>();
+        private IEnumerable<Obj_AI_Turret> _turrets = new List<Obj_AI_Turret>();
 
         public Range(IContainer container)
             : base(container)
         {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
+            Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
@@ -76,7 +80,7 @@ namespace SFXUtility.Features.Drawings
 
             var color = Menu.Item(Name + "AttackColor").GetValue<Color>();
 
-            foreach (var hero in _heroes)
+            foreach (var hero in HeroManager.AllHeroes)
             {
                 var radius = hero.BoundingRadius + hero.AttackRange;
                 if (!hero.IsDead && hero.IsVisible)
@@ -84,7 +88,7 @@ namespace SFXUtility.Features.Drawings
                     if ((hero.IsAlly && drawFriendly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) &&
                         !(hero.IsMe && !drawSelf) && hero.Position.IsOnScreen(radius))
                     {
-                        Render.Circle.DrawCircle(hero.Position, radius, color);
+                        Circle.Draw(hero.Position.ToVector2(), radius, 1, CircleType.Full, false, 1, color);
                     }
                 }
             }
@@ -101,14 +105,14 @@ namespace SFXUtility.Features.Drawings
 
             var color = Menu.Item(Name + "ExperienceColor").GetValue<Color>();
 
-            foreach (var hero in _heroes)
+            foreach (var hero in HeroManager.AllHeroes)
             {
                 if (!hero.IsDead && hero.IsVisible)
                 {
                     if ((hero.IsAlly && drawFriendly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) &&
                         !(hero.IsMe && !drawSelf) && hero.Position.IsOnScreen(ExperienceRange))
                     {
-                        Render.Circle.DrawCircle(hero.Position, ExperienceRange, color);
+                        Circle.Draw(hero.Position.ToVector2(), ExperienceRange, 1, CircleType.Full, false, 1, color);
                     }
                 }
             }
@@ -139,7 +143,7 @@ namespace SFXUtility.Features.Drawings
 
             var spellMaxRange = Menu.Item(Name + "SpellMaxRange").GetValue<Slider>().Value;
 
-            foreach (var hero in _heroes)
+            foreach (var hero in HeroManager.AllHeroes)
             {
                 if (hero.IsDead || !hero.IsVisible)
                     continue;
@@ -152,28 +156,28 @@ namespace SFXUtility.Features.Drawings
                 {
                     var range = hero.Spellbook.GetSpell(SpellSlot.Q).SData.CastRange;
                     if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                        Render.Circle.DrawCircle(hero.Position, range, color);
+                        Circle.Draw(hero.Position.ToVector2(), range, 1, CircleType.Full, false, 1, color);
                 }
                 if ((hero.IsAlly && drawFriendlyW || hero.IsEnemy && drawEnemyW || hero.IsMe && drawSelfW) &&
                     !(hero.IsMe && !drawSelfW))
                 {
                     var range = hero.Spellbook.GetSpell(SpellSlot.W).SData.CastRange;
                     if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                        Render.Circle.DrawCircle(hero.Position, range, color);
+                        Circle.Draw(hero.Position.ToVector2(), range, 1, CircleType.Full, false, 1, color);
                 }
                 if ((hero.IsAlly && drawFriendlyE || hero.IsEnemy && drawEnemyE || hero.IsMe && drawSelfE) &&
                     !(hero.IsMe && !drawSelfE))
                 {
                     var range = hero.Spellbook.GetSpell(SpellSlot.E).SData.CastRange;
                     if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                        Render.Circle.DrawCircle(hero.Position, range, color);
+                        Circle.Draw(hero.Position.ToVector2(), range, 1, CircleType.Full, false, 1, color);
                 }
                 if ((hero.IsAlly && drawFriendlyR || hero.IsEnemy && drawEnemyR || hero.IsMe && drawSelfR) &&
                     !(hero.IsMe && !drawSelfR))
                 {
                     var range = hero.Spellbook.GetSpell(SpellSlot.R).SData.CastRange;
                     if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                        Render.Circle.DrawCircle(hero.Position, range, color);
+                        Circle.Draw(hero.Position.ToVector2(), range, 1, CircleType.Full, false, 1, color);
                 }
             }
         }
@@ -193,7 +197,7 @@ namespace SFXUtility.Features.Drawings
                     if (turret.IsAlly && drawFriendly ||
                         turret.IsEnemy && drawEnemy && turret.Position.IsOnScreen(TurretRange))
                     {
-                        Render.Circle.DrawCircle(turret.Position, TurretRange,
+                        Circle.Draw(turret.Position.ToVector2(), TurretRange, 1, CircleType.Full, false, 1,
                             Menu.Item(Name + "Turret" + (turret.IsAlly ? "Friendly" : "Enemy") + "Color")
                                 .GetValue<Color>());
                     }
@@ -216,7 +220,7 @@ namespace SFXUtility.Features.Drawings
             }
         }
 
-        private void OnParentLoaded(object sender, EventArgs eventArgs)
+        private void OnParentInitialized(object sender, EventArgs eventArgs)
         {
             try
             {
@@ -286,8 +290,7 @@ namespace SFXUtility.Features.Drawings
 
                 HandleEvents(_parent);
 
-                _turrets = ObjectManager.Get<Obj_AI_Turret>().Where(turret => turret.IsValid).ToList();
-                _heroes = ObjectManager.Get<Obj_AI_Hero>().Where(hero => hero.IsValid).ToList();
+                _turrets = ObjectHandler.GetFast<Obj_AI_Turret>().Where(turret => turret.IsValid);
 
                 RaiseOnInitialized();
             }
@@ -309,7 +312,7 @@ namespace SFXUtility.Features.Drawings
             base.OnDisable();
         }
 
-        private void OnGameLoad(EventArgs args)
+        private void OnLoad(EventArgs args)
         {
             try
             {
@@ -317,9 +320,9 @@ namespace SFXUtility.Features.Drawings
                 {
                     _parent = IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
-                        OnParentLoaded(null, null);
+                        OnParentInitialized(null, null);
                     else
-                        _parent.OnInitialized += OnParentLoaded;
+                        _parent.OnInitialized += OnParentInitialized;
                 }
             }
             catch (Exception ex)

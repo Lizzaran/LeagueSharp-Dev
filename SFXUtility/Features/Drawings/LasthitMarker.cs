@@ -30,22 +30,28 @@ namespace SFXUtility.Features.Drawings
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using LeagueSharp.CommonEx.Core.Enumerations;
+    using LeagueSharp.CommonEx.Core.Events;
+    using LeagueSharp.CommonEx.Core.Extensions.SharpDX;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
+    using Circle = LeagueSharp.CommonEx.Core.Render._2D.Circle;
     using Color = System.Drawing.Color;
+    using Damage = LeagueSharp.CommonEx.Core.Wrappers.Damage;
+    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
     internal class LasthitMarker : Base
     {
-        private List<Obj_AI_Minion> _minions = new List<Obj_AI_Minion>();
+        private IEnumerable<Obj_AI_Minion> _minions = new List<Obj_AI_Minion>();
         private Drawings _parent;
 
         public LasthitMarker(IContainer container)
             : base(container)
         {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
+            Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
@@ -66,7 +72,7 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                if (_minions.Count > 0)
+                if (_minions.Any())
                 {
                     var circleColor = Menu.Item(Name + "DrawingCircleColor").GetValue<Color>();
                     var hpKillableColor = Menu.Item(Name + "DrawingHpBarKillableColor").GetValue<Color>();
@@ -78,7 +84,7 @@ namespace SFXUtility.Features.Drawings
 
                     foreach (var minion in _minions)
                     {
-                        var aaDamage = ObjectManager.Player.GetAutoAttackDamage(minion, true);
+                        var aaDamage = Damage.GetAutoAttackDamage(ObjectManager.Player, minion, true);
                         var killable = minion.Health <= aaDamage;
                         if (hpBar && minion.IsHPBarRendered)
                         {
@@ -95,7 +101,8 @@ namespace SFXUtility.Features.Drawings
                         }
                         if (circle && killable)
                         {
-                            Render.Circle.DrawCircle(minion.Position, minion.BoundingRadius + radius, circleColor);
+                            Circle.Draw(minion.Position.ToVector2(), minion.BoundingRadius + radius, 1, CircleType.Full,
+                                false, 1, circleColor);
                         }
                     }
                 }
@@ -106,7 +113,7 @@ namespace SFXUtility.Features.Drawings
             }
         }
 
-        private void OnParentLoaded(object sender, EventArgs eventArgs)
+        private void OnParentInitialized(object sender, EventArgs eventArgs)
         {
             try
             {
@@ -166,7 +173,7 @@ namespace SFXUtility.Features.Drawings
             base.OnDisable();
         }
 
-        private void OnGameLoad(EventArgs args)
+        private void OnLoad(EventArgs args)
         {
             try
             {
@@ -174,9 +181,9 @@ namespace SFXUtility.Features.Drawings
                 {
                     _parent = IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
-                        OnParentLoaded(null, null);
+                        OnParentInitialized(null, null);
                     else
-                        _parent.OnInitialized += OnParentLoaded;
+                        _parent.OnInitialized += OnParentInitialized;
                 }
             }
             catch (Exception ex)
@@ -190,12 +197,11 @@ namespace SFXUtility.Features.Drawings
             try
             {
                 _minions =
-                    ObjectManager.Get<Obj_AI_Minion>()
+                    ObjectHandler.GetFast<Obj_AI_Minion>()
                         .Where(
                             minion =>
                                 minion != null && minion.IsValid && minion.Health > 0.1f && minion.IsEnemy &&
-                                minion.Position.IsOnScreen())
-                        .ToList();
+                                Utility.IsOnScreen(minion.Position));
             }
             catch (Exception ex)
             {

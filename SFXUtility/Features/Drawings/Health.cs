@@ -25,25 +25,31 @@ namespace SFXUtility.Features.Drawings
     #region
 
     using System;
+    using System.Collections.Generic;
     using System.Drawing;
     using System.Globalization;
+    using System.Linq;
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
+    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
     internal class Health : Base
     {
+        private IEnumerable<Obj_BarracksDampener> _inhibs = new List<Obj_BarracksDampener>();
         private Drawings _parent;
+        private IEnumerable<Obj_AI_Turret> _turrets = new List<Obj_AI_Turret>();
 
         public Health(IContainer container)
             : base(container)
         {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
+            Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
@@ -64,7 +70,7 @@ namespace SFXUtility.Features.Drawings
         {
             if (!Menu.Item(Name + "InhibitorEnabled").GetValue<bool>())
                 return;
-            foreach (var inhibitor in ObjectManager.Get<Obj_BarracksDampener>())
+            foreach (var inhibitor in _inhibs)
             {
                 if (inhibitor.IsValid && !inhibitor.IsDead && inhibitor.Health > 0.1f)
                 {
@@ -91,7 +97,7 @@ namespace SFXUtility.Features.Drawings
             }
         }
 
-        private void OnParentLoaded(object sender, EventArgs eventArgs)
+        private void OnParentInitialized(object sender, EventArgs eventArgs)
         {
             try
             {
@@ -117,6 +123,15 @@ namespace SFXUtility.Features.Drawings
 
                 _parent.Menu.AddSubMenu(Menu);
 
+                _turrets =
+                    ObjectHandler.GetFast<Obj_AI_Turret>()
+                        .Where(t => t.IsValid && !t.IsDead && t.Health > 0.1f && t.Health < 9999f);
+                _inhibs =
+                    ObjectHandler.GetFast<Obj_BarracksDampener>().Where(i => i.IsValid && !i.IsDead && i.Health > 0.1f);
+
+                if (!_turrets.Any() || !_inhibs.Any())
+                    return;
+
                 HandleEvents(_parent);
                 RaiseOnInitialized();
             }
@@ -138,7 +153,7 @@ namespace SFXUtility.Features.Drawings
             base.OnDisable();
         }
 
-        private void OnGameLoad(EventArgs args)
+        private void OnLoad(EventArgs args)
         {
             try
             {
@@ -146,9 +161,9 @@ namespace SFXUtility.Features.Drawings
                 {
                     _parent = IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
-                        OnParentLoaded(null, null);
+                        OnParentInitialized(null, null);
                     else
-                        _parent.OnInitialized += OnParentLoaded;
+                        _parent.OnInitialized += OnParentInitialized;
                 }
             }
             catch (Exception ex)
@@ -161,7 +176,7 @@ namespace SFXUtility.Features.Drawings
         {
             if (!Menu.Item(Name + "TurretEnabled").GetValue<bool>())
                 return;
-            foreach (var turret in ObjectManager.Get<Obj_AI_Turret>())
+            foreach (var turret in _turrets)
             {
                 if (turret.IsValid && !turret.IsDead && turret.Health > 0f && turret.Health < 9999f)
                 {

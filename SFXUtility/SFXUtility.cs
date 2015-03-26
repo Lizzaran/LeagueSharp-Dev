@@ -27,6 +27,7 @@ namespace SFXUtility
     using System;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary;
     using SFXLibrary.Data;
     using SFXLibrary.Extensions.NET;
@@ -62,7 +63,7 @@ namespace SFXUtility
                 CustomEvents.Game.OnGameEnd += OnGameEnd;
                 Game.OnEnd += OnGameEnd;
                 Game.OnNotify += OnGameNotify;
-                CustomEvents.Game.OnGameLoad += OnGameLoad;
+                Load.OnLoad += OnLoad;
             }
             catch (Exception ex)
             {
@@ -128,7 +129,7 @@ namespace SFXUtility
             }
         }
 
-        private void OnGameLoad(EventArgs args)
+        private void OnLoad(EventArgs args)
         {
             try
             {

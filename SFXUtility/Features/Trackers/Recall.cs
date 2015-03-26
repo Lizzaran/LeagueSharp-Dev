@@ -34,21 +34,23 @@ namespace SFXUtility.Features.Trackers
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
+    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
     internal class Recall : Base
     {
         private Trackers _parent;
-        private List<RecallObject> _recallObjects = new List<RecallObject>();
+        private IEnumerable<RecallObject> _recallObjects = new List<RecallObject>();
 
         public Recall(IContainer container)
             : base(container)
         {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
+            Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
@@ -108,7 +110,7 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private void OnGameLoad(EventArgs args)
+        private void OnLoad(EventArgs args)
         {
             try
             {
@@ -116,9 +118,9 @@ namespace SFXUtility.Features.Trackers
                 {
                     _parent = IoC.Resolve<Trackers>();
                     if (_parent.Initialized)
-                        OnParentLoaded(null, null);
+                        OnParentInitialized(null, null);
                     else
-                        _parent.OnInitialized += OnParentLoaded;
+                        _parent.OnInitialized += OnParentInitialized;
                 }
             }
             catch (Exception ex)
@@ -127,7 +129,7 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private void OnParentLoaded(object sender, EventArgs eventArgs)
+        private void OnParentInitialized(object sender, EventArgs eventArgs)
         {
             try
             {
@@ -142,11 +144,7 @@ namespace SFXUtility.Features.Trackers
 
                 HandleEvents(_parent);
 
-                _recallObjects =
-                    ObjectManager.Get<Obj_AI_Hero>()
-                        .Where(hero => hero.IsValid && hero.IsEnemy)
-                        .Select(hero => new RecallObject(hero))
-                        .ToList();
+                _recallObjects = ObjectHandler.EnemyHeroes.Select(hero => new RecallObject(hero));
 
                 RaiseOnInitialized();
             }

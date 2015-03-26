@@ -31,12 +31,14 @@ namespace SFXUtility.Features.Trackers
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using LeagueSharp.CommonEx.Core.Events;
     using Properties;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
     using Color = SharpDX.Color;
+    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
@@ -48,7 +50,7 @@ namespace SFXUtility.Features.Trackers
         public LastPosition(IContainer container)
             : base(container)
         {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
+            Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
@@ -65,7 +67,7 @@ namespace SFXUtility.Features.Trackers
             get { return "Last Position"; }
         }
 
-        private void OnGameLoad(EventArgs args)
+        private void OnLoad(EventArgs args)
         {
             try
             {
@@ -73,9 +75,9 @@ namespace SFXUtility.Features.Trackers
                 {
                     _parent = IoC.Resolve<Trackers>();
                     if (_parent.Initialized)
-                        OnParentLoaded(null, null);
+                        OnParentInitialized(null, null);
                     else
-                        _parent.OnInitialized += OnParentLoaded;
+                        _parent.OnInitialized += OnParentInitialized;
 
                     if (IoC.IsRegistered<Recall>())
                     {
@@ -136,7 +138,7 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private void OnParentLoaded(object sender, EventArgs eventArgs)
+        private void OnParentInitialized(object sender, EventArgs eventArgs)
         {
             try
             {
@@ -186,11 +188,11 @@ namespace SFXUtility.Features.Trackers
                     }
                 }
 
-                foreach (var hero in ObjectManager.Get<Obj_AI_Hero>().Where(hero => hero.IsValid && hero.IsEnemy))
+                foreach (var enemy in ObjectHandler.EnemyHeroes)
                 {
                     try
                     {
-                        _lastPositionObjects.Add(new LastPositionObject(hero, Logger)
+                        _lastPositionObjects.Add(new LastPositionObject(enemy, Logger)
                         {
                             Active = Enabled,
                             TextTotalSeconds =
@@ -241,7 +243,7 @@ namespace SFXUtility.Features.Trackers
                     Hero = hero;
                     var mPos = Drawing.WorldToMinimap(hero.Position);
                     var spawnPoint =
-                        ObjectManager.Get<GameObject>().FirstOrDefault(s => s is Obj_SpawnPoint && s.IsEnemy);
+                        ObjectHandler.GetFast<GameObject>().FirstOrDefault(s => s is Obj_SpawnPoint && s.IsEnemy);
 
                     _championSprite =
                         new Render.Sprite(

@@ -30,12 +30,16 @@ namespace SFXUtility.Features.Timers
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using LeagueSharp.CommonEx.Core.Enumerations;
+    using LeagueSharp.CommonEx.Core.Events;
+    using LeagueSharp.CommonEx.Core.Wrappers;
     using SFXLibrary;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
     using Color = System.Drawing.Color;
+    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
@@ -47,7 +51,7 @@ namespace SFXUtility.Features.Timers
         public Jungle(IContainer container)
             : base(container)
         {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
+            Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
@@ -66,8 +70,6 @@ namespace SFXUtility.Features.Timers
 
         protected override void OnEnable()
         {
-            GameObject.OnCreate += OnGameObjectCreate;
-            GameObject.OnDelete += OnGameObjectDelete;
             Game.OnUpdate += OnGameUpdate;
             Drawing.OnDraw += OnDrawingDraw;
             base.OnEnable();
@@ -75,57 +77,9 @@ namespace SFXUtility.Features.Timers
 
         protected override void OnDisable()
         {
-            GameObject.OnCreate -= OnGameObjectCreate;
-            GameObject.OnDelete -= OnGameObjectDelete;
             Game.OnUpdate -= OnGameUpdate;
             Drawing.OnDraw -= OnDrawingDraw;
             base.OnDisable();
-        }
-
-        private void OnGameObjectCreate(GameObject sender, EventArgs args)
-        {
-            try
-            {
-                if (sender.Type != GameObjectType.obj_AI_Minion || sender.Team != GameObjectTeam.Neutral)
-                    return;
-
-                foreach (
-                    var mob in
-                        _camps.SelectMany(
-                            camp =>
-                                camp.Mobs.Where(mob => mob.Name.Equals(sender.Name, StringComparison.OrdinalIgnoreCase)))
-                    )
-                {
-                    mob.Dead = false;
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.AddItem(new LogItem(ex) {Object = this});
-            }
-        }
-
-        private void OnGameObjectDelete(GameObject sender, EventArgs args)
-        {
-            try
-            {
-                if (sender.Type != GameObjectType.obj_AI_Minion || sender.Team != GameObjectTeam.Neutral)
-                    return;
-
-                foreach (
-                    var mob in
-                        _camps.SelectMany(
-                            camp =>
-                                camp.Mobs.Where(mob => mob.Name.Equals(sender.Name, StringComparison.OrdinalIgnoreCase)))
-                    )
-                {
-                    mob.Dead = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.AddItem(new LogItem(ex) {Object = this});
-            }
         }
 
         private void OnGameUpdate(EventArgs args)
@@ -133,10 +87,10 @@ namespace SFXUtility.Features.Timers
             try
             {
                 var minions =
-                    ObjectManager.Get<Obj_AI_Base>()
+                    ObjectHandler.GetFast<Obj_AI_Minion>()
                         .Where(
                             minion =>
-                                !minion.IsDead && minion.IsValid && minion.Team == GameObjectTeam.Neutral &&
+                                minion.IsValid && !minion.IsDead && minion.Team == GameObjectTeam.Neutral &&
                                 (minion.Name.StartsWith("SRU_", StringComparison.OrdinalIgnoreCase) ||
                                  minion.Name.StartsWith("TT_", StringComparison.OrdinalIgnoreCase))).ToList();
 
@@ -179,7 +133,7 @@ namespace SFXUtility.Features.Timers
             }
         }
 
-        private void OnGameLoad(EventArgs args)
+        private void OnLoad(EventArgs args)
         {
             try
             {
@@ -187,9 +141,9 @@ namespace SFXUtility.Features.Timers
                 {
                     _parent = IoC.Resolve<Timers>();
                     if (_parent.Initialized)
-                        OnParentLoaded(null, null);
+                        OnParentInitialized(null, null);
                     else
-                        _parent.OnInitialized += OnParentLoaded;
+                        _parent.OnInitialized += OnParentInitialized;
                 }
             }
             catch (Exception ex)
@@ -198,7 +152,7 @@ namespace SFXUtility.Features.Timers
             }
         }
 
-        private void OnParentLoaded(object sender, EventArgs eventArgs)
+        private void OnParentInitialized(object sender, EventArgs eventArgs)
         {
             try
             {
@@ -234,9 +188,9 @@ namespace SFXUtility.Features.Timers
 
         private void SetupCamps()
         {
-            switch (Utility.Map.GetMap().Type)
+            switch (Map.GetMap().Type)
             {
-                case Utility.Map.MapType.SummonersRift:
+                case MapType.SummonersRift:
                     _camps.AddRange(new List<Camp>
                     {
                         // Order: Blue
@@ -304,7 +258,7 @@ namespace SFXUtility.Features.Timers
                         new Camp(150, 180, new Vector3(4200.1f, 9900.7f, -63.1f), new[] {new Mob("SRU_Crab16.1.1")})
                     });
                     break;
-                case Utility.Map.MapType.TwistedTreeline:
+                case MapType.TwistedTreeline:
                     _camps.AddRange(new List<Camp>
                     {
                         //Order: Wraiths

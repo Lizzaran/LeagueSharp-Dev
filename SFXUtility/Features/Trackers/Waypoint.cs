@@ -30,26 +30,27 @@ namespace SFXUtility.Features.Trackers
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using LeagueSharp.CommonEx.Core.Events;
+    using LeagueSharp.CommonEx.Core.Extensions.SharpDX;
     using SFXLibrary;
     using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
     using Color = System.Drawing.Color;
+    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
     internal class Waypoint : Base
     {
-        private const float UpdateInterval = 300f;
-        private float _lastUpdate;
+        private readonly Dictionary<int, List<Vector2>> _waypoints = new Dictionary<int, List<Vector2>>();
         private Trackers _parent;
-        private IEnumerable<List<Vector2>> _waypoints = new List<List<Vector2>>();
 
         public Waypoint(IContainer container)
             : base(container)
         {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
+            Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
@@ -68,31 +69,28 @@ namespace SFXUtility.Features.Trackers
 
         protected override void OnEnable()
         {
-            Game.OnUpdate += OnGameUpdate;
+            Obj_AI_Base.OnNewPath += OnObjAiBaseNewPath;
             Drawing.OnDraw += OnDrawingDraw;
             base.OnEnable();
         }
 
         protected override void OnDisable()
         {
-            Game.OnUpdate -= OnGameUpdate;
+            Obj_AI_Base.OnNewPath -= OnObjAiBaseNewPath;
             Drawing.OnDraw -= OnDrawingDraw;
             base.OnDisable();
         }
 
-        private void OnGameUpdate(EventArgs args)
+        private void OnObjAiBaseNewPath(Obj_AI_Base sender, GameObjectNewPathEventArgs args)
         {
             try
             {
-                if (_lastUpdate + UpdateInterval > Environment.TickCount)
+                if (!(sender is Obj_AI_Hero) || !sender.IsValid)
                     return;
 
-                _lastUpdate = Environment.TickCount;
-
-                _waypoints = (HeroManager.AllHeroes.Where(hero => hero.IsValid && !hero.IsDead)
-                    .Where(hero => hero.IsAlly && Menu.Item(Name + "DrawAlly").GetValue<bool>())
-                    .Where(hero => hero.IsEnemy && Menu.Item(Name + "DrawEnemy").GetValue<bool>())).Select(
-                        hero => hero.GetWaypoints());
+                if (sender.IsAlly && Menu.Item(Name + "DrawAlly").GetValue<bool>() ||
+                    sender.IsEnemy && Menu.Item(Name + "DrawEnemy").GetValue<bool>())
+                    _waypoints[sender.NetworkId] = sender.GetWaypoints();
             }
             catch (Exception ex)
             {
@@ -107,18 +105,18 @@ namespace SFXUtility.Features.Trackers
                 var crossColor = Menu.Item(Name + "DrawingCrossColor").GetValue<Color>();
                 var lineColor = Menu.Item(Name + "DrawingLineColor").GetValue<Color>();
 
-                foreach (var waypoints in _waypoints)
+                foreach (var waypoints in _waypoints.Values)
                 {
                     var arrivalTime = 0.0f;
                     for (int i = 0, l = waypoints.Count - 1; i < l; i++)
                     {
-                        if (!waypoints[i].IsValid() || !waypoints[i + 1].IsValid())
+                        if (!Geometry.IsValid(waypoints[i]) || !Geometry.IsValid(waypoints[i + 1]))
                             continue;
 
-                        var current = Drawing.WorldToScreen(waypoints[i].To3D());
-                        var next = Drawing.WorldToScreen(waypoints[i + 1].To3D());
+                        var current = Drawing.WorldToScreen(waypoints[i].ToVector3());
+                        var next = Drawing.WorldToScreen(waypoints[i + 1].ToVector3());
 
-                        arrivalTime += (Vector3.Distance(waypoints[i].To3D(), waypoints[i + 1].To3D())/
+                        arrivalTime += (Vector3.Distance(waypoints[i].ToVector3(), waypoints[i + 1].ToVector3())/
                                         (ObjectManager.Player.MoveSpeed/1000))/1000;
 
                         if (current.IsOnScreen(next))
@@ -140,7 +138,7 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private void OnGameLoad(EventArgs args)
+        private void OnLoad(EventArgs args)
         {
             try
             {
@@ -148,9 +146,9 @@ namespace SFXUtility.Features.Trackers
                 {
                     _parent = IoC.Resolve<Trackers>();
                     if (_parent.Initialized)
-                        OnParentLoaded(null, null);
+                        OnParentInitialized(null, null);
                     else
-                        _parent.OnInitialized += OnParentLoaded;
+                        _parent.OnInitialized += OnParentInitialized;
                 }
             }
             catch (Exception ex)
@@ -159,7 +157,7 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private void OnParentLoaded(object sender, EventArgs eventArgs)
+        private void OnParentInitialized(object sender, EventArgs eventArgs)
         {
             try
             {
@@ -177,6 +175,23 @@ namespace SFXUtility.Features.Trackers
                 Menu.AddItem(new MenuItem(Name + "DrawAlly", "Ally").SetValue(false));
                 Menu.AddItem(new MenuItem(Name + "DrawEnemy", "Enemy").SetValue(true));
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+
+                Menu.Item(Name + "DrawAlly").ValueChanged += delegate
+                {
+                    foreach (var ally in ObjectHandler.AllyHeroes.Where(ally => _waypoints.ContainsKey(ally.NetworkId)))
+                    {
+                        _waypoints.Remove(ally.NetworkId);
+                    }
+                };
+
+                Menu.Item(Name + "DrawEnemy").ValueChanged += delegate
+                {
+                    foreach (
+                        var enemy in ObjectHandler.EnemyHeroes.Where(enemy => _waypoints.ContainsKey(enemy.NetworkId)))
+                    {
+                        _waypoints.Remove(enemy.NetworkId);
+                    }
+                };
 
                 _parent.Menu.AddSubMenu(Menu);
 

@@ -30,6 +30,7 @@ namespace SFXUtility.Features.Activators
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
@@ -50,7 +51,7 @@ namespace SFXUtility.Features.Activators
         public Potion(IContainer container)
             : base(container)
         {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
+            Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
@@ -79,7 +80,7 @@ namespace SFXUtility.Features.Activators
             base.OnDisable();
         }
 
-        private void OnParentLoaded(object sender, EventArgs eventArgs)
+        private void OnParentInitialized(object sender, EventArgs eventArgs)
         {
             try
             {
@@ -90,13 +91,18 @@ namespace SFXUtility.Features.Activators
                 Menu = new Menu(Name, BaseName + Name);
                 var healthMenu = new Menu("Health", Name + "Health");
                 healthMenu.AddItem(new MenuItem(Name + "HealthPotion", "Use Health Potion").SetValue(true));
-                healthMenu.AddItem(
-                    new MenuItem(Name + "HealthPercent", "HP Trigger Percent").SetValue(new Slider(60)));
+                healthMenu.AddItem(new MenuItem(Name + "HealthPercent", "HP Trigger Percent").SetValue(new Slider(60)));
+
                 var manaMenu = new Menu("Mana", Name + "Mana");
                 manaMenu.AddItem(new MenuItem(Name + "ManaPotion", "Use Mana Potion").SetValue(true));
                 manaMenu.AddItem(new MenuItem(Name + "ManaPercent", "MP Trigger Percent").SetValue(new Slider(60)));
+
                 Menu.AddSubMenu(healthMenu);
                 Menu.AddSubMenu(manaMenu);
+
+                Menu.AddItem(
+                    new MenuItem(Name + "MinEnemyDistance", "Min Enemy Distance").SetValue(new Slider(600, 0, 1500)));
+
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
                 _parent.Menu.AddSubMenu(Menu);
                 HandleEvents(_parent);
@@ -124,7 +130,7 @@ namespace SFXUtility.Features.Activators
                     .Any(potion => ObjectManager.Player.HasBuff(potion.BuffName, true));
         }
 
-        private void OnGameLoad(EventArgs args)
+        private void OnLoad(EventArgs args)
         {
             try
             {
@@ -132,9 +138,9 @@ namespace SFXUtility.Features.Activators
                 {
                     _parent = IoC.Resolve<Activators>();
                     if (_parent.Initialized)
-                        OnParentLoaded(null, null);
+                        OnParentInitialized(null, null);
                     else
-                        _parent.OnInitialized += OnParentLoaded;
+                        _parent.OnInitialized += OnParentInitialized;
                 }
             }
             catch (Exception ex)
@@ -147,6 +153,11 @@ namespace SFXUtility.Features.Activators
         {
             try
             {
+                if (
+                    ObjectManager.Player.CountEnemiesInRange(
+                        Menu.Item(Name + "MinEnemyDistance").GetValue<Slider>().Value) == 0)
+                    return;
+
                 if (Menu.Item(Name + "HealthPotion").GetValue<bool>())
                 {
                     if (ObjectManager.Player.HealthPercentage() <=

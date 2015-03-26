@@ -29,10 +29,14 @@ namespace SFXUtility.Features.Others
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using LeagueSharp.CommonEx.Core.Events;
+    using LeagueSharp.CommonEx.Core.Extensions.SharpDX;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
+    using Gapcloser = LeagueSharp.CommonEx.Core.Events.Gapcloser;
+    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
@@ -45,7 +49,7 @@ namespace SFXUtility.Features.Others
         public AntiFountain(IContainer container)
             : base(container)
         {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
+            Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
@@ -64,16 +68,18 @@ namespace SFXUtility.Features.Others
         protected override void OnEnable()
         {
             Obj_AI_Base.OnNewPath += OnObjAiBaseNewPath;
+            Spellbook.OnCastSpell += OnSpellbookCastSpell;
             base.OnEnable();
         }
 
         protected override void OnDisable()
         {
             Obj_AI_Base.OnNewPath -= OnObjAiBaseNewPath;
+            Spellbook.OnCastSpell -= OnSpellbookCastSpell;
             base.OnDisable();
         }
 
-        private void OnGameLoad(EventArgs args)
+        private void OnLoad(EventArgs args)
         {
             try
             {
@@ -81,9 +87,9 @@ namespace SFXUtility.Features.Others
                 {
                     _parent = IoC.Resolve<Others>();
                     if (_parent.Initialized)
-                        OnParentLoaded(null, null);
+                        OnParentInitialized(null, null);
                     else
-                        _parent.OnInitialized += OnParentLoaded;
+                        _parent.OnInitialized += OnParentInitialized;
                 }
             }
             catch (Exception ex)
@@ -92,7 +98,7 @@ namespace SFXUtility.Features.Others
             }
         }
 
-        private void OnParentLoaded(object sender, EventArgs eventArgs)
+        private void OnParentInitialized(object sender, EventArgs eventArgs)
         {
             try
             {
@@ -106,7 +112,7 @@ namespace SFXUtility.Features.Others
                 _parent.Menu.AddSubMenu(Menu);
 
                 _fountainTurret =
-                    ObjectManager.Get<Obj_AI_Turret>()
+                    ObjectHandler.GetFast<Obj_AI_Turret>()
                         .FirstOrDefault(
                             s =>
                                 s != null && s.IsValid && s.Team != ObjectManager.Player.Team &&
@@ -124,6 +130,23 @@ namespace SFXUtility.Features.Others
             }
         }
 
+        private void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
+        {
+            if (!sender.Owner.IsMe)
+                return;
+            if (Gapcloser.Spells.Any(a => a.SpellName == sender.GetSpell(args.Slot).Name))
+            {
+                var intersections = args.StartPosition.ToVector2()
+                    .FindLineCircleIntersections(args.EndPosition.ToVector2(),
+                        _fountainTurret.ServerPosition.ToVector2(),
+                        FountainRange/2);
+                if (intersections.Count > 0)
+                {
+                    args.Process = false;
+                }
+            }
+        }
+
         private void OnObjAiBaseNewPath(Obj_AI_Base sender, GameObjectNewPathEventArgs args)
         {
             try
@@ -133,13 +156,14 @@ namespace SFXUtility.Features.Others
 
                 for (int i = 0, l = args.Path.Length - 1; i < l; i++)
                 {
-                    var intersections = args.Path[i].To2D()
-                        .FindLineCircleIntersections(args.Path[i + 1].To2D(), _fountainTurret.ServerPosition.To2D(),
+                    var intersections = args.Path[i].ToVector2()
+                        .FindLineCircleIntersections(args.Path[i + 1].ToVector2(),
+                            _fountainTurret.ServerPosition.ToVector2(),
                             FountainRange/2);
                     if (intersections.Count > 0)
                     {
                         ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo,
-                            intersections.ClosestIntersection(args.Path[i].To2D()).To3D());
+                            intersections.ClosestIntersection(args.Path[i].ToVector2()).ToVector3());
                     }
                 }
             }

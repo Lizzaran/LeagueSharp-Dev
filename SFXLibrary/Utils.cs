@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- MenuExtensions.cs is part of SFXLibrary.
+ Utils.cs is part of SFXLibrary.
 
  SFXLibrary is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,31 +20,42 @@
 
 #endregion License
 
-#region
-
-using Menu = LeagueSharp.Common.Menu;
-using MenuItem = LeagueSharp.Common.MenuItem;
-
-#endregion
-
-namespace SFXLibrary.Extensions.LeagueSharp.Common
+namespace SFXLibrary
 {
     #region
 
-    using System.Collections.Generic;
+    using System;
+    using System.Linq;
+    using LeagueSharp;
 
     #endregion
 
-    public static class MenuExtensions
+    public class Utils
     {
-        public static void AddItems(this Menu menu, List<MenuItem> menuItems)
+        public static SpellSlot GetSpellSlotByChar(char c)
         {
-            if (menu == null || menuItems == null)
-                return;
-            foreach (var menuItem in menuItems)
+            switch (Char.ToUpper(c))
             {
-                menu.AddItem(menuItem);
+                case 'Q':
+                    return SpellSlot.Q;
+
+                case 'W':
+                    return SpellSlot.W;
+
+                case 'E':
+                    return SpellSlot.E;
+
+                case 'R':
+                    return SpellSlot.R;
+
+                default:
+                    return SpellSlot.Unknown;
             }
+        }
+
+        public static SpellSlot GetSpellSlotByChar(string c)
+        {
+            return c.Any(x => !char.IsLetter(x)) ? GetSpellSlotByChar(c.First(char.IsLetter)) : SpellSlot.Unknown;
         }
     }
 }

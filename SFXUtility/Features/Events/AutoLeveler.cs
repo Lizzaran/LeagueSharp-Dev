@@ -30,6 +30,7 @@ namespace SFXUtility.Features.Events
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using Utils = SFXLibrary.Utils;
@@ -43,7 +44,7 @@ namespace SFXUtility.Features.Events
         public AutoLeveler(IContainer container)
             : base(container)
         {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
+            Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
@@ -71,7 +72,7 @@ namespace SFXUtility.Features.Events
             base.OnDisable();
         }
 
-        private List<SpellInfoStruct> GetOrderedPriorityList()
+        private IEnumerable<SpellInfoStruct> GetOrderedPriorityList()
         {
             return new List<SpellInfoStruct>
             {
@@ -82,10 +83,10 @@ namespace SFXUtility.Features.Events
                 new SpellInfoStruct(SpellSlot.E,
                     Menu.Item(Name + ObjectManager.Player.ChampionName + "PatternE").GetValue<Slider>().Value),
                 new SpellInfoStruct(SpellSlot.R, 4)
-            }.OrderBy(x => x.Value).Reverse().ToList();
+            }.OrderBy(x => x.Value).Reverse();
         }
 
-        private void OnGameLoad(EventArgs args)
+        private void OnLoad(EventArgs args)
         {
             try
             {
@@ -93,9 +94,9 @@ namespace SFXUtility.Features.Events
                 {
                     _parent = IoC.Resolve<Events>();
                     if (_parent.Initialized)
-                        OnParentLoaded(null, null);
+                        OnParentInitialized(null, null);
                     else
-                        _parent.OnInitialized += OnParentLoaded;
+                        _parent.OnInitialized += OnParentInitialized;
                 }
             }
             catch (Exception ex)
@@ -104,7 +105,7 @@ namespace SFXUtility.Features.Events
             }
         }
 
-        private void OnParentLoaded(object sender, EventArgs eventArgs)
+        private void OnParentInitialized(object sender, EventArgs eventArgs)
         {
             try
             {

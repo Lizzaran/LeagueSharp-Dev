@@ -29,7 +29,6 @@ namespace SFXUtility
     using System.Linq;
     using System.Reflection;
     using Classes;
-    using SFXLibrary;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 

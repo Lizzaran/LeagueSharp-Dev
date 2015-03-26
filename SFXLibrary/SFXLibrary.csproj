@@ -35,8 +35,12 @@
     <Reference Include="LeagueSharp">
       <HintPath>G:\LeagueSharp\System\LeagueSharp.dll</HintPath>
     </Reference>
-    <Reference Include="LeagueSharp.Common">
+    <Reference Include="LeagueSharp.Common, Version=1.0.0.31, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>G:\LeagueSharp\System\LeagueSharp.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="LeagueSharp.CommonEx">
+      <HintPath>G:\LeagueSharp\System\LeagueSharp.CommonEx.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="SharpDX">
@@ -52,7 +56,6 @@
     <Compile Include="Chat.cs" />
     <Compile Include="Data\Additional.cs" />
     <Compile Include="Draw.cs" />
-    <Compile Include="Extensions\LeagueSharp\Common\MenuExtensions.cs" />
     <Compile Include="Extensions\NET\ColorExtensions.cs" />
     <Compile Include="Extensions\NET\FloatExtensions.cs" />
     <Compile Include="Extensions\NET\IntegerExtensions.cs" />
