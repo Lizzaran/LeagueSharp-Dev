@@ -41,18 +41,14 @@ namespace SFXUtility.Features.Others
     {
         private Others _parent;
 
-        public AutoLantern(IContainer container)
-            : base(container)
+        public AutoLantern(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
         {
-            get
-            {
-                return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
+            get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
         public override string Name
@@ -126,15 +122,12 @@ namespace SFXUtility.Features.Others
                 if (ObjectManager.Player.IsDead)
                     return;
 
-                if (ObjectManager.Player.HealthPercentage() <= Menu.Item(Name + "LowPercent").GetValue<Slider>().Value ||
+                if (ObjectManager.Player.HealthPercent <= Menu.Item(Name + "LowPercent").GetValue<Slider>().Value ||
                     Menu.Item(Name + "Hotkey").IsActive())
                 {
                     var lantern =
                         ObjectHandler.GetFast<Obj_AI_Base>()
-                            .FirstOrDefault(
-                                o =>
-                                    o.IsValid && o.IsAlly &&
-                                    o.Name.Contains("ThreshLantern", StringComparison.OrdinalIgnoreCase));
+                            .FirstOrDefault(o => o.IsValid && o.IsAlly && o.Name.Contains("ThreshLantern", StringComparison.OrdinalIgnoreCase));
                     if (lantern != null && lantern.IsValidTarget(500, false, ObjectManager.Player.ServerPosition))
                     {
                         lantern.UseObject();

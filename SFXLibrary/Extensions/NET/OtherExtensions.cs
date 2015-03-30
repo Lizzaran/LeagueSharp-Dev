@@ -44,24 +44,13 @@ namespace SFXLibrary.Extensions.NET
 
         public static bool IsNumber(this object value)
         {
-            return value is sbyte
-                   || value is byte
-                   || value is short
-                   || value is ushort
-                   || value is int
-                   || value is uint
-                   || value is long
-                   || value is ulong
-                   || value is float
-                   || value is double
-                   || value is decimal;
+            return value is sbyte || value is byte || value is short || value is ushort || value is int || value is uint || value is long ||
+                   value is ulong || value is float || value is double || value is decimal;
         }
 
         public static string ToDebugString<TKey, TValue>(this IDictionary<TKey, TValue> dictionary)
         {
-            return dictionary == null
-                ? string.Empty
-                : string.Join("," + Environment.NewLine, dictionary.Select(kv => kv.Key + " = " + kv.Value));
+            return dictionary == null ? string.Empty : string.Join("," + Environment.NewLine, dictionary.Select(kv => kv.Key + " = " + kv.Value));
         }
 
         public static Task<List<T>> ToListAsync<T>(this IQueryable<T> list)
@@ -101,8 +90,7 @@ namespace SFXLibrary.Extensions.NET
         }
 
         /// <exception cref="Exception">A delegate callback throws an exception. </exception>
-        public static void RaiseEvent<T>(this EventHandler<T> @event, object sender, T e)
-            where T : EventArgs
+        public static void RaiseEvent<T>(this EventHandler<T> @event, object sender, T e) where T : EventArgs
         {
             if (@event != null)
                 @event(sender, e);

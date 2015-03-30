@@ -44,18 +44,14 @@ namespace SFXUtility.Features.Events
         private float _lastCheck = Environment.TickCount;
         private Events _parent;
 
-        public Trinket(IContainer container)
-            : base(container)
+        public Trinket(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
         {
-            get
-            {
-                return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
+            get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
         public override string Name
@@ -65,13 +61,13 @@ namespace SFXUtility.Features.Events
 
         protected override void OnEnable()
         {
-            Game.OnUpdate += OnGameUpdate;
+            LeagueSharp.Game.OnUpdate += OnGameUpdate;
             base.OnEnable();
         }
 
         protected override void OnDisable()
         {
-            Game.OnUpdate -= OnGameUpdate;
+            LeagueSharp.Game.OnUpdate -= OnGameUpdate;
             base.OnDisable();
         }
 
@@ -104,28 +100,21 @@ namespace SFXUtility.Features.Events
                 Menu = new Menu(Name, BaseName + Name);
 
                 var timersMenu = new Menu("Timers", Name + "Timers");
-                timersMenu.AddItem(
-                    new MenuItem(Name + "TimersWardingTotem", "Warding Totem @ Minute").SetValue(new Slider(0, 0, 60)));
-                timersMenu.AddItem(
-                    new MenuItem(Name + "TimersSweepingLens", "Sweeping Lens @ Minute").SetValue(new Slider(20, 0,
-                        60)));
-                timersMenu.AddItem(
-                    new MenuItem(Name + "TimersScryingOrb", "Scrying Orb @ Minute").SetValue(new Slider(45, 0, 60)));
-                timersMenu.AddItem(
-                    new MenuItem(Name + "TimersWardingTotemEnabled", "Buy Warding Totem").SetValue(true));
-                timersMenu.AddItem(
-                    new MenuItem(Name + "TimersSweepingLensEnabled", "Buy Sweeping Lens").SetValue(true));
-                timersMenu.AddItem(new MenuItem(Name + "TimersScryingOrbEnabled", "Buy Scrying Orb").SetValue(false));
-                timersMenu.AddItem(new MenuItem(Name + "TimersEnabled", "Enabled").SetValue(false));
+                timersMenu.AddItem(new MenuItem(timersMenu.Name + "WardingTotem", "Warding Totem @ Minute").SetValue(new Slider(0, 0, 60)));
+                timersMenu.AddItem(new MenuItem(timersMenu.Name + "SweepingLens", "Sweeping Lens @ Minute").SetValue(new Slider(20, 0, 60)));
+                timersMenu.AddItem(new MenuItem(timersMenu.Name + "ScryingOrb", "Scrying Orb @ Minute").SetValue(new Slider(45, 0, 60)));
+                timersMenu.AddItem(new MenuItem(timersMenu.Name + "WardingTotemEnabled", "Buy Warding Totem").SetValue(false));
+                timersMenu.AddItem(new MenuItem(timersMenu.Name + "SweepingLensEnabled", "Buy Sweeping Lens").SetValue(false));
+                timersMenu.AddItem(new MenuItem(timersMenu.Name + "ScryingOrbEnabled", "Buy Scrying Orb").SetValue(false));
+                timersMenu.AddItem(new MenuItem(timersMenu.Name + "Enabled", "Enabled").SetValue(false));
 
                 var eventsMenu = new Menu("Events", Name + "Events");
-                eventsMenu.AddItem(new MenuItem(Name + "EventsSightstone", "Sightstone").SetValue(true));
-                eventsMenu.AddItem(new MenuItem(Name + "EventsRubySightstone", "Ruby Sightstone").SetValue(true));
-                eventsMenu.AddItem(new MenuItem(Name + "EventsWrigglesLantern", "Wriggle's Lantern").SetValue(true));
+                eventsMenu.AddItem(new MenuItem(eventsMenu.Name + "Sightstone", "Sightstone").SetValue(false));
+                eventsMenu.AddItem(new MenuItem(eventsMenu.Name + "RubySightstone", "Ruby Sightstone").SetValue(false));
+                eventsMenu.AddItem(new MenuItem(eventsMenu.Name + "WrigglesLantern", "Wriggle's Lantern").SetValue(false));
                 eventsMenu.AddItem(
-                    new MenuItem(Name + "EventsBuyTrinket", "Buy Trinket").SetValue(
-                        new StringList(new[] {"Yellow", "Red", "Blue"})));
-                eventsMenu.AddItem(new MenuItem(Name + "EventsEnabled", "Enabled").SetValue(false));
+                    new MenuItem(eventsMenu.Name + "BuyTrinket", "Buy Trinket").SetValue(new StringList(new[] {"Yellow", "Red", "Blue"})));
+                eventsMenu.AddItem(new MenuItem(eventsMenu.Name + "Enabled", "Enabled").SetValue(false));
 
                 Menu.AddSubMenu(timersMenu);
                 Menu.AddSubMenu(eventsMenu);
@@ -159,8 +148,7 @@ namespace SFXUtility.Features.Events
                     {
                         if (ObjectManager.Player.HasItem(ItemId.Greater_Vision_Totem_Trinket) ||
                             ObjectManager.Player.HasItem(ItemId.Greater_Stealth_Totem_Trinket) ||
-                            ObjectManager.Player.HasItem(ItemId.Farsight_Orb_Trinket) ||
-                            ObjectManager.Player.HasItem(ItemId.Oracles_Lens_Trinket))
+                            ObjectManager.Player.HasItem(ItemId.Farsight_Orb_Trinket) || ObjectManager.Player.HasItem(ItemId.Oracles_Lens_Trinket))
                             return;
                     }
 
@@ -198,8 +186,7 @@ namespace SFXUtility.Features.Events
                                 break;
                         }
 
-                        if (!hasTrinket && ObjectManager.Player.HasItem(ItemId.Sightstone) &&
-                            Menu.Item(Name + "EventsSightstone").GetValue<bool>())
+                        if (!hasTrinket && ObjectManager.Player.HasItem(ItemId.Sightstone) && Menu.Item(Name + "EventsSightstone").GetValue<bool>())
                         {
                             SwitchTrinket(trinketId);
                         }
@@ -217,17 +204,14 @@ namespace SFXUtility.Features.Events
 
                     if (Menu.Item(Name + "TimersEnabled").GetValue<bool>())
                     {
-                        var time = Math.Floor(Game.Time/60f);
+                        var time = Math.Floor(LeagueSharp.Game.Time/60f);
                         var tsList = new List<TrinketStruct>
                         {
-                            new TrinketStruct(ItemId.Warding_Totem_Trinket, hasYellow,
-                                Menu.Item(Name + "TimersWardingTotemEnabled").GetValue<bool>(),
+                            new TrinketStruct(ItemId.Warding_Totem_Trinket, hasYellow, Menu.Item(Name + "TimersWardingTotemEnabled").GetValue<bool>(),
                                 Menu.Item(Name + "TimersWardingTotem").GetValue<Slider>().Value),
-                            new TrinketStruct(ItemId.Sweeping_Lens_Trinket, hasRed,
-                                Menu.Item(Name + "TimersSweepingLensEnabled").GetValue<bool>(),
+                            new TrinketStruct(ItemId.Sweeping_Lens_Trinket, hasRed, Menu.Item(Name + "TimersSweepingLensEnabled").GetValue<bool>(),
                                 Menu.Item(Name + "TimersSweepingLens").GetValue<Slider>().Value),
-                            new TrinketStruct(ItemId.Scrying_Orb_Trinket, hasBlue,
-                                Menu.Item(Name + "TimersScryingOrbEnabled").GetValue<bool>(),
+                            new TrinketStruct(ItemId.Scrying_Orb_Trinket, hasBlue, Menu.Item(Name + "TimersScryingOrbEnabled").GetValue<bool>(),
                                 Menu.Item(Name + "TimersScryingOrb").GetValue<Slider>().Value)
                         };
                         tsList = tsList.OrderBy(ts => ts.Time).ToList();
@@ -266,11 +250,11 @@ namespace SFXUtility.Features.Events
             {
                 if (itemId == 0)
                     return;
-                var iItem = ObjectManager.Player.InventoryItems.First(
-                    slot =>
-                        slot.IsValidSlot() &&
-                        slot.Name.Contains("Trinket", StringComparison.OrdinalIgnoreCase) ||
-                        slot.DisplayName.Contains("Trinket", StringComparison.OrdinalIgnoreCase));
+                var iItem =
+                    ObjectManager.Player.InventoryItems.First(
+                        slot =>
+                            slot.IsValidSlot() && slot.Name.Contains("Trinket", StringComparison.OrdinalIgnoreCase) ||
+                            slot.DisplayName.Contains("Trinket", StringComparison.OrdinalIgnoreCase));
                 if (iItem != null)
                 {
                     ObjectManager.Player.SellItem(iItem.Slot);
@@ -285,18 +269,18 @@ namespace SFXUtility.Features.Events
 
         private struct TrinketStruct
         {
-            public TrinketStruct(ItemId itemId, bool hasItem, bool buy, int time) : this()
+            public readonly bool Buy;
+            public readonly bool HasItem;
+            public readonly ItemId ItemId;
+            public readonly int Time;
+
+            public TrinketStruct(ItemId itemId, bool hasItem, bool buy, int time)
             {
                 ItemId = itemId;
                 HasItem = hasItem;
                 Buy = buy;
                 Time = time;
             }
-
-            public bool Buy { get; private set; }
-            public bool HasItem { get; private set; }
-            public ItemId ItemId { get; private set; }
-            public int Time { get; private set; }
         }
     }
 }

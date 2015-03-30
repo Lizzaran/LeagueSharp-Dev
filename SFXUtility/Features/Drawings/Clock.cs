@@ -39,19 +39,14 @@ namespace SFXUtility.Features.Drawings
     {
         private Drawings _parent;
 
-        public Clock(IContainer container)
-            : base(container)
+        public Clock(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
         {
-            get
-            {
-                return _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
+            get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
         public override string Name
@@ -63,8 +58,8 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                Drawing.DrawText(Drawing.Width - Menu.Item(Name + "OffsetRight").GetValue<Slider>().Value,
-                    Menu.Item(Name + "OffsetTop").GetValue<Slider>().Value, Menu.Item(Name + "Color").GetValue<Color>(),
+                Drawing.DrawText(Drawing.Width - Menu.Item(Name + "DrawingOffsetRight").GetValue<Slider>().Value,
+                    Menu.Item(Name + "DrawingOffsetTop").GetValue<Slider>().Value, Menu.Item(Name + "DrawingColor").GetValue<Color>(),
                     DateTime.Now.ToShortTimeString());
             }
             catch (Exception ex)
@@ -113,9 +108,13 @@ namespace SFXUtility.Features.Drawings
 
                 Menu = new Menu(Name, Name);
 
-                Menu.AddItem(new MenuItem(Name + "OffsetTop", "Offset Top").SetValue(new Slider(75, 0, 500)));
-                Menu.AddItem(new MenuItem(Name + "OffsetRight", "Offset Right").SetValue(new Slider(100, 0, 500)));
-                Menu.AddItem(new MenuItem(Name + "Color", "Color").SetValue(Color.Gold));
+                var drawingMenu = new Menu("Drawing", Name + "Drawing");
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "OffsetTop", "Offset Top").SetValue(new Slider(75, 0, 500)));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "OffsetRight", "Offset Right").SetValue(new Slider(100, 0, 500)));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Color", "Color").SetValue(Color.Gold));
+
+                Menu.AddSubMenu(drawingMenu);
+
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);

@@ -35,8 +35,7 @@ namespace SFXUtility.Features.Events
 
     internal class Events : Base
     {
-        public Events(IContainer container)
-            : base(container)
+        public Events(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }

@@ -41,18 +41,14 @@ namespace SFXUtility.Features.Events
     {
         private Events _parent;
 
-        public AutoLeveler(IContainer container)
-            : base(container)
+        public AutoLeveler(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
         {
-            get
-            {
-                return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
+            get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
         public override string Name
@@ -74,16 +70,14 @@ namespace SFXUtility.Features.Events
 
         private IEnumerable<SpellInfoStruct> GetOrderedPriorityList()
         {
-            return new List<SpellInfoStruct>
-            {
-                new SpellInfoStruct(SpellSlot.Q,
-                    Menu.Item(Name + ObjectManager.Player.ChampionName + "PatternQ").GetValue<Slider>().Value),
-                new SpellInfoStruct(SpellSlot.W,
-                    Menu.Item(Name + ObjectManager.Player.ChampionName + "PatternW").GetValue<Slider>().Value),
-                new SpellInfoStruct(SpellSlot.E,
-                    Menu.Item(Name + ObjectManager.Player.ChampionName + "PatternE").GetValue<Slider>().Value),
-                new SpellInfoStruct(SpellSlot.R, 4)
-            }.OrderBy(x => x.Value).Reverse();
+            return
+                new List<SpellInfoStruct>
+                {
+                    new SpellInfoStruct(SpellSlot.Q, Menu.Item(Name + ObjectManager.Player.ChampionName + "PatternQ").GetValue<Slider>().Value),
+                    new SpellInfoStruct(SpellSlot.W, Menu.Item(Name + ObjectManager.Player.ChampionName + "PatternW").GetValue<Slider>().Value),
+                    new SpellInfoStruct(SpellSlot.E, Menu.Item(Name + ObjectManager.Player.ChampionName + "PatternE").GetValue<Slider>().Value),
+                    new SpellInfoStruct(SpellSlot.R, 4)
+                }.OrderBy(x => x.Value).Reverse();
         }
 
         private void OnLoad(EventArgs args)
@@ -114,28 +108,14 @@ namespace SFXUtility.Features.Events
 
                 Menu = new Menu(Name, BaseName + Name);
 
-                var championMenu = new Menu(ObjectManager.Player.ChampionName,
-                    Name + ObjectManager.Player.ChampionName);
+                var championMenu = new Menu(ObjectManager.Player.ChampionName, Name + ObjectManager.Player.ChampionName);
                 championMenu.AddItem(
-                    new MenuItem(Name + "PatternEarly", "Early Pattern").SetValue(new StringList(new[]
-                    {
-                        "Q W",
-                        "Q E",
-                        "Q W E",
-                        "Q E W",
-                        "W Q",
-                        "W E",
-                        "W Q E",
-                        "W E Q",
-                        "E Q",
-                        "E W",
-                        "E Q W",
-                        "E W Q"
-                    })));
-                championMenu.AddItem(new MenuItem(Name + "PatternQ", "Q").SetValue(new Slider(3, 3, 1)));
-                championMenu.AddItem(new MenuItem(Name + "PatternW", "W").SetValue(new Slider(1, 3, 1)));
-                championMenu.AddItem(new MenuItem(Name + "PatternE", "E").SetValue(new Slider(2, 3, 1)));
-                championMenu.AddItem(new MenuItem(Name + "OnlyR", "Only R").SetValue(true));
+                    new MenuItem(championMenu.Name + "PatternEarly", "Early Pattern").SetValue(
+                        new StringList(new[] {"Q W", "Q E", "Q W E", "Q E W", "W Q", "W E", "W Q E", "W E Q", "E Q", "E W", "E Q W", "E W Q"})));
+                championMenu.AddItem(new MenuItem(championMenu.Name + "PatternQ", "Q").SetValue(new Slider(3, 3, 1)));
+                championMenu.AddItem(new MenuItem(championMenu.Name + "PatternW", "W").SetValue(new Slider(1, 3, 1)));
+                championMenu.AddItem(new MenuItem(championMenu.Name + "PatternE", "E").SetValue(new Slider(2, 3, 1)));
+                championMenu.AddItem(new MenuItem(championMenu.Name + "OnlyR", "Only R").SetValue(false));
 
                 Menu.AddSubMenu(championMenu);
 
@@ -146,8 +126,7 @@ namespace SFXUtility.Features.Events
                 HandleEvents(_parent);
 
                 if (ObjectManager.Player.Level == 1)
-                    OnUnitLevelUp(ObjectManager.Player,
-                        new CustomEvents.Unit.OnLevelUpEventArgs {NewLevel = 1, RemainingPoints = 1});
+                    OnUnitLevelUp(ObjectManager.Player, new CustomEvents.Unit.OnLevelUpEventArgs {NewLevel = 1, RemainingPoints = 1});
 
                 RaiseOnInitialized();
             }
@@ -167,9 +146,7 @@ namespace SFXUtility.Features.Events
                 var availablePoints = args.RemainingPoints;
 
                 var splittedPattern =
-                    Menu.Item(Name + ObjectManager.Player.ChampionName + "PatternEarly")
-                        .GetValue<StringList>()
-                        .SelectedValue.Split(' ');
+                    Menu.Item(Name + ObjectManager.Player.ChampionName + "PatternEarly").GetValue<StringList>().SelectedValue.Split(' ');
                 if (splittedPattern.Length >= args.NewLevel)
                 {
                     for (var i = 0; availablePoints > i; i++)
@@ -191,8 +168,7 @@ namespace SFXUtility.Features.Events
                     if (availablePoints <= 0)
                         return;
 
-                    var pointsToLevelSlot = MaxSpellLevel(pItem.Slot, args.NewLevel) -
-                                            ObjectManager.Player.Spellbook.GetSpell(pItem.Slot).Level;
+                    var pointsToLevelSlot = MaxSpellLevel(pItem.Slot, args.NewLevel) - ObjectManager.Player.Spellbook.GetSpell(pItem.Slot).Level;
                     pointsToLevelSlot = pointsToLevelSlot > availablePoints ? availablePoints : pointsToLevelSlot;
 
                     for (var i = 0; pointsToLevelSlot > i; i++)
@@ -201,8 +177,7 @@ namespace SFXUtility.Features.Events
                         availablePoints--;
                     }
 
-                    if (pItem.Slot == SpellSlot.R &&
-                        Menu.Item(Name + ObjectManager.Player.ChampionName + "OnlyR").GetValue<bool>())
+                    if (pItem.Slot == SpellSlot.R && Menu.Item(Name + ObjectManager.Player.ChampionName + "OnlyR").GetValue<bool>())
                         return;
                 }
             }
@@ -223,14 +198,14 @@ namespace SFXUtility.Features.Events
 
         private struct SpellInfoStruct
         {
-            public SpellInfoStruct(SpellSlot slot, int value) : this()
+            public readonly SpellSlot Slot;
+            public readonly int Value;
+
+            public SpellInfoStruct(SpellSlot slot, int value)
             {
                 Slot = slot;
                 Value = value;
             }
-
-            public SpellSlot Slot { get; private set; }
-            public int Value { get; private set; }
         }
     }
 }

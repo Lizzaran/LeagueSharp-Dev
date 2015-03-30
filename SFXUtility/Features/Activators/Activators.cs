@@ -35,8 +35,7 @@ namespace SFXUtility.Features.Activators
 
     internal class Activators : Base
     {
-        public Activators(IContainer container)
-            : base(container)
+        public Activators(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }

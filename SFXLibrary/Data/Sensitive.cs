@@ -43,12 +43,7 @@ namespace SFXLibrary.Data
                     return _data;
 
                 _data = HeroManager.AllHeroes.Select(hero => hero.Name).ToList();
-                _data.AddRange(new List<string>
-                {
-                    Game.IP,
-                    Game.Region,
-                    Game.Id.ToString()
-                });
+                _data.AddRange(new List<string> {Game.IP, Game.Region, Game.Id.ToString()});
                 return _data;
             }
         }

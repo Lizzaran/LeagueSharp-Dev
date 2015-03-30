@@ -47,19 +47,14 @@ namespace SFXUtility.Features.Trackers
         private Trackers _parent;
         private IEnumerable<RecallObject> _recallObjects = new List<RecallObject>();
 
-        public Recall(IContainer container)
-            : base(container)
+        public Recall(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
         {
-            get
-            {
-                return _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
+            get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
         public override string Name
@@ -98,8 +93,7 @@ namespace SFXUtility.Features.Trackers
                         var text = recall.ToString();
                         if (recall.Update() && !string.IsNullOrWhiteSpace(text))
                         {
-                            Drawing.DrawText(Drawing.Width - 655, Drawing.Height - 200 + 15*count++, recall.ToColor(),
-                                text);
+                            Drawing.DrawText(Drawing.Width - 655, Drawing.Height - 200 + 15*count++, recall.ToColor(), text);
                         }
                     }
                 }
@@ -160,7 +154,7 @@ namespace SFXUtility.Features.Trackers
             {
                 var packet = Packet.S2C.Teleport.Decoded(sender, args);
                 var recall = _recallObjects.FirstOrDefault(r => r.Hero.NetworkId == packet.UnitNetworkId);
-                if (!Equals(recall, default(RecallObject)))
+                if (recall != null)
                 {
                     recall.Duration = packet.Duration;
                     recall.LastStatus = packet.Status;
@@ -232,16 +226,13 @@ namespace SFXUtility.Features.Trackers
                 switch (LastStatus)
                 {
                     case Packet.S2C.Teleport.Status.Start:
-                        return string.Format("Recall: {0}({1}%) Teleporting ({2:0.00})", Hero.ChampionName,
-                            (int) Hero.HealthPercentage(), time);
+                        return string.Format("Recall: {0}({1}%) Teleporting ({2:0.00})", Hero.ChampionName, (int) Hero.HealthPercentage(), time);
 
                     case Packet.S2C.Teleport.Status.Finish:
-                        return string.Format("Recall: {0}({1}%) Teleported ({2:0.00})", Hero.ChampionName,
-                            (int) Hero.HealthPercentage(), time);
+                        return string.Format("Recall: {0}({1}%) Teleported ({2:0.00})", Hero.ChampionName, (int) Hero.HealthPercentage(), time);
 
                     case Packet.S2C.Teleport.Status.Abort:
-                        return string.Format("Recall: {0}({1}%) Aborted", Hero.ChampionName,
-                            (int) Hero.HealthPercentage());
+                        return string.Format("Recall: {0}({1}%) Aborted", Hero.ChampionName, (int) Hero.HealthPercentage());
 
                     default:
                         return string.Empty;

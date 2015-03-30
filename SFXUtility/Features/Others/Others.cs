@@ -35,8 +35,7 @@ namespace SFXUtility.Features.Others
 
     internal class Others : Base
     {
-        public Others(IContainer container)
-            : base(container)
+        public Others(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }

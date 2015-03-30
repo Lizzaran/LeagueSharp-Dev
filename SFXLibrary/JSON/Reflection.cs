@@ -170,7 +170,8 @@ namespace SFXLibrary.JSON
                 if (!getMethod.IsStatic)
                 {
                     il.Emit(OpCodes.Ldarg_0);
-                    if (propertyInfo.DeclaringType != null) il.Emit(OpCodes.Castclass, propertyInfo.DeclaringType);
+                    if (propertyInfo.DeclaringType != null)
+                        il.Emit(OpCodes.Castclass, propertyInfo.DeclaringType);
                     il.EmitCall(OpCodes.Callvirt, getMethod, null);
                 }
                 else
@@ -191,14 +192,10 @@ namespace SFXLibrary.JSON
             if (_getterscache.TryGetValue(type, out val))
                 return val;
 
-            var props =
-                type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
-                                   BindingFlags.Static);
+            var props = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
             var getters = new List<Getters>();
-            foreach (
-                var p in
-                    props.Where(p => p.GetIndexParameters().Length <= 0)
-                        .Where(p => p.CanWrite || showReadOnlyProperties))
+            foreach (var p in
+                props.Where(p => p.GetIndexParameters().Length <= 0).Where(p => p.CanWrite || showReadOnlyProperties))
             {
                 if (ignoreAttributes != null)
                 {
@@ -211,9 +208,7 @@ namespace SFXLibrary.JSON
                     getters.Add(new Getters {Getter = g, Name = p.Name, LcName = p.Name.ToLower()});
             }
 
-            var fi =
-                type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public |
-                               BindingFlags.Static);
+            var fi = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
             foreach (var f in fi)
             {
                 if (ignoreAttributes != null)

@@ -30,13 +30,10 @@ namespace SFXUtility.Features.Drawings
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Enumerations;
     using LeagueSharp.CommonEx.Core.Events;
-    using LeagueSharp.CommonEx.Core.Extensions.SharpDX;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
-    using Circle = LeagueSharp.CommonEx.Core.Render._2D.Circle;
     using Color = System.Drawing.Color;
     using Damage = LeagueSharp.CommonEx.Core.Wrappers.Damage;
     using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
@@ -48,19 +45,14 @@ namespace SFXUtility.Features.Drawings
         private IEnumerable<Obj_AI_Minion> _minions = new List<Obj_AI_Minion>();
         private Drawings _parent;
 
-        public LasthitMarker(IContainer container)
-            : base(container)
+        public LasthitMarker(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
         {
-            get
-            {
-                return _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
+            get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
         public override string Name
@@ -92,17 +84,14 @@ namespace SFXUtility.Features.Drawings
                             var offset = 62/(minion.MaxHealth/aaDamage);
                             offset = offset > 62 ? 62 : offset;
                             var tmpThk = (int) (62 - offset);
-                            hpLinesThickness = tmpThk > hpLinesThickness
-                                ? hpLinesThickness
-                                : (tmpThk == 0 ? 1 : tmpThk);
+                            hpLinesThickness = tmpThk > hpLinesThickness ? hpLinesThickness : (tmpThk == 0 ? 1 : tmpThk);
                             Drawing.DrawLine(new Vector2(barPos.X + 45 + (float) offset, barPos.Y + 18),
                                 new Vector2(barPos.X + 45 + (float) offset, barPos.Y + 23), hpLinesThickness,
                                 killable ? hpKillableColor : hpUnkillableColor);
                         }
                         if (circle && killable)
                         {
-                            Circle.Draw(minion.Position.ToVector2(), minion.BoundingRadius + radius, 1, CircleType.Full,
-                                false, 1, circleColor);
+                            Render.Circle.DrawCircle(minion.Position, minion.BoundingRadius + radius, circleColor, 1);
                         }
                     }
                 }
@@ -123,23 +112,17 @@ namespace SFXUtility.Features.Drawings
                 Menu = new Menu(Name, BaseName + Name);
 
                 var drawingMenu = new Menu("Drawing", Name + "Drawing");
-                var drawingHpBarMenu = new Menu("HPBar", Name + "HPBar");
+                var drawingHpBarMenu = new Menu("HPBar", drawingMenu.Name + "HpBar");
+                var drawingCirclesMenu = new Menu("Circle", drawingMenu.Name + "Circle");
 
-                drawingHpBarMenu.AddItem(
-                    new MenuItem(Name + "DrawingHpBarKillableColor", "Killable Color").SetValue(Color.Green));
-                drawingHpBarMenu.AddItem(
-                    new MenuItem(Name + "DrawingHpBarUnkillableColor", "Unkillable Color").SetValue(Color.White));
-                drawingHpBarMenu.AddItem(
-                    new MenuItem(Name + "DrawingHpBarLinesThickness", "Lines Thickness").SetValue(new Slider(1, 1,
-                        10)));
-                drawingHpBarMenu.AddItem(new MenuItem(Name + "DrawingHpBarEnabled", "Enabled").SetValue(false));
+                drawingHpBarMenu.AddItem(new MenuItem(drawingHpBarMenu.Name + "KillableColor", "Killable Color").SetValue(Color.Green));
+                drawingHpBarMenu.AddItem(new MenuItem(drawingHpBarMenu.Name + "UnkillableColor", "Unkillable Color").SetValue(Color.White));
+                drawingHpBarMenu.AddItem(new MenuItem(drawingHpBarMenu.Name + "LinesThickness", "Lines Thickness").SetValue(new Slider(1, 1, 10)));
+                drawingHpBarMenu.AddItem(new MenuItem(drawingHpBarMenu.Name + "Enabled", "Enabled").SetValue(false));
 
-                var drawingCirclesMenu = new Menu("Circle", Name + "Circle");
-                drawingCirclesMenu.AddItem(
-                    new MenuItem(Name + "DrawingCircleColor", "Circle Color").SetValue(Color.Fuchsia));
-                drawingCirclesMenu.AddItem(
-                    new MenuItem(Name + "DrawingCircleRadius", "Circle Radius").SetValue(new Slider(30)));
-                drawingCirclesMenu.AddItem(new MenuItem(Name + "DrawingCircleEnabled", "Enabled").SetValue(false));
+                drawingCirclesMenu.AddItem(new MenuItem(drawingCirclesMenu.Name + "Color", "Circle Color").SetValue(Color.Fuchsia));
+                drawingCirclesMenu.AddItem(new MenuItem(drawingCirclesMenu.Name + "Radius", "Circle Radius").SetValue(new Slider(30)));
+                drawingCirclesMenu.AddItem(new MenuItem(drawingCirclesMenu.Name + "Enabled", "Enabled").SetValue(false));
 
                 drawingMenu.AddSubMenu(drawingHpBarMenu);
                 drawingMenu.AddSubMenu(drawingCirclesMenu);
@@ -200,8 +183,7 @@ namespace SFXUtility.Features.Drawings
                     ObjectHandler.GetFast<Obj_AI_Minion>()
                         .Where(
                             minion =>
-                                minion != null && minion.IsValid && minion.Health > 0.1f && minion.IsEnemy &&
-                                Utility.IsOnScreen(minion.Position));
+                                minion != null && minion.IsValid && minion.Health > 0.1f && minion.IsEnemy && Utility.IsOnScreen(minion.Position));
             }
             catch (Exception ex)
             {

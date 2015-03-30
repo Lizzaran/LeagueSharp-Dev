@@ -47,19 +47,14 @@ namespace SFXUtility.Features.Trackers
         private readonly Dictionary<int, List<Vector2>> _waypoints = new Dictionary<int, List<Vector2>>();
         private Trackers _parent;
 
-        public Waypoint(IContainer container)
-            : base(container)
+        public Waypoint(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
         {
-            get
-            {
-                return _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
+            get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
         public override string Name
@@ -88,8 +83,7 @@ namespace SFXUtility.Features.Trackers
                 if (!(sender is Obj_AI_Hero) || !sender.IsValid)
                     return;
 
-                if (sender.IsAlly && Menu.Item(Name + "DrawAlly").GetValue<bool>() ||
-                    sender.IsEnemy && Menu.Item(Name + "DrawEnemy").GetValue<bool>())
+                if (sender.IsAlly && Menu.Item(Name + "DrawAlly").GetValue<bool>() || sender.IsEnemy && Menu.Item(Name + "DrawEnemy").GetValue<bool>())
                     _waypoints[sender.NetworkId] = sender.GetWaypoints();
             }
             catch (Exception ex)
@@ -116,8 +110,8 @@ namespace SFXUtility.Features.Trackers
                         var current = Drawing.WorldToScreen(waypoints[i].ToVector3());
                         var next = Drawing.WorldToScreen(waypoints[i + 1].ToVector3());
 
-                        arrivalTime += (Vector3.Distance(waypoints[i].ToVector3(), waypoints[i + 1].ToVector3())/
-                                        (ObjectManager.Player.MoveSpeed/1000))/1000;
+                        arrivalTime += (Vector3.Distance(waypoints[i].ToVector3(), waypoints[i + 1].ToVector3())/(ObjectManager.Player.MoveSpeed/1000))/
+                                       1000;
 
                         if (current.IsOnScreen(next))
                         {
@@ -125,8 +119,7 @@ namespace SFXUtility.Features.Trackers
                             if (i == l - 1 && arrivalTime > 0.1f)
                             {
                                 Draw.Cross(next, 10f, 2f, crossColor);
-                                Draw.TextCentered(new Vector2(next.X - 5, next.Y + 15), crossColor,
-                                    arrivalTime.ToString("0.0"));
+                                Draw.TextCentered(new Vector2(next.X - 5, next.Y + 15), crossColor, arrivalTime.ToString("0.0"));
                             }
                         }
                     }
@@ -167,13 +160,13 @@ namespace SFXUtility.Features.Trackers
                 Menu = new Menu(Name, BaseName + Name);
 
                 var drawingMenu = new Menu("Drawing", Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(Name + "DrawingCrossColor", "Cross Color").SetValue(Color.DarkRed));
-                drawingMenu.AddItem(new MenuItem(Name + "DrawingLineColor", "Line Color").SetValue(Color.White));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CrossColor", "Cross Color").SetValue(Color.DarkRed));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "LineColor", "Line Color").SetValue(Color.White));
 
                 Menu.AddSubMenu(drawingMenu);
 
                 Menu.AddItem(new MenuItem(Name + "DrawAlly", "Ally").SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "DrawEnemy", "Enemy").SetValue(true));
+                Menu.AddItem(new MenuItem(Name + "DrawEnemy", "Enemy").SetValue(false));
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Menu.Item(Name + "DrawAlly").ValueChanged += delegate
@@ -186,8 +179,7 @@ namespace SFXUtility.Features.Trackers
 
                 Menu.Item(Name + "DrawEnemy").ValueChanged += delegate
                 {
-                    foreach (
-                        var enemy in ObjectHandler.EnemyHeroes.Where(enemy => _waypoints.ContainsKey(enemy.NetworkId)))
+                    foreach (var enemy in ObjectHandler.EnemyHeroes.Where(enemy => _waypoints.ContainsKey(enemy.NetworkId)))
                     {
                         _waypoints.Remove(enemy.NetworkId);
                     }

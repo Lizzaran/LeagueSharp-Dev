@@ -32,12 +32,10 @@ namespace SFXUtility.Features.Drawings
     using LeagueSharp.Common;
     using LeagueSharp.CommonEx.Core.Enumerations;
     using LeagueSharp.CommonEx.Core.Events;
-    using LeagueSharp.CommonEx.Core.Extensions.SharpDX;
     using LeagueSharp.CommonEx.Core.Wrappers;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
-    using Circle = LeagueSharp.CommonEx.Core.Render._2D.Circle;
     using Color = System.Drawing.Color;
 
     #endregion
@@ -62,19 +60,14 @@ namespace SFXUtility.Features.Drawings
 
         private Drawings _parent;
 
-        public SafeJungleSpots(IContainer container)
-            : base(container)
+        public SafeJungleSpots(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
         {
-            get
-            {
-                return _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
+            get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
         public override string Name
@@ -89,9 +82,9 @@ namespace SFXUtility.Features.Drawings
                 var radius = Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value;
                 var color = Menu.Item(Name + "DrawingColor").GetValue<Color>();
 
-                foreach (var jungleSpot in _jungleSpots.Where(jungleSpot => Utility.IsOnScreen(jungleSpot)))
+                foreach (var jungleSpot in _jungleSpots.Where(Utility.IsOnScreen))
                 {
-                    Circle.Draw(jungleSpot.ToVector2(), radius, 1, CircleType.Full, false, 1, color);
+                    Render.Circle.DrawCircle(jungleSpot, radius, color, 1);
                 }
             }
             catch (Exception ex)
@@ -141,8 +134,8 @@ namespace SFXUtility.Features.Drawings
                 Menu = new Menu(Name, BaseName + Name);
 
                 var drawingMenu = new Menu("Drawing", Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(Name + "DrawingRadius", "Radius").SetValue(new Slider(50, 5, 250)));
-                drawingMenu.AddItem(new MenuItem(Name + "DrawingColor", "Color").SetValue(Color.Fuchsia));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Radius", "Radius").SetValue(new Slider(50, 5, 250)));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Color", "Color").SetValue(Color.Fuchsia));
 
                 Menu.AddSubMenu(drawingMenu);
 

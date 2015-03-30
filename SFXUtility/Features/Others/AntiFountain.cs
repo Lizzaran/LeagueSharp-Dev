@@ -46,18 +46,14 @@ namespace SFXUtility.Features.Others
         private Obj_AI_Turret _fountainTurret;
         private Others _parent;
 
-        public AntiFountain(IContainer container)
-            : base(container)
+        public AntiFountain(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
         {
-            get
-            {
-                return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
+            get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
         public override string Name
@@ -118,7 +114,7 @@ namespace SFXUtility.Features.Others
                                 s != null && s.IsValid && s.Team != ObjectManager.Player.Team &&
                                 s.Name.Contains("TurretShrine", StringComparison.OrdinalIgnoreCase));
 
-                if (_fountainTurret == null || _fountainTurret.Equals(default(Obj_AI_Turret)))
+                if (_fountainTurret == null)
                     return;
 
                 HandleEvents(_parent);
@@ -137,9 +133,7 @@ namespace SFXUtility.Features.Others
             if (Gapcloser.Spells.Any(a => a.SpellName == sender.GetSpell(args.Slot).Name))
             {
                 var intersections = args.StartPosition.ToVector2()
-                    .FindLineCircleIntersections(args.EndPosition.ToVector2(),
-                        _fountainTurret.ServerPosition.ToVector2(),
-                        FountainRange/2);
+                    .FindLineCircleIntersections(args.EndPosition.ToVector2(), _fountainTurret.ServerPosition.ToVector2(), FountainRange/2);
                 if (intersections.Count > 0)
                 {
                     args.Process = false;
@@ -157,9 +151,7 @@ namespace SFXUtility.Features.Others
                 for (int i = 0, l = args.Path.Length - 1; i < l; i++)
                 {
                     var intersections = args.Path[i].ToVector2()
-                        .FindLineCircleIntersections(args.Path[i + 1].ToVector2(),
-                            _fountainTurret.ServerPosition.ToVector2(),
-                            FountainRange/2);
+                        .FindLineCircleIntersections(args.Path[i + 1].ToVector2(), _fountainTurret.ServerPosition.ToVector2(), FountainRange/2);
                     if (intersections.Count > 0)
                     {
                         ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo,

@@ -59,8 +59,7 @@ namespace SFXLibrary.IoCContainer
             if (compareTo == null)
                 return false;
 
-            return Type == compareTo.Type &&
-                   string.Equals(InstanceName, compareTo.InstanceName, StringComparison.InvariantCultureIgnoreCase);
+            return Type == compareTo.Type && string.Equals(InstanceName, compareTo.InstanceName, StringComparison.InvariantCultureIgnoreCase);
         }
 
         public override int GetHashCode()

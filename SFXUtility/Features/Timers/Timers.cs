@@ -35,8 +35,7 @@ namespace SFXUtility.Features.Timers
 
     internal class Timers : Base
     {
-        public Timers(IContainer container)
-            : base(container)
+        public Timers(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }

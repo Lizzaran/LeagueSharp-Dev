@@ -51,10 +51,10 @@ namespace SFXUtility
                 Menu = new Menu(Name, Name, true);
 
                 var infoMenu = new Menu("Info", Name + "Info");
-                infoMenu.AddItem(new MenuItem(Name + "InfoVersion", string.Format("Version: {0}", Version)));
-                infoMenu.AddItem(new MenuItem(Name + "InfoForum", "Forum: Lizzaran"));
-                infoMenu.AddItem(new MenuItem(Name + "InfoGithub", "GitHub: Lizzaran"));
-                infoMenu.AddItem(new MenuItem(Name + "InfoIRC", "IRC: Appril"));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Version", string.Format("Version: {0}", Version)));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Forum", "Forum: Lizzaran"));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Github", "GitHub: Lizzaran"));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "IRC", "IRC: Appril"));
 
                 infoMenu.AddSubMenu(infoMenu);
 
@@ -85,8 +85,7 @@ namespace SFXUtility
 
         private void OnGameNotify(GameNotifyEventArgs args)
         {
-            if (args.EventId == GameEventId.OnLeave || args.EventId == GameEventId.OnEndGame ||
-                args.EventId == GameEventId.OnQuit)
+            if (args.EventId == GameEventId.OnLeave || args.EventId == GameEventId.OnEndGame || args.EventId == GameEventId.OnQuit)
             {
                 try
                 {

@@ -73,28 +73,24 @@ namespace SFXLibrary.IoCContainer
 
         /// <exception cref="InvalidOperationException">Condition. </exception>
         /// <exception cref="ArgumentNullException">The value of 'to' cannot be null. </exception>
-        public void Register(Type from, Type to, bool singleton = false, bool initialize = false,
-            string instanceName = null)
+        public void Register(Type from, Type to, bool singleton = false, bool initialize = false, string instanceName = null)
         {
             if (to == null)
                 throw new ArgumentNullException("to");
 
             if (!from.IsAssignableFrom(to))
-                throw new InvalidOperationException(
-                    string.Format("Error trying to register the instance: '{0}' is not assignable from '{1}'",
-                        from.FullName, to.FullName));
+                throw new InvalidOperationException(string.Format("Error trying to register the instance: '{0}' is not assignable from '{1}'",
+                    from.FullName, to.FullName));
             Register(from, () => Activator.CreateInstance(to), singleton, initialize, instanceName);
         }
 
-        public void Register<TFrom, TTo>(bool singleton = false, bool initialize = false, string instanceName = null)
-            where TTo : TFrom
+        public void Register<TFrom, TTo>(bool singleton = false, bool initialize = false, string instanceName = null) where TTo : TFrom
         {
             Register(typeof (TFrom), typeof (TTo), singleton, initialize, instanceName);
         }
 
         /// <exception cref="ArgumentNullException">The value of 'type' cannot be null. </exception>
-        public void Register(Type type, Func<object> createInstanceDelegate, bool singleton = false,
-            bool initialize = false,
+        public void Register(Type type, Func<object> createInstanceDelegate, bool singleton = false, bool initialize = false,
             string instanceName = null)
         {
             if (type == null)
@@ -130,8 +126,7 @@ namespace SFXLibrary.IoCContainer
         }
 
         /// <exception cref="ArgumentNullException">The value of 'createInstanceDelegate' cannot be null. </exception>
-        public void Register<T>(Func<T> createInstanceDelegate, bool singleton = false, bool initialize = false,
-            string instanceName = null)
+        public void Register<T>(Func<T> createInstanceDelegate, bool singleton = false, bool initialize = false, string instanceName = null)
         {
             if (createInstanceDelegate == null)
                 throw new ArgumentNullException("createInstanceDelegate");

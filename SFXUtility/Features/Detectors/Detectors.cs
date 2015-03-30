@@ -35,8 +35,7 @@ namespace SFXUtility.Features.Detectors
 
     internal class Detectors : Base
     {
-        public Detectors(IContainer container)
-            : base(container)
+        public Detectors(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }

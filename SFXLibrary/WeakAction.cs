@@ -34,8 +34,7 @@ namespace SFXLibrary
     {
         private readonly MethodInfo _method;
 
-        public WeakAction(Action<object> action)
-            : base(action.Target)
+        public WeakAction(Action<object> action) : base(action.Target)
         {
             try
             {
@@ -54,11 +53,7 @@ namespace SFXLibrary
 
             try
             {
-                return Delegate.CreateDelegate(
-                    typeof (Action<object>),
-                    Target,
-                    _method.Name)
-                    as Action<object>;
+                return Delegate.CreateDelegate(typeof (Action<object>), Target, _method.Name) as Action<object>;
             }
             catch
             {

@@ -47,15 +47,9 @@ namespace SFXLibrary.Data
 
                 _data = new Dictionary<string, string>
                 {
-                    {
-                        "Operating System", OperatingSystem()
-                    },
-                    {
-                        "NET Version", NETVersion()
-                    },
-                    {
-                        "Game Version", Game.Version
-                    }
+                    {"Operating System", OperatingSystem()},
+                    {"NET Version", NETVersion()},
+                    {"Game Version", Game.Version}
                 };
                 return _data;
             }
@@ -162,10 +156,7 @@ namespace SFXLibrary.Data
             try
             {
                 Version version = null;
-                var fod =
-                    Assembly.GetExecutingAssembly()
-                        .GetReferencedAssemblies()
-                        .FirstOrDefault(x => x.Name == "System.Core");
+                var fod = Assembly.GetExecutingAssembly().GetReferencedAssemblies().FirstOrDefault(x => x.Name == "System.Core");
                 if (fod != null)
                 {
                     version = fod.Version;

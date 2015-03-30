@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Clone.cs is part of SFXUtility.
+ Game.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,32 +20,26 @@
 
 #endregion License
 
-namespace SFXUtility.Features.Trackers
+namespace SFXUtility.Features.Events
 {
     #region
 
     using System;
-    using System.Collections.Generic;
-    using System.Drawing;
-    using System.Linq;
+    using System.Diagnostics;
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
     using LeagueSharp.CommonEx.Core.Events;
-    using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
-    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
-    internal class Clone : Base
+    internal class Game : Base
     {
-        private readonly string[] _cloneHeroes = {"Shaco", "LeBlanc", "MonkeyKing", "Yorick"};
-        private IEnumerable<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
-        private Trackers _parent;
+        private Events _parent;
 
-        public Clone(IContainer container) : base(container)
+        public Game(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }
@@ -57,47 +51,30 @@ namespace SFXUtility.Features.Trackers
 
         public override string Name
         {
-            get { return "Clone"; }
+            get { return "Game"; }
         }
 
         protected override void OnEnable()
         {
-            Drawing.OnDraw += OnDrawingDraw;
+            LeagueSharp.Game.OnStart += GameOnStart;
+            LeagueSharp.Game.OnEnd += GameOnEnd;
             base.OnEnable();
         }
 
         protected override void OnDisable()
         {
-            Drawing.OnDraw -= OnDrawingDraw;
+            LeagueSharp.Game.OnStart -= GameOnStart;
+            LeagueSharp.Game.OnEnd -= GameOnEnd;
             base.OnDisable();
-        }
-
-        private void OnDrawingDraw(EventArgs args)
-        {
-            try
-            {
-                var circleColor = Menu.Item(Name + "DrawingCircleColor").GetValue<Color>();
-                var radius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value;
-
-                foreach (var hero in
-                    _heroes.Where(hero => !hero.IsDead && hero.IsVisible && Utility.IsOnScreen(hero.Position)))
-                {
-                    Render.Circle.DrawCircle(hero.ServerPosition, hero.BoundingRadius + radius, circleColor, 1);
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.AddItem(new LogItem(ex) {Object = this});
-            }
         }
 
         private void OnLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Trackers>())
+                if (IoC.IsRegistered<Events>())
                 {
-                    _parent = IoC.Resolve<Trackers>();
+                    _parent = IoC.Resolve<Events>();
                     if (_parent.Initialized)
                         OnParentInitialized(null, null);
                     else
@@ -117,25 +94,53 @@ namespace SFXUtility.Features.Trackers
                 if (_parent.Menu == null)
                     return;
 
-                Menu = new Menu(Name, Name);
+                Menu = new Menu(Name, BaseName + Name);
 
-                var drawingMenu = new Menu("Drawing", Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CircleColor", "Circle Color").SetValue(Color.YellowGreen));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CircleRadius", "Circle Radius").SetValue(new Slider(30)));
+                var startMenu = new Menu(Name + "GameOnStart", "Game.OnStart");
+                startMenu.AddItem(new MenuItem(startMenu.Name + "SayGlHf", "Say \"gl & hf\"").SetValue(false));
 
-                Menu.AddSubMenu(drawingMenu);
+                var endMenu = new Menu(Name + "GameOnEnd", "Game.OnEnd");
+                endMenu.AddItem(new MenuItem(endMenu.Name + "SayGg", "Say \"gg\"").SetValue(false));
+                endMenu.AddItem(new MenuItem(endMenu.Name + "CloseLoL", "Close LoL").SetValue(false));
+
+                Menu.AddSubMenu(startMenu);
+                Menu.AddSubMenu(endMenu);
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _heroes = ObjectHandler.EnemyHeroes.Where(e => _cloneHeroes.Contains(e.ChampionName, StringComparison.OrdinalIgnoreCase));
-
-                if (_heroes.Any())
-                    return;
-
                 HandleEvents(_parent);
+
                 RaiseOnInitialized();
+            }
+            catch (Exception ex)
+            {
+                Logger.AddItem(new LogItem(ex) {Object = this});
+            }
+        }
+
+        private void GameOnEnd(GameEndEventArgs args)
+        {
+            try
+            {
+                if (Menu.Item(Name + "GameOnEndSayGg").GetValue<bool>())
+                    LeagueSharp.Game.Say("gg");
+                if (Menu.Item(Name + "GameOnEndCloseLoL").GetValue<bool>())
+                    Process.GetProcessById(Process.GetCurrentProcess().Id).Kill();
+            }
+            catch (Exception ex)
+            {
+                Logger.AddItem(new LogItem(ex) {Object = this});
+            }
+        }
+
+        private void GameOnStart(EventArgs args)
+        {
+            try
+            {
+                if (Menu.Item(Name + "GameOnStartSayGlHf").GetValue<bool>())
+                    LeagueSharp.Game.Say("gl & hf");
             }
             catch (Exception ex)
             {

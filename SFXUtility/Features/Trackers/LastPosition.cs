@@ -47,19 +47,14 @@ namespace SFXUtility.Features.Trackers
         private readonly List<LastPositionObject> _lastPositionObjects = new List<LastPositionObject>();
         private Trackers _parent;
 
-        public LastPosition(IContainer container)
-            : base(container)
+        public LastPosition(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
         {
-            get
-            {
-                return _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
+            get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
         public override string Name
@@ -99,9 +94,8 @@ namespace SFXUtility.Features.Trackers
 
         private void RecallAbort(object sender, RecallEventArgs recallEventArgs)
         {
-            var lastPosition =
-                _lastPositionObjects.FirstOrDefault(e => e.Hero.NetworkId == recallEventArgs.UnitNetworkId);
-            if (!Equals(lastPosition, default(LastPositionObject)))
+            var lastPosition = _lastPositionObjects.FirstOrDefault(e => e.Hero.NetworkId == recallEventArgs.UnitNetworkId);
+            if (lastPosition != null)
             {
                 lastPosition.IsRecalling = false;
             }
@@ -119,9 +113,8 @@ namespace SFXUtility.Features.Trackers
 
         private void RecallFinish(object sender, RecallEventArgs recallEventArgs)
         {
-            var lastPosition =
-                _lastPositionObjects.FirstOrDefault(e => e.Hero.NetworkId == recallEventArgs.UnitNetworkId);
-            if (!Equals(lastPosition, default(LastPositionObject)))
+            var lastPosition = _lastPositionObjects.FirstOrDefault(e => e.Hero.NetworkId == recallEventArgs.UnitNetworkId);
+            if (lastPosition != null)
             {
                 lastPosition.Recalled = true;
                 lastPosition.IsRecalling = false;
@@ -130,9 +123,8 @@ namespace SFXUtility.Features.Trackers
 
         private void RecallStart(object sender, RecallEventArgs recallEventArgs)
         {
-            var lastPosition =
-                _lastPositionObjects.FirstOrDefault(e => e.Hero.NetworkId == recallEventArgs.UnitNetworkId);
-            if (!Equals(lastPosition, default(LastPositionObject)))
+            var lastPosition = _lastPositionObjects.FirstOrDefault(e => e.Hero.NetworkId == recallEventArgs.UnitNetworkId);
+            if (lastPosition != null)
             {
                 lastPosition.IsRecalling = true;
             }
@@ -148,32 +140,23 @@ namespace SFXUtility.Features.Trackers
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu("Drawing", Name + "Drawing");
-                drawingMenu.AddItem(
-                    new MenuItem(Name + "DrawingTimeFormat", "Time Format").SetValue(
-                        new StringList(new[] {"mm:ss", "ss"})));
-                drawingMenu.AddItem(
-                    new MenuItem(Name + "DrawingFontSize", "Font Size").SetValue(new Slider(13, 3, 30)));
-                drawingMenu.AddItem(
-                    new MenuItem(Name + "DrawingSSTimerOffset", "SS Timer Offset").SetValue(new Slider(5, 0, 50)));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "TimeFormat", "Time Format").SetValue(new StringList(new[] {"mm:ss", "ss"})));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", "Font Size").SetValue(new Slider(13, 3, 30)));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "SSTimerOffset", "SS Timer Offset").SetValue(new Slider(5, 0, 50)));
 
-                Menu.AddItem(new MenuItem(Name + "SSTimer", "SS Timer").SetValue(true));
+                Menu.AddItem(new MenuItem(Name + "SSTimer", "SS Timer").SetValue(false));
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Menu.Item(Name + "DrawingTimeFormat").ValueChanged +=
-                    (o, args) =>
-                        _lastPositionObjects.ForEach(
-                            enemy => enemy.TextTotalSeconds = args.GetNewValue<StringList>().SelectedIndex == 1);
+                    (o, args) => _lastPositionObjects.ForEach(enemy => enemy.TextTotalSeconds = args.GetNewValue<StringList>().SelectedIndex == 1);
                 Menu.Item(Name + "DrawingFontSize").ValueChanged +=
-                    (o, args) =>
-                        _lastPositionObjects.ForEach(enemy => enemy.TextSize = args.GetNewValue<Slider>().Value);
+                    (o, args) => _lastPositionObjects.ForEach(enemy => enemy.TextSize = args.GetNewValue<Slider>().Value);
                 Menu.Item(Name + "DrawingSSTimerOffset").ValueChanged +=
-                    (o, args) =>
-                        _lastPositionObjects.ForEach(enemy => enemy.TextOffset = args.GetNewValue<Slider>().Value);
+                    (o, args) => _lastPositionObjects.ForEach(enemy => enemy.TextOffset = args.GetNewValue<Slider>().Value);
                 Menu.Item(Name + "SSTimer").ValueChanged +=
-                    (o, args) =>
-                        _lastPositionObjects.ForEach(enemy => enemy.SSTimer = args.GetNewValue<bool>());
+                    (o, args) => _lastPositionObjects.ForEach(enemy => enemy.SSTimer = args.GetNewValue<bool>());
                 Menu.Item(Name + "Enabled").ValueChanged +=
-                    (o, args) => _lastPositionObjects.ForEach(enemy => enemy.Active = args.GetNewValue<bool>());
+                    (o, args) => _lastPositionObjects.ForEach(enemy => enemy.Active = args.GetNewValue<bool>() && _parent != null && _parent.Enabled);
 
                 _parent.Menu.AddSubMenu(Menu);
 
@@ -195,8 +178,7 @@ namespace SFXUtility.Features.Trackers
                         _lastPositionObjects.Add(new LastPositionObject(enemy, Logger)
                         {
                             Active = Enabled,
-                            TextTotalSeconds =
-                                Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1,
+                            TextTotalSeconds = Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1,
                             TextSize = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
                             TextOffset = Menu.Item(Name + "DrawingSSTimerOffset").GetValue<Slider>().Value,
                             SSTimer = Menu.Item(Name + "SSTimer").GetValue<bool>(),
@@ -242,13 +224,12 @@ namespace SFXUtility.Features.Trackers
                 {
                     Hero = hero;
                     var mPos = Drawing.WorldToMinimap(hero.Position);
-                    var spawnPoint =
-                        ObjectHandler.GetFast<GameObject>().FirstOrDefault(s => s is Obj_SpawnPoint && s.IsEnemy);
+                    var spawnPoint = ObjectHandler.GetFast<GameObject>().FirstOrDefault(s => s is Obj_SpawnPoint && s.IsEnemy);
 
                     _championSprite =
                         new Render.Sprite(
-                            (Bitmap) Resources.ResourceManager.GetObject(string.Format("LP_{0}", hero.ChampionName)) ??
-                            Resources.LP_Aatrox, new Vector2(mPos.X, mPos.Y))
+                            (Bitmap) Resources.ResourceManager.GetObject(string.Format("LP_{0}", hero.ChampionName)) ?? Resources.LP_Aatrox,
+                            new Vector2(mPos.X, mPos.Y))
                         {
                             VisibleCondition = delegate
                             {
@@ -272,16 +253,14 @@ namespace SFXUtility.Features.Trackers
                                 {
                                     if (Recall && Recalled)
                                     {
-                                        if (!Equals(spawnPoint, default(Obj_SpawnPoint)))
+                                        if (spawnPoint != null)
                                         {
                                             var p = Drawing.WorldToMinimap(spawnPoint.Position);
-                                            return new Vector2(p.X - (_championSprite.Size.X/2),
-                                                p.Y - (_championSprite.Size.Y/2));
+                                            return new Vector2(p.X - (_championSprite.Size.X/2), p.Y - (_championSprite.Size.Y/2));
                                         }
                                     }
                                     var pos = Drawing.WorldToMinimap(hero.Position);
-                                    return new Vector2(pos.X - (_championSprite.Size.X/2),
-                                        pos.Y - (_championSprite.Size.Y/2));
+                                    return new Vector2(pos.X - (_championSprite.Size.X/2), pos.Y - (_championSprite.Size.Y/2));
                                 }
                                 catch (Exception ex)
                                 {
@@ -319,39 +298,36 @@ namespace SFXUtility.Features.Trackers
                                 return false;
                             }
                         },
-                        TextUpdate =
-                            () =>
-                                _text.Visible ? (Game.ClockTime - _lastSeen).FormatTime(TextTotalSeconds) : string.Empty
+                        TextUpdate = () => _text.Visible ? (Game.ClockTime - _lastSeen).FormatTime(TextTotalSeconds) : string.Empty
                     };
-                    _recallSprite =
-                        new Render.Sprite(Resources.LP_Recall, new Vector2(mPos.X, mPos.Y))
+                    _recallSprite = new Render.Sprite(Resources.LP_Recall, new Vector2(mPos.X, mPos.Y))
+                    {
+                        VisibleCondition = delegate
                         {
-                            VisibleCondition = delegate
+                            try
                             {
-                                try
-                                {
-                                    return _championSprite.Visible && Recall && IsRecalling;
-                                }
-                                catch (Exception ex)
-                                {
-                                    logger.AddItem(new LogItem(ex) {Object = this});
-                                    return false;
-                                }
-                            },
-                            PositionUpdate = delegate
-                            {
-                                try
-                                {
-                                    return new Vector2(_championSprite.Position.X - (_recallSprite.Size.X/2),
-                                        _championSprite.Position.Y - (_recallSprite.Size.Y/2));
-                                }
-                                catch (Exception ex)
-                                {
-                                    logger.AddItem(new LogItem(ex) {Object = this});
-                                    return default(Vector2);
-                                }
+                                return _championSprite.Visible && Recall && IsRecalling;
                             }
-                        };
+                            catch (Exception ex)
+                            {
+                                logger.AddItem(new LogItem(ex) {Object = this});
+                                return false;
+                            }
+                        },
+                        PositionUpdate = delegate
+                        {
+                            try
+                            {
+                                return new Vector2(_championSprite.Position.X - (_recallSprite.Size.X/2),
+                                    _championSprite.Position.Y - (_recallSprite.Size.Y/2));
+                            }
+                            catch (Exception ex)
+                            {
+                                logger.AddItem(new LogItem(ex) {Object = this});
+                                return default(Vector2);
+                            }
+                        }
+                    };
                 }
                 catch (Exception ex)
                 {

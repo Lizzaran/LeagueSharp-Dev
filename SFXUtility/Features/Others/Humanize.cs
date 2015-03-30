@@ -41,18 +41,14 @@ namespace SFXUtility.Features.Others
         private float _lastMovement;
         private Others _parent;
 
-        public Humanize(IContainer container)
-            : base(container)
+        public Humanize(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
         {
-            get
-            {
-                return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
+            get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
         public override string Name
@@ -103,9 +99,8 @@ namespace SFXUtility.Features.Others
                 Menu = new Menu(Name, BaseName + Name);
 
                 var delayMenu = new Menu("Delay", Name + "Delay");
-                delayMenu.AddItem(new MenuItem(Name + "DelaySpells", "Spells (ms)").SetValue(new Slider(50, 0, 250)));
-                delayMenu.AddItem(
-                    new MenuItem(Name + "DelayMovement", "Movement (ms)").SetValue(new Slider(50, 0, 250)));
+                delayMenu.AddItem(new MenuItem(delayMenu.Name + "Spells", "Spells (ms)").SetValue(new Slider(50, 0, 250)));
+                delayMenu.AddItem(new MenuItem(delayMenu.Name + "Movement", "Movement (ms)").SetValue(new Slider(50, 0, 250)));
 
                 Menu.AddSubMenu(delayMenu);
 
@@ -125,14 +120,12 @@ namespace SFXUtility.Features.Others
         private void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
         {
             if (sender == null || !sender.Owner.IsMe ||
-                !(args.Slot == SpellSlot.Q || args.Slot == SpellSlot.W || args.Slot == SpellSlot.E ||
-                  args.Slot == SpellSlot.R))
+                !(args.Slot == SpellSlot.Q || args.Slot == SpellSlot.W || args.Slot == SpellSlot.E || args.Slot == SpellSlot.R))
             {
                 return;
             }
 
-            if (Environment.TickCount - _lastSpell[(int) args.Slot] <
-                Menu.Item(Name + "DelaySpells").GetValue<Slider>().Value)
+            if (Environment.TickCount - _lastSpell[(int) args.Slot] < Menu.Item(Name + "DelaySpells").GetValue<Slider>().Value)
             {
                 args.Process = false;
                 return;

@@ -84,6 +84,7 @@
     <Compile Include="Features\Activators\Smite.cs" />
     <Compile Include="Features\Drawings\Health.cs" />
     <Compile Include="Features\Events\Events.cs" />
+    <Compile Include="Features\Events\Game.cs" />
     <Compile Include="Features\Others\AntiFountain.cs" />
     <Compile Include="Features\Others\AntiTrap.cs" />
     <Compile Include="Features\Others\Humanize.cs" />
@@ -96,9 +97,7 @@
     <Compile Include="Features\Detectors\Blink.cs" />
     <Compile Include="Features\Trackers\Clone.cs" />
     <Compile Include="Features\Trackers\Cooldown.cs" />
-    <Compile Include="Features\Trackers\Gold.cs" />
     <Compile Include="Features\Trackers\LastPosition.cs" />
-    <Compile Include="Features\Trackers\Trap.cs" />
     <Compile Include="Features\Trackers\Recall.cs" />
     <Compile Include="Features\Timers\Ability.cs" />
     <Compile Include="Features\Timers\Jungle.cs" />

@@ -161,31 +161,24 @@ namespace SFXLibrary.Extensions.NET
 
         public static string ToBase64(this string value)
         {
-            return string.IsNullOrWhiteSpace(value)
-                ? string.Empty
-                : Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
+            return string.IsNullOrWhiteSpace(value) ? string.Empty : Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
         }
 
         public static string FromBase64(this string value)
         {
-            return string.IsNullOrWhiteSpace(value)
-                ? string.Empty
-                : Encoding.UTF8.GetString(Convert.FromBase64String(value));
+            return string.IsNullOrWhiteSpace(value) ? string.Empty : Encoding.UTF8.GetString(Convert.FromBase64String(value));
         }
 
-        public static bool Contains(this string source, string toCheck,
-            StringComparison comp = StringComparison.Ordinal)
+        public static bool Contains(this string source, string toCheck, StringComparison comp = StringComparison.Ordinal)
         {
-            return !string.IsNullOrEmpty(source) && !string.IsNullOrEmpty(toCheck) &&
-                   source.IndexOf(toCheck, 0, comp) != -1;
+            return !string.IsNullOrEmpty(source) && !string.IsNullOrEmpty(toCheck) && source.IndexOf(toCheck, 0, comp) != -1;
         }
 
         /// <exception cref="OverflowException">
         ///     The array is multidimensional and contains more than
         ///     <see cref="F:System.Int32.MaxValue" /> elements.
         /// </exception>
-        public static bool Contains(this string[] source, string toCheck,
-            StringComparison comp = StringComparison.Ordinal)
+        public static bool Contains(this string[] source, string toCheck, StringComparison comp = StringComparison.Ordinal)
         {
             if (source.IsNullOrEmpty() || string.IsNullOrEmpty(toCheck))
                 return false;

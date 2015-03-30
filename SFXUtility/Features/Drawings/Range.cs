@@ -31,13 +31,10 @@ namespace SFXUtility.Features.Drawings
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Enumerations;
     using LeagueSharp.CommonEx.Core.Events;
-    using LeagueSharp.CommonEx.Core.Extensions.SharpDX;
     using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
-    using Circle = LeagueSharp.CommonEx.Core.Render._2D.Circle;
     using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
@@ -49,19 +46,14 @@ namespace SFXUtility.Features.Drawings
         private Drawings _parent;
         private IEnumerable<Obj_AI_Turret> _turrets = new List<Obj_AI_Turret>();
 
-        public Range(IContainer container)
-            : base(container)
+        public Range(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
         {
-            get
-            {
-                return _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
+            get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
         public override string Name
@@ -85,10 +77,10 @@ namespace SFXUtility.Features.Drawings
                 var radius = hero.BoundingRadius + hero.AttackRange;
                 if (!hero.IsDead && hero.IsVisible)
                 {
-                    if ((hero.IsAlly && drawFriendly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) &&
-                        !(hero.IsMe && !drawSelf) && hero.Position.IsOnScreen(radius))
+                    if ((hero.IsAlly && drawFriendly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) && !(hero.IsMe && !drawSelf) &&
+                        hero.Position.IsOnScreen(radius))
                     {
-                        Circle.Draw(hero.Position.ToVector2(), radius, 1, CircleType.Full, false, 1, color);
+                        Render.Circle.DrawCircle(hero.Position, radius, color, 1);
                     }
                 }
             }
@@ -109,10 +101,10 @@ namespace SFXUtility.Features.Drawings
             {
                 if (!hero.IsDead && hero.IsVisible)
                 {
-                    if ((hero.IsAlly && drawFriendly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) &&
-                        !(hero.IsMe && !drawSelf) && hero.Position.IsOnScreen(ExperienceRange))
+                    if ((hero.IsAlly && drawFriendly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) && !(hero.IsMe && !drawSelf) &&
+                        hero.Position.IsOnScreen(ExperienceRange))
                     {
-                        Circle.Draw(hero.Position.ToVector2(), ExperienceRange, 1, CircleType.Full, false, 1, color);
+                        Render.Circle.DrawCircle(hero.Position, ExperienceRange, color, 1);
                     }
                 }
             }
@@ -148,36 +140,30 @@ namespace SFXUtility.Features.Drawings
                 if (hero.IsDead || !hero.IsVisible)
                     continue;
 
-                var color =
-                    Menu.Item(Name + "Spell" + (hero.IsMe ? "Self" : (hero.IsEnemy ? "Enemy" : "Friendly")) +
-                              "Color").GetValue<Color>();
-                if ((hero.IsAlly && drawFriendlyQ || hero.IsEnemy && drawEnemyQ || hero.IsMe && drawSelfQ) &&
-                    !(hero.IsMe && !drawSelfQ))
+                var color = Menu.Item(Name + "Spell" + (hero.IsMe ? "Self" : (hero.IsEnemy ? "Enemy" : "Friendly")) + "Color").GetValue<Color>();
+                if ((hero.IsAlly && drawFriendlyQ || hero.IsEnemy && drawEnemyQ || hero.IsMe && drawSelfQ) && !(hero.IsMe && !drawSelfQ))
                 {
                     var range = hero.Spellbook.GetSpell(SpellSlot.Q).SData.CastRange;
                     if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                        Circle.Draw(hero.Position.ToVector2(), range, 1, CircleType.Full, false, 1, color);
+                        Render.Circle.DrawCircle(hero.Position, range, color, 1);
                 }
-                if ((hero.IsAlly && drawFriendlyW || hero.IsEnemy && drawEnemyW || hero.IsMe && drawSelfW) &&
-                    !(hero.IsMe && !drawSelfW))
+                if ((hero.IsAlly && drawFriendlyW || hero.IsEnemy && drawEnemyW || hero.IsMe && drawSelfW) && !(hero.IsMe && !drawSelfW))
                 {
                     var range = hero.Spellbook.GetSpell(SpellSlot.W).SData.CastRange;
                     if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                        Circle.Draw(hero.Position.ToVector2(), range, 1, CircleType.Full, false, 1, color);
+                        Render.Circle.DrawCircle(hero.Position, range, color, 1);
                 }
-                if ((hero.IsAlly && drawFriendlyE || hero.IsEnemy && drawEnemyE || hero.IsMe && drawSelfE) &&
-                    !(hero.IsMe && !drawSelfE))
+                if ((hero.IsAlly && drawFriendlyE || hero.IsEnemy && drawEnemyE || hero.IsMe && drawSelfE) && !(hero.IsMe && !drawSelfE))
                 {
                     var range = hero.Spellbook.GetSpell(SpellSlot.E).SData.CastRange;
                     if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                        Circle.Draw(hero.Position.ToVector2(), range, 1, CircleType.Full, false, 1, color);
+                        Render.Circle.DrawCircle(hero.Position, range, color, 1);
                 }
-                if ((hero.IsAlly && drawFriendlyR || hero.IsEnemy && drawEnemyR || hero.IsMe && drawSelfR) &&
-                    !(hero.IsMe && !drawSelfR))
+                if ((hero.IsAlly && drawFriendlyR || hero.IsEnemy && drawEnemyR || hero.IsMe && drawSelfR) && !(hero.IsMe && !drawSelfR))
                 {
                     var range = hero.Spellbook.GetSpell(SpellSlot.R).SData.CastRange;
                     if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                        Circle.Draw(hero.Position.ToVector2(), range, 1, CircleType.Full, false, 1, color);
+                        Render.Circle.DrawCircle(hero.Position, range, color, 1);
                 }
             }
         }
@@ -194,12 +180,10 @@ namespace SFXUtility.Features.Drawings
             {
                 if (!turret.IsDead && turret.IsVisible)
                 {
-                    if (turret.IsAlly && drawFriendly ||
-                        turret.IsEnemy && drawEnemy && turret.Position.IsOnScreen(TurretRange))
+                    if (turret.IsAlly && drawFriendly || turret.IsEnemy && drawEnemy && turret.Position.IsOnScreen(TurretRange))
                     {
-                        Circle.Draw(turret.Position.ToVector2(), TurretRange, 1, CircleType.Full, false, 1,
-                            Menu.Item(Name + "Turret" + (turret.IsAlly ? "Friendly" : "Enemy") + "Color")
-                                .GetValue<Color>());
+                        Render.Circle.DrawCircle(turret.Position, TurretRange,
+                            Menu.Item(Name + "Turret" + (turret.IsAlly ? "Friendly" : "Enemy") + "Color").GetValue<Color>(), 1);
                     }
                 }
             }
@@ -230,52 +214,50 @@ namespace SFXUtility.Features.Drawings
                 Menu = new Menu(Name, BaseName + Name);
 
                 var experienceMenu = new Menu("Experience", Name + "Experience");
-                experienceMenu.AddItem(new MenuItem(Name + "ExperienceColor", "Color").SetValue(Color.Gray));
-                experienceMenu.AddItem(new MenuItem(Name + "ExperienceSelf", "Self").SetValue(true));
-                experienceMenu.AddItem(new MenuItem(Name + "ExperienceFriendly", "Friendly").SetValue(true));
-                experienceMenu.AddItem(new MenuItem(Name + "ExperienceEnemy", "Enemy").SetValue(true));
+                experienceMenu.AddItem(new MenuItem(experienceMenu.Name + "Color", "Color").SetValue(Color.Gray));
+                experienceMenu.AddItem(new MenuItem(experienceMenu.Name + "Self", "Self").SetValue(false));
+                experienceMenu.AddItem(new MenuItem(experienceMenu.Name + "Friendly", "Friendly").SetValue(false));
+                experienceMenu.AddItem(new MenuItem(experienceMenu.Name + "Enemy", "Enemy").SetValue(false));
 
                 var attackMenu = new Menu("Attack", Name + "Attack");
-                attackMenu.AddItem(new MenuItem(Name + "AttackColor", "Color").SetValue(Color.Yellow));
-                attackMenu.AddItem(new MenuItem(Name + "AttackSelf", "Self").SetValue(true));
-                attackMenu.AddItem(new MenuItem(Name + "AttackFriendly", "Friendly").SetValue(true));
-                attackMenu.AddItem(new MenuItem(Name + "AttackEnemy", "Enemy").SetValue(true));
+                attackMenu.AddItem(new MenuItem(attackMenu.Name + "Color", "Color").SetValue(Color.Yellow));
+                attackMenu.AddItem(new MenuItem(attackMenu.Name + "Self", "Self").SetValue(false));
+                attackMenu.AddItem(new MenuItem(attackMenu.Name + "Friendly", "Friendly").SetValue(false));
+                attackMenu.AddItem(new MenuItem(attackMenu.Name + "Enemy", "Enemy").SetValue(false));
 
                 var turretMenu = new Menu("Turret", Name + "Turret");
-                turretMenu.AddItem(
-                    new MenuItem(Name + "TurretFriendlyColor", "Friendly Color").SetValue(Color.DarkGreen));
-                turretMenu.AddItem(new MenuItem(Name + "TurretEnemyColor", "Enemy Color").SetValue(Color.DarkRed));
-                turretMenu.AddItem(new MenuItem(Name + "TurretFriendly", "Friendly").SetValue(true));
-                turretMenu.AddItem(new MenuItem(Name + "TurretEnemy", "Enemy").SetValue(true));
+                turretMenu.AddItem(new MenuItem(turretMenu.Name + "FriendlyColor", "Friendly Color").SetValue(Color.DarkGreen));
+                turretMenu.AddItem(new MenuItem(turretMenu.Name + "EnemyColor", "Enemy Color").SetValue(Color.DarkRed));
+                turretMenu.AddItem(new MenuItem(turretMenu.Name + "Friendly", "Friendly").SetValue(false));
+                turretMenu.AddItem(new MenuItem(turretMenu.Name + "Enemy", "Enemy").SetValue(false));
 
                 var spellMenu = new Menu("Spell", Name + "Spell");
-                spellMenu.AddItem(
-                    new MenuItem(Name + "SpellMaxRange", "Max Spell Range").SetValue(new Slider(1000, 500, 3000)));
+                spellMenu.AddItem(new MenuItem(spellMenu.Name + "MaxRange", "Max Spell Range").SetValue(new Slider(1000, 500, 3000)));
 
-                var spellSelfMenu = new Menu("Self", Name + "SpellSelf");
-                spellSelfMenu.AddItem(new MenuItem(Name + "SpellSelfColor", "Color").SetValue(Color.Purple));
-                spellSelfMenu.AddItem(new MenuItem(Name + "SpellSelfQ", "Q").SetValue(true));
-                spellSelfMenu.AddItem(new MenuItem(Name + "SpellSelfW", "W").SetValue(true));
-                spellSelfMenu.AddItem(new MenuItem(Name + "SpellSelfE", "E").SetValue(true));
-                spellSelfMenu.AddItem(new MenuItem(Name + "SpellSelfR", "R").SetValue(true));
+                var spellSelfMenu = new Menu("Self", spellMenu.Name + "Self");
+                spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "Color", "Color").SetValue(Color.Purple));
+                spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "Q", "Q").SetValue(false));
+                spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "W", "W").SetValue(false));
+                spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "E", "E").SetValue(false));
+                spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "R", "R").SetValue(false));
 
                 spellMenu.AddSubMenu(spellSelfMenu);
 
-                var spellFriendlyMenu = new Menu("Friendly", Name + "SpellFriendly");
-                spellFriendlyMenu.AddItem(new MenuItem(Name + "SpellFriendlyColor", "Color").SetValue(Color.Green));
-                spellFriendlyMenu.AddItem(new MenuItem(Name + "SpellFriendlyQ", "Q").SetValue(true));
-                spellFriendlyMenu.AddItem(new MenuItem(Name + "SpellFriendlyW", "W").SetValue(true));
-                spellFriendlyMenu.AddItem(new MenuItem(Name + "SpellFriendlyE", "E").SetValue(true));
-                spellFriendlyMenu.AddItem(new MenuItem(Name + "SpellFriendlyR", "R").SetValue(true));
+                var spellFriendlyMenu = new Menu("Friendly", spellMenu.Name + "Friendly");
+                spellFriendlyMenu.AddItem(new MenuItem(spellFriendlyMenu.Name + "Color", "Color").SetValue(Color.Green));
+                spellFriendlyMenu.AddItem(new MenuItem(spellFriendlyMenu.Name + "Q", "Q").SetValue(false));
+                spellFriendlyMenu.AddItem(new MenuItem(spellFriendlyMenu.Name + "W", "W").SetValue(false));
+                spellFriendlyMenu.AddItem(new MenuItem(spellFriendlyMenu.Name + "E", "E").SetValue(false));
+                spellFriendlyMenu.AddItem(new MenuItem(spellFriendlyMenu.Name + "R", "R").SetValue(false));
 
                 spellMenu.AddSubMenu(spellFriendlyMenu);
 
-                var spellEnemyMenu = new Menu("Enemy", Name + "SpellEnemy");
-                spellEnemyMenu.AddItem(new MenuItem(Name + "SpellEnemyColor", "Color").SetValue(Color.Red));
-                spellEnemyMenu.AddItem(new MenuItem(Name + "SpellEnemyQ", "Q").SetValue(true));
-                spellEnemyMenu.AddItem(new MenuItem(Name + "SpellEnemyW", "W").SetValue(true));
-                spellEnemyMenu.AddItem(new MenuItem(Name + "SpellEnemyE", "E").SetValue(true));
-                spellEnemyMenu.AddItem(new MenuItem(Name + "SpellEnemyR", "R").SetValue(true));
+                var spellEnemyMenu = new Menu("Enemy", spellMenu.Name + "Enemy");
+                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "Color", "Color").SetValue(Color.Red));
+                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "Q", "Q").SetValue(false));
+                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "W", "W").SetValue(false));
+                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "E", "E").SetValue(false));
+                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "R", "R").SetValue(false));
 
                 spellMenu.AddSubMenu(spellEnemyMenu);
 
@@ -288,10 +270,9 @@ namespace SFXUtility.Features.Drawings
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                HandleEvents(_parent);
-
                 _turrets = ObjectHandler.GetFast<Obj_AI_Turret>().Where(turret => turret.IsValid);
 
+                HandleEvents(_parent);
                 RaiseOnInitialized();
             }
             catch (Exception ex)

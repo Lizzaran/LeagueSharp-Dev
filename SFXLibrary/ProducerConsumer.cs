@@ -38,10 +38,7 @@ namespace SFXLibrary
         private const int CheckInterval = 6000;
         private readonly int _maxConsumers;
         private readonly int _minConsumers;
-
-        private readonly Dictionary<CancellationTokenSource, Task> _pool =
-            new Dictionary<CancellationTokenSource, Task>();
-
+        private readonly Dictionary<CancellationTokenSource, Task> _pool = new Dictionary<CancellationTokenSource, Task>();
         private readonly int _producersPerConsumer;
         private readonly BlockingCollection<T> _queue = new BlockingCollection<T>();
         private int _lastCheck;

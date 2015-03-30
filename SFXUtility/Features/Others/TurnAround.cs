@@ -52,18 +52,14 @@ namespace SFXUtility.Features.Others
         private float _blockMovementTime;
         private Others _parent;
 
-        public TurnAround(IContainer container)
-            : base(container)
+        public TurnAround(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
         {
-            get
-            {
-                return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
+            get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
         public override string Name
@@ -106,28 +102,25 @@ namespace SFXUtility.Features.Others
         {
             try
             {
-                if (sender == null || sender.Team == ObjectManager.Player.Team || ObjectManager.Player.IsDead ||
-                    !ObjectManager.Player.IsTargetable)
+                if (sender == null || sender.Team == ObjectManager.Player.Team || ObjectManager.Player.IsDead || !ObjectManager.Player.IsTargetable)
                     return;
 
-                var spellInfo =
-                    _spellInfos.FirstOrDefault(i => args.SData.Name.Contains(i.Name, StringComparison.OrdinalIgnoreCase));
+                var spellInfo = _spellInfos.FirstOrDefault(i => args.SData.Name.Contains(i.Name, StringComparison.OrdinalIgnoreCase));
 
-                if (!Equals(spellInfo, default(SpellInfoStruct)))
+                if (!spellInfo.Equals(default(SpellInfoStruct)))
                 {
                     if (spellInfo.Target && args.Target == ObjectManager.Player ||
                         ObjectManager.Player.ServerPosition.Distance(sender.ServerPosition) <= spellInfo.Range)
                     {
                         _blockMovementTime = Game.Time + args.SData.SpellCastTime;
-                        ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, new Vector2(
-                            ObjectManager.Player.ServerPosition.X +
-                            (sender.ServerPosition.X - ObjectManager.Player.ServerPosition.X)*
-                            (spellInfo.TurnOpposite ? 100 : -100)/
-                            ObjectManager.Player.ServerPosition.Distance(sender.ServerPosition),
-                            ObjectManager.Player.ServerPosition.Y +
-                            (sender.ServerPosition.Y - ObjectManager.Player.ServerPosition.Y)*
-                            (spellInfo.TurnOpposite ? 100 : -100)/
-                            ObjectManager.Player.ServerPosition.Distance(sender.ServerPosition)).ToVector3());
+                        ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo,
+                            new Vector2(
+                                ObjectManager.Player.ServerPosition.X +
+                                (sender.ServerPosition.X - ObjectManager.Player.ServerPosition.X)*(spellInfo.TurnOpposite ? 100 : -100)/
+                                ObjectManager.Player.ServerPosition.Distance(sender.ServerPosition),
+                                ObjectManager.Player.ServerPosition.Y +
+                                (sender.ServerPosition.Y - ObjectManager.Player.ServerPosition.Y)*(spellInfo.TurnOpposite ? 100 : -100)/
+                                ObjectManager.Player.ServerPosition.Distance(sender.ServerPosition)).ToVector3());
                     }
                 }
             }
@@ -183,8 +176,13 @@ namespace SFXUtility.Features.Others
 
         private struct SpellInfoStruct
         {
+            public readonly string Name;
+            public readonly string Owner;
+            public readonly float Range;
+            public readonly bool Target;
+            public readonly bool TurnOpposite;
+
             public SpellInfoStruct(string owner, string name, float range, bool target, bool turnOpposite)
-                : this()
             {
                 Owner = owner;
                 Name = name;
@@ -192,12 +190,6 @@ namespace SFXUtility.Features.Others
                 Target = target;
                 TurnOpposite = turnOpposite;
             }
-
-            public string Owner { get; private set; }
-            public string Name { get; private set; }
-            public float Range { get; private set; }
-            public bool Target { get; private set; }
-            public bool TurnOpposite { get; private set; }
         }
     }
 }

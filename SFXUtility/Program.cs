@@ -47,49 +47,39 @@ namespace SFXUtility
         // ReSharper disable once UnusedParameter.Local
         private static void Main(string[] args)
         {
-            const BindingFlags bFlags = BindingFlags.CreateInstance | BindingFlags.Public | BindingFlags.Instance |
-                                        BindingFlags.OptionalParamBinding;
+            const BindingFlags bFlags = BindingFlags.CreateInstance | BindingFlags.Public | BindingFlags.Instance | BindingFlags.OptionalParamBinding;
 
             var container = new Container();
 
-            AppDomain.CurrentDomain.UnhandledException +=
-                delegate(object sender, UnhandledExceptionEventArgs eventArgs)
+            AppDomain.CurrentDomain.UnhandledException += delegate(object sender, UnhandledExceptionEventArgs eventArgs)
+            {
+                if (container.IsRegistered<ILogger>())
                 {
-                    if (container.IsRegistered<ILogger>())
-                    {
-                        var ex = sender as Exception ??
-                                 new NotSupportedException(
-                                     "Unhandled exception doesn't derive from System.Exception: " +
-                                     sender);
-                        container.Resolve<ILogger>().AddItem(new LogItem(ex));
-                    }
-                };
+                    var ex = sender as Exception ?? new NotSupportedException("Unhandled exception doesn't derive from System.Exception: " + sender);
+                    container.Resolve<ILogger>().AddItem(new LogItem(ex));
+                }
+            };
 
             container.Register(typeof (ILogger),
                 () =>
-                    Activator.CreateInstance(typeof (ExceptionLogger), bFlags, null,
-                        new object[] {AppDomain.CurrentDomain.BaseDirectory}, CultureInfo.CurrentCulture), true);
+                    Activator.CreateInstance(typeof (ExceptionLogger), bFlags, null, new object[] {AppDomain.CurrentDomain.BaseDirectory},
+                        CultureInfo.CurrentCulture), true);
 
             container.Register(typeof (SFXUtility),
-                () =>
-                    Activator.CreateInstance(typeof (SFXUtility), bFlags, null, new object[] {container},
-                        CultureInfo.CurrentCulture), true, true);
+                () => Activator.CreateInstance(typeof (SFXUtility), bFlags, null, new object[] {container}, CultureInfo.CurrentCulture), true, true);
 
             var bType = typeof (Base);
-            foreach (
-                var type in
-                    Assembly.GetAssembly(bType)
-                        .GetTypes()
-                        .OrderBy(type => type.Name)
-                        .Where(type => type.IsClass && !type.IsAbstract && type.IsSubclassOf(bType)))
+            foreach (var type in
+                Assembly.GetAssembly(bType)
+                    .GetTypes()
+                    .OrderBy(type => type.Name)
+                    .Where(type => type.IsClass && !type.IsAbstract && type.IsSubclassOf(bType)))
             {
                 try
                 {
                     var tmpType = type;
                     container.Register(tmpType,
-                        () =>
-                            Activator.CreateInstance(tmpType, bFlags, null, new object[] {container},
-                                CultureInfo.CurrentCulture), true, true);
+                        () => Activator.CreateInstance(tmpType, bFlags, null, new object[] {container}, CultureInfo.CurrentCulture), true, true);
                 }
                 catch (Exception ex)
                 {

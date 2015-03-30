@@ -46,19 +46,14 @@ namespace SFXUtility.Features.Trackers
         private IEnumerable<CooldownObject> _cooldownObjects = new List<CooldownObject>();
         private Trackers _parent;
 
-        public Cooldown(IContainer container)
-            : base(container)
+        public Cooldown(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
         {
-            get
-            {
-                return _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
+            get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
         public override string Name
@@ -94,29 +89,26 @@ namespace SFXUtility.Features.Trackers
 
                 Menu = new Menu(Name, BaseName + Name);
 
-                Menu.AddItem(new MenuItem(Name + "EnemyEnabled", "Track Enemy").SetValue(true));
-                Menu.AddItem(new MenuItem(Name + "AllyEnabled", "Track Ally").SetValue(true));
+                Menu.AddItem(new MenuItem(Name + "EnemyEnabled", "Track Enemy").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "AllyEnabled", "Track Ally").SetValue(false));
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
-                Menu.Item(Name + "EnemyEnabled").ValueChanged +=
-                    delegate(object o, OnValueChangeEventArgs args)
+                Menu.Item(Name + "EnemyEnabled").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
+                {
+                    foreach (var cd in _cooldownObjects)
                     {
-                        foreach (var cd in _cooldownObjects)
-                        {
-                            cd.Active =
-                                Menu.Item(Name + "Enabled").GetValue<bool>() &&
-                                (cd.Hero.IsEnemy && args.GetNewValue<bool>() ||
-                                 cd.Hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>());
-                        }
-                    };
+                        cd.Active = Menu.Item(Name + "Enabled").GetValue<bool>() &&
+                                    (cd.Hero.IsEnemy && args.GetNewValue<bool>() || cd.Hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>()) &&
+                                    _parent != null && _parent.Enabled;
+                    }
+                };
                 Menu.Item(Name + "AllyEnabled").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
                 {
                     foreach (var cd in _cooldownObjects)
                     {
-                        cd.Active =
-                            Menu.Item(Name + "Enabled").GetValue<bool>() &&
-                            (cd.Hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>() ||
-                             cd.Hero.IsAlly && args.GetNewValue<bool>());
+                        cd.Active = Menu.Item(Name + "Enabled").GetValue<bool>() &&
+                                    (cd.Hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>() ||
+                                     cd.Hero.IsAlly && args.GetNewValue<bool>()) && _parent != null && _parent.Enabled;
                     }
                 };
                 Menu.Item(Name + "Enabled").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
@@ -125,20 +117,23 @@ namespace SFXUtility.Features.Trackers
                     {
                         cd.Active = args.GetNewValue<bool>() &&
                                     (cd.Hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>() ||
-                                     cd.Hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>());
+                                     cd.Hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>()) && _parent != null && _parent.Enabled;
                     }
                 };
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _cooldownObjects = HeroManager.AllHeroes.Where(hero => !hero.IsMe)
-                    .Select(hero => new CooldownObject(hero, Logger)
-                    {
-                        Active =
-                            Enabled &&
-                            (hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>() ||
-                             hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>())
-                    });
+                _cooldownObjects =
+                    HeroManager.AllHeroes.Where(hero => !hero.IsMe)
+                        .Select(
+                            hero =>
+                                new CooldownObject(hero, Logger)
+                                {
+                                    Active =
+                                        Enabled &&
+                                        (hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>() ||
+                                         hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>())
+                                });
 
                 RaiseOnInitialized();
             }
@@ -166,34 +161,33 @@ namespace SFXUtility.Features.Trackers
                 Hero = hero;
                 try
                 {
-                    _hudSprite =
-                        new Render.Sprite(Resources.CD_Hud, default(Vector2))
+                    _hudSprite = new Render.Sprite(Resources.CD_Hud, default(Vector2))
+                    {
+                        VisibleCondition = delegate
                         {
-                            VisibleCondition = delegate
+                            try
                             {
-                                try
-                                {
-                                    return Visible;
-                                }
-                                catch (Exception ex)
-                                {
-                                    logger.AddItem(new LogItem(ex) {Object = this});
-                                    return false;
-                                }
-                            },
-                            PositionUpdate = delegate
-                            {
-                                try
-                                {
-                                    return HpBarPostion;
-                                }
-                                catch (Exception ex)
-                                {
-                                    logger.AddItem(new LogItem(ex) {Object = this});
-                                    return default(Vector2);
-                                }
+                                return Visible;
                             }
-                        };
+                            catch (Exception ex)
+                            {
+                                logger.AddItem(new LogItem(ex) {Object = this});
+                                return false;
+                            }
+                        },
+                        PositionUpdate = delegate
+                        {
+                            try
+                            {
+                                return HpBarPostion;
+                            }
+                            catch (Exception ex)
+                            {
+                                logger.AddItem(new LogItem(ex) {Object = this});
+                                return default(Vector2);
+                            }
+                        }
+                    };
                 }
                 catch (Exception ex)
                 {
@@ -206,9 +200,8 @@ namespace SFXUtility.Features.Trackers
                     {
                         var index = i;
                         var spell = Hero.Spellbook.GetSpell(_spellSlots[index]);
-                        var summoner =
-                            Resources.ResourceManager.GetObject(string.Format("CD_{0}", spell.Name.ToLower())) ??
-                            Resources.CD_summonerbarrier;
+                        var summoner = Resources.ResourceManager.GetObject(string.Format("CD_{0}", spell.Name.ToLower())) ??
+                                       Resources.CD_summonerbarrier;
                         var sprite = new Render.Sprite((Bitmap) summoner, default(Vector2))
                         {
                             VisibleCondition = delegate
@@ -234,9 +227,7 @@ namespace SFXUtility.Features.Trackers
                                         ? (int)
                                             (19*
                                              (1f -
-                                              ((Math.Abs(spell.Cooldown) > float.Epsilon)
-                                                  ? (spell.CooldownExpires - Game.Time)/spell.Cooldown
-                                                  : 1f)))
+                                              ((Math.Abs(spell.Cooldown) > float.Epsilon) ? (spell.CooldownExpires - Game.Time)/spell.Cooldown : 1f)))
                                         : 19), 12, 12));
                                 return new Vector2(HpBarPostion.X + 3, HpBarPostion.Y + 1 + index*13);
                             }
@@ -261,27 +252,24 @@ namespace SFXUtility.Features.Trackers
                                 }
                             }
                         };
-                        text.PositionUpdate =
-                            delegate
+                        text.PositionUpdate = delegate
+                        {
+                            try
                             {
-                                try
-                                {
-                                    return new Vector2(HpBarPostion.X - 5 - text.text.Length*5,
-                                        HpBarPostion.Y + 1 + 13*index);
-                                }
-                                catch (Exception ex)
-                                {
-                                    logger.AddItem(new LogItem(ex) {Object = this});
-                                    return default(Vector2);
-                                }
-                            };
+                                return new Vector2(HpBarPostion.X - 5 - text.text.Length*5, HpBarPostion.Y + 1 + 13*index);
+                            }
+                            catch (Exception ex)
+                            {
+                                logger.AddItem(new LogItem(ex) {Object = this});
+                                return default(Vector2);
+                            }
+                        };
                         text.TextUpdate = delegate
                         {
                             try
                             {
                                 return spell.CooldownExpires - Game.Time > 0f
-                                    ? string.Format(spell.CooldownExpires - Game.Time < 1f ? "{0:0.0}" : "{0:0}",
-                                        spell.CooldownExpires - Game.Time)
+                                    ? string.Format(spell.CooldownExpires - Game.Time < 1f ? "{0:0.0}" : "{0:0}", spell.CooldownExpires - Game.Time)
                                     : string.Empty;
                             }
                             catch (Exception ex)
@@ -311,8 +299,7 @@ namespace SFXUtility.Features.Trackers
                             {
                                 try
                                 {
-                                    return Visible &&
-                                           Hero.Spellbook.CanUseSpell(_spellSlots[index]) != SpellState.NotLearned;
+                                    return Visible && Hero.Spellbook.CanUseSpell(_spellSlots[index]) != SpellState.NotLearned;
                                 }
                                 catch (Exception ex)
                                 {
@@ -333,28 +320,24 @@ namespace SFXUtility.Features.Trackers
                                 }
                             }
                         };
-                        line.EndPositionUpdate =
-                            delegate
+                        line.EndPositionUpdate = delegate
+                        {
+                            try
                             {
-                                try
-                                {
-                                    line.Color = spell.CooldownExpires - Game.Time <= 0f
-                                        ? Color.Green
-                                        : Color.DeepSkyBlue;
-                                    return
-                                        new Vector2(
-                                            line.Start.X +
-                                            ((spell.CooldownExpires - Game.Time > 0f &&
-                                              Math.Abs(spell.Cooldown) > float.Epsilon)
-                                                ? 1f - ((spell.CooldownExpires - Game.Time)/spell.Cooldown)
-                                                : 1f)*23f, line.Start.Y);
-                                }
-                                catch (Exception ex)
-                                {
-                                    logger.AddItem(new LogItem(ex) {Object = this});
-                                    return default(Vector2);
-                                }
-                            };
+                                line.Color = spell.CooldownExpires - Game.Time <= 0f ? Color.Green : Color.DeepSkyBlue;
+                                return
+                                    new Vector2(
+                                        line.Start.X +
+                                        ((spell.CooldownExpires - Game.Time > 0f && Math.Abs(spell.Cooldown) > float.Epsilon)
+                                            ? 1f - ((spell.CooldownExpires - Game.Time)/spell.Cooldown)
+                                            : 1f)*23f, line.Start.Y);
+                            }
+                            catch (Exception ex)
+                            {
+                                logger.AddItem(new LogItem(ex) {Object = this});
+                                return default(Vector2);
+                            }
+                        };
                         var text = new Render.Text(default(Vector2), string.Empty, 13, Color.White)
                         {
                             VisibleCondition = delegate
@@ -370,26 +353,24 @@ namespace SFXUtility.Features.Trackers
                                 }
                             }
                         };
-                        text.PositionUpdate =
-                            delegate
+                        text.PositionUpdate = delegate
+                        {
+                            try
                             {
-                                try
-                                {
-                                    return new Vector2(line.Start.X + (23f - text.text.Length*4)/2, line.Start.Y + 7f);
-                                }
-                                catch (Exception ex)
-                                {
-                                    logger.AddItem(new LogItem(ex) {Object = this});
-                                    return default(Vector2);
-                                }
-                            };
+                                return new Vector2(line.Start.X + (23f - text.text.Length*4)/2, line.Start.Y + 7f);
+                            }
+                            catch (Exception ex)
+                            {
+                                logger.AddItem(new LogItem(ex) {Object = this});
+                                return default(Vector2);
+                            }
+                        };
                         text.TextUpdate = delegate
                         {
                             try
                             {
                                 return spell.CooldownExpires - Game.Time > 0f
-                                    ? string.Format(spell.CooldownExpires - Game.Time < 1f ? "{0:0.0}" : "{0:0}",
-                                        spell.CooldownExpires - Game.Time)
+                                    ? string.Format(spell.CooldownExpires - Game.Time < 1f ? "{0:0.0}" : "{0:0}", spell.CooldownExpires - Game.Time)
                                     : string.Empty;
                             }
                             catch (Exception ex)
@@ -427,8 +408,8 @@ namespace SFXUtility.Features.Trackers
             {
                 get
                 {
-                    return Active && Hero.IsVisible && !Hero.IsDead && Hero.IsHPBarRendered &&
-                           Hero.Position.IsOnScreen() && !ObjectManager.Player.InShop();
+                    return Active && Hero.IsVisible && !Hero.IsDead && Hero.IsHPBarRendered && Hero.Position.IsOnScreen() &&
+                           !ObjectManager.Player.InShop();
                 }
             }
 

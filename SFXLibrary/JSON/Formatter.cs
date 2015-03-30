@@ -34,7 +34,8 @@ namespace SFXLibrary.JSON
 
         public static void AppendIndent(StringBuilder sb, int count)
         {
-            for (; count > 0; --count) sb.Append(Indent);
+            for (; count > 0; --count)
+                sb.Append(Indent);
         }
 
         public static string PrettyPrint(string input)

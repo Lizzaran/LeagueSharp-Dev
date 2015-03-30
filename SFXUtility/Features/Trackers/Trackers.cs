@@ -35,8 +35,7 @@ namespace SFXUtility.Features.Trackers
 
     internal class Trackers : Base
     {
-        public Trackers(IContainer container)
-            : base(container)
+        public Trackers(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }

@@ -37,8 +37,7 @@ namespace SFXUtility.Features.Drawings
 
     internal class Drawings : Base
     {
-        public Drawings(IContainer container)
-            : base(container)
+        public Drawings(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }

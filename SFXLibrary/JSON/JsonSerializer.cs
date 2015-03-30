@@ -67,7 +67,8 @@ namespace SFXLibrary.JSON
                 var pendingSeparator = false;
                 foreach (var kv in _globalTypes)
                 {
-                    if (pendingSeparator) sb.Append(',');
+                    if (pendingSeparator)
+                        sb.Append(',');
                     pendingSeparator = true;
                     sb.Append('\"');
                     sb.Append(kv.Key);
@@ -95,18 +96,13 @@ namespace SFXLibrary.JSON
                 WriteGuid((Guid) obj);
             else if (obj is bool)
                 _output.Append(((bool) obj) ? "true" : "false");
-            else if (
-                obj is int || obj is long || obj is double ||
-                obj is decimal || obj is float ||
-                obj is byte || obj is short ||
-                obj is sbyte || obj is ushort ||
-                obj is uint || obj is ulong
-                )
+            else if (obj is int || obj is long || obj is double || obj is decimal || obj is float || obj is byte || obj is short || obj is sbyte ||
+                     obj is ushort || obj is uint || obj is ulong)
                 _output.Append(((IConvertible) obj).ToString(NumberFormatInfo.InvariantInfo));
             else if (obj is DateTime)
                 WriteDateTime((DateTime) obj);
-            else if (_params.KvStyleStringDictionary == false && obj is IDictionary &&
-                     obj.GetType().IsGenericType && obj.GetType().GetGenericArguments()[0] == typeof (string))
+            else if (_params.KvStyleStringDictionary == false && obj is IDictionary && obj.GetType().IsGenericType &&
+                     obj.GetType().GetGenericArguments()[0] == typeof (string))
                 WriteStringDictionary((IDictionary) obj);
             else if (_params.KvStyleStringDictionary == false && obj is ExpandoObject)
                 WriteStringDictionary((IDictionary<string, object>) obj);
@@ -177,7 +173,8 @@ namespace SFXLibrary.JSON
                 }
                 else
                 {
-                    if (pendingSeparator) _output.Append(',');
+                    if (pendingSeparator)
+                        _output.Append(',');
                     WritePair(_params.SerializeToLowerCaseNames ? key.ToLower() : key, nameValueCollection[key]);
                     pendingSeparator = true;
                 }
@@ -198,7 +195,8 @@ namespace SFXLibrary.JSON
                 }
                 else
                 {
-                    if (pendingSeparator) _output.Append(',');
+                    if (pendingSeparator)
+                        _output.Append(',');
 
                     var k = (string) entry.Key;
                     WritePair(_params.SerializeToLowerCaseNames ? k.ToLower() : k, entry.Value);
@@ -387,7 +385,8 @@ namespace SFXLibrary.JSON
 
             foreach (var obj in array)
             {
-                if (pendingSeperator) _output.Append(',');
+                if (pendingSeperator)
+                    _output.Append(',');
 
                 WriteValue(obj);
 
@@ -409,7 +408,8 @@ namespace SFXLibrary.JSON
                 }
                 else
                 {
-                    if (pendingSeparator) _output.Append(',');
+                    if (pendingSeparator)
+                        _output.Append(',');
 
                     var k = (string) entry.Key;
                     WritePair(_params.SerializeToLowerCaseNames ? k.ToLower() : k, entry.Value);
@@ -430,7 +430,8 @@ namespace SFXLibrary.JSON
                 }
                 else
                 {
-                    if (pendingSeparator) _output.Append(',');
+                    if (pendingSeparator)
+                        _output.Append(',');
                     var k = entry.Key;
 
                     WritePair(_params.SerializeToLowerCaseNames ? k.ToLower() : k, entry.Value);
@@ -448,7 +449,8 @@ namespace SFXLibrary.JSON
 
             foreach (DictionaryEntry entry in dic)
             {
-                if (pendingSeparator) _output.Append(',');
+                if (pendingSeparator)
+                    _output.Append(',');
                 _output.Append('{');
                 WritePair("k", entry.Key);
                 _output.Append(",");
@@ -545,7 +547,8 @@ namespace SFXLibrary.JSON
 
         private DatasetSchema GetSchema(DataTable ds)
         {
-            if (ds == null) return null;
+            if (ds == null)
+                return null;
 
             var m = new DatasetSchema {Info = new List<string>(), Name = ds.TableName};
 
@@ -560,7 +563,8 @@ namespace SFXLibrary.JSON
 
         private DatasetSchema GetSchema(DataSet ds)
         {
-            if (ds == null) return null;
+            if (ds == null)
+                return null;
 
             var m = new DatasetSchema {Info = new List<string>(), Name = ds.DataSetName};
 
@@ -596,7 +600,8 @@ namespace SFXLibrary.JSON
             var tablesep = false;
             foreach (DataTable table in ds.Tables)
             {
-                if (tablesep) _output.Append(',');
+                if (tablesep)
+                    _output.Append(',');
                 tablesep = true;
                 WriteDataTableData(table);
             }
@@ -612,14 +617,16 @@ namespace SFXLibrary.JSON
             var rowseparator = false;
             foreach (DataRow row in table.Rows)
             {
-                if (rowseparator) _output.Append(',');
+                if (rowseparator)
+                    _output.Append(',');
                 rowseparator = true;
                 _output.Append('[');
 
                 var pendingSeperator = false;
                 foreach (DataColumn column in cols)
                 {
-                    if (pendingSeperator) _output.Append(',');
+                    if (pendingSeperator)
+                        _output.Append(',');
                     WriteValue(row[column]);
                     pendingSeperator = true;
                 }

@@ -46,19 +46,14 @@ namespace SFXUtility.Features.Drawings
         private Drawings _parent;
         private IEnumerable<Obj_AI_Turret> _turrets = new List<Obj_AI_Turret>();
 
-        public Health(IContainer container)
-            : base(container)
+        public Health(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
         {
-            get
-            {
-                return _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
+            get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
         public override string Name
@@ -75,8 +70,7 @@ namespace SFXUtility.Features.Drawings
                 if (inhibitor.IsValid && !inhibitor.IsDead && inhibitor.Health > 0.1f)
                 {
                     var percent = ((int) (inhibitor.Health/inhibitor.MaxHealth)*100);
-                    Draw.TextCentered(Drawing.WorldToMinimap(inhibitor.Position),
-                        Menu.Item(Name + "InhibitorColor").GetValue<Color>(),
+                    Draw.TextCentered(Drawing.WorldToMinimap(inhibitor.Position), Menu.Item(Name + "InhibitorColor").GetValue<Color>(),
                         Menu.Item(Name + "InhibitorPercentage").GetValue<bool>()
                             ? (percent == 0 ? 1 : percent).ToString(CultureInfo.InvariantCulture)
                             : ((int) inhibitor.Health).ToString(CultureInfo.InvariantCulture));
@@ -107,14 +101,14 @@ namespace SFXUtility.Features.Drawings
                 Menu = new Menu(Name, BaseName + Name);
 
                 var inhibitorMenu = new Menu("Inhibitor", Name + "Inhibitor");
-                inhibitorMenu.AddItem(new MenuItem(Name + "InhibitorColor", "Color").SetValue(Color.Yellow));
-                inhibitorMenu.AddItem(new MenuItem(Name + "InhibitorEnabled", "Enabled").SetValue(false));
-                inhibitorMenu.AddItem(new MenuItem(Name + "InhibitorPercentage", "Percentage").SetValue(true));
+                inhibitorMenu.AddItem(new MenuItem(inhibitorMenu.Name + "Color", "Color").SetValue(Color.Yellow));
+                inhibitorMenu.AddItem(new MenuItem(inhibitorMenu.Name + "Percentage", "Percentage").SetValue(false));
+                inhibitorMenu.AddItem(new MenuItem(inhibitorMenu.Name + "Enabled", "Enabled").SetValue(false));
 
                 var turretMenu = new Menu("Turret", Name + "Turret");
-                turretMenu.AddItem(new MenuItem(Name + "TurretColor", "Color").SetValue(Color.Yellow));
-                turretMenu.AddItem(new MenuItem(Name + "TurretEnabled", "Enabled").SetValue(false));
-                turretMenu.AddItem(new MenuItem(Name + "TurretPercentage", "Percentage").SetValue(true));
+                turretMenu.AddItem(new MenuItem(turretMenu.Name + "Color", "Color").SetValue(Color.Yellow));
+                turretMenu.AddItem(new MenuItem(turretMenu.Name + "Percentage", "Percentage").SetValue(false));
+                turretMenu.AddItem(new MenuItem(turretMenu.Name + "Enabled", "Enabled").SetValue(false));
 
                 Menu.AddSubMenu(inhibitorMenu);
                 Menu.AddSubMenu(turretMenu);
@@ -123,11 +117,8 @@ namespace SFXUtility.Features.Drawings
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _turrets =
-                    ObjectHandler.GetFast<Obj_AI_Turret>()
-                        .Where(t => t.IsValid && !t.IsDead && t.Health > 0.1f && t.Health < 9999f);
-                _inhibs =
-                    ObjectHandler.GetFast<Obj_BarracksDampener>().Where(i => i.IsValid && !i.IsDead && i.Health > 0.1f);
+                _turrets = ObjectHandler.GetFast<Obj_AI_Turret>().Where(t => t.IsValid && !t.IsDead && t.Health > 0.1f && t.Health < 9999f);
+                _inhibs = ObjectHandler.GetFast<Obj_BarracksDampener>().Where(i => i.IsValid && !i.IsDead && i.Health > 0.1f);
 
                 if (!_turrets.Any() || !_inhibs.Any())
                     return;
@@ -181,8 +172,7 @@ namespace SFXUtility.Features.Drawings
                 if (turret.IsValid && !turret.IsDead && turret.Health > 0f && turret.Health < 9999f)
                 {
                     var percent = ((int) (turret.Health/turret.MaxHealth)*100);
-                    Draw.TextCentered(Drawing.WorldToMinimap(turret.Position),
-                        Menu.Item(Name + "TurretColor").GetValue<Color>(),
+                    Draw.TextCentered(Drawing.WorldToMinimap(turret.Position), Menu.Item(Name + "TurretColor").GetValue<Color>(),
                         Menu.Item(Name + "TurretPercentage").GetValue<bool>()
                             ? (percent == 0 ? 1 : percent).ToString(CultureInfo.InvariantCulture)
                             : ((int) turret.Health).ToString(CultureInfo.InvariantCulture));

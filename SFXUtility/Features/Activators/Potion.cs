@@ -42,25 +42,19 @@ namespace SFXUtility.Features.Activators
 
         private List<PotionStruct> _potions = new List<PotionStruct>
         {
-            new PotionStruct("ItemCrystalFlask", ItemId.Crystalline_Flask, 1, 1,
-                new[] {PotionType.Health, PotionType.Mana}),
+            new PotionStruct("ItemCrystalFlask", ItemId.Crystalline_Flask, 1, 1, new[] {PotionType.Health, PotionType.Mana}),
             new PotionStruct("RegenerationPotion", ItemId.Health_Potion, 0, 2, new[] {PotionType.Health}),
             new PotionStruct("FlaskOfCrystalWater", ItemId.Mana_Potion, 0, 3, new[] {PotionType.Mana})
         };
 
-        public Potion(IContainer container)
-            : base(container)
+        public Potion(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
         {
-            get
-            {
-                return _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
+            get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
         public override string Name
@@ -90,18 +84,17 @@ namespace SFXUtility.Features.Activators
                 _potions = _potions.OrderBy(x => x.Priority).ToList();
                 Menu = new Menu(Name, BaseName + Name);
                 var healthMenu = new Menu("Health", Name + "Health");
-                healthMenu.AddItem(new MenuItem(Name + "HealthPotion", "Use Health Potion").SetValue(true));
-                healthMenu.AddItem(new MenuItem(Name + "HealthPercent", "HP Trigger Percent").SetValue(new Slider(60)));
+                healthMenu.AddItem(new MenuItem(healthMenu.Name + "Potion", "Use Health Potion").SetValue(false));
+                healthMenu.AddItem(new MenuItem(healthMenu.Name + "Percent", "HP Trigger Percent").SetValue(new Slider(60)));
 
                 var manaMenu = new Menu("Mana", Name + "Mana");
-                manaMenu.AddItem(new MenuItem(Name + "ManaPotion", "Use Mana Potion").SetValue(true));
-                manaMenu.AddItem(new MenuItem(Name + "ManaPercent", "MP Trigger Percent").SetValue(new Slider(60)));
+                manaMenu.AddItem(new MenuItem(manaMenu.Name + "Potion", "Use Mana Potion").SetValue(false));
+                manaMenu.AddItem(new MenuItem(manaMenu.Name + "Percent", "MP Trigger Percent").SetValue(new Slider(60)));
 
                 Menu.AddSubMenu(healthMenu);
                 Menu.AddSubMenu(manaMenu);
 
-                Menu.AddItem(
-                    new MenuItem(Name + "MinEnemyDistance", "Min Enemy Distance").SetValue(new Slider(600, 0, 1500)));
+                Menu.AddItem(new MenuItem(Name + "MinEnemyDistance", "Min Enemy Distance").SetValue(new Slider(600, 0, 1500)));
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
                 _parent.Menu.AddSubMenu(Menu);
@@ -125,9 +118,7 @@ namespace SFXUtility.Features.Activators
 
         private bool IsBuffActive(PotionType type)
         {
-            return
-                _potions.Where(potion => potion.TypeList.Contains(type))
-                    .Any(potion => ObjectManager.Player.HasBuff(potion.BuffName, true));
+            return _potions.Where(potion => potion.TypeList.Contains(type)).Any(potion => ObjectManager.Player.HasBuff(potion.BuffName, true));
         }
 
         private void OnLoad(EventArgs args)
@@ -153,15 +144,12 @@ namespace SFXUtility.Features.Activators
         {
             try
             {
-                if (
-                    ObjectManager.Player.CountEnemiesInRange(
-                        Menu.Item(Name + "MinEnemyDistance").GetValue<Slider>().Value) == 0)
+                if (ObjectManager.Player.CountEnemiesInRange(Menu.Item(Name + "MinEnemyDistance").GetValue<Slider>().Value) == 0)
                     return;
 
                 if (Menu.Item(Name + "HealthPotion").GetValue<bool>())
                 {
-                    if (ObjectManager.Player.HealthPercentage() <=
-                        Menu.Item(Name + "HealthPercent").GetValue<Slider>().Value)
+                    if (ObjectManager.Player.HealthPercent <= Menu.Item(Name + "HealthPercent").GetValue<Slider>().Value)
                     {
                         var healthSlot = GetPotionSlot(PotionType.Health);
                         if (healthSlot != null && !IsBuffActive(PotionType.Health))
@@ -171,8 +159,7 @@ namespace SFXUtility.Features.Activators
 
                 if (Menu.Item(Name + "ManaPotion").GetValue<bool>())
                 {
-                    if (ObjectManager.Player.ManaPercentage() <=
-                        Menu.Item(Name + "ManaPercent").GetValue<Slider>().Value)
+                    if (ObjectManager.Player.ManaPercent <= Menu.Item(Name + "ManaPercent").GetValue<Slider>().Value)
                     {
                         var manaSlot = GetPotionSlot(PotionType.Mana);
                         if (manaSlot != null && !IsBuffActive(PotionType.Mana))
@@ -194,8 +181,13 @@ namespace SFXUtility.Features.Activators
 
         private struct PotionStruct
         {
+            public readonly string BuffName;
+            public readonly ItemId ItemId;
+            public readonly int MinCharges;
+            public readonly int Priority;
+            public readonly PotionType[] TypeList;
+
             public PotionStruct(string buffName, ItemId itemId, int minCharges, int priority, PotionType[] typeList)
-                : this()
             {
                 BuffName = buffName;
                 ItemId = itemId;
@@ -203,12 +195,6 @@ namespace SFXUtility.Features.Activators
                 Priority = priority;
                 TypeList = typeList;
             }
-
-            public string BuffName { get; private set; }
-            public ItemId ItemId { get; private set; }
-            public int MinCharges { get; private set; }
-            public int Priority { get; private set; }
-            public PotionType[] TypeList { get; private set; }
         }
     }
 }

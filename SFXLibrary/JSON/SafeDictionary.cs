@@ -45,7 +45,11 @@ namespace SFXLibrary.JSON
 
         public int Count
         {
-            get { lock (_padlock) return _dictionary.Count; }
+            get
+            {
+                lock (_padlock)
+                    return _dictionary.Count;
+            }
         }
 
         public TValue this[TKey key]

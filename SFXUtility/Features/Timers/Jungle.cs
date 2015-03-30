@@ -48,19 +48,14 @@ namespace SFXUtility.Features.Timers
         private readonly List<Camp> _camps = new List<Camp>();
         private Timers _parent;
 
-        public Jungle(IContainer container)
-            : base(container)
+        public Jungle(IContainer container) : base(container)
         {
             Load.OnLoad += OnLoad;
         }
 
         public override bool Enabled
         {
-            get
-            {
-                return _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
+            get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
         public override string Name
@@ -92,7 +87,8 @@ namespace SFXUtility.Features.Timers
                             minion =>
                                 minion.IsValid && !minion.IsDead && minion.Team == GameObjectTeam.Neutral &&
                                 (minion.Name.StartsWith("SRU_", StringComparison.OrdinalIgnoreCase) ||
-                                 minion.Name.StartsWith("TT_", StringComparison.OrdinalIgnoreCase))).ToList();
+                                 minion.Name.StartsWith("TT_", StringComparison.OrdinalIgnoreCase)))
+                        .ToList();
 
                 foreach (var camp in _camps)
                 {
@@ -162,9 +158,7 @@ namespace SFXUtility.Features.Timers
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu("Drawing", Name + "Drawing");
-                drawingMenu.AddItem(
-                    new MenuItem(Name + "DrawingTimeFormat", "Time Format").SetValue(
-                        new StringList(new[] {"mm:ss", "ss"})));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "TimeFormat", "Time Format").SetValue(new StringList(new[] {"mm:ss", "ss"})));
 
                 Menu.AddSubMenu(drawingMenu);
 
@@ -193,58 +187,45 @@ namespace SFXUtility.Features.Timers
                 case MapType.SummonersRift:
                     _camps.AddRange(new List<Camp>
                     {
-                        // Order: Blue
+// Order: Blue
                         new Camp(115, 300, new Vector3(3388.2f, 8400f, 55.2f),
-                            new[]
-                            {new Mob("SRU_Blue1.1.1"), new Mob("SRU_BlueMini1.1.2"), new Mob("SRU_BlueMini21.1.3")}),
+                            new[] {new Mob("SRU_Blue1.1.1"), new Mob("SRU_BlueMini1.1.2"), new Mob("SRU_BlueMini21.1.3")}),
                         //Order: Wolves
                         new Camp(115, 100, new Vector3(3415.8f, 6950f, 55.6f),
-                            new[]
-                            {
-                                new Mob("SRU_Murkwolf2.1.1"), new Mob("SRU_MurkwolfMini2.1.2"),
-                                new Mob("SRU_MurkwolfMini2.1.3")
-                            }),
+                            new[] {new Mob("SRU_Murkwolf2.1.1"), new Mob("SRU_MurkwolfMini2.1.2"), new Mob("SRU_MurkwolfMini2.1.3")}),
                         //Order: Chicken
                         new Camp(115, 100, new Vector3(6500f, 5900f, 60f),
                             new[]
                             {
-                                new Mob("SRU_Razorbeak3.1.1"), new Mob("SRU_RazorbeakMini3.1.2"),
-                                new Mob("SRU_RazorbeakMini3.1.3"),
+                                new Mob("SRU_Razorbeak3.1.1"), new Mob("SRU_RazorbeakMini3.1.2"), new Mob("SRU_RazorbeakMini3.1.3"),
                                 new Mob("SRU_RazorbeakMini3.1.4")
                             }),
                         //Order: Red
                         new Camp(115, 300, new Vector3(7300.4f, 4600.1f, 56.9f),
                             new[] {new Mob("SRU_Red4.1.1"), new Mob("SRU_RedMini4.1.2"), new Mob("SRU_RedMini4.1.3")}),
                         //Order: Krug
-                        new Camp(115, 100, new Vector3(7700.2f, 3200f, 54.3f),
-                            new[] {new Mob("SRU_Krug5.1.2"), new Mob("SRU_KrugMini5.1.1")}),
+                        new Camp(115, 100, new Vector3(7700.2f, 3200f, 54.3f), new[] {new Mob("SRU_Krug5.1.2"), new Mob("SRU_KrugMini5.1.1")}),
                         //Order: Gromp
                         new Camp(115, 100, new Vector3(1900.1f, 9200f, 54.9f), new[] {new Mob("SRU_Gromp13.1.1")}),
 
                         //Chaos: Blue
                         new Camp(115, 300, new Vector3(10440f, 7500f, 54.9f),
-                            new[]
-                            {new Mob("SRU_Blue7.1.1"), new Mob("SRU_BlueMini7.1.2"), new Mob("SRU_BlueMini27.1.3")}),
+                            new[] {new Mob("SRU_Blue7.1.1"), new Mob("SRU_BlueMini7.1.2"), new Mob("SRU_BlueMini27.1.3")}),
                         //Chaos: Wolves
                         new Camp(115, 100, new Vector3(10350f, 9000f, 65.5f),
-                            new[]
-                            {
-                                new Mob("SRU_Murkwolf8.1.1"), new Mob("SRU_MurkwolfMini8.1.2"),
-                                new Mob("SRU_MurkwolfMini8.1.3")
-                            }),
+                            new[] {new Mob("SRU_Murkwolf8.1.1"), new Mob("SRU_MurkwolfMini8.1.2"), new Mob("SRU_MurkwolfMini8.1.3")}),
                         //Chaos: Chicken
                         new Camp(115, 100, new Vector3(7100f, 10000f, 55.5f),
                             new[]
                             {
-                                new Mob("SRU_Razorbeak9.1.1"), new Mob("SRU_RazorbeakMini9.1.2"),
-                                new Mob("SRU_RazorbeakMini9.1.3"), new Mob("SRU_RazorbeakMini9.1.4")
+                                new Mob("SRU_Razorbeak9.1.1"), new Mob("SRU_RazorbeakMini9.1.2"), new Mob("SRU_RazorbeakMini9.1.3"),
+                                new Mob("SRU_RazorbeakMini9.1.4")
                             }),
                         //Chaos: Red
                         new Camp(115, 300, new Vector3(6450.2f, 11400f, 54.6f),
                             new[] {new Mob("SRU_Red10.1.1"), new Mob("SRU_RedMini10.1.2"), new Mob("SRU_RedMini10.1.3")}),
                         //Chaos: Krug
-                        new Camp(115, 100, new Vector3(6005f, 13000f, 39.6f),
-                            new[] {new Mob("SRU_Krug11.1.2"), new Mob("SRU_KrugMini11.1.1")}),
+                        new Camp(115, 100, new Vector3(6005f, 13000f, 39.6f), new[] {new Mob("SRU_Krug11.1.2"), new Mob("SRU_KrugMini11.1.1")}),
                         //Chaos: Gromp
                         new Camp(115, 100, new Vector3(12000f, 7000f, 54.8f), new[] {new Mob("SRU_Gromp14.1.1")}),
 
@@ -261,12 +242,11 @@ namespace SFXUtility.Features.Timers
                 case MapType.TwistedTreeline:
                     _camps.AddRange(new List<Camp>
                     {
-                        //Order: Wraiths
+//Order: Wraiths
                         new Camp(100, 75, new Vector3(3550f, 6250f, 60f),
                             new[] {new Mob("TT_NWraith1.1.1"), new Mob("TT_NWraith21.1.2"), new Mob("TT_NWraith21.1.3")}),
                         //Order: Golems
-                        new Camp(100, 75, new Vector3(4500f, 8550f, 60f),
-                            new[] {new Mob("TT_NGolem2.1.1"), new Mob("TT_NGolem22.1.2")}),
+                        new Camp(100, 75, new Vector3(4500f, 8550f, 60f), new[] {new Mob("TT_NGolem2.1.1"), new Mob("TT_NGolem22.1.2")}),
                         //Order: Wolves
                         new Camp(100, 75, new Vector3(5600f, 6400f, 60f),
                             new[] {new Mob("TT_NWolf3.1.1"), new Mob("TT_NWolf23.1.2"), new Mob("TT_NWolf23.1.3")}),
@@ -275,8 +255,7 @@ namespace SFXUtility.Features.Timers
                         new Camp(100, 75, new Vector3(10300f, 6250f, 60f),
                             new[] {new Mob("TT_NWraith4.1.1"), new Mob("TT_NWraith24.1.2"), new Mob("TT_NWraith24.1.3")}),
                         //Chaos: Golems
-                        new Camp(100, 75, new Vector3(9800f, 8550f, 60f),
-                            new[] {new Mob("TT_NGolem5.1.1"), new Mob("TT_NGolem25.1.2")}),
+                        new Camp(100, 75, new Vector3(9800f, 8550f, 60f), new[] {new Mob("TT_NGolem5.1.1"), new Mob("TT_NGolem25.1.2")}),
                         //Chaos: Wolves
                         new Camp(100, 75, new Vector3(8600f, 6400f, 60f),
                             new[] {new Mob("TT_NWolf6.1.1"), new Mob("TT_NWolf26.1.2"), new Mob("TT_NWolf26.1.3")}),

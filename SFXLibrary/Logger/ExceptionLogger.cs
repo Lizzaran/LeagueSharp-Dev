@@ -44,8 +44,7 @@ namespace SFXLibrary.Logger
         private bool _filterSensitiveData = true;
         private string[] _sensitiveData;
 
-        public ExceptionLogger(string logDir, string fileName = "{1}_{0}.gz", bool compression = true,
-            LogLevel logLevel = LogLevel.High)
+        public ExceptionLogger(string logDir, string fileName = "{1}_{0}.gz", bool compression = true, LogLevel logLevel = LogLevel.High)
         {
             _logDir = logDir;
             _fileName = fileName;
@@ -90,16 +89,12 @@ namespace SFXLibrary.Logger
 
             try
             {
-                var fname = string.Format(_fileName,
-                    (item.Exception + AdditionalData.ToDebugString()).ToMd5Hash(),
-                    LogLevel.ToString().ToLower());
+                var fname = string.Format(_fileName, (item.Exception + AdditionalData.ToDebugString()).ToMd5Hash(), LogLevel.ToString().ToLower());
 
                 if (File.Exists(Path.Combine(_logDir, fname)))
                     return;
 
-                using (
-                    var fileStream = new FileStream(fname, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096,
-                        true))
+                using (var fileStream = new FileStream(fname, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, true))
                 using (Stream gzStream = new GZipStream(fileStream, CompressionMode.Compress, false))
                 {
                     var log = string.Empty;

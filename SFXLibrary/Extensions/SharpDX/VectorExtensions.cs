@@ -46,8 +46,7 @@ namespace SFXLibrary.Extensions.SharpDX
         public static bool IsOnScreen(this Vector3 position, float radius)
         {
             var pos = Drawing.WorldToScreen(position);
-            return !(pos.X + radius < 0) && !(pos.X - radius > Drawing.Width) && !(pos.Y + radius < 0) &&
-                   !(pos.Y - radius > Drawing.Height);
+            return !(pos.X + radius < 0) && !(pos.X - radius > Drawing.Width) && !(pos.Y + radius < 0) && !(pos.Y - radius > Drawing.Height);
         }
 
         public static bool IsOnScreen(this Vector2 position, float radius)
@@ -57,24 +56,22 @@ namespace SFXLibrary.Extensions.SharpDX
 
         public static bool IsOnScreen(this Vector2 start, Vector2 end)
         {
-            if (start.X > 0 && start.X < Drawing.Width && start.Y > 0 && start.Y < Drawing.Height && end.X > 0 &&
-                end.X < Drawing.Width && end.Y > 0 && end.Y < Drawing.Height)
+            if (start.X > 0 && start.X < Drawing.Width && start.Y > 0 && start.Y < Drawing.Height && end.X > 0 && end.X < Drawing.Width && end.Y > 0 &&
+                end.Y < Drawing.Height)
             {
                 return true;
             }
-            return new List<Geometry.IntersectionResult>
-            {
-                Geometry.Intersection(new Vector2(0, 0), new Vector2(0, Drawing.Width), start, end),
-                Geometry.Intersection(new Vector2(0, Drawing.Width), new Vector2(Drawing.Height, Drawing.Width), start,
-                    end),
-                Geometry.Intersection(new Vector2(Drawing.Height, Drawing.Width), new Vector2(Drawing.Height, 0), start,
-                    end),
-                Geometry.Intersection(new Vector2(Drawing.Height, 0), new Vector2(0, 0), start, end)
-            }.Any(intersection => intersection.Intersects);
+            return
+                new List<Geometry.IntersectionResult>
+                {
+                    Geometry.Intersection(new Vector2(0, 0), new Vector2(0, Drawing.Width), start, end),
+                    Geometry.Intersection(new Vector2(0, Drawing.Width), new Vector2(Drawing.Height, Drawing.Width), start, end),
+                    Geometry.Intersection(new Vector2(Drawing.Height, Drawing.Width), new Vector2(Drawing.Height, 0), start, end),
+                    Geometry.Intersection(new Vector2(Drawing.Height, 0), new Vector2(0, 0), start, end)
+                }.Any(intersection => intersection.Intersects);
         }
 
-        public static Vector2 ClosestIntersection(this List<Geometry.IntersectionResult> intersections,
-            Vector2 lineStart)
+        public static Vector2 ClosestIntersection(this List<Geometry.IntersectionResult> intersections, Vector2 lineStart)
         {
             if (intersections.Count == 1)
                 return intersections[0].Point;
@@ -94,8 +91,8 @@ namespace SFXLibrary.Extensions.SharpDX
         }
 
         // Find the points of intersection.
-        public static List<Geometry.IntersectionResult> FindLineCircleIntersections(this Vector2 lineStart,
-            Vector2 lineEnd, Vector2 circleCenter, float circleRadius)
+        public static List<Geometry.IntersectionResult> FindLineCircleIntersections(this Vector2 lineStart, Vector2 lineEnd, Vector2 circleCenter,
+            float circleRadius)
         {
             var intersections = new List<Geometry.IntersectionResult>();
             float t;
@@ -103,8 +100,8 @@ namespace SFXLibrary.Extensions.SharpDX
             var dy = lineEnd.Y - lineStart.Y;
             var a = dx*dx + dy*dy;
             var b = 2*(dx*(lineStart.X - circleCenter.X) + dy*(lineStart.Y - circleCenter.Y));
-            var c = (lineStart.X - circleCenter.X)*(lineStart.X - circleCenter.X) +
-                    (lineStart.Y - circleCenter.Y)*(lineStart.Y - circleCenter.Y) - circleRadius*circleRadius;
+            var c = (lineStart.X - circleCenter.X)*(lineStart.X - circleCenter.X) + (lineStart.Y - circleCenter.Y)*(lineStart.Y - circleCenter.Y) -
+                    circleRadius*circleRadius;
 
             var det = b*b - 4*a*c;
             if ((a <= 0.0000001) || (det < 0))
@@ -114,8 +111,7 @@ namespace SFXLibrary.Extensions.SharpDX
             if (det == 0)
             {
                 t = -b/(2*a);
-                intersections.Add(new Geometry.IntersectionResult(true,
-                    new Vector2(lineStart.X + t*dx, lineStart.X + t*dx)));
+                intersections.Add(new Geometry.IntersectionResult(true, new Vector2(lineStart.X + t*dx, lineStart.X + t*dx)));
             }
             else
             {
@@ -135,13 +131,13 @@ namespace SFXLibrary.Extensions.SharpDX
         {
             var nearest = float.MaxValue;
             var sMinion = default(Obj_AI_Minion);
-            foreach (var minion in ObjectHandler.GetFast<Obj_AI_Minion>()
-                .Where(
-                    minion =>
-                        minion != null &&
-                        minion.IsValid &&
-                        names.Any(
-                            name => String.Equals(minion.SkinName, name, StringComparison.CurrentCultureIgnoreCase))))
+            foreach (
+                var minion in
+                    ObjectHandler.GetFast<Obj_AI_Minion>()
+                        .Where(
+                            minion =>
+                                minion != null && minion.IsValid &&
+                                names.Any(name => minion.SkinName.Equals(name, StringComparison.CurrentCultureIgnoreCase))))
             {
                 var distance = Vector3.Distance(position, minion.ServerPosition);
                 if (nearest > distance || nearest == float.MaxValue)
