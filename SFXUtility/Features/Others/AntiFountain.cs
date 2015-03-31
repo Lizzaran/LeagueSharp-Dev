@@ -30,7 +30,6 @@ namespace SFXUtility.Features.Others
     using LeagueSharp;
     using LeagueSharp.Common;
     using LeagueSharp.CommonEx.Core.Events;
-    using LeagueSharp.CommonEx.Core.Extensions.SharpDX;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.IoCContainer;
@@ -108,11 +107,10 @@ namespace SFXUtility.Features.Others
                 _parent.Menu.AddSubMenu(Menu);
 
                 _fountainTurret =
-                    ObjectHandler.GetFast<Obj_AI_Turret>()
+                    ObjectManager.Get<Obj_AI_Turret>()
                         .FirstOrDefault(
                             s =>
-                                s != null && s.IsValid && s.Team != ObjectManager.Player.Team &&
-                                s.Name.Contains("TurretShrine", StringComparison.OrdinalIgnoreCase));
+                                s != null && s.IsValid && s.IsEnemy && s.Name.Contains("TurretShrine", StringComparison.OrdinalIgnoreCase));
 
                 if (_fountainTurret == null)
                     return;
@@ -128,12 +126,12 @@ namespace SFXUtility.Features.Others
 
         private void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
         {
-            if (!sender.Owner.IsMe)
+            if (!sender.Owner.IsMe || _fountainTurret.Distance(ObjectManager.Player.ServerPosition) > 2000f)
                 return;
             if (Gapcloser.Spells.Any(a => a.SpellName == sender.GetSpell(args.Slot).Name))
             {
-                var intersections = args.StartPosition.ToVector2()
-                    .FindLineCircleIntersections(args.EndPosition.ToVector2(), _fountainTurret.ServerPosition.ToVector2(), FountainRange/2);
+                var intersections = args.StartPosition.To2D()
+                    .FindLineCircleIntersections(args.EndPosition.To2D(), _fountainTurret.ServerPosition.To2D(), FountainRange/2);
                 if (intersections.Count > 0)
                 {
                     args.Process = false;
@@ -145,17 +143,16 @@ namespace SFXUtility.Features.Others
         {
             try
             {
-                if (!sender.IsMe)
+                if (!sender.IsMe || _fountainTurret.Distance(ObjectManager.Player.ServerPosition) > 2000f)
                     return;
 
                 for (int i = 0, l = args.Path.Length - 1; i < l; i++)
                 {
-                    var intersections = args.Path[i].ToVector2()
-                        .FindLineCircleIntersections(args.Path[i + 1].ToVector2(), _fountainTurret.ServerPosition.ToVector2(), FountainRange/2);
+                    var intersections = args.Path[i].To2D()
+                        .FindLineCircleIntersections(args.Path[i + 1].To2D(), _fountainTurret.Position.To2D(), FountainRange/2);
                     if (intersections.Count > 0)
                     {
-                        ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo,
-                            intersections.ClosestIntersection(args.Path[i].ToVector2()).ToVector3());
+                        ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, intersections.ClosestIntersection(args.Path[i].To2D()).To3D());
                     }
                 }
             }

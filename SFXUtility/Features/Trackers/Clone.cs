@@ -80,7 +80,7 @@ namespace SFXUtility.Features.Trackers
                 var radius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value;
 
                 foreach (var hero in
-                    _heroes.Where(hero => !hero.IsDead && hero.IsVisible && Utility.IsOnScreen(hero.Position)))
+                    _heroes.Where(hero => !hero.IsDead && hero.IsVisible && hero.Position.IsOnScreen()))
                 {
                     Render.Circle.DrawCircle(hero.ServerPosition, hero.BoundingRadius + radius, circleColor, 1);
                 }

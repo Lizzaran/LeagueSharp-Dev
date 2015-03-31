@@ -38,28 +38,24 @@
     <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="LeagueSharp, Version=1.0.0.25, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\LeagueSharp\\System\LeagueSharp.dll</HintPath>
+    <Reference Include="LeagueSharp">
+      <HintPath>G:\LeagueSharp\System\LeagueSharp.dll</HintPath>
     </Reference>
-    <Reference Include="LeagueSharp.Common, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\LeagueSharp\\System\LeagueSharp.Common.dll</HintPath>
+    <Reference Include="LeagueSharp.Common">
+      <HintPath>G:\LeagueSharp\System\LeagueSharp.Common.dll</HintPath>
     </Reference>
     <Reference Include="LeagueSharp.CommonEx">
       <HintPath>G:\LeagueSharp\System\LeagueSharp.CommonEx.dll</HintPath>
     </Reference>
     <Reference Include="SFXLibrary, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\SFXLibrary\bin\Release\SFXLibrary.dll</HintPath>
+      <HintPath>G:\LeagueSharp\System\SFXLibrary.dll</HintPath>
     </Reference>
-    <Reference Include="SharpDX, Version=2.5.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\LeagueSharp\\System\SharpDX.dll</HintPath>
+    <Reference Include="SharpDX">
+      <HintPath>G:\LeagueSharp\System\SharpDX.dll</HintPath>
     </Reference>
-    <Reference Include="SharpDX.Direct3D9, Version=2.5.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\LeagueSharp\\System\SharpDX.Direct3D9.dll</HintPath>
+    <Reference Include="SharpDX.Direct3D9">
+      <HintPath>G:\LeagueSharp\System\SharpDX.Direct3D9.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

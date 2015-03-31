@@ -180,10 +180,8 @@ namespace SFXUtility.Features.Drawings
             try
             {
                 _minions =
-                    ObjectHandler.GetFast<Obj_AI_Minion>()
-                        .Where(
-                            minion =>
-                                minion != null && minion.IsValid && minion.Health > 0.1f && minion.IsEnemy && Utility.IsOnScreen(minion.Position));
+                    ObjectManager.Get<Obj_AI_Minion>()
+                        .Where(minion => minion != null && minion.IsValid && minion.Health > 0.1f && minion.IsEnemy && minion.Position.IsOnScreen());
             }
             catch (Exception ex)
             {

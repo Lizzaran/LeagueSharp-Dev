@@ -144,7 +144,8 @@ namespace SFXUtility.Features.Activators
         {
             try
             {
-                if (ObjectManager.Player.CountEnemiesInRange(Menu.Item(Name + "MinEnemyDistance").GetValue<Slider>().Value) == 0)
+                var enemyDist = Menu.Item(Name + "MinEnemyDistance").GetValue<Slider>().Value;
+                if (enemyDist > 0 && ObjectManager.Player.CountEnemiesInRange(enemyDist) == 0)
                     return;
 
                 if (Menu.Item(Name + "HealthPotion").GetValue<bool>())

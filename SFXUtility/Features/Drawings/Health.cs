@@ -69,10 +69,9 @@ namespace SFXUtility.Features.Drawings
             {
                 if (inhibitor.IsValid && !inhibitor.IsDead && inhibitor.Health > 0.1f)
                 {
-                    var percent = ((int) (inhibitor.Health/inhibitor.MaxHealth)*100);
                     Draw.TextCentered(Drawing.WorldToMinimap(inhibitor.Position), Menu.Item(Name + "InhibitorColor").GetValue<Color>(),
                         Menu.Item(Name + "InhibitorPercentage").GetValue<bool>()
-                            ? (percent == 0 ? 1 : percent).ToString(CultureInfo.InvariantCulture)
+                            ? (inhibitor.HealthPercent == 0 ? 1 : inhibitor.HealthPercent).ToString(CultureInfo.InvariantCulture)
                             : ((int) inhibitor.Health).ToString(CultureInfo.InvariantCulture));
                 }
             }
@@ -117,8 +116,8 @@ namespace SFXUtility.Features.Drawings
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _turrets = ObjectHandler.GetFast<Obj_AI_Turret>().Where(t => t.IsValid && !t.IsDead && t.Health > 0.1f && t.Health < 9999f);
-                _inhibs = ObjectHandler.GetFast<Obj_BarracksDampener>().Where(i => i.IsValid && !i.IsDead && i.Health > 0.1f);
+                _turrets = ObjectManager.Get<Obj_AI_Turret>().Where(t => t.IsValid && !t.IsDead && t.Health > 0.1f && t.Health < 9999f);
+                _inhibs = ObjectManager.Get<Obj_BarracksDampener>().Where(i => i.IsValid && !i.IsDead && i.Health > 0.1f);
 
                 if (!_turrets.Any() || !_inhibs.Any())
                     return;
@@ -171,10 +170,9 @@ namespace SFXUtility.Features.Drawings
             {
                 if (turret.IsValid && !turret.IsDead && turret.Health > 0f && turret.Health < 9999f)
                 {
-                    var percent = ((int) (turret.Health/turret.MaxHealth)*100);
                     Draw.TextCentered(Drawing.WorldToMinimap(turret.Position), Menu.Item(Name + "TurretColor").GetValue<Color>(),
                         Menu.Item(Name + "TurretPercentage").GetValue<bool>()
-                            ? (percent == 0 ? 1 : percent).ToString(CultureInfo.InvariantCulture)
+                            ? (turret.HealthPercent == 0 ? 1 : turret.HealthPercent).ToString(CultureInfo.InvariantCulture)
                             : ((int) turret.Health).ToString(CultureInfo.InvariantCulture));
                 }
             }

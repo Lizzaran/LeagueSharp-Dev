@@ -224,7 +224,7 @@ namespace SFXUtility.Features.Trackers
                 {
                     Hero = hero;
                     var mPos = Drawing.WorldToMinimap(hero.Position);
-                    var spawnPoint = ObjectHandler.GetFast<GameObject>().FirstOrDefault(s => s is Obj_SpawnPoint && s.IsEnemy);
+                    var spawnPoint = ObjectManager.Get<GameObject>().FirstOrDefault(s => s is Obj_SpawnPoint && s.IsEnemy);
 
                     _championSprite =
                         new Render.Sprite(

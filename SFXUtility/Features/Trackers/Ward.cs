@@ -88,7 +88,7 @@ namespace SFXUtility.Features.Trackers
             Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
             GameObject.OnCreate += OnGameObjectCreate;
 
-            foreach (var obj in ObjectHandler.GetFast<GameObject>().Where(o => o is Obj_AI_Base))
+            foreach (var obj in ObjectManager.Get<GameObject>().Where(o => o is Obj_AI_Base))
             {
                 OnGameObjectCreate(obj, null);
             }

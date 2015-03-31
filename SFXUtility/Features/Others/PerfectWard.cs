@@ -32,7 +32,6 @@ namespace SFXUtility.Features.Others
     using LeagueSharp.Common;
     using LeagueSharp.Common.Data;
     using LeagueSharp.CommonEx.Core.Events;
-    using LeagueSharp.CommonEx.Core.Extensions.SharpDX;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
@@ -287,12 +286,12 @@ namespace SFXUtility.Features.Others
 
                 foreach (var spot in _wardSpots)
                 {
-                    if (Utility.IsOnScreen(spot.MagneticPosition))
+                    if (spot.MagneticPosition.IsOnScreen())
                     {
                         Render.Circle.DrawCircle(spot.MagneticPosition, radius, color, 1);
                         if (spot.SafeSpot)
                         {
-                            Drawing.DrawLine(spot.MagneticPosition.ToVector2(), spot.WardPosition.ToVector2(), 2f, color);
+                            Drawing.DrawLine(spot.MagneticPosition.To2D(), spot.WardPosition.To2D(), 2f, color);
                         }
                     }
                 }
@@ -313,7 +312,7 @@ namespace SFXUtility.Features.Others
                 var spot = GetNearestWardSpot(Game.CursorPos);
                 if (!spot.Equals(default(WardSpot)))
                 {
-                    if (Geometry.Distance(Game.CursorPos, spot.MagneticPosition) <= Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value)
+                    if (Game.CursorPos.Distance(spot.MagneticPosition) <= Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value)
                     {
                         args.Process = false;
                         if (spot.SafeSpot)
@@ -371,7 +370,7 @@ namespace SFXUtility.Features.Others
                 if (ObjectManager.Player.IsDead || _lastWardSpot.Equals(default(WardSpot)))
                     return;
 
-                if (Geometry.Distance(ObjectManager.Player.Position, _lastWardSpot.ClickPosition) <= 650f)
+                if (ObjectManager.Player.Position.Distance(_lastWardSpot.ClickPosition) <= 650f)
                 {
                     ObjectManager.Player.Spellbook.CastSpell(_lastWardSlot, _lastWardSpot.ClickPosition);
                     _lastWardSpot = default(WardSpot);

@@ -32,7 +32,6 @@ namespace SFXUtility.Features.Drawings
     using LeagueSharp.Common;
     using LeagueSharp.CommonEx.Core.Enumerations;
     using LeagueSharp.CommonEx.Core.Events;
-    using LeagueSharp.CommonEx.Core.Extensions.SharpDX;
     using LeagueSharp.CommonEx.Core.Wrappers;
     using SFXLibrary;
     using SFXLibrary.IoCContainer;
@@ -70,11 +69,11 @@ namespace SFXUtility.Features.Drawings
                 var fromColor = Menu.Item(Name + "DrawingFromColor").GetValue<Color>();
                 var toColor = Menu.Item(Name + "DrawingToColor").GetValue<Color>();
 
-                foreach (var walljumpSpot in _walljumpSpots.Where(walljumpSpot => Utility.IsOnScreen(walljumpSpot.Start)))
+                foreach (var walljumpSpot in _walljumpSpots.Where(walljumpSpot => walljumpSpot.Start.IsOnScreen()))
                 {
                     Render.Circle.DrawCircle(walljumpSpot.Start, radius, fromColor, 1);
-                    Drawing.DrawLine(walljumpSpot.Start.ToVector2(), walljumpSpot.End.ToVector2(), 2, toColor);
-                    Draw.Cross(walljumpSpot.End.ToVector2(), 10f, 2f, toColor);
+                    Drawing.DrawLine(walljumpSpot.Start.To2D(), walljumpSpot.End.To2D(), 2, toColor);
+                    Draw.Cross(walljumpSpot.End.To2D(), 10f, 2f, toColor);
                 }
             }
             catch (Exception ex)

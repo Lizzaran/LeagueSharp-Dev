@@ -31,7 +31,6 @@ namespace SFXUtility.Features.Others
     using LeagueSharp;
     using LeagueSharp.Common;
     using LeagueSharp.CommonEx.Core.Events;
-    using LeagueSharp.CommonEx.Core.Extensions.SharpDX;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
@@ -120,7 +119,7 @@ namespace SFXUtility.Features.Others
                                 ObjectManager.Player.ServerPosition.Distance(sender.ServerPosition),
                                 ObjectManager.Player.ServerPosition.Y +
                                 (sender.ServerPosition.Y - ObjectManager.Player.ServerPosition.Y)*(spellInfo.TurnOpposite ? 100 : -100)/
-                                ObjectManager.Player.ServerPosition.Distance(sender.ServerPosition)).ToVector3());
+                                ObjectManager.Player.ServerPosition.Distance(sender.ServerPosition)).To3D());
                     }
                 }
             }

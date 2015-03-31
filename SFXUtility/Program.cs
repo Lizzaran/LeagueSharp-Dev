@@ -26,6 +26,7 @@ namespace SFXUtility
 
     using System;
     using System.Globalization;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using Classes;
@@ -48,7 +49,6 @@ namespace SFXUtility
         private static void Main(string[] args)
         {
             const BindingFlags bFlags = BindingFlags.CreateInstance | BindingFlags.Public | BindingFlags.Instance | BindingFlags.OptionalParamBinding;
-
             var container = new Container();
 
             AppDomain.CurrentDomain.UnhandledException += delegate(object sender, UnhandledExceptionEventArgs eventArgs)
@@ -62,8 +62,8 @@ namespace SFXUtility
 
             container.Register(typeof (ILogger),
                 () =>
-                    Activator.CreateInstance(typeof (ExceptionLogger), bFlags, null, new object[] {AppDomain.CurrentDomain.BaseDirectory},
-                        CultureInfo.CurrentCulture), true);
+                    Activator.CreateInstance(typeof (ExceptionLogger), bFlags, null,
+                        new object[] {Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SFXUtility - Logs")}, CultureInfo.CurrentCulture), true);
 
             container.Register(typeof (SFXUtility),
                 () => Activator.CreateInstance(typeof (SFXUtility), bFlags, null, new object[] {container}, CultureInfo.CurrentCulture), true, true);
@@ -83,7 +83,10 @@ namespace SFXUtility
                 }
                 catch (Exception ex)
                 {
-                    container.Resolve<ILogger>().AddItem(new LogItem(ex));
+                    if (container.IsRegistered<ILogger>())
+                        container.Resolve<ILogger>().AddItem(new LogItem(ex));
+                    else
+                        Console.WriteLine(ex);
                 }
             }
         }

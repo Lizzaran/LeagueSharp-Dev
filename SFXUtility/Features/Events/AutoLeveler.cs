@@ -189,11 +189,9 @@ namespace SFXUtility.Features.Events
 
         private int MaxSpellLevel(SpellSlot slot, int level)
         {
-            if (slot == SpellSlot.R)
-            {
-                return level >= 16 ? 3 : level >= 11 ? 2 : level >= 6 ? 1 : 0;
-            }
-            return level >= 9 ? 5 : level >= 7 ? 4 : level >= 5 ? 3 : level >= 3 ? 2 : 1;
+            return slot == SpellSlot.R
+                ? (level >= 16 ? 3 : level >= 11 ? 2 : level >= 6 ? 1 : 0)
+                : (level >= 9 ? 5 : level >= 7 ? 4 : level >= 5 ? 3 : level >= 3 ? 2 : 1);
         }
 
         private struct SpellInfoStruct

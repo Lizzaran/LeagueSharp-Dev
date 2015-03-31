@@ -126,7 +126,7 @@ namespace SFXUtility.Features.Others
                     Menu.Item(Name + "Hotkey").IsActive())
                 {
                     var lantern =
-                        ObjectHandler.GetFast<Obj_AI_Base>()
+                        ObjectManager.Get<Obj_AI_Base>()
                             .FirstOrDefault(o => o.IsValid && o.IsAlly && o.Name.Contains("ThreshLantern", StringComparison.OrdinalIgnoreCase));
                     if (lantern != null && lantern.IsValidTarget(500, false, ObjectManager.Player.ServerPosition))
                     {

@@ -31,7 +31,6 @@ namespace SFXUtility.Features.Trackers
     using LeagueSharp;
     using LeagueSharp.Common;
     using LeagueSharp.CommonEx.Core.Events;
-    using LeagueSharp.CommonEx.Core.Extensions.SharpDX;
     using SFXLibrary;
     using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.IoCContainer;
@@ -44,7 +43,9 @@ namespace SFXUtility.Features.Trackers
 
     internal class Waypoint : Base
     {
+        private const float CheckInterval = 50f;
         private readonly Dictionary<int, List<Vector2>> _waypoints = new Dictionary<int, List<Vector2>>();
+        private float _lastCheck = Environment.TickCount;
         private Trackers _parent;
 
         public Waypoint(IContainer container) : base(container)
@@ -64,27 +65,35 @@ namespace SFXUtility.Features.Trackers
 
         protected override void OnEnable()
         {
-            Obj_AI_Base.OnNewPath += OnObjAiBaseNewPath;
+            Game.OnUpdate += OnGameUpdate;
             Drawing.OnDraw += OnDrawingDraw;
             base.OnEnable();
         }
 
         protected override void OnDisable()
         {
-            Obj_AI_Base.OnNewPath -= OnObjAiBaseNewPath;
+            Game.OnUpdate -= OnGameUpdate;
             Drawing.OnDraw -= OnDrawingDraw;
             base.OnDisable();
         }
 
-        private void OnObjAiBaseNewPath(Obj_AI_Base sender, GameObjectNewPathEventArgs args)
+        private void OnGameUpdate(EventArgs args)
         {
             try
             {
-                if (!(sender is Obj_AI_Hero) || !sender.IsValid)
+                if (_lastCheck + CheckInterval > Environment.TickCount)
                     return;
+                _lastCheck = Environment.TickCount;
 
-                if (sender.IsAlly && Menu.Item(Name + "DrawAlly").GetValue<bool>() || sender.IsEnemy && Menu.Item(Name + "DrawEnemy").GetValue<bool>())
-                    _waypoints[sender.NetworkId] = sender.GetWaypoints();
+                foreach (
+                    var hero in
+                        ObjectHandler.AllHeroes.Where(
+                            hero =>
+                                Menu.Item(Name + "DrawAlly").GetValue<bool>() && hero.IsAlly ||
+                                Menu.Item(Name + "DrawEnemy").GetValue<bool>() && hero.IsEnemy))
+                {
+                    _waypoints[hero.NetworkId] = hero.GetWaypoints();
+                }
             }
             catch (Exception ex)
             {
@@ -104,15 +113,13 @@ namespace SFXUtility.Features.Trackers
                     var arrivalTime = 0.0f;
                     for (int i = 0, l = waypoints.Count - 1; i < l; i++)
                     {
-                        if (!Geometry.IsValid(waypoints[i]) || !Geometry.IsValid(waypoints[i + 1]))
+                        if (!waypoints[i].IsValid() || !waypoints[i + 1].IsValid())
                             continue;
 
-                        var current = Drawing.WorldToScreen(waypoints[i].ToVector3());
-                        var next = Drawing.WorldToScreen(waypoints[i + 1].ToVector3());
+                        var current = Drawing.WorldToScreen(waypoints[i].To3D());
+                        var next = Drawing.WorldToScreen(waypoints[i + 1].To3D());
 
-                        arrivalTime += (Vector3.Distance(waypoints[i].ToVector3(), waypoints[i + 1].ToVector3())/(ObjectManager.Player.MoveSpeed/1000))/
-                                       1000;
-
+                        arrivalTime += (Vector3.Distance(waypoints[i].To3D(), waypoints[i + 1].To3D())/(ObjectManager.Player.MoveSpeed/1000))/1000;
                         if (current.IsOnScreen(next))
                         {
                             Drawing.DrawLine(current.X, current.Y, next.X, next.Y, 1, lineColor);

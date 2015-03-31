@@ -270,7 +270,7 @@ namespace SFXUtility.Features.Drawings
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _turrets = ObjectHandler.GetFast<Obj_AI_Turret>().Where(turret => turret.IsValid);
+                _turrets = ObjectManager.Get<Obj_AI_Turret>().Where(turret => turret.IsValid);
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();

@@ -39,7 +39,6 @@ namespace SFXUtility.Features.Timers
     using SFXLibrary.Logger;
     using SharpDX;
     using Color = System.Drawing.Color;
-    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
@@ -82,7 +81,7 @@ namespace SFXUtility.Features.Timers
             try
             {
                 var minions =
-                    ObjectHandler.GetFast<Obj_AI_Minion>()
+                    ObjectManager.Get<Obj_AI_Minion>()
                         .Where(
                             minion =>
                                 minion.IsValid && !minion.IsDead && minion.Team == GameObjectTeam.Neutral &&
@@ -95,10 +94,12 @@ namespace SFXUtility.Features.Timers
                     var dead = camp.Mobs.All(c => c.Dead);
                     if (dead && camp.NextRespawnTime < Game.Time + 10f)
                     {
+                        camp.Dead = true;
                         camp.NextRespawnTime = (int) Game.Time + camp.RespawnTime;
                     }
                     else
                     {
+                        camp.Dead = false;
                         foreach (var mob in camp.Mobs)
                         {
                             mob.Dead = !minions.Any(m => m.Name.Equals(mob.Name, StringComparison.OrdinalIgnoreCase));
@@ -117,7 +118,7 @@ namespace SFXUtility.Features.Timers
             try
             {
                 var totalSeconds = Menu.Item("DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1;
-                foreach (var camp in _camps.Where(camp => camp.Mobs.All(c => c.Dead)))
+                foreach (var camp in _camps.Where(camp => camp.Dead))
                 {
                     Draw.TextCentered(Drawing.WorldToMinimap(camp.Position), Color.White,
                         (camp.NextRespawnTime - (int) Game.Time).FormatTime(totalSeconds));
@@ -284,6 +285,7 @@ namespace SFXUtility.Features.Timers
             public Vector3 Position { get; private set; }
             public Mob[] Mobs { get; private set; }
             public float NextRespawnTime { get; set; }
+            public bool Dead { get; set; }
         }
 
         private class Mob
