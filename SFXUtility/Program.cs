@@ -60,10 +60,7 @@ namespace SFXUtility
                 }
             };
 
-            container.Register(typeof (ILogger),
-                () =>
-                    Activator.CreateInstance(typeof (ExceptionLogger), bFlags, null,
-                        new object[] {Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SFXUtility - Logs")}, CultureInfo.CurrentCulture), true);
+            container.Register<ILogger, ConsoleLogger>(true);
 
             container.Register(typeof (SFXUtility),
                 () => Activator.CreateInstance(typeof (SFXUtility), bFlags, null, new object[] {container}, CultureInfo.CurrentCulture), true, true);

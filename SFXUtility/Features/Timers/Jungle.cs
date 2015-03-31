@@ -30,9 +30,6 @@ namespace SFXUtility.Features.Timers
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Enumerations;
-    using LeagueSharp.CommonEx.Core.Events;
-    using LeagueSharp.CommonEx.Core.Wrappers;
     using SFXLibrary;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
@@ -49,7 +46,7 @@ namespace SFXUtility.Features.Timers
 
         public Jungle(IContainer container) : base(container)
         {
-            Load.OnLoad += OnLoad;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public override bool Enabled
@@ -88,11 +85,11 @@ namespace SFXUtility.Features.Timers
                                 (minion.Name.StartsWith("SRU_", StringComparison.OrdinalIgnoreCase) ||
                                  minion.Name.StartsWith("TT_", StringComparison.OrdinalIgnoreCase)))
                         .ToList();
-
+                
                 foreach (var camp in _camps)
                 {
                     var dead = camp.Mobs.All(c => c.Dead);
-                    if (dead && camp.NextRespawnTime < Game.Time + 10f)
+                    if (dead)
                     {
                         camp.Dead = true;
                         camp.NextRespawnTime = (int) Game.Time + camp.RespawnTime;
@@ -130,7 +127,7 @@ namespace SFXUtility.Features.Timers
             }
         }
 
-        private void OnLoad(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
@@ -168,7 +165,7 @@ namespace SFXUtility.Features.Timers
                 _parent.Menu.AddSubMenu(Menu);
 
                 SetupCamps();
-
+                
                 if (_camps.Count == 0)
                     return;
 
@@ -183,12 +180,12 @@ namespace SFXUtility.Features.Timers
 
         private void SetupCamps()
         {
-            switch (Map.GetMap().Type)
+            switch (Utility.Map.GetMap().Type)
             {
-                case MapType.SummonersRift:
+                case Utility.Map.MapType.SummonersRift:
                     _camps.AddRange(new List<Camp>
                     {
-// Order: Blue
+                        // Order: Blue
                         new Camp(115, 300, new Vector3(3388.2f, 8400f, 55.2f),
                             new[] {new Mob("SRU_Blue1.1.1"), new Mob("SRU_BlueMini1.1.2"), new Mob("SRU_BlueMini21.1.3")}),
                         //Order: Wolves
@@ -240,7 +237,7 @@ namespace SFXUtility.Features.Timers
                         new Camp(150, 180, new Vector3(4200.1f, 9900.7f, -63.1f), new[] {new Mob("SRU_Crab16.1.1")})
                     });
                     break;
-                case MapType.TwistedTreeline:
+                case Utility.Map.MapType.TwistedTreeline:
                     _camps.AddRange(new List<Camp>
                     {
 //Order: Wraiths

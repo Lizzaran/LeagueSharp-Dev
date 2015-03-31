@@ -29,7 +29,6 @@ namespace SFXUtility.Features.Drawings
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
@@ -41,7 +40,7 @@ namespace SFXUtility.Features.Drawings
 
         public Clock(IContainer container) : base(container)
         {
-            Load.OnLoad += OnLoad;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public override bool Enabled
@@ -80,7 +79,7 @@ namespace SFXUtility.Features.Drawings
             base.OnDisable();
         }
 
-        private void OnLoad(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {

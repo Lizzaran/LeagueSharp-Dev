@@ -31,7 +31,6 @@ namespace SFXUtility.Features.Trackers
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Events;
     using Properties;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
@@ -43,12 +42,12 @@ namespace SFXUtility.Features.Trackers
 
     internal class Cooldown : Base
     {
-        private IEnumerable<CooldownObject> _cooldownObjects = new List<CooldownObject>();
+        private List<CooldownObject> _cooldownObjects = new List<CooldownObject>();
         private Trackers _parent;
 
         public Cooldown(IContainer container) : base(container)
         {
-            Load.OnLoad += OnLoad;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public override bool Enabled
@@ -61,7 +60,7 @@ namespace SFXUtility.Features.Trackers
             get { return "Cooldown"; }
         }
 
-        private void OnLoad(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
@@ -87,7 +86,7 @@ namespace SFXUtility.Features.Trackers
                 if (_parent.Menu == null)
                     return;
 
-                Menu = new Menu(Name, BaseName + Name);
+                Menu = new Menu(Name, Name);
 
                 Menu.AddItem(new MenuItem(Name + "EnemyEnabled", "Track Enemy").SetValue(false));
                 Menu.AddItem(new MenuItem(Name + "AllyEnabled", "Track Ally").SetValue(false));
@@ -95,29 +94,35 @@ namespace SFXUtility.Features.Trackers
 
                 Menu.Item(Name + "EnemyEnabled").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
                 {
-                    foreach (var cd in _cooldownObjects)
+                    foreach (var cd in _cooldownObjects.Where(cd => cd.Hero.IsEnemy))
                     {
-                        cd.Active = Menu.Item(Name + "Enabled").GetValue<bool>() &&
-                                    (cd.Hero.IsEnemy && args.GetNewValue<bool>() || cd.Hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>()) &&
-                                    _parent != null && _parent.Enabled;
+                        cd.Active = Enabled && args.GetNewValue<bool>();
                     }
                 };
                 Menu.Item(Name + "AllyEnabled").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
                 {
-                    foreach (var cd in _cooldownObjects)
+                    foreach (var cd in _cooldownObjects.Where(cd => cd.Hero.IsAlly))
                     {
-                        cd.Active = Menu.Item(Name + "Enabled").GetValue<bool>() &&
-                                    (cd.Hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>() ||
-                                     cd.Hero.IsAlly && args.GetNewValue<bool>()) && _parent != null && _parent.Enabled;
+                        cd.Active = Enabled && args.GetNewValue<bool>();
                     }
                 };
                 Menu.Item(Name + "Enabled").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
                 {
                     foreach (var cd in _cooldownObjects)
                     {
-                        cd.Active = args.GetNewValue<bool>() &&
-                                    (cd.Hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>() ||
-                                     cd.Hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>()) && _parent != null && _parent.Enabled;
+                        cd.Active = _parent.Enabled && args.GetNewValue<bool>() &&
+                                    (cd.Hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>() ||
+                                     cd.Hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>());
+                    }
+                };
+
+                _parent.Menu.Item(_parent.Name + "Enabled").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
+                {
+                    foreach (var cd in _cooldownObjects)
+                    {
+                        cd.Active = args.GetNewValue<bool>() && Menu.Item(Name + "Enabled").GetValue<bool>() &&
+                                    (cd.Hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>() ||
+                                     cd.Hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>());
                     }
                 };
 
@@ -133,8 +138,9 @@ namespace SFXUtility.Features.Trackers
                                         Enabled &&
                                         (hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>() ||
                                          hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>())
-                                });
+                                }).ToList();
 
+                HandleEvents(_parent);
                 RaiseOnInitialized();
             }
             catch (Exception ex)
@@ -199,7 +205,7 @@ namespace SFXUtility.Features.Trackers
                     try
                     {
                         var index = i;
-                        var spell = Hero.Spellbook.GetSpell(_spellSlots[index]);
+                        var spell = Hero.Spellbook.GetSpell(_summonerSpellSlots[index]);
                         var summoner = Resources.ResourceManager.GetObject(string.Format("CD_{0}", spell.Name.ToLower())) ??
                                        Resources.CD_summonerbarrier;
                         var sprite = new Render.Sprite((Bitmap) summoner, default(Vector2))

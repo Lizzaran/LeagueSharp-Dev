@@ -32,23 +32,21 @@ namespace SFXUtility.Features.Drawings
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
-    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
     internal class Health : Base
     {
-        private IEnumerable<Obj_BarracksDampener> _inhibs = new List<Obj_BarracksDampener>();
+        private List<Obj_BarracksDampener> _inhibs = new List<Obj_BarracksDampener>();
         private Drawings _parent;
-        private IEnumerable<Obj_AI_Turret> _turrets = new List<Obj_AI_Turret>();
+        private List<Obj_AI_Turret> _turrets = new List<Obj_AI_Turret>();
 
         public Health(IContainer container) : base(container)
         {
-            Load.OnLoad += OnLoad;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public override bool Enabled
@@ -69,9 +67,10 @@ namespace SFXUtility.Features.Drawings
             {
                 if (inhibitor.IsValid && !inhibitor.IsDead && inhibitor.Health > 0.1f)
                 {
+                    var percent = Convert.ToInt32((inhibitor.Health/inhibitor.MaxHealth)*100);
                     Draw.TextCentered(Drawing.WorldToMinimap(inhibitor.Position), Menu.Item(Name + "InhibitorColor").GetValue<Color>(),
                         Menu.Item(Name + "InhibitorPercentage").GetValue<bool>()
-                            ? (inhibitor.HealthPercent == 0 ? 1 : inhibitor.HealthPercent).ToString(CultureInfo.InvariantCulture)
+                            ? (percent == 0 ? 1 : percent).ToString(CultureInfo.InvariantCulture)
                             : ((int) inhibitor.Health).ToString(CultureInfo.InvariantCulture));
                 }
             }
@@ -97,7 +96,7 @@ namespace SFXUtility.Features.Drawings
                 if (_parent.Menu == null)
                     return;
 
-                Menu = new Menu(Name, BaseName + Name);
+                Menu = new Menu(Name, Name);
 
                 var inhibitorMenu = new Menu("Inhibitor", Name + "Inhibitor");
                 inhibitorMenu.AddItem(new MenuItem(inhibitorMenu.Name + "Color", "Color").SetValue(Color.Yellow));
@@ -116,8 +115,8 @@ namespace SFXUtility.Features.Drawings
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _turrets = ObjectManager.Get<Obj_AI_Turret>().Where(t => t.IsValid && !t.IsDead && t.Health > 0.1f && t.Health < 9999f);
-                _inhibs = ObjectManager.Get<Obj_BarracksDampener>().Where(i => i.IsValid && !i.IsDead && i.Health > 0.1f);
+                _turrets = ObjectManager.Get<Obj_AI_Turret>().Where(t => t.IsValid && !t.IsDead && t.Health > 0.1f && t.Health < 9999f).ToList();
+                _inhibs = ObjectManager.Get<Obj_BarracksDampener>().Where(i => i.IsValid && !i.IsDead && i.Health > 0.1f).ToList();
 
                 if (!_turrets.Any() || !_inhibs.Any())
                     return;
@@ -143,7 +142,7 @@ namespace SFXUtility.Features.Drawings
             base.OnDisable();
         }
 
-        private void OnLoad(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
@@ -170,9 +169,10 @@ namespace SFXUtility.Features.Drawings
             {
                 if (turret.IsValid && !turret.IsDead && turret.Health > 0f && turret.Health < 9999f)
                 {
+                    var percent = Convert.ToInt32((turret.Health/turret.MaxHealth)*100);
                     Draw.TextCentered(Drawing.WorldToMinimap(turret.Position), Menu.Item(Name + "TurretColor").GetValue<Color>(),
                         Menu.Item(Name + "TurretPercentage").GetValue<bool>()
-                            ? (turret.HealthPercent == 0 ? 1 : turret.HealthPercent).ToString(CultureInfo.InvariantCulture)
+                            ? (percent == 0 ? 1 : percent).ToString(CultureInfo.InvariantCulture)
                             : ((int) turret.Health).ToString(CultureInfo.InvariantCulture));
                 }
             }

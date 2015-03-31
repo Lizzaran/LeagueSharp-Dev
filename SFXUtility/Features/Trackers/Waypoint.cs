@@ -30,14 +30,12 @@ namespace SFXUtility.Features.Trackers
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary;
     using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
     using Color = System.Drawing.Color;
-    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
@@ -50,7 +48,7 @@ namespace SFXUtility.Features.Trackers
 
         public Waypoint(IContainer container) : base(container)
         {
-            Load.OnLoad += OnLoad;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public override bool Enabled
@@ -85,12 +83,11 @@ namespace SFXUtility.Features.Trackers
                     return;
                 _lastCheck = Environment.TickCount;
 
-                foreach (
-                    var hero in
-                        ObjectHandler.AllHeroes.Where(
-                            hero =>
-                                Menu.Item(Name + "DrawAlly").GetValue<bool>() && hero.IsAlly ||
-                                Menu.Item(Name + "DrawEnemy").GetValue<bool>() && hero.IsEnemy))
+                foreach (var hero in
+                    HeroManager.AllHeroes.Where(
+                        hero =>
+                            Menu.Item(Name + "DrawAlly").GetValue<bool>() && hero.IsAlly ||
+                            Menu.Item(Name + "DrawEnemy").GetValue<bool>() && hero.IsEnemy))
                 {
                     _waypoints[hero.NetworkId] = hero.GetWaypoints();
                 }
@@ -138,7 +135,7 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private void OnLoad(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
@@ -164,7 +161,7 @@ namespace SFXUtility.Features.Trackers
                 if (_parent.Menu == null)
                     return;
 
-                Menu = new Menu(Name, BaseName + Name);
+                Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu("Drawing", Name + "Drawing");
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CrossColor", "Cross Color").SetValue(Color.DarkRed));
@@ -178,7 +175,7 @@ namespace SFXUtility.Features.Trackers
 
                 Menu.Item(Name + "DrawAlly").ValueChanged += delegate
                 {
-                    foreach (var ally in ObjectHandler.AllyHeroes.Where(ally => _waypoints.ContainsKey(ally.NetworkId)))
+                    foreach (var ally in HeroManager.Allies.Where(ally => _waypoints.ContainsKey(ally.NetworkId)))
                     {
                         _waypoints.Remove(ally.NetworkId);
                     }
@@ -186,7 +183,7 @@ namespace SFXUtility.Features.Trackers
 
                 Menu.Item(Name + "DrawEnemy").ValueChanged += delegate
                 {
-                    foreach (var enemy in ObjectHandler.EnemyHeroes.Where(enemy => _waypoints.ContainsKey(enemy.NetworkId)))
+                    foreach (var enemy in HeroManager.Enemies.Where(enemy => _waypoints.ContainsKey(enemy.NetworkId)))
                     {
                         _waypoints.Remove(enemy.NetworkId);
                     }

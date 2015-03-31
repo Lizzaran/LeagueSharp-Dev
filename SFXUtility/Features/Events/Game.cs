@@ -29,7 +29,6 @@ namespace SFXUtility.Features.Events
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
@@ -41,7 +40,7 @@ namespace SFXUtility.Features.Events
 
         public Game(IContainer container) : base(container)
         {
-            Load.OnLoad += OnLoad;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public override bool Enabled
@@ -68,7 +67,7 @@ namespace SFXUtility.Features.Events
             base.OnDisable();
         }
 
-        private void OnLoad(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
@@ -94,12 +93,12 @@ namespace SFXUtility.Features.Events
                 if (_parent.Menu == null)
                     return;
 
-                Menu = new Menu(Name, BaseName + Name);
+                Menu = new Menu(Name, Name);
 
-                var startMenu = new Menu(Name + "GameOnStart", "Game.OnStart");
+                var startMenu = new Menu("OnStart", Name + "OnStart");
                 startMenu.AddItem(new MenuItem(startMenu.Name + "SayGlHf", "Say \"gl & hf\"").SetValue(false));
 
-                var endMenu = new Menu(Name + "GameOnEnd", "Game.OnEnd");
+                var endMenu = new Menu("OnEnd", Name + "OnEnd");
                 endMenu.AddItem(new MenuItem(endMenu.Name + "SayGg", "Say \"gg\"").SetValue(false));
                 endMenu.AddItem(new MenuItem(endMenu.Name + "CloseLoL", "Close LoL").SetValue(false));
 
@@ -124,9 +123,9 @@ namespace SFXUtility.Features.Events
         {
             try
             {
-                if (Menu.Item(Name + "GameOnEndSayGg").GetValue<bool>())
+                if (Menu.Item(Name + "OnEndSayGg").GetValue<bool>())
                     LeagueSharp.Game.Say("gg");
-                if (Menu.Item(Name + "GameOnEndCloseLoL").GetValue<bool>())
+                if (Menu.Item(Name + "OnEndCloseLoL").GetValue<bool>())
                     Process.GetProcessById(Process.GetCurrentProcess().Id).Kill();
             }
             catch (Exception ex)
@@ -139,7 +138,7 @@ namespace SFXUtility.Features.Events
         {
             try
             {
-                if (Menu.Item(Name + "GameOnStartSayGlHf").GetValue<bool>())
+                if (Menu.Item(Name + "OnStartSayGlHf").GetValue<bool>())
                     LeagueSharp.Game.Say("gl & hf");
             }
             catch (Exception ex)

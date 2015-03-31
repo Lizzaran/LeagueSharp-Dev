@@ -29,13 +29,10 @@ namespace SFXUtility.Features.Others
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
-    using Gapcloser = LeagueSharp.CommonEx.Core.Events.Gapcloser;
-    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
@@ -47,7 +44,7 @@ namespace SFXUtility.Features.Others
 
         public AntiFountain(IContainer container) : base(container)
         {
-            Load.OnLoad += OnLoad;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public override bool Enabled
@@ -74,7 +71,7 @@ namespace SFXUtility.Features.Others
             base.OnDisable();
         }
 
-        private void OnLoad(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
@@ -100,7 +97,7 @@ namespace SFXUtility.Features.Others
                 if (_parent.Menu == null)
                     return;
 
-                Menu = new Menu(Name, BaseName + Name);
+                Menu = new Menu(Name, Name);
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
@@ -109,8 +106,7 @@ namespace SFXUtility.Features.Others
                 _fountainTurret =
                     ObjectManager.Get<Obj_AI_Turret>()
                         .FirstOrDefault(
-                            s =>
-                                s != null && s.IsValid && s.IsEnemy && s.Name.Contains("TurretShrine", StringComparison.OrdinalIgnoreCase));
+                            s => s != null && s.IsValid && s.IsEnemy && s.Name.Contains("TurretShrine", StringComparison.OrdinalIgnoreCase));
 
                 if (_fountainTurret == null)
                     return;
@@ -128,7 +124,8 @@ namespace SFXUtility.Features.Others
         {
             if (!sender.Owner.IsMe || _fountainTurret.Distance(ObjectManager.Player.ServerPosition) > 2000f)
                 return;
-            if (Gapcloser.Spells.Any(a => a.SpellName == sender.GetSpell(args.Slot).Name))
+
+            if (AntiGapcloser.Spells.Any(a => a.SpellName == sender.GetSpell(args.Slot).Name))
             {
                 var intersections = args.StartPosition.To2D()
                     .FindLineCircleIntersections(args.EndPosition.To2D(), _fountainTurret.ServerPosition.To2D(), FountainRange/2);

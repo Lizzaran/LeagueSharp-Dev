@@ -33,14 +33,12 @@ namespace SFXUtility.Features.Trackers
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Events;
     using Properties;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
     using Color = System.Drawing.Color;
-    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
@@ -69,7 +67,7 @@ namespace SFXUtility.Features.Trackers
 
         public Ward(IContainer container) : base(container)
         {
-            Load.OnLoad += OnLoad;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public override bool Enabled
@@ -104,7 +102,7 @@ namespace SFXUtility.Features.Trackers
             base.OnDisable();
         }
 
-        private void OnLoad(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {

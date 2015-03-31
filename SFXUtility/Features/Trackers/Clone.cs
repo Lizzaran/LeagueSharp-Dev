@@ -31,23 +31,21 @@ namespace SFXUtility.Features.Trackers
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
-    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
     internal class Clone : Base
     {
         private readonly string[] _cloneHeroes = {"Shaco", "LeBlanc", "MonkeyKing", "Yorick"};
-        private IEnumerable<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
+        private List<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
         private Trackers _parent;
 
         public Clone(IContainer container) : base(container)
         {
-            Load.OnLoad += OnLoad;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public override bool Enabled
@@ -91,7 +89,7 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private void OnLoad(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
@@ -129,7 +127,7 @@ namespace SFXUtility.Features.Trackers
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _heroes = ObjectHandler.EnemyHeroes.Where(e => _cloneHeroes.Contains(e.ChampionName, StringComparison.OrdinalIgnoreCase));
+                _heroes = HeroManager.Enemies.Where(e => _cloneHeroes.Contains(e.ChampionName, StringComparison.OrdinalIgnoreCase)).ToList();
 
                 if (_heroes.Any())
                     return;

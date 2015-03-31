@@ -31,11 +31,9 @@ namespace SFXUtility.Features.Drawings
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
-    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
@@ -44,11 +42,11 @@ namespace SFXUtility.Features.Drawings
         private const float ExperienceRange = 1400f;
         private const float TurretRange = 900f;
         private Drawings _parent;
-        private IEnumerable<Obj_AI_Turret> _turrets = new List<Obj_AI_Turret>();
+        private List<Obj_AI_Turret> _turrets = new List<Obj_AI_Turret>();
 
         public Range(IContainer container) : base(container)
         {
-            Load.OnLoad += OnLoad;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public override bool Enabled
@@ -211,7 +209,7 @@ namespace SFXUtility.Features.Drawings
                 if (_parent.Menu == null)
                     return;
 
-                Menu = new Menu(Name, BaseName + Name);
+                Menu = new Menu(Name, Name);
 
                 var experienceMenu = new Menu("Experience", Name + "Experience");
                 experienceMenu.AddItem(new MenuItem(experienceMenu.Name + "Color", "Color").SetValue(Color.Gray));
@@ -270,7 +268,7 @@ namespace SFXUtility.Features.Drawings
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _turrets = ObjectManager.Get<Obj_AI_Turret>().Where(turret => turret.IsValid);
+                _turrets = ObjectManager.Get<Obj_AI_Turret>().Where(turret => turret.IsValid).ToList();
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();
@@ -293,7 +291,7 @@ namespace SFXUtility.Features.Drawings
             base.OnDisable();
         }
 
-        private void OnLoad(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {

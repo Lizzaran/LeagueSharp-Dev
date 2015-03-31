@@ -44,11 +44,7 @@
     <Reference Include="LeagueSharp.Common">
       <HintPath>G:\LeagueSharp\System\LeagueSharp.Common.dll</HintPath>
     </Reference>
-    <Reference Include="LeagueSharp.CommonEx">
-      <HintPath>G:\LeagueSharp\System\LeagueSharp.CommonEx.dll</HintPath>
-    </Reference>
-    <Reference Include="SFXLibrary, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="SFXLibrary">
       <HintPath>G:\LeagueSharp\System\SFXLibrary.dll</HintPath>
     </Reference>
     <Reference Include="SharpDX">
@@ -87,7 +83,7 @@
     <Compile Include="Features\Drawings\DamageIndicator.cs" />
     <Compile Include="Features\Others\AutoLantern.cs" />
     <Compile Include="Features\Others\Others.cs" />
-    <Compile Include="Features\Others\PerfectWard.cs" />
+    <Compile Include="Features\Drawings\PerfectWard.cs" />
     <Compile Include="Features\Others\SummonerInfo.cs" />
     <Compile Include="Features\Others\TurnAround.cs" />
     <Compile Include="Features\Detectors\Blink.cs" />

@@ -42,9 +42,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>G:\LeagueSharp\System\LeagueSharp.Common.dll</HintPath>
     </Reference>
-    <Reference Include="LeagueSharp.CommonEx">
-      <HintPath>G:\LeagueSharp\System\LeagueSharp.CommonEx.dll</HintPath>
-    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="SharpDX">
       <HintPath>G:\LeagueSharp\System\SharpDX.dll</HintPath>
@@ -76,9 +73,10 @@
     <Compile Include="JSON\JsonSerializer.cs" />
     <Compile Include="JSON\Reflection.cs" />
     <Compile Include="JSON\SafeDictionary.cs" />
+    <Compile Include="Logger\ConsoleLogger.cs" />
     <Compile Include="Logger\ILogger.cs" />
     <Compile Include="ProducerConsumer.cs" />
-    <Compile Include="Logger\ExceptionLogger.cs" />
+    <Compile Include="Logger\FileLogger.cs" />
     <Compile Include="Mediator.cs" />
     <Compile Include="MessageToActionsMap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

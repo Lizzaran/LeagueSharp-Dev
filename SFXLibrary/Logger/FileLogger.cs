@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- ExceptionLogger.cs is part of SFXLibrary.
+ FileLogger.cs is part of SFXLibrary.
 
  SFXLibrary is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ namespace SFXLibrary.Logger
 
     #endregion
 
-    public class ExceptionLogger : ProducerConsumer<LogItem>, ILogger
+    public class FileLogger : ProducerConsumer<LogItem>, ILogger
     {
         private readonly bool _compression;
         private readonly string _fileName;
@@ -44,7 +44,7 @@ namespace SFXLibrary.Logger
         private bool _filterSensitiveData = true;
         private string[] _sensitiveData;
 
-        public ExceptionLogger(string logDir, string fileName = "{1}_{0}.txt", bool compression = false, LogLevel logLevel = LogLevel.Low)
+        public FileLogger(string logDir, string fileName = "{1}_{0}.txt", bool compression = false, LogLevel logLevel = LogLevel.Low)
         {
             _logDir = logDir;
             _fileName = fileName;
@@ -55,7 +55,9 @@ namespace SFXLibrary.Logger
             {
                 Directory.CreateDirectory(_logDir);
             }
-            catch { }
+            catch
+            {
+            }
         }
 
         public JSONParameters JSONParams { get; set; }
@@ -77,7 +79,7 @@ namespace SFXLibrary.Logger
 
         public new void AddItem(LogItem item)
         {
-            if (LogLevel == LogLevel.None || item == null || string.IsNullOrEmpty(item.Exception))
+            if (LogLevel == LogLevel.None || item == null || string.IsNullOrWhiteSpace(item.Exception.ToString()))
                 return;
 
             var uniqueValue = (item.Exception + AdditionalData.ToDebugString()).Trim();
@@ -90,12 +92,13 @@ namespace SFXLibrary.Logger
 
         protected override void ProcessItem(LogItem item)
         {
-            if (item == null || string.IsNullOrWhiteSpace(item.Exception))
+            if (item == null || string.IsNullOrWhiteSpace(item.Exception.ToString()))
                 return;
 
             try
             {
-                var file = Path.Combine(_logDir, string.Format(_fileName, (item.Exception + AdditionalData.ToDebugString()).ToMd5Hash(), LogLevel.ToString().ToLower()));
+                var file = Path.Combine(_logDir,
+                    string.Format(_fileName, (item.Exception + AdditionalData.ToDebugString()).ToMd5Hash(), LogLevel.ToString().ToLower()));
 
                 if (File.Exists(file))
                     return;

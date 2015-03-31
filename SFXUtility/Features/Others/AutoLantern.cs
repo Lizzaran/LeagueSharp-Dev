@@ -29,11 +29,9 @@ namespace SFXUtility.Features.Others
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
-    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
@@ -43,7 +41,7 @@ namespace SFXUtility.Features.Others
 
         public AutoLantern(IContainer container) : base(container)
         {
-            Load.OnLoad += OnLoad;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public override bool Enabled
@@ -68,7 +66,7 @@ namespace SFXUtility.Features.Others
             base.OnDisable();
         }
 
-        private void OnLoad(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
@@ -94,7 +92,7 @@ namespace SFXUtility.Features.Others
                 if (_parent.Menu == null)
                     return;
 
-                Menu = new Menu(Name, BaseName + Name);
+                Menu = new Menu(Name, Name);
 
                 Menu.AddItem(new MenuItem(Name + "LowPercent", "@ HP Percent").SetValue(new Slider(20, 0, 50)));
                 Menu.AddItem(new MenuItem(Name + "Hotkey", "Hotkey").SetValue(new KeyBind('U', KeyBindType.Press)));
@@ -103,7 +101,7 @@ namespace SFXUtility.Features.Others
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                if (ObjectHandler.AllyHeroes.Any(a => !a.IsMe && a.ChampionName == "Thresh"))
+                if (HeroManager.Allies.Any(a => !a.IsMe && a.ChampionName == "Thresh"))
                     return;
 
                 HandleEvents(_parent);

@@ -27,7 +27,6 @@ namespace SFXUtility.Features.Events
     using System;
     using Classes;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
@@ -37,7 +36,7 @@ namespace SFXUtility.Features.Events
     {
         public Events(IContainer container) : base(container)
         {
-            Load.OnLoad += OnLoad;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public override bool Enabled
@@ -50,11 +49,11 @@ namespace SFXUtility.Features.Events
             get { return "Events"; }
         }
 
-        private void OnLoad(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
-                Menu = new Menu(Name, BaseName + Name);
+                Menu = new Menu(Name, Name);
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 

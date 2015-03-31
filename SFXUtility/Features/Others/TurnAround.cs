@@ -30,12 +30,10 @@ namespace SFXUtility.Features.Others
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
-    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
@@ -53,7 +51,7 @@ namespace SFXUtility.Features.Others
 
         public TurnAround(IContainer container) : base(container)
         {
-            Load.OnLoad += OnLoad;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public override bool Enabled
@@ -129,7 +127,7 @@ namespace SFXUtility.Features.Others
             }
         }
 
-        private void OnLoad(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
@@ -155,13 +153,13 @@ namespace SFXUtility.Features.Others
                 if (_parent.Menu == null)
                     return;
 
-                Menu = new Menu(Name, BaseName + Name);
+                Menu = new Menu(Name, Name);
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                if (!ObjectHandler.EnemyHeroes.Any(h => _spellInfos.Any(i => i.Owner == h.ChampionName)))
+                if (!HeroManager.Enemies.Any(h => _spellInfos.Any(i => i.Owner == h.ChampionName)))
                     return;
 
                 HandleEvents(_parent);

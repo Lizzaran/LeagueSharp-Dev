@@ -29,10 +29,6 @@ namespace SFXLibrary.Logger
 
     #endregion
 
-    #region
-
-    #endregion
-
     public interface ILogger
     {
         LogLevel LogLevel { get; set; }
@@ -50,12 +46,11 @@ namespace SFXLibrary.Logger
 
     public class LogItem
     {
-        public readonly string Exception;
+        public Exception Exception;
 
         public LogItem(Exception exception)
         {
-            if (exception != null)
-                Exception = exception.ToString();
+            Exception = exception;
         }
 
         public object Object { get; set; }

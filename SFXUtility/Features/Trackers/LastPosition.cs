@@ -31,14 +31,12 @@ namespace SFXUtility.Features.Trackers
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Events;
     using Properties;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
     using Color = SharpDX.Color;
-    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
@@ -49,7 +47,7 @@ namespace SFXUtility.Features.Trackers
 
         public LastPosition(IContainer container) : base(container)
         {
-            Load.OnLoad += OnLoad;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public override bool Enabled
@@ -62,7 +60,7 @@ namespace SFXUtility.Features.Trackers
             get { return "Last Position"; }
         }
 
-        private void OnLoad(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
@@ -73,17 +71,6 @@ namespace SFXUtility.Features.Trackers
                         OnParentInitialized(null, null);
                     else
                         _parent.OnInitialized += OnParentInitialized;
-
-                    if (IoC.IsRegistered<Recall>())
-                    {
-                        var recall = IoC.Resolve<Recall>();
-                        recall.OnEnabled += RecallEnabled;
-                        recall.OnDisabled += RecallDisabled;
-                        recall.OnFinish += RecallFinish;
-                        recall.OnStart += RecallStart;
-                        recall.OnAbort += RecallAbort;
-                        recall.OnUnknown += RecallAbort;
-                    }
                 }
             }
             catch (Exception ex)
@@ -144,6 +131,8 @@ namespace SFXUtility.Features.Trackers
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", "Font Size").SetValue(new Slider(13, 3, 30)));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "SSTimerOffset", "SS Timer Offset").SetValue(new Slider(5, 0, 50)));
 
+                Menu.AddSubMenu(drawingMenu);
+
                 Menu.AddItem(new MenuItem(Name + "SSTimer", "SS Timer").SetValue(false));
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
@@ -165,13 +154,19 @@ namespace SFXUtility.Features.Trackers
                 if (IoC.IsRegistered<Recall>())
                 {
                     var rt = IoC.Resolve<Recall>();
-                    if (rt.Initialized)
+                    if (rt.Initialized && rt.Menu != null)
                     {
                         recall = rt.Menu.Item(rt.Name + "Enabled").GetValue<bool>();
                     }
+                    rt.OnEnabled += RecallEnabled;
+                    rt.OnDisabled += RecallDisabled;
+                    rt.OnFinish += RecallFinish;
+                    rt.OnStart += RecallStart;
+                    rt.OnAbort += RecallAbort;
+                    rt.OnUnknown += RecallAbort;
                 }
 
-                foreach (var enemy in ObjectHandler.EnemyHeroes)
+                foreach (var enemy in HeroManager.Enemies)
                 {
                     try
                     {
@@ -191,6 +186,7 @@ namespace SFXUtility.Features.Trackers
                     }
                 }
 
+                HandleEvents(_parent);
                 RaiseOnInitialized();
             }
             catch (Exception ex)
@@ -271,13 +267,14 @@ namespace SFXUtility.Features.Trackers
                         };
                     _text = new Render.Text(string.Empty, new Vector2(mPos.X, mPos.Y), TextSize, Color.White)
                     {
+                        OutLined = true,
                         Centered = true,
                         PositionUpdate = delegate
                         {
                             try
                             {
-                                return new Vector2(_championSprite.Position.X - (_championSprite.Size.X/2),
-                                    _championSprite.Position.Y - (_championSprite.Size.Y/2) + TextOffset);
+                                return new Vector2(_championSprite.Position.X + (_championSprite.Size.X/2),
+                                    _championSprite.Position.Y + (_championSprite.Size.Y) + TextOffset);
                             }
                             catch (Exception ex)
                             {
@@ -289,8 +286,9 @@ namespace SFXUtility.Features.Trackers
                         {
                             try
                             {
-                                _lastSeen = !_championSprite.Visible ? Game.ClockTime : 0f;
-                                return SSTimer && _championSprite.Visible && Game.ClockTime - _lastSeen > 10f;
+                                if (Hero.IsVisible && !Hero.IsDead)
+                                    _lastSeen = Game.Time;
+                                return SSTimer && _championSprite.Visible && _lastSeen != 0f && (Game.Time - _lastSeen) > 3f;
                             }
                             catch (Exception ex)
                             {
@@ -298,7 +296,7 @@ namespace SFXUtility.Features.Trackers
                                 return false;
                             }
                         },
-                        TextUpdate = () => _text.Visible ? (Game.ClockTime - _lastSeen).FormatTime(TextTotalSeconds) : string.Empty
+                        TextUpdate = () => _text.Visible ? (Game.Time - _lastSeen).FormatTime(TextTotalSeconds) : string.Empty
                     };
                     _recallSprite = new Render.Sprite(Resources.LP_Recall, new Vector2(mPos.X, mPos.Y))
                     {
@@ -318,8 +316,8 @@ namespace SFXUtility.Features.Trackers
                         {
                             try
                             {
-                                return new Vector2(_championSprite.Position.X - (_recallSprite.Size.X/2),
-                                    _championSprite.Position.Y - (_recallSprite.Size.Y/2));
+                                var pos = Drawing.WorldToMinimap(hero.Position);
+                                return new Vector2(pos.X - (_recallSprite.Size.X / 2), pos.Y - (_recallSprite.Size.Y / 2));
                             }
                             catch (Exception ex)
                             {

@@ -29,7 +29,6 @@ namespace SFXUtility.Features.Others
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
@@ -43,7 +42,7 @@ namespace SFXUtility.Features.Others
 
         public Humanize(IContainer container) : base(container)
         {
-            Load.OnLoad += OnLoad;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public override bool Enabled
@@ -70,7 +69,7 @@ namespace SFXUtility.Features.Others
             base.OnDisable();
         }
 
-        private void OnLoad(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
@@ -96,7 +95,7 @@ namespace SFXUtility.Features.Others
                 if (_parent.Menu == null)
                     return;
 
-                Menu = new Menu(Name, BaseName + Name);
+                Menu = new Menu(Name, Name);
 
                 var delayMenu = new Menu("Delay", Name + "Delay");
                 delayMenu.AddItem(new MenuItem(delayMenu.Name + "Spells", "Spells (ms)").SetValue(new Slider(50, 0, 250)));

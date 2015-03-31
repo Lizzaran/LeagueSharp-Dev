@@ -20,7 +20,7 @@
 
 #endregion License
 
-namespace SFXUtility.Features.Others
+namespace SFXUtility.Features.Drawings
 {
     #region
 
@@ -31,7 +31,6 @@ namespace SFXUtility.Features.Others
     using LeagueSharp;
     using LeagueSharp.Common;
     using LeagueSharp.Common.Data;
-    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
@@ -192,11 +191,11 @@ namespace SFXUtility.Features.Others
         private float _lastCheck = Environment.TickCount;
         private SpellSlot _lastWardSlot = default(SpellSlot);
         private WardSpot _lastWardSpot = default(WardSpot);
-        private Others _parent;
+        private Drawings _parent;
 
         public PerfectWard(IContainer container) : base(container)
         {
-            Load.OnLoad += OnLoad;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public override bool Enabled
@@ -214,6 +213,7 @@ namespace SFXUtility.Features.Others
             Game.OnUpdate += OnGameUpdate;
             Drawing.OnDraw += OnDrawingDraw;
             Spellbook.OnCastSpell += OnSpellbookCastSpell;
+            Obj_AI_Base.OnNewPath += OnObjAiBaseNewPath;
             base.OnEnable();
         }
 
@@ -222,16 +222,17 @@ namespace SFXUtility.Features.Others
             Game.OnUpdate -= OnGameUpdate;
             Drawing.OnDraw -= OnDrawingDraw;
             Spellbook.OnCastSpell -= OnSpellbookCastSpell;
+            Obj_AI_Base.OnNewPath -= OnObjAiBaseNewPath;
             base.OnDisable();
         }
 
-        private void OnLoad(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Others>())
+                if (IoC.IsRegistered<Drawings>())
                 {
-                    _parent = IoC.Resolve<Others>();
+                    _parent = IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
                         OnParentInitialized(null, null);
                     else
@@ -251,7 +252,7 @@ namespace SFXUtility.Features.Others
                 if (_parent.Menu == null)
                     return;
 
-                Menu = new Menu(Name, BaseName + Name);
+                Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu("Drawing", Name + "Drawing");
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Radius", "Radius").SetValue(new Slider(60, 10, 200)));
@@ -288,10 +289,11 @@ namespace SFXUtility.Features.Others
                 {
                     if (spot.MagneticPosition.IsOnScreen())
                     {
-                        Render.Circle.DrawCircle(spot.MagneticPosition, radius, color, 1);
+                        Render.Circle.DrawCircle(spot.WardPosition, radius, color, 1);
                         if (spot.SafeSpot)
                         {
-                            Drawing.DrawLine(spot.MagneticPosition.To2D(), spot.WardPosition.To2D(), 2f, color);
+                            Render.Circle.DrawCircle(spot.MagneticPosition, radius, Color.White, 1);
+                            Drawing.DrawLine(Drawing.WorldToScreen(spot.MagneticPosition), Drawing.WorldToScreen(spot.WardPosition), 2f, color);
                         }
                     }
                 }
@@ -306,28 +308,32 @@ namespace SFXUtility.Features.Others
         {
             try
             {
-                if (sender == null || args == null || !sender.Owner.IsMe || !IsWardSlot(args.Slot))
+                if (sender == null || args == null || !sender.Owner.IsMe || !Menu.Item(Name + "Hotkey").IsActive() || !IsWardSlot(args.Slot))
                     return;
 
                 var spot = GetNearestWardSpot(Game.CursorPos);
-                if (!spot.Equals(default(WardSpot)))
+                if (spot.Equals(default(WardSpot)) || spot.ClickPosition.Equals(args.EndPosition))
+                    return;
+
+                if (spot.SafeSpot)
                 {
                     if (Game.CursorPos.Distance(spot.MagneticPosition) <= Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value)
                     {
                         args.Process = false;
-                        if (spot.SafeSpot)
+                        if (_lastWardSpot.Equals(default(WardSpot)))
                         {
-                            if (_lastWardSpot.Equals(default(WardSpot)))
-                            {
-                                ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, spot.MovePosition);
-                                _lastWardSpot = spot;
-                                _lastWardSlot = args.Slot;
-                            }
+                            _lastWardSpot = spot;
+                            _lastWardSlot = args.Slot;
+                            ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, spot.MovePosition);
                         }
-                        else
-                        {
-                            sender.CastSpell(args.Slot, spot.MagneticPosition);
-                        }
+                    }
+                }
+                else
+                {
+                    if (Game.CursorPos.Distance(spot.MagneticPosition) <= Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value)
+                    {
+                        args.Process = false;
+                        sender.CastSpell(args.Slot, spot.ClickPosition);
                     }
                 }
             }
@@ -335,6 +341,15 @@ namespace SFXUtility.Features.Others
             {
                 Logger.AddItem(new LogItem(ex) {Object = this});
             }
+        }
+
+        private void OnObjAiBaseNewPath(Obj_AI_Base sender, GameObjectNewPathEventArgs args)
+        {
+            if (!sender.IsMe || _lastWardSpot.Equals(default(WardSpot)))
+                return;
+            
+            if(!args.Path.Last().Equals(_lastWardSpot.MovePosition))
+                _lastWardSpot = default(WardSpot);
         }
 
         private bool IsWardSlot(SpellSlot slot)
@@ -370,7 +385,7 @@ namespace SFXUtility.Features.Others
                 if (ObjectManager.Player.IsDead || _lastWardSpot.Equals(default(WardSpot)))
                     return;
 
-                if (ObjectManager.Player.Position.Distance(_lastWardSpot.ClickPosition) <= 650f)
+                if (ObjectManager.Player.Position.Distance(_lastWardSpot.MovePosition) <= 3f)
                 {
                     ObjectManager.Player.Spellbook.CastSpell(_lastWardSlot, _lastWardSpot.ClickPosition);
                     _lastWardSpot = default(WardSpot);
@@ -403,8 +418,8 @@ namespace SFXUtility.Features.Others
             {
                 MagneticPosition = magneticPosition;
                 ClickPosition = magneticPosition;
-                WardPosition = new Vector3();
-                MovePosition = new Vector3();
+                WardPosition = magneticPosition;
+                MovePosition = magneticPosition;
                 SafeSpot = false;
             }
         }

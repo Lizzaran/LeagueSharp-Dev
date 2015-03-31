@@ -30,9 +30,6 @@ namespace SFXUtility.Features.Drawings
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Enumerations;
-    using LeagueSharp.CommonEx.Core.Events;
-    using LeagueSharp.CommonEx.Core.Wrappers;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
@@ -62,7 +59,7 @@ namespace SFXUtility.Features.Drawings
 
         public SafeJungleSpots(IContainer container) : base(container)
         {
-            Load.OnLoad += OnLoad;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public override bool Enabled
@@ -105,7 +102,7 @@ namespace SFXUtility.Features.Drawings
             base.OnDisable();
         }
 
-        private void OnLoad(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
@@ -131,7 +128,7 @@ namespace SFXUtility.Features.Drawings
                 if (_parent.Menu == null)
                     return;
 
-                Menu = new Menu(Name, BaseName + Name);
+                Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu("Drawing", Name + "Drawing");
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Radius", "Radius").SetValue(new Slider(50, 5, 250)));
@@ -143,7 +140,7 @@ namespace SFXUtility.Features.Drawings
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                if (Map.GetMap().Type != MapType.SummonersRift)
+                if (Utility.Map.GetMap().Type != Utility.Map.MapType.SummonersRift)
                     return;
 
                 HandleEvents(_parent);

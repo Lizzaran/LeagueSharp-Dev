@@ -30,7 +30,6 @@ namespace SFXUtility.Features.Activators
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
@@ -49,7 +48,7 @@ namespace SFXUtility.Features.Activators
 
         public Potion(IContainer container) : base(container)
         {
-            Load.OnLoad += OnLoad;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public override bool Enabled
@@ -82,7 +81,7 @@ namespace SFXUtility.Features.Activators
                     return;
 
                 _potions = _potions.OrderBy(x => x.Priority).ToList();
-                Menu = new Menu(Name, BaseName + Name);
+                Menu = new Menu(Name, Name);
                 var healthMenu = new Menu("Health", Name + "Health");
                 healthMenu.AddItem(new MenuItem(healthMenu.Name + "Potion", "Use Health Potion").SetValue(false));
                 healthMenu.AddItem(new MenuItem(healthMenu.Name + "Percent", "HP Trigger Percent").SetValue(new Slider(60)));
@@ -97,7 +96,9 @@ namespace SFXUtility.Features.Activators
                 Menu.AddItem(new MenuItem(Name + "MinEnemyDistance", "Min Enemy Distance").SetValue(new Slider(600, 0, 1500)));
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+
                 _parent.Menu.AddSubMenu(Menu);
+
                 HandleEvents(_parent);
                 RaiseOnInitialized();
             }
@@ -121,7 +122,7 @@ namespace SFXUtility.Features.Activators
             return _potions.Where(potion => potion.TypeList.Contains(type)).Any(potion => ObjectManager.Player.HasBuff(potion.BuffName, true));
         }
 
-        private void OnLoad(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
@@ -145,7 +146,7 @@ namespace SFXUtility.Features.Activators
             try
             {
                 var enemyDist = Menu.Item(Name + "MinEnemyDistance").GetValue<Slider>().Value;
-                if (enemyDist > 0 && ObjectManager.Player.CountEnemiesInRange(enemyDist) == 0)
+                if (enemyDist == 0 || ObjectManager.Player.CountEnemiesInRange(enemyDist) == 0)
                     return;
 
                 if (Menu.Item(Name + "HealthPotion").GetValue<bool>())

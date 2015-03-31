@@ -30,13 +30,10 @@ namespace SFXUtility.Features.Drawings
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
     using Color = System.Drawing.Color;
-    using Damage = LeagueSharp.CommonEx.Core.Wrappers.Damage;
-    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
@@ -47,7 +44,7 @@ namespace SFXUtility.Features.Drawings
 
         public LasthitMarker(IContainer container) : base(container)
         {
-            Load.OnLoad += OnLoad;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public override bool Enabled
@@ -71,12 +68,13 @@ namespace SFXUtility.Features.Drawings
                     var hpUnkillableColor = Menu.Item(Name + "DrawingHpBarUnkillableColor").GetValue<Color>();
                     var hpLinesThickness = Menu.Item(Name + "DrawingHpBarLinesThickness").GetValue<Slider>().Value;
                     var radius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value;
+
                     var hpBar = Menu.Item(Name + "DrawingHpBarEnabled").GetValue<bool>();
                     var circle = Menu.Item(Name + "DrawingCircleEnabled").GetValue<bool>();
 
                     foreach (var minion in _minions)
                     {
-                        var aaDamage = Damage.GetAutoAttackDamage(ObjectManager.Player, minion, true);
+                        var aaDamage = ObjectManager.Player.GetAutoAttackDamage(minion, true);
                         var killable = minion.Health <= aaDamage;
                         if (hpBar && minion.IsHPBarRendered)
                         {
@@ -109,7 +107,7 @@ namespace SFXUtility.Features.Drawings
                 if (_parent.Menu == null)
                     return;
 
-                Menu = new Menu(Name, BaseName + Name);
+                Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu("Drawing", Name + "Drawing");
                 var drawingHpBarMenu = new Menu("HPBar", drawingMenu.Name + "HpBar");
@@ -156,7 +154,7 @@ namespace SFXUtility.Features.Drawings
             base.OnDisable();
         }
 
-        private void OnLoad(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
@@ -181,7 +179,7 @@ namespace SFXUtility.Features.Drawings
             {
                 _minions =
                     ObjectManager.Get<Obj_AI_Minion>()
-                        .Where(minion => minion != null && minion.IsValid && minion.Health > 0.1f && minion.IsEnemy && minion.Position.IsOnScreen());
+                        .Where(minion => minion != null && minion.IsValid && minion.IsTargetable && minion.Health > 0.1f && minion.IsEnemy && minion.Position.IsOnScreen());
             }
             catch (Exception ex)
             {

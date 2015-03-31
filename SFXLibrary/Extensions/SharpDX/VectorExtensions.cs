@@ -24,7 +24,7 @@
 
 using Drawing = LeagueSharp.Drawing;
 using Geometry = LeagueSharp.Common.Geometry;
-using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
+using ObjectManager = LeagueSharp.ObjectManager;
 using Obj_AI_Minion = LeagueSharp.Obj_AI_Minion;
 using Vector2 = SharpDX.Vector2;
 using Vector3 = SharpDX.Vector3;
@@ -131,13 +131,12 @@ namespace SFXLibrary.Extensions.SharpDX
         {
             var nearest = float.MaxValue;
             var sMinion = default(Obj_AI_Minion);
-            foreach (
-                var minion in
-                    ObjectHandler.GetFast<Obj_AI_Minion>()
-                        .Where(
-                            minion =>
-                                minion != null && minion.IsValid &&
-                                names.Any(name => minion.SkinName.Equals(name, StringComparison.CurrentCultureIgnoreCase))))
+            foreach (var minion in
+                ObjectManager.Get<Obj_AI_Minion>()
+                    .Where(
+                        minion =>
+                            minion != null && minion.IsValid &&
+                            names.Any(name => minion.SkinName.Equals(name, StringComparison.CurrentCultureIgnoreCase))))
             {
                 var distance = Vector3.Distance(position, minion.ServerPosition);
                 if (nearest > distance || nearest == float.MaxValue)

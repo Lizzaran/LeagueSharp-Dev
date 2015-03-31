@@ -30,7 +30,6 @@ namespace SFXUtility.Features.Events
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary.Extensions.LeagueSharp;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
@@ -46,7 +45,7 @@ namespace SFXUtility.Features.Events
 
         public Trinket(IContainer container) : base(container)
         {
-            Load.OnLoad += OnLoad;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public override bool Enabled
@@ -71,7 +70,7 @@ namespace SFXUtility.Features.Events
             base.OnDisable();
         }
 
-        private void OnLoad(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
@@ -97,7 +96,7 @@ namespace SFXUtility.Features.Events
                 if (_parent.Menu == null)
                     return;
 
-                Menu = new Menu(Name, BaseName + Name);
+                Menu = new Menu(Name, Name);
 
                 var timersMenu = new Menu("Timers", Name + "Timers");
                 timersMenu.AddItem(new MenuItem(timersMenu.Name + "WardingTotem", "Warding Totem @ Minute").SetValue(new Slider(0, 0, 60)));

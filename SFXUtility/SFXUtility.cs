@@ -25,9 +25,9 @@ namespace SFXUtility
     #region
 
     using System;
+    using System.Reflection;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary;
     using SFXLibrary.Data;
     using SFXLibrary.Extensions.NET;
@@ -63,7 +63,7 @@ namespace SFXUtility
                 CustomEvents.Game.OnGameEnd += OnGameEnd;
                 Game.OnEnd += OnGameEnd;
                 Game.OnNotify += OnGameNotify;
-                Load.OnLoad += OnLoad;
+                CustomEvents.Game.OnGameLoad += OnGameLoad;
             }
             catch (Exception ex)
             {
@@ -80,7 +80,7 @@ namespace SFXUtility
 
         public Version Version
         {
-            get { return new Version(0, 6, 5, 0); }
+            get { return Assembly.GetExecutingAssembly().GetName().Version; }
         }
 
         private void OnGameNotify(GameNotifyEventArgs args)
@@ -128,11 +128,11 @@ namespace SFXUtility
             }
         }
 
-        private void OnLoad(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
-                var logger = _logger as ExceptionLogger;
+                var logger = _logger as FileLogger;
 
                 if (logger != null)
                 {

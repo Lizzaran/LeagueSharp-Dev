@@ -16,15 +16,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Github", "Github", "{4C60A7
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFXLibrary", "SFXLibrary\SFXLibrary.csproj", "{C9D4DEB3-9CAC-49B4-9CCB-1509D01AD618}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFXReport", "SFXReport\SFXReport.csproj", "{013D1BBF-A35E-4AF4-B9B7-D518E684BADF}"
-	ProjectSection(ProjectDependencies) = postProject
-		{C9D4DEB3-9CAC-49B4-9CCB-1509D01AD618} = {C9D4DEB3-9CAC-49B4-9CCB-1509D01AD618}
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Other", "Other", "{97A40F2B-AD7D-407B-A4BE-0D4DEF6BB2DA}"
 	ProjectSection(SolutionItems) = preProject
 		default.licenseheader = default.licenseheader
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFXSnake", "SFXSnake\SFXSnake.csproj", "{9D9C5C9F-2C9B-4DE4-B9F1-4B67F59FD142}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -58,16 +55,18 @@ Global
 		{C9D4DEB3-9CAC-49B4-9CCB-1509D01AD618}.Release|ARM.ActiveCfg = Release|Any CPU
 		{C9D4DEB3-9CAC-49B4-9CCB-1509D01AD618}.Release|x64.ActiveCfg = Release|Any CPU
 		{C9D4DEB3-9CAC-49B4-9CCB-1509D01AD618}.Release|x86.ActiveCfg = Release|Any CPU
-		{013D1BBF-A35E-4AF4-B9B7-D518E684BADF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{013D1BBF-A35E-4AF4-B9B7-D518E684BADF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{013D1BBF-A35E-4AF4-B9B7-D518E684BADF}.Debug|ARM.ActiveCfg = Debug|Any CPU
-		{013D1BBF-A35E-4AF4-B9B7-D518E684BADF}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{013D1BBF-A35E-4AF4-B9B7-D518E684BADF}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{013D1BBF-A35E-4AF4-B9B7-D518E684BADF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{013D1BBF-A35E-4AF4-B9B7-D518E684BADF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{013D1BBF-A35E-4AF4-B9B7-D518E684BADF}.Release|ARM.ActiveCfg = Release|Any CPU
-		{013D1BBF-A35E-4AF4-B9B7-D518E684BADF}.Release|x64.ActiveCfg = Release|Any CPU
-		{013D1BBF-A35E-4AF4-B9B7-D518E684BADF}.Release|x86.ActiveCfg = Release|Any CPU
+		{9D9C5C9F-2C9B-4DE4-B9F1-4B67F59FD142}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D9C5C9F-2C9B-4DE4-B9F1-4B67F59FD142}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D9C5C9F-2C9B-4DE4-B9F1-4B67F59FD142}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{9D9C5C9F-2C9B-4DE4-B9F1-4B67F59FD142}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9D9C5C9F-2C9B-4DE4-B9F1-4B67F59FD142}.Debug|x86.ActiveCfg = Debug|x86
+		{9D9C5C9F-2C9B-4DE4-B9F1-4B67F59FD142}.Debug|x86.Build.0 = Debug|x86
+		{9D9C5C9F-2C9B-4DE4-B9F1-4B67F59FD142}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D9C5C9F-2C9B-4DE4-B9F1-4B67F59FD142}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D9C5C9F-2C9B-4DE4-B9F1-4B67F59FD142}.Release|ARM.ActiveCfg = Release|Any CPU
+		{9D9C5C9F-2C9B-4DE4-B9F1-4B67F59FD142}.Release|x64.ActiveCfg = Release|Any CPU
+		{9D9C5C9F-2C9B-4DE4-B9F1-4B67F59FD142}.Release|x86.ActiveCfg = Release|x86
+		{9D9C5C9F-2C9B-4DE4-B9F1-4B67F59FD142}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

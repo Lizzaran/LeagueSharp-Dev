@@ -30,7 +30,6 @@ namespace SFXUtility.Features.Events
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using Utils = SFXLibrary.Utils;
@@ -43,7 +42,7 @@ namespace SFXUtility.Features.Events
 
         public AutoLeveler(IContainer container) : base(container)
         {
-            Load.OnLoad += OnLoad;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public override bool Enabled
@@ -68,7 +67,7 @@ namespace SFXUtility.Features.Events
             base.OnDisable();
         }
 
-        private IEnumerable<SpellInfoStruct> GetOrderedPriorityList()
+        private List<SpellInfoStruct> GetOrderedPriorityList()
         {
             return
                 new List<SpellInfoStruct>
@@ -77,10 +76,10 @@ namespace SFXUtility.Features.Events
                     new SpellInfoStruct(SpellSlot.W, Menu.Item(Name + ObjectManager.Player.ChampionName + "PatternW").GetValue<Slider>().Value),
                     new SpellInfoStruct(SpellSlot.E, Menu.Item(Name + ObjectManager.Player.ChampionName + "PatternE").GetValue<Slider>().Value),
                     new SpellInfoStruct(SpellSlot.R, 4)
-                }.OrderBy(x => x.Value).Reverse();
+                }.OrderBy(x => x.Value).Reverse().ToList();
         }
 
-        private void OnLoad(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
@@ -106,7 +105,7 @@ namespace SFXUtility.Features.Events
                 if (_parent.Menu == null)
                     return;
 
-                Menu = new Menu(Name, BaseName + Name);
+                Menu = new Menu(Name, Name);
 
                 var championMenu = new Menu(ObjectManager.Player.ChampionName, Name + ObjectManager.Player.ChampionName);
                 championMenu.AddItem(

@@ -20,7 +20,6 @@
 
 #endregion License
 
-
 #pragma warning disable 618
 
 namespace SFXUtility.Features.Trackers
@@ -34,22 +33,20 @@ namespace SFXUtility.Features.Trackers
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using LeagueSharp.CommonEx.Core.Events;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
-    using ObjectHandler = LeagueSharp.CommonEx.Core.ObjectHandler;
 
     #endregion
 
     internal class Recall : Base
     {
         private Trackers _parent;
-        private IEnumerable<RecallObject> _recallObjects = new List<RecallObject>();
+        private List<RecallObject> _recallObjects = new List<RecallObject>();
 
         public Recall(IContainer container) : base(container)
         {
-            Load.OnLoad += OnLoad;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public override bool Enabled
@@ -104,7 +101,7 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private void OnLoad(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
@@ -130,16 +127,15 @@ namespace SFXUtility.Features.Trackers
                 if (_parent.Menu == null)
                     return;
 
-                Menu = new Menu(Name, BaseName + Name);
+                Menu = new Menu(Name, Name);
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 
+                _recallObjects = HeroManager.Enemies.Select(hero => new RecallObject(hero)).ToList();
+
                 HandleEvents(_parent);
-
-                _recallObjects = ObjectHandler.EnemyHeroes.Select(hero => new RecallObject(hero));
-
                 RaiseOnInitialized();
             }
             catch (Exception ex)
@@ -259,7 +255,7 @@ namespace SFXUtility.Features.Trackers
 
             public bool Update()
             {
-                var additional = LastStatus == Packet.S2C.Teleport.Status.Start ? Duration + 20f : 20f;
+                var additional = LastStatus == Packet.S2C.Teleport.Status.Start ? Duration + 15f : 15f;
                 if (_lastActionTime + additional <= Game.Time)
                 {
                     _lastActionTime = 0f;
