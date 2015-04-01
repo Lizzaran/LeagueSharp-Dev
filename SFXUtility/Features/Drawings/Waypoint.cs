@@ -20,7 +20,7 @@
 
 #endregion License
 
-namespace SFXUtility.Features.Trackers
+namespace SFXUtility.Features.Drawings
 {
     #region
 
@@ -44,7 +44,7 @@ namespace SFXUtility.Features.Trackers
         private const float CheckInterval = 50f;
         private readonly Dictionary<int, List<Vector2>> _waypoints = new Dictionary<int, List<Vector2>>();
         private float _lastCheck = Environment.TickCount;
-        private Trackers _parent;
+        private Drawings _parent;
 
         public Waypoint(IContainer container) : base(container)
         {
@@ -139,9 +139,9 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                if (IoC.IsRegistered<Trackers>())
+                if (IoC.IsRegistered<Drawings>())
                 {
-                    _parent = IoC.Resolve<Trackers>();
+                    _parent = IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
                         OnParentInitialized(null, null);
                     else

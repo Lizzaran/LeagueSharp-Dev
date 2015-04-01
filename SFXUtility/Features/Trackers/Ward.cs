@@ -133,6 +133,7 @@ namespace SFXUtility.Features.Trackers
                 var drawingMenu = new Menu("Drawing", Name + "Drawing");
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "TimeFormat", "Time Format").SetValue(new StringList(new[] {"mm:ss", "ss"})));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", "Font Size").SetValue(new Slider(13, 3, 30)));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Radius", "Radius").SetValue(new Slider(150, 25, 300)));
 
                 Menu.AddSubMenu(drawingMenu);
 
@@ -140,8 +141,8 @@ namespace SFXUtility.Features.Trackers
 
                 Menu.Item(Name + "DrawingTimeFormat").ValueChanged +=
                     (o, args) => _wardObjects.ForEach(enemy => enemy.TextTotalSeconds = args.GetNewValue<StringList>().SelectedIndex == 1);
-                Menu.Item(Name + "DrawingFontSize").ValueChanged +=
-                    (o, args) => _wardObjects.ForEach(enemy => enemy.TextSize = args.GetNewValue<Slider>().Value);
+                Menu.Item(Name + "DrawingRadius").ValueChanged +=
+                    (o, args) => _wardObjects.ForEach(enemy => enemy.Radius = args.GetNewValue<Slider>().Value);
                 Menu.Item(Name + "Enabled").ValueChanged +=
                     (o, args) => _wardObjects.ForEach(enemy => enemy.Active = args.GetNewValue<bool>() && _parent != null && _parent.Enabled);
 
@@ -172,15 +173,16 @@ namespace SFXUtility.Features.Trackers
                         {
                             if (
                                 !_wardObjects.Any(
-                                    w =>
-                                        w.Position.To2D().Distance(sPos.To2D(), ePos.To2D(), false) < 300 &&
-                                        Math.Abs(w.StartT - Environment.TickCount) < 2000))
+                                    w => w.Position.To2D().Distance(sPos.To2D(), ePos.To2D(), false) < 300 && Math.Abs(w.StartT - Game.Time) < 2000))
                             {
                                 _wardObjects.Add(new WardObject(Logger, _wardStructs[3],
-                                    new Vector3(ePos.X, ePos.Y, NavMesh.GetHeightForPosition(ePos.X, ePos.Y)), Environment.TickCount, null, true)
+                                    new Vector3(ePos.X, ePos.Y, NavMesh.GetHeightForPosition(ePos.X, ePos.Y)), (int) Game.Time,
+                                    Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value, null, true)
                                 {
                                     StartPosition = new Vector3(sPos.X, sPos.Y, NavMesh.GetHeightForPosition(sPos.X, sPos.Y)),
-                                    TextSize = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value
+                                    TextTotalSeconds = Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1,
+                                    Radius = Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value,
+                                    Active = Enabled
                                 });
                             }
                         });
@@ -199,14 +201,17 @@ namespace SFXUtility.Features.Trackers
                         {
                             if (wardObject.BaseSkinName.Equals(ward.ObjectBaseSkinName, StringComparison.InvariantCultureIgnoreCase))
                             {
-                                var startT = Environment.TickCount - (int) ((wardObject.MaxMana - wardObject.Mana)*1000);
+                                var startT = Game.Time - (int) ((wardObject.MaxMana - wardObject.Mana)*1000);
                                 _wardObjects.RemoveAll(
                                     w =>
                                         w.Position.Distance(wardObject.Position) < 200 &&
                                         (Math.Abs(w.StartT - startT) < 1000 || ward.Type != WardType.Green) && w.Remove());
-                                _wardObjects.Add(new WardObject(Logger, ward, wardObject.Position, startT, wardObject)
+                                _wardObjects.Add(new WardObject(Logger, ward, wardObject.Position, (int) startT,
+                                    Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value, wardObject)
                                 {
-                                    TextSize = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value
+                                    TextTotalSeconds = Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1,
+                                    Radius = Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value,
+                                    Active = Enabled
                                 });
                             }
                         }
@@ -225,9 +230,12 @@ namespace SFXUtility.Features.Trackers
                 if (args.SData.Name.Equals(ward.SpellName, StringComparison.OrdinalIgnoreCase))
                 {
                     var endPosition = ObjectManager.Player.GetPath(args.End).ToList().Last();
-                    _wardObjects.Add(new WardObject(Logger, ward, endPosition, Environment.TickCount)
+                    _wardObjects.Add(new WardObject(Logger, ward, endPosition, (int) Game.Time,
+                        Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value)
                     {
-                        TextSize = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value
+                        TextTotalSeconds = Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1,
+                        Radius = Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value,
+                        Active = Enabled
                     });
                 }
             }
@@ -235,7 +243,7 @@ namespace SFXUtility.Features.Trackers
 
         private void OnGameUpdate(EventArgs args)
         {
-            _wardObjects.RemoveAll(w => w.EndT <= Environment.TickCount && w.Duration != int.MaxValue && w.Remove());
+            _wardObjects.RemoveAll(w => w.EndT <= Game.Time && w.Duration != int.MaxValue && w.Remove());
             _wardObjects.RemoveAll(w => w.Object != null && !w.Object.IsValid && w.Remove());
         }
 
@@ -251,11 +259,12 @@ namespace SFXUtility.Features.Trackers
             private bool _added;
             private WardStruct _wardData;
             public Vector3 Position;
+            public int Radius;
             public Vector3 StartPosition;
-            public int TextSize = 13;
             public bool TextTotalSeconds;
 
-            public WardObject(ILogger logger, WardStruct data, Vector3 position, int startT, Obj_AI_Base wardObject = null, bool isFromMissile = false)
+            public WardObject(ILogger logger, WardStruct data, Vector3 position, int startT, int fontSize, Obj_AI_Base wardObject = null,
+                bool isFromMissile = false)
             {
                 _wardData = data;
                 Position = position;
@@ -264,7 +273,7 @@ namespace SFXUtility.Features.Trackers
 
                 try
                 {
-                    _circle = new Render.Circle(Position, 200, data.Color, 5) {VisibleCondition = sender => _active && Position.IsOnScreen()};
+                    _circle = new Render.Circle(Position, Radius, data.Color, 5) {VisibleCondition = sender => _active && Position.IsOnScreen()};
 
                     if (data.Type != WardType.Trap)
                     {
@@ -288,13 +297,13 @@ namespace SFXUtility.Features.Trackers
 
                     if (Duration != int.MaxValue)
                     {
-                        _timerText = new Render.Text(string.Empty, Drawing.WorldToScreen(Position), TextSize, SharpDX.Color.White)
+                        _timerText = new Render.Text(string.Empty, Drawing.WorldToScreen(Position), fontSize, SharpDX.Color.White)
                         {
                             OutLined = true,
                             PositionUpdate = () => Drawing.WorldToScreen(Position),
                             Centered = true,
                             VisibleCondition = sender => Active && Position.IsOnScreen(),
-                            TextUpdate = () => _timerText.Visible ? (EndT - Environment.TickCount).FormatTime(TextTotalSeconds) : string.Empty
+                            TextUpdate = () => _timerText.Visible ? (EndT - Game.Time).FormatTime(TextTotalSeconds) : string.Empty
                         };
                     }
                 }

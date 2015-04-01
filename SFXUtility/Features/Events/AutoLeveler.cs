@@ -38,6 +38,8 @@ namespace SFXUtility.Features.Events
 
     internal class AutoLeveler : Base
     {
+        private const float CheckInterval = 300f;
+        private float _lastCheck = Environment.TickCount;
         private Events _parent;
 
         public AutoLeveler(IContainer container) : base(container)
@@ -57,13 +59,13 @@ namespace SFXUtility.Features.Events
 
         protected override void OnEnable()
         {
-            CustomEvents.Unit.OnLevelUp += OnUnitLevelUp;
+            LeagueSharp.Game.OnUpdate += GameOnOnUpdate;
             base.OnEnable();
         }
 
         protected override void OnDisable()
         {
-            CustomEvents.Unit.OnLevelUp -= OnUnitLevelUp;
+            LeagueSharp.Game.OnUpdate -= GameOnOnUpdate;
             base.OnDisable();
         }
 
@@ -124,14 +126,28 @@ namespace SFXUtility.Features.Events
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();
-
-                if (ObjectManager.Player.Level == 1)
-                    OnUnitLevelUp(ObjectManager.Player, new CustomEvents.Unit.OnLevelUpEventArgs {NewLevel = 1, RemainingPoints = 1});
             }
             catch (Exception ex)
             {
                 Logger.AddItem(new LogItem(ex) {Object = this});
             }
+        }
+
+        private void GameOnOnUpdate(EventArgs args)
+        {
+            if (_lastCheck + CheckInterval > Environment.TickCount)
+                return;
+            _lastCheck = Environment.TickCount;
+
+            var availablePoints = ObjectManager.Player.Level -
+                                  (ObjectManager.Player.Spellbook.GetSpell(SpellSlot.Q).Level +
+                                   ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Level +
+                                   ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).Level +
+                                   ObjectManager.Player.Spellbook.GetSpell(SpellSlot.R).Level);
+
+            if (availablePoints > 0)
+                OnUnitLevelUp(ObjectManager.Player,
+                    new CustomEvents.Unit.OnLevelUpEventArgs {NewLevel = ObjectManager.Player.Level, RemainingPoints = availablePoints});
         }
 
         private void OnUnitLevelUp(Obj_AI_Base sender, CustomEvents.Unit.OnLevelUpEventArgs args)
@@ -165,7 +181,6 @@ namespace SFXUtility.Features.Events
                 {
                     if (availablePoints <= 0)
                         return;
-
                     var pointsToLevelSlot = MaxSpellLevel(pItem.Slot, args.NewLevel) - ObjectManager.Player.Spellbook.GetSpell(pItem.Slot).Level;
                     pointsToLevelSlot = pointsToLevelSlot > availablePoints ? availablePoints : pointsToLevelSlot;
 

@@ -20,7 +20,7 @@
 
 #endregion License
 
-namespace SFXUtility.Features.Trackers
+namespace SFXUtility.Features.Drawings
 {
     #region
 
@@ -41,7 +41,7 @@ namespace SFXUtility.Features.Trackers
     {
         private readonly string[] _cloneHeroes = {"Shaco", "LeBlanc", "MonkeyKing", "Yorick"};
         private List<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
-        private Trackers _parent;
+        private Drawings _parent;
 
         public Clone(IContainer container) : base(container)
         {
@@ -93,9 +93,9 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                if (IoC.IsRegistered<Trackers>())
+                if (IoC.IsRegistered<Drawings>())
                 {
-                    _parent = IoC.Resolve<Trackers>();
+                    _parent = IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
                         OnParentInitialized(null, null);
                     else

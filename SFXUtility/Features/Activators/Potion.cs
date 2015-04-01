@@ -93,7 +93,7 @@ namespace SFXUtility.Features.Activators
                 Menu.AddSubMenu(healthMenu);
                 Menu.AddSubMenu(manaMenu);
 
-                Menu.AddItem(new MenuItem(Name + "MinEnemyDistance", "Min Enemy Distance").SetValue(new Slider(600, 0, 1500)));
+                Menu.AddItem(new MenuItem(Name + "MinEnemyDistance", "Min Enemy Distance").SetValue(new Slider(1000, 0, 1500)));
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
@@ -146,7 +146,7 @@ namespace SFXUtility.Features.Activators
             try
             {
                 var enemyDist = Menu.Item(Name + "MinEnemyDistance").GetValue<Slider>().Value;
-                if (enemyDist != 0 && ObjectManager.Player.CountEnemiesInRange(enemyDist) == 0)
+                if (enemyDist != 0 && !HeroManager.Enemies.Any(e => e.Position.Distance(ObjectManager.Player.Position) <= enemyDist))
                     return;
 
                 if (Menu.Item(Name + "HealthPotion").GetValue<bool>())

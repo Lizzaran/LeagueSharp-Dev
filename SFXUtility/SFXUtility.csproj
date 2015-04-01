@@ -56,7 +56,6 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Features\Activators\Activators.cs" />
@@ -89,7 +88,7 @@
     <Compile Include="Features\Others\SummonerInfo.cs" />
     <Compile Include="Features\Others\TurnAround.cs" />
     <Compile Include="Features\Detectors\Blink.cs" />
-    <Compile Include="Features\Trackers\Clone.cs" />
+    <Compile Include="Features\Drawings\Clone.cs" />
     <Compile Include="Features\Trackers\Cooldown.cs" />
     <Compile Include="Features\Trackers\LastPosition.cs" />
     <Compile Include="Features\Trackers\Recall.cs" />
@@ -101,7 +100,7 @@
     <Compile Include="Features\Timers\Timers.cs" />
     <Compile Include="Features\Trackers\Trackers.cs" />
     <Compile Include="Features\Trackers\Ward.cs" />
-    <Compile Include="Features\Trackers\Waypoint.cs" />
+    <Compile Include="Features\Drawings\Waypoint.cs" />
     <Compile Include="Features\Events\Trinket.cs" />
     <Compile Include="Classes\Base.cs" />
     <Compile Include="Program.cs" />
