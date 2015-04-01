@@ -117,6 +117,18 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
+        protected override void OnEnable()
+        {
+            _lastPositionObjects.ForEach(enemy => enemy.Active = true);
+            base.OnEnable();
+        }
+
+        protected override void OnDisable()
+        {
+            _lastPositionObjects.ForEach(enemy => enemy.Active = false);
+            base.OnDisable();
+        }
+
         private void OnParentInitialized(object sender, EventArgs eventArgs)
         {
             try
@@ -138,14 +150,10 @@ namespace SFXUtility.Features.Trackers
 
                 Menu.Item(Name + "DrawingTimeFormat").ValueChanged +=
                     (o, args) => _lastPositionObjects.ForEach(enemy => enemy.TextTotalSeconds = args.GetNewValue<StringList>().SelectedIndex == 1);
-                Menu.Item(Name + "DrawingFontSize").ValueChanged +=
-                    (o, args) => _lastPositionObjects.ForEach(enemy => enemy.TextSize = args.GetNewValue<Slider>().Value);
                 Menu.Item(Name + "DrawingSSTimerOffset").ValueChanged +=
-                    (o, args) => _lastPositionObjects.ForEach(enemy => enemy.TextOffset = args.GetNewValue<Slider>().Value);
+                    (o, args) => _lastPositionObjects.ForEach(enemy => enemy.FontOffset = args.GetNewValue<Slider>().Value);
                 Menu.Item(Name + "SSTimer").ValueChanged +=
                     (o, args) => _lastPositionObjects.ForEach(enemy => enemy.SSTimer = args.GetNewValue<bool>());
-                Menu.Item(Name + "Enabled").ValueChanged +=
-                    (o, args) => _lastPositionObjects.ForEach(enemy => enemy.Active = args.GetNewValue<bool>() && _parent != null && _parent.Enabled);
 
                 _parent.Menu.AddSubMenu(Menu);
 
@@ -154,10 +162,9 @@ namespace SFXUtility.Features.Trackers
                 if (IoC.IsRegistered<Recall>())
                 {
                     var rt = IoC.Resolve<Recall>();
-                    if (rt.Initialized && rt.Menu != null)
-                    {
-                        recall = rt.Menu.Item(rt.Name + "Enabled").GetValue<bool>();
-                    }
+
+                    recall = rt.Initialized && rt.Enabled;
+
                     rt.OnEnabled += RecallEnabled;
                     rt.OnDisabled += RecallDisabled;
                     rt.OnFinish += RecallFinish;
@@ -170,12 +177,11 @@ namespace SFXUtility.Features.Trackers
                 {
                     try
                     {
-                        _lastPositionObjects.Add(new LastPositionObject(enemy, Logger)
+                        _lastPositionObjects.Add(new LastPositionObject(enemy, Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value, Logger)
                         {
                             Active = Enabled,
                             TextTotalSeconds = Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1,
-                            TextSize = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
-                            TextOffset = Menu.Item(Name + "DrawingSSTimerOffset").GetValue<Slider>().Value,
+                            FontOffset = Menu.Item(Name + "DrawingSSTimerOffset").GetValue<Slider>().Value,
                             SSTimer = Menu.Item(Name + "SSTimer").GetValue<bool>(),
                             Recall = recall
                         });
@@ -206,15 +212,13 @@ namespace SFXUtility.Features.Trackers
             public bool IsRecalling;
             // ReSharper disable once InconsistentNaming
             public bool SSTimer;
-
-            public int TextSize = 13;
-            public int TextOffset = 5;
+            public int FontOffset = 5;
             public bool TextTotalSeconds;
             public bool Recall;
             public bool Recalled;
             private float _lastSeen;
 
-            public LastPositionObject(Obj_AI_Hero hero, ILogger logger)
+            public LastPositionObject(Obj_AI_Hero hero, int fontSize, ILogger logger)
             {
                 try
                 {
@@ -265,7 +269,7 @@ namespace SFXUtility.Features.Trackers
                                 }
                             }
                         };
-                    _text = new Render.Text(string.Empty, new Vector2(mPos.X, mPos.Y), TextSize, Color.White)
+                    _text = new Render.Text(string.Empty, new Vector2(mPos.X, mPos.Y), fontSize, Color.White)
                     {
                         OutLined = true,
                         Centered = true,
@@ -274,7 +278,7 @@ namespace SFXUtility.Features.Trackers
                             try
                             {
                                 return new Vector2(_championSprite.Position.X + (_championSprite.Size.X/2),
-                                    _championSprite.Position.Y + (_championSprite.Size.Y) + TextOffset);
+                                    _championSprite.Position.Y + (_championSprite.Size.Y) + FontOffset);
                             }
                             catch (Exception ex)
                             {
@@ -317,7 +321,7 @@ namespace SFXUtility.Features.Trackers
                             try
                             {
                                 var pos = Drawing.WorldToMinimap(hero.Position);
-                                return new Vector2(pos.X - (_recallSprite.Size.X / 2), pos.Y - (_recallSprite.Size.Y / 2));
+                                return new Vector2(pos.X - (_recallSprite.Size.X/2), pos.Y - (_recallSprite.Size.Y/2));
                             }
                             catch (Exception ex)
                             {

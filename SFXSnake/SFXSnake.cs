@@ -54,7 +54,7 @@ namespace SFXSnake
             _food = new Food(_map, _snake);
             _score = new Score(_map, _food);
 
-            _menu = new Menu("SFXSharp", "SFXSharp", true);
+            _menu = new Menu("SFXSnake", "SFXSnake", true);
             _menu.AddItem(new MenuItem(_menu.Name + "Speed", "Speed").SetValue(new Slider(200, 25, 500)));
             _menu.AddItem(new MenuItem(_menu.Name + "Hotkey", "Hotkey").SetValue(new KeyBind('I', KeyBindType.Toggle)));
 

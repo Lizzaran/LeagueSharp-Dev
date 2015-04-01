@@ -347,8 +347,8 @@ namespace SFXUtility.Features.Drawings
         {
             if (!sender.IsMe || _lastWardSpot.Equals(default(WardSpot)))
                 return;
-            
-            if(!args.Path.Last().Equals(_lastWardSpot.MovePosition))
+
+            if (!args.Path.Last().Equals(_lastWardSpot.MovePosition))
                 _lastWardSpot = default(WardSpot);
         }
 

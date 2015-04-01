@@ -20,6 +20,7 @@
 
 #endregion License
 
+
 #pragma warning disable 618
 
 namespace SFXUtility.Features.Trackers
@@ -219,16 +220,17 @@ namespace SFXUtility.Features.Trackers
                 {
                     time = Game.Time - _lastActionTime;
                 }
+                var hPercent = (ObjectManager.Player.Health/ObjectManager.Player.MaxHealth)*100;
                 switch (LastStatus)
                 {
                     case Packet.S2C.Teleport.Status.Start:
-                        return string.Format("Recall: {0}({1}%) Teleporting ({2:0.00})", Hero.ChampionName, (int) Hero.HealthPercentage(), time);
+                        return string.Format("Recall: {0}({1}%) Teleporting ({2:0.00})", Hero.ChampionName, (int) hPercent, time);
 
                     case Packet.S2C.Teleport.Status.Finish:
-                        return string.Format("Recall: {0}({1}%) Teleported ({2:0.00})", Hero.ChampionName, (int) Hero.HealthPercentage(), time);
+                        return string.Format("Recall: {0}({1}%) Teleported ({2:0.00})", Hero.ChampionName, (int) hPercent, time);
 
                     case Packet.S2C.Teleport.Status.Abort:
-                        return string.Format("Recall: {0}({1}%) Aborted", Hero.ChampionName, (int) Hero.HealthPercentage());
+                        return string.Format("Recall: {0}({1}%) Aborted", Hero.ChampionName, (int) hPercent);
 
                     default:
                         return string.Empty;

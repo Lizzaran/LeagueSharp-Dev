@@ -179,7 +179,10 @@ namespace SFXUtility.Features.Drawings
             {
                 _minions =
                     ObjectManager.Get<Obj_AI_Minion>()
-                        .Where(minion => minion != null && minion.IsValid && minion.IsTargetable && minion.Health > 0.1f && minion.IsEnemy && minion.Position.IsOnScreen());
+                        .Where(
+                            minion =>
+                                minion != null && minion.IsValid && minion.IsTargetable && minion.Health > 0.1f && minion.IsEnemy &&
+                                minion.Position.IsOnScreen());
             }
             catch (Exception ex)
             {

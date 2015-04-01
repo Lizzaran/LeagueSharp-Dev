@@ -1,7 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-<!-- ReSharper disable MarkupTextTypo -->
-<!-- ReSharper disable ResxNotResolved -->
   <!-- 
     Microsoft ResX Schema 
     
@@ -120,6 +118,54 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="CD_Hud" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\cd\cd_hud.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CD_summonerbarrier" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\cd\cd_summonerbarrier.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CD_summonerboost" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\cd\cd_summonerboost.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CD_summonerclairvoyance" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\cd\cd_summonerclairvoyance.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CD_summonerdot" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\cd\cd_summonerdot.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CD_summonerexhaust" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\cd\cd_summonerexhaust.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CD_summonerflash" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\cd\cd_summonerflash.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CD_summonerhaste" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\cd\cd_summonerhaste.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CD_summonerheal" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\cd\cd_summonerheal.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CD_summonermana" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\cd\cd_summonermana.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CD_summonerodingarrison" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\cd\cd_summonerodingarrison.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CD_summonerrevive" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\cd\cd_summonerrevive.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CD_summonersmite" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\cd\cd_summonersmite.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CD_summonerteleport" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\cd\cd_summonerteleport.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="WT_Green" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\wt\wt_green.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="WT_Pink" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\wt\wt_pink.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="LP_Aatrox" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\lp\lp_aatrox.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -240,6 +286,9 @@
   <data name="LP_Jinx" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\lp\lp_jinx.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="LP_Kalista" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\lp\lp_kalista.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="LP_Karma" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\lp\lp_karma.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -344,6 +393,12 @@
   </data>
   <data name="LP_Rammus" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\lp\lp_rammus.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="LP_Recall" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\lp\lp_recall.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="LP_RekSai" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\lp\lp_reksai.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="LP_Renekton" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\lp\lp_renekton.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -482,56 +537,5 @@
   </data>
   <data name="LP_Zyra" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\lp\lp_zyra.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="CD_Hud" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\cd\cd_hud.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="CD_summonerbarrier" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\cd\cd_summonerbarrier.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="CD_summonerboost" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\cd\cd_summonerboost.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="CD_summonerclairvoyance" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\cd\cd_summonerclairvoyance.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="CD_summonerdot" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\cd\cd_summonerdot.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="CD_summonerexhaust" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\cd\cd_summonerexhaust.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="CD_summonerflash" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\cd\cd_summonerflash.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="CD_summonerhaste" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\cd\cd_summonerhaste.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="CD_summonerheal" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\cd\cd_summonerheal.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="CD_summonermana" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\cd\cd_summonermana.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="CD_summonerodingarrison" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\cd\cd_summonerodingarrison.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="CD_summonerrevive" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\cd\cd_summonerrevive.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="CD_summonersmite" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\cd\cd_summonersmite.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="CD_summonerteleport" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\cd\cd_summonerteleport.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="WT_Green" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\wt\wt_green.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="WT_Pink" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\wt\wt_pink.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="LP_Recall" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\lp\lp_recall.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>

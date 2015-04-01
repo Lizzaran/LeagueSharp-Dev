@@ -79,6 +79,25 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
+        protected override void OnEnable()
+        {
+            foreach (var cd in _cooldownObjects)
+            {
+                cd.Active = cd.Hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>() ||
+                            cd.Hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>();
+            }
+            base.OnEnable();
+        }
+
+        protected override void OnDisable()
+        {
+            foreach (var cd in _cooldownObjects)
+            {
+                cd.Active = false;
+            }
+            base.OnDisable();
+        }
+
         private void OnParentInitialized(object sender, EventArgs eventArgs)
         {
             try
@@ -106,25 +125,6 @@ namespace SFXUtility.Features.Trackers
                         cd.Active = Enabled && args.GetNewValue<bool>();
                     }
                 };
-                Menu.Item(Name + "Enabled").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
-                {
-                    foreach (var cd in _cooldownObjects)
-                    {
-                        cd.Active = _parent.Enabled && args.GetNewValue<bool>() &&
-                                    (cd.Hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>() ||
-                                     cd.Hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>());
-                    }
-                };
-
-                _parent.Menu.Item(_parent.Name + "Enabled").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
-                {
-                    foreach (var cd in _cooldownObjects)
-                    {
-                        cd.Active = args.GetNewValue<bool>() && Menu.Item(Name + "Enabled").GetValue<bool>() &&
-                                    (cd.Hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>() ||
-                                     cd.Hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>());
-                    }
-                };
 
                 _parent.Menu.AddSubMenu(Menu);
 
@@ -138,7 +138,8 @@ namespace SFXUtility.Features.Trackers
                                         Enabled &&
                                         (hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>() ||
                                          hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>())
-                                }).ToList();
+                                })
+                        .ToList();
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();

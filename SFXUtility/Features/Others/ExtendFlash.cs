@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- AutoLantern.cs is part of SFXUtility.
+ ExtendFlash.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -29,17 +29,16 @@ namespace SFXUtility.Features.Others
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary.Extensions.NET;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
     #endregion
 
-    internal class AutoLantern : Base
+    internal class ExtendFlash : Base
     {
         private Others _parent;
 
-        public AutoLantern(IContainer container) : base(container)
+        public ExtendFlash(IContainer container) : base(container)
         {
             CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
@@ -51,18 +50,18 @@ namespace SFXUtility.Features.Others
 
         public override string Name
         {
-            get { return "Auto Lantern"; }
+            get { return "Extend Flash"; }
         }
 
         protected override void OnEnable()
         {
-            Game.OnUpdate += OnGameUpdate;
+            Spellbook.OnCastSpell += OnSpellbookCastSpell;
             base.OnEnable();
         }
 
         protected override void OnDisable()
         {
-            Game.OnUpdate -= OnGameUpdate;
+            Spellbook.OnCastSpell -= OnSpellbookCastSpell;
             base.OnDisable();
         }
 
@@ -94,15 +93,9 @@ namespace SFXUtility.Features.Others
 
                 Menu = new Menu(Name, Name);
 
-                Menu.AddItem(new MenuItem(Name + "LowPercent", "@ HP Percent").SetValue(new Slider(20, 0, 50)));
-                Menu.AddItem(new MenuItem(Name + "Hotkey", "Hotkey").SetValue(new KeyBind('U', KeyBindType.Press)));
-
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
-
-                if (HeroManager.Allies.Any(a => !a.IsMe && a.ChampionName == "Thresh"))
-                    return;
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();
@@ -113,28 +106,17 @@ namespace SFXUtility.Features.Others
             }
         }
 
-        private void OnGameUpdate(EventArgs args)
+        private void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
         {
-            try
-            {
-                if (ObjectManager.Player.IsDead)
-                    return;
+            if (sender == null || !sender.Owner.IsMe ||
+                !ObjectManager.Player.Spellbook.Spells.Any(
+                    s => s.Slot == args.Slot && s.Name.Equals("SummonerFlash", StringComparison.OrdinalIgnoreCase)))
+                return;
 
-                if ((ObjectManager.Player.Health/ObjectManager.Player.MaxHealth)*100 <= Menu.Item(Name + "LowPercent").GetValue<Slider>().Value ||
-                    Menu.Item(Name + "Hotkey").IsActive())
-                {
-                    var lantern =
-                        ObjectManager.Get<Obj_AI_Base>()
-                            .FirstOrDefault(o => o.IsValid && o.IsAlly && o.Name.Contains("ThreshLantern", StringComparison.OrdinalIgnoreCase));
-                    if (lantern != null && lantern.IsValidTarget(500, false, ObjectManager.Player.ServerPosition))
-                    {
-                        lantern.UseObject();
-                    }
-                }
-            }
-            catch (Exception ex)
+            if (ObjectManager.Player.ServerPosition.To2D().Distance(args.StartPosition) < 390f)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                args.Process = false;
+                ObjectManager.Player.Spellbook.CastSpell(args.Slot, ObjectManager.Player.ServerPosition.Extend(args.StartPosition, 400f));
             }
         }
     }

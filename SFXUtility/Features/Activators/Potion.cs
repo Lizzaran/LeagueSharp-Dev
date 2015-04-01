@@ -146,12 +146,12 @@ namespace SFXUtility.Features.Activators
             try
             {
                 var enemyDist = Menu.Item(Name + "MinEnemyDistance").GetValue<Slider>().Value;
-                if (enemyDist == 0 || ObjectManager.Player.CountEnemiesInRange(enemyDist) == 0)
+                if (enemyDist != 0 && ObjectManager.Player.CountEnemiesInRange(enemyDist) == 0)
                     return;
 
                 if (Menu.Item(Name + "HealthPotion").GetValue<bool>())
                 {
-                    if (ObjectManager.Player.HealthPercent <= Menu.Item(Name + "HealthPercent").GetValue<Slider>().Value)
+                    if ((ObjectManager.Player.Health/ObjectManager.Player.MaxHealth)*100 <= Menu.Item(Name + "HealthPercent").GetValue<Slider>().Value)
                     {
                         var healthSlot = GetPotionSlot(PotionType.Health);
                         if (healthSlot != null && !IsBuffActive(PotionType.Health))
@@ -161,7 +161,7 @@ namespace SFXUtility.Features.Activators
 
                 if (Menu.Item(Name + "ManaPotion").GetValue<bool>())
                 {
-                    if (ObjectManager.Player.ManaPercent <= Menu.Item(Name + "ManaPercent").GetValue<Slider>().Value)
+                    if ((ObjectManager.Player.Mana/ObjectManager.Player.MaxMana)*100 <= Menu.Item(Name + "ManaPercent").GetValue<Slider>().Value)
                     {
                         var manaSlot = GetPotionSlot(PotionType.Mana);
                         if (manaSlot != null && !IsBuffActive(PotionType.Mana))

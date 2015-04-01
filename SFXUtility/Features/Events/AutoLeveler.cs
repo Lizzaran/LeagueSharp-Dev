@@ -123,11 +123,10 @@ namespace SFXUtility.Features.Events
                 _parent.Menu.AddSubMenu(Menu);
 
                 HandleEvents(_parent);
+                RaiseOnInitialized();
 
                 if (ObjectManager.Player.Level == 1)
                     OnUnitLevelUp(ObjectManager.Player, new CustomEvents.Unit.OnLevelUpEventArgs {NewLevel = 1, RemainingPoints = 1});
-
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
@@ -189,8 +188,8 @@ namespace SFXUtility.Features.Events
         private int MaxSpellLevel(SpellSlot slot, int level)
         {
             return slot == SpellSlot.R
-                ? (level >= 16 ? 3 : level >= 11 ? 2 : level >= 6 ? 1 : 0)
-                : (level >= 9 ? 5 : level >= 7 ? 4 : level >= 5 ? 3 : level >= 3 ? 2 : 1);
+                ? (level >= 16 ? 3 : (level >= 11 ? 2 : (level >= 6 ? 1 : 0)))
+                : (level >= 9 ? 5 : (level >= 7 ? 4 : (level >= 5 ? 3 : (level >= 3 ? 2 : 1))));
         }
 
         private struct SpellInfoStruct
