@@ -20,7 +20,7 @@
 
 #endregion License
 
-namespace SFXUtility.Features.Trackers
+namespace SFXUtility.Features.Timers
 {
     #region
 
@@ -43,7 +43,7 @@ namespace SFXUtility.Features.Trackers
     internal class Cooldown : Base
     {
         private List<CooldownObject> _cooldownObjects = new List<CooldownObject>();
-        private Trackers _parent;
+        private Timers _parent;
 
         public Cooldown(IContainer container) : base(container)
         {
@@ -64,9 +64,9 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                if (IoC.IsRegistered<Trackers>())
+                if (IoC.IsRegistered<Timers>())
                 {
-                    _parent = IoC.Resolve<Trackers>();
+                    _parent = IoC.Resolve<Timers>();
                     if (_parent.Initialized)
                         OnParentInitialized(null, null);
                     else

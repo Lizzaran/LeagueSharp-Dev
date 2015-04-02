@@ -73,6 +73,46 @@ namespace SFXUtility.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap CD_itemsmiteaoe {
+            get {
+                object obj = ResourceManager.GetObject("CD_itemsmiteaoe", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CD_s5_summonersmiteduel {
+            get {
+                object obj = ResourceManager.GetObject("CD_s5_summonersmiteduel", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CD_s5_summonersmiteplayerganker {
+            get {
+                object obj = ResourceManager.GetObject("CD_s5_summonersmiteplayerganker", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CD_s5_summonersmitequick {
+            get {
+                object obj = ResourceManager.GetObject("CD_s5_summonersmitequick", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap CD_summonerbarrier {
             get {
                 object obj = ResourceManager.GetObject("CD_summonerbarrier", resourceCulture);

@@ -22,7 +22,7 @@
 
 namespace SFXUtility.Features.Timers
 {
-    internal class Immune
+    internal class Ability
     {
     }
 }

@@ -89,7 +89,7 @@
     <Compile Include="Features\Others\TurnAround.cs" />
     <Compile Include="Features\Detectors\Blink.cs" />
     <Compile Include="Features\Drawings\Clone.cs" />
-    <Compile Include="Features\Trackers\Cooldown.cs" />
+    <Compile Include="Features\Timers\Cooldown.cs" />
     <Compile Include="Features\Trackers\LastPosition.cs" />
     <Compile Include="Features\Trackers\Recall.cs" />
     <Compile Include="Features\Timers\Ability.cs" />
@@ -121,6 +121,10 @@
   <ItemGroup>
     <Content Include="icon.ico" />
     <Content Include="Resources\CD\CD_Hud.png" />
+    <Content Include="Resources\CD\CD_itemsmiteaoe.png" />
+    <Content Include="Resources\CD\CD_s5_summonersmiteduel.png" />
+    <Content Include="Resources\CD\CD_s5_summonersmiteplayerganker.png" />
+    <Content Include="Resources\CD\CD_s5_summonersmitequick.png" />
     <Content Include="Resources\CD\CD_summonerbarrier.png" />
     <Content Include="Resources\CD\CD_summonerboost.png" />
     <Content Include="Resources\CD\CD_summonerclairvoyance.png" />

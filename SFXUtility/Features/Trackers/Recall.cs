@@ -261,11 +261,11 @@ namespace SFXUtility.Features.Trackers
                         switch (LastStatus)
                         {
                             case Packet.S2C.Teleport.Status.Start:
-                                return string.Format("(R): {0}({1}%) Transporting ({2:0.00})", Hero.ChampionName, hPercent, time);
+                                return string.Format("Ability: {0}({1}%) Transporting ({2:0.00})", Hero.ChampionName, hPercent, time);
                             case Packet.S2C.Teleport.Status.Finish:
-                                return string.Format("(R): {0}({1}%) Ported ({2:0.00})", Hero.ChampionName, hPercent, time);
+                                return string.Format("Ability: {0}({1}%) Ported ({2:0.00})", Hero.ChampionName, hPercent, time);
                             case Packet.S2C.Teleport.Status.Abort:
-                                return string.Format("(R): {0}({1}%) Aborted", Hero.ChampionName, hPercent);
+                                return string.Format("Ability: {0}({1}%) Aborted", Hero.ChampionName, hPercent);
                         }
                         break;
                 }
