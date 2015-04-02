@@ -44,6 +44,8 @@ namespace SFXUtility.Features.Trackers
 
     internal class Ward : Base
     {
+        private const float CheckInterval = 300f;
+        private float _lastCheck = Environment.TickCount;
         private readonly List<WardObject> _wardObjects = new List<WardObject>();
 
         private readonly List<WardStruct> _wardStructs = new List<WardStruct>
@@ -243,6 +245,10 @@ namespace SFXUtility.Features.Trackers
 
         private void OnGameUpdate(EventArgs args)
         {
+            if (_lastCheck + CheckInterval > Environment.TickCount)
+                return;
+            _lastCheck = Environment.TickCount;
+
             _wardObjects.RemoveAll(w => w.EndT <= Game.Time && w.Duration != int.MaxValue && w.Remove());
             _wardObjects.RemoveAll(w => w.Object != null && !w.Object.IsValid && w.Remove());
         }

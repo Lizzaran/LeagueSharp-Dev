@@ -20,7 +20,6 @@
 
 #endregion License
 
-
 #pragma warning disable 618
 
 namespace SFXUtility.Features.Trackers
@@ -83,6 +82,9 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
+                if (!Menu.Item(Name + "DrawingTextEnabled").GetValue<bool>())
+                    return;
+
                 var count = 0;
                 foreach (var recall in _recallObjects)
                 {
@@ -130,6 +132,11 @@ namespace SFXUtility.Features.Trackers
 
                 Menu = new Menu(Name, Name);
 
+                var drawingMenu = new Menu("Drawing", Name + "Drawing");
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "TextEnabled", "Text").SetValue(true));
+
+                Menu.AddSubMenu(drawingMenu);
+
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
@@ -155,6 +162,7 @@ namespace SFXUtility.Features.Trackers
                 {
                     recall.Duration = packet.Duration;
                     recall.LastStatus = packet.Status;
+                    recall.LastType = packet.Type;
 
                     switch (packet.Status)
                     {
@@ -213,6 +221,9 @@ namespace SFXUtility.Features.Trackers
                 }
             }
 
+            // ReSharper disable once MemberCanBePrivate.Local
+            public Packet.S2C.Teleport.Type LastType { get; set; }
+
             public override string ToString()
             {
                 var time = _recallStart + Duration - Game.Time;
@@ -220,21 +231,45 @@ namespace SFXUtility.Features.Trackers
                 {
                     time = Game.Time - _lastActionTime;
                 }
-                var hPercent = (ObjectManager.Player.Health/ObjectManager.Player.MaxHealth)*100;
-                switch (LastStatus)
+                var hPercent = (int) (ObjectManager.Player.Health/ObjectManager.Player.MaxHealth)*100;
+                switch (LastType)
                 {
-                    case Packet.S2C.Teleport.Status.Start:
-                        return string.Format("Recall: {0}({1}%) Teleporting ({2:0.00})", Hero.ChampionName, (int) hPercent, time);
-
-                    case Packet.S2C.Teleport.Status.Finish:
-                        return string.Format("Recall: {0}({1}%) Teleported ({2:0.00})", Hero.ChampionName, (int) hPercent, time);
-
-                    case Packet.S2C.Teleport.Status.Abort:
-                        return string.Format("Recall: {0}({1}%) Aborted", Hero.ChampionName, (int) hPercent);
-
-                    default:
-                        return string.Empty;
+                    case Packet.S2C.Teleport.Type.Recall:
+                        switch (LastStatus)
+                        {
+                            case Packet.S2C.Teleport.Status.Start:
+                                return string.Format("Recall: {0}({1}%) Recalling ({2:0.00})", Hero.ChampionName, hPercent, time);
+                            case Packet.S2C.Teleport.Status.Finish:
+                                return string.Format("Recall: {0}({1}%) Recalled ({2:0.00})", Hero.ChampionName, hPercent, time);
+                            case Packet.S2C.Teleport.Status.Abort:
+                                return string.Format("Recall: {0}({1}%) Aborted", Hero.ChampionName, hPercent);
+                        }
+                        break;
+                    case Packet.S2C.Teleport.Type.Teleport:
+                        switch (LastStatus)
+                        {
+                            case Packet.S2C.Teleport.Status.Start:
+                                return string.Format("Teleport: {0}({1}%) Teleporting ({2:0.00})", Hero.ChampionName, hPercent, time);
+                            case Packet.S2C.Teleport.Status.Finish:
+                                return string.Format("Teleport: {0}({1}%) Ported ({2:0.00})", Hero.ChampionName, hPercent, time);
+                            case Packet.S2C.Teleport.Status.Abort:
+                                return string.Format("Teleport: {0}({1}%) Aborted", Hero.ChampionName, hPercent);
+                        }
+                        break;
+                    case Packet.S2C.Teleport.Type.Shen:
+                    case Packet.S2C.Teleport.Type.TwistedFate:
+                        switch (LastStatus)
+                        {
+                            case Packet.S2C.Teleport.Status.Start:
+                                return string.Format("(R): {0}({1}%) Transporting ({2:0.00})", Hero.ChampionName, hPercent, time);
+                            case Packet.S2C.Teleport.Status.Finish:
+                                return string.Format("(R): {0}({1}%) Ported ({2:0.00})", Hero.ChampionName, hPercent, time);
+                            case Packet.S2C.Teleport.Status.Abort:
+                                return string.Format("(R): {0}({1}%) Aborted", Hero.ChampionName, hPercent);
+                        }
+                        break;
                 }
+                return string.Empty;
             }
 
             public Color ToColor()

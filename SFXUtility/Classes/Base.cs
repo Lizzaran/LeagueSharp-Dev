@@ -34,19 +34,12 @@ namespace SFXUtility.Classes
 
     internal abstract class Base
     {
-        /// <exception cref="InvalidOperationException">SFXUtility</exception>
         protected Base(IContainer container)
         {
-            if (!container.IsRegistered<SFXUtility>())
-                throw new InvalidOperationException("SFXUtility");
-            if (!container.IsRegistered<ILogger>())
-                throw new InvalidOperationException("ILogger");
-
             IoC = container;
+            Logger = IoC.Resolve<ILogger>();
 
             var sfx = IoC.Resolve<SFXUtility>();
-
-            Logger = IoC.Resolve<ILogger>();
             BaseMenu = sfx.Menu;
             BaseName = sfx.Name;
         }

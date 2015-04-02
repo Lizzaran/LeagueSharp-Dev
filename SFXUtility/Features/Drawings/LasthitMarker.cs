@@ -61,36 +61,36 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                if (_minions.Any())
+                if (!_minions.Any())
+                    return;
+
+                var circleColor = Menu.Item(Name + "DrawingCircleColor").GetValue<Color>();
+                var hpKillableColor = Menu.Item(Name + "DrawingHpBarKillableColor").GetValue<Color>();
+                var hpUnkillableColor = Menu.Item(Name + "DrawingHpBarUnkillableColor").GetValue<Color>();
+                var hpLinesThickness = Menu.Item(Name + "DrawingHpBarLinesThickness").GetValue<Slider>().Value;
+                var radius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value;
+
+                var hpBar = Menu.Item(Name + "DrawingHpBarEnabled").GetValue<bool>();
+                var circle = Menu.Item(Name + "DrawingCircleEnabled").GetValue<bool>();
+
+                foreach (var minion in _minions)
                 {
-                    var circleColor = Menu.Item(Name + "DrawingCircleColor").GetValue<Color>();
-                    var hpKillableColor = Menu.Item(Name + "DrawingHpBarKillableColor").GetValue<Color>();
-                    var hpUnkillableColor = Menu.Item(Name + "DrawingHpBarUnkillableColor").GetValue<Color>();
-                    var hpLinesThickness = Menu.Item(Name + "DrawingHpBarLinesThickness").GetValue<Slider>().Value;
-                    var radius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value;
-
-                    var hpBar = Menu.Item(Name + "DrawingHpBarEnabled").GetValue<bool>();
-                    var circle = Menu.Item(Name + "DrawingCircleEnabled").GetValue<bool>();
-
-                    foreach (var minion in _minions)
+                    var aaDamage = ObjectManager.Player.GetAutoAttackDamage(minion, true);
+                    var killable = minion.Health <= aaDamage;
+                    if (hpBar && minion.IsHPBarRendered)
                     {
-                        var aaDamage = ObjectManager.Player.GetAutoAttackDamage(minion, true);
-                        var killable = minion.Health <= aaDamage;
-                        if (hpBar && minion.IsHPBarRendered)
-                        {
-                            var barPos = minion.HPBarPosition;
-                            var offset = 62/(minion.MaxHealth/aaDamage);
-                            offset = offset > 62 ? 62 : offset;
-                            var tmpThk = (int) (62 - offset);
-                            hpLinesThickness = tmpThk > hpLinesThickness ? hpLinesThickness : (tmpThk == 0 ? 1 : tmpThk);
-                            Drawing.DrawLine(new Vector2(barPos.X + 45 + (float) offset, barPos.Y + 18),
-                                new Vector2(barPos.X + 45 + (float) offset, barPos.Y + 23), hpLinesThickness,
-                                killable ? hpKillableColor : hpUnkillableColor);
-                        }
-                        if (circle && killable)
-                        {
-                            Render.Circle.DrawCircle(minion.Position, minion.BoundingRadius + radius, circleColor, 1);
-                        }
+                        var barPos = minion.HPBarPosition;
+                        var offset = 62/(minion.MaxHealth/aaDamage);
+                        offset = offset > 62 ? 62 : offset;
+                        var tmpThk = (int) (62 - offset);
+                        hpLinesThickness = tmpThk > hpLinesThickness ? hpLinesThickness : (tmpThk == 0 ? 1 : tmpThk);
+                        Drawing.DrawLine(new Vector2(barPos.X + 45 + (float) offset, barPos.Y + 18),
+                            new Vector2(barPos.X + 45 + (float) offset, barPos.Y + 23), hpLinesThickness,
+                            killable ? hpKillableColor : hpUnkillableColor);
+                    }
+                    if (circle && killable)
+                    {
+                        Render.Circle.DrawCircle(minion.Position, minion.BoundingRadius + radius, circleColor, 1);
                     }
                 }
             }
@@ -110,7 +110,7 @@ namespace SFXUtility.Features.Drawings
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu("Drawing", Name + "Drawing");
-                var drawingHpBarMenu = new Menu("HPBar", drawingMenu.Name + "HpBar");
+                var drawingHpBarMenu = new Menu("HpBar", drawingMenu.Name + "HpBar");
                 var drawingCirclesMenu = new Menu("Circle", drawingMenu.Name + "Circle");
 
                 drawingHpBarMenu.AddItem(new MenuItem(drawingHpBarMenu.Name + "KillableColor", "Killable Color").SetValue(Color.Green));
@@ -181,7 +181,8 @@ namespace SFXUtility.Features.Drawings
                     ObjectManager.Get<Obj_AI_Minion>()
                         .Where(
                             minion =>
-                                minion != null && minion.IsValid && minion.IsTargetable && minion.Health > 0.1f && minion.IsEnemy &&
+                                minion != null && minion.IsValid && minion.IsTargetable && minion.Health > 0.1f &&
+                                minion.Team == (ObjectManager.Player.Team == GameObjectTeam.Order ? GameObjectTeam.Chaos : GameObjectTeam.Order) &&
                                 minion.Position.IsOnScreen());
             }
             catch (Exception ex)
