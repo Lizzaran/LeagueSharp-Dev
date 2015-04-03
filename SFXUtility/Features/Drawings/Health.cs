@@ -30,7 +30,6 @@ namespace SFXUtility.Features.Drawings
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
 
@@ -41,11 +40,6 @@ namespace SFXUtility.Features.Drawings
         private readonly List<InhibitorObject> _inhibs = new List<InhibitorObject>();
         private readonly List<TurretObject> _turrets = new List<TurretObject>();
         private Drawings _parent;
-
-        public Health(IContainer container) : base(container)
-        {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
-        }
 
         public override bool Enabled
         {
@@ -147,7 +141,7 @@ namespace SFXUtility.Features.Drawings
 
                 foreach (var turret in ObjectManager.Get<Obj_AI_Turret>().Where(t => t.IsValid && !t.IsDead && t.Health > 1f && t.Health < 9999f))
                 {
-                    _turrets.Add(new TurretObject(turret, Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value, Logger)
+                    _turrets.Add(new TurretObject(turret, Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value)
                     {
                         Active = Enabled && Menu.Item(Name + "Turret").GetValue<bool>(),
                         Percentage = Menu.Item(Name + "DrawingPercentage").GetValue<bool>()
@@ -155,7 +149,7 @@ namespace SFXUtility.Features.Drawings
                 }
                 foreach (var inhib in ObjectManager.Get<Obj_BarracksDampener>().Where(i => i.IsValid))
                 {
-                    _inhibs.Add(new InhibitorObject(inhib, Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value, Logger)
+                    _inhibs.Add(new InhibitorObject(inhib, Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value)
                     {
                         Active = Enabled && Menu.Item(Name + "Inhibitor").GetValue<bool>(),
                         Percentage = Menu.Item(Name + "DrawingPercentage").GetValue<bool>()
@@ -170,17 +164,17 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
-        private void OnGameLoad(EventArgs args)
+        protected override void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Drawings>())
+                if (Global.IoC.IsRegistered<Drawings>())
                 {
-                    _parent = IoC.Resolve<Drawings>();
+                    _parent = Global.IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
                         OnParentInitialized(null, null);
                     else
@@ -189,7 +183,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -199,7 +193,7 @@ namespace SFXUtility.Features.Drawings
             private bool _added;
             private Render.Text _text;
 
-            public TurretObject(Obj_AI_Turret turret, int fontSize, ILogger logger)
+            public TurretObject(Obj_AI_Turret turret, int fontSize)
             {
                 _text = new Render.Text(Drawing.WorldToMinimap(turret.Position), string.Empty, fontSize, Color.White)
                 {
@@ -213,7 +207,7 @@ namespace SFXUtility.Features.Drawings
                         }
                         catch (Exception ex)
                         {
-                            logger.AddItem(new LogItem(ex) {Object = this});
+                            Global.Logger.AddItem(new LogItem(ex));
                             return false;
                         }
                     },
@@ -228,7 +222,7 @@ namespace SFXUtility.Features.Drawings
                         }
                         catch (Exception ex)
                         {
-                            logger.AddItem(new LogItem(ex) {Object = this});
+                            Global.Logger.AddItem(new LogItem(ex));
                             return string.Empty;
                         }
                     }
@@ -277,7 +271,7 @@ namespace SFXUtility.Features.Drawings
             private bool _active;
             private bool _added;
 
-            public InhibitorObject(Obj_BarracksDampener inhib, int fontSize, ILogger logger)
+            public InhibitorObject(Obj_BarracksDampener inhib, int fontSize)
             {
                 _text = new Render.Text(Drawing.WorldToMinimap(inhib.Position), string.Empty, fontSize, Color.White)
                 {
@@ -291,7 +285,7 @@ namespace SFXUtility.Features.Drawings
                         }
                         catch (Exception ex)
                         {
-                            logger.AddItem(new LogItem(ex) {Object = this});
+                            Global.Logger.AddItem(new LogItem(ex));
                             return false;
                         }
                     },
@@ -304,7 +298,7 @@ namespace SFXUtility.Features.Drawings
                         }
                         catch (Exception ex)
                         {
-                            logger.AddItem(new LogItem(ex) {Object = this});
+                            Global.Logger.AddItem(new LogItem(ex));
                             return string.Empty;
                         }
                     }

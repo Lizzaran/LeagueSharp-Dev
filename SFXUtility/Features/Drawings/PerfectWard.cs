@@ -31,7 +31,6 @@ namespace SFXUtility.Features.Drawings
     using LeagueSharp;
     using LeagueSharp.Common;
     using LeagueSharp.Common.Data;
-    using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
     using Color = System.Drawing.Color;
@@ -193,11 +192,6 @@ namespace SFXUtility.Features.Drawings
         private WardSpot _lastWardSpot = default(WardSpot);
         private Drawings _parent;
 
-        public PerfectWard(IContainer container) : base(container)
-        {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
-        }
-
         public override bool Enabled
         {
             get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
@@ -226,13 +220,13 @@ namespace SFXUtility.Features.Drawings
             base.OnDisable();
         }
 
-        private void OnGameLoad(EventArgs args)
+        protected override void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Drawings>())
+                if (Global.IoC.IsRegistered<Drawings>())
                 {
-                    _parent = IoC.Resolve<Drawings>();
+                    _parent = Global.IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
                         OnParentInitialized(null, null);
                     else
@@ -241,7 +235,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -255,8 +249,10 @@ namespace SFXUtility.Features.Drawings
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu("Drawing", Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Radius", "Radius").SetValue(new Slider(60, 10, 200)));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Color", "Color").SetValue(Color.GreenYellow));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Radius", "Radius").SetValue(new Slider(60, 10, 200)));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CircleThickness", "Circle Thickness").SetValue(new Slider(2, 1, 10)));
+
 
                 Menu.AddItem(new MenuItem(Name + "Hotkey", "Hotkey").SetValue(new KeyBind('Z', KeyBindType.Press)));
 
@@ -271,7 +267,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -284,6 +280,7 @@ namespace SFXUtility.Features.Drawings
 
                 var radius = Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value;
                 var color = Menu.Item(Name + "DrawingColor").GetValue<Color>();
+                var thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
 
                 foreach (var spot in _wardSpots)
                 {
@@ -292,7 +289,7 @@ namespace SFXUtility.Features.Drawings
                         Render.Circle.DrawCircle(spot.WardPosition, radius, color, 1);
                         if (spot.SafeSpot)
                         {
-                            Render.Circle.DrawCircle(spot.MagneticPosition, radius, Color.White, 1);
+                            Render.Circle.DrawCircle(spot.MagneticPosition, radius, Color.White, thickness);
                             Drawing.DrawLine(Drawing.WorldToScreen(spot.MagneticPosition), Drawing.WorldToScreen(spot.WardPosition), 2f, color);
                         }
                     }
@@ -300,7 +297,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -339,7 +336,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -393,7 +390,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 

@@ -32,7 +32,6 @@ namespace SFXUtility.Features.Drawings
     using LeagueSharp;
     using LeagueSharp.Common;
     using SFXLibrary.Extensions.NET;
-    using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
     #endregion
@@ -42,11 +41,6 @@ namespace SFXUtility.Features.Drawings
         private readonly string[] _cloneHeroes = {"Shaco", "LeBlanc", "MonkeyKing", "Yorick"};
         private List<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
         private Drawings _parent;
-
-        public Clone(IContainer container) : base(container)
-        {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
-        }
 
         public override bool Enabled
         {
@@ -74,28 +68,29 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                var circleColor = Menu.Item(Name + "DrawingCircleColor").GetValue<Color>();
+                var color = Menu.Item(Name + "DrawingCircleColor").GetValue<Color>();
                 var radius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value;
+                var thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
 
                 foreach (var hero in
                     _heroes.Where(hero => !hero.IsDead && hero.IsVisible && hero.Position.IsOnScreen()))
                 {
-                    Render.Circle.DrawCircle(hero.ServerPosition, hero.BoundingRadius + radius, circleColor, 1);
+                    Render.Circle.DrawCircle(hero.ServerPosition, hero.BoundingRadius + radius, color, thickness);
                 }
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
-        private void OnGameLoad(EventArgs args)
+        protected override void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Drawings>())
+                if (Global.IoC.IsRegistered<Drawings>())
                 {
-                    _parent = IoC.Resolve<Drawings>();
+                    _parent = Global.IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
                         OnParentInitialized(null, null);
                     else
@@ -104,7 +99,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -120,6 +115,7 @@ namespace SFXUtility.Features.Drawings
                 var drawingMenu = new Menu("Drawing", Name + "Drawing");
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CircleColor", "Circle Color").SetValue(Color.YellowGreen));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CircleRadius", "Circle Radius").SetValue(new Slider(30)));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CircleThickness", "Circle Thickness").SetValue(new Slider(2, 1, 10)));
 
                 Menu.AddSubMenu(drawingMenu);
 
@@ -137,7 +133,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
     }

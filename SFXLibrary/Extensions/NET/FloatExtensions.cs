@@ -39,7 +39,7 @@ namespace SFXLibrary.Extensions.NET
         public static string FormatTime(this float value, bool totalSeconds = false)
         {
             var ts = TimeSpan.FromSeconds(value);
-            return string.Format(totalSeconds ? "{1}" : "{0}:{1:00}", (int) ts.TotalMinutes, totalSeconds ? (int)ts.TotalSeconds : ts.Seconds);
+            return string.Format(totalSeconds ? "{1}" : "{0}:{1:00}", (int) ts.TotalMinutes, totalSeconds ? (int) ts.TotalSeconds : ts.Seconds);
         }
     }
 }

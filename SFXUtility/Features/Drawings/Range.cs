@@ -32,7 +32,6 @@ namespace SFXUtility.Features.Drawings
     using LeagueSharp;
     using LeagueSharp.Common;
     using SFXLibrary.Extensions.SharpDX;
-    using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
     #endregion
@@ -43,11 +42,6 @@ namespace SFXUtility.Features.Drawings
         private const float TurretRange = 900f;
         private Drawings _parent;
         private List<Obj_AI_Turret> _turrets = new List<Obj_AI_Turret>();
-
-        public Range(IContainer container) : base(container)
-        {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
-        }
 
         public override bool Enabled
         {
@@ -64,6 +58,7 @@ namespace SFXUtility.Features.Drawings
             var drawFriendly = Menu.Item(Name + "AttackFriendly").GetValue<bool>();
             var drawEnemy = Menu.Item(Name + "AttackEnemy").GetValue<bool>();
             var drawSelf = Menu.Item(Name + "AttackSelf").GetValue<bool>();
+            var thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
 
             if (!drawFriendly && !drawEnemy && !drawSelf)
                 return;
@@ -78,7 +73,7 @@ namespace SFXUtility.Features.Drawings
                     if ((hero.IsAlly && drawFriendly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) && !(hero.IsMe && !drawSelf) &&
                         hero.Position.IsOnScreen(radius))
                     {
-                        Render.Circle.DrawCircle(hero.Position, radius, color, 1);
+                        Render.Circle.DrawCircle(hero.Position, radius, color, thickness);
                     }
                 }
             }
@@ -89,6 +84,7 @@ namespace SFXUtility.Features.Drawings
             var drawFriendly = Menu.Item(Name + "ExperienceFriendly").GetValue<bool>();
             var drawEnemy = Menu.Item(Name + "ExperienceEnemy").GetValue<bool>();
             var drawSelf = Menu.Item(Name + "ExperienceSelf").GetValue<bool>();
+            var thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
 
             if (!drawFriendly && !drawEnemy && !drawSelf)
                 return;
@@ -102,7 +98,7 @@ namespace SFXUtility.Features.Drawings
                     if ((hero.IsAlly && drawFriendly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) && !(hero.IsMe && !drawSelf) &&
                         hero.Position.IsOnScreen(ExperienceRange))
                     {
-                        Render.Circle.DrawCircle(hero.Position, ExperienceRange, color, 1);
+                        Render.Circle.DrawCircle(hero.Position, ExperienceRange, color, thickness);
                     }
                 }
             }
@@ -110,6 +106,8 @@ namespace SFXUtility.Features.Drawings
 
         private void DrawSpell()
         {
+            var thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
+
             var drawFriendlyQ = Menu.Item(Name + "SpellFriendlyQ").GetValue<bool>();
             var drawFriendlyW = Menu.Item(Name + "SpellFriendlyW").GetValue<bool>();
             var drawFriendlyE = Menu.Item(Name + "SpellFriendlyE").GetValue<bool>();
@@ -143,25 +141,25 @@ namespace SFXUtility.Features.Drawings
                 {
                     var range = hero.Spellbook.GetSpell(SpellSlot.Q).SData.CastRange;
                     if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                        Render.Circle.DrawCircle(hero.Position, range, color, 1);
+                        Render.Circle.DrawCircle(hero.Position, range, color, thickness);
                 }
                 if ((hero.IsAlly && drawFriendlyW || hero.IsEnemy && drawEnemyW || hero.IsMe && drawSelfW) && !(hero.IsMe && !drawSelfW))
                 {
                     var range = hero.Spellbook.GetSpell(SpellSlot.W).SData.CastRange;
                     if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                        Render.Circle.DrawCircle(hero.Position, range, color, 1);
+                        Render.Circle.DrawCircle(hero.Position, range, color, thickness);
                 }
                 if ((hero.IsAlly && drawFriendlyE || hero.IsEnemy && drawEnemyE || hero.IsMe && drawSelfE) && !(hero.IsMe && !drawSelfE))
                 {
                     var range = hero.Spellbook.GetSpell(SpellSlot.E).SData.CastRange;
                     if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                        Render.Circle.DrawCircle(hero.Position, range, color, 1);
+                        Render.Circle.DrawCircle(hero.Position, range, color, thickness);
                 }
                 if ((hero.IsAlly && drawFriendlyR || hero.IsEnemy && drawEnemyR || hero.IsMe && drawSelfR) && !(hero.IsMe && !drawSelfR))
                 {
                     var range = hero.Spellbook.GetSpell(SpellSlot.R).SData.CastRange;
                     if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                        Render.Circle.DrawCircle(hero.Position, range, color, 1);
+                        Render.Circle.DrawCircle(hero.Position, range, color, thickness);
                 }
             }
         }
@@ -170,6 +168,7 @@ namespace SFXUtility.Features.Drawings
         {
             var drawFriendly = Menu.Item(Name + "TurretFriendly").GetValue<bool>();
             var drawEnemy = Menu.Item(Name + "TurretEnemy").GetValue<bool>();
+            var thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
 
             if (!drawFriendly && !drawEnemy)
                 return;
@@ -181,7 +180,7 @@ namespace SFXUtility.Features.Drawings
                     if (turret.IsAlly && drawFriendly || turret.IsEnemy && drawEnemy && turret.Position.IsOnScreen(TurretRange))
                     {
                         Render.Circle.DrawCircle(turret.Position, TurretRange,
-                            Menu.Item(Name + "Turret" + (turret.IsAlly ? "Friendly" : "Enemy") + "Color").GetValue<Color>(), 1);
+                            Menu.Item(Name + "Turret" + (turret.IsAlly ? "Friendly" : "Enemy") + "Color").GetValue<Color>(), thickness);
                     }
                 }
             }
@@ -198,7 +197,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -210,6 +209,9 @@ namespace SFXUtility.Features.Drawings
                     return;
 
                 Menu = new Menu(Name, Name);
+
+                var drawingMenu = new Menu("Drawing", Name + "Drawing");
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CircleThickness", "Circle Thickness").SetValue(new Slider(2, 1, 10)));
 
                 var experienceMenu = new Menu("Experience", Name + "Experience");
                 experienceMenu.AddItem(new MenuItem(experienceMenu.Name + "Color", "Color").SetValue(Color.Gray));
@@ -259,6 +261,7 @@ namespace SFXUtility.Features.Drawings
 
                 spellMenu.AddSubMenu(spellEnemyMenu);
 
+                Menu.AddSubMenu(drawingMenu);
                 Menu.AddSubMenu(experienceMenu);
                 Menu.AddSubMenu(attackMenu);
                 Menu.AddSubMenu(turretMenu);
@@ -275,7 +278,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -291,13 +294,13 @@ namespace SFXUtility.Features.Drawings
             base.OnDisable();
         }
 
-        private void OnGameLoad(EventArgs args)
+        protected override void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Drawings>())
+                if (Global.IoC.IsRegistered<Drawings>())
                 {
-                    _parent = IoC.Resolve<Drawings>();
+                    _parent = Global.IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
                         OnParentInitialized(null, null);
                     else
@@ -306,7 +309,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
     }

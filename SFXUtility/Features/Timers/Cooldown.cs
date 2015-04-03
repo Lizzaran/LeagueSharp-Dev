@@ -32,7 +32,6 @@ namespace SFXUtility.Features.Timers
     using LeagueSharp;
     using LeagueSharp.Common;
     using Properties;
-    using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
     using Color = SharpDX.Color;
@@ -45,11 +44,6 @@ namespace SFXUtility.Features.Timers
         private List<CooldownObject> _cooldownObjects = new List<CooldownObject>();
         private Timers _parent;
 
-        public Cooldown(IContainer container) : base(container)
-        {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
-        }
-
         public override bool Enabled
         {
             get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
@@ -60,13 +54,13 @@ namespace SFXUtility.Features.Timers
             get { return "Cooldown"; }
         }
 
-        private void OnGameLoad(EventArgs args)
+        protected override void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Timers>())
+                if (Global.IoC.IsRegistered<Timers>())
                 {
-                    _parent = IoC.Resolve<Timers>();
+                    _parent = Global.IoC.Resolve<Timers>();
                     if (_parent.Initialized)
                         OnParentInitialized(null, null);
                     else
@@ -75,7 +69,7 @@ namespace SFXUtility.Features.Timers
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -132,7 +126,7 @@ namespace SFXUtility.Features.Timers
                     HeroManager.AllHeroes.Where(hero => !hero.IsMe)
                         .Select(
                             hero =>
-                                new CooldownObject(hero, Logger)
+                                new CooldownObject(hero)
                                 {
                                     Active =
                                         Enabled &&
@@ -146,7 +140,7 @@ namespace SFXUtility.Features.Timers
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -163,7 +157,7 @@ namespace SFXUtility.Features.Timers
             private bool _active;
             private bool _added;
 
-            public CooldownObject(Obj_AI_Hero hero, ILogger logger)
+            public CooldownObject(Obj_AI_Hero hero)
             {
                 Hero = hero;
                 try
@@ -178,7 +172,7 @@ namespace SFXUtility.Features.Timers
                             }
                             catch (Exception ex)
                             {
-                                logger.AddItem(new LogItem(ex) {Object = this});
+                                Global.Logger.AddItem(new LogItem(ex));
                                 return false;
                             }
                         },
@@ -190,7 +184,7 @@ namespace SFXUtility.Features.Timers
                             }
                             catch (Exception ex)
                             {
-                                logger.AddItem(new LogItem(ex) {Object = this});
+                                Global.Logger.AddItem(new LogItem(ex));
                                 return default(Vector2);
                             }
                         }
@@ -198,7 +192,7 @@ namespace SFXUtility.Features.Timers
                 }
                 catch (Exception ex)
                 {
-                    logger.AddItem(new LogItem(ex) {Object = this});
+                    Global.Logger.AddItem(new LogItem(ex));
                 }
 
                 for (var i = 0; i < _summonerSpellSlots.Length; i++)
@@ -219,7 +213,7 @@ namespace SFXUtility.Features.Timers
                                 }
                                 catch (Exception ex)
                                 {
-                                    logger.AddItem(new LogItem(ex) {Object = this});
+                                    Global.Logger.AddItem(new LogItem(ex));
                                     return false;
                                 }
                             }
@@ -240,7 +234,7 @@ namespace SFXUtility.Features.Timers
                             }
                             catch (Exception ex)
                             {
-                                logger.AddItem(new LogItem(ex) {Object = this});
+                                Global.Logger.AddItem(new LogItem(ex));
                                 return default(Vector2);
                             }
                         };
@@ -254,7 +248,7 @@ namespace SFXUtility.Features.Timers
                                 }
                                 catch (Exception ex)
                                 {
-                                    logger.AddItem(new LogItem(ex) {Object = this});
+                                    Global.Logger.AddItem(new LogItem(ex));
                                     return false;
                                 }
                             }
@@ -267,7 +261,7 @@ namespace SFXUtility.Features.Timers
                             }
                             catch (Exception ex)
                             {
-                                logger.AddItem(new LogItem(ex) {Object = this});
+                                Global.Logger.AddItem(new LogItem(ex));
                                 return default(Vector2);
                             }
                         };
@@ -281,7 +275,7 @@ namespace SFXUtility.Features.Timers
                             }
                             catch (Exception ex)
                             {
-                                logger.AddItem(new LogItem(ex) {Object = this});
+                                Global.Logger.AddItem(new LogItem(ex));
                                 return string.Empty;
                             }
                         };
@@ -290,7 +284,7 @@ namespace SFXUtility.Features.Timers
                     }
                     catch (Exception ex)
                     {
-                        logger.AddItem(new LogItem(ex) {Object = this});
+                        Global.Logger.AddItem(new LogItem(ex));
                     }
                 }
 
@@ -310,7 +304,7 @@ namespace SFXUtility.Features.Timers
                                 }
                                 catch (Exception ex)
                                 {
-                                    logger.AddItem(new LogItem(ex) {Object = this});
+                                    Global.Logger.AddItem(new LogItem(ex));
                                     return false;
                                 }
                             },
@@ -322,7 +316,7 @@ namespace SFXUtility.Features.Timers
                                 }
                                 catch (Exception ex)
                                 {
-                                    logger.AddItem(new LogItem(ex) {Object = this});
+                                    Global.Logger.AddItem(new LogItem(ex));
                                     return default(Vector2);
                                 }
                             }
@@ -341,7 +335,7 @@ namespace SFXUtility.Features.Timers
                             }
                             catch (Exception ex)
                             {
-                                logger.AddItem(new LogItem(ex) {Object = this});
+                                Global.Logger.AddItem(new LogItem(ex));
                                 return default(Vector2);
                             }
                         };
@@ -355,7 +349,7 @@ namespace SFXUtility.Features.Timers
                                 }
                                 catch (Exception ex)
                                 {
-                                    logger.AddItem(new LogItem(ex) {Object = this});
+                                    Global.Logger.AddItem(new LogItem(ex));
                                     return false;
                                 }
                             }
@@ -368,7 +362,7 @@ namespace SFXUtility.Features.Timers
                             }
                             catch (Exception ex)
                             {
-                                logger.AddItem(new LogItem(ex) {Object = this});
+                                Global.Logger.AddItem(new LogItem(ex));
                                 return default(Vector2);
                             }
                         };
@@ -382,7 +376,7 @@ namespace SFXUtility.Features.Timers
                             }
                             catch (Exception ex)
                             {
-                                logger.AddItem(new LogItem(ex) {Object = this});
+                                Global.Logger.AddItem(new LogItem(ex));
                                 return string.Empty;
                             }
                         };
@@ -391,7 +385,7 @@ namespace SFXUtility.Features.Timers
                     }
                     catch (Exception ex)
                     {
-                        logger.AddItem(new LogItem(ex) {Object = this});
+                        Global.Logger.AddItem(new LogItem(ex));
                     }
                 }
             }

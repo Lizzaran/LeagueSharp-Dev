@@ -32,7 +32,6 @@ namespace SFXUtility.Features.Drawings
     using LeagueSharp.Common;
     using SFXLibrary;
     using SFXLibrary.Extensions.SharpDX;
-    using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
     using Color = System.Drawing.Color;
@@ -45,11 +44,6 @@ namespace SFXUtility.Features.Drawings
         private readonly Dictionary<int, List<Vector2>> _waypoints = new Dictionary<int, List<Vector2>>();
         private float _lastCheck = Environment.TickCount;
         private Drawings _parent;
-
-        public Waypoint(IContainer container) : base(container)
-        {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
-        }
 
         public override bool Enabled
         {
@@ -94,7 +88,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -131,17 +125,17 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
-        private void OnGameLoad(EventArgs args)
+        protected override void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Drawings>())
+                if (Global.IoC.IsRegistered<Drawings>())
                 {
-                    _parent = IoC.Resolve<Drawings>();
+                    _parent = Global.IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
                         OnParentInitialized(null, null);
                     else
@@ -150,7 +144,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -196,7 +190,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
     }

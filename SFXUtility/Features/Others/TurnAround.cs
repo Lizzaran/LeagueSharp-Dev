@@ -31,7 +31,6 @@ namespace SFXUtility.Features.Others
     using LeagueSharp;
     using LeagueSharp.Common;
     using SFXLibrary.Extensions.NET;
-    using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
 
@@ -48,11 +47,6 @@ namespace SFXUtility.Features.Others
 
         private float _blockMovementTime;
         private Others _parent;
-
-        public TurnAround(IContainer container) : base(container)
-        {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
-        }
 
         public override bool Enabled
         {
@@ -85,7 +79,7 @@ namespace SFXUtility.Features.Others
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -123,17 +117,17 @@ namespace SFXUtility.Features.Others
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
-        private void OnGameLoad(EventArgs args)
+        protected override void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Others>())
+                if (Global.IoC.IsRegistered<Others>())
                 {
-                    _parent = IoC.Resolve<Others>();
+                    _parent = Global.IoC.Resolve<Others>();
                     if (_parent.Initialized)
                         OnParentInitialized(null, null);
                     else
@@ -142,7 +136,7 @@ namespace SFXUtility.Features.Others
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -167,7 +161,7 @@ namespace SFXUtility.Features.Others
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 

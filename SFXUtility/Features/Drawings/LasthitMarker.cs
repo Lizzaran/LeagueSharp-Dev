@@ -30,7 +30,6 @@ namespace SFXUtility.Features.Drawings
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
     using Color = System.Drawing.Color;
@@ -41,11 +40,6 @@ namespace SFXUtility.Features.Drawings
     {
         private IEnumerable<Obj_AI_Minion> _minions = new List<Obj_AI_Minion>();
         private Drawings _parent;
-
-        public LasthitMarker(IContainer container) : base(container)
-        {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
-        }
 
         public override bool Enabled
         {
@@ -69,6 +63,7 @@ namespace SFXUtility.Features.Drawings
                 var hpUnkillableColor = Menu.Item(Name + "DrawingHpBarUnkillableColor").GetValue<Color>();
                 var hpLinesThickness = Menu.Item(Name + "DrawingHpBarLinesThickness").GetValue<Slider>().Value;
                 var radius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value;
+                var thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
 
                 var hpBar = Menu.Item(Name + "DrawingHpBarEnabled").GetValue<bool>();
                 var circle = Menu.Item(Name + "DrawingCircleEnabled").GetValue<bool>();
@@ -90,13 +85,13 @@ namespace SFXUtility.Features.Drawings
                     }
                     if (circle && killable)
                     {
-                        Render.Circle.DrawCircle(minion.Position, minion.BoundingRadius + radius, circleColor, 1);
+                        Render.Circle.DrawCircle(minion.Position, minion.BoundingRadius + radius, circleColor, thickness);
                     }
                 }
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -120,6 +115,7 @@ namespace SFXUtility.Features.Drawings
 
                 drawingCirclesMenu.AddItem(new MenuItem(drawingCirclesMenu.Name + "Color", "Circle Color").SetValue(Color.Fuchsia));
                 drawingCirclesMenu.AddItem(new MenuItem(drawingCirclesMenu.Name + "Radius", "Circle Radius").SetValue(new Slider(30)));
+                drawingCirclesMenu.AddItem(new MenuItem(drawingCirclesMenu.Name + "CircleThickness", "Circle Thickness").SetValue(new Slider(2, 1, 10)));
                 drawingCirclesMenu.AddItem(new MenuItem(drawingCirclesMenu.Name + "Enabled", "Enabled").SetValue(false));
 
                 drawingMenu.AddSubMenu(drawingHpBarMenu);
@@ -136,7 +132,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -154,13 +150,13 @@ namespace SFXUtility.Features.Drawings
             base.OnDisable();
         }
 
-        private void OnGameLoad(EventArgs args)
+        protected override void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Drawings>())
+                if (Global.IoC.IsRegistered<Drawings>())
                 {
-                    _parent = IoC.Resolve<Drawings>();
+                    _parent = Global.IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
                         OnParentInitialized(null, null);
                     else
@@ -169,7 +165,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -187,7 +183,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
     }

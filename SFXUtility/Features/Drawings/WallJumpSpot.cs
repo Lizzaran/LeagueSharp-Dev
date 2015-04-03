@@ -31,7 +31,6 @@ namespace SFXUtility.Features.Drawings
     using LeagueSharp;
     using LeagueSharp.Common;
     using SFXLibrary;
-    using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
     using Color = System.Drawing.Color;
@@ -42,11 +41,6 @@ namespace SFXUtility.Features.Drawings
     {
         private readonly List<PositionStruct> _walljumpSpots = new List<PositionStruct>();
         private Drawings _parent;
-
-        public WallJumpSpot(IContainer container) : base(container)
-        {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
-        }
 
         public override bool Enabled
         {
@@ -65,17 +59,18 @@ namespace SFXUtility.Features.Drawings
                 var radius = Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value;
                 var fromColor = Menu.Item(Name + "DrawingFromColor").GetValue<Color>();
                 var toColor = Menu.Item(Name + "DrawingToColor").GetValue<Color>();
+                var thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
 
                 foreach (var walljumpSpot in _walljumpSpots.Where(walljumpSpot => walljumpSpot.Start.IsOnScreen()))
                 {
-                    Render.Circle.DrawCircle(walljumpSpot.Start, radius, fromColor, 1);
+                    Render.Circle.DrawCircle(walljumpSpot.Start, radius, fromColor, thickness);
                     Drawing.DrawLine(walljumpSpot.Start.To2D(), walljumpSpot.End.To2D(), 2, toColor);
                     Draw.Cross(walljumpSpot.End.To2D(), 10f, 2f, toColor);
                 }
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -91,13 +86,13 @@ namespace SFXUtility.Features.Drawings
             base.OnDisable();
         }
 
-        private void OnGameLoad(EventArgs args)
+        protected override void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Drawings>())
+                if (Global.IoC.IsRegistered<Drawings>())
                 {
-                    _parent = IoC.Resolve<Drawings>();
+                    _parent = Global.IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
                         OnParentInitialized(null, null);
                     else
@@ -106,7 +101,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -120,9 +115,10 @@ namespace SFXUtility.Features.Drawings
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu("Drawing", Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Radius", "Radius").SetValue(new Slider(50, 5, 250)));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FromColor", "From Color").SetValue(Color.Blue));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "ToColor", "To Color").SetValue(Color.Red));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Radius", "Radius").SetValue(new Slider(50, 5, 250)));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CircleThickness", "Circle Thickness").SetValue(new Slider(2, 1, 10)));
 
                 Menu.AddSubMenu(drawingMenu);
 
@@ -143,7 +139,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 

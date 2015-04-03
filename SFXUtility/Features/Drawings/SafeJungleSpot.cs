@@ -30,14 +30,13 @@ namespace SFXUtility.Features.Drawings
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
     using Color = System.Drawing.Color;
 
     #endregion
 
-    internal class SafeJungleSpots : Base
+    internal class SafeJungleSpot : Base
     {
         // Credits: Screeder
         private readonly List<Vector3> _jungleSpots = new List<Vector3>
@@ -57,11 +56,6 @@ namespace SFXUtility.Features.Drawings
 
         private Drawings _parent;
 
-        public SafeJungleSpots(IContainer container) : base(container)
-        {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
-        }
-
         public override bool Enabled
         {
             get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
@@ -78,15 +72,16 @@ namespace SFXUtility.Features.Drawings
             {
                 var radius = Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value;
                 var color = Menu.Item(Name + "DrawingColor").GetValue<Color>();
+                var thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
 
                 foreach (var jungleSpot in _jungleSpots.Where(Utility.IsOnScreen))
                 {
-                    Render.Circle.DrawCircle(jungleSpot, radius, color, 1);
+                    Render.Circle.DrawCircle(jungleSpot, radius, color, thickness);
                 }
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -102,13 +97,13 @@ namespace SFXUtility.Features.Drawings
             base.OnDisable();
         }
 
-        private void OnGameLoad(EventArgs args)
+        protected override void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Drawings>())
+                if (Global.IoC.IsRegistered<Drawings>())
                 {
-                    _parent = IoC.Resolve<Drawings>();
+                    _parent = Global.IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
                         OnParentInitialized(null, null);
                     else
@@ -117,7 +112,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -131,8 +126,9 @@ namespace SFXUtility.Features.Drawings
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu("Drawing", Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Radius", "Radius").SetValue(new Slider(50, 5, 250)));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Color", "Color").SetValue(Color.Fuchsia));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Radius", "Radius").SetValue(new Slider(50, 5, 250)));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CircleThickness", "Circle Thickness").SetValue(new Slider(2, 1, 10)));
 
                 Menu.AddSubMenu(drawingMenu);
 
@@ -148,7 +144,7 @@ namespace SFXUtility.Features.Drawings
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
     }

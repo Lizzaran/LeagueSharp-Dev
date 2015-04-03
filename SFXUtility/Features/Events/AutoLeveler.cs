@@ -30,7 +30,6 @@ namespace SFXUtility.Features.Events
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using Utils = SFXLibrary.Utils;
 
@@ -41,11 +40,6 @@ namespace SFXUtility.Features.Events
         private const float CheckInterval = 300f;
         private float _lastCheck = Environment.TickCount;
         private Events _parent;
-
-        public AutoLeveler(IContainer container) : base(container)
-        {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
-        }
 
         public override bool Enabled
         {
@@ -81,13 +75,13 @@ namespace SFXUtility.Features.Events
                 }.OrderBy(x => x.Value).Reverse().ToList();
         }
 
-        private void OnGameLoad(EventArgs args)
+        protected override void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Events>())
+                if (Global.IoC.IsRegistered<Events>())
                 {
-                    _parent = IoC.Resolve<Events>();
+                    _parent = Global.IoC.Resolve<Events>();
                     if (_parent.Initialized)
                         OnParentInitialized(null, null);
                     else
@@ -96,7 +90,7 @@ namespace SFXUtility.Features.Events
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -129,7 +123,7 @@ namespace SFXUtility.Features.Events
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -196,7 +190,7 @@ namespace SFXUtility.Features.Events
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 

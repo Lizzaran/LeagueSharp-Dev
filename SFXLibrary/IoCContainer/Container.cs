@@ -81,7 +81,7 @@ namespace SFXLibrary.IoCContainer
             if (!from.IsAssignableFrom(to))
                 throw new InvalidOperationException(string.Format("Error trying to register the instance: '{0}' is not assignable from '{1}'",
                     from.FullName, to.FullName));
-            Register(from, () => Activator.CreateInstance(to), singleton, initialize, instanceName);
+            //Register(from, CustomActivator.FuncGenerator(to), singleton, initialize, instanceName);
         }
 
         public void Register<TFrom, TTo>(bool singleton = false, bool initialize = false, string instanceName = null) where TTo : TFrom

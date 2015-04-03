@@ -35,7 +35,6 @@ namespace SFXUtility.Features.Trackers
     using LeagueSharp.Common;
     using Properties;
     using SFXLibrary.Extensions.NET;
-    using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
     using Color = System.Drawing.Color;
@@ -45,7 +44,6 @@ namespace SFXUtility.Features.Trackers
     internal class Ward : Base
     {
         private const float CheckInterval = 300f;
-        private float _lastCheck = Environment.TickCount;
         private readonly List<WardObject> _wardObjects = new List<WardObject>();
 
         private readonly List<WardStruct> _wardStructs = new List<WardStruct>
@@ -62,15 +60,12 @@ namespace SFXUtility.Features.Trackers
             new WardStruct(60*4*1000, "CaitlynTrap", "CaitlynYordleTrap", WardType.Trap),
             new WardStruct(60*10*1000, "TeemoMushroom", "BantamTrap", WardType.Trap),
             new WardStruct(60*1*1000, "ShacoBox", "JackInTheBox", WardType.Trap),
-            new WardStruct(60*2*1000, "Nidalee_Spear", "Bushwhack", WardType.Trap)
+            new WardStruct(60*2*1000, "Nidalee_Spear", "Bushwhack", WardType.Trap),
+            new WardStruct(60*10*1000, "Noxious_Trap", "BantamTrap", WardType.Trap)
         };
 
+        private float _lastCheck = Environment.TickCount;
         private Trackers _parent;
-
-        public Ward(IContainer container) : base(container)
-        {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
-        }
 
         public override bool Enabled
         {
@@ -104,13 +99,13 @@ namespace SFXUtility.Features.Trackers
             base.OnDisable();
         }
 
-        private void OnGameLoad(EventArgs args)
+        protected override void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Trackers>())
+                if (Global.IoC.IsRegistered<Trackers>())
                 {
-                    _parent = IoC.Resolve<Trackers>();
+                    _parent = Global.IoC.Resolve<Trackers>();
                     if (_parent.Initialized)
                         OnParentInitialized(null, null);
                     else
@@ -119,7 +114,7 @@ namespace SFXUtility.Features.Trackers
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -135,7 +130,9 @@ namespace SFXUtility.Features.Trackers
                 var drawingMenu = new Menu("Drawing", Name + "Drawing");
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "TimeFormat", "Time Format").SetValue(new StringList(new[] {"mm:ss", "ss"})));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", "Font Size").SetValue(new Slider(13, 3, 30)));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Radius", "Radius").SetValue(new Slider(150, 25, 300)));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CircleRadius", "Circle Radius").SetValue(new Slider(150, 25, 300)));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CircleThickness", "Circle Thickness").SetValue(new Slider(2, 1, 10)));
+
 
                 Menu.AddSubMenu(drawingMenu);
 
@@ -143,8 +140,10 @@ namespace SFXUtility.Features.Trackers
 
                 Menu.Item(Name + "DrawingTimeFormat").ValueChanged +=
                     (o, args) => _wardObjects.ForEach(enemy => enemy.TextTotalSeconds = args.GetNewValue<StringList>().SelectedIndex == 1);
-                Menu.Item(Name + "DrawingRadius").ValueChanged +=
+                Menu.Item(Name + "DrawingCircleRadius").ValueChanged +=
                     (o, args) => _wardObjects.ForEach(enemy => enemy.Radius = args.GetNewValue<Slider>().Value);
+                Menu.Item(Name + "DrawingCircleThickness").ValueChanged +=
+                    (o, args) => _wardObjects.ForEach(enemy => enemy.Thickness = args.GetNewValue<Slider>().Value);
                 Menu.Item(Name + "Enabled").ValueChanged +=
                     (o, args) => _wardObjects.ForEach(enemy => enemy.Active = args.GetNewValue<bool>() && _parent != null && _parent.Enabled);
 
@@ -155,7 +154,7 @@ namespace SFXUtility.Features.Trackers
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -177,13 +176,14 @@ namespace SFXUtility.Features.Trackers
                                 !_wardObjects.Any(
                                     w => w.Position.To2D().Distance(sPos.To2D(), ePos.To2D(), false) < 300 && Math.Abs(w.StartT - Game.Time) < 2000))
                             {
-                                _wardObjects.Add(new WardObject(Logger, _wardStructs[3],
+                                _wardObjects.Add(new WardObject(_wardStructs[3],
                                     new Vector3(ePos.X, ePos.Y, NavMesh.GetHeightForPosition(ePos.X, ePos.Y)), (int) Game.Time,
                                     Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value, null, true)
                                 {
                                     StartPosition = new Vector3(sPos.X, sPos.Y, NavMesh.GetHeightForPosition(sPos.X, sPos.Y)),
                                     TextTotalSeconds = Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1,
-                                    Radius = Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value,
+                                    Radius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value,
+                                    Thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value,
                                     Active = Enabled
                                 });
                             }
@@ -208,11 +208,12 @@ namespace SFXUtility.Features.Trackers
                                     w =>
                                         w.Position.Distance(wardObject.Position) < 200 &&
                                         (Math.Abs(w.StartT - startT) < 1000 || ward.Type != WardType.Green) && w.Remove());
-                                _wardObjects.Add(new WardObject(Logger, ward, wardObject.Position, (int) startT,
+                                _wardObjects.Add(new WardObject(ward, wardObject.Position, (int) startT,
                                     Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value, wardObject)
                                 {
                                     TextTotalSeconds = Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1,
-                                    Radius = Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value,
+                                    Radius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value,
+                                    Thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value,
                                     Active = Enabled
                                 });
                             }
@@ -232,11 +233,11 @@ namespace SFXUtility.Features.Trackers
                 if (args.SData.Name.Equals(ward.SpellName, StringComparison.OrdinalIgnoreCase))
                 {
                     var endPosition = ObjectManager.Player.GetPath(args.End).ToList().Last();
-                    _wardObjects.Add(new WardObject(Logger, ward, endPosition, (int) Game.Time,
-                        Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value)
+                    _wardObjects.Add(new WardObject(ward, endPosition, (int) Game.Time, Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value)
                     {
                         TextTotalSeconds = Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1,
-                        Radius = Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value,
+                        Radius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value,
+                        Thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value,
                         Active = Enabled
                     });
                 }
@@ -268,9 +269,9 @@ namespace SFXUtility.Features.Trackers
             public int Radius;
             public Vector3 StartPosition;
             public bool TextTotalSeconds;
+            public int Thickness;
 
-            public WardObject(ILogger logger, WardStruct data, Vector3 position, int startT, int fontSize, Obj_AI_Base wardObject = null,
-                bool isFromMissile = false)
+            public WardObject(WardStruct data, Vector3 position, int startT, int fontSize, Obj_AI_Base wardObject = null, bool isFromMissile = false)
             {
                 _wardData = data;
                 Position = position;
@@ -279,7 +280,10 @@ namespace SFXUtility.Features.Trackers
 
                 try
                 {
-                    _circle = new Render.Circle(Position, Radius, data.Color, 5) {VisibleCondition = sender => _active && Position.IsOnScreen()};
+                    _circle = new Render.Circle(Position, Radius, data.Color, Thickness)
+                    {
+                        VisibleCondition = sender => _active && Position.IsOnScreen()
+                    };
 
                     if (data.Type != WardType.Trap)
                     {
@@ -315,7 +319,7 @@ namespace SFXUtility.Features.Trackers
                 }
                 catch (Exception ex)
                 {
-                    logger.AddItem(new LogItem(ex) {Object = this});
+                    Global.Logger.AddItem(new LogItem(ex));
                 }
             }
 

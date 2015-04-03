@@ -25,66 +25,87 @@ namespace SFXUtility
     #region
 
     using System;
-    using System.Globalization;
-    using System.Linq;
-    using System.Reflection;
-    using Classes;
-    using SFXLibrary.IoCContainer;
+    using Feature;
+    using Features.Activators;
+    using Features.Detectors;
+    using Features.Drawings;
+    using Features.Events;
+    using Features.Others;
+    using Features.Timers;
+    using Features.Trackers;
     using SFXLibrary.Logger;
+    using Object = Features.Timers.Object;
 
     #endregion
 
-    /*
-     * TODO: Thickness option for lines & circles
-     * TODO: Custom font size...
-     * TODO: Time Format mm:ss | ss option
-     * TODO: Logger: L# Version, directory etc.
-     * TODO: Simple usage tracker.. which features are enabled/disabled?!
-     */
+    #region
+
+    #endregion
 
     internal class Program
     {
         // ReSharper disable once UnusedParameter.Local
         private static void Main(string[] args)
         {
-            const BindingFlags bFlags = BindingFlags.CreateInstance | BindingFlags.Public | BindingFlags.Instance | BindingFlags.OptionalParamBinding;
-            var container = new Container();
-
             AppDomain.CurrentDomain.UnhandledException += delegate(object sender, UnhandledExceptionEventArgs eventArgs)
             {
-                if (container.IsRegistered<ILogger>())
-                {
-                    var ex = sender as Exception ?? new NotSupportedException("Unhandled exception doesn't derive from System.Exception: " + sender);
-                    container.Resolve<ILogger>().AddItem(new LogItem(ex));
-                }
+                var ex = sender as Exception ?? new NotSupportedException("Unhandled exception doesn't derive from System.Exception: " + sender);
+                Global.Logger.AddItem(new LogItem(ex));
             };
 
-            container.Register<ILogger, ConsoleLogger>(true);
+            Global.IoC.Register(typeof (SFXUtility), () => new SFXUtility(), true, true);
 
-            container.Register(typeof (SFXUtility),
-                () => Activator.CreateInstance(typeof (SFXUtility), bFlags, null, new object[] {container}, CultureInfo.CurrentCulture), true, true);
 
-            var bType = typeof (Base);
-            foreach (var type in
-                Assembly.GetAssembly(bType)
-                    .GetTypes()
-                    .OrderBy(type => type.Name)
-                    .Where(type => type.IsClass && !type.IsAbstract && type.IsSubclassOf(bType)))
-            {
-                try
-                {
-                    var tmpType = type;
-                    container.Register(tmpType,
-                        () => Activator.CreateInstance(tmpType, bFlags, null, new object[] {container}, CultureInfo.CurrentCulture), true, true);
-                }
-                catch (Exception ex)
-                {
-                    if (container.IsRegistered<ILogger>())
-                        container.Resolve<ILogger>().AddItem(new LogItem(ex));
-                    else
-                        Console.WriteLine(ex);
-                }
-            }
+            Global.IoC.Register(() => new Activators(), true, true);
+            Global.IoC.Register(() => new BushRevealer(), true, true);
+            Global.IoC.Register(() => new InvisibilityRevealer(), true, true);
+            Global.IoC.Register(() => new KillSteal(), true, true);
+            Global.IoC.Register(() => new Potion(), true, true);
+            Global.IoC.Register(() => new Smite(), true, true);
+
+            Global.IoC.Register(() => new Detectors(), true, true);
+            Global.IoC.Register(() => new Gank(), true, true);
+            Global.IoC.Register(() => new Recall(), true, true);
+            Global.IoC.Register(() => new Replay(), true, true);
+            Global.IoC.Register(() => new SharedExperience(), true, true);
+
+            Global.IoC.Register(() => new Drawings(), true, true);
+            Global.IoC.Register(() => new Clock(), true, true);
+            Global.IoC.Register(() => new Clone(), true, true);
+            Global.IoC.Register(() => new DamageIndicator(), true, true);
+            Global.IoC.Register(() => new Health(), true, true);
+            Global.IoC.Register(() => new LasthitMarker(), true, true);
+            Global.IoC.Register(() => new PerfectWard(), true, true);
+            Global.IoC.Register(() => new Range(), true, true);
+            Global.IoC.Register(() => new SafeJungleSpot(), true, true);
+            Global.IoC.Register(() => new Sidebar(), true, true);
+            Global.IoC.Register(() => new WallJumpSpot(), true, true);
+            Global.IoC.Register(() => new Waypoint(), true, true);
+
+            Global.IoC.Register(() => new Events(), true, true);
+            Global.IoC.Register(() => new AutoLeveler(), true, true);
+            Global.IoC.Register(() => new Game(), true, true);
+            Global.IoC.Register(() => new Trinket(), true, true);
+
+            Global.IoC.Register(() => new Others(), true, true);
+            Global.IoC.Register(() => new AntiFountain(), true, true);
+            Global.IoC.Register(() => new AntiTrap(), true, true);
+            Global.IoC.Register(() => new AutoLantern(), true, true);
+            Global.IoC.Register(() => new ExtendFlash(), true, true);
+            Global.IoC.Register(() => new Humanize(), true, true);
+            Global.IoC.Register(() => new SummonerInfo(), true, true);
+            Global.IoC.Register(() => new TurnAround(), true, true);
+
+            Global.IoC.Register(() => new Timers(), true, true);
+            Global.IoC.Register(() => new Ability(), true, true);
+            Global.IoC.Register(() => new Cooldown(), true, true);
+            Global.IoC.Register(() => new Jungle(), true, true);
+            Global.IoC.Register(() => new Object(), true, true);
+
+            Global.IoC.Register(() => new Trackers(), true, true);
+            Global.IoC.Register(() => new Destination(), true, true);
+            Global.IoC.Register(() => new LastPosition(), true, true);
+            Global.IoC.Register(() => new Ward(), true, true);
         }
     }
 }

@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Blink.cs is part of SFXUtility.
+ Global.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,9 +20,18 @@
 
 #endregion License
 
-namespace SFXUtility.Features.Detectors
+namespace SFXUtility
 {
-    internal class Blink
+    #region
+
+    using SFXLibrary.IoCContainer;
+    using SFXLibrary.Logger;
+
+    #endregion
+
+    public class Global
     {
+        public static IContainer IoC = new Container();
+        public static ILogger Logger = new ConsoleLogger();
     }
 }

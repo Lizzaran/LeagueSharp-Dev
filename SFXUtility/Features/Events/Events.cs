@@ -27,18 +27,12 @@ namespace SFXUtility.Features.Events
     using System;
     using Classes;
     using LeagueSharp.Common;
-    using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
     #endregion
 
     internal class Events : Base
     {
-        public Events(IContainer container) : base(container)
-        {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
-        }
-
         public override bool Enabled
         {
             get { return Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
@@ -49,7 +43,7 @@ namespace SFXUtility.Features.Events
             get { return "Events"; }
         }
 
-        private void OnGameLoad(EventArgs args)
+        protected override void OnGameLoad(EventArgs args)
         {
             try
             {
@@ -63,7 +57,7 @@ namespace SFXUtility.Features.Events
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
     }

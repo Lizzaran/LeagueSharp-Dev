@@ -29,11 +29,11 @@ namespace SFXUtility.Features.Trackers
     using System.Drawing;
     using System.Linq;
     using Classes;
+    using Detectors;
     using LeagueSharp;
     using LeagueSharp.Common;
     using Properties;
     using SFXLibrary.Extensions.NET;
-    using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
     using Color = SharpDX.Color;
@@ -45,11 +45,6 @@ namespace SFXUtility.Features.Trackers
         private readonly List<LastPositionObject> _lastPositionObjects = new List<LastPositionObject>();
         private Trackers _parent;
 
-        public LastPosition(IContainer container) : base(container)
-        {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
-        }
-
         public override bool Enabled
         {
             get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
@@ -60,13 +55,13 @@ namespace SFXUtility.Features.Trackers
             get { return "Last Position"; }
         }
 
-        private void OnGameLoad(EventArgs args)
+        protected override void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Trackers>())
+                if (Global.IoC.IsRegistered<Trackers>())
                 {
-                    _parent = IoC.Resolve<Trackers>();
+                    _parent = Global.IoC.Resolve<Trackers>();
                     if (_parent.Initialized)
                         OnParentInitialized(null, null);
                     else
@@ -75,7 +70,7 @@ namespace SFXUtility.Features.Trackers
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -159,9 +154,9 @@ namespace SFXUtility.Features.Trackers
 
                 var recall = false;
 
-                if (IoC.IsRegistered<Recall>())
+                if (Global.IoC.IsRegistered<Recall>())
                 {
-                    var rt = IoC.Resolve<Recall>();
+                    var rt = Global.IoC.Resolve<Recall>();
 
                     recall = rt.Initialized && rt.Enabled;
 
@@ -177,7 +172,7 @@ namespace SFXUtility.Features.Trackers
                 {
                     try
                     {
-                        _lastPositionObjects.Add(new LastPositionObject(enemy, Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value, Logger)
+                        _lastPositionObjects.Add(new LastPositionObject(enemy, Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value)
                         {
                             Active = Enabled,
                             TextTotalSeconds = Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1,
@@ -188,7 +183,7 @@ namespace SFXUtility.Features.Trackers
                     }
                     catch (Exception ex)
                     {
-                        Logger.AddItem(new LogItem(ex) {Object = this});
+                        Global.Logger.AddItem(new LogItem(ex));
                     }
                 }
 
@@ -197,7 +192,7 @@ namespace SFXUtility.Features.Trackers
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -218,7 +213,7 @@ namespace SFXUtility.Features.Trackers
             public bool Recalled;
             private float _lastSeen;
 
-            public LastPositionObject(Obj_AI_Hero hero, int fontSize, ILogger logger)
+            public LastPositionObject(Obj_AI_Hero hero, int fontSize)
             {
                 try
                 {
@@ -243,7 +238,7 @@ namespace SFXUtility.Features.Trackers
                                 }
                                 catch (Exception ex)
                                 {
-                                    logger.AddItem(new LogItem(ex) {Object = this});
+                                    Global.Logger.AddItem(new LogItem(ex));
                                     return false;
                                 }
                             },
@@ -264,7 +259,7 @@ namespace SFXUtility.Features.Trackers
                                 }
                                 catch (Exception ex)
                                 {
-                                    logger.AddItem(new LogItem(ex) {Object = this});
+                                    Global.Logger.AddItem(new LogItem(ex));
                                     return default(Vector2);
                                 }
                             }
@@ -282,7 +277,7 @@ namespace SFXUtility.Features.Trackers
                             }
                             catch (Exception ex)
                             {
-                                logger.AddItem(new LogItem(ex) {Object = this});
+                                Global.Logger.AddItem(new LogItem(ex));
                                 return default(Vector2);
                             }
                         },
@@ -296,7 +291,7 @@ namespace SFXUtility.Features.Trackers
                             }
                             catch (Exception ex)
                             {
-                                logger.AddItem(new LogItem(ex) {Object = this});
+                                Global.Logger.AddItem(new LogItem(ex));
                                 return false;
                             }
                         },
@@ -312,7 +307,7 @@ namespace SFXUtility.Features.Trackers
                             }
                             catch (Exception ex)
                             {
-                                logger.AddItem(new LogItem(ex) {Object = this});
+                                Global.Logger.AddItem(new LogItem(ex));
                                 return false;
                             }
                         },
@@ -325,7 +320,7 @@ namespace SFXUtility.Features.Trackers
                             }
                             catch (Exception ex)
                             {
-                                logger.AddItem(new LogItem(ex) {Object = this});
+                                Global.Logger.AddItem(new LogItem(ex));
                                 return default(Vector2);
                             }
                         }
@@ -333,7 +328,7 @@ namespace SFXUtility.Features.Trackers
                 }
                 catch (Exception ex)
                 {
-                    logger.AddItem(new LogItem(ex) {Object = this});
+                    Global.Logger.AddItem(new LogItem(ex));
                 }
             }
 

@@ -30,7 +30,6 @@ namespace SFXUtility.Features.Activators
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
     #endregion
@@ -45,11 +44,6 @@ namespace SFXUtility.Features.Activators
             new PotionStruct("RegenerationPotion", ItemId.Health_Potion, 0, 2, new[] {PotionType.Health}),
             new PotionStruct("FlaskOfCrystalWater", ItemId.Mana_Potion, 0, 3, new[] {PotionType.Mana})
         };
-
-        public Potion(IContainer container) : base(container)
-        {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
-        }
 
         public override bool Enabled
         {
@@ -104,7 +98,7 @@ namespace SFXUtility.Features.Activators
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -122,13 +116,13 @@ namespace SFXUtility.Features.Activators
             return _potions.Where(potion => potion.TypeList.Contains(type)).Any(potion => ObjectManager.Player.HasBuff(potion.BuffName, true));
         }
 
-        private void OnGameLoad(EventArgs args)
+        protected override void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Activators>())
+                if (Global.IoC.IsRegistered<Activators>())
                 {
-                    _parent = IoC.Resolve<Activators>();
+                    _parent = Global.IoC.Resolve<Activators>();
                     if (_parent.Initialized)
                         OnParentInitialized(null, null);
                     else
@@ -137,7 +131,7 @@ namespace SFXUtility.Features.Activators
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -171,7 +165,7 @@ namespace SFXUtility.Features.Activators
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 

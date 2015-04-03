@@ -31,7 +31,6 @@ namespace SFXUtility
     using SFXLibrary;
     using SFXLibrary.Data;
     using SFXLibrary.Extensions.NET;
-    using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using Version = System.Version;
 
@@ -39,15 +38,12 @@ namespace SFXUtility
 
     internal class SFXUtility
     {
-        private readonly ILogger _logger;
         private bool _unloadFired;
 
-        public SFXUtility(IContainer container)
+        public SFXUtility()
         {
             try
             {
-                _logger = container.Resolve<ILogger>();
-
                 Menu = new Menu(Name, Name, true);
 
                 var infoMenu = new Menu("Info", Name + "Info");
@@ -67,7 +63,7 @@ namespace SFXUtility
             }
             catch (Exception ex)
             {
-                _logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -93,7 +89,7 @@ namespace SFXUtility
                 }
                 catch (Exception ex)
                 {
-                    _logger.AddItem(new LogItem(ex) {Object = this});
+                    Global.Logger.AddItem(new LogItem(ex));
                 }
             }
         }
@@ -112,7 +108,7 @@ namespace SFXUtility
             }
             catch (Exception ex)
             {
-                _logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -124,7 +120,7 @@ namespace SFXUtility
             }
             catch (Exception ex)
             {
-                _logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -132,7 +128,7 @@ namespace SFXUtility
         {
             try
             {
-                var logger = _logger as FileLogger;
+                var logger = Global.Logger as FileLogger;
 
                 if (logger != null)
                 {
@@ -146,7 +142,7 @@ namespace SFXUtility
             }
             catch (Exception ex)
             {
-                _logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex) {Object = this});
             }
         }
     }

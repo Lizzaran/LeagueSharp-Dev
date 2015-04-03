@@ -27,21 +27,16 @@ namespace SFXUtility.Classes
     using System;
     using LeagueSharp.Common;
     using SFXLibrary.Extensions.NET;
-    using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
     #endregion
 
     internal abstract class Base
     {
-        protected Base(IContainer container)
+        protected Base()
         {
-            IoC = container;
-            Logger = IoC.Resolve<ILogger>();
-
-            var sfx = IoC.Resolve<SFXUtility>();
-            BaseMenu = sfx.Menu;
-            BaseName = sfx.Name;
+            BaseMenu = Global.IoC.Resolve<SFXUtility>().Menu;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public abstract bool Enabled { get; }
@@ -49,12 +44,10 @@ namespace SFXUtility.Classes
         public bool Initialized { get; protected set; }
         public Menu Menu { get; set; }
         protected Menu BaseMenu { get; private set; }
-        protected string BaseName { get; private set; }
-        protected IContainer IoC { get; private set; }
-        protected ILogger Logger { get; set; }
         public event EventHandler OnInitialized;
         public event EventHandler OnEnabled;
         public event EventHandler OnDisabled;
+        protected abstract void OnGameLoad(EventArgs args);
 
         protected virtual void OnEnable()
         {
@@ -64,7 +57,7 @@ namespace SFXUtility.Classes
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -76,7 +69,7 @@ namespace SFXUtility.Classes
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -89,7 +82,7 @@ namespace SFXUtility.Classes
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -133,7 +126,7 @@ namespace SFXUtility.Classes
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
     }

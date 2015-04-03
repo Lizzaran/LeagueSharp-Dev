@@ -29,7 +29,6 @@ namespace SFXUtility.Features.Others
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
     #endregion
@@ -37,11 +36,6 @@ namespace SFXUtility.Features.Others
     internal class ExtendFlash : Base
     {
         private Others _parent;
-
-        public ExtendFlash(IContainer container) : base(container)
-        {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
-        }
 
         public override bool Enabled
         {
@@ -65,13 +59,13 @@ namespace SFXUtility.Features.Others
             base.OnDisable();
         }
 
-        private void OnGameLoad(EventArgs args)
+        protected override void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Others>())
+                if (Global.IoC.IsRegistered<Others>())
                 {
-                    _parent = IoC.Resolve<Others>();
+                    _parent = Global.IoC.Resolve<Others>();
                     if (_parent.Initialized)
                         OnParentInitialized(null, null);
                     else
@@ -80,7 +74,7 @@ namespace SFXUtility.Features.Others
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -102,7 +96,7 @@ namespace SFXUtility.Features.Others
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 

@@ -31,7 +31,6 @@ namespace SFXUtility.Features.Timers
     using LeagueSharp;
     using LeagueSharp.Common;
     using SFXLibrary.Extensions.NET;
-    using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
     using SharpDX;
 
@@ -41,11 +40,6 @@ namespace SFXUtility.Features.Timers
     {
         private readonly List<Camp> _camps = new List<Camp>();
         private Timers _parent;
-
-        public Jungle(IContainer container) : base(container)
-        {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
-        }
 
         public override bool Enabled
         {
@@ -103,7 +97,7 @@ namespace SFXUtility.Features.Timers
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -123,13 +117,13 @@ namespace SFXUtility.Features.Timers
             }
         }
 
-        private void OnGameLoad(EventArgs args)
+        protected override void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Timers>())
+                if (Global.IoC.IsRegistered<Timers>())
                 {
-                    _parent = IoC.Resolve<Timers>();
+                    _parent = Global.IoC.Resolve<Timers>();
                     if (_parent.Initialized)
                         OnParentInitialized(null, null);
                     else
@@ -138,7 +132,7 @@ namespace SFXUtility.Features.Timers
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -180,7 +174,7 @@ namespace SFXUtility.Features.Timers
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -193,13 +187,13 @@ namespace SFXUtility.Features.Timers
                     {
 // Order: Blue
                         new Camp(115, 300, new Vector3(3800.99f, 7883.53f, 52.18f),
-                            new[] {new Mob("SRU_Blue1.1.1"), new Mob("SRU_BlueMini1.1.2"), new Mob("SRU_BlueMini21.1.3")}, fontSize, Logger)
+                            new[] {new Mob("SRU_Blue1.1.1"), new Mob("SRU_BlueMini1.1.2"), new Mob("SRU_BlueMini21.1.3")}, fontSize)
                         {
                             TotalSeconds = totalSeconds
                         },
                         //Order: Wolves
                         new Camp(115, 100, new Vector3(3849.95f, 6504.36f, 52.46f),
-                            new[] {new Mob("SRU_Murkwolf2.1.1"), new Mob("SRU_MurkwolfMini2.1.2"), new Mob("SRU_MurkwolfMini2.1.3")}, fontSize, Logger)
+                            new[] {new Mob("SRU_Murkwolf2.1.1"), new Mob("SRU_MurkwolfMini2.1.2"), new Mob("SRU_MurkwolfMini2.1.3")}, fontSize)
                         {
                             TotalSeconds = totalSeconds
                         },
@@ -209,31 +203,31 @@ namespace SFXUtility.Features.Timers
                             {
                                 new Mob("SRU_Razorbeak3.1.1"), new Mob("SRU_RazorbeakMini3.1.2"), new Mob("SRU_RazorbeakMini3.1.3"),
                                 new Mob("SRU_RazorbeakMini3.1.4")
-                            }, fontSize, Logger) {TotalSeconds = totalSeconds},
+                            }, fontSize) {TotalSeconds = totalSeconds},
                         //Order: Red
                         new Camp(115, 300, new Vector3(7813.07f, 4051.33f, 53.81f),
-                            new[] {new Mob("SRU_Red4.1.1"), new Mob("SRU_RedMini4.1.2"), new Mob("SRU_RedMini4.1.3")}, fontSize, Logger)
+                            new[] {new Mob("SRU_Red4.1.1"), new Mob("SRU_RedMini4.1.2"), new Mob("SRU_RedMini4.1.3")}, fontSize)
                         {
                             TotalSeconds = totalSeconds
                         },
                         //Order: Krug
                         new Camp(115, 100, new Vector3(8370.58f, 2718.15f, 51.09f), new[] {new Mob("SRU_Krug5.1.2"), new Mob("SRU_KrugMini5.1.1")},
-                            fontSize, Logger) {TotalSeconds = totalSeconds},
+                            fontSize) {TotalSeconds = totalSeconds},
                         //Order: Gromp
-                        new Camp(115, 100, new Vector3(2164.34f, 8383.02f, 51.78f), new[] {new Mob("SRU_Gromp13.1.1")}, fontSize, Logger)
+                        new Camp(115, 100, new Vector3(2164.34f, 8383.02f, 51.78f), new[] {new Mob("SRU_Gromp13.1.1")}, fontSize)
                         {
                             TotalSeconds = totalSeconds
                         },
 
                         //Chaos: Blue
                         new Camp(115, 300, new Vector3(10984.11f, 6960.31f, 51.72f),
-                            new[] {new Mob("SRU_Blue7.1.1"), new Mob("SRU_BlueMini7.1.2"), new Mob("SRU_BlueMini27.1.3")}, fontSize, Logger)
+                            new[] {new Mob("SRU_Blue7.1.1"), new Mob("SRU_BlueMini7.1.2"), new Mob("SRU_BlueMini27.1.3")}, fontSize)
                         {
                             TotalSeconds = totalSeconds
                         },
                         //Chaos: Wolves
                         new Camp(115, 100, new Vector3(10983.83f, 8328.73f, 62.22f),
-                            new[] {new Mob("SRU_Murkwolf8.1.1"), new Mob("SRU_MurkwolfMini8.1.2"), new Mob("SRU_MurkwolfMini8.1.3")}, fontSize, Logger)
+                            new[] {new Mob("SRU_Murkwolf8.1.1"), new Mob("SRU_MurkwolfMini8.1.2"), new Mob("SRU_MurkwolfMini8.1.3")}, fontSize)
                         {
                             TotalSeconds = totalSeconds
                         },
@@ -243,39 +237,39 @@ namespace SFXUtility.Features.Timers
                             {
                                 new Mob("SRU_Razorbeak9.1.1"), new Mob("SRU_RazorbeakMini9.1.2"), new Mob("SRU_RazorbeakMini9.1.3"),
                                 new Mob("SRU_RazorbeakMini9.1.4")
-                            }, fontSize, Logger) {TotalSeconds = totalSeconds},
+                            }, fontSize) {TotalSeconds = totalSeconds},
                         //Chaos: Red
                         new Camp(115, 300, new Vector3(7139.29f, 10779.34f, 56.38f),
-                            new[] {new Mob("SRU_Red10.1.1"), new Mob("SRU_RedMini10.1.2"), new Mob("SRU_RedMini10.1.3")}, fontSize, Logger)
+                            new[] {new Mob("SRU_Red10.1.1"), new Mob("SRU_RedMini10.1.2"), new Mob("SRU_RedMini10.1.3")}, fontSize)
                         {
                             TotalSeconds = totalSeconds
                         },
                         //Chaos: Krug
                         new Camp(115, 100, new Vector3(6476.17f, 12142.51f, 56.48f), new[] {new Mob("SRU_Krug11.1.2"), new Mob("SRU_KrugMini11.1.1")},
-                            fontSize, Logger) {TotalSeconds = totalSeconds},
+                            fontSize) {TotalSeconds = totalSeconds},
                         //Chaos: Gromp
-                        new Camp(115, 100, new Vector3(12671.83f, 6306.60f, 51.71f), new[] {new Mob("SRU_Gromp14.1.1")}, fontSize, Logger)
+                        new Camp(115, 100, new Vector3(12671.83f, 6306.60f, 51.71f), new[] {new Mob("SRU_Gromp14.1.1")}, fontSize)
                         {
                             TotalSeconds = totalSeconds
                         },
 
                         //Neutral: Dragon
-                        new Camp(150, 360, new Vector3(9813.83f, 4360.19f, -71.24f), new[] {new Mob("SRU_Dragon6.1.1")}, fontSize, Logger)
+                        new Camp(150, 360, new Vector3(9813.83f, 4360.19f, -71.24f), new[] {new Mob("SRU_Dragon6.1.1")}, fontSize)
                         {
                             TotalSeconds = totalSeconds
                         },
                         //Neutral: Baron
-                        new Camp(120, 420, new Vector3(4993.14f, 10491.92f, -71.24f), new[] {new Mob("SRU_Baron12.1.1")}, fontSize, Logger)
+                        new Camp(120, 420, new Vector3(4993.14f, 10491.92f, -71.24f), new[] {new Mob("SRU_Baron12.1.1")}, fontSize)
                         {
                             TotalSeconds = totalSeconds
                         },
                         //Dragon: Crab
-                        new Camp(150, 180, new Vector3(10647.70f, 5144.68f, -62.81f), new[] {new Mob("SRU_Crab15.1.1")}, fontSize, Logger)
+                        new Camp(150, 180, new Vector3(10647.70f, 5144.68f, -62.81f), new[] {new Mob("SRU_Crab15.1.1")}, fontSize)
                         {
                             TotalSeconds = totalSeconds
                         },
                         //Baron: Crab
-                        new Camp(150, 180, new Vector3(4285.04f, 9597.52f, -67.60f), new[] {new Mob("SRU_Crab16.1.1")}, fontSize, Logger)
+                        new Camp(150, 180, new Vector3(4285.04f, 9597.52f, -67.60f), new[] {new Mob("SRU_Crab16.1.1")}, fontSize)
                         {
                             TotalSeconds = totalSeconds
                         }
@@ -286,38 +280,42 @@ namespace SFXUtility.Features.Timers
                     {
 //Order: Wraiths
                         new Camp(100, 75, new Vector3(3550f, 6250f, 60f),
-                            new[] {new Mob("TT_NWraith1.1.1"), new Mob("TT_NWraith21.1.2"), new Mob("TT_NWraith21.1.3")}, fontSize, Logger)
+                            new[] {new Mob("TT_NWraith1.1.1"), new Mob("TT_NWraith21.1.2"), new Mob("TT_NWraith21.1.3")}, fontSize)
                         {
                             TotalSeconds = totalSeconds
                         },
                         //Order: Golems
-                        new Camp(100, 75, new Vector3(4500f, 8550f, 60f), new[] {new Mob("TT_NGolem2.1.1"), new Mob("TT_NGolem22.1.2")}, fontSize,
-                            Logger) {TotalSeconds = totalSeconds},
+                        new Camp(100, 75, new Vector3(4500f, 8550f, 60f), new[] {new Mob("TT_NGolem2.1.1"), new Mob("TT_NGolem22.1.2")}, fontSize)
+                        {
+                            TotalSeconds = totalSeconds
+                        },
                         //Order: Wolves
                         new Camp(100, 75, new Vector3(5600f, 6400f, 60f),
-                            new[] {new Mob("TT_NWolf3.1.1"), new Mob("TT_NWolf23.1.2"), new Mob("TT_NWolf23.1.3")}, fontSize, Logger)
+                            new[] {new Mob("TT_NWolf3.1.1"), new Mob("TT_NWolf23.1.2"), new Mob("TT_NWolf23.1.3")}, fontSize)
                         {
                             TotalSeconds = totalSeconds
                         },
 
                         //Chaos: Wraiths
                         new Camp(100, 75, new Vector3(10300f, 6250f, 60f),
-                            new[] {new Mob("TT_NWraith4.1.1"), new Mob("TT_NWraith24.1.2"), new Mob("TT_NWraith24.1.3")}, fontSize, Logger)
+                            new[] {new Mob("TT_NWraith4.1.1"), new Mob("TT_NWraith24.1.2"), new Mob("TT_NWraith24.1.3")}, fontSize)
                         {
                             TotalSeconds = totalSeconds
                         },
                         //Chaos: Golems
-                        new Camp(100, 75, new Vector3(9800f, 8550f, 60f), new[] {new Mob("TT_NGolem5.1.1"), new Mob("TT_NGolem25.1.2")}, fontSize,
-                            Logger) {TotalSeconds = totalSeconds},
+                        new Camp(100, 75, new Vector3(9800f, 8550f, 60f), new[] {new Mob("TT_NGolem5.1.1"), new Mob("TT_NGolem25.1.2")}, fontSize)
+                        {
+                            TotalSeconds = totalSeconds
+                        },
                         //Chaos: Wolves
                         new Camp(100, 75, new Vector3(8600f, 6400f, 60f),
-                            new[] {new Mob("TT_NWolf6.1.1"), new Mob("TT_NWolf26.1.2"), new Mob("TT_NWolf26.1.3")}, fontSize, Logger)
+                            new[] {new Mob("TT_NWolf6.1.1"), new Mob("TT_NWolf26.1.2"), new Mob("TT_NWolf26.1.3")}, fontSize)
                         {
                             TotalSeconds = totalSeconds
                         },
 
                         //Neutral: Vilemaw
-                        new Camp(600, 300, new Vector3(7150f, 11100f, 60f), new[] {new Mob("TT_Spiderboss8.1.1")}, fontSize, Logger)
+                        new Camp(600, 300, new Vector3(7150f, 11100f, 60f), new[] {new Mob("TT_Spiderboss8.1.1")}, fontSize)
                         {
                             TotalSeconds = totalSeconds
                         }
@@ -332,7 +330,7 @@ namespace SFXUtility.Features.Timers
             private bool _active;
             private bool _added;
 
-            public Camp(float spawnTime, float respawnTime, Vector3 position, Mob[] mobs, int fontSize, ILogger logger)
+            public Camp(float spawnTime, float respawnTime, Vector3 position, Mob[] mobs, int fontSize)
             {
                 SpawnTime = spawnTime;
                 RespawnTime = respawnTime;
@@ -351,7 +349,7 @@ namespace SFXUtility.Features.Timers
                         }
                         catch (Exception ex)
                         {
-                            logger.AddItem(new LogItem(ex) {Object = this});
+                            Global.Logger.AddItem(new LogItem(ex));
                             return false;
                         }
                     },
@@ -365,7 +363,7 @@ namespace SFXUtility.Features.Timers
                         }
                         catch (Exception ex)
                         {
-                            logger.AddItem(new LogItem(ex) {Object = this});
+                            Global.Logger.AddItem(new LogItem(ex));
                             return string.Empty;
                         }
                     }

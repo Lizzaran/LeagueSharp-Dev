@@ -27,18 +27,12 @@ namespace SFXUtility.Features.Timers
     using System;
     using Classes;
     using LeagueSharp.Common;
-    using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
     #endregion
 
     internal class Timers : Base
     {
-        public Timers(IContainer container) : base(container)
-        {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
-        }
-
         public override bool Enabled
         {
             get { return Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
@@ -49,7 +43,7 @@ namespace SFXUtility.Features.Timers
             get { return "Timers"; }
         }
 
-        private void OnGameLoad(EventArgs args)
+        protected override void OnGameLoad(EventArgs args)
         {
             try
             {
@@ -63,7 +57,7 @@ namespace SFXUtility.Features.Timers
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
     }

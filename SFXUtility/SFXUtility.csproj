@@ -87,11 +87,11 @@
     <Compile Include="Features\Drawings\PerfectWard.cs" />
     <Compile Include="Features\Others\SummonerInfo.cs" />
     <Compile Include="Features\Others\TurnAround.cs" />
-    <Compile Include="Features\Detectors\Blink.cs" />
+    <Compile Include="Features\Trackers\Destination.cs" />
     <Compile Include="Features\Drawings\Clone.cs" />
     <Compile Include="Features\Timers\Cooldown.cs" />
     <Compile Include="Features\Trackers\LastPosition.cs" />
-    <Compile Include="Features\Trackers\Recall.cs" />
+    <Compile Include="Features\Detectors\Recall.cs" />
     <Compile Include="Features\Timers\Ability.cs" />
     <Compile Include="Features\Timers\Jungle.cs" />
     <Compile Include="Features\Drawings\LasthitMarker.cs" />
@@ -103,6 +103,7 @@
     <Compile Include="Features\Drawings\Waypoint.cs" />
     <Compile Include="Features\Events\Trinket.cs" />
     <Compile Include="Classes\Base.cs" />
+    <Compile Include="Global.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">

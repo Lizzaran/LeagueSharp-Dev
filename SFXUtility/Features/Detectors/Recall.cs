@@ -20,9 +20,10 @@
 
 #endregion License
 
+
 #pragma warning disable 618
 
-namespace SFXUtility.Features.Trackers
+namespace SFXUtility.Features.Detectors
 {
     #region
 
@@ -34,20 +35,14 @@ namespace SFXUtility.Features.Trackers
     using LeagueSharp;
     using LeagueSharp.Common;
     using SFXLibrary.Extensions.NET;
-    using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
     #endregion
 
     internal class Recall : Base
     {
-        private Trackers _parent;
+        private Detectors _parent;
         private List<RecallObject> _recallObjects = new List<RecallObject>();
-
-        public Recall(IContainer container) : base(container)
-        {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
-        }
 
         public override bool Enabled
         {
@@ -100,17 +95,17 @@ namespace SFXUtility.Features.Trackers
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
-        private void OnGameLoad(EventArgs args)
+        protected override void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Trackers>())
+                if (Global.IoC.IsRegistered<Detectors>())
                 {
-                    _parent = IoC.Resolve<Trackers>();
+                    _parent = Global.IoC.Resolve<Detectors>();
                     if (_parent.Initialized)
                         OnParentInitialized(null, null);
                     else
@@ -119,7 +114,7 @@ namespace SFXUtility.Features.Trackers
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -148,7 +143,7 @@ namespace SFXUtility.Features.Trackers
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -186,7 +181,7 @@ namespace SFXUtility.Features.Trackers
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 

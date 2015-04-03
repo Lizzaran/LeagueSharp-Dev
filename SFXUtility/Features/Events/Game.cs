@@ -29,7 +29,6 @@ namespace SFXUtility.Features.Events
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
     #endregion
@@ -37,11 +36,6 @@ namespace SFXUtility.Features.Events
     internal class Game : Base
     {
         private Events _parent;
-
-        public Game(IContainer container) : base(container)
-        {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
-        }
 
         public override bool Enabled
         {
@@ -67,13 +61,13 @@ namespace SFXUtility.Features.Events
             base.OnDisable();
         }
 
-        private void OnGameLoad(EventArgs args)
+        protected override void OnGameLoad(EventArgs args)
         {
             try
             {
-                if (IoC.IsRegistered<Events>())
+                if (Global.IoC.IsRegistered<Events>())
                 {
-                    _parent = IoC.Resolve<Events>();
+                    _parent = Global.IoC.Resolve<Events>();
                     if (_parent.Initialized)
                         OnParentInitialized(null, null);
                     else
@@ -82,7 +76,7 @@ namespace SFXUtility.Features.Events
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -115,7 +109,7 @@ namespace SFXUtility.Features.Events
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -130,7 +124,7 @@ namespace SFXUtility.Features.Events
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -143,7 +137,7 @@ namespace SFXUtility.Features.Events
             }
             catch (Exception ex)
             {
-                Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
     }
