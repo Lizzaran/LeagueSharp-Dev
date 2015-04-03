@@ -48,20 +48,20 @@ namespace SFXUtility.Features.Trackers
 
         private readonly List<WardStruct> _wardStructs = new List<WardStruct>
         {
-            new WardStruct(60*1000, "YellowTrinket", "TrinketTotemLvl1", WardType.Green),
-            new WardStruct(60*3*1000, "YellowTrinketUpgrade", "TrinketTotemLvl2", WardType.Green),
-            new WardStruct(60*3*1000, "SightWard", "TrinketTotemLvl3", WardType.Green),
-            new WardStruct(60*3*1000, "SightWard", "SightWard", WardType.Green),
-            new WardStruct(60*3*1000, "SightWard", "ItemGhostWard", WardType.Green),
-            new WardStruct(60*3*1000, "SightWard", "wrigglelantern", WardType.Green),
-            new WardStruct(60*3*1000, "SightWard", "ItemFeralFlare", WardType.Green),
+            new WardStruct(60, "YellowTrinket", "TrinketTotemLvl1", WardType.Green),
+            new WardStruct(60*3, "YellowTrinketUpgrade", "TrinketTotemLvl2", WardType.Green),
+            new WardStruct(60*3, "SightWard", "TrinketTotemLvl3", WardType.Green),
+            new WardStruct(60*3, "SightWard", "SightWard", WardType.Green),
+            new WardStruct(60*3, "SightWard", "ItemGhostWard", WardType.Green),
+            new WardStruct(60*3, "SightWard", "wrigglelantern", WardType.Green),
+            new WardStruct(60*3, "SightWard", "ItemFeralFlare", WardType.Green),
             new WardStruct(int.MaxValue, "VisionWard", "TrinketTotemLvl3B", WardType.Pink),
             new WardStruct(int.MaxValue, "VisionWard", "VisionWard", WardType.Pink),
-            new WardStruct(60*4*1000, "CaitlynTrap", "CaitlynYordleTrap", WardType.Trap),
-            new WardStruct(60*10*1000, "TeemoMushroom", "BantamTrap", WardType.Trap),
-            new WardStruct(60*1*1000, "ShacoBox", "JackInTheBox", WardType.Trap),
-            new WardStruct(60*2*1000, "Nidalee_Spear", "Bushwhack", WardType.Trap),
-            new WardStruct(60*10*1000, "Noxious_Trap", "BantamTrap", WardType.Trap)
+            new WardStruct(60*4, "CaitlynTrap", "CaitlynYordleTrap", WardType.Trap),
+            new WardStruct(60*10, "TeemoMushroom", "BantamTrap", WardType.Trap),
+            new WardStruct(60*1, "ShacoBox", "JackInTheBox", WardType.Trap),
+            new WardStruct(60*2, "Nidalee_Spear", "Bushwhack", WardType.Trap),
+            new WardStruct(60*10, "Noxious_Trap", "BantamTrap", WardType.Trap)
         };
 
         private float _lastCheck = Environment.TickCount;
@@ -133,7 +133,6 @@ namespace SFXUtility.Features.Trackers
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CircleRadius", "Circle Radius").SetValue(new Slider(150, 25, 300)));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CircleThickness", "Circle Thickness").SetValue(new Slider(2, 1, 10)));
 
-
                 Menu.AddSubMenu(drawingMenu);
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
@@ -203,7 +202,7 @@ namespace SFXUtility.Features.Trackers
                         {
                             if (wardObject.BaseSkinName.Equals(ward.ObjectBaseSkinName, StringComparison.InvariantCultureIgnoreCase))
                             {
-                                var startT = Game.Time - (int) ((wardObject.MaxMana - wardObject.Mana)*1000);
+                                var startT = Game.Time - (int) ((wardObject.MaxMana - wardObject.Mana));
                                 _wardObjects.RemoveAll(
                                     w =>
                                         w.Position.Distance(wardObject.Position) < 200 &&
