@@ -92,9 +92,9 @@ namespace SFXUtility.Features.Others
 
                 Menu = new Menu(Name, Name);
 
-                var delayMenu = new Menu(Language.Get("Humanize_Delay"), Name + "Delay");
-                delayMenu.AddItem(new MenuItem(delayMenu.Name + "Spell", Language.Get("Humanize_Spell")).SetValue(new Slider(50, 0, 250)));
-                delayMenu.AddItem(new MenuItem(delayMenu.Name + "Movement", Language.Get("Humanize_Movement")).SetValue(new Slider(50, 0, 250)));
+                var delayMenu = new Menu(Language.Get("G_Delay"), Name + "Delay");
+                delayMenu.AddItem(new MenuItem(delayMenu.Name + "Spell", Language.Get("G_Spell")).SetValue(new Slider(50, 0, 250)));
+                delayMenu.AddItem(new MenuItem(delayMenu.Name + "Movement", Language.Get("G_Movement")).SetValue(new Slider(50, 0, 250)));
 
                 Menu.AddSubMenu(delayMenu);
 

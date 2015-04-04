@@ -89,7 +89,7 @@ namespace SFXUtility.Features.Others
 
                 Menu = new Menu(Name, Name);
 
-                Menu.AddItem(new MenuItem(Name + "Percent", Language.Get("AutoLantern_Percent")).SetValue(new Slider(20, 0, 50)));
+                Menu.AddItem(new MenuItem(Name + "Percent", Language.Get("G_Health") + " " + Language.Get("G_Percent")).SetValue(new Slider(20, 0, 50)));
                 Menu.AddItem(new MenuItem(Name + "Hotkey", Language.Get("G_Hotkey")).SetValue(new KeyBind('U', KeyBindType.Press)));
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));

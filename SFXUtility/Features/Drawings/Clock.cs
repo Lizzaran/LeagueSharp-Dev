@@ -103,8 +103,12 @@ namespace SFXUtility.Features.Drawings
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "OffsetTop", Language.Get("Clock_OffsetTop")).SetValue(new Slider(75, 0, 500)));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "OffsetRight", Language.Get("Clock_OffsetRight")).SetValue(new Slider(100, 0, 500)));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "OffsetTop", Language.Get("G_Offset") + " " + Language.Get("G_Top")).SetValue(new Slider(75, 0,
+                        500)));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "OffsetRight", Language.Get("G_Offset") + " " + Language.Get("G_Right")).SetValue(new Slider(100,
+                        0, 500)));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Color", Language.Get("G_Color")).SetValue(Color.Gold));
 
                 Menu.AddSubMenu(drawingMenu);

@@ -64,7 +64,9 @@ namespace SFXUtility.Features.Drawings
             if (!drawAlly && !drawEnemy && !drawSelf)
                 return;
 
-            var color = Menu.Item(Name + "AttackColor").GetValue<Color>();
+            var allyColor = Menu.Item(Name + "AttackColorAlly").GetValue<Color>();
+            var enemyColor = Menu.Item(Name + "AttackColorEnemy").GetValue<Color>();
+            var selfColor = Menu.Item(Name + "AttackColorSelf").GetValue<Color>();
 
             foreach (var hero in HeroManager.AllHeroes)
             {
@@ -74,7 +76,7 @@ namespace SFXUtility.Features.Drawings
                     if ((hero.IsAlly && drawAlly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) && !(hero.IsMe && !drawSelf) &&
                         hero.Position.IsOnScreen(radius))
                     {
-                        Render.Circle.DrawCircle(hero.Position, radius, color, thickness);
+                        Render.Circle.DrawCircle(hero.Position, radius, hero.IsMe ? selfColor : (hero.IsEnemy ? enemyColor : allyColor), thickness);
                     }
                 }
             }
@@ -90,7 +92,9 @@ namespace SFXUtility.Features.Drawings
             if (!drawAlly && !drawEnemy && !drawSelf)
                 return;
 
-            var color = Menu.Item(Name + "ExperienceColor").GetValue<Color>();
+            var allyColor = Menu.Item(Name + "ExperienceColorAlly").GetValue<Color>();
+            var enemyColor = Menu.Item(Name + "ExperienceColorEnemy").GetValue<Color>();
+            var selfColor = Menu.Item(Name + "ExperienceColorSelf").GetValue<Color>();
 
             foreach (var hero in HeroManager.AllHeroes)
             {
@@ -99,7 +103,8 @@ namespace SFXUtility.Features.Drawings
                     if ((hero.IsAlly && drawAlly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) && !(hero.IsMe && !drawSelf) &&
                         hero.Position.IsOnScreen(ExperienceRange))
                     {
-                        Render.Circle.DrawCircle(hero.Position, ExperienceRange, color, thickness);
+                        Render.Circle.DrawCircle(hero.Position, ExperienceRange, hero.IsMe ? selfColor : (hero.IsEnemy ? enemyColor : allyColor),
+                            thickness);
                     }
                 }
             }
@@ -137,30 +142,37 @@ namespace SFXUtility.Features.Drawings
                 if (hero.IsDead || !hero.IsVisible)
                     continue;
 
-                var color = Menu.Item(Name + "Spell" + (hero.IsMe ? "Self" : (hero.IsEnemy ? "Enemy" : "Ally")) + "Color").GetValue<Color>();
                 if ((hero.IsAlly && drawAllyQ || hero.IsEnemy && drawEnemyQ || hero.IsMe && drawSelfQ) && !(hero.IsMe && !drawSelfQ))
                 {
                     var range = hero.Spellbook.GetSpell(SpellSlot.Q).SData.CastRange;
                     if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                        Render.Circle.DrawCircle(hero.Position, range, color, thickness);
+                        Render.Circle.DrawCircle(hero.Position, range,
+                            Menu.Item(Name + "Spell" + (hero.IsMe ? "Self" : (hero.IsEnemy ? "Enemy" : "Ally")) + "ColorQ").GetValue<Color>(),
+                            thickness);
                 }
                 if ((hero.IsAlly && drawAllyW || hero.IsEnemy && drawEnemyW || hero.IsMe && drawSelfW) && !(hero.IsMe && !drawSelfW))
                 {
                     var range = hero.Spellbook.GetSpell(SpellSlot.W).SData.CastRange;
                     if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                        Render.Circle.DrawCircle(hero.Position, range, color, thickness);
+                        Render.Circle.DrawCircle(hero.Position, range,
+                            Menu.Item(Name + "Spell" + (hero.IsMe ? "Self" : (hero.IsEnemy ? "Enemy" : "Ally")) + "ColorW").GetValue<Color>(),
+                            thickness);
                 }
                 if ((hero.IsAlly && drawAllyE || hero.IsEnemy && drawEnemyE || hero.IsMe && drawSelfE) && !(hero.IsMe && !drawSelfE))
                 {
                     var range = hero.Spellbook.GetSpell(SpellSlot.E).SData.CastRange;
                     if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                        Render.Circle.DrawCircle(hero.Position, range, color, thickness);
+                        Render.Circle.DrawCircle(hero.Position, range,
+                            Menu.Item(Name + "Spell" + (hero.IsMe ? "Self" : (hero.IsEnemy ? "Enemy" : "Ally")) + "ColorE").GetValue<Color>(),
+                            thickness);
                 }
                 if ((hero.IsAlly && drawAllyR || hero.IsEnemy && drawEnemyR || hero.IsMe && drawSelfR) && !(hero.IsMe && !drawSelfR))
                 {
                     var range = hero.Spellbook.GetSpell(SpellSlot.R).SData.CastRange;
                     if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                        Render.Circle.DrawCircle(hero.Position, range, color, thickness);
+                        Render.Circle.DrawCircle(hero.Position, range,
+                            Menu.Item(Name + "Spell" + (hero.IsMe ? "Self" : (hero.IsEnemy ? "Enemy" : "Ally")) + "ColorR").GetValue<Color>(),
+                            thickness);
                 }
             }
         }
@@ -174,14 +186,16 @@ namespace SFXUtility.Features.Drawings
             if (!drawAlly && !drawEnemy)
                 return;
 
+            var allyColor = Menu.Item(Name + "TurretColorAlly").GetValue<Color>();
+            var enemyColor = Menu.Item(Name + "TurretColorEnemy").GetValue<Color>();
+
             foreach (var turret in _turrets)
             {
                 if (!turret.IsDead && turret.IsVisible)
                 {
                     if (turret.IsAlly && drawAlly || turret.IsEnemy && drawEnemy && turret.Position.IsOnScreen(TurretRange))
                     {
-                        Render.Circle.DrawCircle(turret.Position, TurretRange,
-                            Menu.Item(Name + "Turret" + (turret.IsAlly ? "Ally" : "Enemy") + "Color").GetValue<Color>(), thickness);
+                        Render.Circle.DrawCircle(turret.Position, TurretRange, turret.IsAlly ? allyColor : enemyColor, thickness);
                     }
                 }
             }
@@ -213,31 +227,49 @@ namespace SFXUtility.Features.Drawings
 
                 var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "CircleThickness", Language.Get("G_CircleThickness")).SetValue(new Slider(2, 1, 10)));
+                    new MenuItem(drawingMenu.Name + "CircleThickness", Language.Get("G_Circle") + " " + Language.Get("G_Thickness")).SetValue(
+                        new Slider(2, 1, 10)));
 
-                var experienceMenu = new Menu(Language.Get("Range_Experience"), Name + "Experience");
-                experienceMenu.AddItem(new MenuItem(experienceMenu.Name + "Color", Language.Get("G_Color")).SetValue(Color.Gray));
+                var experienceMenu = new Menu(Language.Get("G_Experience"), Name + "Experience");
+                experienceMenu.AddItem(
+                    new MenuItem(experienceMenu.Name + "ColorSelf", Language.Get("G_Color") + " " + Language.Get("G_Self")).SetValue(Color.Gray));
+                experienceMenu.AddItem(
+                    new MenuItem(experienceMenu.Name + "ColorAlly", Language.Get("G_Color") + " " + Language.Get("G_Ally")).SetValue(Color.Gray));
+                experienceMenu.AddItem(
+                    new MenuItem(experienceMenu.Name + "ColorEnemy", Language.Get("G_Color") + " " + Language.Get("G_Enemy")).SetValue(Color.Gray));
                 experienceMenu.AddItem(new MenuItem(experienceMenu.Name + "Self", Language.Get("G_Self")).SetValue(false));
                 experienceMenu.AddItem(new MenuItem(experienceMenu.Name + "Ally", Language.Get("G_Ally")).SetValue(false));
                 experienceMenu.AddItem(new MenuItem(experienceMenu.Name + "Enemy", Language.Get("G_Enemy")).SetValue(false));
 
-                var attackMenu = new Menu(Language.Get("Range_Attack"), Name + "Attack");
-                attackMenu.AddItem(new MenuItem(attackMenu.Name + "Color", Language.Get("G_Color")).SetValue(Color.Yellow));
+                var attackMenu = new Menu(Language.Get("G_Attack"), Name + "Attack");
+                attackMenu.AddItem(
+                    new MenuItem(attackMenu.Name + "ColorSelf", Language.Get("G_Color") + " " + Language.Get("G_Self")).SetValue(Color.Yellow));
+                attackMenu.AddItem(
+                    new MenuItem(attackMenu.Name + "ColorAlly", Language.Get("G_Color") + " " + Language.Get("G_Ally")).SetValue(Color.Yellow));
+                attackMenu.AddItem(
+                    new MenuItem(attackMenu.Name + "ColorEnemy", Language.Get("G_Color") + " " + Language.Get("G_Enemy")).SetValue(Color.Yellow));
                 attackMenu.AddItem(new MenuItem(attackMenu.Name + "Self", Language.Get("G_Self")).SetValue(false));
                 attackMenu.AddItem(new MenuItem(attackMenu.Name + "Ally", Language.Get("G_Ally")).SetValue(false));
                 attackMenu.AddItem(new MenuItem(attackMenu.Name + "Enemy", Language.Get("G_Enemy")).SetValue(false));
 
-                var turretMenu = new Menu(Language.Get("Range_Turret"), Name + "Turret");
-                turretMenu.AddItem(new MenuItem(turretMenu.Name + "AllyColor", Language.Get("G_AllyColor")).SetValue(Color.DarkGreen));
-                turretMenu.AddItem(new MenuItem(turretMenu.Name + "EnemyColor", Language.Get("G_EnemyColor")).SetValue(Color.DarkRed));
+                var turretMenu = new Menu(Language.Get("G_Turret"), Name + "Turret");
+                turretMenu.AddItem(
+                    new MenuItem(turretMenu.Name + "ColorAlly", Language.Get("G_Color") + " " + Language.Get("G_Ally")).SetValue(Color.DarkGreen));
+                turretMenu.AddItem(
+                    new MenuItem(turretMenu.Name + "ColorEnemy", Language.Get("G_Color") + " " + Language.Get("G_Enemy")).SetValue(Color.DarkRed));
                 turretMenu.AddItem(new MenuItem(turretMenu.Name + "Ally", Language.Get("G_Ally")).SetValue(false));
                 turretMenu.AddItem(new MenuItem(turretMenu.Name + "Enemy", Language.Get("G_Enemy")).SetValue(false));
 
-                var spellMenu = new Menu(Language.Get("Range_Spell"), Name + "Spell");
-                spellMenu.AddItem(new MenuItem(spellMenu.Name + "MaxRange", Language.Get("Range_MaxSpellRange")).SetValue(new Slider(1000, 500, 3000)));
+                var spellMenu = new Menu(Language.Get("G_Spell"), Name + "Spell");
+                spellMenu.AddItem(
+                    new MenuItem(spellMenu.Name + "MaxRange",
+                        Language.Get("G_Maximum") + " " + Language.Get("G_Spell") + " " + Language.Get("G_Range")).SetValue(new Slider(1000, 500, 3000)));
 
                 var spellSelfMenu = new Menu(Language.Get("G_Self"), spellMenu.Name + "Self");
-                spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "Color", Language.Get("G_Color")).SetValue(Color.Purple));
+                spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "ColorQ", Language.Get("G_Color") + " Q").SetValue(Color.Purple));
+                spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "ColorW", Language.Get("G_Color") + " W").SetValue(Color.Purple));
+                spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "ColorE", Language.Get("G_Color") + " E").SetValue(Color.Purple));
+                spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "ColorR", Language.Get("G_Color") + " R").SetValue(Color.Purple));
                 spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "Q", "Q").SetValue(false));
                 spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "W", "W").SetValue(false));
                 spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "E", "E").SetValue(false));
@@ -246,7 +278,10 @@ namespace SFXUtility.Features.Drawings
                 spellMenu.AddSubMenu(spellSelfMenu);
 
                 var spellAllyMenu = new Menu(Language.Get("G_Ally"), spellMenu.Name + "Ally");
-                spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "Color", Language.Get("G_Color")).SetValue(Color.Green));
+                spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "ColorQ", Language.Get("G_Color") + " Q").SetValue(Color.Green));
+                spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "ColorW", Language.Get("G_Color") + " W").SetValue(Color.Green));
+                spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "ColorE", Language.Get("G_Color") + " E").SetValue(Color.Green));
+                spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "ColorR", Language.Get("G_Color") + " R").SetValue(Color.Green));
                 spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "Q", "Q").SetValue(false));
                 spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "W", "W").SetValue(false));
                 spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "E", "E").SetValue(false));
@@ -255,7 +290,10 @@ namespace SFXUtility.Features.Drawings
                 spellMenu.AddSubMenu(spellAllyMenu);
 
                 var spellEnemyMenu = new Menu(Language.Get("G_Enemy"), spellMenu.Name + "Enemy");
-                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "Color", Language.Get("G_Color")).SetValue(Color.Red));
+                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "ColorQ", Language.Get("G_Color") + " Q").SetValue(Color.Red));
+                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "ColorW", Language.Get("G_Color") + " W").SetValue(Color.Red));
+                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "ColorE", Language.Get("G_Color") + " E").SetValue(Color.Red));
+                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "ColorR", Language.Get("G_Color") + " R").SetValue(Color.Red));
                 spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "Q", "Q").SetValue(false));
                 spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "W", "W").SetValue(false));
                 spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "E", "E").SetValue(false));

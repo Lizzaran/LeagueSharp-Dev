@@ -88,13 +88,13 @@ namespace SFXUtility.Features.Drawings
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Percentage", Language.Get("G_Percentage")).SetValue(false));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Percentage", Language.Get("G_Percent")).SetValue(false));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", Language.Get("G_FontSize")).SetValue(new Slider(13, 3, 30)));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "Turret", Language.Get("Health_Turret")).SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "Inhibitor", Language.Get("Health_Inhibitor")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Turret", Language.Get("G_Turret")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Inhibitor", Language.Get("G_Inhibitor")).SetValue(false));
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 

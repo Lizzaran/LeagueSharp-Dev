@@ -227,7 +227,7 @@ namespace SFXUtility.Features.Detectors
                 {
                     time = Game.Time - _lastActionTime;
                 }
-                var hPercent = (int) (ObjectManager.Player.Health/ObjectManager.Player.MaxHealth)*100;
+                var hPercent = (int) ((Hero.Health/Hero.MaxHealth)*100);
                 switch (LastType)
                 {
                     case Packet.S2C.Teleport.Type.Recall:

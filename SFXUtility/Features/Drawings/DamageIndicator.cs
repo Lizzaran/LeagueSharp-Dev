@@ -127,8 +127,11 @@ namespace SFXUtility.Features.Drawings
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "LineColor", Language.Get("G_LineColor")).SetValue(Color.DarkRed.ToArgb(90)));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FillColor", Language.Get("G_FillColor")).SetValue(Color.Red.ToArgb(90)));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "LineColor", Language.Get("G_Line") + " " + Language.Get("G_Color")).SetValue(
+                        Color.DarkRed.ToArgb(90)));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "FillColor", Language.Get("G_Fill") + " " + Language.Get("G_Color")).SetValue(Color.Red.ToArgb(90)));
 
                 Menu.AddSubMenu(drawingMenu);
 

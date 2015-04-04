@@ -130,7 +130,8 @@ namespace SFXUtility.Features.Drawings
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Color", Language.Get("G_Color")).SetValue(Color.Fuchsia));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Radius", Language.Get("G_Radius")).SetValue(new Slider(50, 5, 250)));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "CircleThickness", Language.Get("G_CircleThickness")).SetValue(new Slider(2, 1, 10)));
+                    new MenuItem(drawingMenu.Name + "CircleThickness", Language.Get("G_Circle") + " " + Language.Get("G_Thickness")).SetValue(
+                        new Slider(2, 1, 10)));
 
                 Menu.AddSubMenu(drawingMenu);
 

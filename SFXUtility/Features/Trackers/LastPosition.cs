@@ -139,7 +139,8 @@ namespace SFXUtility.Features.Trackers
                     new MenuItem(drawingMenu.Name + "TimeFormat", Language.Get("G_TimeFormat")).SetValue(new StringList(new[] {"mm:ss", "ss"})));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", Language.Get("G_FontSize")).SetValue(new Slider(13, 3, 30)));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "SSTimerOffset", Language.Get("LastPosition_SSTimerOffset")).SetValue(new Slider(5, 0, 50)));
+                    new MenuItem(drawingMenu.Name + "SSTimerOffset", Language.Get("LastPosition_SSTimer") + " " + Language.Get("G_Offset")).SetValue(
+                        new Slider(5, 0, 50)));
 
                 Menu.AddSubMenu(drawingMenu);
 

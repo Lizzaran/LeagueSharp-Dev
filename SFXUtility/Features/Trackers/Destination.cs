@@ -102,9 +102,11 @@ namespace SFXUtility.Features.Trackers
 
                 var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Color", Language.Get("G_Color")).SetValue(Color.YellowGreen));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CircleRadius", Language.Get("G_CircleRadius")).SetValue(new Slider(30)));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "CircleThickness", Language.Get("G_CircleThickness")).SetValue(new Slider(2, 1, 10)));
+                    new MenuItem(drawingMenu.Name + "CircleRadius", Language.Get("G_Circle") + " " + Language.Get("G_Radius")).SetValue(new Slider(30)));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "CircleThickness", Language.Get("G_Circle") + " " + Language.Get("G_Thickness")).SetValue(
+                        new Slider(2, 1, 10)));
 
                 Menu.AddSubMenu(drawingMenu);
 

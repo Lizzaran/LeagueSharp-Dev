@@ -241,6 +241,78 @@ namespace SFXUtility.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
+        ///
+        ///&lt;!-- ReSharper disable MarkupTextTypo --&gt;
+        ///&lt;language lang=&quot;de&quot;&gt;
+        ///	
+        ///	&lt;!-- START: GLOBAL --&gt;
+        ///	&lt;entry key=&quot;G_&quot;&gt;Aktiviert&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Hotkey&quot;&gt;Hotkey&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Ally&quot;&gt;Verbuendeter&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Enemy&quot;&gt;Gegner&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Self&quot;&gt;Selbst&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Drawing&quot;&gt;Zeichnung&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Color&quot;&gt;Farbe&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Circle&quot;&gt;Kreis&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Radius&quot;&gt;Radius&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Thickness&quot;&gt; [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string language_de {
+            get {
+                return ResourceManager.GetString("language_de", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+        ///
+        ///&lt;!-- ReSharper disable MarkupTextTypo --&gt;
+        ///&lt;language lang=&quot;en&quot;&gt;
+        ///
+        ///	&lt;!-- START: GLOBAL --&gt;
+        ///	&lt;entry key=&quot;G_Enabled&quot;&gt;Enabled&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Hotkey&quot;&gt;Hotkey&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Ally&quot;&gt;Ally&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Enemy&quot;&gt;Enemy&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Self&quot;&gt;Self&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Drawing&quot;&gt;Drawing&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Color&quot;&gt;Color&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Circle&quot;&gt;Circle&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Radius&quot;&gt;Radius&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Thickness&quot;&gt;Thickness [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string language_en {
+            get {
+                return ResourceManager.GetString("language_en", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+        ///
+        ///&lt;!-- ReSharper disable MarkupTextTypo --&gt;
+        ///&lt;language lang=&quot;vi&quot;&gt;
+        ///	
+        ///	&lt;!-- START: GLOBAL --&gt;
+        ///	&lt;entry key=&quot;G_Enabled&quot;&gt;Bật&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Hotkey&quot;&gt;Phím Tắt&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Ally&quot;&gt;Đồng Đội&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Enemy&quot;&gt;Đối Phương&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Self&quot;&gt;Bản Thân&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Drawing&quot;&gt;Nét Vẽ&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Color&quot;&gt;Màu Sắc&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Circle&quot;&gt;Vòng Tròn&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Radius&quot;&gt;Bán Kính&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Th [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string language_vi {
+            get {
+                return ResourceManager.GetString("language_vi", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap LP_Aatrox {

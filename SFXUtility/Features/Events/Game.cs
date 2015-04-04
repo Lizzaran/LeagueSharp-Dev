@@ -25,7 +25,6 @@ namespace SFXUtility.Features.Events
     #region
 
     using System;
-    using System.Diagnostics;
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
@@ -36,8 +35,8 @@ namespace SFXUtility.Features.Events
 
     internal class Game : Base
     {
-        private Events _parent;
         private bool _onEndTriggerd;
+        private Events _parent;
 
         public override bool Enabled
         {
@@ -116,7 +115,8 @@ namespace SFXUtility.Features.Events
 
         private void OnGameNotify(GameNotifyEventArgs args)
         {
-            if (_onEndTriggerd || (args.EventId != GameEventId.OnEndGame && args.EventId != GameEventId.OnHQDie && args.EventId != GameEventId.OnHQKill))
+            if (_onEndTriggerd ||
+                (args.EventId != GameEventId.OnEndGame && args.EventId != GameEventId.OnHQDie && args.EventId != GameEventId.OnHQKill))
                 return;
 
             _onEndTriggerd = true;

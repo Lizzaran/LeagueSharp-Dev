@@ -43,8 +43,8 @@ namespace SFXLibrary
         {
             try
             {
-                var doc = XDocument.Parse(xml);
-                foreach (var language in doc.Descendants("language"))
+                var language = XDocument.Parse(xml).Root;
+                if (language != null)
                 {
                     var lang = language.Attribute("lang").Value;
                     if (!Languages.Contains(lang))
@@ -58,10 +58,6 @@ namespace SFXLibrary
                     }
                     LanguagesDictionary[lang] = entries;
                 }
-
-                var xElement = doc.Root;
-                if (xElement != null)
-                    Default = xElement.Attribute("default-lang").Value;
             }
             catch (Exception ex)
             {

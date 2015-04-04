@@ -25,6 +25,8 @@ namespace SFXUtility
     #region
 
     using System;
+    using System.IO;
+    using System.Linq;
     using System.Reflection;
     using LeagueSharp;
     using LeagueSharp.Common;
@@ -32,8 +34,6 @@ namespace SFXUtility
     using SFXLibrary.Data;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Logger;
-    using Menu = LeagueSharp.Common.Menu;
-    using MenuItem = LeagueSharp.Common.MenuItem;
     using Version = System.Version;
 
     #endregion
@@ -48,6 +48,10 @@ namespace SFXUtility
             {
                 Menu = new Menu(Name, Name, true);
 
+                Menu.AddItem(
+                    new MenuItem(Name + "Language", Language.Get("SFXUtility_Language")).SetValue(
+                        new StringList(new[] {"auto"}.Concat(Language.Languages.ToArray()).ToArray())));
+
                 var infoMenu = new Menu(Language.Get("SFXUtility_Info"), Name + "Info");
 
                 infoMenu.AddItem(new MenuItem(infoMenu.Name + "Version", string.Format("{0}: {1}", Language.Get("SFXUtility_Version"), Version)));
@@ -56,6 +60,24 @@ namespace SFXUtility
                 infoMenu.AddItem(new MenuItem(infoMenu.Name + "IRC", Language.Get("SFXUtility_IRC") + ": Appril"));
 
                 infoMenu.AddSubMenu(infoMenu);
+
+                Menu.Item(Name + "Language").ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
+                {
+                    const string preName = "sfxutility.language.";
+                    var files = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, preName + "*", SearchOption.TopDirectoryOnly);
+                    foreach (var file in files)
+                    {
+                        try
+                        {
+                            File.Delete(file);
+                        }
+                        catch
+                        {
+                        }
+                    }
+                    if (!args.GetNewValue<StringList>().SelectedValue.Equals("auto"))
+                        File.Create(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, preName + args.GetNewValue<StringList>().SelectedValue));
+                };
 
                 AppDomain.CurrentDomain.DomainUnload += OnExit;
                 AppDomain.CurrentDomain.ProcessExit += OnExit;

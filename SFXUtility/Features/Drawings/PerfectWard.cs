@@ -253,7 +253,8 @@ namespace SFXUtility.Features.Drawings
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Color", Language.Get("G_Color")).SetValue(Color.GreenYellow));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Radius", Language.Get("G_Radius")).SetValue(new Slider(60, 10, 200)));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "CircleThickness", Language.Get("G_CircleThickness")).SetValue(new Slider(2, 1, 10)));
+                    new MenuItem(drawingMenu.Name + "CircleThickness", Language.Get("G_Circle") + " " + Language.Get("G_Thickness")).SetValue(
+                        new Slider(2, 1, 10)));
 
 
                 Menu.AddItem(new MenuItem(Name + "Hotkey", Language.Get("G_Hotkey")).SetValue(new KeyBind('Z', KeyBindType.Press)));

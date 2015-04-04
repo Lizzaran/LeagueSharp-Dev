@@ -132,9 +132,12 @@ namespace SFXUtility.Features.Trackers
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + "TimeFormat", Language.Get("G_TimeFormat")).SetValue(new StringList(new[] {"mm:ss", "ss"})));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", Language.Get("G_FontSize")).SetValue(new Slider(13, 3, 30)));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CircleRadius", Language.Get("G_CircleRadius")).SetValue(new Slider(150, 25, 300)));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "CircleThickness", Language.Get("G_CircleThickness")).SetValue(new Slider(2, 1, 10)));
+                    new MenuItem(drawingMenu.Name + "CircleRadius", Language.Get("G_Circle") + " " + Language.Get("G_Radius")).SetValue(new Slider(
+                        150, 25, 300)));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "CircleThickness", Language.Get("G_Circle") + " " + Language.Get("G_Thickness")).SetValue(
+                        new Slider(2, 1, 10)));
 
                 Menu.AddSubMenu(drawingMenu);
 

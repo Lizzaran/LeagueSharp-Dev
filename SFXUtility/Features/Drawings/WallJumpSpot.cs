@@ -115,11 +115,14 @@ namespace SFXUtility.Features.Drawings
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FromColor", Language.Get("WallJumpSpot_FromColor")).SetValue(Color.Blue));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "ToColor", Language.Get("WallJumpSpot_ToColor")).SetValue(Color.Red));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "FromColor", Language.Get("G_From") + " " + Language.Get("G_Color")).SetValue(Color.Blue));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "ToColor", Language.Get("G_To") + " " + Language.Get("G_Color")).SetValue(Color.Red));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Radius", Language.Get("G_Radius")).SetValue(new Slider(50, 5, 250)));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "CircleThickness", Language.Get("G_CircleThickness")).SetValue(new Slider(2, 1, 10)));
+                    new MenuItem(drawingMenu.Name + "CircleThickness", Language.Get("G_Circle") + " " + Language.Get("G_Thickness")).SetValue(
+                        new Slider(2, 1, 10)));
 
                 Menu.AddSubMenu(drawingMenu);
 
