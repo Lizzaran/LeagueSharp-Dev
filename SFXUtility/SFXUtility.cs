@@ -26,7 +26,6 @@ namespace SFXUtility
 
     using System;
     using System.Reflection;
-    using System.Windows.Forms;
     using LeagueSharp;
     using LeagueSharp.Common;
     using SFXLibrary;
