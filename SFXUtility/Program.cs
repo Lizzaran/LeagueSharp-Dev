@@ -50,9 +50,12 @@ namespace SFXUtility
         {
             Language.Parse(Utils.ReadResourceString("SFXUtility.Resources.languages.xml", Assembly.GetExecutingAssembly()));
 
-            var langFile = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, @"sfxutility.language.*").FirstOrDefault();
-            if (langFile != null && Language.Languages.Any(l => l.Equals(Path.GetExtension(langFile))))
-                Language.Current = Path.GetExtension(langFile);
+            var lang =
+                Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, @"sfxutility.language.*", SearchOption.TopDirectoryOnly)
+                    .Select(Path.GetExtension)
+                    .FirstOrDefault();
+            if (lang != null && Language.Languages.Any(l => l.Equals(lang.Substring(1))))
+                Language.Current = lang;
             else
                 Language.Current = CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
 
