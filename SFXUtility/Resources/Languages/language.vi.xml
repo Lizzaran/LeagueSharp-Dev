@@ -44,6 +44,8 @@
 	<entry key="G_Spell">Kỹ Năng</entry>
 	<entry key="G_Movement">Di Chuyển</entry>
 	<entry key="G_Delay">Trì Hoãn</entry>
+	<entry key="G_Map">Bản Đồ</entry>
+	<entry key="G_Minimap">Tổng Quan Bản Đồ</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: SFXUtility -->

@@ -70,11 +70,9 @@ namespace SFXUtility.Features.Drawings
                 var enemyColor = Menu.Item(Name + "AttackColorEnemy").GetValue<Color>();
                 var selfColor = Menu.Item(Name + "AttackColorSelf").GetValue<Color>();
 
-                foreach (
-                    var hero in
-                        HeroManager.AllHeroes.Where(hero => !hero.IsDead && hero.IsVisible)
-                            .Where(
-                                hero => (hero.IsAlly && drawAlly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) && !(hero.IsMe && !drawSelf)))
+                foreach (var hero in
+                    HeroManager.AllHeroes.Where(hero => !hero.IsDead && hero.IsVisible)
+                        .Where(hero => (hero.IsAlly && drawAlly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) && !(hero.IsMe && !drawSelf)))
                 {
                     var radius = hero.BoundingRadius + hero.AttackRange;
                     if (hero.Position.IsOnScreen(radius))
@@ -105,13 +103,12 @@ namespace SFXUtility.Features.Drawings
                 var enemyColor = Menu.Item(Name + "ExperienceColorEnemy").GetValue<Color>();
                 var selfColor = Menu.Item(Name + "ExperienceColorSelf").GetValue<Color>();
 
-                foreach (
-                    var hero in
-                        HeroManager.AllHeroes.Where(hero => !hero.IsDead && hero.IsVisible)
-                            .Where(
-                                hero =>
-                                    (hero.IsAlly && drawAlly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) && !(hero.IsMe && !drawSelf) &&
-                                    hero.Position.IsOnScreen(ExperienceRange)))
+                foreach (var hero in
+                    HeroManager.AllHeroes.Where(hero => !hero.IsDead && hero.IsVisible)
+                        .Where(
+                            hero =>
+                                (hero.IsAlly && drawAlly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) && !(hero.IsMe && !drawSelf) &&
+                                hero.Position.IsOnScreen(ExperienceRange)))
                 {
                     Render.Circle.DrawCircle(hero.Position, ExperienceRange, hero.IsMe ? selfColor : (hero.IsEnemy ? enemyColor : allyColor),
                         thickness);
@@ -208,10 +205,9 @@ namespace SFXUtility.Features.Drawings
                 var allyColor = Menu.Item(Name + "TurretColorAlly").GetValue<Color>();
                 var enemyColor = Menu.Item(Name + "TurretColorEnemy").GetValue<Color>();
 
-                foreach (
-                    var turret in
-                        _turrets.Where(turret => !turret.IsDead && turret.Health > 1f && turret.IsVisible)
-                            .Where(turret => (turret.IsAlly && drawAlly || turret.IsEnemy && drawEnemy) && turret.Position.IsOnScreen(TurretRange)))
+                foreach (var turret in
+                    _turrets.Where(turret => !turret.IsDead && turret.Health > 1f && turret.IsVisible)
+                        .Where(turret => (turret.IsAlly && drawAlly || turret.IsEnemy && drawEnemy) && turret.Position.IsOnScreen(TurretRange)))
                 {
                     Render.Circle.DrawCircle(turret.Position, TurretRange, turret.IsAlly ? allyColor : enemyColor, thickness);
                 }

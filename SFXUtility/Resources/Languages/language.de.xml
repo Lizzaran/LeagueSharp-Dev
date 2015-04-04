@@ -44,6 +44,8 @@
 	<entry key="G_Spell">Faehigkeit</entry>
 	<entry key="G_Movement">Bewegung</entry>
 	<entry key="G_Delay">Verzoegerung</entry>
+	<entry key="G_Map">Karte</entry>
+	<entry key="G_Minimap">Minikarte</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: SFXUtility -->

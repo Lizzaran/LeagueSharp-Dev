@@ -44,6 +44,8 @@
 	<entry key="G_Spell">Spell</entry>
 	<entry key="G_Movement">Movement</entry>
 	<entry key="G_Delay">Delay</entry>
+	<entry key="G_Map">Map</entry>
+	<entry key="G_Minimap">Minimap</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: SFXUtility -->

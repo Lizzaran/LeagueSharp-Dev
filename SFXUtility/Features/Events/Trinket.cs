@@ -159,22 +159,22 @@ namespace SFXUtility.Features.Events
                     if (Menu.Item(Name + "EventsEnabled").GetValue<bool>())
                     {
                         bool hasTrinket;
-                        var trinketId = -1;
+                        var trinketId = (ItemId) 0;
                         switch (Menu.Item(Name + "EventsBuyTrinket").GetValue<StringList>().SelectedIndex)
                         {
                             case 0:
                                 hasTrinket = hasYellow;
-                                trinketId = (int) ItemId.Warding_Totem_Trinket;
+                                trinketId = ItemId.Warding_Totem_Trinket;
                                 break;
 
                             case 1:
                                 hasTrinket = hasRed;
-                                trinketId = (int) ItemId.Sweeping_Lens_Trinket;
+                                trinketId = ItemId.Sweeping_Lens_Trinket;
                                 break;
 
                             case 2:
                                 hasTrinket = hasBlue;
-                                trinketId = (int) ItemId.Scrying_Orb_Trinket;
+                                trinketId = ItemId.Scrying_Orb_Trinket;
                                 break;
 
                             default:
@@ -182,25 +182,29 @@ namespace SFXUtility.Features.Events
                                 break;
                         }
 
-                        if (!hasTrinket && ObjectManager.Player.HasItem(ItemId.Sightstone) && Menu.Item(Name + "EventsSightstone").GetValue<bool>())
+                        if (ObjectManager.Player.HasItem(ItemId.Sightstone) && Menu.Item(Name + "EventsSightstone").GetValue<bool>())
                         {
-                            SwitchTrinket(trinketId);
+                            if (!hasTrinket)
+                                SwitchTrinket(trinketId);
+                            return;
                         }
-                        if (!hasTrinket && ObjectManager.Player.HasItem(ItemId.Ruby_Sightstone) &&
-                            Menu.Item(Name + "EventsRubySightstone").GetValue<bool>())
+                        if (ObjectManager.Player.HasItem(ItemId.Ruby_Sightstone) && Menu.Item(Name + "EventsRubySightstone").GetValue<bool>())
                         {
-                            SwitchTrinket(trinketId);
+                            if (!hasTrinket)
+                                SwitchTrinket(trinketId);
+                            return;
                         }
-                        if (!hasTrinket && ObjectManager.Player.HasItem(ItemId.Wriggles_Lantern) &&
-                            Menu.Item(Name + "EventsWrigglesLantern").GetValue<bool>())
+                        if (ObjectManager.Player.HasItem(ItemId.Wriggles_Lantern) && Menu.Item(Name + "EventsWrigglesLantern").GetValue<bool>())
                         {
-                            SwitchTrinket(trinketId);
+                            if (!hasTrinket)
+                                SwitchTrinket(trinketId);
+                            return;
                         }
                     }
 
                     if (Menu.Item(Name + "TimersEnabled").GetValue<bool>())
                     {
-                        var time = Math.Floor(LeagueSharp.Game.Time/60f);
+                        var time = (int) (LeagueSharp.Game.Time/60f);
                         var tsList = new List<TrinketStruct>
                         {
                             new TrinketStruct(ItemId.Warding_Totem_Trinket, hasYellow, Menu.Item(Name + "TimersWardingTotemBuy").GetValue<bool>(),
@@ -227,7 +231,8 @@ namespace SFXUtility.Features.Events
                                 }
                                 if (!hasHigher && tsList[i].Buy && !tsList[i].HasItem)
                                 {
-                                    SwitchTrinket((int) tsList[i].ItemId);
+                                    SwitchTrinket(tsList[i].ItemId);
+                                    return;
                                 }
                             }
                         }
@@ -240,14 +245,14 @@ namespace SFXUtility.Features.Events
             }
         }
 
-        private void SwitchTrinket(int itemId)
+        private void SwitchTrinket(ItemId itemId)
         {
             try
             {
-                if (itemId == 0)
+                if ((int) itemId <= 0)
                     return;
                 var iItem =
-                    ObjectManager.Player.InventoryItems.First(
+                    ObjectManager.Player.InventoryItems.FirstOrDefault(
                         slot =>
                             slot.IsValidSlot() && slot.Name.Contains("Trinket", StringComparison.OrdinalIgnoreCase) ||
                             slot.DisplayName.Contains("Trinket", StringComparison.OrdinalIgnoreCase));
@@ -255,7 +260,7 @@ namespace SFXUtility.Features.Events
                 {
                     ObjectManager.Player.SellItem(iItem.Slot);
                 }
-                ObjectManager.Player.BuyItem((ItemId) itemId);
+                ObjectManager.Player.BuyItem(itemId);
             }
             catch (Exception ex)
             {
