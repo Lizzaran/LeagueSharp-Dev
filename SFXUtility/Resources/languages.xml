@@ -137,6 +137,7 @@
 		<!-- START: AutoLeveler -->
 		<entry key="F_AutoLeveler">Auto Leveler</entry>
 		<entry key="AutoLeveler_PatternEarly">Early Pattern</entry>
+		<entry key="AutoLeveler_Priority3LvL">Priority 3 @ LvL</entry>
 		<entry key="AutoLeveler_OnlyR">Only R</entry>
 		<!-- END: AutoLeveler -->
 

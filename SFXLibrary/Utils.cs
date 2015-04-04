@@ -36,30 +36,25 @@ namespace SFXLibrary
 
     public class Utils
     {
-        public static SpellSlot GetSpellSlotByChar(char c)
+        public static SpellSlot GetSpellSlotByChar(string c)
         {
-            switch (Char.ToUpper(c))
+            switch (c.ToUpper())
             {
-                case 'Q':
+                case "Q":
                     return SpellSlot.Q;
 
-                case 'W':
+                case "W":
                     return SpellSlot.W;
 
-                case 'E':
+                case "E":
                     return SpellSlot.E;
 
-                case 'R':
+                case "R":
                     return SpellSlot.R;
 
                 default:
                     return SpellSlot.Unknown;
             }
-        }
-
-        public static SpellSlot GetSpellSlotByChar(string c)
-        {
-            return c.Any(x => !char.IsLetter(x)) ? GetSpellSlotByChar(c.First(char.IsLetter)) : SpellSlot.Unknown;
         }
 
         public static bool IsXmlValid(string schemaFile, string xmlFile)
