@@ -56,148 +56,169 @@ namespace SFXUtility.Features.Drawings
 
         private void DrawAttack()
         {
-            var drawAlly = Menu.Item(Name + "AttackAlly").GetValue<bool>();
-            var drawEnemy = Menu.Item(Name + "AttackEnemy").GetValue<bool>();
-            var drawSelf = Menu.Item(Name + "AttackSelf").GetValue<bool>();
-            var thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
-
-            if (!drawAlly && !drawEnemy && !drawSelf)
-                return;
-
-            var allyColor = Menu.Item(Name + "AttackColorAlly").GetValue<Color>();
-            var enemyColor = Menu.Item(Name + "AttackColorEnemy").GetValue<Color>();
-            var selfColor = Menu.Item(Name + "AttackColorSelf").GetValue<Color>();
-
-            foreach (var hero in HeroManager.AllHeroes)
+            try
             {
-                var radius = hero.BoundingRadius + hero.AttackRange;
-                if (!hero.IsDead && hero.IsVisible)
+                var drawAlly = Menu.Item(Name + "AttackAlly").GetValue<bool>();
+                var drawEnemy = Menu.Item(Name + "AttackEnemy").GetValue<bool>();
+                var drawSelf = Menu.Item(Name + "AttackSelf").GetValue<bool>();
+                var thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
+
+                if (!drawAlly && !drawEnemy && !drawSelf)
+                    return;
+
+                var allyColor = Menu.Item(Name + "AttackColorAlly").GetValue<Color>();
+                var enemyColor = Menu.Item(Name + "AttackColorEnemy").GetValue<Color>();
+                var selfColor = Menu.Item(Name + "AttackColorSelf").GetValue<Color>();
+
+                foreach (
+                    var hero in
+                        HeroManager.AllHeroes.Where(hero => !hero.IsDead && hero.IsVisible)
+                            .Where(
+                                hero => (hero.IsAlly && drawAlly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) && !(hero.IsMe && !drawSelf)))
                 {
-                    if ((hero.IsAlly && drawAlly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) && !(hero.IsMe && !drawSelf) &&
-                        hero.Position.IsOnScreen(radius))
+                    var radius = hero.BoundingRadius + hero.AttackRange;
+                    if (hero.Position.IsOnScreen(radius))
                     {
                         Render.Circle.DrawCircle(hero.Position, radius, hero.IsMe ? selfColor : (hero.IsEnemy ? enemyColor : allyColor), thickness);
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void DrawExperience()
         {
-            var drawAlly = Menu.Item(Name + "ExperienceAlly").GetValue<bool>();
-            var drawEnemy = Menu.Item(Name + "ExperienceEnemy").GetValue<bool>();
-            var drawSelf = Menu.Item(Name + "ExperienceSelf").GetValue<bool>();
-            var thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
-
-            if (!drawAlly && !drawEnemy && !drawSelf)
-                return;
-
-            var allyColor = Menu.Item(Name + "ExperienceColorAlly").GetValue<Color>();
-            var enemyColor = Menu.Item(Name + "ExperienceColorEnemy").GetValue<Color>();
-            var selfColor = Menu.Item(Name + "ExperienceColorSelf").GetValue<Color>();
-
-            foreach (var hero in HeroManager.AllHeroes)
+            try
             {
-                if (!hero.IsDead && hero.IsVisible)
+                var drawAlly = Menu.Item(Name + "ExperienceAlly").GetValue<bool>();
+                var drawEnemy = Menu.Item(Name + "ExperienceEnemy").GetValue<bool>();
+                var drawSelf = Menu.Item(Name + "ExperienceSelf").GetValue<bool>();
+                var thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
+
+                if (!drawAlly && !drawEnemy && !drawSelf)
+                    return;
+
+                var allyColor = Menu.Item(Name + "ExperienceColorAlly").GetValue<Color>();
+                var enemyColor = Menu.Item(Name + "ExperienceColorEnemy").GetValue<Color>();
+                var selfColor = Menu.Item(Name + "ExperienceColorSelf").GetValue<Color>();
+
+                foreach (
+                    var hero in
+                        HeroManager.AllHeroes.Where(hero => !hero.IsDead && hero.IsVisible)
+                            .Where(
+                                hero =>
+                                    (hero.IsAlly && drawAlly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) && !(hero.IsMe && !drawSelf) &&
+                                    hero.Position.IsOnScreen(ExperienceRange)))
                 {
-                    if ((hero.IsAlly && drawAlly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) && !(hero.IsMe && !drawSelf) &&
-                        hero.Position.IsOnScreen(ExperienceRange))
-                    {
-                        Render.Circle.DrawCircle(hero.Position, ExperienceRange, hero.IsMe ? selfColor : (hero.IsEnemy ? enemyColor : allyColor),
-                            thickness);
-                    }
+                    Render.Circle.DrawCircle(hero.Position, ExperienceRange, hero.IsMe ? selfColor : (hero.IsEnemy ? enemyColor : allyColor),
+                        thickness);
                 }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
         private void DrawSpell()
         {
-            var thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
-
-            var drawAllyQ = Menu.Item(Name + "SpellAllyQ").GetValue<bool>();
-            var drawAllyW = Menu.Item(Name + "SpellAllyW").GetValue<bool>();
-            var drawAllyE = Menu.Item(Name + "SpellAllyE").GetValue<bool>();
-            var drawAllyR = Menu.Item(Name + "SpellAllyR").GetValue<bool>();
-            var drawAlly = drawAllyQ || drawAllyW || drawAllyE || drawAllyR;
-
-            var drawEnemyQ = Menu.Item(Name + "SpellEnemyQ").GetValue<bool>();
-            var drawEnemyW = Menu.Item(Name + "SpellEnemyW").GetValue<bool>();
-            var drawEnemyE = Menu.Item(Name + "SpellEnemyE").GetValue<bool>();
-            var drawEnemyR = Menu.Item(Name + "SpellEnemyR").GetValue<bool>();
-            var drawEnemy = drawEnemyQ || drawEnemyW || drawEnemyE || drawEnemyR;
-
-            var drawSelfQ = Menu.Item(Name + "SpellSelfQ").GetValue<bool>();
-            var drawSelfW = Menu.Item(Name + "SpellSelfW").GetValue<bool>();
-            var drawSelfE = Menu.Item(Name + "SpellSelfE").GetValue<bool>();
-            var drawSelfR = Menu.Item(Name + "SpellSelfR").GetValue<bool>();
-            var drawSelf = drawSelfQ || drawSelfW || drawSelfE || drawSelfR;
-
-            if (!drawAlly && !drawEnemy && !drawSelf)
-                return;
-
-            var spellMaxRange = Menu.Item(Name + "SpellMaxRange").GetValue<Slider>().Value;
-
-            foreach (var hero in HeroManager.AllHeroes)
+            try
             {
-                if (hero.IsDead || !hero.IsVisible)
-                    continue;
+                var thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
 
-                if ((hero.IsAlly && drawAllyQ || hero.IsEnemy && drawEnemyQ || hero.IsMe && drawSelfQ) && !(hero.IsMe && !drawSelfQ))
+                var drawAllyQ = Menu.Item(Name + "SpellAllyQ").GetValue<bool>();
+                var drawAllyW = Menu.Item(Name + "SpellAllyW").GetValue<bool>();
+                var drawAllyE = Menu.Item(Name + "SpellAllyE").GetValue<bool>();
+                var drawAllyR = Menu.Item(Name + "SpellAllyR").GetValue<bool>();
+                var drawAlly = drawAllyQ || drawAllyW || drawAllyE || drawAllyR;
+
+                var drawEnemyQ = Menu.Item(Name + "SpellEnemyQ").GetValue<bool>();
+                var drawEnemyW = Menu.Item(Name + "SpellEnemyW").GetValue<bool>();
+                var drawEnemyE = Menu.Item(Name + "SpellEnemyE").GetValue<bool>();
+                var drawEnemyR = Menu.Item(Name + "SpellEnemyR").GetValue<bool>();
+                var drawEnemy = drawEnemyQ || drawEnemyW || drawEnemyE || drawEnemyR;
+
+                var drawSelfQ = Menu.Item(Name + "SpellSelfQ").GetValue<bool>();
+                var drawSelfW = Menu.Item(Name + "SpellSelfW").GetValue<bool>();
+                var drawSelfE = Menu.Item(Name + "SpellSelfE").GetValue<bool>();
+                var drawSelfR = Menu.Item(Name + "SpellSelfR").GetValue<bool>();
+                var drawSelf = drawSelfQ || drawSelfW || drawSelfE || drawSelfR;
+
+                if (!drawAlly && !drawEnemy && !drawSelf)
+                    return;
+
+                var spellMaxRange = Menu.Item(Name + "SpellMaxRange").GetValue<Slider>().Value;
+
+                foreach (var hero in HeroManager.AllHeroes.Where(hero => !hero.IsDead && hero.IsVisible))
                 {
-                    var range = hero.Spellbook.GetSpell(SpellSlot.Q).SData.CastRange;
-                    if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                        Render.Circle.DrawCircle(hero.Position, range,
-                            Menu.Item(Name + "Spell" + (hero.IsMe ? "Self" : (hero.IsEnemy ? "Enemy" : "Ally")) + "ColorQ").GetValue<Color>(),
-                            thickness);
+                    if ((hero.IsAlly && drawAllyQ || hero.IsEnemy && drawEnemyQ || hero.IsMe && drawSelfQ) && !(hero.IsMe && !drawSelfQ))
+                    {
+                        var range = hero.Spellbook.GetSpell(SpellSlot.Q).SData.CastRange;
+                        if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
+                            Render.Circle.DrawCircle(hero.Position, range,
+                                Menu.Item(Name + "Spell" + (hero.IsMe ? "Self" : (hero.IsEnemy ? "Enemy" : "Ally")) + "ColorQ").GetValue<Color>(),
+                                thickness);
+                    }
+                    if ((hero.IsAlly && drawAllyW || hero.IsEnemy && drawEnemyW || hero.IsMe && drawSelfW) && !(hero.IsMe && !drawSelfW))
+                    {
+                        var range = hero.Spellbook.GetSpell(SpellSlot.W).SData.CastRange;
+                        if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
+                            Render.Circle.DrawCircle(hero.Position, range,
+                                Menu.Item(Name + "Spell" + (hero.IsMe ? "Self" : (hero.IsEnemy ? "Enemy" : "Ally")) + "ColorW").GetValue<Color>(),
+                                thickness);
+                    }
+                    if ((hero.IsAlly && drawAllyE || hero.IsEnemy && drawEnemyE || hero.IsMe && drawSelfE) && !(hero.IsMe && !drawSelfE))
+                    {
+                        var range = hero.Spellbook.GetSpell(SpellSlot.E).SData.CastRange;
+                        if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
+                            Render.Circle.DrawCircle(hero.Position, range,
+                                Menu.Item(Name + "Spell" + (hero.IsMe ? "Self" : (hero.IsEnemy ? "Enemy" : "Ally")) + "ColorE").GetValue<Color>(),
+                                thickness);
+                    }
+                    if ((hero.IsAlly && drawAllyR || hero.IsEnemy && drawEnemyR || hero.IsMe && drawSelfR) && !(hero.IsMe && !drawSelfR))
+                    {
+                        var range = hero.Spellbook.GetSpell(SpellSlot.R).SData.CastRange;
+                        if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
+                            Render.Circle.DrawCircle(hero.Position, range,
+                                Menu.Item(Name + "Spell" + (hero.IsMe ? "Self" : (hero.IsEnemy ? "Enemy" : "Ally")) + "ColorR").GetValue<Color>(),
+                                thickness);
+                    }
                 }
-                if ((hero.IsAlly && drawAllyW || hero.IsEnemy && drawEnemyW || hero.IsMe && drawSelfW) && !(hero.IsMe && !drawSelfW))
-                {
-                    var range = hero.Spellbook.GetSpell(SpellSlot.W).SData.CastRange;
-                    if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                        Render.Circle.DrawCircle(hero.Position, range,
-                            Menu.Item(Name + "Spell" + (hero.IsMe ? "Self" : (hero.IsEnemy ? "Enemy" : "Ally")) + "ColorW").GetValue<Color>(),
-                            thickness);
-                }
-                if ((hero.IsAlly && drawAllyE || hero.IsEnemy && drawEnemyE || hero.IsMe && drawSelfE) && !(hero.IsMe && !drawSelfE))
-                {
-                    var range = hero.Spellbook.GetSpell(SpellSlot.E).SData.CastRange;
-                    if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                        Render.Circle.DrawCircle(hero.Position, range,
-                            Menu.Item(Name + "Spell" + (hero.IsMe ? "Self" : (hero.IsEnemy ? "Enemy" : "Ally")) + "ColorE").GetValue<Color>(),
-                            thickness);
-                }
-                if ((hero.IsAlly && drawAllyR || hero.IsEnemy && drawEnemyR || hero.IsMe && drawSelfR) && !(hero.IsMe && !drawSelfR))
-                {
-                    var range = hero.Spellbook.GetSpell(SpellSlot.R).SData.CastRange;
-                    if (range <= spellMaxRange && hero.Position.IsOnScreen(range))
-                        Render.Circle.DrawCircle(hero.Position, range,
-                            Menu.Item(Name + "Spell" + (hero.IsMe ? "Self" : (hero.IsEnemy ? "Enemy" : "Ally")) + "ColorR").GetValue<Color>(),
-                            thickness);
-                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
         private void DrawTurret()
         {
-            var drawAlly = Menu.Item(Name + "TurretAlly").GetValue<bool>();
-            var drawEnemy = Menu.Item(Name + "TurretEnemy").GetValue<bool>();
-            var thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
-
-            if (!drawAlly && !drawEnemy)
-                return;
-
-            var allyColor = Menu.Item(Name + "TurretColorAlly").GetValue<Color>();
-            var enemyColor = Menu.Item(Name + "TurretColorEnemy").GetValue<Color>();
-
-            foreach (var turret in _turrets)
+            try
             {
-                if (!turret.IsDead && turret.IsVisible)
+                var drawAlly = Menu.Item(Name + "TurretAlly").GetValue<bool>();
+                var drawEnemy = Menu.Item(Name + "TurretEnemy").GetValue<bool>();
+                var thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
+
+                if (!drawAlly && !drawEnemy)
+                    return;
+
+                var allyColor = Menu.Item(Name + "TurretColorAlly").GetValue<Color>();
+                var enemyColor = Menu.Item(Name + "TurretColorEnemy").GetValue<Color>();
+
+                foreach (
+                    var turret in
+                        _turrets.Where(turret => !turret.IsDead && turret.Health > 1f && turret.IsVisible)
+                            .Where(turret => (turret.IsAlly && drawAlly || turret.IsEnemy && drawEnemy) && turret.Position.IsOnScreen(TurretRange)))
                 {
-                    if (turret.IsAlly && drawAlly || turret.IsEnemy && drawEnemy && turret.Position.IsOnScreen(TurretRange))
-                    {
-                        Render.Circle.DrawCircle(turret.Position, TurretRange, turret.IsAlly ? allyColor : enemyColor, thickness);
-                    }
+                    Render.Circle.DrawCircle(turret.Position, TurretRange, turret.IsAlly ? allyColor : enemyColor, thickness);
                 }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -206,8 +227,8 @@ namespace SFXUtility.Features.Drawings
             try
             {
                 DrawExperience();
-                DrawAttack();
                 DrawTurret();
+                DrawAttack();
                 DrawSpell();
             }
             catch (Exception ex)
