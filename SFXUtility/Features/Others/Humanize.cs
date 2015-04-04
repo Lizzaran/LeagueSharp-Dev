@@ -29,6 +29,7 @@ namespace SFXUtility.Features.Others
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using SFXLibrary;
     using SFXLibrary.Logger;
 
     #endregion
@@ -46,7 +47,7 @@ namespace SFXUtility.Features.Others
 
         public override string Name
         {
-            get { return "Humanize"; }
+            get { return Language.Get("F_Humanize"); }
         }
 
         protected override void OnEnable()
@@ -91,13 +92,13 @@ namespace SFXUtility.Features.Others
 
                 Menu = new Menu(Name, Name);
 
-                var delayMenu = new Menu("Delay", Name + "Delay");
-                delayMenu.AddItem(new MenuItem(delayMenu.Name + "Spells", "Spells (ms)").SetValue(new Slider(50, 0, 250)));
-                delayMenu.AddItem(new MenuItem(delayMenu.Name + "Movement", "Movement (ms)").SetValue(new Slider(50, 0, 250)));
+                var delayMenu = new Menu(Language.Get("Humanize_Delay"), Name + "Delay");
+                delayMenu.AddItem(new MenuItem(delayMenu.Name + "Spell", Language.Get("Humanize_Spell")).SetValue(new Slider(50, 0, 250)));
+                delayMenu.AddItem(new MenuItem(delayMenu.Name + "Movement", Language.Get("Humanize_Movement")).SetValue(new Slider(50, 0, 250)));
 
                 Menu.AddSubMenu(delayMenu);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 
@@ -118,7 +119,7 @@ namespace SFXUtility.Features.Others
                 return;
             }
 
-            if (Environment.TickCount - _lastSpell[(int) args.Slot] < Menu.Item(Name + "DelaySpells").GetValue<Slider>().Value)
+            if (Environment.TickCount - _lastSpell[(int) args.Slot] < Menu.Item(Name + "DelaySpell").GetValue<Slider>().Value)
             {
                 args.Process = false;
                 return;

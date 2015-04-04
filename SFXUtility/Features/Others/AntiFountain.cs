@@ -29,6 +29,7 @@ namespace SFXUtility.Features.Others
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using SFXLibrary;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.Logger;
@@ -48,7 +49,7 @@ namespace SFXUtility.Features.Others
 
         public override string Name
         {
-            get { return "Anti Fountain"; }
+            get { return Language.Get("F_AntiFountain"); }
         }
 
         protected override void OnEnable()
@@ -93,7 +94,7 @@ namespace SFXUtility.Features.Others
 
                 Menu = new Menu(Name, Name);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 

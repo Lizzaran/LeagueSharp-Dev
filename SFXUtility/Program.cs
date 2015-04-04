@@ -25,6 +25,10 @@ namespace SFXUtility
     #region
 
     using System;
+    using System.Globalization;
+    using System.IO;
+    using System.Linq;
+    using System.Reflection;
     using Feature;
     using Features.Activators;
     using Features.Detectors;
@@ -33,12 +37,9 @@ namespace SFXUtility
     using Features.Others;
     using Features.Timers;
     using Features.Trackers;
+    using SFXLibrary;
     using SFXLibrary.Logger;
     using Object = Features.Timers.Object;
-
-    #endregion
-
-    #region
 
     #endregion
 
@@ -47,6 +48,14 @@ namespace SFXUtility
         // ReSharper disable once UnusedParameter.Local
         private static void Main(string[] args)
         {
+            Language.Parse(Utils.ReadResourceString("SFXUtility.Resources.languages.xml", Assembly.GetExecutingAssembly()));
+
+            var langFile = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, @"sfxutility.language.*").FirstOrDefault();
+            if (langFile != null && Language.Languages.Any(l => l.Equals(Path.GetExtension(langFile))))
+                Language.Current = Path.GetExtension(langFile);
+            else
+                Language.Current = CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
+
             AppDomain.CurrentDomain.UnhandledException += delegate(object sender, UnhandledExceptionEventArgs eventArgs)
             {
                 var ex = sender as Exception ?? new NotSupportedException("Unhandled exception doesn't derive from System.Exception: " + sender);
@@ -54,7 +63,6 @@ namespace SFXUtility
             };
 
             Global.IoC.Register(typeof (SFXUtility), () => new SFXUtility(), true, true);
-
 
             Global.IoC.Register(() => new Activators(), true, true);
             Global.IoC.Register(() => new BushRevealer(), true, true);
@@ -65,9 +73,9 @@ namespace SFXUtility
 
             Global.IoC.Register(() => new Detectors(), true, true);
             Global.IoC.Register(() => new Gank(), true, true);
-            Global.IoC.Register(() => new Recall(), true, true);
             Global.IoC.Register(() => new Replay(), true, true);
             Global.IoC.Register(() => new SharedExperience(), true, true);
+            Global.IoC.Register(() => new Teleport(), true, true);
 
             Global.IoC.Register(() => new Drawings(), true, true);
             Global.IoC.Register(() => new Clock(), true, true);

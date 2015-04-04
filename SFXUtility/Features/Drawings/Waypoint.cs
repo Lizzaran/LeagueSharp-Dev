@@ -52,7 +52,7 @@ namespace SFXUtility.Features.Drawings
 
         public override string Name
         {
-            get { return "Waypoint"; }
+            get { return Language.Get("F_Waypoint"); }
         }
 
         protected override void OnEnable()
@@ -157,15 +157,15 @@ namespace SFXUtility.Features.Drawings
 
                 Menu = new Menu(Name, Name);
 
-                var drawingMenu = new Menu("Drawing", Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CrossColor", "Cross Color").SetValue(Color.DarkRed));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "LineColor", "Line Color").SetValue(Color.White));
+                var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CrossColor", Language.Get("G_CrossColor")).SetValue(Color.DarkRed));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "LineColor", Language.Get("G_LineColor")).SetValue(Color.White));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "DrawAlly", "Ally").SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "DrawEnemy", "Enemy").SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "DrawAlly", Language.Get("G_Ally")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "DrawEnemy", Language.Get("G_Enemy")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
                 Menu.Item(Name + "DrawAlly").ValueChanged += delegate
                 {

@@ -27,6 +27,7 @@ namespace SFXUtility.Features.Events
     using System;
     using Classes;
     using LeagueSharp.Common;
+    using SFXLibrary;
     using SFXLibrary.Logger;
 
     #endregion
@@ -40,7 +41,7 @@ namespace SFXUtility.Features.Events
 
         public override string Name
         {
-            get { return "Events"; }
+            get { return Language.Get("F_Events"); }
         }
 
         protected override void OnGameLoad(EventArgs args)
@@ -49,7 +50,7 @@ namespace SFXUtility.Features.Events
             {
                 Menu = new Menu(Name, Name);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
                 BaseMenu.AddSubMenu(Menu);
 

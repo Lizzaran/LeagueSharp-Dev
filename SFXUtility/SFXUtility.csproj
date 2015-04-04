@@ -91,7 +91,7 @@
     <Compile Include="Features\Drawings\Clone.cs" />
     <Compile Include="Features\Timers\Cooldown.cs" />
     <Compile Include="Features\Trackers\LastPosition.cs" />
-    <Compile Include="Features\Detectors\Recall.cs" />
+    <Compile Include="Features\Detectors\Teleport.cs" />
     <Compile Include="Features\Timers\Ability.cs" />
     <Compile Include="Features\Timers\Jungle.cs" />
     <Compile Include="Features\Drawings\LasthitMarker.cs" />
@@ -139,8 +139,11 @@
     <Content Include="Resources\CD\CD_summonerrevive.png" />
     <Content Include="Resources\CD\CD_summonersmite.png" />
     <Content Include="Resources\CD\CD_summonerteleport.png" />
+    <EmbeddedResource Include="Resources\languages.xml">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <Content Include="Resources\LP\LP_Kalista.png" />
-    <Content Include="Resources\LP\LP_Recall.png" />
+    <Content Include="Resources\LP\LP_Teleport.png" />
     <Content Include="Resources\LP\LP_RekSai.png" />
     <Content Include="Resources\WT\WT_Green.png" />
     <Content Include="Resources\WT\WT_Pink.png" />
@@ -271,7 +274,9 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Resources\Language\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

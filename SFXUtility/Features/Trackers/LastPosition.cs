@@ -33,6 +33,7 @@ namespace SFXUtility.Features.Trackers
     using LeagueSharp;
     using LeagueSharp.Common;
     using Properties;
+    using SFXLibrary;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Logger;
     using SharpDX;
@@ -52,7 +53,7 @@ namespace SFXUtility.Features.Trackers
 
         public override string Name
         {
-            get { return "Last Position"; }
+            get { return Language.Get("F_LastPosition"); }
         }
 
         protected override void OnGameLoad(EventArgs args)
@@ -74,41 +75,41 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private void RecallAbort(object sender, RecallEventArgs recallEventArgs)
+        private void TeleportAbort(object sender, TeleportEventArgs teleportEventArgs)
         {
-            var lastPosition = _lastPositionObjects.FirstOrDefault(e => e.Hero.NetworkId == recallEventArgs.UnitNetworkId);
+            var lastPosition = _lastPositionObjects.FirstOrDefault(e => e.Hero.NetworkId == teleportEventArgs.UnitNetworkId);
             if (lastPosition != null)
             {
-                lastPosition.IsRecalling = false;
+                lastPosition.IsTeleporting = false;
             }
         }
 
-        private void RecallEnabled(object sender, EventArgs eventArgs)
+        private void TeleportEnabled(object sender, EventArgs eventArgs)
         {
-            _lastPositionObjects.ForEach(e => e.Recall = true);
+            _lastPositionObjects.ForEach(e => e.Teleport = true);
         }
 
-        private void RecallDisabled(object sender, EventArgs eventArgs)
+        private void TeleportDisabled(object sender, EventArgs eventArgs)
         {
-            _lastPositionObjects.ForEach(e => e.Recall = false);
+            _lastPositionObjects.ForEach(e => e.Teleport = false);
         }
 
-        private void RecallFinish(object sender, RecallEventArgs recallEventArgs)
+        private void TeleportFinish(object sender, TeleportEventArgs teleportEventArgs)
         {
-            var lastPosition = _lastPositionObjects.FirstOrDefault(e => e.Hero.NetworkId == recallEventArgs.UnitNetworkId);
+            var lastPosition = _lastPositionObjects.FirstOrDefault(e => e.Hero.NetworkId == teleportEventArgs.UnitNetworkId);
             if (lastPosition != null)
             {
-                lastPosition.Recalled = true;
-                lastPosition.IsRecalling = false;
+                lastPosition.Teleported = true;
+                lastPosition.IsTeleporting = false;
             }
         }
 
-        private void RecallStart(object sender, RecallEventArgs recallEventArgs)
+        private void TeleportStart(object sender, TeleportEventArgs teleportEventArgs)
         {
-            var lastPosition = _lastPositionObjects.FirstOrDefault(e => e.Hero.NetworkId == recallEventArgs.UnitNetworkId);
+            var lastPosition = _lastPositionObjects.FirstOrDefault(e => e.Hero.NetworkId == teleportEventArgs.UnitNetworkId);
             if (lastPosition != null)
             {
-                lastPosition.IsRecalling = true;
+                lastPosition.IsTeleporting = true;
             }
         }
 
@@ -133,15 +134,17 @@ namespace SFXUtility.Features.Trackers
 
                 Menu = new Menu(Name, Name);
 
-                var drawingMenu = new Menu("Drawing", Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "TimeFormat", "Time Format").SetValue(new StringList(new[] {"mm:ss", "ss"})));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", "Font Size").SetValue(new Slider(13, 3, 30)));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "SSTimerOffset", "SS Timer Offset").SetValue(new Slider(5, 0, 50)));
+                var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "TimeFormat", Language.Get("G_TimeFormat")).SetValue(new StringList(new[] {"mm:ss", "ss"})));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", Language.Get("G_FontSize")).SetValue(new Slider(13, 3, 30)));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "SSTimerOffset", Language.Get("LastPosition_SSTimerOffset")).SetValue(new Slider(5, 0, 50)));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "SSTimer", "SS Timer").SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "SSTimer", Language.Get("LastPosition_SSTimer")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
                 Menu.Item(Name + "DrawingTimeFormat").ValueChanged +=
                     (o, args) => _lastPositionObjects.ForEach(enemy => enemy.TextTotalSeconds = args.GetNewValue<StringList>().SelectedIndex == 1);
@@ -152,20 +155,20 @@ namespace SFXUtility.Features.Trackers
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                var recall = false;
+                var teleport = false;
 
-                if (Global.IoC.IsRegistered<Recall>())
+                if (Global.IoC.IsRegistered<Teleport>())
                 {
-                    var rt = Global.IoC.Resolve<Recall>();
+                    var rt = Global.IoC.Resolve<Teleport>();
 
-                    recall = rt.Initialized && rt.Enabled;
+                    teleport = rt.Initialized && rt.Enabled;
 
-                    rt.OnEnabled += RecallEnabled;
-                    rt.OnDisabled += RecallDisabled;
-                    rt.OnFinish += RecallFinish;
-                    rt.OnStart += RecallStart;
-                    rt.OnAbort += RecallAbort;
-                    rt.OnUnknown += RecallAbort;
+                    rt.OnEnabled += TeleportEnabled;
+                    rt.OnDisabled += TeleportDisabled;
+                    rt.OnFinish += TeleportFinish;
+                    rt.OnStart += TeleportStart;
+                    rt.OnAbort += TeleportAbort;
+                    rt.OnUnknown += TeleportAbort;
                 }
 
                 foreach (var enemy in HeroManager.Enemies)
@@ -178,7 +181,7 @@ namespace SFXUtility.Features.Trackers
                             TextTotalSeconds = Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1,
                             FontOffset = Menu.Item(Name + "DrawingSSTimerOffset").GetValue<Slider>().Value,
                             SSTimer = Menu.Item(Name + "SSTimer").GetValue<bool>(),
-                            Recall = recall
+                            Teleport = teleport
                         });
                     }
                     catch (Exception ex)
@@ -199,18 +202,18 @@ namespace SFXUtility.Features.Trackers
         internal class LastPositionObject
         {
             private readonly Render.Sprite _championSprite;
-            private readonly Render.Sprite _recallSprite;
+            private readonly Render.Sprite _teleportSprite;
             private readonly Render.Text _text;
             public readonly Obj_AI_Hero Hero;
             private bool _active;
             private bool _added;
-            public bool IsRecalling;
+            public bool IsTeleporting;
             // ReSharper disable once InconsistentNaming
             public bool SSTimer;
             public int FontOffset = 5;
             public bool TextTotalSeconds;
-            public bool Recall;
-            public bool Recalled;
+            public bool Teleport;
+            public bool Teleported;
             private float _lastSeen;
 
             public LastPositionObject(Obj_AI_Hero hero, int fontSize)
@@ -232,7 +235,7 @@ namespace SFXUtility.Features.Trackers
                                 {
                                     if (hero.IsVisible)
                                     {
-                                        Recalled = false;
+                                        Teleported = false;
                                     }
                                     return Active && !Hero.IsVisible && !Hero.IsDead;
                                 }
@@ -246,7 +249,7 @@ namespace SFXUtility.Features.Trackers
                             {
                                 try
                                 {
-                                    if (Recall && Recalled)
+                                    if (Teleport && Teleported)
                                     {
                                         if (spawnPoint != null)
                                         {
@@ -297,13 +300,13 @@ namespace SFXUtility.Features.Trackers
                         },
                         TextUpdate = () => _text.Visible ? (Game.Time - _lastSeen).FormatTime(TextTotalSeconds) : string.Empty
                     };
-                    _recallSprite = new Render.Sprite(Resources.LP_Recall, new Vector2(mPos.X, mPos.Y))
+                    _teleportSprite = new Render.Sprite(Resources.LP_Teleport, new Vector2(mPos.X, mPos.Y))
                     {
                         VisibleCondition = delegate
                         {
                             try
                             {
-                                return _championSprite.Visible && Recall && IsRecalling;
+                                return _championSprite.Visible && Teleport && IsTeleporting;
                             }
                             catch (Exception ex)
                             {
@@ -316,7 +319,7 @@ namespace SFXUtility.Features.Trackers
                             try
                             {
                                 var pos = Drawing.WorldToMinimap(hero.Position);
-                                return new Vector2(pos.X - (_recallSprite.Size.X/2), pos.Y - (_recallSprite.Size.Y/2));
+                                return new Vector2(pos.X - (_teleportSprite.Size.X/2), pos.Y - (_teleportSprite.Size.Y/2));
                             }
                             catch (Exception ex)
                             {
@@ -349,14 +352,14 @@ namespace SFXUtility.Features.Trackers
 
                 if (_active && !_added)
                 {
-                    _recallSprite.Add(0);
+                    _teleportSprite.Add(0);
                     _championSprite.Add(1);
                     _text.Add(2);
                     _added = true;
                 }
                 else if (!_active && _added)
                 {
-                    _recallSprite.Remove();
+                    _teleportSprite.Remove();
                     _championSprite.Remove();
                     _text.Remove();
                     _added = false;

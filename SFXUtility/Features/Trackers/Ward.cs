@@ -34,6 +34,7 @@ namespace SFXUtility.Features.Trackers
     using LeagueSharp;
     using LeagueSharp.Common;
     using Properties;
+    using SFXLibrary;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Logger;
     using SharpDX;
@@ -74,7 +75,7 @@ namespace SFXUtility.Features.Trackers
 
         public override string Name
         {
-            get { return "Ward"; }
+            get { return Language.Get("F_Ward"); }
         }
 
         protected override void OnEnable()
@@ -127,15 +128,17 @@ namespace SFXUtility.Features.Trackers
 
                 Menu = new Menu(Name, Name);
 
-                var drawingMenu = new Menu("Drawing", Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "TimeFormat", "Time Format").SetValue(new StringList(new[] {"mm:ss", "ss"})));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", "Font Size").SetValue(new Slider(13, 3, 30)));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CircleRadius", "Circle Radius").SetValue(new Slider(150, 25, 300)));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CircleThickness", "Circle Thickness").SetValue(new Slider(2, 1, 10)));
+                var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "TimeFormat", Language.Get("G_TimeFormat")).SetValue(new StringList(new[] {"mm:ss", "ss"})));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", Language.Get("G_FontSize")).SetValue(new Slider(13, 3, 30)));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CircleRadius", Language.Get("G_CircleRadius")).SetValue(new Slider(150, 25, 300)));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "CircleThickness", Language.Get("G_CircleThickness")).SetValue(new Slider(2, 1, 10)));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
                 Menu.Item(Name + "DrawingTimeFormat").ValueChanged +=
                     (o, args) => _wardObjects.ForEach(enemy => enemy.TextTotalSeconds = args.GetNewValue<StringList>().SelectedIndex == 1);

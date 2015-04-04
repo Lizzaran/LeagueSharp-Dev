@@ -30,6 +30,7 @@ namespace SFXUtility.Features.Others
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using SFXLibrary;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Logger;
     using SharpDX;
@@ -55,7 +56,7 @@ namespace SFXUtility.Features.Others
 
         public override string Name
         {
-            get { return "Turn Around"; }
+            get { return Language.Get("F_TurnAround"); }
         }
 
         protected override void OnEnable()
@@ -149,7 +150,7 @@ namespace SFXUtility.Features.Others
 
                 Menu = new Menu(Name, Name);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 

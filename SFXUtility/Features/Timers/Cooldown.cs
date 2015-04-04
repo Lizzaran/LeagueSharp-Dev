@@ -32,6 +32,7 @@ namespace SFXUtility.Features.Timers
     using LeagueSharp;
     using LeagueSharp.Common;
     using Properties;
+    using SFXLibrary;
     using SFXLibrary.Logger;
     using SharpDX;
     using Color = SharpDX.Color;
@@ -51,7 +52,7 @@ namespace SFXUtility.Features.Timers
 
         public override string Name
         {
-            get { return "Cooldown"; }
+            get { return Language.Get("F_Cooldown"); }
         }
 
         protected override void OnGameLoad(EventArgs args)
@@ -101,9 +102,9 @@ namespace SFXUtility.Features.Timers
 
                 Menu = new Menu(Name, Name);
 
-                Menu.AddItem(new MenuItem(Name + "EnemyEnabled", "Track Enemy").SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "AllyEnabled", "Track Ally").SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "EnemyEnabled", Language.Get("G_Enemy")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "AllyEnabled", Language.Get("G_Ally")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
                 Menu.Item(Name + "EnemyEnabled").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
                 {

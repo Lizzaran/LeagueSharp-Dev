@@ -25,7 +25,11 @@ namespace SFXLibrary
     #region
 
     using System;
+    using System.IO;
     using System.Linq;
+    using System.Reflection;
+    using System.Xml;
+    using System.Xml.Schema;
     using LeagueSharp;
 
     #endregion
@@ -56,6 +60,58 @@ namespace SFXLibrary
         public static SpellSlot GetSpellSlotByChar(string c)
         {
             return c.Any(x => !char.IsLetter(x)) ? GetSpellSlotByChar(c.First(char.IsLetter)) : SpellSlot.Unknown;
+        }
+
+        public static bool IsXmlValid(string schemaFile, string xmlFile)
+        {
+            try
+            {
+                var valid = true;
+                var sc = new XmlSchemaSet();
+                sc.Add(string.Empty, schemaFile);
+                var settings = new XmlReaderSettings {ValidationType = ValidationType.Schema, Schemas = sc};
+                settings.ValidationEventHandler += delegate { valid = false; };
+                settings.ValidationFlags = XmlSchemaValidationFlags.ReportValidationWarnings;
+                settings.IgnoreWhitespace = true;
+                var reader = XmlReader.Create(xmlFile, settings);
+
+                try
+                {
+                    while (reader.Read())
+                    {
+                    }
+                }
+                catch (XmlException xmlException)
+                {
+                    Console.WriteLine(xmlException);
+                }
+                return valid;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static string ReadResourceString(string resource, Assembly asm)
+        {
+            try
+            {
+                using (var stream = asm.GetManifestResourceStream(resource))
+                {
+                    if (stream != null)
+                    {
+                        using (var reader = new StreamReader(stream))
+                        {
+                            return reader.ReadToEnd();
+                        }
+                    }
+                }
+            }
+            catch
+            {
+            }
+            return string.Empty;
         }
     }
 }

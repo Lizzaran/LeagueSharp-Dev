@@ -26,12 +26,15 @@ namespace SFXUtility
 
     using System;
     using System.Reflection;
+    using System.Windows.Forms;
     using LeagueSharp;
     using LeagueSharp.Common;
     using SFXLibrary;
     using SFXLibrary.Data;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Logger;
+    using Menu = LeagueSharp.Common.Menu;
+    using MenuItem = LeagueSharp.Common.MenuItem;
     using Version = System.Version;
 
     #endregion
@@ -46,11 +49,12 @@ namespace SFXUtility
             {
                 Menu = new Menu(Name, Name, true);
 
-                var infoMenu = new Menu("Info", Name + "Info");
-                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Version", string.Format("Version: {0}", Version)));
-                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Forum", "Forum: Lizzaran"));
-                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Github", "GitHub: Lizzaran"));
-                infoMenu.AddItem(new MenuItem(infoMenu.Name + "IRC", "IRC: Appril"));
+                var infoMenu = new Menu(Language.Get("SFXUtility_Info"), Name + "Info");
+
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Version", string.Format("{0}: {1}", Language.Get("SFXUtility_Version"), Version)));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Forum", Language.Get("SFXUtility_Forum") + ": Lizzaran"));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Github", Language.Get("SFXUtility_GitHub") + ": Lizzaran"));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "IRC", Language.Get("SFXUtility_IRC") + ": Appril"));
 
                 infoMenu.AddSubMenu(infoMenu);
 
@@ -71,7 +75,7 @@ namespace SFXUtility
 
         public string Name
         {
-            get { return "SFXUtility"; }
+            get { return Language.Get("F_SFXUtility"); }
         }
 
         public Version Version
@@ -136,7 +140,7 @@ namespace SFXUtility
                     logger.AdditionalData = Additional.Data;
                 }
 
-                Chat.Local(string.Format("{0} v{1}.{2}.{3} loaded.", Name, Version.Major, Version.Minor, Version.Build));
+                Chat.Local(string.Format("{0} v{1}.{2}.{3} {4}.", Name, Version.Major, Version.Minor, Version.Build, Language.Get("SFXUtility_Loaded")));
 
                 Menu.AddToMainMenu();
             }

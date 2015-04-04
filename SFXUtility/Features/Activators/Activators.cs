@@ -27,6 +27,7 @@ namespace SFXUtility.Features.Activators
     using System;
     using Classes;
     using LeagueSharp.Common;
+    using SFXLibrary;
     using SFXLibrary.Logger;
 
     #endregion
@@ -40,7 +41,7 @@ namespace SFXUtility.Features.Activators
 
         public override string Name
         {
-            get { return "Activators"; }
+            get { return Language.Get("F_Activators"); }
         }
 
         protected override void OnGameLoad(EventArgs args)
@@ -49,7 +50,7 @@ namespace SFXUtility.Features.Activators
             {
                 Menu = new Menu(Name, Name);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
                 BaseMenu.AddSubMenu(Menu);
 

@@ -29,6 +29,7 @@ namespace SFXUtility.Features.Events
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using SFXLibrary;
     using SFXLibrary.Logger;
 
     #endregion
@@ -36,6 +37,7 @@ namespace SFXUtility.Features.Events
     internal class Game : Base
     {
         private Events _parent;
+        private bool _onEndTriggerd;
 
         public override bool Enabled
         {
@@ -44,20 +46,20 @@ namespace SFXUtility.Features.Events
 
         public override string Name
         {
-            get { return "Game"; }
+            get { return Language.Get("F_Game"); }
         }
 
         protected override void OnEnable()
         {
-            LeagueSharp.Game.OnStart += GameOnStart;
-            LeagueSharp.Game.OnEnd += GameOnEnd;
+            LeagueSharp.Game.OnStart += OnGameStart;
+            LeagueSharp.Game.OnNotify += OnGameNotify;
             base.OnEnable();
         }
 
         protected override void OnDisable()
         {
-            LeagueSharp.Game.OnStart -= GameOnStart;
-            LeagueSharp.Game.OnEnd -= GameOnEnd;
+            LeagueSharp.Game.OnStart -= OnGameStart;
+            LeagueSharp.Game.OnNotify -= OnGameNotify;
             base.OnDisable();
         }
 
@@ -89,17 +91,16 @@ namespace SFXUtility.Features.Events
 
                 Menu = new Menu(Name, Name);
 
-                var startMenu = new Menu("OnStart", Name + "OnStart");
-                startMenu.AddItem(new MenuItem(startMenu.Name + "SayGlHf", "Say \"gl & hf\"").SetValue(false));
+                var startMenu = new Menu(Language.Get("Game_OnStart"), Name + "OnStart");
+                startMenu.AddItem(new MenuItem(startMenu.Name + "Say", Language.Get("Game_SayGLHF")).SetValue(false));
 
-                var endMenu = new Menu("OnEnd", Name + "OnEnd");
-                endMenu.AddItem(new MenuItem(endMenu.Name + "SayGg", "Say \"gg\"").SetValue(false));
-                endMenu.AddItem(new MenuItem(endMenu.Name + "CloseLoL", "Close LoL").SetValue(false));
+                var endMenu = new Menu(Language.Get("Game_OnEnd"), Name + "OnEnd");
+                endMenu.AddItem(new MenuItem(endMenu.Name + "Say", Language.Get("Game_SayGG")).SetValue(false));
 
                 Menu.AddSubMenu(startMenu);
                 Menu.AddSubMenu(endMenu);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 
@@ -113,14 +114,16 @@ namespace SFXUtility.Features.Events
             }
         }
 
-        private void GameOnEnd(GameEndEventArgs args)
+        private void OnGameNotify(GameNotifyEventArgs args)
         {
+            if (_onEndTriggerd || (args.EventId != GameEventId.OnEndGame && args.EventId != GameEventId.OnHQDie && args.EventId != GameEventId.OnHQKill))
+                return;
+
+            _onEndTriggerd = true;
             try
             {
-                if (Menu.Item(Name + "OnEndSayGg").GetValue<bool>())
+                if (Menu.Item(Name + "OnEndSay").GetValue<bool>())
                     LeagueSharp.Game.Say("gg");
-                if (Menu.Item(Name + "OnEndCloseLoL").GetValue<bool>())
-                    Process.GetProcessById(Process.GetCurrentProcess().Id).Kill();
             }
             catch (Exception ex)
             {
@@ -128,11 +131,11 @@ namespace SFXUtility.Features.Events
             }
         }
 
-        private void GameOnStart(EventArgs args)
+        private void OnGameStart(EventArgs args)
         {
             try
             {
-                if (Menu.Item(Name + "OnStartSayGlHf").GetValue<bool>())
+                if (Menu.Item(Name + "OnStartSay").GetValue<bool>())
                     LeagueSharp.Game.Say("gl & hf");
             }
             catch (Exception ex)

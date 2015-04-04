@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Recall.cs is part of SFXUtility.
+ Teleport.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -34,15 +34,16 @@ namespace SFXUtility.Features.Detectors
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using SFXLibrary;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Logger;
 
     #endregion
 
-    internal class Recall : Base
+    internal class Teleport : Base
     {
         private Detectors _parent;
-        private List<RecallObject> _recallObjects = new List<RecallObject>();
+        private List<TeleportObject> _teleportObjects = new List<TeleportObject>();
 
         public override bool Enabled
         {
@@ -51,13 +52,13 @@ namespace SFXUtility.Features.Detectors
 
         public override string Name
         {
-            get { return "Recall"; }
+            get { return Language.Get("F_Teleport"); }
         }
 
-        public event EventHandler<RecallEventArgs> OnStart;
-        public event EventHandler<RecallEventArgs> OnFinish;
-        public event EventHandler<RecallEventArgs> OnAbort;
-        public event EventHandler<RecallEventArgs> OnUnknown;
+        public event EventHandler<TeleportEventArgs> OnStart;
+        public event EventHandler<TeleportEventArgs> OnFinish;
+        public event EventHandler<TeleportEventArgs> OnAbort;
+        public event EventHandler<TeleportEventArgs> OnUnknown;
 
         protected override void OnEnable()
         {
@@ -81,14 +82,14 @@ namespace SFXUtility.Features.Detectors
                     return;
 
                 var count = 0;
-                foreach (var recall in _recallObjects)
+                foreach (var teleport in _teleportObjects)
                 {
-                    if (recall.LastStatus != Packet.S2C.Teleport.Status.Unknown)
+                    if (teleport.LastStatus != Packet.S2C.Teleport.Status.Unknown)
                     {
-                        var text = recall.ToString();
-                        if (recall.Update() && !string.IsNullOrWhiteSpace(text))
+                        var text = teleport.ToString();
+                        if (teleport.Update() && !string.IsNullOrWhiteSpace(text))
                         {
-                            Drawing.DrawText(Drawing.Width - 655, Drawing.Height - 200 + 15*count++, recall.ToColor(), text);
+                            Drawing.DrawText(Drawing.Width - 655, Drawing.Height - 200 + 15*count++, teleport.ToColor(), text);
                         }
                     }
                 }
@@ -127,16 +128,16 @@ namespace SFXUtility.Features.Detectors
 
                 Menu = new Menu(Name, Name);
 
-                var drawingMenu = new Menu("Drawing", Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "TextEnabled", "Text").SetValue(true));
+                var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "TextEnabled", Language.Get("Teleport_DrawingTextEnabled")).SetValue(true));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _recallObjects = HeroManager.Enemies.Select(hero => new RecallObject(hero)).ToList();
+                _teleportObjects = HeroManager.Enemies.Select(hero => new TeleportObject(hero)).ToList();
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();
@@ -152,29 +153,29 @@ namespace SFXUtility.Features.Detectors
             try
             {
                 var packet = Packet.S2C.Teleport.Decoded(sender, args);
-                var recall = _recallObjects.FirstOrDefault(r => r.Hero.NetworkId == packet.UnitNetworkId);
-                if (recall != null)
+                var teleport = _teleportObjects.FirstOrDefault(r => r.Hero.NetworkId == packet.UnitNetworkId);
+                if (teleport != null)
                 {
-                    recall.Duration = packet.Duration;
-                    recall.LastStatus = packet.Status;
-                    recall.LastType = packet.Type;
+                    teleport.Duration = packet.Duration;
+                    teleport.LastStatus = packet.Status;
+                    teleport.LastType = packet.Type;
 
                     switch (packet.Status)
                     {
                         case Packet.S2C.Teleport.Status.Start:
-                            OnStart.RaiseEvent(null, new RecallEventArgs(packet.UnitNetworkId));
+                            OnStart.RaiseEvent(null, new TeleportEventArgs(packet.UnitNetworkId));
                             break;
 
                         case Packet.S2C.Teleport.Status.Finish:
-                            OnFinish.RaiseEvent(null, new RecallEventArgs(packet.UnitNetworkId));
+                            OnFinish.RaiseEvent(null, new TeleportEventArgs(packet.UnitNetworkId));
                             break;
 
                         case Packet.S2C.Teleport.Status.Abort:
-                            OnAbort.RaiseEvent(null, new RecallEventArgs(packet.UnitNetworkId));
+                            OnAbort.RaiseEvent(null, new TeleportEventArgs(packet.UnitNetworkId));
                             break;
 
                         case Packet.S2C.Teleport.Status.Unknown:
-                            OnUnknown.RaiseEvent(null, new RecallEventArgs(packet.UnitNetworkId));
+                            OnUnknown.RaiseEvent(null, new TeleportEventArgs(packet.UnitNetworkId));
                             break;
                     }
                 }
@@ -185,15 +186,15 @@ namespace SFXUtility.Features.Detectors
             }
         }
 
-        private class RecallObject
+        private class TeleportObject
         {
             public readonly Obj_AI_Hero Hero;
             private int _duration;
             private float _lastActionTime;
             private Packet.S2C.Teleport.Status _lastStatus;
-            private float _recallStart;
+            private float _teleportStart;
 
-            public RecallObject(Obj_AI_Hero hero)
+            public TeleportObject(Obj_AI_Hero hero)
             {
                 Hero = hero;
                 LastStatus = Packet.S2C.Teleport.Status.Unknown;
@@ -211,7 +212,7 @@ namespace SFXUtility.Features.Detectors
                 set
                 {
                     _lastStatus = value;
-                    _recallStart = _lastStatus == Packet.S2C.Teleport.Status.Start ? Game.Time : 0f;
+                    _teleportStart = _lastStatus == Packet.S2C.Teleport.Status.Start ? Game.Time : 0f;
                     _lastActionTime = Game.Time;
                 }
             }
@@ -221,7 +222,7 @@ namespace SFXUtility.Features.Detectors
 
             public override string ToString()
             {
-                var time = _recallStart + Duration - Game.Time;
+                var time = _teleportStart + Duration - Game.Time;
                 if (time <= 0)
                 {
                     time = Game.Time - _lastActionTime;
@@ -233,22 +234,28 @@ namespace SFXUtility.Features.Detectors
                         switch (LastStatus)
                         {
                             case Packet.S2C.Teleport.Status.Start:
-                                return string.Format("Recall: {0}({1}%) Recalling ({2:0.00})", Hero.ChampionName, hPercent, time);
+                                return string.Format("{0}: {2}({3}%) {1} ({4:0.00})", Language.Get("Teleport_Recall"),
+                                    Language.Get("Teleport_Recalling"), Hero.ChampionName, hPercent, time);
                             case Packet.S2C.Teleport.Status.Finish:
-                                return string.Format("Recall: {0}({1}%) Recalled ({2:0.00})", Hero.ChampionName, hPercent, time);
+                                return string.Format("{0}: {2}({3}%) {1} ({4:0.00})", Language.Get("Teleport_Recall"),
+                                    Language.Get("Teleport_Recalled"), Hero.ChampionName, hPercent, time);
                             case Packet.S2C.Teleport.Status.Abort:
-                                return string.Format("Recall: {0}({1}%) Aborted", Hero.ChampionName, hPercent);
+                                return string.Format("{0}: {2}({3}%) {1}", Language.Get("Teleport_Recall"), Language.Get("Teleport_Aborted"),
+                                    Hero.ChampionName, hPercent);
                         }
                         break;
                     case Packet.S2C.Teleport.Type.Teleport:
                         switch (LastStatus)
                         {
                             case Packet.S2C.Teleport.Status.Start:
-                                return string.Format("Teleport: {0}({1}%) Teleporting ({2:0.00})", Hero.ChampionName, hPercent, time);
+                                return string.Format("{0}: {2}({3}%) {1} ({4:0.00})", Language.Get("Teleport_Teleport"),
+                                    Language.Get("Teleport_Teleporting"), Hero.ChampionName, hPercent, time);
                             case Packet.S2C.Teleport.Status.Finish:
-                                return string.Format("Teleport: {0}({1}%) Ported ({2:0.00})", Hero.ChampionName, hPercent, time);
+                                return string.Format("{0}: {2}({3}%) {1} ({4:0.00})", Language.Get("Teleport_Teleport"),
+                                    Language.Get("Teleport_Teleported"), Hero.ChampionName, hPercent, time);
                             case Packet.S2C.Teleport.Status.Abort:
-                                return string.Format("Teleport: {0}({1}%) Aborted", Hero.ChampionName, hPercent);
+                                return string.Format("{0}: {2}({3}%) {1}", Language.Get("Teleport_Teleport"), Language.Get("Teleport_Aborted"),
+                                    Hero.ChampionName, hPercent);
                         }
                         break;
                     case Packet.S2C.Teleport.Type.Shen:
@@ -256,11 +263,14 @@ namespace SFXUtility.Features.Detectors
                         switch (LastStatus)
                         {
                             case Packet.S2C.Teleport.Status.Start:
-                                return string.Format("Ability: {0}({1}%) Transporting ({2:0.00})", Hero.ChampionName, hPercent, time);
+                                return string.Format("{0}: {2}({3}%) {1} ({4:0.00})", Language.Get("Teleport_Ability"),
+                                    Language.Get("Teleport_Transporting"), Hero.ChampionName, hPercent, time);
                             case Packet.S2C.Teleport.Status.Finish:
-                                return string.Format("Ability: {0}({1}%) Ported ({2:0.00})", Hero.ChampionName, hPercent, time);
+                                return string.Format("{0}: {2}({3}%) {1} ({4:0.00})", Language.Get("Teleport_Ability"),
+                                    Language.Get("Teleport_Transported"), Hero.ChampionName, hPercent, time);
                             case Packet.S2C.Teleport.Status.Abort:
-                                return string.Format("Ability: {0}({1}%) Aborted", Hero.ChampionName, hPercent);
+                                return string.Format("{0}: {2}({3}%) {1}", Language.Get("Teleport_Ability"), Language.Get("Teleport_Aborted"),
+                                    Hero.ChampionName, hPercent);
                         }
                         break;
                 }
@@ -298,11 +308,11 @@ namespace SFXUtility.Features.Detectors
         }
     }
 
-    public class RecallEventArgs : EventArgs
+    public class TeleportEventArgs : EventArgs
     {
         private readonly int _unitNetworkId;
 
-        public RecallEventArgs(int unitNetworkId)
+        public TeleportEventArgs(int unitNetworkId)
         {
             _unitNetworkId = unitNetworkId;
         }

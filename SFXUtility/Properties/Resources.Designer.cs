@@ -1003,16 +1003,6 @@ namespace SFXUtility.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap LP_Recall {
-            get {
-                object obj = ResourceManager.GetObject("LP_Recall", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
         internal static System.Drawing.Bitmap LP_RekSai {
             get {
                 object obj = ResourceManager.GetObject("LP_RekSai", resourceCulture);
@@ -1216,6 +1206,16 @@ namespace SFXUtility.Properties {
         internal static System.Drawing.Bitmap LP_Teemo {
             get {
                 object obj = ResourceManager.GetObject("LP_Teemo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap LP_Teleport {
+            get {
+                object obj = ResourceManager.GetObject("LP_Teleport", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

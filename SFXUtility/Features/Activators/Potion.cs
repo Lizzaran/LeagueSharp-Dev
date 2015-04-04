@@ -30,6 +30,7 @@ namespace SFXUtility.Features.Activators
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using SFXLibrary;
     using SFXLibrary.Logger;
 
     #endregion
@@ -52,7 +53,7 @@ namespace SFXUtility.Features.Activators
 
         public override string Name
         {
-            get { return "Potion"; }
+            get { return Language.Get("F_Potion"); }
         }
 
         protected override void OnEnable()
@@ -76,20 +77,20 @@ namespace SFXUtility.Features.Activators
 
                 _potions = _potions.OrderBy(x => x.Priority).ToList();
                 Menu = new Menu(Name, Name);
-                var healthMenu = new Menu("Health", Name + "Health");
-                healthMenu.AddItem(new MenuItem(healthMenu.Name + "Potion", "Use Health Potion").SetValue(false));
-                healthMenu.AddItem(new MenuItem(healthMenu.Name + "Percent", "HP Trigger Percent").SetValue(new Slider(60)));
+                var healthMenu = new Menu(Language.Get("Potion_Health"), Name + "Health");
+                healthMenu.AddItem(new MenuItem(healthMenu.Name + "Percent", Language.Get("Potion_HealthPercent")).SetValue(new Slider(60)));
+                healthMenu.AddItem(new MenuItem(healthMenu.Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
-                var manaMenu = new Menu("Mana", Name + "Mana");
-                manaMenu.AddItem(new MenuItem(manaMenu.Name + "Potion", "Use Mana Potion").SetValue(false));
-                manaMenu.AddItem(new MenuItem(manaMenu.Name + "Percent", "MP Trigger Percent").SetValue(new Slider(60)));
+                var manaMenu = new Menu(Language.Get("Potion_Mana"), Name + "Mana");
+                manaMenu.AddItem(new MenuItem(manaMenu.Name + "Percent", Language.Get("Potion_ManaPercent")).SetValue(new Slider(60)));
+                manaMenu.AddItem(new MenuItem(manaMenu.Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
                 Menu.AddSubMenu(healthMenu);
                 Menu.AddSubMenu(manaMenu);
 
-                Menu.AddItem(new MenuItem(Name + "MinEnemyDistance", "Min Enemy Distance").SetValue(new Slider(1000, 0, 1500)));
+                Menu.AddItem(new MenuItem(Name + "MinEnemyDistance", Language.Get("Potion_MinEnemyDistance")).SetValue(new Slider(1000, 0, 1500)));
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 
@@ -143,7 +144,7 @@ namespace SFXUtility.Features.Activators
                 if (enemyDist != 0 && !HeroManager.Enemies.Any(e => e.Position.Distance(ObjectManager.Player.Position) <= enemyDist))
                     return;
 
-                if (Menu.Item(Name + "HealthPotion").GetValue<bool>())
+                if (Menu.Item(Name + "HealthEnabled").GetValue<bool>())
                 {
                     if ((ObjectManager.Player.Health/ObjectManager.Player.MaxHealth)*100 <= Menu.Item(Name + "HealthPercent").GetValue<Slider>().Value)
                     {
@@ -153,7 +154,7 @@ namespace SFXUtility.Features.Activators
                     }
                 }
 
-                if (Menu.Item(Name + "ManaPotion").GetValue<bool>())
+                if (Menu.Item(Name + "ManaEnabled").GetValue<bool>())
                 {
                     if ((ObjectManager.Player.Mana/ObjectManager.Player.MaxMana)*100 <= Menu.Item(Name + "ManaPercent").GetValue<Slider>().Value)
                     {

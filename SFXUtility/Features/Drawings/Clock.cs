@@ -29,6 +29,7 @@ namespace SFXUtility.Features.Drawings
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using SFXLibrary;
     using SFXLibrary.Logger;
 
     #endregion
@@ -44,7 +45,7 @@ namespace SFXUtility.Features.Drawings
 
         public override string Name
         {
-            get { return "Clock"; }
+            get { return Language.Get("F_Clock"); }
         }
 
         private void OnDrawingDraw(EventArgs args)
@@ -101,14 +102,14 @@ namespace SFXUtility.Features.Drawings
 
                 Menu = new Menu(Name, Name);
 
-                var drawingMenu = new Menu("Drawing", Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "OffsetTop", "Offset Top").SetValue(new Slider(75, 0, 500)));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "OffsetRight", "Offset Right").SetValue(new Slider(100, 0, 500)));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Color", "Color").SetValue(Color.Gold));
+                var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "OffsetTop", Language.Get("Clock_OffsetTop")).SetValue(new Slider(75, 0, 500)));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "OffsetRight", Language.Get("Clock_OffsetRight")).SetValue(new Slider(100, 0, 500)));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Color", Language.Get("G_Color")).SetValue(Color.Gold));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 

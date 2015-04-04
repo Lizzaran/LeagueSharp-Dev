@@ -31,6 +31,7 @@ namespace SFXUtility.Features.Drawings
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using SFXLibrary;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Logger;
 
@@ -49,7 +50,7 @@ namespace SFXUtility.Features.Drawings
 
         public override string Name
         {
-            get { return "Clone"; }
+            get { return Language.Get("F_Clone"); }
         }
 
         protected override void OnEnable()
@@ -112,14 +113,15 @@ namespace SFXUtility.Features.Drawings
 
                 Menu = new Menu(Name, Name);
 
-                var drawingMenu = new Menu("Drawing", Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CircleColor", "Circle Color").SetValue(Color.YellowGreen));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CircleRadius", "Circle Radius").SetValue(new Slider(30)));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CircleThickness", "Circle Thickness").SetValue(new Slider(2, 1, 10)));
+                var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CircleColor", Language.Get("G_CircleColor")).SetValue(Color.YellowGreen));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "CircleRadius", Language.Get("G_CircleRadius")).SetValue(new Slider(30)));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "CircleThickness", Language.Get("G_CircleThickness")).SetValue(new Slider(2, 1, 10)));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 

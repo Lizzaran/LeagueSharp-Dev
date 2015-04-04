@@ -27,6 +27,7 @@ namespace SFXUtility.Features.Drawings
     using System;
     using Classes;
     using LeagueSharp.Common;
+    using SFXLibrary;
     using SFXLibrary.Logger;
 
     // TODO: Option for percentage
@@ -42,7 +43,7 @@ namespace SFXUtility.Features.Drawings
 
         public override string Name
         {
-            get { return "Drawings"; }
+            get { return Language.Get("F_Drawings"); }
         }
 
         protected override void OnGameLoad(EventArgs args)
@@ -51,7 +52,7 @@ namespace SFXUtility.Features.Drawings
             {
                 Menu = new Menu(Name, Name);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
                 BaseMenu.AddSubMenu(Menu);
 

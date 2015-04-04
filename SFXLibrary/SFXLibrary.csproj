@@ -51,6 +51,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Chat.cs" />
@@ -77,6 +78,7 @@
     <Compile Include="Logger\ILogger.cs" />
     <Compile Include="Mediator.cs" />
     <Compile Include="MessageToActionsMap.cs" />
+    <Compile Include="Language.cs" />
     <Compile Include="ProducerConsumer.cs" />
     <Compile Include="Logger\FileLogger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -88,6 +90,9 @@
     <None Include="..\default.licenseheader">
       <Link>default.licenseheader</Link>
     </None>
+    <EmbeddedResource Include="Resources\languages.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

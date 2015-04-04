@@ -31,6 +31,7 @@ namespace SFXUtility.Features.Drawings
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using SFXLibrary;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Logger;
 
@@ -55,7 +56,7 @@ namespace SFXUtility.Features.Drawings
 
         public override string Name
         {
-            get { return "Damage Indicator"; }
+            get { return Language.Get("F_DamageIndicator"); }
         }
 
         private void OnDrawingDraw(EventArgs args)
@@ -125,14 +126,14 @@ namespace SFXUtility.Features.Drawings
 
                 Menu = new Menu(Name, Name);
 
-                var drawingMenu = new Menu("Drawing", Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "LineColor", "Line Color").SetValue(Color.DarkRed.ToArgb(90)));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FillColor", "Fill Color").SetValue(Color.Red.ToArgb(90)));
+                var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "LineColor", Language.Get("G_LineColor")).SetValue(Color.DarkRed.ToArgb(90)));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FillColor", Language.Get("G_FillColor")).SetValue(Color.Red.ToArgb(90)));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "AutoAttacks", "Auto Attacks").SetValue(new Slider(2, 0, 5)));
-                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "AutoAttacks", Language.Get("DamageIndicator_AutoAttacks")).SetValue(new Slider(2, 0, 5)));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 

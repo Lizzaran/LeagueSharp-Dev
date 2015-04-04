@@ -29,6 +29,7 @@ namespace SFXUtility.Features.Others
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
+    using SFXLibrary;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Logger;
 
@@ -45,7 +46,7 @@ namespace SFXUtility.Features.Others
 
         public override string Name
         {
-            get { return "Auto Lantern"; }
+            get { return Language.Get("F_AutoLantern"); }
         }
 
         protected override void OnEnable()
@@ -88,14 +89,14 @@ namespace SFXUtility.Features.Others
 
                 Menu = new Menu(Name, Name);
 
-                Menu.AddItem(new MenuItem(Name + "LowPercent", "@ HP Percent").SetValue(new Slider(20, 0, 50)));
-                Menu.AddItem(new MenuItem(Name + "Hotkey", "Hotkey").SetValue(new KeyBind('U', KeyBindType.Press)));
+                Menu.AddItem(new MenuItem(Name + "Percent", Language.Get("AutoLantern_Percent")).SetValue(new Slider(20, 0, 50)));
+                Menu.AddItem(new MenuItem(Name + "Hotkey", Language.Get("G_Hotkey")).SetValue(new KeyBind('U', KeyBindType.Press)));
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                if (HeroManager.Allies.Any(a => !a.IsMe && a.ChampionName == "Thresh"))
+                if (HeroManager.Allies.Any(a => !a.IsMe && a.ChampionName.Equals("Thresh", StringComparison.OrdinalIgnoreCase)))
                     return;
 
                 HandleEvents(_parent);
@@ -114,7 +115,7 @@ namespace SFXUtility.Features.Others
                 if (ObjectManager.Player.IsDead)
                     return;
 
-                if ((ObjectManager.Player.Health/ObjectManager.Player.MaxHealth)*100 <= Menu.Item(Name + "LowPercent").GetValue<Slider>().Value ||
+                if ((ObjectManager.Player.Health/ObjectManager.Player.MaxHealth)*100 <= Menu.Item(Name + "Percent").GetValue<Slider>().Value ||
                     Menu.Item(Name + "Hotkey").IsActive())
                 {
                     var lantern =
