@@ -36,6 +36,7 @@ namespace SFXUtility.Features.Trackers
     using Properties;
     using SFXLibrary;
     using SFXLibrary.Extensions.NET;
+    using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.Logger;
     using SharpDX;
     using Color = System.Drawing.Color;
@@ -269,12 +270,12 @@ namespace SFXUtility.Features.Trackers
             public readonly int StartT;
             private bool _active;
             private bool _added;
+            private int _radius;
+            private int _thickness;
             private WardStruct _wardData;
             public Vector3 Position;
-            public int Radius;
             public Vector3 StartPosition;
             public bool TextTotalSeconds;
-            public int Thickness;
 
             public WardObject(WardStruct data, Vector3 position, int startT, int fontSize, Obj_AI_Base wardObject = null, bool isFromMissile = false)
             {
@@ -287,7 +288,7 @@ namespace SFXUtility.Features.Trackers
                 {
                     _circle = new Render.Circle(Position, Radius, data.Color, Thickness)
                     {
-                        VisibleCondition = sender => _active && Position.IsOnScreen()
+                        VisibleCondition = sender => Active && Position.IsOnScreen(200)
                     };
 
                     if (data.Type != WardType.Trap)
@@ -306,7 +307,7 @@ namespace SFXUtility.Features.Trackers
                         {
                             EndPositionUpdate = () => Drawing.WorldToScreen(Position),
                             StartPositionUpdate = () => Drawing.WorldToScreen(StartPosition),
-                            VisibleCondition = sender => Active
+                            VisibleCondition = sender => Active && Position.IsOnScreen() || StartPosition.IsOnScreen()
                         };
                     }
 
@@ -325,6 +326,28 @@ namespace SFXUtility.Features.Trackers
                 catch (Exception ex)
                 {
                     Global.Logger.AddItem(new LogItem(ex));
+                }
+            }
+
+            public int Radius
+            {
+                private get { return _radius; }
+                set
+                {
+                    _radius = value;
+                    if (_circle != null)
+                        _circle.Radius = _radius;
+                }
+            }
+
+            public int Thickness
+            {
+                private get { return _thickness; }
+                set
+                {
+                    _thickness = value;
+                    if (_circle != null)
+                        _circle.Width = _thickness;
                 }
             }
 

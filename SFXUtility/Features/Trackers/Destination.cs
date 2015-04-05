@@ -223,11 +223,8 @@ namespace SFXUtility.Features.Trackers
                 return;
 
             var index = 0;
-            foreach (var destination in _destinations)
+            foreach (var destination in _destinations.Where(destination => destination.Hero.NetworkId == hero.NetworkId))
             {
-                if (destination.Hero.NetworkId != hero.NetworkId)
-                    continue;
-
                 var target = args.Target as Obj_AI_Hero;
                 if (target != null && target.IsValid)
                     destination.Target = target;
@@ -354,7 +351,8 @@ namespace SFXUtility.Features.Trackers
                     destination.EndPos = destination.StartPos;
                     destination.StartPos = temp;
                 }
-                else if (destination.Hero.IsDead || (!destination.Hero.IsValid && Game.Time > (destination.TimeCasted + 2)) || Game.Time > (destination.TimeCasted + 5 + destination.Delay))
+                else if (destination.Hero.IsDead || (!destination.Hero.IsValid && Game.Time > (destination.TimeCasted + 2)) ||
+                         Game.Time > (destination.TimeCasted + 5 + destination.Delay))
                 {
                     destination.Casted = false;
                 }

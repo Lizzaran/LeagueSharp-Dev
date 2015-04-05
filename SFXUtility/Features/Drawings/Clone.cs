@@ -131,7 +131,7 @@ namespace SFXUtility.Features.Drawings
 
                 _heroes = HeroManager.Enemies.Where(e => _cloneHeroes.Contains(e.ChampionName, StringComparison.OrdinalIgnoreCase)).ToList();
 
-                if (_heroes.Any())
+                if (!_heroes.Any())
                     return;
 
                 HandleEvents(_parent);

@@ -46,6 +46,10 @@
 	<entry key="G_Delay">Trì Hoãn</entry>
 	<entry key="G_Map">Bản Đồ</entry>
 	<entry key="G_Minimap">Tổng Quan Bản Đồ</entry>
+	<entry key="G_Text">Chữ</entry>
+	<entry key="G_Bar">Thanh</entry>
+	<entry key="G_Height">Chiều Cao</entry>
+	<entry key="G_Width">Chiều Rộng</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: SFXUtility -->
@@ -60,7 +64,7 @@
 	<!-- END: SFXUtility -->
 
 	<!-- START: Features -->
-	<entry key="F_Activators">Activators</entry>
+	<entry key="F_Activators">Dùng Trang Bị</entry>
 	<entry key="F_Detectors">Dò Tìm</entry>
 	<entry key="F_Drawings">Nét Vẽ</entry>
 	<entry key="F_Events">Sự Kiện</entry>
@@ -70,22 +74,21 @@
 	<!-- END: Features -->
 
 	<!-- START: Potion -->
-	<entry key="F_Potion">Potion</entry>
+	<entry key="F_Potion">Bình Hồi Phục</entry>
 	<!-- END: Potion -->
 
 	<!-- START: Teleport -->
 	<entry key="F_Teleport">Dịch Chuyển</entry>
-	<entry key="Teleport_DrawingTextEnabled">Chữ</entry>
-	<entry key="Teleport_Aborted">Đã Hủy</entry>
-	<entry key="Teleport_Recall">Biến Về</entry>
-	<entry key="Teleport_Recalling">Đang Biến Về</entry>
-	<entry key="Teleport_Recalled">Đã Biến Về</entry>
-	<entry key="Teleport_Teleport">Dịch Chuyển</entry>
-	<entry key="Teleport_Teleporting">Đang Dịch Chuyển</entry>
-	<entry key="Teleport_Teleported">Đã Dịch Chuyển</entry>
-	<entry key="Teleport_Ability">Kỹ Năng</entry>
-	<entry key="Teleport_Transporting">Đang Bay Tới</entry>
-	<entry key="Teleport_Transported">Đã Bay Tới</entry>
+	<entry key="Teleport_Aborted">Da Huy</entry>
+	<entry key="Teleport_Recall">Bien Ve</entry>
+	<entry key="Teleport_Recalling">Dang Bien Ve</entry>
+	<entry key="Teleport_Recalled">Da Bien Ve</entry>
+	<entry key="Teleport_Teleport">Dich Chuyen</entry>
+	<entry key="Teleport_Teleporting">Dang Dich Chuyen</entry>
+	<entry key="Teleport_Teleported">Da Dich Chuyen</entry>
+	<entry key="Teleport_Ability">Ky Nang</entry>
+	<entry key="Teleport_Transporting">Dang Chuyen Toi</entry>
+	<entry key="Teleport_Transported">Da Chuyen Toi</entry>
 	<!-- END: Teleport -->
 
 	<!-- START: Clock -->
@@ -97,7 +100,7 @@
 	<!-- END: Clone -->
 
 	<!-- START: DamageIndicator -->
-	<entry key="F_DamageIndicator">Tinh Toán Sát Thương</entry>
+	<entry key="F_DamageIndicator">Tính Toán Sát Thương</entry>
 	<entry key="DamageIndicator_AutoAttacks">Đòn Đánh Thường</entry>
 	<!-- END: DamageIndicator -->
 
@@ -108,8 +111,8 @@
 	<!-- START: LasthitMarker -->
 	<entry key="F_LasthitMarker">Đánh Dấu Kết Liễu Lính</entry>
 	<entry key="LasthitMarker_HpBar">Thanh Máu</entry>
-	<entry key="LasthitMarker_Killable">Khi Giết Được</entry>
-	<entry key="LasthitMarker_Unkillable">Khi Không Giết Được</entry>
+	<entry key="LasthitMarker_Killable">Khi Kết Liễu Được</entry>
+	<entry key="LasthitMarker_Unkillable">Khi Không Kết Liễu Được</entry>
 	<!-- END: LasthitMarker -->
 
 	<!-- START: PerfectWard -->
@@ -190,11 +193,11 @@
 	<!-- END: Cooldown -->
 
 	<!-- START: Jungle -->
-	<entry key="F_Jungle">Rừng</entry>
+	<entry key="F_Jungle">Quái Rừng</entry>
 	<!-- END: Jungle -->
 
 	<!-- START: Destination -->
-	<entry key="F_Destination">Điểm Đến</entry>
+	<entry key="F_Destination">Xác Định Điểm Đến (Tốc Biến, Q của Shaco...)</entry>
 	<!-- END: Destination -->
 
 	<!-- START: LastPosition -->

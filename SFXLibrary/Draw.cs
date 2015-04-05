@@ -19,7 +19,6 @@
 */
 
 #endregion License
-
 namespace SFXLibrary
 {
     #region
@@ -43,5 +42,27 @@ namespace SFXLibrary
             var rec = Drawing.GetTextExtent(content);
             Drawing.DrawText(pos.X - rec.Width/2f, pos.Y - rec.Height/2f, color, content);
         }
+
+        public static void Rectangle(Vector2 pos, int width, int height, float thickness, Color color)
+        {
+            pos.Y = pos.Y - (height/2f);
+            Drawing.DrawLine(pos.X, pos.Y - 1, pos.X + width, pos.Y - 1, thickness, color);
+            Drawing.DrawLine(pos.X, pos.Y + height, pos.X + width, pos.Y + height, thickness, color);
+
+            Drawing.DrawLine(pos.X, pos.Y, pos.X, pos.Y + height, thickness, color);
+            Drawing.DrawLine(pos.X + width, pos.Y, pos.X + width, pos.Y + height, thickness, color);
+        }
+
+        public static void RectangleFilled(Vector2 pos, int width, int height, Color color)
+        {
+            pos.Y = pos.Y - (height / 2f);
+            Drawing.DrawLine(pos.X, pos.Y, pos.X + width, pos.Y, height, color);
+        }
+
+        public static void Line(Vector2 pos, int width, int height, Color color)
+        {
+            Drawing.DrawLine(pos, new Vector2(pos.X, pos.Y + height), width, color);
+        }
+
     }
 }

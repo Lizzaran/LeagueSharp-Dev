@@ -46,6 +46,10 @@
 	<entry key="G_Delay">Delay</entry>
 	<entry key="G_Map">Map</entry>
 	<entry key="G_Minimap">Minimap</entry>
+	<entry key="G_Text">Text</entry>
+	<entry key="G_Bar">Bar</entry>
+	<entry key="G_Height">Height</entry>
+	<entry key="G_Width">Width</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: SFXUtility -->
@@ -75,7 +79,6 @@
 
 	<!-- START: Teleport -->
 	<entry key="F_Teleport">Teleport</entry>
-	<entry key="Teleport_DrawingTextEnabled">Text</entry>
 	<entry key="Teleport_Aborted">Aborted</entry>
 	<entry key="Teleport_Recall">Recall</entry>
 	<entry key="Teleport_Recalling">Recalling</entry>

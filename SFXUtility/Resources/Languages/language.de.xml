@@ -46,6 +46,10 @@
 	<entry key="G_Delay">Verzoegerung</entry>
 	<entry key="G_Map">Karte</entry>
 	<entry key="G_Minimap">Minikarte</entry>
+	<entry key="G_Text">Text</entry>
+	<entry key="G_Bar">Leiste</entry>
+	<entry key="G_Height">Hoehe</entry>
+	<entry key="G_Width">Weite</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: SFXUtility -->
@@ -75,7 +79,6 @@
 
 	<!-- START: Teleport -->
 	<entry key="F_Teleport">Teleport</entry>
-	<entry key="Teleport_DrawingTextEnabled">Text</entry>
 	<entry key="Teleport_Aborted">Abgebrochen</entry>
 	<entry key="Teleport_Recall">Recall</entry>
 	<entry key="Teleport_Recalling">Recalling</entry>
