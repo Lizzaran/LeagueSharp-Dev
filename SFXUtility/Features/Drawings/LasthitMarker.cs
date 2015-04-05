@@ -106,9 +106,8 @@ namespace SFXUtility.Features.Drawings
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
-                var drawingHpBarMenu = new Menu(Language.Get("LasthitMarker_HpBar"), drawingMenu.Name + "HpBar");
-                var drawingCirclesMenu = new Menu(Language.Get("G_Circle"), drawingMenu.Name + "Circle");
 
+                var drawingHpBarMenu = new Menu(Language.Get("LasthitMarker_HpBar"), drawingMenu.Name + "HpBar");
                 drawingHpBarMenu.AddItem(
                     new MenuItem(drawingHpBarMenu.Name + "KillableColor", Language.Get("LasthitMarker_Killable") + " " + Language.Get("G_Color"))
                         .SetValue(Color.Green));
@@ -120,13 +119,13 @@ namespace SFXUtility.Features.Drawings
                         new Slider(1, 1, 10)));
                 drawingHpBarMenu.AddItem(new MenuItem(drawingHpBarMenu.Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
+                var drawingCirclesMenu = new Menu(Language.Get("G_Circle"), drawingMenu.Name + "Circle");
                 drawingCirclesMenu.AddItem(
-                    new MenuItem(drawingCirclesMenu.Name + "Color", Language.Get("G_Circle") + " " + Language.Get("G_Color")).SetValue(Color.Fuchsia));
+                    new MenuItem(drawingCirclesMenu.Name + "Color", Language.Get("G_Color")).SetValue(Color.Fuchsia));
                 drawingCirclesMenu.AddItem(
-                    new MenuItem(drawingCirclesMenu.Name + "Radius", Language.Get("G_Circle") + " " + Language.Get("G_Radius")).SetValue(new Slider(30)));
+                    new MenuItem(drawingCirclesMenu.Name + "Radius", Language.Get("G_Radius")).SetValue(new Slider(30)));
                 drawingCirclesMenu.AddItem(
-                    new MenuItem(drawingCirclesMenu.Name + "CircleThickness", Language.Get("G_Circle") + " " + Language.Get("G_Thickness")).SetValue(
-                        new Slider(2, 1, 10)));
+                    new MenuItem(drawingCirclesMenu.Name + "Thickness", Language.Get("G_Thickness")).SetValue(new Slider(2, 1, 10)));
                 drawingCirclesMenu.AddItem(new MenuItem(drawingCirclesMenu.Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
                 drawingMenu.AddSubMenu(drawingHpBarMenu);
@@ -189,7 +188,7 @@ namespace SFXUtility.Features.Drawings
                         .Where(
                             minion =>
                                 minion != null && minion.IsValid && minion.IsTargetable && minion.Health > 0.1f &&
-                                minion.Team == (ObjectManager.Player.Team == GameObjectTeam.Order ? GameObjectTeam.Chaos : GameObjectTeam.Order) &&
+                                minion.IsEnemy &&
                                 minion.Position.IsOnScreen());
             }
             catch (Exception ex)

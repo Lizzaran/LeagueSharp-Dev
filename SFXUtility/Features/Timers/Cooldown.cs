@@ -76,20 +76,17 @@ namespace SFXUtility.Features.Timers
 
         protected override void OnEnable()
         {
-            foreach (var cd in _cooldownObjects)
-            {
-                cd.Active = cd.Hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>() ||
-                            cd.Hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>();
-            }
+            _cooldownObjects.ForEach(
+                cd =>
+                    cd.Active =
+                        cd.Hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>() ||
+                        cd.Hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>());
             base.OnEnable();
         }
 
         protected override void OnDisable()
         {
-            foreach (var cd in _cooldownObjects)
-            {
-                cd.Active = false;
-            }
+            _cooldownObjects.ForEach(cd => cd.Active = false);
             base.OnDisable();
         }
 

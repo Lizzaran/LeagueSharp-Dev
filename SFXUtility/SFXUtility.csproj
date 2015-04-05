@@ -58,6 +58,8 @@
     <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\Blowfish.cs" />
+    <Compile Include="Classes\Spectator.cs" />
     <Compile Include="Features\Activators\Activators.cs" />
     <Compile Include="Features\Activators\BushRevealer.cs" />
     <Compile Include="Features\Activators\KillSteal.cs" />

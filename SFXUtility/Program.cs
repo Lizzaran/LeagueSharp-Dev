@@ -49,6 +49,7 @@ namespace SFXUtility
         // ReSharper disable once UnusedParameter.Local
         private static void Main(string[] args)
         {
+            Console.WriteLine("http://{0}:{1}/observer-mode/rest/consumer/{2}/{3}/{4}/{5}/token", LeagueSharp.Game.IP, LeagueSharp.Game.Port, "getGameMetaData", LeagueSharp.Game.Region, LeagueSharp.Game.Id, "1");
             Language.Default = "en";
 
             var currentAsm = Assembly.GetExecutingAssembly();
