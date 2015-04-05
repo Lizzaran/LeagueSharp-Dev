@@ -84,16 +84,6 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private void TeleportEnabled(object sender, EventArgs eventArgs)
-        {
-            _lastPositionObjects.ForEach(e => e.Teleport = true);
-        }
-
-        private void TeleportDisabled(object sender, EventArgs eventArgs)
-        {
-            _lastPositionObjects.ForEach(e => e.Teleport = false);
-        }
-
         private void TeleportFinish(object sender, TeleportEventArgs teleportEventArgs)
         {
             var lastPosition = _lastPositionObjects.FirstOrDefault(e => e.Hero.NetworkId == teleportEventArgs.UnitNetworkId);
@@ -156,16 +146,9 @@ namespace SFXUtility.Features.Trackers
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                var teleport = false;
-
                 if (Global.IoC.IsRegistered<Teleport>())
                 {
                     var rt = Global.IoC.Resolve<Teleport>();
-
-                    teleport = rt.Initialized && rt.Enabled;
-
-                    rt.OnEnabled += TeleportEnabled;
-                    rt.OnDisabled += TeleportDisabled;
                     rt.OnFinish += TeleportFinish;
                     rt.OnStart += TeleportStart;
                     rt.OnAbort += TeleportAbort;
@@ -182,7 +165,6 @@ namespace SFXUtility.Features.Trackers
                             TextTotalSeconds = Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1,
                             FontOffset = Menu.Item(Name + "DrawingSSTimerOffset").GetValue<Slider>().Value,
                             SSTimer = Menu.Item(Name + "SSTimer").GetValue<bool>(),
-                            Teleport = teleport
                         });
                     }
                     catch (Exception ex)
@@ -213,7 +195,6 @@ namespace SFXUtility.Features.Trackers
             public bool SSTimer;
             public int FontOffset = 5;
             public bool TextTotalSeconds;
-            public bool Teleport;
             public bool Teleported;
             private float _lastSeen;
 
@@ -250,7 +231,7 @@ namespace SFXUtility.Features.Trackers
                             {
                                 try
                                 {
-                                    if (Teleport && Teleported)
+                                    if (Teleported)
                                     {
                                         if (spawnPoint != null)
                                         {
@@ -307,7 +288,7 @@ namespace SFXUtility.Features.Trackers
                         {
                             try
                             {
-                                return _championSprite.Visible && Teleport && IsTeleporting;
+                                return _championSprite.Visible && IsTeleporting;
                             }
                             catch (Exception ex)
                             {

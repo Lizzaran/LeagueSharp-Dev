@@ -20,7 +20,6 @@
 
 #endregion License
 
-
 #pragma warning disable 618
 
 namespace SFXUtility.Features.Detectors
@@ -66,15 +65,13 @@ namespace SFXUtility.Features.Detectors
 
         protected override void OnEnable()
         {
-            Obj_AI_Base.OnTeleport += OnObjAiBaseTeleport;
             Drawing.OnDraw += OnDrawingDraw;
             base.OnEnable();
         }
 
         protected override void OnDisable()
         {
-            Obj_AI_Base.OnTeleport += OnObjAiBaseTeleport;
-            Drawing.OnDraw += OnDrawingDraw;
+            Drawing.OnDraw -= OnDrawingDraw;
             base.OnDisable();
         }
 
@@ -188,6 +185,8 @@ namespace SFXUtility.Features.Detectors
                 _parent.Menu.AddSubMenu(Menu);
 
                 _teleportObjects = HeroManager.Enemies.Select(hero => new TeleportObject(hero)).ToList();
+
+                Obj_AI_Base.OnTeleport += OnObjAiBaseTeleport;
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();
