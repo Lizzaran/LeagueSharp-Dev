@@ -80,13 +80,10 @@
 	<!-- START: Teleport -->
 	<entry key="F_Teleport">Dịch Chuyển</entry>
 	<entry key="Teleport_Aborted">Da Huy</entry>
-	<entry key="Teleport_Recall">Bien Ve</entry>
 	<entry key="Teleport_Recalling">Dang Bien Ve</entry>
 	<entry key="Teleport_Recalled">Da Bien Ve</entry>
-	<entry key="Teleport_Teleport">Dich Chuyen</entry>
 	<entry key="Teleport_Teleporting">Dang Dich Chuyen</entry>
 	<entry key="Teleport_Teleported">Da Dich Chuyen</entry>
-	<entry key="Teleport_Ability">Ky Nang</entry>
 	<entry key="Teleport_Transporting">Dang Chuyen Toi</entry>
 	<entry key="Teleport_Transported">Da Chuyen Toi</entry>
 	<!-- END: Teleport -->

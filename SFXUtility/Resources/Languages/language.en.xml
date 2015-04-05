@@ -80,13 +80,10 @@
 	<!-- START: Teleport -->
 	<entry key="F_Teleport">Teleport</entry>
 	<entry key="Teleport_Aborted">Aborted</entry>
-	<entry key="Teleport_Recall">Recall</entry>
 	<entry key="Teleport_Recalling">Recalling</entry>
 	<entry key="Teleport_Recalled">Recalled</entry>
-	<entry key="Teleport_Teleport">Teleport</entry>
 	<entry key="Teleport_Teleporting">Teleporting</entry>
 	<entry key="Teleport_Teleported">Teleported</entry>
-	<entry key="Teleport_Ability">Ability</entry>
 	<entry key="Teleport_Transporting">Transporting</entry>
 	<entry key="Teleport_Transported">Transported</entry>
 	<!-- END: Teleport -->
