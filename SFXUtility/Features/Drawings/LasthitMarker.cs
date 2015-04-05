@@ -80,8 +80,8 @@ namespace SFXUtility.Features.Drawings
                         offset = offset > 62 ? 62 : offset;
                         var tmpThk = (int) (62 - offset);
                         hpLinesThickness = tmpThk > hpLinesThickness ? hpLinesThickness : (tmpThk == 0 ? 1 : tmpThk);
-                        Drawing.DrawLine(new Vector2(barPos.X + 45 + (float) offset, barPos.Y + 18),
-                            new Vector2(barPos.X + 45 + (float) offset, barPos.Y + 23), hpLinesThickness,
+                        Drawing.DrawLine(new Vector2(barPos.X + 45 + (float) offset, barPos.Y + 17),
+                            new Vector2(barPos.X + 45 + (float) offset, barPos.Y + 24), hpLinesThickness,
                             killable ? hpKillableColor : hpUnkillableColor);
                     }
                     if (circle && killable)
@@ -120,10 +120,8 @@ namespace SFXUtility.Features.Drawings
                 drawingHpBarMenu.AddItem(new MenuItem(drawingHpBarMenu.Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
                 var drawingCirclesMenu = new Menu(Language.Get("G_Circle"), drawingMenu.Name + "Circle");
-                drawingCirclesMenu.AddItem(
-                    new MenuItem(drawingCirclesMenu.Name + "Color", Language.Get("G_Color")).SetValue(Color.Fuchsia));
-                drawingCirclesMenu.AddItem(
-                    new MenuItem(drawingCirclesMenu.Name + "Radius", Language.Get("G_Radius")).SetValue(new Slider(30)));
+                drawingCirclesMenu.AddItem(new MenuItem(drawingCirclesMenu.Name + "Color", Language.Get("G_Color")).SetValue(Color.Fuchsia));
+                drawingCirclesMenu.AddItem(new MenuItem(drawingCirclesMenu.Name + "Radius", Language.Get("G_Radius")).SetValue(new Slider(30)));
                 drawingCirclesMenu.AddItem(
                     new MenuItem(drawingCirclesMenu.Name + "Thickness", Language.Get("G_Thickness")).SetValue(new Slider(2, 1, 10)));
                 drawingCirclesMenu.AddItem(new MenuItem(drawingCirclesMenu.Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
@@ -188,7 +186,7 @@ namespace SFXUtility.Features.Drawings
                         .Where(
                             minion =>
                                 minion != null && minion.IsValid && minion.IsTargetable && minion.Health > 0.1f &&
-                                minion.IsEnemy &&
+                                minion.Team == (ObjectManager.Player.Team == GameObjectTeam.Order ? GameObjectTeam.Chaos : GameObjectTeam.Order) &&
                                 minion.Position.IsOnScreen());
             }
             catch (Exception ex)

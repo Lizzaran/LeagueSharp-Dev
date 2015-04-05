@@ -183,7 +183,7 @@ namespace SFXUtility.Features.Timers
                             catch (Exception ex)
                             {
                                 Global.Logger.AddItem(new LogItem(ex));
-                                return default(Vector2);
+                                return Vector2.Zero;
                             }
                         }
                     };
@@ -233,7 +233,7 @@ namespace SFXUtility.Features.Timers
                             catch (Exception ex)
                             {
                                 Global.Logger.AddItem(new LogItem(ex));
-                                return default(Vector2);
+                                return Vector2.Zero;
                             }
                         };
                         var text = new Render.Text(default(Vector2), string.Empty, 13, Color.White)
@@ -260,7 +260,7 @@ namespace SFXUtility.Features.Timers
                             catch (Exception ex)
                             {
                                 Global.Logger.AddItem(new LogItem(ex));
-                                return default(Vector2);
+                                return Vector2.Zero;
                             }
                         };
                         text.TextUpdate = delegate
@@ -315,7 +315,7 @@ namespace SFXUtility.Features.Timers
                                 catch (Exception ex)
                                 {
                                     Global.Logger.AddItem(new LogItem(ex));
-                                    return default(Vector2);
+                                    return Vector2.Zero;
                                 }
                             }
                         };
@@ -334,7 +334,7 @@ namespace SFXUtility.Features.Timers
                             catch (Exception ex)
                             {
                                 Global.Logger.AddItem(new LogItem(ex));
-                                return default(Vector2);
+                                return Vector2.Zero;
                             }
                         };
                         var text = new Render.Text(default(Vector2), string.Empty, 13, Color.White)
@@ -361,7 +361,7 @@ namespace SFXUtility.Features.Timers
                             catch (Exception ex)
                             {
                                 Global.Logger.AddItem(new LogItem(ex));
-                                return default(Vector2);
+                                return Vector2.Zero;
                             }
                         };
                         text.TextUpdate = delegate
@@ -400,15 +400,14 @@ namespace SFXUtility.Features.Timers
 
             private Vector2 HpBarPostion
             {
-                get { return new Vector2(Hero.HPBarPosition.X + -9, Hero.HPBarPosition.Y + (Hero.IsEnemy ? 17 : 14)); }
+                get { return new Vector2(Hero.HPBarPosition.X + -8, Hero.HPBarPosition.Y + (Hero.IsEnemy ? 17 : 14)); }
             }
 
             private bool Visible
             {
                 get
                 {
-                    return Active && Hero.IsVisible && !Hero.IsDead && Hero.IsHPBarRendered && Hero.Position.IsOnScreen() &&
-                           !ObjectManager.Player.InShop();
+                    return Active && Hero.IsVisible && !Hero.IsDead && Hero.IsHPBarRendered && Hero.Position.IsOnScreen() && !ObjectManager.Player.InShop();
                 }
             }
 
