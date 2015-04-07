@@ -33,17 +33,26 @@ namespace SFXUtility.Features.Timers
     using LeagueSharp.Common;
     using Properties;
     using SFXLibrary;
+    using SFXLibrary.Extensions.NET;
+    using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.Logger;
     using SharpDX;
-    using Color = SharpDX.Color;
+    using SharpDX.Direct3D9;
+    using Font = SharpDX.Direct3D9.Font;
     using Rectangle = SharpDX.Rectangle;
 
     #endregion
 
     internal class Cooldown : Base
     {
-        private List<CooldownObject> _cooldownObjects = new List<CooldownObject>();
+        private readonly SpellSlot[] _spellSlots = {SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R};
+        private readonly SpellSlot[] _summonerSlots = {SpellSlot.Summoner1, SpellSlot.Summoner2};
+        private readonly Dictionary<string, Texture> _summonerTextures = new Dictionary<string, Texture>();
+        private Texture _hudTexture;
+        private Line _line;
         private Timers _parent;
+        private Sprite _sprite;
+        private Font _text;
 
         public override bool Enabled
         {
@@ -53,6 +62,36 @@ namespace SFXUtility.Features.Timers
         public override string Name
         {
             get { return Language.Get("F_Cooldown"); }
+        }
+
+        protected override void OnEnable()
+        {
+            Drawing.OnPreReset += OnDrawingPreReset;
+            Drawing.OnPostReset += OnDrawingPostReset;
+            Drawing.OnEndScene += OnDrawingEndScene;
+
+            base.OnEnable();
+        }
+
+        protected override void OnDisable()
+        {
+            Drawing.OnPreReset -= OnDrawingPreReset;
+            Drawing.OnPostReset -= OnDrawingPostReset;
+            Drawing.OnEndScene -= OnDrawingEndScene;
+
+            OnUnload(null, null);
+
+            base.OnDisable();
+        }
+
+        protected override void OnUnload(object sender, EventArgs eventArgs)
+        {
+            if (Initialized)
+            {
+                OnDrawingPreReset(null);
+                OnDrawingPostReset(null);
+            }
+            base.OnUnload(sender, eventArgs);
         }
 
         protected override void OnGameLoad(EventArgs args)
@@ -74,22 +113,6 @@ namespace SFXUtility.Features.Timers
             }
         }
 
-        protected override void OnEnable()
-        {
-            _cooldownObjects.ForEach(
-                cd =>
-                    cd.Active =
-                        cd.Hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>() ||
-                        cd.Hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>());
-            base.OnEnable();
-        }
-
-        protected override void OnDisable()
-        {
-            _cooldownObjects.ForEach(cd => cd.Active = false);
-            base.OnDisable();
-        }
-
         private void OnParentInitialized(object sender, EventArgs eventArgs)
         {
             try
@@ -99,39 +122,38 @@ namespace SFXUtility.Features.Timers
 
                 Menu = new Menu(Name, Name);
 
-                Menu.AddItem(new MenuItem(Name + "EnemyEnabled", Language.Get("G_Enemy")).SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "AllyEnabled", Language.Get("G_Ally")).SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Enemy", Language.Get("G_Enemy")).SetValue(false));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Ally", Language.Get("G_Ally")).SetValue(false));
 
-                Menu.Item(Name + "EnemyEnabled").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
-                {
-                    foreach (var cd in _cooldownObjects.Where(cd => cd.Hero.IsEnemy))
-                    {
-                        cd.Active = Enabled && args.GetNewValue<bool>();
-                    }
-                };
-                Menu.Item(Name + "AllyEnabled").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
-                {
-                    foreach (var cd in _cooldownObjects.Where(cd => cd.Hero.IsAlly))
-                    {
-                        cd.Active = Enabled && args.GetNewValue<bool>();
-                    }
-                };
+                Menu.AddSubMenu(drawingMenu);
+
+                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _cooldownObjects =
-                    HeroManager.AllHeroes.Where(hero => !hero.IsMe)
-                        .Select(
-                            hero =>
-                                new CooldownObject(hero)
-                                {
-                                    Active =
-                                        Enabled &&
-                                        (hero.IsEnemy && Menu.Item(Name + "EnemyEnabled").GetValue<bool>() ||
-                                         hero.IsAlly && Menu.Item(Name + "AllyEnabled").GetValue<bool>())
-                                })
-                        .ToList();
+                foreach (var sName in
+                    HeroManager.AllHeroes.Where(h => !h.IsMe)
+                        .SelectMany(
+                            h =>
+                                _summonerSlots.Select(summoner => h.Spellbook.GetSpell(summoner).Name.ToLower())
+                                    .Where(sName => !_summonerTextures.ContainsKey(sName))))
+                {
+                    _summonerTextures[sName] =
+                        ((Bitmap) Resources.ResourceManager.GetObject(string.Format("CD_{0}", sName)) ?? Resources.CD_summonerbarrier).ToTexture();
+                }
+
+                _sprite = new Sprite(Drawing.Direct3DDevice);
+                _hudTexture = Resources.CD_Hud.ToTexture();
+                _line = new Line(Drawing.Direct3DDevice) {Width = 2};
+                _text = new Font(Drawing.Direct3DDevice,
+                    new FontDescription
+                    {
+                        FaceName = Global.DefaultFont,
+                        Height = 13,
+                        OutputPrecision = FontPrecision.Default,
+                        Quality = FontQuality.Default
+                    });
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();
@@ -142,296 +164,91 @@ namespace SFXUtility.Features.Timers
             }
         }
 
-        private class CooldownObject
+        private void OnDrawingEndScene(EventArgs args)
         {
-            private readonly Render.Sprite _hudSprite;
-            private readonly List<Render.Line> _spellLines = new List<Render.Line>();
-            private readonly SpellSlot[] _spellSlots = {SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R};
-            private readonly List<Render.Text> _spellTexts = new List<Render.Text>();
-            private readonly SpellSlot[] _summonerSpellSlots = {SpellSlot.Summoner1, SpellSlot.Summoner2};
-            private readonly List<Render.Text> _summonerSpellTexts = new List<Render.Text>();
-            private readonly List<Render.Sprite> _summonerSprites = new List<Render.Sprite>();
-            public readonly Obj_AI_Hero Hero;
-            private bool _active;
-            private bool _added;
-
-            public CooldownObject(Obj_AI_Hero hero)
+            try
             {
-                Hero = hero;
-                try
+                if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
+                    return;
+
+                foreach (var hero in
+                    HeroManager.AllHeroes.Where(
+                        hero =>
+                            hero != null && hero.IsValid && !hero.IsMe && hero.IsHPBarRendered &&
+                            (hero.IsEnemy && Menu.Item(Name + "DrawingEnemy").GetValue<bool>() ||
+                             hero.IsAlly && Menu.Item(Name + "DrawingAlly").GetValue<bool>()) && hero.Position.IsOnScreen()))
                 {
-                    _hudSprite = new Render.Sprite(Resources.CD_Hud, default(Vector2))
+                    var x = (int) hero.HPBarPosition.X + -8;
+                    var y = (int) hero.HPBarPosition.Y + (hero.IsEnemy ? 17 : 14);
+
+                    _sprite.Begin(SpriteFlags.AlphaBlend);
+
+                    for (var i = 0; i < _summonerSlots.Length; i++)
                     {
-                        VisibleCondition = delegate
+                        var spell = hero.Spellbook.GetSpell(_summonerSlots[i]);
+                        var t = spell.CooldownExpires - Game.Time;
+                        var percent = (Math.Abs(spell.Cooldown) > float.Epsilon) ? t/spell.Cooldown : 1f;
+                        var n = (t > 0) ? (int) (19*(1f - percent)) : 19;
+                        var ts = TimeSpan.FromSeconds((int) t);
+                        var s = t > 60 ? string.Format("{0}:{1:D2}", ts.Minutes, ts.Seconds) : string.Format("{0:0}", t);
+                        if (t > 0)
+                            _text.DrawTextCentered(s, x - 5, y + 7 + 13*i, new ColorBGRA(255, 255, 255, 255));
+                        _sprite.Draw(_summonerTextures[spell.Name.ToLower()], new ColorBGRA(255, 255, 255, 255), new Rectangle(0, 12*n, 12, 12),
+                            new Vector3(-x - 3, -y - 1 - 13*i, 0));
+                    }
+
+                    _sprite.Draw(_hudTexture, new ColorBGRA(255, 255, 255, 255), null, new Vector3(-x, -y, 0));
+
+                    _sprite.End();
+
+                    var x2 = x + 19;
+                    var y2 = y + 20;
+
+                    _line.Begin();
+                    foreach (var slot in _spellSlots)
+                    {
+                        var spell = hero.Spellbook.GetSpell(slot);
+                        var t = spell.CooldownExpires - Game.Time;
+                        var percent = (t > 0 && Math.Abs(spell.Cooldown) > float.Epsilon) ? 1f - (t/spell.Cooldown) : 1f;
+
+                        if (t > 0 && t < 100)
                         {
-                            try
-                            {
-                                return Visible;
-                            }
-                            catch (Exception ex)
-                            {
-                                Global.Logger.AddItem(new LogItem(ex));
-                                return false;
-                            }
-                        },
-                        PositionUpdate = delegate
+                            var s = string.Format(t < 1f ? "{0:0.0}" : "{0:0}", t);
+                            _text.DrawTextCentered(s, x2 + 23/2, y2 + 13, new ColorBGRA(255, 255, 255, 255));
+                        }
+                        var darkColor = (t > 0) ? new ColorBGRA(168, 98, 0, 255) : new ColorBGRA(0, 130, 15, 255);
+                        var lightColor = (t > 0) ? new ColorBGRA(235, 137, 0, 255) : new ColorBGRA(0, 168, 25, 255);
+
+                        if (hero.Spellbook.CanUseSpell(slot) != SpellState.NotLearned)
                         {
-                            try
+                            for (var i = 0; i < 2; i++)
                             {
-                                return HpBarPostion;
-                            }
-                            catch (Exception ex)
-                            {
-                                Global.Logger.AddItem(new LogItem(ex));
-                                return Vector2.Zero;
+                                _line.Draw(new[] {new Vector2(x2, y2 + i*2), new Vector2(x2 + percent*23, y2 + i*2)}, i == 0 ? lightColor : darkColor);
                             }
                         }
-                    };
-                }
-                catch (Exception ex)
-                {
-                    Global.Logger.AddItem(new LogItem(ex));
-                }
-
-                for (var i = 0; i < _summonerSpellSlots.Length; i++)
-                {
-                    try
-                    {
-                        var index = i;
-                        var spell = Hero.Spellbook.GetSpell(_summonerSpellSlots[index]);
-                        var summoner = Resources.ResourceManager.GetObject(string.Format("CD_{0}", spell.Name.ToLower())) ??
-                                       Resources.CD_summonerbarrier;
-                        var sprite = new Render.Sprite((Bitmap) summoner, default(Vector2))
-                        {
-                            VisibleCondition = delegate
-                            {
-                                try
-                                {
-                                    return Visible;
-                                }
-                                catch (Exception ex)
-                                {
-                                    Global.Logger.AddItem(new LogItem(ex));
-                                    return false;
-                                }
-                            }
-                        };
-                        sprite.PositionUpdate = delegate
-                        {
-                            try
-                            {
-                                sprite.Crop(new Rectangle(0,
-                                    12*
-                                    ((spell.CooldownExpires - Game.Time > 0)
-                                        ? (int)
-                                            (19*
-                                             (1f -
-                                              ((Math.Abs(spell.Cooldown) > float.Epsilon) ? (spell.CooldownExpires - Game.Time)/spell.Cooldown : 1f)))
-                                        : 19), 12, 12));
-                                return new Vector2(HpBarPostion.X + 3, HpBarPostion.Y + 1 + index*13);
-                            }
-                            catch (Exception ex)
-                            {
-                                Global.Logger.AddItem(new LogItem(ex));
-                                return Vector2.Zero;
-                            }
-                        };
-                        var text = new Render.Text(default(Vector2), string.Empty, 13, Color.White)
-                        {
-                            VisibleCondition = delegate
-                            {
-                                try
-                                {
-                                    return Visible;
-                                }
-                                catch (Exception ex)
-                                {
-                                    Global.Logger.AddItem(new LogItem(ex));
-                                    return false;
-                                }
-                            }
-                        };
-                        text.PositionUpdate = delegate
-                        {
-                            try
-                            {
-                                return new Vector2(HpBarPostion.X - 5 - text.text.Length*5, HpBarPostion.Y + 1 + 13*index);
-                            }
-                            catch (Exception ex)
-                            {
-                                Global.Logger.AddItem(new LogItem(ex));
-                                return Vector2.Zero;
-                            }
-                        };
-                        text.TextUpdate = delegate
-                        {
-                            try
-                            {
-                                return spell.CooldownExpires - Game.Time > 0f
-                                    ? string.Format(spell.CooldownExpires - Game.Time < 1f ? "{0:0.0}" : "{0:0}", spell.CooldownExpires - Game.Time)
-                                    : string.Empty;
-                            }
-                            catch (Exception ex)
-                            {
-                                Global.Logger.AddItem(new LogItem(ex));
-                                return string.Empty;
-                            }
-                        };
-                        _summonerSprites.Add(sprite);
-                        _summonerSpellTexts.Add(text);
+                        x2 = x2 + 27;
                     }
-                    catch (Exception ex)
-                    {
-                        Global.Logger.AddItem(new LogItem(ex));
-                    }
-                }
-
-                for (var i = 0; i < _spellSlots.Length; i++)
-                {
-                    try
-                    {
-                        var index = i;
-                        var spell = Hero.Spellbook.GetSpell(_spellSlots[index]);
-                        var line = new Render.Line(default(Vector2), default(Vector2), 4, Color.Green)
-                        {
-                            VisibleCondition = delegate
-                            {
-                                try
-                                {
-                                    return Visible && Hero.Spellbook.CanUseSpell(_spellSlots[index]) != SpellState.NotLearned;
-                                }
-                                catch (Exception ex)
-                                {
-                                    Global.Logger.AddItem(new LogItem(ex));
-                                    return false;
-                                }
-                            },
-                            StartPositionUpdate = delegate
-                            {
-                                try
-                                {
-                                    return new Vector2(HpBarPostion.X + 18f + index*27f, HpBarPostion.Y + 20f);
-                                }
-                                catch (Exception ex)
-                                {
-                                    Global.Logger.AddItem(new LogItem(ex));
-                                    return Vector2.Zero;
-                                }
-                            }
-                        };
-                        line.EndPositionUpdate = delegate
-                        {
-                            try
-                            {
-                                line.Color = spell.CooldownExpires - Game.Time <= 0f ? Color.Green : Color.DeepSkyBlue;
-                                return
-                                    new Vector2(
-                                        line.Start.X +
-                                        ((spell.CooldownExpires - Game.Time > 0f && Math.Abs(spell.Cooldown) > float.Epsilon)
-                                            ? 1f - ((spell.CooldownExpires - Game.Time)/spell.Cooldown)
-                                            : 1f)*23f, line.Start.Y);
-                            }
-                            catch (Exception ex)
-                            {
-                                Global.Logger.AddItem(new LogItem(ex));
-                                return Vector2.Zero;
-                            }
-                        };
-                        var text = new Render.Text(default(Vector2), string.Empty, 13, Color.White)
-                        {
-                            VisibleCondition = delegate
-                            {
-                                try
-                                {
-                                    return Visible;
-                                }
-                                catch (Exception ex)
-                                {
-                                    Global.Logger.AddItem(new LogItem(ex));
-                                    return false;
-                                }
-                            }
-                        };
-                        text.PositionUpdate = delegate
-                        {
-                            try
-                            {
-                                return new Vector2(line.Start.X + (23f - text.text.Length*4)/2, line.Start.Y + 7f);
-                            }
-                            catch (Exception ex)
-                            {
-                                Global.Logger.AddItem(new LogItem(ex));
-                                return Vector2.Zero;
-                            }
-                        };
-                        text.TextUpdate = delegate
-                        {
-                            try
-                            {
-                                return spell.CooldownExpires - Game.Time > 0f
-                                    ? string.Format(spell.CooldownExpires - Game.Time < 1f ? "{0:0.0}" : "{0:0}", spell.CooldownExpires - Game.Time)
-                                    : string.Empty;
-                            }
-                            catch (Exception ex)
-                            {
-                                Global.Logger.AddItem(new LogItem(ex));
-                                return string.Empty;
-                            }
-                        };
-                        _spellLines.Add(line);
-                        _spellTexts.Add(text);
-                    }
-                    catch (Exception ex)
-                    {
-                        Global.Logger.AddItem(new LogItem(ex));
-                    }
+                    _line.End();
                 }
             }
-
-            public bool Active
+            catch (Exception ex)
             {
-                private get { return _active; }
-                set
-                {
-                    _active = value;
-                    Update();
-                }
+                Global.Logger.AddItem(new LogItem(ex));
             }
+        }
 
-            private Vector2 HpBarPostion
-            {
-                get { return new Vector2(Hero.HPBarPosition.X + -8, Hero.HPBarPosition.Y + (Hero.IsEnemy ? 17 : 14)); }
-            }
+        private void OnDrawingPostReset(EventArgs args)
+        {
+            _line.OnResetDevice();
+            _text.OnResetDevice();
+            _sprite.OnResetDevice();
+        }
 
-            private bool Visible
-            {
-                get
-                {
-                    return Active && Hero.IsVisible && !Hero.IsDead && Hero.IsHPBarRendered && Hero.Position.IsOnScreen() && !ObjectManager.Player.InShop();
-                }
-            }
-
-            private void Update()
-            {
-                if (_active && !_added)
-                {
-                    _hudSprite.Add(0);
-                    _summonerSprites.ForEach(sp => sp.Add(1));
-                    _spellLines.ForEach(sp => sp.Add(2));
-                    _spellTexts.ForEach(sp => sp.Add(3));
-                    _summonerSpellTexts.ForEach(sp => sp.Add(3));
-                    _added = true;
-                }
-                else if (!_active && _added)
-                {
-                    _hudSprite.Remove();
-                    _summonerSprites.ForEach(sp => sp.Remove());
-                    _spellLines.ForEach(sp => sp.Remove());
-                    _spellTexts.ForEach(sp => sp.Remove());
-                    _summonerSpellTexts.ForEach(sp => sp.Remove());
-                    _added = false;
-                }
-            }
+        private void OnDrawingPreReset(EventArgs args)
+        {
+            _line.OnLostDevice();
+            _text.OnLostDevice();
+            _sprite.OnLostDevice();
         }
     }
 }

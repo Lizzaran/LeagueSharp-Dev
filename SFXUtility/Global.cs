@@ -33,5 +33,6 @@ namespace SFXUtility
     {
         public static IContainer IoC = new Container();
         public static ILogger Logger = new ConsoleLogger();
+        public static string DefaultFont = "Calibri";
     }
 }

@@ -20,12 +20,24 @@
 
 #endregion License
 
+#region
+
+using Drawing = LeagueSharp.Drawing;
+using Filter = SharpDX.Direct3D9.Filter;
+using Format = SharpDX.Direct3D9.Format;
+using Pool = SharpDX.Direct3D9.Pool;
+using Texture = SharpDX.Direct3D9.Texture;
+using Usage = SharpDX.Direct3D9.Usage;
+
+#endregion
+
 namespace SFXLibrary.Extensions.NET
 {
     #region
 
     using System;
     using System.Collections.Generic;
+    using System.Drawing;
     using System.Globalization;
     using System.IO;
     using System.Linq;
@@ -94,6 +106,12 @@ namespace SFXLibrary.Extensions.NET
         {
             if (@event != null)
                 @event(sender, e);
+        }
+
+        public static Texture ToTexture(this Bitmap bitmap)
+        {
+            return Texture.FromMemory(Drawing.Direct3DDevice, (byte[]) new ImageConverter().ConvertTo(bitmap, typeof (byte[])), bitmap.Width,
+                bitmap.Height, 0, Usage.None, Format.A1, Pool.Managed, Filter.Default, Filter.Default, 0);
         }
     }
 }

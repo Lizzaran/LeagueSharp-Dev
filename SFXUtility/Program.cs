@@ -49,7 +49,8 @@ namespace SFXUtility
         // ReSharper disable once UnusedParameter.Local
         private static void Main(string[] args)
         {
-            Console.WriteLine("http://{0}:{1}/observer-mode/rest/consumer/{2}/{3}/{4}/{5}/token", LeagueSharp.Game.IP, LeagueSharp.Game.Port, "getGameMetaData", LeagueSharp.Game.Region, LeagueSharp.Game.Id, "1");
+            Global.Logger.LogLevel = LogLevel.High;
+
             Language.Default = "en";
 
             var currentAsm = Assembly.GetExecutingAssembly();
@@ -82,12 +83,6 @@ namespace SFXUtility
                 Language.Current = lang.Substring(1);
             else
                 Language.Current = CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
-
-            AppDomain.CurrentDomain.UnhandledException += delegate(object sender, UnhandledExceptionEventArgs eventArgs)
-            {
-                var ex = sender as Exception ?? new NotSupportedException("Unhandled exception doesn't derive from System.Exception: " + sender);
-                Global.Logger.AddItem(new LogItem(ex));
-            };
 
             Global.IoC.Register(typeof (SFXUtility), () => new SFXUtility(), true, true);
 

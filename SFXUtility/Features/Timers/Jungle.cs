@@ -32,14 +32,18 @@ namespace SFXUtility.Features.Timers
     using LeagueSharp.Common;
     using SFXLibrary;
     using SFXLibrary.Extensions.NET;
+    using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.Logger;
     using SharpDX;
+    using SharpDX.Direct3D9;
 
     #endregion
 
     internal class Jungle : Base
     {
         private readonly List<Camp> _camps = new List<Camp>();
+        private Font _mapText;
+        private Font _minimapText;
         private Timers _parent;
 
         public override bool Enabled
@@ -54,24 +58,37 @@ namespace SFXUtility.Features.Timers
 
         protected override void OnEnable()
         {
-            foreach (var camp in _camps)
-            {
-                camp.Active = true;
-            }
             GameObject.OnCreate += OnGameObjectCreate;
             GameObject.OnDelete += OnGameObjectDelete;
+
+            Drawing.OnPreReset += OnDrawingPreReset;
+            Drawing.OnPostReset += OnDrawingPostReset;
+            Drawing.OnEndScene += OnDrawingEndScene;
             base.OnEnable();
         }
 
         protected override void OnDisable()
         {
-            foreach (var camp in _camps)
-            {
-                camp.Active = false;
-            }
             GameObject.OnCreate -= OnGameObjectCreate;
             GameObject.OnDelete -= OnGameObjectDelete;
+
+            Drawing.OnPreReset -= OnDrawingPreReset;
+            Drawing.OnPostReset -= OnDrawingPostReset;
+            Drawing.OnEndScene -= OnDrawingEndScene;
+
+            OnUnload(null, null);
+
             base.OnDisable();
+        }
+
+        protected override void OnUnload(object sender, EventArgs eventArgs)
+        {
+            if (Initialized)
+            {
+                OnDrawingPreReset(null);
+                OnDrawingPostReset(null);
+            }
+            base.OnUnload(sender, eventArgs);
         }
 
         private void OnGameObjectDelete(GameObject sender, EventArgs args)
@@ -116,6 +133,56 @@ namespace SFXUtility.Features.Timers
                     camp.Dead = false;
                 }
             }
+        }
+
+        private void OnDrawingEndScene(EventArgs args)
+        {
+            try
+            {
+                if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
+                    return;
+
+                var mapTotalSeconds = Menu.Item(Name + "DrawingMapTimeFormat").GetValue<StringList>().SelectedIndex == 1;
+                var minimapTotalSeconds = Menu.Item(Name + "DrawingMinimapTimeFormat").GetValue<StringList>().SelectedIndex == 1;
+                var mapEnabled = Menu.Item(Name + "DrawingMapEnabled").GetValue<bool>();
+                var minimapEnabled = Menu.Item(Name + "DrawingMinimapEnabled").GetValue<bool>();
+
+                if (!mapEnabled && !minimapEnabled)
+                    return;
+
+                foreach (var camp in _camps.Where(c => c.Dead))
+                {
+                    if (camp.NextRespawnTime - Game.Time <= 0)
+                        camp.Dead = false;
+
+                    if (mapEnabled && camp.Position.IsOnScreen())
+                    {
+                        _mapText.DrawTextCentered((camp.NextRespawnTime - (int) Game.Time).FormatTime(mapTotalSeconds),
+                            Drawing.WorldToScreen(camp.Position), Color.White);
+                    }
+                    if (minimapEnabled)
+                    {
+                        _minimapText.DrawTextCentered((camp.NextRespawnTime - (int) Game.Time).FormatTime(minimapTotalSeconds), camp.MinimapPosition,
+                            Color.White);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void OnDrawingPostReset(EventArgs args)
+        {
+            _mapText.OnResetDevice();
+            _minimapText.OnResetDevice();
+        }
+
+        private void OnDrawingPreReset(EventArgs args)
+        {
+            _mapText.OnLostDevice();
+            _minimapText.OnResetDevice();
         }
 
         protected override void OnGameLoad(EventArgs args)
@@ -168,30 +235,30 @@ namespace SFXUtility.Features.Timers
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
-                Menu.Item(Name + "DrawingMapTimeFormat").ValueChanged +=
-                    delegate(object o, OnValueChangeEventArgs args)
-                    {
-                        _camps.ForEach(c => c.MapTotalSeconds = args.GetNewValue<StringList>().SelectedIndex == 1);
-                    };
-
-                Menu.Item(Name + "DrawingMinimapTimeFormat").ValueChanged +=
-                    delegate(object o, OnValueChangeEventArgs args)
-                    {
-                        _camps.ForEach(c => c.MinimapTotalSeconds = args.GetNewValue<StringList>().SelectedIndex == 1);
-                    };
-
-                Menu.Item(Name + "DrawingMapEnabled").ValueChanged +=
-                    delegate(object o, OnValueChangeEventArgs args) { _camps.ForEach(c => c.MapEnabled = args.GetNewValue<bool>()); };
-
-                Menu.Item(Name + "DrawingMinimapEnabled").ValueChanged +=
-                    delegate(object o, OnValueChangeEventArgs args) { _camps.ForEach(c => c.MinimapEnabled = args.GetNewValue<bool>()); };
-
                 _parent.Menu.AddSubMenu(Menu);
 
                 SetupCamps();
 
-                if (_camps.Count == 0)
+                if (!_camps.Any())
                     return;
+
+                _minimapText = new Font(Drawing.Direct3DDevice,
+                    new FontDescription
+                    {
+                        FaceName = Global.DefaultFont,
+                        Height = Menu.Item(Name + "DrawingMinimapFontSize").GetValue<Slider>().Value,
+                        OutputPrecision = FontPrecision.Default,
+                        Quality = FontQuality.Default
+                    });
+
+                _mapText = new Font(Drawing.Direct3DDevice,
+                    new FontDescription
+                    {
+                        FaceName = Global.DefaultFont,
+                        Height = Menu.Item(Name + "DrawingMapFontSize").GetValue<Slider>().Value,
+                        OutputPrecision = FontPrecision.Default,
+                        Quality = FontQuality.Default
+                    });
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();
@@ -204,13 +271,6 @@ namespace SFXUtility.Features.Timers
 
         private void SetupCamps()
         {
-            var mapFontSize = Menu.Item(Name + "DrawingMapFontSize").GetValue<Slider>().Value;
-            var minimapFontSize = Menu.Item(Name + "DrawingMinimapFontSize").GetValue<Slider>().Value;
-            var mapTotalSeconds = Menu.Item(Name + "DrawingMapTimeFormat").GetValue<StringList>().SelectedIndex == 1;
-            var minimapTotalSeconds = Menu.Item(Name + "DrawingMinimapTimeFormat").GetValue<StringList>().SelectedIndex == 1;
-            var mapEnabled = Menu.Item(Name + "DrawingMapEnabled").GetValue<bool>();
-            var minimapEnabled = Menu.Item(Name + "DrawingMinimapEnabled").GetValue<bool>();
-
             switch (Utility.Map.GetMap().Type)
             {
                 case Utility.Map.MapType.SummonersRift:
@@ -218,156 +278,52 @@ namespace SFXUtility.Features.Timers
                     {
 // Order: Blue
                         new Camp(115, 300, new Vector3(3800.99f, 7883.53f, 52.18f),
-                            new[] {new Mob("SRU_Blue1.1.1"), new Mob("SRU_BlueMini1.1.2"), new Mob("SRU_BlueMini21.1.3")}, mapFontSize,
-                            minimapFontSize)
-                        {
-                            MapTotalSeconds = mapTotalSeconds,
-                            MinimapTotalSeconds = minimapTotalSeconds,
-                            MapEnabled = mapEnabled,
-                            MinimapEnabled = minimapEnabled
-                        },
+                            new[] {new Mob("SRU_Blue1.1.1"), new Mob("SRU_BlueMini1.1.2"), new Mob("SRU_BlueMini21.1.3")}),
                         //Order: Wolves
                         new Camp(115, 100, new Vector3(3849.95f, 6504.36f, 52.46f),
-                            new[] {new Mob("SRU_Murkwolf2.1.1"), new Mob("SRU_MurkwolfMini2.1.2"), new Mob("SRU_MurkwolfMini2.1.3")}, mapFontSize,
-                            minimapFontSize)
-                        {
-                            MapTotalSeconds = mapTotalSeconds,
-                            MinimapTotalSeconds = minimapTotalSeconds,
-                            MapEnabled = mapEnabled,
-                            MinimapEnabled = minimapEnabled
-                        },
+                            new[] {new Mob("SRU_Murkwolf2.1.1"), new Mob("SRU_MurkwolfMini2.1.2"), new Mob("SRU_MurkwolfMini2.1.3")}),
                         //Order: Chicken
                         new Camp(115, 100, new Vector3(6943.41f, 5422.61f, 52.62f),
                             new[]
                             {
                                 new Mob("SRU_Razorbeak3.1.1"), new Mob("SRU_RazorbeakMini3.1.2"), new Mob("SRU_RazorbeakMini3.1.3"),
                                 new Mob("SRU_RazorbeakMini3.1.4")
-                            }, mapFontSize, minimapFontSize)
-                        {
-                            MapTotalSeconds = mapTotalSeconds,
-                            MinimapTotalSeconds = minimapTotalSeconds,
-                            MapEnabled = mapEnabled,
-                            MinimapEnabled = minimapEnabled
-                        },
+                            }),
                         //Order: Red
                         new Camp(115, 300, new Vector3(7813.07f, 4051.33f, 53.81f),
-                            new[] {new Mob("SRU_Red4.1.1"), new Mob("SRU_RedMini4.1.2"), new Mob("SRU_RedMini4.1.3")}, mapFontSize, minimapFontSize)
-                        {
-                            MapTotalSeconds = mapTotalSeconds,
-                            MinimapTotalSeconds = minimapTotalSeconds,
-                            MapEnabled = mapEnabled,
-                            MinimapEnabled = minimapEnabled
-                        },
+                            new[] {new Mob("SRU_Red4.1.1"), new Mob("SRU_RedMini4.1.2"), new Mob("SRU_RedMini4.1.3")}),
                         //Order: Krug
-                        new Camp(115, 100, new Vector3(8370.58f, 2718.15f, 51.09f), new[] {new Mob("SRU_Krug5.1.2"), new Mob("SRU_KrugMini5.1.1")},
-                            mapFontSize, minimapFontSize)
-                        {
-                            MapTotalSeconds = mapTotalSeconds,
-                            MinimapTotalSeconds = minimapTotalSeconds,
-                            MapEnabled = mapEnabled,
-                            MinimapEnabled = minimapEnabled
-                        },
+                        new Camp(115, 100, new Vector3(8370.58f, 2718.15f, 51.09f), new[] {new Mob("SRU_Krug5.1.2"), new Mob("SRU_KrugMini5.1.1")}),
                         //Order: Gromp
-                        new Camp(115, 100, new Vector3(2164.34f, 8383.02f, 51.78f), new[] {new Mob("SRU_Gromp13.1.1")}, mapFontSize, minimapFontSize)
-                        {
-                            MapTotalSeconds = mapTotalSeconds,
-                            MinimapTotalSeconds = minimapTotalSeconds,
-                            MapEnabled = mapEnabled,
-                            MinimapEnabled = minimapEnabled
-                        },
-
+                        new Camp(115, 100, new Vector3(2164.34f, 8383.02f, 51.78f), new[] {new Mob("SRU_Gromp13.1.1")}),
                         //Chaos: Blue
                         new Camp(115, 300, new Vector3(10984.11f, 6960.31f, 51.72f),
-                            new[] {new Mob("SRU_Blue7.1.1"), new Mob("SRU_BlueMini7.1.2"), new Mob("SRU_BlueMini27.1.3")}, mapFontSize,
-                            minimapFontSize)
-                        {
-                            MapTotalSeconds = mapTotalSeconds,
-                            MinimapTotalSeconds = minimapTotalSeconds,
-                            MapEnabled = mapEnabled,
-                            MinimapEnabled = minimapEnabled
-                        },
+                            new[] {new Mob("SRU_Blue7.1.1"), new Mob("SRU_BlueMini7.1.2"), new Mob("SRU_BlueMini27.1.3")}),
                         //Chaos: Wolves
                         new Camp(115, 100, new Vector3(10983.83f, 8328.73f, 62.22f),
-                            new[] {new Mob("SRU_Murkwolf8.1.1"), new Mob("SRU_MurkwolfMini8.1.2"), new Mob("SRU_MurkwolfMini8.1.3")}, mapFontSize,
-                            minimapFontSize)
-                        {
-                            MapTotalSeconds = mapTotalSeconds,
-                            MinimapTotalSeconds = minimapTotalSeconds,
-                            MapEnabled = mapEnabled,
-                            MinimapEnabled = minimapEnabled
-                        },
+                            new[] {new Mob("SRU_Murkwolf8.1.1"), new Mob("SRU_MurkwolfMini8.1.2"), new Mob("SRU_MurkwolfMini8.1.3")}),
                         //Chaos: Chicken
                         new Camp(115, 100, new Vector3(7852.38f, 9562.62f, 52.30f),
                             new[]
                             {
                                 new Mob("SRU_Razorbeak9.1.1"), new Mob("SRU_RazorbeakMini9.1.2"), new Mob("SRU_RazorbeakMini9.1.3"),
                                 new Mob("SRU_RazorbeakMini9.1.4")
-                            }, mapFontSize, minimapFontSize)
-                        {
-                            MapTotalSeconds = mapTotalSeconds,
-                            MinimapTotalSeconds = minimapTotalSeconds,
-                            MapEnabled = mapEnabled,
-                            MinimapEnabled = minimapEnabled
-                        },
+                            }),
                         //Chaos: Red
                         new Camp(115, 300, new Vector3(7139.29f, 10779.34f, 56.38f),
-                            new[] {new Mob("SRU_Red10.1.1"), new Mob("SRU_RedMini10.1.2"), new Mob("SRU_RedMini10.1.3")}, mapFontSize, minimapFontSize)
-                        {
-                            MapTotalSeconds = mapTotalSeconds,
-                            MinimapTotalSeconds = minimapTotalSeconds,
-                            MapEnabled = mapEnabled,
-                            MinimapEnabled = minimapEnabled
-                        },
+                            new[] {new Mob("SRU_Red10.1.1"), new Mob("SRU_RedMini10.1.2"), new Mob("SRU_RedMini10.1.3")}),
                         //Chaos: Krug
-                        new Camp(115, 100, new Vector3(6476.17f, 12142.51f, 56.48f), new[] {new Mob("SRU_Krug11.1.2"), new Mob("SRU_KrugMini11.1.1")},
-                            mapFontSize, minimapFontSize)
-                        {
-                            MapTotalSeconds = mapTotalSeconds,
-                            MinimapTotalSeconds = minimapTotalSeconds,
-                            MapEnabled = mapEnabled,
-                            MinimapEnabled = minimapEnabled
-                        },
+                        new Camp(115, 100, new Vector3(6476.17f, 12142.51f, 56.48f), new[] {new Mob("SRU_Krug11.1.2"), new Mob("SRU_KrugMini11.1.1")}),
                         //Chaos: Gromp
-                        new Camp(115, 100, new Vector3(12671.83f, 6306.60f, 51.71f), new[] {new Mob("SRU_Gromp14.1.1")}, mapFontSize, minimapFontSize)
-                        {
-                            MapTotalSeconds = mapTotalSeconds,
-                            MinimapTotalSeconds = minimapTotalSeconds,
-                            MapEnabled = mapEnabled,
-                            MinimapEnabled = minimapEnabled
-                        },
-
+                        new Camp(115, 100, new Vector3(12671.83f, 6306.60f, 51.71f), new[] {new Mob("SRU_Gromp14.1.1")}),
                         //Neutral: Dragon
-                        new Camp(150, 360, new Vector3(9813.83f, 4360.19f, -71.24f), new[] {new Mob("SRU_Dragon6.1.1")}, mapFontSize, minimapFontSize)
-                        {
-                            MapTotalSeconds = mapTotalSeconds,
-                            MinimapTotalSeconds = minimapTotalSeconds,
-                            MapEnabled = mapEnabled,
-                            MinimapEnabled = minimapEnabled
-                        },
+                        new Camp(150, 360, new Vector3(9813.83f, 4360.19f, -71.24f), new[] {new Mob("SRU_Dragon6.1.1")}),
                         //Neutral: Baron
-                        new Camp(120, 420, new Vector3(4993.14f, 10491.92f, -71.24f), new[] {new Mob("SRU_Baron12.1.1")}, mapFontSize, minimapFontSize)
-                        {
-                            MapTotalSeconds = mapTotalSeconds,
-                            MinimapTotalSeconds = minimapTotalSeconds,
-                            MapEnabled = mapEnabled,
-                            MinimapEnabled = minimapEnabled
-                        },
+                        new Camp(120, 420, new Vector3(4993.14f, 10491.92f, -71.24f), new[] {new Mob("SRU_Baron12.1.1")}),
                         //Dragon: Crab
-                        new Camp(150, 180, new Vector3(10647.70f, 5144.68f, -62.81f), new[] {new Mob("SRU_Crab15.1.1")}, mapFontSize, minimapFontSize)
-                        {
-                            MapTotalSeconds = mapTotalSeconds,
-                            MinimapTotalSeconds = minimapTotalSeconds,
-                            MapEnabled = mapEnabled,
-                            MinimapEnabled = minimapEnabled
-                        },
+                        new Camp(150, 180, new Vector3(10647.70f, 5144.68f, -62.81f), new[] {new Mob("SRU_Crab15.1.1")}),
                         //Baron: Crab
-                        new Camp(150, 180, new Vector3(4285.04f, 9597.52f, -67.60f), new[] {new Mob("SRU_Crab16.1.1")}, mapFontSize, minimapFontSize)
-                        {
-                            MapTotalSeconds = mapTotalSeconds,
-                            MinimapTotalSeconds = minimapTotalSeconds,
-                            MapEnabled = mapEnabled,
-                            MinimapEnabled = minimapEnabled
-                        }
+                        new Camp(150, 180, new Vector3(4285.04f, 9597.52f, -67.60f), new[] {new Mob("SRU_Crab16.1.1")})
                     });
                     break;
                 case Utility.Map.MapType.TwistedTreeline:
@@ -375,68 +331,22 @@ namespace SFXUtility.Features.Timers
                     {
 //Order: Wraiths
                         new Camp(100, 75, new Vector3(3550f, 6250f, 60f),
-                            new[] {new Mob("TT_NWraith1.1.1"), new Mob("TT_NWraith21.1.2"), new Mob("TT_NWraith21.1.3")}, mapFontSize, minimapFontSize)
-                        {
-                            MapTotalSeconds = mapTotalSeconds,
-                            MinimapTotalSeconds = minimapTotalSeconds,
-                            MapEnabled = mapEnabled,
-                            MinimapEnabled = minimapEnabled
-                        },
+                            new[] {new Mob("TT_NWraith1.1.1"), new Mob("TT_NWraith21.1.2"), new Mob("TT_NWraith21.1.3")}),
                         //Order: Golems
-                        new Camp(100, 75, new Vector3(4500f, 8550f, 60f), new[] {new Mob("TT_NGolem2.1.1"), new Mob("TT_NGolem22.1.2")}, mapFontSize,
-                            minimapFontSize)
-                        {
-                            MapTotalSeconds = mapTotalSeconds,
-                            MinimapTotalSeconds = minimapTotalSeconds,
-                            MapEnabled = mapEnabled,
-                            MinimapEnabled = minimapEnabled
-                        },
+                        new Camp(100, 75, new Vector3(4500f, 8550f, 60f), new[] {new Mob("TT_NGolem2.1.1"), new Mob("TT_NGolem22.1.2")}),
                         //Order: Wolves
                         new Camp(100, 75, new Vector3(5600f, 6400f, 60f),
-                            new[] {new Mob("TT_NWolf3.1.1"), new Mob("TT_NWolf23.1.2"), new Mob("TT_NWolf23.1.3")}, mapFontSize, minimapFontSize)
-                        {
-                            MapTotalSeconds = mapTotalSeconds,
-                            MinimapTotalSeconds = minimapTotalSeconds,
-                            MapEnabled = mapEnabled,
-                            MinimapEnabled = minimapEnabled
-                        },
-
+                            new[] {new Mob("TT_NWolf3.1.1"), new Mob("TT_NWolf23.1.2"), new Mob("TT_NWolf23.1.3")}),
                         //Chaos: Wraiths
                         new Camp(100, 75, new Vector3(10300f, 6250f, 60f),
-                            new[] {new Mob("TT_NWraith4.1.1"), new Mob("TT_NWraith24.1.2"), new Mob("TT_NWraith24.1.3")}, mapFontSize, minimapFontSize)
-                        {
-                            MapTotalSeconds = mapTotalSeconds,
-                            MinimapTotalSeconds = minimapTotalSeconds,
-                            MapEnabled = mapEnabled,
-                            MinimapEnabled = minimapEnabled
-                        },
+                            new[] {new Mob("TT_NWraith4.1.1"), new Mob("TT_NWraith24.1.2"), new Mob("TT_NWraith24.1.3")}),
                         //Chaos: Golems
-                        new Camp(100, 75, new Vector3(9800f, 8550f, 60f), new[] {new Mob("TT_NGolem5.1.1"), new Mob("TT_NGolem25.1.2")}, mapFontSize,
-                            minimapFontSize)
-                        {
-                            MapTotalSeconds = mapTotalSeconds,
-                            MinimapTotalSeconds = minimapTotalSeconds,
-                            MapEnabled = mapEnabled,
-                            MinimapEnabled = minimapEnabled
-                        },
+                        new Camp(100, 75, new Vector3(9800f, 8550f, 60f), new[] {new Mob("TT_NGolem5.1.1"), new Mob("TT_NGolem25.1.2")}),
                         //Chaos: Wolves
                         new Camp(100, 75, new Vector3(8600f, 6400f, 60f),
-                            new[] {new Mob("TT_NWolf6.1.1"), new Mob("TT_NWolf26.1.2"), new Mob("TT_NWolf26.1.3")}, mapFontSize, minimapFontSize)
-                        {
-                            MapTotalSeconds = mapTotalSeconds,
-                            MinimapTotalSeconds = minimapTotalSeconds,
-                            MapEnabled = mapEnabled,
-                            MinimapEnabled = minimapEnabled
-                        },
-
+                            new[] {new Mob("TT_NWolf6.1.1"), new Mob("TT_NWolf26.1.2"), new Mob("TT_NWolf26.1.3")}),
                         //Neutral: Vilemaw
-                        new Camp(600, 300, new Vector3(7150f, 11100f, 60f), new[] {new Mob("TT_Spiderboss8.1.1")}, mapFontSize, minimapFontSize)
-                        {
-                            MapTotalSeconds = mapTotalSeconds,
-                            MinimapTotalSeconds = minimapTotalSeconds,
-                            MapEnabled = mapEnabled,
-                            MinimapEnabled = minimapEnabled
-                        }
+                        new Camp(600, 300, new Vector3(7150f, 11100f, 60f), new[] {new Mob("TT_Spiderboss8.1.1")})
                     });
                     break;
             }
@@ -444,118 +354,24 @@ namespace SFXUtility.Features.Timers
 
         private class Camp
         {
-            private readonly Render.Text _mapText;
-            private readonly Render.Text _minimapText;
-            private bool _active;
-            private bool _added;
-            // ReSharper disable once UnusedParameter.Local
-            public Camp(float spawnTime, float respawnTime, Vector3 position, Mob[] mobs, int mapFontSize, int minimapFontSize)
+            public Camp(float spawnTime, float respawnTime, Vector3 position, Mob[] mobs)
             {
+                SpawnTime = spawnTime;
                 RespawnTime = respawnTime;
+                Position = position;
+                MinimapPosition = Drawing.WorldToMinimap(Position);
                 Mobs = mobs;
-
-                _mapText = new Render.Text(Vector2.Zero, string.Empty, mapFontSize, Color.White)
-                {
-                    OutLined = true,
-                    Centered = true,
-                    VisibleCondition = delegate
-                    {
-                        try
-                        {
-                            return Active && Dead && MapEnabled && position.IsOnScreen();
-                        }
-                        catch (Exception ex)
-                        {
-                            Global.Logger.AddItem(new LogItem(ex));
-                            return false;
-                        }
-                    },
-                    TextUpdate = delegate
-                    {
-                        try
-                        {
-                            if (NextRespawnTime - (int) Game.Time <= 0)
-                                Dead = false;
-                            return (NextRespawnTime - (int) Game.Time).FormatTime(MapTotalSeconds);
-                        }
-                        catch (Exception ex)
-                        {
-                            Global.Logger.AddItem(new LogItem(ex));
-                            return string.Empty;
-                        }
-                    },
-                    PositionUpdate = () => Drawing.WorldToScreen(position)
-                };
-
-                _minimapText = new Render.Text(Drawing.WorldToMinimap(position), string.Empty, minimapFontSize, Color.White)
-                {
-                    OutLined = true,
-                    Centered = true,
-                    VisibleCondition = delegate
-                    {
-                        try
-                        {
-                            return Active && Dead && MinimapEnabled;
-                        }
-                        catch (Exception ex)
-                        {
-                            Global.Logger.AddItem(new LogItem(ex));
-                            return false;
-                        }
-                    },
-                    TextUpdate = delegate
-                    {
-                        try
-                        {
-                            if (NextRespawnTime - (int) Game.Time <= 0)
-                                Dead = false;
-                            return (NextRespawnTime - (int) Game.Time).FormatTime(MinimapTotalSeconds);
-                        }
-                        catch (Exception ex)
-                        {
-                            Global.Logger.AddItem(new LogItem(ex));
-                            return string.Empty;
-                        }
-                    }
-                };
             }
 
-            public bool MapTotalSeconds { private get; set; }
-            public bool MinimapTotalSeconds { private get; set; }
-
-            public bool MapEnabled { private get; set; }
-
-            public bool MinimapEnabled { private get; set; }
-
-            public bool Active
-            {
-                private get { return _active; }
-                set
-                {
-                    _active = value;
-                    Update();
-                }
-            }
-
-            private void Update()
-            {
-                if (_active && !_added)
-                {
-                    _mapText.Add(0);
-                    _minimapText.Add(0);
-                    _added = true;
-                }
-                else if (!_active && _added)
-                {
-                    _mapText.Remove();
-                    _minimapText.Remove();
-                    _added = false;
-                }
-            }
-
+            // ReSharper disable once MemberCanBePrivate.Local
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local
+            public float SpawnTime { get; set; }
             public float RespawnTime { get; private set; }
+            public Vector3 Position { get; private set; }
+
+            public Vector2 MinimapPosition { get; private set; }
             public Mob[] Mobs { get; private set; }
-            public float NextRespawnTime { private get; set; }
+            public float NextRespawnTime { get; set; }
             public bool Dead { get; set; }
         }
 

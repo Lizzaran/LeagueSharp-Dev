@@ -37,6 +37,13 @@
   <PropertyGroup>
     <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="LeagueSharp">
       <HintPath>G:\LeagueSharp\System\LeagueSharp.dll</HintPath>
@@ -71,7 +78,6 @@
     <Compile Include="Features\Drawings\Clock.cs" />
     <Compile Include="Features\Drawings\Drawings.cs" />
     <Compile Include="Features\Drawings\SafeJungleSpot.cs" />
-    <Compile Include="Features\Drawings\Sidebar.cs" />
     <Compile Include="Features\Drawings\WallJumpSpot.cs" />
     <Compile Include="Features\Events\AutoLeveler.cs" />
     <Compile Include="Features\Activators\Potion.cs" />
@@ -89,6 +95,7 @@
     <Compile Include="Features\Drawings\PerfectWard.cs" />
     <Compile Include="Features\Others\SummonerInfo.cs" />
     <Compile Include="Features\Others\TurnAround.cs" />
+    <Compile Include="Features\Trackers\Sidebar.cs" />
     <Compile Include="Features\Trackers\Destination.cs" />
     <Compile Include="Features\Drawings\Clone.cs" />
     <Compile Include="Features\Timers\Cooldown.cs" />
@@ -124,10 +131,6 @@
   <ItemGroup>
     <Content Include="icon.ico" />
     <Content Include="Resources\CD\CD_Hud.png" />
-    <Content Include="Resources\CD\CD_itemsmiteaoe.png" />
-    <Content Include="Resources\CD\CD_s5_summonersmiteduel.png" />
-    <Content Include="Resources\CD\CD_s5_summonersmiteplayerganker.png" />
-    <Content Include="Resources\CD\CD_s5_summonersmitequick.png" />
     <Content Include="Resources\CD\CD_summonerbarrier.png" />
     <Content Include="Resources\CD\CD_summonerboost.png" />
     <Content Include="Resources\CD\CD_summonerclairvoyance.png" />
@@ -145,10 +148,148 @@
       <SubType>Designer</SubType>
     </Content>
     <Content Include="Resources\Languages\language.de.xml" />
+    <Content Include="Resources\Languages\language.fr.xml" />
     <Content Include="Resources\Languages\language.vi.xml" />
     <Content Include="Resources\LP\LP_Kalista.png" />
     <Content Include="Resources\LP\LP_Teleport.png" />
     <Content Include="Resources\LP\LP_RekSai.png" />
+    <Content Include="Resources\SB\SB_Aatrox.jpg" />
+    <Content Include="Resources\SB\SB_Ahri.jpg" />
+    <Content Include="Resources\SB\SB_Akali.jpg" />
+    <Content Include="Resources\SB\SB_Alistar.jpg" />
+    <Content Include="Resources\SB\SB_Amumu.jpg" />
+    <Content Include="Resources\SB\SB_Anivia.jpg" />
+    <Content Include="Resources\SB\SB_Annie.jpg" />
+    <Content Include="Resources\SB\SB_Ashe.jpg" />
+    <Content Include="Resources\SB\SB_Blitzcrank.jpg" />
+    <Content Include="Resources\SB\SB_Brand.jpg" />
+    <Content Include="Resources\SB\SB_Caitlyn.jpg" />
+    <Content Include="Resources\SB\SB_Cassiopeia.jpg" />
+    <Content Include="Resources\SB\SB_Chogath.jpg" />
+    <Content Include="Resources\SB\SB_Corki.jpg" />
+    <Content Include="Resources\SB\SB_Darius.jpg" />
+    <Content Include="Resources\SB\SB_Diana.jpg" />
+    <Content Include="Resources\SB\SB_Draven.jpg" />
+    <Content Include="Resources\SB\SB_DrMundo.jpg" />
+    <Content Include="Resources\SB\SB_Elise.jpg" />
+    <Content Include="Resources\SB\SB_Evelynn.jpg" />
+    <Content Include="Resources\SB\SB_Ezreal.jpg" />
+    <Content Include="Resources\SB\SB_FiddleSticks.jpg" />
+    <Content Include="Resources\SB\SB_Fiora.jpg" />
+    <Content Include="Resources\SB\SB_Fizz.jpg" />
+    <Content Include="Resources\SB\SB_Galio.jpg" />
+    <Content Include="Resources\SB\SB_Gangplank.jpg" />
+    <Content Include="Resources\SB\SB_Garen.jpg" />
+    <Content Include="Resources\SB\SB_Gragas.jpg" />
+    <Content Include="Resources\SB\SB_Graves.jpg" />
+    <Content Include="Resources\SB\SB_Hecarim.jpg" />
+    <Content Include="Resources\SB\SB_Heimerdinger.jpg" />
+    <Content Include="Resources\SB\SB_HUD.png" />
+    <Content Include="Resources\SB\SB_Invisible.png" />
+    <Content Include="Resources\SB\SB_Irelia.jpg" />
+    <Content Include="Resources\SB\SB_Janna.jpg" />
+    <Content Include="Resources\SB\SB_JarvanIV.jpg" />
+    <Content Include="Resources\SB\SB_Jax.jpg" />
+    <Content Include="Resources\SB\SB_Jayce.jpg" />
+    <Content Include="Resources\SB\SB_Jinx.jpg" />
+    <Content Include="Resources\SB\SB_Karma.jpg" />
+    <Content Include="Resources\SB\SB_Karthus.jpg" />
+    <Content Include="Resources\SB\SB_Kassadin.jpg" />
+    <Content Include="Resources\SB\SB_Katarina.jpg" />
+    <Content Include="Resources\SB\SB_Kayle.jpg" />
+    <Content Include="Resources\SB\SB_Kennen.jpg" />
+    <Content Include="Resources\SB\SB_Khazix.jpg" />
+    <Content Include="Resources\SB\SB_KogMaw.jpg" />
+    <Content Include="Resources\SB\SB_Leblanc.jpg" />
+    <Content Include="Resources\SB\SB_LeeSin.jpg" />
+    <Content Include="Resources\SB\SB_Leona.jpg" />
+    <Content Include="Resources\SB\SB_Lissandra.jpg" />
+    <Content Include="Resources\SB\SB_Lucian.jpg" />
+    <Content Include="Resources\SB\SB_Lulu.jpg" />
+    <Content Include="Resources\SB\SB_Lux.jpg" />
+    <Content Include="Resources\SB\SB_Malphite.jpg" />
+    <Content Include="Resources\SB\SB_Malzahar.jpg" />
+    <Content Include="Resources\SB\SB_Maokai.jpg" />
+    <Content Include="Resources\SB\SB_MasterYi.jpg" />
+    <Content Include="Resources\SB\SB_MissFortune.jpg" />
+    <Content Include="Resources\SB\SB_MonkeyKing.jpg" />
+    <Content Include="Resources\SB\SB_Mordekaiser.jpg" />
+    <Content Include="Resources\SB\SB_Morgana.jpg" />
+    <Content Include="Resources\SB\SB_Nami.jpg" />
+    <Content Include="Resources\SB\SB_Nasus.jpg" />
+    <Content Include="Resources\SB\SB_Nautilus.jpg" />
+    <Content Include="Resources\SB\SB_Nidalee.jpg" />
+    <Content Include="Resources\SB\SB_Nocturne.jpg" />
+    <Content Include="Resources\SB\SB_Nunu.jpg" />
+    <Content Include="Resources\SB\SB_Olaf.jpg" />
+    <Content Include="Resources\SB\SB_Orianna.jpg" />
+    <Content Include="Resources\SB\SB_Pantheon.jpg" />
+    <Content Include="Resources\SB\SB_Poppy.jpg" />
+    <Content Include="Resources\SB\SB_Quinn.jpg" />
+    <Content Include="Resources\SB\SB_Rammus.jpg" />
+    <Content Include="Resources\SB\SB_RecallAbort.png" />
+    <Content Include="Resources\SB\SB_RecallFinish.png" />
+    <Content Include="Resources\SB\SB_RecallStart.png" />
+    <Content Include="Resources\SB\SB_Renekton.jpg" />
+    <Content Include="Resources\SB\SB_Rengar.jpg" />
+    <Content Include="Resources\SB\SB_Riven.jpg" />
+    <Content Include="Resources\SB\SB_Rumble.jpg" />
+    <Content Include="Resources\SB\SB_Ryze.jpg" />
+    <Content Include="Resources\SB\SB_Sejuani.jpg" />
+    <Content Include="Resources\SB\SB_Shaco.jpg" />
+    <Content Include="Resources\SB\SB_Shen.jpg" />
+    <Content Include="Resources\SB\SB_Shyvana.jpg" />
+    <Content Include="Resources\SB\SB_Singed.jpg" />
+    <Content Include="Resources\SB\SB_Sion.jpg" />
+    <Content Include="Resources\SB\SB_Sivir.jpg" />
+    <Content Include="Resources\SB\SB_Skarner.jpg" />
+    <Content Include="Resources\SB\SB_Sona.jpg" />
+    <Content Include="Resources\SB\SB_Soraka.jpg" />
+    <Content Include="Resources\SB\SB_summonerbarrier.jpg" />
+    <Content Include="Resources\SB\SB_summonerboost.jpg" />
+    <Content Include="Resources\SB\SB_summonerclairvoyance.jpg" />
+    <Content Include="Resources\SB\SB_summonerdot.jpg" />
+    <Content Include="Resources\SB\SB_summonerexhaust.jpg" />
+    <Content Include="Resources\SB\SB_summonerflash.jpg" />
+    <Content Include="Resources\SB\SB_summonerhaste.jpg" />
+    <Content Include="Resources\SB\SB_summonerheal.jpg" />
+    <Content Include="Resources\SB\SB_summonermana.jpg" />
+    <Content Include="Resources\SB\SB_summonerodingarrison.jpg" />
+    <Content Include="Resources\SB\SB_summonerrevive.jpg" />
+    <Content Include="Resources\SB\SB_summonersmite.jpg" />
+    <Content Include="Resources\SB\SB_summonerteleport.jpg" />
+    <Content Include="Resources\SB\SB_Swain.jpg" />
+    <Content Include="Resources\SB\SB_Syndra.jpg" />
+    <Content Include="Resources\SB\SB_Talon.jpg" />
+    <Content Include="Resources\SB\SB_Taric.jpg" />
+    <Content Include="Resources\SB\SB_Teemo.jpg" />
+    <Content Include="Resources\SB\SB_Thresh.jpg" />
+    <Content Include="Resources\SB\SB_Tristana.jpg" />
+    <Content Include="Resources\SB\SB_Trundle.jpg" />
+    <Content Include="Resources\SB\SB_Tryndamere.jpg" />
+    <Content Include="Resources\SB\SB_TwistedFate.jpg" />
+    <Content Include="Resources\SB\SB_Twitch.jpg" />
+    <Content Include="Resources\SB\SB_Udyr.jpg" />
+    <Content Include="Resources\SB\SB_Ultimate.png" />
+    <Content Include="Resources\SB\SB_Urgot.jpg" />
+    <Content Include="Resources\SB\SB_Varus.jpg" />
+    <Content Include="Resources\SB\SB_Vayne.jpg" />
+    <Content Include="Resources\SB\SB_Veigar.jpg" />
+    <Content Include="Resources\SB\SB_Velkoz.jpg" />
+    <Content Include="Resources\SB\SB_Vi.jpg" />
+    <Content Include="Resources\SB\SB_Viktor.jpg" />
+    <Content Include="Resources\SB\SB_Vladimir.jpg" />
+    <Content Include="Resources\SB\SB_Volibear.jpg" />
+    <Content Include="Resources\SB\SB_Warwick.jpg" />
+    <Content Include="Resources\SB\SB_Xerath.jpg" />
+    <Content Include="Resources\SB\SB_XinZhao.jpg" />
+    <Content Include="Resources\SB\SB_Yasuo.jpg" />
+    <Content Include="Resources\SB\SB_Yorick.jpg" />
+    <Content Include="Resources\SB\SB_Zac.jpg" />
+    <Content Include="Resources\SB\SB_Zed.jpg" />
+    <Content Include="Resources\SB\SB_Ziggs.jpg" />
+    <Content Include="Resources\SB\SB_Zilean.jpg" />
+    <Content Include="Resources\SB\SB_Zyra.jpg" />
     <Content Include="Resources\WT\WT_Green.png" />
     <Content Include="Resources\WT\WT_Pink.png" />
     <Content Include="Resources\LP\LP_Aatrox.png" />

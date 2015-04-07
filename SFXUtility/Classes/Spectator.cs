@@ -35,15 +35,22 @@ namespace SFXUtility.Classes
 
     public class Spectator
     {
-        private const string ChunkUrl = "http://{spectate_url}/observer-mode/rest/consumer/getGameDataChunk/{platform_id}/{game_id}/{chunk_id}/null";
-        private const string ChunkIdUrl = "http://{spectate_url}/observer-mode/rest/consumer/getLastChunkInfo/{platform_id}/{game_id}/30000/null";
-        private const string EncryptionKeyUrl = "http://{region}.op.gg/match/observer/id={game_id}";
-        private const string RecordUrl = "http://{region}.op.gg/summoner/ajasdax/requestRecording.json/gameId={game_id}";
+        private static string _chunkUrl = "http://{spectate_url}/observer-mode/rest/consumer/getGameDataChunk/{platform_id}/{game_id}/{chunk_id}/null";
+        private static string _chunkIdUrl = "http://{spectate_url}/observer-mode/rest/consumer/getLastChunkInfo/{platform_id}/{game_id}/30000/null";
+        private static readonly string EncryptionKeyUrl = "http://{region}.op.gg/match/observer/id={game_id}";
+        private static readonly string RecordUrl = "http://{region}op.gg/summoner/ajax/requestRecording.json/gameId={game_id}";
         private static readonly List<byte[]> Chunks = new List<byte[]>();
 
         static Spectator()
         {
             Region = PlatformId.Last().IsNumeric() ? PlatformId.Remove(PlatformId.Length - 1).ToLower() : PlatformId.ToLower();
+            Region = Region.Contains("kr", StringComparison.OrdinalIgnoreCase) ? string.Empty : Region + ".";
+
+            _chunkUrl = _chunkUrl.Replace("{platform_id}", PlatformId).Replace("{game_id}", GameId.ToString());
+            _chunkIdUrl = _chunkIdUrl.Replace("{platform_id}", PlatformId).Replace("{game_id}", GameId.ToString());
+            EncryptionKeyUrl = EncryptionKeyUrl.Replace("{region}", Region).Replace("{game_id}", GameId.ToString());
+            RecordUrl = RecordUrl.Replace("{region}", Region).Replace("{game_id}", GameId.ToString());
+            RecordUrl = RecordUrl.Replace("{region}", Region).Replace("{game_id}", GameId.ToString());
         }
 
         public static string PlatformId
@@ -51,26 +58,24 @@ namespace SFXUtility.Classes
             get { return Game.Region; }
         }
 
-        public static string Region { get; set; }
+        private static string Region { get; set; }
 
         public static long GameId
         {
             get { return Game.Id; }
         }
 
-        public static string SpectateUrl { get; set; }
-        public static string EncryptionKey { get; set; }
+        public static string SpectateUrl { get; private set; }
+        public static string EncryptionKey { get; private set; }
 
         public static int GetLatestChunkId()
         {
             using (var client = new WebClient())
             {
-                var url = ChunkIdUrl.Replace("{spectate_url}", SpectateUrl)
-                    .Replace("{platform_id}", PlatformId)
-                    .Replace("{game_id}", GameId.ToString());
                 try
                 {
-                    return Convert.ToInt32((client.DownloadString(new Uri(url))).Between("\"chunkId\":", ",", StringComparison.OrdinalIgnoreCase));
+                    return
+                        Convert.ToInt32((client.DownloadString(new Uri(_chunkIdUrl))).Between("\"chunkId\":", ",", StringComparison.OrdinalIgnoreCase));
                 }
                 catch
                 {
@@ -83,10 +88,12 @@ namespace SFXUtility.Classes
         {
             using (var client = new WebClient())
             {
-                var url = EncryptionKeyUrl.Replace("{region}", Region).Replace("{game_id}", GameId.ToString());
                 try
                 {
-                    return client.DownloadString(new Uri(url)).Between("spectator ", " " + GameId, StringComparison.OrdinalIgnoreCase).Split(' ');
+                    return
+                        client.DownloadString(new Uri(EncryptionKeyUrl))
+                            .Between("spectator ", " " + GameId, StringComparison.OrdinalIgnoreCase)
+                            .Split(' ');
                 }
                 catch
                 {
@@ -97,25 +104,22 @@ namespace SFXUtility.Classes
 
         public static bool DoRecord()
         {
-            var success = false;
             using (var client = new WebClient())
             {
-                var url = RecordUrl.Replace("{region}", Region).Replace("{game_id}", GameId.ToString());
-                client.DownloadStringCompleted += delegate(object sender, DownloadStringCompletedEventArgs args)
+                try
                 {
-                    if (!args.Cancelled && args.Error == null)
-                    {
-                        success = !args.Result.Contains("error", StringComparison.OrdinalIgnoreCase);
-                    }
-                };
-                client.DownloadString(new Uri(url));
+                    var data = client.DownloadString(new Uri(RecordUrl));
+                    return !data.Contains("error", StringComparison.OrdinalIgnoreCase);
+                }
+                catch
+                {
+                    return false;
+                }
             }
-            return success;
         }
 
         public static List<byte[]> GetChunks()
         {
-            var url = ChunkUrl.Replace("{spectate_url}", SpectateUrl).Replace("{platform_id}", PlatformId).Replace("{game_id}", GameId.ToString());
             var latestChunkId = GetLatestChunkId();
             using (var client = new WebClient())
             {
@@ -123,7 +127,7 @@ namespace SFXUtility.Classes
                 {
                     try
                     {
-                        Chunks.Add(client.DownloadData(new Uri(url.Replace("{chunk_id}", i.ToString()))));
+                        Chunks.Add(client.DownloadData(new Uri(_chunkUrl.Replace("{chunk_id}", i.ToString()))));
                     }
                     catch
                     {
@@ -140,6 +144,9 @@ namespace SFXUtility.Classes
             {
                 SpectateUrl = data[0];
                 EncryptionKey = data[1];
+
+                _chunkUrl = _chunkUrl.Replace("{spectate_url}", SpectateUrl);
+                _chunkIdUrl = _chunkIdUrl.Replace("{spectate_url}", SpectateUrl);
             }
             return !string.IsNullOrWhiteSpace(SpectateUrl) && !string.IsNullOrWhiteSpace(EncryptionKey);
         }

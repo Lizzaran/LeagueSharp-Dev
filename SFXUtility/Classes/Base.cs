@@ -35,7 +35,9 @@ namespace SFXUtility.Classes
     {
         protected Base()
         {
-            BaseMenu = Global.IoC.Resolve<SFXUtility>().Menu;
+            var sfx = Global.IoC.Resolve<SFXUtility>();
+            BaseMenu = sfx.Menu;
+            sfx.OnUnload += OnUnload;
             CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
@@ -71,6 +73,10 @@ namespace SFXUtility.Classes
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        protected virtual void OnUnload(object sender, EventArgs eventArgs)
+        {
         }
 
         protected virtual void RaiseOnInitialized()

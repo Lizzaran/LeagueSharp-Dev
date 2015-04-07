@@ -50,6 +50,8 @@
 	<entry key="G_Bar">Thanh</entry>
 	<entry key="G_Height">Chiều Cao</entry>
 	<entry key="G_Width">Chiều Rộng</entry>
+	<entry key="G_Say">Nói</entry>
+	<entry key="G_Scale">Tỉ Lệ</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: SFXUtility -->
@@ -142,9 +144,11 @@
 	<!-- START: Game -->
 	<entry key="F_Game">Game</entry>
 	<entry key="Game_OnStart">Khi Bắt Đầu</entry>
-	<entry key="Game_SayGLHF">Nói &quot;gl &amp; hf&quot;</entry>
+	<entry key="Game_Greeting">Lời Chào</entry>
+	<entry key="Game_GreetingList">gl &amp; hf|good luck &amp; have fun</entry>
 	<entry key="Game_OnEnd">Khi Kết Thúc</entry>
-	<entry key="Game_SayGG">Nói &quot;gg&quot;</entry>
+	<entry key="Game_Ending">Từ Biệt</entry>
+	<entry key="Game_EndingList">gg|gg wp|good game|well played</entry>
 	<entry key="Game_CloseLoL">Đóng LoL</entry>
 	<!-- END: Game -->
 
@@ -201,6 +205,11 @@
 	<entry key="F_LastPosition">Vị Trí Cuối Cùng</entry>
 	<entry key="LastPosition_SSTimer">Thời Gian SS</entry>
 	<!-- END: LastPosition -->
+
+	<!-- START: Sidebar -->
+	<entry key="F_Sidebar">Sidebar</entry>
+	<entry key="Sidebar_Clickable">Nhấp Chuột</entry>
+	<!-- END: Sidebar -->
 
 	<!-- START: Ward -->
 	<entry key="F_Ward">Mắt</entry>

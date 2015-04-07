@@ -28,7 +28,6 @@ namespace SFXUtility.Features.Trackers
 
     using System;
     using System.Collections.Generic;
-    using System.Drawing;
     using System.Linq;
     using Classes;
     using LeagueSharp;
@@ -39,6 +38,7 @@ namespace SFXUtility.Features.Trackers
     using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.Logger;
     using SharpDX;
+    using SharpDX.Direct3D9;
     using Color = System.Drawing.Color;
 
     #endregion
@@ -66,8 +66,12 @@ namespace SFXUtility.Features.Trackers
             new WardStruct(60*10, "Noxious_Trap", "BantamTrap", WardType.Trap)
         };
 
+        private Texture _greenWardTexture;
         private float _lastCheck = Environment.TickCount;
         private Trackers _parent;
+        private Texture _pinkWardTexture;
+        private Sprite _sprite;
+        private Font _text;
 
         public override bool Enabled
         {
@@ -85,10 +89,9 @@ namespace SFXUtility.Features.Trackers
             Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
             GameObject.OnCreate += OnGameObjectCreate;
 
-            foreach (var obj in ObjectManager.Get<GameObject>().Where(o => o is Obj_AI_Base))
-            {
-                OnGameObjectCreate(obj, null);
-            }
+            Drawing.OnPreReset += OnDrawingPreReset;
+            Drawing.OnPostReset += OnDrawingPostReset;
+            Drawing.OnEndScene += OnDrawingEndScene;
 
             base.OnEnable();
         }
@@ -98,7 +101,24 @@ namespace SFXUtility.Features.Trackers
             Game.OnUpdate -= OnGameUpdate;
             Obj_AI_Base.OnProcessSpellCast -= OnObjAiBaseProcessSpellCast;
             GameObject.OnCreate -= OnGameObjectCreate;
+
+            Drawing.OnPreReset -= OnDrawingPreReset;
+            Drawing.OnPostReset -= OnDrawingPostReset;
+            Drawing.OnEndScene -= OnDrawingEndScene;
+
+            OnUnload(null, null);
+
             base.OnDisable();
+        }
+
+        protected override void OnUnload(object sender, EventArgs eventArgs)
+        {
+            if (Initialized)
+            {
+                OnDrawingPreReset(null);
+                OnDrawingPostReset(null);
+            }
+            base.OnUnload(sender, eventArgs);
         }
 
         protected override void OnGameLoad(EventArgs args)
@@ -144,16 +164,19 @@ namespace SFXUtility.Features.Trackers
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
-                Menu.Item(Name + "DrawingTimeFormat").ValueChanged +=
-                    (o, args) => _wardObjects.ForEach(enemy => enemy.TextTotalSeconds = args.GetNewValue<StringList>().SelectedIndex == 1);
-                Menu.Item(Name + "DrawingCircleRadius").ValueChanged +=
-                    (o, args) => _wardObjects.ForEach(enemy => enemy.Radius = args.GetNewValue<Slider>().Value);
-                Menu.Item(Name + "DrawingCircleThickness").ValueChanged +=
-                    (o, args) => _wardObjects.ForEach(enemy => enemy.Thickness = args.GetNewValue<Slider>().Value);
-                Menu.Item(Name + "Enabled").ValueChanged +=
-                    (o, args) => _wardObjects.ForEach(enemy => enemy.Active = args.GetNewValue<bool>() && _parent != null && _parent.Enabled);
-
                 _parent.Menu.AddSubMenu(Menu);
+
+                _sprite = new Sprite(Drawing.Direct3DDevice);
+                _greenWardTexture = Resources.WT_Green.ToTexture();
+                _pinkWardTexture = Resources.WT_Pink.ToTexture();
+                _text = new Font(Drawing.Direct3DDevice,
+                    new FontDescription
+                    {
+                        FaceName = Global.DefaultFont,
+                        Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
+                        OutputPrecision = FontPrecision.Default,
+                        Quality = FontQuality.Default
+                    });
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();
@@ -164,13 +187,62 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
+        private void OnDrawingEndScene(EventArgs args)
+        {
+            try
+            {
+                if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
+                    return;
+
+                var totalSeconds = Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1;
+                var circleRadius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value;
+                var circleThickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
+
+                _sprite.Begin(SpriteFlags.AlphaBlend);
+                foreach (var ward in _wardObjects)
+                {
+                    if (ward.Position.IsOnScreen())
+                    {
+                        Render.Circle.DrawCircle(ward.Position, circleRadius, ward.Data.Color, circleThickness);
+
+                        if (ward.Data.Duration != int.MaxValue)
+                        {
+                            _text.DrawTextCentered((ward.EndTime - Game.Time).FormatTime(totalSeconds), Drawing.WorldToScreen(ward.Position),
+                                SharpDX.Color.White);
+                        }
+                    }
+                    if (ward.Data.Type != WardType.Trap)
+                    {
+                        _sprite.DrawCentered(ward.Data.Type == WardType.Green ? _greenWardTexture : _pinkWardTexture, ward.MinimapPosition.To2D());
+                    }
+                }
+                _sprite.End();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void OnDrawingPostReset(EventArgs args)
+        {
+            _text.OnResetDevice();
+            _sprite.OnResetDevice();
+        }
+
+        private void OnDrawingPreReset(EventArgs args)
+        {
+            _text.OnLostDevice();
+            _sprite.OnLostDevice();
+        }
+
         private void OnGameObjectCreate(GameObject sender, EventArgs args)
         {
             var spellMissile = sender as Obj_SpellMissile;
             if (spellMissile != null)
             {
                 var missile = spellMissile;
-                if (missile.SpellCaster.IsEnemy)
+                if (missile.SpellCaster.IsAlly)
                 {
                     if (missile.SData.Name.Equals("itemplacementmissile", StringComparison.OrdinalIgnoreCase) && !missile.SpellCaster.IsVisible)
                     {
@@ -183,15 +255,8 @@ namespace SFXUtility.Features.Trackers
                                     w => w.Position.To2D().Distance(sPos.To2D(), ePos.To2D(), false) < 300 && Math.Abs(w.StartT - Game.Time) < 2000))
                             {
                                 _wardObjects.Add(new WardObject(_wardStructs[3],
-                                    new Vector3(ePos.X, ePos.Y, NavMesh.GetHeightForPosition(ePos.X, ePos.Y)), (int) Game.Time,
-                                    Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value, null, true)
-                                {
-                                    StartPosition = new Vector3(sPos.X, sPos.Y, NavMesh.GetHeightForPosition(sPos.X, sPos.Y)),
-                                    TextTotalSeconds = Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1,
-                                    Radius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value,
-                                    Thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value,
-                                    Active = Enabled
-                                });
+                                    new Vector3(ePos.X, ePos.Y, NavMesh.GetHeightForPosition(ePos.X, ePos.Y)), (int) Game.Time, null, true,
+                                    new Vector3(sPos.X, sPos.Y, NavMesh.GetHeightForPosition(sPos.X, sPos.Y))));
                             }
                         });
                     }
@@ -203,7 +268,7 @@ namespace SFXUtility.Features.Trackers
                 if (o != null)
                 {
                     var wardObject = o;
-                    if (wardObject.IsEnemy)
+                    if (wardObject.IsAlly)
                     {
                         foreach (var ward in _wardStructs)
                         {
@@ -213,15 +278,8 @@ namespace SFXUtility.Features.Trackers
                                 _wardObjects.RemoveAll(
                                     w =>
                                         w.Position.Distance(wardObject.Position) < 200 &&
-                                        (Math.Abs(w.StartT - startT) < 1000 || ward.Type != WardType.Green) && w.Remove());
-                                _wardObjects.Add(new WardObject(ward, wardObject.Position, (int) startT,
-                                    Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value, wardObject)
-                                {
-                                    TextTotalSeconds = Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1,
-                                    Radius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value,
-                                    Thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value,
-                                    Active = Enabled
-                                });
+                                        (Math.Abs(w.StartT - startT) < 1000 || ward.Type != WardType.Green));
+                                _wardObjects.Add(new WardObject(ward, wardObject.Position, (int) startT, wardObject));
                             }
                         }
                     }
@@ -231,7 +289,7 @@ namespace SFXUtility.Features.Trackers
 
         private void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            if (!sender.IsEnemy)
+            if (!sender.IsAlly)
                 return;
 
             foreach (var ward in _wardStructs)
@@ -239,13 +297,7 @@ namespace SFXUtility.Features.Trackers
                 if (args.SData.Name.Equals(ward.SpellName, StringComparison.OrdinalIgnoreCase))
                 {
                     var endPosition = ObjectManager.Player.GetPath(args.End).ToList().Last();
-                    _wardObjects.Add(new WardObject(ward, endPosition, (int) Game.Time, Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value)
-                    {
-                        TextTotalSeconds = Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1,
-                        Radius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value,
-                        Thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value,
-                        Active = Enabled
-                    });
+                    _wardObjects.Add(new WardObject(ward, endPosition, (int) Game.Time));
                 }
             }
         }
@@ -256,154 +308,42 @@ namespace SFXUtility.Features.Trackers
                 return;
             _lastCheck = Environment.TickCount;
 
-            _wardObjects.RemoveAll(w => w.EndT <= Game.Time && w.Duration != int.MaxValue && w.Remove());
-            _wardObjects.RemoveAll(w => w.Object != null && !w.Object.IsValid && w.Remove());
+            _wardObjects.RemoveAll(w => w.EndTime <= Game.Time && w.Data.Duration != int.MaxValue);
+            _wardObjects.RemoveAll(w => w.Object != null && !w.Object.IsValid);
         }
 
         private class WardObject
         {
-            private readonly Render.Circle _circle;
-            private readonly Render.Sprite _minimapSprite;
-            private readonly Render.Line _missileLine;
-            private readonly Render.Text _timerText;
+            public readonly Vector3 MinimapPosition;
             public readonly Obj_AI_Base Object;
             public readonly int StartT;
-            private bool _active;
-            private bool _added;
-            private int _radius;
-            private int _thickness;
-            private WardStruct _wardData;
             public Vector3 Position;
+            // ReSharper disable once MemberCanBePrivate.Local
+            // ReSharper disable once NotAccessedField.Local
             public Vector3 StartPosition;
-            public bool TextTotalSeconds;
 
-            public WardObject(WardStruct data, Vector3 position, int startT, int fontSize, Obj_AI_Base wardObject = null, bool isFromMissile = false)
+            public WardObject(WardStruct data, Vector3 position, int startT, Obj_AI_Base wardObject = null, bool isFromMissile = false,
+                Vector3 startPosition = default(Vector3))
             {
-                _wardData = data;
+                IsFromMissile = isFromMissile;
+                Data = data;
                 Position = position;
+                MinimapPosition = Drawing.WorldToMinimap(Position).To3D();
                 StartT = startT;
+                StartPosition = startPosition;
                 Object = wardObject;
-
-                try
-                {
-                    _circle = new Render.Circle(Position, Radius, data.Color, Thickness)
-                    {
-                        VisibleCondition = sender => Active && Position.IsOnScreen(200)
-                    };
-
-                    if (data.Type != WardType.Trap)
-                    {
-                        var minimapPos = Drawing.WorldToMinimap(Position);
-                        _minimapSprite = new Render.Sprite(_wardData.Bitmap,
-                            new Vector2(minimapPos.X - _wardData.Bitmap.Width/2f, minimapPos.Y - _wardData.Bitmap.Height/2f))
-                        {
-                            VisibleCondition = sender => Active
-                        };
-                    }
-
-                    if (isFromMissile)
-                    {
-                        _missileLine = new Render.Line(Drawing.WorldToScreen(Position), Drawing.WorldToScreen(StartPosition), 2, SharpDX.Color.White)
-                        {
-                            EndPositionUpdate = () => Drawing.WorldToScreen(Position),
-                            StartPositionUpdate = () => Drawing.WorldToScreen(StartPosition),
-                            VisibleCondition = sender => Active && Position.IsOnScreen() || StartPosition.IsOnScreen()
-                        };
-                    }
-
-                    if (Duration != int.MaxValue)
-                    {
-                        _timerText = new Render.Text(string.Empty, Drawing.WorldToScreen(Position), fontSize, SharpDX.Color.White)
-                        {
-                            OutLined = true,
-                            PositionUpdate = () => Drawing.WorldToScreen(Position),
-                            Centered = true,
-                            VisibleCondition = sender => Active && Position.IsOnScreen(),
-                            TextUpdate = () => _timerText.Visible ? (EndT - Game.Time).FormatTime(TextTotalSeconds) : string.Empty
-                        };
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Global.Logger.AddItem(new LogItem(ex));
-                }
             }
 
-            public int Radius
+            // ReSharper disable once MemberCanBePrivate.Local
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local
+            public bool IsFromMissile { get; private set; }
+
+            public int EndTime
             {
-                private get { return _radius; }
-                set
-                {
-                    _radius = value;
-                    if (_circle != null)
-                        _circle.Radius = _radius;
-                }
+                get { return StartT + Data.Duration; }
             }
 
-            public int Thickness
-            {
-                private get { return _thickness; }
-                set
-                {
-                    _thickness = value;
-                    if (_circle != null)
-                        _circle.Width = _thickness;
-                }
-            }
-
-            public bool Active
-            {
-                private get { return _active; }
-                set
-                {
-                    _active = value;
-                    Update();
-                }
-            }
-
-            public int Duration
-            {
-                get { return _wardData.Duration; }
-            }
-
-            public int EndT
-            {
-                get { return StartT + Duration; }
-            }
-
-            private void Update()
-            {
-                if (_active && !_added)
-                {
-                    if (_circle != null)
-                        _circle.Add(0);
-                    if (_missileLine != null)
-                        _missileLine.Add(1);
-                    if (_timerText != null)
-                        _timerText.Add(2);
-                    if (_minimapSprite != null)
-                        _minimapSprite.Add(1);
-                    _added = true;
-                }
-                else if (!_active && _added)
-                {
-                    if (_circle != null)
-                        _circle.Remove();
-                    if (_missileLine != null)
-                        _missileLine.Remove();
-                    if (_timerText != null)
-                        _timerText.Remove();
-                    if (_minimapSprite != null)
-                        _minimapSprite.Remove();
-                    _added = false;
-                }
-            }
-
-            public bool Remove()
-            {
-                Active = false;
-                return true;
-            }
+            public WardStruct Data { get; private set; }
         }
 
         private enum WardType
@@ -426,22 +366,6 @@ namespace SFXUtility.Features.Trackers
                 ObjectBaseSkinName = objectBaseSkinName;
                 SpellName = spellName;
                 Type = type;
-            }
-
-            public Bitmap Bitmap
-            {
-                get
-                {
-                    switch (Type)
-                    {
-                        case WardType.Green:
-                            return Resources.WT_Green;
-                        case WardType.Pink:
-                            return Resources.WT_Pink;
-                        default:
-                            return Resources.WT_Green;
-                    }
-                }
             }
 
             public Color Color

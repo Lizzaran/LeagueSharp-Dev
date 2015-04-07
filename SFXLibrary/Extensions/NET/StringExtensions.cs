@@ -174,8 +174,10 @@ namespace SFXLibrary.Extensions.NET
             return !string.IsNullOrEmpty(source) && !string.IsNullOrEmpty(toCheck) && source.IndexOf(toCheck, 0, comp) != -1;
         }
 
-
-        /// <exception cref="OverflowException">The array is multidimensional and contains more than <see cref="F:System.Int32.MaxValue" /> elements.</exception>
+        /// <exception cref="OverflowException">
+        ///     The array is multidimensional and contains more than
+        ///     <see cref="F:System.Int32.MaxValue" /> elements.
+        /// </exception>
         public static bool Contains(this string[] source, string toCheck, StringComparison comp = StringComparison.Ordinal)
         {
             if (source == null || source.Length > 0 || string.IsNullOrEmpty(toCheck))
@@ -206,11 +208,11 @@ namespace SFXLibrary.Extensions.NET
 
         public static string Between(this string value, string a, string b, StringComparison comp = StringComparison.Ordinal)
         {
-            int posA = value.IndexOf(a, comp);
-            int posB = value.IndexOf(b, comp);
+            var posA = value.IndexOf(a, comp);
+            var posB = value.IndexOf(b, comp);
             if (posA == -1 || posB == -1)
                 return null;
-            int adjustedPosA = posA + a.Length;
+            var adjustedPosA = posA + a.Length;
             if (adjustedPosA >= posB)
                 return null;
             return value.Substring(adjustedPosA, posB - adjustedPosA);

@@ -187,6 +187,7 @@ namespace SFXUtility.Features.Drawings
                             minion =>
                                 minion != null && minion.IsValid && minion.IsTargetable && minion.Health > 0.1f &&
                                 minion.Team == (ObjectManager.Player.Team == GameObjectTeam.Order ? GameObjectTeam.Chaos : GameObjectTeam.Order) &&
+                                (!minion.Name.ToLower().Contains("ward") && !minion.Name.ToLower().Contains("trinket")) &&
                                 minion.Position.IsOnScreen());
             }
             catch (Exception ex)

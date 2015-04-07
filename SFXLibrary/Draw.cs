@@ -19,6 +19,7 @@
 */
 
 #endregion License
+
 namespace SFXLibrary
 {
     #region
@@ -55,7 +56,7 @@ namespace SFXLibrary
 
         public static void RectangleFilled(Vector2 pos, int width, int height, Color color)
         {
-            pos.Y = pos.Y - (height / 2f);
+            pos.Y = pos.Y - (height/2f);
             Drawing.DrawLine(pos.X, pos.Y, pos.X + width, pos.Y, height, color);
         }
 
@@ -63,6 +64,5 @@ namespace SFXLibrary
         {
             Drawing.DrawLine(pos, new Vector2(pos.X, pos.Y + height), width, color);
         }
-
     }
 }

@@ -50,6 +50,8 @@
 	<entry key="G_Bar">Bar</entry>
 	<entry key="G_Height">Height</entry>
 	<entry key="G_Width">Width</entry>
+	<entry key="G_Say">Say</entry>
+	<entry key="G_Scale">Scale</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: SFXUtility -->
@@ -142,9 +144,11 @@
 	<!-- START: Game -->
 	<entry key="F_Game">Game</entry>
 	<entry key="Game_OnStart">OnStart</entry>
-	<entry key="Game_SayGLHF">Say &quot;gl &amp; hf&quot;</entry>
+	<entry key="Game_Greeting">Greeting</entry>
+	<entry key="Game_GreetingList">gl &amp; hf|good luck &amp; have fun</entry>
 	<entry key="Game_OnEnd">OnEnd</entry>
-	<entry key="Game_SayGG">Say &quot;gg&quot;</entry>
+	<entry key="Game_Ending">Goodbye</entry>
+	<entry key="Game_EndingList">gg|gg wp|good game|well played</entry>
 	<entry key="Game_CloseLoL">Close LoL</entry>
 	<!-- END: Game -->
 
@@ -201,6 +205,11 @@
 	<entry key="F_LastPosition">Last Position</entry>
 	<entry key="LastPosition_SSTimer">SS Timer</entry>
 	<!-- END: LastPosition -->
+
+	<!-- START: Sidebar -->
+	<entry key="F_Sidebar">Sidebar</entry>
+	<entry key="Sidebar_Clickable">Clickable</entry>
+	<!-- END: Sidebar -->
 
 	<!-- START: Ward -->
 	<entry key="F_Ward">Ward</entry>

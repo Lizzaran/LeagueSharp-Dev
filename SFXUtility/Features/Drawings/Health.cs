@@ -31,16 +31,19 @@ namespace SFXUtility.Features.Drawings
     using LeagueSharp;
     using LeagueSharp.Common;
     using SFXLibrary;
+    using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.Logger;
     using SharpDX;
+    using SharpDX.Direct3D9;
 
     #endregion
 
     internal class Health : Base
     {
-        private readonly List<InhibitorObject> _inhibs = new List<InhibitorObject>();
-        private readonly List<TurretObject> _turrets = new List<TurretObject>();
+        private readonly List<Obj_BarracksDampener> _inhibs = new List<Obj_BarracksDampener>();
+        private readonly List<Obj_AI_Turret> _turrets = new List<Obj_AI_Turret>();
         private Drawings _parent;
+        private Font _text;
 
         public override bool Enabled
         {
@@ -54,28 +57,73 @@ namespace SFXUtility.Features.Drawings
 
         protected override void OnEnable()
         {
-            foreach (var turret in _turrets)
-            {
-                turret.Active = Menu.Item(Name + "Turret").GetValue<bool>();
-            }
-            foreach (var inhib in _inhibs)
-            {
-                inhib.Active = Menu.Item(Name + "Inhibitor").GetValue<bool>();
-            }
+            Drawing.OnPreReset += OnDrawingPreReset;
+            Drawing.OnPostReset += OnDrawingPostReset;
+            Drawing.OnEndScene += OnDrawingEndScene;
+
             base.OnEnable();
         }
 
         protected override void OnDisable()
         {
-            foreach (var turret in _turrets)
-            {
-                turret.Active = false;
-            }
-            foreach (var inhib in _inhibs)
-            {
-                inhib.Active = false;
-            }
+            Drawing.OnPreReset -= OnDrawingPreReset;
+            Drawing.OnPostReset -= OnDrawingPostReset;
+            Drawing.OnEndScene -= OnDrawingEndScene;
+
+            OnUnload(null, null);
+
             base.OnEnable();
+        }
+
+        protected override void OnUnload(object sender, EventArgs eventArgs)
+        {
+            if (Initialized)
+            {
+                OnDrawingPreReset(null);
+                OnDrawingPostReset(null);
+            }
+            base.OnUnload(sender, eventArgs);
+        }
+
+        private void OnDrawingEndScene(EventArgs args)
+        {
+            try
+            {
+                if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
+                    return;
+
+                var percent = Menu.Item(Name + "DrawingPercent").GetValue<bool>();
+                if (Menu.Item(Name + "Turret").GetValue<bool>())
+                {
+                    foreach (var turret in _turrets.Where(t => !t.IsDead))
+                    {
+                        _text.DrawTextCentered(((int) (percent ? turret.Health/turret.MaxHealth*100 : turret.Health)).ToString(),
+                            Drawing.WorldToMinimap(turret.Position), Color.White);
+                    }
+                }
+                if (Menu.Item(Name + "Inhibitor").GetValue<bool>())
+                {
+                    foreach (var inhib in _inhibs.Where(i => !i.IsDead && i.Health > 1f))
+                    {
+                        _text.DrawTextCentered(((int) (percent ? inhib.Health/inhib.MaxHealth*100 : inhib.Health)).ToString(),
+                            Drawing.WorldToMinimap(inhib.Position), Color.White);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void OnDrawingPostReset(EventArgs args)
+        {
+            _text.OnResetDevice();
+        }
+
+        private void OnDrawingPreReset(EventArgs args)
+        {
+            _text.OnLostDevice();
         }
 
         private void OnParentInitialized(object sender, EventArgs eventArgs)
@@ -88,7 +136,7 @@ namespace SFXUtility.Features.Drawings
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Percentage", Language.Get("G_Percent")).SetValue(false));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Percent", Language.Get("G_Percent")).SetValue(false));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", Language.Get("G_FontSize")).SetValue(new Slider(13, 3, 30)));
 
                 Menu.AddSubMenu(drawingMenu);
@@ -98,67 +146,22 @@ namespace SFXUtility.Features.Drawings
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
-                Menu.Item(Name + "Enabled").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
-                {
-                    foreach (var turret in _turrets)
-                    {
-                        turret.Active = _parent.Enabled && args.GetNewValue<bool>() && Menu.Item(Name + "Turret").GetValue<bool>();
-                    }
-                    foreach (var inhib in _inhibs)
-                    {
-                        inhib.Active = _parent.Enabled && args.GetNewValue<bool>() && Menu.Item(Name + "Inhibitor").GetValue<bool>();
-                    }
-                };
-
-                Menu.Item(Name + "Turret").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
-                {
-                    foreach (var turret in _turrets)
-                    {
-                        turret.Active = Enabled && args.GetNewValue<bool>();
-                    }
-                };
-
-                Menu.Item(Name + "Inhibitor").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
-                {
-                    foreach (var inhib in _inhibs)
-                    {
-                        inhib.Active = Enabled && args.GetNewValue<bool>();
-                    }
-                };
-
-                Menu.Item(Name + "DrawingPercentage").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
-                {
-                    foreach (var turret in _turrets)
-                    {
-                        turret.Percentage = args.GetNewValue<bool>();
-                    }
-                    foreach (var inhib in _inhibs)
-                    {
-                        inhib.Percentage = args.GetNewValue<bool>();
-                    }
-                };
-
                 _parent.Menu.AddSubMenu(Menu);
 
-                foreach (var turret in ObjectManager.Get<Obj_AI_Turret>().Where(t => t.IsValid && !t.IsDead && t.Health > 1f && t.Health < 9999f))
-                {
-                    _turrets.Add(new TurretObject(turret, Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value)
-                    {
-                        Active = Enabled && Menu.Item(Name + "Turret").GetValue<bool>(),
-                        Percentage = Menu.Item(Name + "DrawingPercentage").GetValue<bool>()
-                    });
-                }
-                foreach (var inhib in ObjectManager.Get<Obj_BarracksDampener>().Where(i => i.IsValid))
-                {
-                    _inhibs.Add(new InhibitorObject(inhib, Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value)
-                    {
-                        Active = Enabled && Menu.Item(Name + "Inhibitor").GetValue<bool>(),
-                        Percentage = Menu.Item(Name + "DrawingPercentage").GetValue<bool>()
-                    });
-                }
+                _turrets.AddRange(ObjectManager.Get<Obj_AI_Turret>().Where(t => t.IsValid && !t.IsDead && t.Health > 1f && t.Health < 9999f));
+                _inhibs.AddRange(ObjectManager.Get<Obj_BarracksDampener>().Where(i => i.IsValid));
 
                 if (!_turrets.Any() || !_inhibs.Any())
                     return;
+
+                _text = new Font(Drawing.Direct3DDevice,
+                    new FontDescription
+                    {
+                        FaceName = Global.DefaultFont,
+                        Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
+                        OutputPrecision = FontPrecision.Default,
+                        Quality = FontQuality.Default
+                    });
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();
@@ -185,151 +188,6 @@ namespace SFXUtility.Features.Drawings
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private class TurretObject
-        {
-            private bool _active;
-            private bool _added;
-            private Render.Text _text;
-
-            public TurretObject(Obj_AI_Turret turret, int fontSize)
-            {
-                _text = new Render.Text(Drawing.WorldToMinimap(turret.Position), string.Empty, fontSize, Color.White)
-                {
-                    OutLined = true,
-                    Centered = true,
-                    VisibleCondition = delegate
-                    {
-                        try
-                        {
-                            return Active;
-                        }
-                        catch (Exception ex)
-                        {
-                            Global.Logger.AddItem(new LogItem(ex));
-                            return false;
-                        }
-                    },
-                    TextUpdate = delegate
-                    {
-                        try
-                        {
-                            if (turret.IsDead)
-                                Dispose();
-                            var percent = Convert.ToInt32((turret.Health/turret.MaxHealth)*100);
-                            return Percentage ? (percent == 0 ? 1 : percent).ToString() : ((int) turret.Health).ToString();
-                        }
-                        catch (Exception ex)
-                        {
-                            Global.Logger.AddItem(new LogItem(ex));
-                            return string.Empty;
-                        }
-                    }
-                };
-            }
-
-            public bool Percentage { private get; set; }
-
-            public bool Active
-            {
-                private get { return _active; }
-                set
-                {
-                    _active = value;
-                    Update();
-                }
-            }
-
-            private void Dispose()
-            {
-                if (_text != null)
-                {
-                    Active = false;
-                    _text = null;
-                }
-            }
-
-            private void Update()
-            {
-                if (_active && !_added)
-                {
-                    _text.Add(0);
-                    _added = true;
-                }
-                else if (!_active && _added)
-                {
-                    _text.Remove();
-                    _added = false;
-                }
-            }
-        }
-
-        private class InhibitorObject
-        {
-            private readonly Render.Text _text;
-            private bool _active;
-            private bool _added;
-
-            public InhibitorObject(Obj_BarracksDampener inhib, int fontSize)
-            {
-                _text = new Render.Text(Drawing.WorldToMinimap(inhib.Position), string.Empty, fontSize, Color.White)
-                {
-                    OutLined = true,
-                    Centered = true,
-                    VisibleCondition = delegate
-                    {
-                        try
-                        {
-                            return Active && !inhib.IsDead && inhib.Health > 1f;
-                        }
-                        catch (Exception ex)
-                        {
-                            Global.Logger.AddItem(new LogItem(ex));
-                            return false;
-                        }
-                    },
-                    TextUpdate = delegate
-                    {
-                        try
-                        {
-                            var percent = Convert.ToInt32((inhib.Health/inhib.MaxHealth)*100);
-                            return Percentage ? (percent == 0 ? 1 : percent).ToString() : ((int) inhib.Health).ToString();
-                        }
-                        catch (Exception ex)
-                        {
-                            Global.Logger.AddItem(new LogItem(ex));
-                            return string.Empty;
-                        }
-                    }
-                };
-            }
-
-            public bool Percentage { private get; set; }
-
-            public bool Active
-            {
-                private get { return _active; }
-                set
-                {
-                    _active = value;
-                    Update();
-                }
-            }
-
-            private void Update()
-            {
-                if (_active && !_added)
-                {
-                    _text.Add(0);
-                    _added = true;
-                }
-                else if (!_active && _added)
-                {
-                    _text.Remove();
-                    _added = false;
-                }
             }
         }
     }

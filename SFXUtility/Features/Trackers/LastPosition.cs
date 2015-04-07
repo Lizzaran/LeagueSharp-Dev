@@ -35,16 +35,24 @@ namespace SFXUtility.Features.Trackers
     using Properties;
     using SFXLibrary;
     using SFXLibrary.Extensions.NET;
+    using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.Logger;
     using SharpDX;
+    using SharpDX.Direct3D9;
     using Color = SharpDX.Color;
+    using Font = SharpDX.Direct3D9.Font;
 
     #endregion
 
     internal class LastPosition : Base
     {
-        private readonly List<LastPositionObject> _lastPositionObjects = new List<LastPositionObject>();
+        private readonly Dictionary<int, Texture> _heroTextures = new Dictionary<int, Texture>();
+        private readonly List<LastPositionStruct> _lastPositions = new List<LastPositionStruct>();
         private Trackers _parent;
+        private Vector2 _spawnPoint;
+        private Sprite _sprite;
+        private Texture _teleportTexture;
+        private Font _text;
 
         public override bool Enabled
         {
@@ -77,7 +85,7 @@ namespace SFXUtility.Features.Trackers
 
         private void TeleportAbort(object sender, TeleportEventArgs teleportEventArgs)
         {
-            var lastPosition = _lastPositionObjects.FirstOrDefault(e => e.Hero.NetworkId == teleportEventArgs.UnitNetworkId);
+            var lastPosition = _lastPositions.FirstOrDefault(e => e.Hero.NetworkId == teleportEventArgs.UnitNetworkId);
             if (lastPosition != null)
             {
                 lastPosition.IsTeleporting = false;
@@ -86,7 +94,7 @@ namespace SFXUtility.Features.Trackers
 
         private void TeleportFinish(object sender, TeleportEventArgs teleportEventArgs)
         {
-            var lastPosition = _lastPositionObjects.FirstOrDefault(e => e.Hero.NetworkId == teleportEventArgs.UnitNetworkId);
+            var lastPosition = _lastPositions.FirstOrDefault(e => e.Hero.NetworkId == teleportEventArgs.UnitNetworkId);
             if (lastPosition != null)
             {
                 lastPosition.Teleported = true;
@@ -96,7 +104,7 @@ namespace SFXUtility.Features.Trackers
 
         private void TeleportStart(object sender, TeleportEventArgs teleportEventArgs)
         {
-            var lastPosition = _lastPositionObjects.FirstOrDefault(e => e.Hero.NetworkId == teleportEventArgs.UnitNetworkId);
+            var lastPosition = _lastPositions.FirstOrDefault(e => e.Hero.NetworkId == teleportEventArgs.UnitNetworkId);
             if (lastPosition != null)
             {
                 lastPosition.IsTeleporting = true;
@@ -105,14 +113,86 @@ namespace SFXUtility.Features.Trackers
 
         protected override void OnEnable()
         {
-            _lastPositionObjects.ForEach(enemy => enemy.Active = true);
+            Drawing.OnPreReset += OnDrawingPreReset;
+            Drawing.OnPostReset += OnDrawingPostReset;
+            Drawing.OnEndScene += OnDrawingEndScene;
+
             base.OnEnable();
         }
 
         protected override void OnDisable()
         {
-            _lastPositionObjects.ForEach(enemy => enemy.Active = false);
+            Drawing.OnPreReset -= OnDrawingPreReset;
+            Drawing.OnPostReset -= OnDrawingPostReset;
+            Drawing.OnEndScene -= OnDrawingEndScene;
+
+            OnUnload(null, null);
+
             base.OnDisable();
+        }
+
+        protected override void OnUnload(object sender, EventArgs eventArgs)
+        {
+            if (Initialized)
+            {
+                OnDrawingPreReset(null);
+                OnDrawingPostReset(null);
+            }
+            base.OnUnload(sender, eventArgs);
+        }
+
+        private void OnDrawingEndScene(EventArgs args)
+        {
+            try
+            {
+                if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
+                    return;
+
+                var totalSeconds = Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1;
+                var timerOffset = Menu.Item(Name + "DrawingSSTimerOffset").GetValue<Slider>().Value;
+                var timer = Menu.Item(Name + "SSTimer").GetValue<bool>();
+                _sprite.Begin(SpriteFlags.AlphaBlend);
+                foreach (var lp in _lastPositions)
+                {
+                    if (lp.Hero.IsVisible)
+                    {
+                        lp.Teleported = false;
+                        if (!lp.Hero.IsDead)
+                            lp.LastSeen = Game.Time;
+                    }
+                    if (!lp.Hero.IsVisible && !lp.Hero.IsDead)
+                    {
+                        var pos = Drawing.WorldToMinimap(lp.Hero.Position);
+
+                        _sprite.DrawCentered(_heroTextures[lp.Hero.NetworkId], lp.Teleported ? _spawnPoint : pos);
+                        if (lp.IsTeleporting)
+                            _sprite.DrawCentered(_teleportTexture, pos);
+
+                        if (timer && lp.LastSeen != 0f && (Game.Time - lp.LastSeen) > 3f)
+                        {
+                            _text.DrawTextCentered((Game.Time - lp.LastSeen).FormatTime(totalSeconds), new Vector2(pos.X, pos.Y + 15 + timerOffset),
+                                Color.White);
+                        }
+                    }
+                }
+                _sprite.End();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void OnDrawingPostReset(EventArgs args)
+        {
+            _text.OnResetDevice();
+            _sprite.OnResetDevice();
+        }
+
+        private void OnDrawingPreReset(EventArgs args)
+        {
+            _text.OnLostDevice();
+            _sprite.OnLostDevice();
         }
 
         private void OnParentInitialized(object sender, EventArgs eventArgs)
@@ -130,19 +210,12 @@ namespace SFXUtility.Features.Trackers
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", Language.Get("G_FontSize")).SetValue(new Slider(13, 3, 30)));
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + "SSTimerOffset", Language.Get("LastPosition_SSTimer") + " " + Language.Get("G_Offset")).SetValue(
-                        new Slider(5, 0, 50)));
+                        new Slider(5, 0, 20)));
 
                 Menu.AddSubMenu(drawingMenu);
 
                 Menu.AddItem(new MenuItem(Name + "SSTimer", Language.Get("LastPosition_SSTimer")).SetValue(false));
                 Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
-
-                Menu.Item(Name + "DrawingTimeFormat").ValueChanged +=
-                    (o, args) => _lastPositionObjects.ForEach(enemy => enemy.TextTotalSeconds = args.GetNewValue<StringList>().SelectedIndex == 1);
-                Menu.Item(Name + "DrawingSSTimerOffset").ValueChanged +=
-                    (o, args) => _lastPositionObjects.ForEach(enemy => enemy.FontOffset = args.GetNewValue<Slider>().Value);
-                Menu.Item(Name + "SSTimer").ValueChanged +=
-                    (o, args) => _lastPositionObjects.ForEach(enemy => enemy.SSTimer = args.GetNewValue<bool>());
 
                 _parent.Menu.AddSubMenu(Menu);
 
@@ -155,23 +228,26 @@ namespace SFXUtility.Features.Trackers
                     rt.OnUnknown += TeleportAbort;
                 }
 
+                var spawn = ObjectManager.Get<GameObject>().FirstOrDefault(s => s is Obj_SpawnPoint && s.IsEnemy);
+                _spawnPoint = spawn != null ? Drawing.WorldToMinimap(spawn.Position) : Vector2.Zero;
+
                 foreach (var enemy in HeroManager.Enemies)
                 {
-                    try
-                    {
-                        _lastPositionObjects.Add(new LastPositionObject(enemy, Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value)
-                        {
-                            Active = Enabled,
-                            TextTotalSeconds = Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1,
-                            FontOffset = Menu.Item(Name + "DrawingSSTimerOffset").GetValue<Slider>().Value,
-                            SSTimer = Menu.Item(Name + "SSTimer").GetValue<bool>(),
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        Global.Logger.AddItem(new LogItem(ex));
-                    }
+                    _heroTextures[enemy.NetworkId] =
+                        ((Bitmap) Resources.ResourceManager.GetObject(string.Format("LP_{0}", enemy.ChampionName)) ?? Resources.LP_Aatrox).ToTexture();
+                    _lastPositions.Add(new LastPositionStruct(enemy));
                 }
+
+                _sprite = new Sprite(Drawing.Direct3DDevice);
+                _teleportTexture = Resources.LP_Teleport.ToTexture();
+                _text = new Font(Drawing.Direct3DDevice,
+                    new FontDescription
+                    {
+                        FaceName = Global.DefaultFont,
+                        Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
+                        OutputPrecision = FontPrecision.Default,
+                        Quality = FontQuality.Default
+                    });
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();
@@ -182,170 +258,16 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        internal class LastPositionObject
+        internal class LastPositionStruct
         {
-            private readonly Render.Sprite _championSprite;
-            private readonly Render.Sprite _teleportSprite;
-            private readonly Render.Text _text;
             public readonly Obj_AI_Hero Hero;
-            private bool _active;
-            private bool _added;
             public bool IsTeleporting;
-            // ReSharper disable once InconsistentNaming
-            public bool SSTimer;
-            public int FontOffset = 5;
-            public bool TextTotalSeconds;
+            public float LastSeen;
             public bool Teleported;
-            private float _lastSeen;
 
-            public LastPositionObject(Obj_AI_Hero hero, int fontSize)
+            public LastPositionStruct(Obj_AI_Hero hero)
             {
-                try
-                {
-                    Hero = hero;
-                    var mPos = Drawing.WorldToMinimap(hero.Position);
-                    var spawnPoint = ObjectManager.Get<GameObject>().FirstOrDefault(s => s is Obj_SpawnPoint && s.IsEnemy);
-
-                    _championSprite =
-                        new Render.Sprite(
-                            (Bitmap) Resources.ResourceManager.GetObject(string.Format("LP_{0}", hero.ChampionName)) ?? Resources.LP_Aatrox,
-                            new Vector2(mPos.X, mPos.Y))
-                        {
-                            VisibleCondition = delegate
-                            {
-                                try
-                                {
-                                    if (hero.IsVisible)
-                                    {
-                                        Teleported = false;
-                                    }
-                                    return Active && !Hero.IsVisible && !Hero.IsDead;
-                                }
-                                catch (Exception ex)
-                                {
-                                    Global.Logger.AddItem(new LogItem(ex));
-                                    return false;
-                                }
-                            },
-                            PositionUpdate = delegate
-                            {
-                                try
-                                {
-                                    if (Teleported)
-                                    {
-                                        if (spawnPoint != null)
-                                        {
-                                            var p = Drawing.WorldToMinimap(spawnPoint.Position);
-                                            return new Vector2(p.X - (_championSprite.Size.X/2), p.Y - (_championSprite.Size.Y/2));
-                                        }
-                                    }
-                                    var pos = Drawing.WorldToMinimap(hero.Position);
-                                    return new Vector2(pos.X - (_championSprite.Size.X/2), pos.Y - (_championSprite.Size.Y/2));
-                                }
-                                catch (Exception ex)
-                                {
-                                    Global.Logger.AddItem(new LogItem(ex));
-                                    return default(Vector2);
-                                }
-                            }
-                        };
-                    _text = new Render.Text(string.Empty, new Vector2(mPos.X, mPos.Y), fontSize, Color.White)
-                    {
-                        OutLined = true,
-                        Centered = true,
-                        PositionUpdate = delegate
-                        {
-                            try
-                            {
-                                return new Vector2(_championSprite.Position.X + (_championSprite.Size.X/2),
-                                    _championSprite.Position.Y + (_championSprite.Size.Y) + FontOffset);
-                            }
-                            catch (Exception ex)
-                            {
-                                Global.Logger.AddItem(new LogItem(ex));
-                                return default(Vector2);
-                            }
-                        },
-                        VisibleCondition = delegate
-                        {
-                            try
-                            {
-                                if (Hero.IsVisible && !Hero.IsDead)
-                                    _lastSeen = Game.Time;
-                                return SSTimer && _championSprite.Visible && _lastSeen != 0f && (Game.Time - _lastSeen) > 3f;
-                            }
-                            catch (Exception ex)
-                            {
-                                Global.Logger.AddItem(new LogItem(ex));
-                                return false;
-                            }
-                        },
-                        TextUpdate = () => _text.Visible ? (Game.Time - _lastSeen).FormatTime(TextTotalSeconds) : string.Empty
-                    };
-                    _teleportSprite = new Render.Sprite(Resources.LP_Teleport, new Vector2(mPos.X, mPos.Y))
-                    {
-                        VisibleCondition = delegate
-                        {
-                            try
-                            {
-                                return _championSprite.Visible && IsTeleporting;
-                            }
-                            catch (Exception ex)
-                            {
-                                Global.Logger.AddItem(new LogItem(ex));
-                                return false;
-                            }
-                        },
-                        PositionUpdate = delegate
-                        {
-                            try
-                            {
-                                var pos = Drawing.WorldToMinimap(hero.Position);
-                                return new Vector2(pos.X - (_teleportSprite.Size.X/2), pos.Y - (_teleportSprite.Size.Y/2));
-                            }
-                            catch (Exception ex)
-                            {
-                                Global.Logger.AddItem(new LogItem(ex));
-                                return default(Vector2);
-                            }
-                        }
-                    };
-                }
-                catch (Exception ex)
-                {
-                    Global.Logger.AddItem(new LogItem(ex));
-                }
-            }
-
-            public bool Active
-            {
-                private get { return _active; }
-                set
-                {
-                    _active = value;
-                    Toggle();
-                }
-            }
-
-            private void Toggle()
-            {
-                if (_championSprite == null)
-                    return;
-
-                if (_active && !_added)
-                {
-                    _teleportSprite.Add(0);
-                    _championSprite.Add(1);
-                    _text.Add(2);
-                    _added = true;
-                }
-                else if (!_active && _added)
-                {
-                    _teleportSprite.Remove();
-                    _championSprite.Remove();
-                    _text.Remove();
-                    _added = false;
-                }
+                Hero = hero;
             }
         }
     }

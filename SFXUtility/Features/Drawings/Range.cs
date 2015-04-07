@@ -25,7 +25,6 @@ namespace SFXUtility.Features.Drawings
     #region
 
     using System;
-    using System.Collections.Generic;
     using System.Drawing;
     using System.Linq;
     using Classes;
@@ -42,7 +41,6 @@ namespace SFXUtility.Features.Drawings
         private const float ExperienceRange = 1400f;
         private const float TurretRange = 900f;
         private Drawings _parent;
-        private List<Obj_AI_Turret> _turrets = new List<Obj_AI_Turret>();
 
         public override bool Enabled
         {
@@ -206,8 +204,11 @@ namespace SFXUtility.Features.Drawings
                 var enemyColor = Menu.Item(Name + "TurretColorEnemy").GetValue<Color>();
 
                 foreach (var turret in
-                    _turrets.Where(turret => !turret.IsDead && turret.Health > 1f && turret.IsVisible)
-                        .Where(turret => (turret.IsAlly && drawAlly || turret.IsEnemy && drawEnemy) && turret.Position.IsOnScreen(TurretRange)))
+                    ObjectManager.Get<Obj_AI_Turret>()
+                        .Where(
+                            t =>
+                                t.IsValid && !t.IsDead && t.Health > 1f && t.IsVisible && (t.IsAlly && drawAlly || t.IsEnemy && drawEnemy) &&
+                                t.Position.IsOnScreen(TurretRange)))
                 {
                     Render.Circle.DrawCircle(turret.Position, TurretRange, turret.IsAlly ? allyColor : enemyColor, thickness);
                 }
@@ -327,8 +328,6 @@ namespace SFXUtility.Features.Drawings
                 Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
-
-                _turrets = ObjectManager.Get<Obj_AI_Turret>().Where(turret => turret.IsValid).ToList();
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();

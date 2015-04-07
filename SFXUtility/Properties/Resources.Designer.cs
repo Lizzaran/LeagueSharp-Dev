@@ -73,46 +73,6 @@ namespace SFXUtility.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap CD_itemsmiteaoe {
-            get {
-                object obj = ResourceManager.GetObject("CD_itemsmiteaoe", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap CD_s5_summonersmiteduel {
-            get {
-                object obj = ResourceManager.GetObject("CD_s5_summonersmiteduel", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap CD_s5_summonersmiteplayerganker {
-            get {
-                object obj = ResourceManager.GetObject("CD_s5_summonersmiteplayerganker", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap CD_s5_summonersmitequick {
-            get {
-                object obj = ResourceManager.GetObject("CD_s5_summonersmitequick", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
         internal static System.Drawing.Bitmap CD_summonerbarrier {
             get {
                 object obj = ResourceManager.GetObject("CD_summonerbarrier", resourceCulture);
@@ -241,13 +201,13 @@ namespace SFXUtility.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
         ///
         ///&lt;!-- ReSharper disable MarkupTextTypo --&gt;
         ///&lt;language lang=&quot;de&quot;&gt;
-        ///	
+        ///
         ///	&lt;!-- START: GLOBAL --&gt;
-        ///	&lt;entry key=&quot;G_&quot;&gt;Aktiviert&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Enabled&quot;&gt;Aktiviert&lt;/entry&gt;
         ///	&lt;entry key=&quot;G_Hotkey&quot;&gt;Hotkey&lt;/entry&gt;
         ///	&lt;entry key=&quot;G_Ally&quot;&gt;Verbuendeter&lt;/entry&gt;
         ///	&lt;entry key=&quot;G_Enemy&quot;&gt;Gegner&lt;/entry&gt;
@@ -255,8 +215,8 @@ namespace SFXUtility.Properties {
         ///	&lt;entry key=&quot;G_Drawing&quot;&gt;Zeichnung&lt;/entry&gt;
         ///	&lt;entry key=&quot;G_Color&quot;&gt;Farbe&lt;/entry&gt;
         ///	&lt;entry key=&quot;G_Circle&quot;&gt;Kreis&lt;/entry&gt;
-        ///	&lt;entry key=&quot;G_Radius&quot;&gt;Radius&lt;/entry&gt;
-        ///	&lt;entry key=&quot;G_Thickness&quot;&gt; [rest of string was truncated]&quot;;.
+        ///	&lt;entry key=&quot;G_Cross&quot;&gt;Kreuz&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Radius&quot;&gt; [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string language_de {
             get {
@@ -279,8 +239,8 @@ namespace SFXUtility.Properties {
         ///	&lt;entry key=&quot;G_Drawing&quot;&gt;Drawing&lt;/entry&gt;
         ///	&lt;entry key=&quot;G_Color&quot;&gt;Color&lt;/entry&gt;
         ///	&lt;entry key=&quot;G_Circle&quot;&gt;Circle&lt;/entry&gt;
-        ///	&lt;entry key=&quot;G_Radius&quot;&gt;Radius&lt;/entry&gt;
-        ///	&lt;entry key=&quot;G_Thickness&quot;&gt;Thickness [rest of string was truncated]&quot;;.
+        ///	&lt;entry key=&quot;G_Cross&quot;&gt;Cross&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Radius&quot;&gt;Radius&lt;/entry&gt; [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string language_en {
             get {
@@ -293,7 +253,7 @@ namespace SFXUtility.Properties {
         ///
         ///&lt;!-- ReSharper disable MarkupTextTypo --&gt;
         ///&lt;language lang=&quot;vi&quot;&gt;
-        ///	
+        ///
         ///	&lt;!-- START: GLOBAL --&gt;
         ///	&lt;entry key=&quot;G_Enabled&quot;&gt;Bật&lt;/entry&gt;
         ///	&lt;entry key=&quot;G_Hotkey&quot;&gt;Phím Tắt&lt;/entry&gt;
@@ -303,8 +263,8 @@ namespace SFXUtility.Properties {
         ///	&lt;entry key=&quot;G_Drawing&quot;&gt;Nét Vẽ&lt;/entry&gt;
         ///	&lt;entry key=&quot;G_Color&quot;&gt;Màu Sắc&lt;/entry&gt;
         ///	&lt;entry key=&quot;G_Circle&quot;&gt;Vòng Tròn&lt;/entry&gt;
-        ///	&lt;entry key=&quot;G_Radius&quot;&gt;Bán Kính&lt;/entry&gt;
-        ///	&lt;entry key=&quot;G_Th [rest of string was truncated]&quot;;.
+        ///	&lt;entry key=&quot;G_Cross&quot;&gt;Dấu X&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Radius&quot; [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string language_vi {
             get {
@@ -1548,6 +1508,1376 @@ namespace SFXUtility.Properties {
         internal static System.Drawing.Bitmap LP_Zyra {
             get {
                 object obj = ResourceManager.GetObject("LP_Zyra", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Aatrox {
+            get {
+                object obj = ResourceManager.GetObject("SB_Aatrox", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Ahri {
+            get {
+                object obj = ResourceManager.GetObject("SB_Ahri", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Akali {
+            get {
+                object obj = ResourceManager.GetObject("SB_Akali", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Alistar {
+            get {
+                object obj = ResourceManager.GetObject("SB_Alistar", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Amumu {
+            get {
+                object obj = ResourceManager.GetObject("SB_Amumu", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Anivia {
+            get {
+                object obj = ResourceManager.GetObject("SB_Anivia", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Annie {
+            get {
+                object obj = ResourceManager.GetObject("SB_Annie", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Ashe {
+            get {
+                object obj = ResourceManager.GetObject("SB_Ashe", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Blitzcrank {
+            get {
+                object obj = ResourceManager.GetObject("SB_Blitzcrank", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Brand {
+            get {
+                object obj = ResourceManager.GetObject("SB_Brand", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Caitlyn {
+            get {
+                object obj = ResourceManager.GetObject("SB_Caitlyn", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Cassiopeia {
+            get {
+                object obj = ResourceManager.GetObject("SB_Cassiopeia", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Chogath {
+            get {
+                object obj = ResourceManager.GetObject("SB_Chogath", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Corki {
+            get {
+                object obj = ResourceManager.GetObject("SB_Corki", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Darius {
+            get {
+                object obj = ResourceManager.GetObject("SB_Darius", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Diana {
+            get {
+                object obj = ResourceManager.GetObject("SB_Diana", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Draven {
+            get {
+                object obj = ResourceManager.GetObject("SB_Draven", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_DrMundo {
+            get {
+                object obj = ResourceManager.GetObject("SB_DrMundo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Elise {
+            get {
+                object obj = ResourceManager.GetObject("SB_Elise", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Evelynn {
+            get {
+                object obj = ResourceManager.GetObject("SB_Evelynn", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Ezreal {
+            get {
+                object obj = ResourceManager.GetObject("SB_Ezreal", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_FiddleSticks {
+            get {
+                object obj = ResourceManager.GetObject("SB_FiddleSticks", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Fiora {
+            get {
+                object obj = ResourceManager.GetObject("SB_Fiora", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Fizz {
+            get {
+                object obj = ResourceManager.GetObject("SB_Fizz", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Galio {
+            get {
+                object obj = ResourceManager.GetObject("SB_Galio", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Gangplank {
+            get {
+                object obj = ResourceManager.GetObject("SB_Gangplank", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Garen {
+            get {
+                object obj = ResourceManager.GetObject("SB_Garen", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Gragas {
+            get {
+                object obj = ResourceManager.GetObject("SB_Gragas", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Graves {
+            get {
+                object obj = ResourceManager.GetObject("SB_Graves", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Hecarim {
+            get {
+                object obj = ResourceManager.GetObject("SB_Hecarim", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Heimerdinger {
+            get {
+                object obj = ResourceManager.GetObject("SB_Heimerdinger", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_HUD {
+            get {
+                object obj = ResourceManager.GetObject("SB_HUD", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Invisible {
+            get {
+                object obj = ResourceManager.GetObject("SB_Invisible", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Irelia {
+            get {
+                object obj = ResourceManager.GetObject("SB_Irelia", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Janna {
+            get {
+                object obj = ResourceManager.GetObject("SB_Janna", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_JarvanIV {
+            get {
+                object obj = ResourceManager.GetObject("SB_JarvanIV", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Jax {
+            get {
+                object obj = ResourceManager.GetObject("SB_Jax", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Jayce {
+            get {
+                object obj = ResourceManager.GetObject("SB_Jayce", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Jinx {
+            get {
+                object obj = ResourceManager.GetObject("SB_Jinx", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Karma {
+            get {
+                object obj = ResourceManager.GetObject("SB_Karma", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Karthus {
+            get {
+                object obj = ResourceManager.GetObject("SB_Karthus", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Kassadin {
+            get {
+                object obj = ResourceManager.GetObject("SB_Kassadin", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Katarina {
+            get {
+                object obj = ResourceManager.GetObject("SB_Katarina", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Kayle {
+            get {
+                object obj = ResourceManager.GetObject("SB_Kayle", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Kennen {
+            get {
+                object obj = ResourceManager.GetObject("SB_Kennen", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Khazix {
+            get {
+                object obj = ResourceManager.GetObject("SB_Khazix", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_KogMaw {
+            get {
+                object obj = ResourceManager.GetObject("SB_KogMaw", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Leblanc {
+            get {
+                object obj = ResourceManager.GetObject("SB_Leblanc", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_LeeSin {
+            get {
+                object obj = ResourceManager.GetObject("SB_LeeSin", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Leona {
+            get {
+                object obj = ResourceManager.GetObject("SB_Leona", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Lissandra {
+            get {
+                object obj = ResourceManager.GetObject("SB_Lissandra", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Lucian {
+            get {
+                object obj = ResourceManager.GetObject("SB_Lucian", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Lulu {
+            get {
+                object obj = ResourceManager.GetObject("SB_Lulu", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Lux {
+            get {
+                object obj = ResourceManager.GetObject("SB_Lux", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Malphite {
+            get {
+                object obj = ResourceManager.GetObject("SB_Malphite", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Malzahar {
+            get {
+                object obj = ResourceManager.GetObject("SB_Malzahar", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Maokai {
+            get {
+                object obj = ResourceManager.GetObject("SB_Maokai", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_MasterYi {
+            get {
+                object obj = ResourceManager.GetObject("SB_MasterYi", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_MissFortune {
+            get {
+                object obj = ResourceManager.GetObject("SB_MissFortune", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_MonkeyKing {
+            get {
+                object obj = ResourceManager.GetObject("SB_MonkeyKing", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Mordekaiser {
+            get {
+                object obj = ResourceManager.GetObject("SB_Mordekaiser", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Morgana {
+            get {
+                object obj = ResourceManager.GetObject("SB_Morgana", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Nami {
+            get {
+                object obj = ResourceManager.GetObject("SB_Nami", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Nasus {
+            get {
+                object obj = ResourceManager.GetObject("SB_Nasus", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Nautilus {
+            get {
+                object obj = ResourceManager.GetObject("SB_Nautilus", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Nidalee {
+            get {
+                object obj = ResourceManager.GetObject("SB_Nidalee", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Nocturne {
+            get {
+                object obj = ResourceManager.GetObject("SB_Nocturne", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Nunu {
+            get {
+                object obj = ResourceManager.GetObject("SB_Nunu", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Olaf {
+            get {
+                object obj = ResourceManager.GetObject("SB_Olaf", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Orianna {
+            get {
+                object obj = ResourceManager.GetObject("SB_Orianna", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Pantheon {
+            get {
+                object obj = ResourceManager.GetObject("SB_Pantheon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Poppy {
+            get {
+                object obj = ResourceManager.GetObject("SB_Poppy", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Quinn {
+            get {
+                object obj = ResourceManager.GetObject("SB_Quinn", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Rammus {
+            get {
+                object obj = ResourceManager.GetObject("SB_Rammus", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_RecallAbort {
+            get {
+                object obj = ResourceManager.GetObject("SB_RecallAbort", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_RecallFinish {
+            get {
+                object obj = ResourceManager.GetObject("SB_RecallFinish", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_RecallStart {
+            get {
+                object obj = ResourceManager.GetObject("SB_RecallStart", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Renekton {
+            get {
+                object obj = ResourceManager.GetObject("SB_Renekton", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Rengar {
+            get {
+                object obj = ResourceManager.GetObject("SB_Rengar", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Riven {
+            get {
+                object obj = ResourceManager.GetObject("SB_Riven", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Rumble {
+            get {
+                object obj = ResourceManager.GetObject("SB_Rumble", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Ryze {
+            get {
+                object obj = ResourceManager.GetObject("SB_Ryze", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Sejuani {
+            get {
+                object obj = ResourceManager.GetObject("SB_Sejuani", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Shaco {
+            get {
+                object obj = ResourceManager.GetObject("SB_Shaco", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Shen {
+            get {
+                object obj = ResourceManager.GetObject("SB_Shen", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Shyvana {
+            get {
+                object obj = ResourceManager.GetObject("SB_Shyvana", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Singed {
+            get {
+                object obj = ResourceManager.GetObject("SB_Singed", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Sion {
+            get {
+                object obj = ResourceManager.GetObject("SB_Sion", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Sivir {
+            get {
+                object obj = ResourceManager.GetObject("SB_Sivir", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Skarner {
+            get {
+                object obj = ResourceManager.GetObject("SB_Skarner", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Sona {
+            get {
+                object obj = ResourceManager.GetObject("SB_Sona", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Soraka {
+            get {
+                object obj = ResourceManager.GetObject("SB_Soraka", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_summonerbarrier {
+            get {
+                object obj = ResourceManager.GetObject("SB_summonerbarrier", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_summonerboost {
+            get {
+                object obj = ResourceManager.GetObject("SB_summonerboost", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_summonerclairvoyance {
+            get {
+                object obj = ResourceManager.GetObject("SB_summonerclairvoyance", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_summonerdot {
+            get {
+                object obj = ResourceManager.GetObject("SB_summonerdot", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_summonerexhaust {
+            get {
+                object obj = ResourceManager.GetObject("SB_summonerexhaust", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_summonerflash {
+            get {
+                object obj = ResourceManager.GetObject("SB_summonerflash", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_summonerhaste {
+            get {
+                object obj = ResourceManager.GetObject("SB_summonerhaste", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_summonerheal {
+            get {
+                object obj = ResourceManager.GetObject("SB_summonerheal", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_summonermana {
+            get {
+                object obj = ResourceManager.GetObject("SB_summonermana", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_summonerodingarrison {
+            get {
+                object obj = ResourceManager.GetObject("SB_summonerodingarrison", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_summonerrevive {
+            get {
+                object obj = ResourceManager.GetObject("SB_summonerrevive", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_summonersmite {
+            get {
+                object obj = ResourceManager.GetObject("SB_summonersmite", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_summonerteleport {
+            get {
+                object obj = ResourceManager.GetObject("SB_summonerteleport", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Swain {
+            get {
+                object obj = ResourceManager.GetObject("SB_Swain", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Syndra {
+            get {
+                object obj = ResourceManager.GetObject("SB_Syndra", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Talon {
+            get {
+                object obj = ResourceManager.GetObject("SB_Talon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Taric {
+            get {
+                object obj = ResourceManager.GetObject("SB_Taric", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Teemo {
+            get {
+                object obj = ResourceManager.GetObject("SB_Teemo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Thresh {
+            get {
+                object obj = ResourceManager.GetObject("SB_Thresh", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Tristana {
+            get {
+                object obj = ResourceManager.GetObject("SB_Tristana", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Trundle {
+            get {
+                object obj = ResourceManager.GetObject("SB_Trundle", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Tryndamere {
+            get {
+                object obj = ResourceManager.GetObject("SB_Tryndamere", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_TwistedFate {
+            get {
+                object obj = ResourceManager.GetObject("SB_TwistedFate", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Twitch {
+            get {
+                object obj = ResourceManager.GetObject("SB_Twitch", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Udyr {
+            get {
+                object obj = ResourceManager.GetObject("SB_Udyr", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Ultimate {
+            get {
+                object obj = ResourceManager.GetObject("SB_Ultimate", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Urgot {
+            get {
+                object obj = ResourceManager.GetObject("SB_Urgot", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Varus {
+            get {
+                object obj = ResourceManager.GetObject("SB_Varus", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Vayne {
+            get {
+                object obj = ResourceManager.GetObject("SB_Vayne", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Veigar {
+            get {
+                object obj = ResourceManager.GetObject("SB_Veigar", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Velkoz {
+            get {
+                object obj = ResourceManager.GetObject("SB_Velkoz", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Vi {
+            get {
+                object obj = ResourceManager.GetObject("SB_Vi", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Viktor {
+            get {
+                object obj = ResourceManager.GetObject("SB_Viktor", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Vladimir {
+            get {
+                object obj = ResourceManager.GetObject("SB_Vladimir", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Volibear {
+            get {
+                object obj = ResourceManager.GetObject("SB_Volibear", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Warwick {
+            get {
+                object obj = ResourceManager.GetObject("SB_Warwick", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Xerath {
+            get {
+                object obj = ResourceManager.GetObject("SB_Xerath", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_XinZhao {
+            get {
+                object obj = ResourceManager.GetObject("SB_XinZhao", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Yasuo {
+            get {
+                object obj = ResourceManager.GetObject("SB_Yasuo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Yorick {
+            get {
+                object obj = ResourceManager.GetObject("SB_Yorick", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Zac {
+            get {
+                object obj = ResourceManager.GetObject("SB_Zac", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Zed {
+            get {
+                object obj = ResourceManager.GetObject("SB_Zed", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Ziggs {
+            get {
+                object obj = ResourceManager.GetObject("SB_Ziggs", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Zilean {
+            get {
+                object obj = ResourceManager.GetObject("SB_Zilean", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Zyra {
+            get {
+                object obj = ResourceManager.GetObject("SB_Zyra", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

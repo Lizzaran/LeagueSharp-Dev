@@ -20,6 +20,7 @@
 
 #endregion License
 
+
 #pragma warning disable 618
 
 namespace SFXUtility.Features.Detectors
@@ -34,6 +35,7 @@ namespace SFXUtility.Features.Detectors
     using LeagueSharp.Common;
     using SFXLibrary;
     using SFXLibrary.Extensions.NET;
+    using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.Logger;
     using SharpDX;
     using SharpDX.Direct3D9;
@@ -81,20 +83,21 @@ namespace SFXUtility.Features.Detectors
             {
                 if (Menu.Item(Name + "DrawingTextEnabled").GetValue<bool>())
                 {
-                    var posX = Drawing.Width*0.66f;
+                    var posX = Drawing.Width*0.68f;
                     var posY = Drawing.Height*0.75f;
                     var count = 0;
-                    foreach (var teleport in _teleportObjects.Where(t => t.LastStatus != Packet.S2C.Teleport.Status.Unknown && t.Update()))
+                    foreach (
+                        var teleport in
+                            _teleportObjects.Where(t => t.Hero.IsEnemy && t.LastStatus != Packet.S2C.Teleport.Status.Unknown && t.Update()))
                     {
                         var text = teleport.ToString();
                         if (!string.IsNullOrWhiteSpace(text))
                         {
-                            Drawing.DrawText(posX, posY + 15*count++, teleport.ToColor(), text);
+                            Drawing.DrawText(posX, posY + 15*count++, teleport.ToColor(true), text);
                         }
                     }
                 }
 
-                // Credits: Beaving
                 if (Menu.Item(Name + "DrawingBarEnabled").GetValue<bool>())
                 {
                     const int barHeight = 10;
@@ -104,7 +107,7 @@ namespace SFXUtility.Features.Detectors
                     var posY = Drawing.Height*0.75f;
                     var barWidth = (int) (Drawing.Width - 2*posX);
                     var scale = (float) barWidth/8;
-                    var teleports = _teleportObjects.Where(t => t.Countdown > 0).OrderBy(t => t.Countdown);
+                    var teleports = _teleportObjects.Where(t => t.Hero.IsEnemy && t.Countdown > 0).OrderBy(t => t.Countdown);
 
                     foreach (var teleport in teleports)
                     {
@@ -115,14 +118,13 @@ namespace SFXUtility.Features.Detectors
                         Draw.RectangleFilled(new Vector2(posX, posY), width, barHeight, color.ToArgb(100));
                         Draw.Line(new Vector2(posX + width, (top ? posY - seperatorHeight - barHeight/2f : posY + barHeight/2f + 2)), 1,
                             seperatorHeight, Color.White);
-                        _text.DrawText(null, teleport.Hero.ChampionName, (int) (posX + width - teleport.Hero.ChampionName.Length*3),
+                        _text.DrawTextCentered(teleport.Hero.ChampionName, (int) (posX + width),
+                            (top ? (int) (posY - barHeight - seperatorHeight - 2) : (int) (posY + barHeight + seperatorHeight + 2)),
+                            new ColorBGRA(color.R, color.G, color.B, color.A));
+                        _text.DrawTextCentered(hPercent, (int) (posX + width - 1),
                             (top
-                                ? (int) (posY - barHeight - seperatorHeight - _text.Description.Height/2f)
-                                : (int) (posY + barHeight + _text.Description.Height/2f)), new ColorBGRA(color.R, color.G, color.B, color.A));
-                        _text.DrawText(null, hPercent, (int) (posX + width - hPercent.Length*3 - 1),
-                            (top
-                                ? (int) (posY - barHeight - 3 - seperatorHeight - _text.Description.Height)
-                                : (int) (posY + barHeight + 3 + _text.Description.Height)), new ColorBGRA(color.R, color.G, color.B, color.A));
+                                ? (int) (posY - barHeight - 3 - seperatorHeight - _text.Description.Height + 5)
+                                : (int) (posY + barHeight + 3 + _text.Description.Height + 5)), new ColorBGRA(color.R, color.G, color.B, color.A));
                         top = !top;
                     }
 
@@ -163,7 +165,13 @@ namespace SFXUtility.Features.Detectors
                     return;
 
                 _text = new Font(Drawing.Direct3DDevice,
-                    new FontDescription {FaceName = "Calibri", Height = 13, OutputPrecision = FontPrecision.Default, Quality = FontQuality.Default});
+                    new FontDescription
+                    {
+                        FaceName = Global.DefaultFont,
+                        Height = 13,
+                        OutputPrecision = FontPrecision.Default,
+                        Quality = FontQuality.Default
+                    });
 
                 Menu = new Menu(Name, Name);
 
@@ -184,7 +192,7 @@ namespace SFXUtility.Features.Detectors
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _teleportObjects = HeroManager.Enemies.Select(hero => new TeleportObject(hero)).ToList();
+                _teleportObjects = HeroManager.AllHeroes.Select(hero => new TeleportObject(hero)).ToList();
 
                 Obj_AI_Base.OnTeleport += OnObjAiBaseTeleport;
 
@@ -212,19 +220,19 @@ namespace SFXUtility.Features.Detectors
                     switch (packet.Status)
                     {
                         case Packet.S2C.Teleport.Status.Start:
-                            OnStart.RaiseEvent(null, new TeleportEventArgs(packet.UnitNetworkId));
+                            OnStart.RaiseEvent(null, new TeleportEventArgs(packet.UnitNetworkId, packet.Status));
                             break;
 
                         case Packet.S2C.Teleport.Status.Finish:
-                            OnFinish.RaiseEvent(null, new TeleportEventArgs(packet.UnitNetworkId));
+                            OnFinish.RaiseEvent(null, new TeleportEventArgs(packet.UnitNetworkId, packet.Status));
                             break;
 
                         case Packet.S2C.Teleport.Status.Abort:
-                            OnAbort.RaiseEvent(null, new TeleportEventArgs(packet.UnitNetworkId));
+                            OnAbort.RaiseEvent(null, new TeleportEventArgs(packet.UnitNetworkId, packet.Status));
                             break;
 
                         case Packet.S2C.Teleport.Status.Unknown:
-                            OnUnknown.RaiseEvent(null, new TeleportEventArgs(packet.UnitNetworkId));
+                            OnUnknown.RaiseEvent(null, new TeleportEventArgs(packet.UnitNetworkId, packet.Status));
                             break;
                     }
                 }
@@ -381,11 +389,18 @@ namespace SFXUtility.Features.Detectors
 
     public class TeleportEventArgs : EventArgs
     {
+        private readonly Packet.S2C.Teleport.Status _status;
         private readonly int _unitNetworkId;
 
-        public TeleportEventArgs(int unitNetworkId)
+        public TeleportEventArgs(int unitNetworkId, Packet.S2C.Teleport.Status status)
         {
             _unitNetworkId = unitNetworkId;
+            _status = status;
+        }
+
+        public Packet.S2C.Teleport.Status Status
+        {
+            get { return _status; }
         }
 
         public int UnitNetworkId

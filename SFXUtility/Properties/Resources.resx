@@ -496,18 +496,6 @@
   <data name="CD_Hud" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\cd\cd_hud.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="CD_itemsmiteaoe" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\cd\cd_itemsmiteaoe.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="CD_s5_summonersmiteduel" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\cd\cd_s5_summonersmiteduel.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="CD_s5_summonersmiteplayerganker" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\cd\cd_s5_summonersmiteplayerganker.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="CD_s5_summonersmitequick" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\cd\cd_s5_summonersmitequick.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="CD_summonerbarrier" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\cd\cd_summonerbarrier.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -558,5 +546,416 @@
   </data>
   <data name="language_vi" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\languages\language.vi.xml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="SB_Aatrox" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_aatrox.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Ahri" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_ahri.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Akali" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_akali.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Alistar" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_alistar.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Amumu" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_amumu.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Anivia" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_anivia.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Annie" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_annie.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Ashe" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_ashe.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Blitzcrank" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_blitzcrank.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Brand" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_brand.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Caitlyn" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_caitlyn.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Cassiopeia" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_cassiopeia.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Chogath" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_chogath.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Corki" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_corki.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Darius" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_darius.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Diana" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_diana.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Draven" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_draven.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_DrMundo" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_drmundo.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Elise" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_elise.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Evelynn" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_evelynn.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Ezreal" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_ezreal.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_FiddleSticks" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_fiddlesticks.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Fiora" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_fiora.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Fizz" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_fizz.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Galio" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_galio.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Gangplank" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_gangplank.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Garen" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_garen.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Gragas" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_gragas.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Graves" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_graves.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Hecarim" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_hecarim.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Heimerdinger" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_heimerdinger.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_HUD" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_hud.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Irelia" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_irelia.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Janna" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_janna.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_JarvanIV" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_jarvaniv.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Jax" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_jax.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Jayce" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_jayce.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Jinx" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_jinx.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Karma" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_karma.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Karthus" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_karthus.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Kassadin" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_kassadin.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Katarina" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_katarina.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Kayle" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_kayle.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Kennen" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_kennen.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Khazix" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_khazix.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_KogMaw" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_kogmaw.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Leblanc" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_leblanc.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_LeeSin" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_leesin.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Leona" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_leona.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Lissandra" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_lissandra.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Lucian" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_lucian.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Lulu" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_lulu.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Lux" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_lux.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Malphite" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_malphite.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Malzahar" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_malzahar.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Maokai" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_maokai.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_MasterYi" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_masteryi.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_MissFortune" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_missfortune.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_MonkeyKing" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_monkeyking.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Mordekaiser" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_mordekaiser.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Morgana" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_morgana.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Nami" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_nami.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Nasus" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_nasus.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Nautilus" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_nautilus.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Nidalee" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_nidalee.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Nocturne" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_nocturne.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Nunu" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_nunu.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Olaf" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_olaf.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Orianna" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_orianna.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Pantheon" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_pantheon.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Poppy" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_poppy.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Quinn" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_quinn.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Rammus" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_rammus.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_RecallAbort" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_recallabort.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_RecallFinish" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_recallfinish.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_RecallStart" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_recallstart.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Renekton" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_renekton.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Rengar" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_rengar.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Riven" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_riven.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Rumble" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_rumble.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Ryze" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_ryze.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Sejuani" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_sejuani.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Shaco" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_shaco.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Shen" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_shen.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Shyvana" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_shyvana.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Singed" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_singed.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Sion" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_sion.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Sivir" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_sivir.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Skarner" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_skarner.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Sona" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_sona.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Soraka" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_soraka.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Swain" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_swain.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Syndra" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_syndra.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Talon" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_talon.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Taric" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_taric.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Teemo" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_teemo.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Thresh" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_thresh.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Tristana" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_tristana.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Trundle" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_trundle.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Tryndamere" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_tryndamere.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_TwistedFate" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_twistedfate.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Twitch" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_twitch.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Udyr" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_udyr.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Ultimate" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_ultimate.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Urgot" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_urgot.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Varus" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_varus.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Vayne" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_vayne.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Veigar" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_veigar.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Velkoz" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_velkoz.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Vi" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_vi.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Viktor" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_viktor.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Vladimir" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_vladimir.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Volibear" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_volibear.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Warwick" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_warwick.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Xerath" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_xerath.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_XinZhao" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_xinzhao.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Yasuo" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_yasuo.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Yorick" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_yorick.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Zac" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_zac.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Zed" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_zed.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Ziggs" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_ziggs.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Zilean" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_zilean.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Zyra" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_zyra.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_summonerbarrier" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_summonerbarrier.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_summonerboost" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_summonerboost.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_summonerclairvoyance" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_summonerclairvoyance.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_summonerdot" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_summonerdot.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_summonerexhaust" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_summonerexhaust.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_summonerflash" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_summonerflash.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_summonerhaste" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_summonerhaste.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_summonerheal" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_summonerheal.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_summonermana" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_summonermana.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_summonerodingarrison" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_summonerodingarrison.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_summonerrevive" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_summonerrevive.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_summonersmite" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_summonersmite.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_summonerteleport" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_summonerteleport.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SB_Invisible" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\sb\sb_invisible.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>
