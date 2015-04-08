@@ -268,7 +268,7 @@ namespace SFXUtility.Features.Activators
             {
                 foreach (var spell in _heroSpells.Where(s => s.Enabled && s.Drawing))
                 {
-                    Render.Circle.DrawCircle(ObjectManager.Player.ServerPosition, spell.Range,
+                    Render.Circle.DrawCircle(ObjectManager.Player.Position, spell.Range,
                         spell.CanCast(_currentMinion) ? spell.UseableColor : spell.UnusableColor, spell.Thickness);
                 }
             }
