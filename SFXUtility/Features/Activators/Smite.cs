@@ -47,7 +47,6 @@ namespace SFXUtility.Features.Activators
         private readonly List<HeroSpell> _heroSpells = new List<HeroSpell>();
         private Obj_AI_Minion _currentMinion;
         private bool _delayActive;
-        private HeroSpell _heroSpell;
         private string[] _mobNames = new string[0];
         private Activators _parent;
         private Spell _smiteSpell;
@@ -83,62 +82,117 @@ namespace SFXUtility.Features.Activators
                 if (_parent.Menu == null)
                     return;
 
-                #region Hero Spells
-
-                _heroSpells.AddRange(new List<HeroSpell>
-                {
-                    new HeroSpell("Nunu", SpellSlot.Q, TargetSelector.DamageType.True, null, true, 250, false),
-                    new HeroSpell("Olaf", SpellSlot.E, TargetSelector.DamageType.True, null, true, 250, false),
-                    new HeroSpell("Chogath", SpellSlot.R, TargetSelector.DamageType.True, null, true, 250, false)
-                });
-
-                #endregion
-
                 Menu = new Menu(Name, Name);
 
-                var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
-                drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "UseableColor", Language.Get("G_Useable") + " " + Language.Get("G_Color")).SetValue(Color.Blue));
-                drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "UnusableColor", Language.Get("G_Unusable") + " " + Language.Get("G_Color")).SetValue(Color.Gray));
+                var drawingMenu = Menu.AddSubMenu(new Menu(Language.Get("G_Drawing"), Name + "Drawing"));
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + "DamageColor",
                         Language.Get("G_Damage") + " " + Language.Get("G_Indicator") + " " + Language.Get("G_Color")).SetValue(Color.SkyBlue));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "SmiteRange", Language.Get("Smite_Smite") + " " + Language.Get("G_Range")).SetValue(false));
-                drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "SpellRange", Language.Get("G_Spell") + " " + Language.Get("G_Range")).SetValue(false));
-                drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + "DamageIndicator", Language.Get("G_Damage") + " " + Language.Get("G_Indicator")).SetValue(false));
 
-                var spellMenu = new Menu(Language.Get("G_Spell"), Name + "Spell");
-                var spellHeroMenu = new Menu(Language.Get("G_Hero"), spellMenu.Name + "Hero");
+                var spellMenu = Menu.AddSubMenu(new Menu(Language.Get("G_Spell"), Name + "Spell"));
 
-                spellHeroMenu.AddItem(
-                    new MenuItem(spellHeroMenu.Name + "MinHitChance", Language.Get("G_Minimum") + " " + Language.Get("G_HitChance")).SetValue(
-                        new StringList(Language.Get("Smite_MinHitChanceList").Split('|'))));
+                var championMenu =
+                    spellMenu.AddSubMenu(new Menu(ObjectManager.Player.ChampionName, spellMenu.Name + ObjectManager.Player.ChampionName));
+                var championPriorityMenu = championMenu.AddSubMenu(new Menu(Language.Get("G_Priority"), championMenu.Name + "Priority"));
+                var spells =
+                    ObjectManager.Player.Spellbook.Spells.Where(s => new[] {SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R}.Contains(s.Slot))
+                        .ToList();
+                var index = spells.Count;
 
-                foreach (var champion in _heroSpells.GroupBy(s => s.ChampionName))
+                foreach (var spell in spells.Where(s => s.SData.TargettingType != SpellDataTargetType.Self))
                 {
-                    var championMenu = new Menu(string.Empty, string.Empty);
-                    foreach (var heroSpell in champion)
+                    var spellName = Utils.GetEnumName(spell.Slot);
+                    championPriorityMenu.AddItem(
+                        new MenuItem(championPriorityMenu.Name + spellName, spellName).SetValue(new Slider(index--, 1, spells.Count)));
+
+                    var championSpellMenu = championMenu.AddSubMenu(new Menu(spellName, championMenu.Name + spellName));
+
+                    var championDrawingMenu = championSpellMenu.AddSubMenu(new Menu(Language.Get("G_Drawing"), championSpellMenu.Name + "Drawing"));
+                    championDrawingMenu.AddItem(
+                        new MenuItem(championDrawingMenu.Name + "UseableColor", Language.Get("G_Useable") + " " + Language.Get("G_Color")).SetValue(
+                            Color.Blue));
+                    championDrawingMenu.AddItem(
+                        new MenuItem(championDrawingMenu.Name + "UnusableColor", Language.Get("G_Unusable") + " " + Language.Get("G_Color")).SetValue(
+                            Color.Gray));
+                    championDrawingMenu.AddItem(
+                        new MenuItem(championDrawingMenu.Name + "Thickness", Language.Get("G_Thickness")).SetValue(new Slider(2, 1, 10)));
+                    championDrawingMenu.AddItem(new MenuItem(championDrawingMenu.Name + "Range", Language.Get("G_Range")).SetValue(false));
+
+                    championSpellMenu.AddItem(
+                        new MenuItem(championSpellMenu.Name + "Delay", Language.Get("G_Delay")).SetValue(new Slider(125, 0, 1000)));
+                    championSpellMenu.AddItem(
+                        new MenuItem(championSpellMenu.Name + "IsSkillshot", Language.Get("G_Is") + " " + Language.Get("G_Skillshot")).SetValue(false));
+                    championSpellMenu.AddItem(new MenuItem(championSpellMenu.Name + "Collision", Language.Get("G_Collision")).SetValue(false));
+                    championSpellMenu.AddItem(
+                        new MenuItem(championSpellMenu.Name + "MinHitChance", Language.Get("G_Minimum") + " " + Language.Get("G_HitChance")).SetValue(
+                            new StringList(Language.GetList("Smite_MinHitChanceList"), 1)));
+                    championSpellMenu.AddItem(
+                        new MenuItem(championSpellMenu.Name + "DamageType", Language.Get("G_Damage") + " " + Language.Get("G_Type")).SetValue(
+                            new StringList(Language.GetList("Smite_DamageTypeList"))));
+                    championSpellMenu.AddItem(
+                        new MenuItem(championSpellMenu.Name + "SkillshotType", Language.Get("G_Skillshot") + " " + Language.Get("G_Type")).SetValue(
+                            new StringList(Language.GetList("Smite_SkillshotTypeList"))));
+                    championSpellMenu.AddItem(new MenuItem(championSpellMenu.Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+
+                    var heroSpell = new HeroSpell(spell.Slot, Menu.Item(championSpellMenu.Name + "Delay").GetValue<Slider>().Value,
+                        Menu.Item(championSpellMenu.Name + "IsSkillshot").GetValue<bool>(),
+                        Menu.Item(championSpellMenu.Name + "Collision").GetValue<bool>(),
+                        (HitChance) (Menu.Item(championSpellMenu.Name + "MinHitChance").GetValue<StringList>().SelectedIndex + 3),
+                        (TargetSelector.DamageType) (Menu.Item(championSpellMenu.Name + "DamageType").GetValue<StringList>().SelectedIndex),
+                        (SkillshotType) (Menu.Item(championSpellMenu.Name + "SkillshotType").GetValue<StringList>().SelectedIndex),
+                        Menu.Item(championSpellMenu.Name + "Enabled").GetValue<bool>())
                     {
-                        championMenu.DisplayName = heroSpell.ChampionName;
-                        championMenu.Name = spellHeroMenu.Name + heroSpell.ChampionName;
-                        championMenu.AddItem(
-                            new MenuItem(championMenu.Name + Utils.GetEnumName(heroSpell.Spell.Slot), Utils.GetEnumName(heroSpell.Spell.Slot))
-                                .SetValue(false));
-                    }
-                    spellHeroMenu.AddSubMenu(championMenu);
+                        Priority = Menu.Item(championPriorityMenu.Name + spellName).GetValue<Slider>().Value,
+                        UseableColor = Menu.Item(championDrawingMenu.Name + "UseableColor").GetValue<Color>(),
+                        UnusableColor = Menu.Item(championDrawingMenu.Name + "UnusableColor").GetValue<Color>(),
+                        Thickness = Menu.Item(championDrawingMenu.Name + "Thickness").GetValue<Slider>().Value,
+                        Drawing = Menu.Item(championDrawingMenu.Name + "Range").GetValue<bool>()
+                    };
+
+                    Menu.Item(championPriorityMenu.Name + spellName).ValueChanged +=
+                        (o, args) => heroSpell.Priority = args.GetNewValue<Slider>().Value;
+                    Menu.Item(championSpellMenu.Name + "Delay").ValueChanged += (o, args) => heroSpell.Delay = args.GetNewValue<Slider>().Value;
+                    Menu.Item(championSpellMenu.Name + "IsSkillshot").ValueChanged += (o, args) => heroSpell.IsSkillshot = args.GetNewValue<bool>();
+                    Menu.Item(championSpellMenu.Name + "Collision").ValueChanged += (o, args) => heroSpell.Collision = args.GetNewValue<bool>();
+                    Menu.Item(championSpellMenu.Name + "MinHitChance").ValueChanged +=
+                        (o, args) => heroSpell.MinHitChance = (HitChance) (args.GetNewValue<StringList>().SelectedIndex + 3);
+                    Menu.Item(championSpellMenu.Name + "DamageType").ValueChanged +=
+                        (o, args) => heroSpell.DamageType = (TargetSelector.DamageType) (args.GetNewValue<StringList>().SelectedIndex);
+                    Menu.Item(championSpellMenu.Name + "SkillshotType").ValueChanged +=
+                        (o, args) => heroSpell.SkillshotType = (SkillshotType) (args.GetNewValue<StringList>().SelectedIndex);
+                    Menu.Item(championSpellMenu.Name + "Enabled").ValueChanged += (o, args) => heroSpell.Enabled = args.GetNewValue<bool>();
+
+                    Menu.Item(championDrawingMenu.Name + "UseableColor").ValueChanged +=
+                        (o, args) => heroSpell.UseableColor = args.GetNewValue<Color>();
+                    Menu.Item(championDrawingMenu.Name + "UnusableColor").ValueChanged +=
+                        (o, args) => heroSpell.UnusableColor = args.GetNewValue<Color>();
+                    Menu.Item(championDrawingMenu.Name + "Thickness").ValueChanged +=
+                        (o, args) => heroSpell.Thickness = args.GetNewValue<Slider>().Value;
+                    Menu.Item(championDrawingMenu.Name + "Range").ValueChanged += (o, args) => heroSpell.Drawing = args.GetNewValue<bool>();
+
+                    _heroSpells.Add(heroSpell);
                 }
+                championMenu.AddItem(new MenuItem(championMenu.Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
-                spellMenu.AddSubMenu(spellHeroMenu);
-                spellMenu.AddItem(new MenuItem(spellMenu.Name + "Smite", Language.Get("G_Use") + " " + Language.Get("Smite_Smite")).SetValue(false));
+                var smiteMenu = spellMenu.AddSubMenu(new Menu(Language.Get("Smite_Smite"), spellMenu.Name + "Smite"));
 
-                Menu.AddSubMenu(drawingMenu);
-                Menu.AddSubMenu(spellMenu);
+                var smiteDrawingMenu = smiteMenu.AddSubMenu(new Menu(Language.Get("G_Drawing"), smiteMenu.Name + "Drawing"));
+                smiteDrawingMenu.AddItem(
+                    new MenuItem(smiteDrawingMenu.Name + "UseableColor", Language.Get("G_Useable") + " " + Language.Get("G_Color")).SetValue(
+                        Color.Blue));
+                smiteDrawingMenu.AddItem(
+                    new MenuItem(smiteDrawingMenu.Name + "UnusableColor", Language.Get("G_Unusable") + " " + Language.Get("G_Color")).SetValue(
+                        Color.Gray));
+                smiteDrawingMenu.AddItem(new MenuItem(smiteDrawingMenu.Name + "Thickness", Language.Get("G_Thickness")).SetValue(new Slider(2, 1, 10)));
+                smiteDrawingMenu.AddItem(new MenuItem(smiteDrawingMenu.Name + "Range", Language.Get("G_Range")).SetValue(false));
+
+                smiteMenu.AddItem(new MenuItem(smiteMenu.Name + "Use", Language.Get("G_Use")).SetValue(false));
 
                 Menu.AddItem(new MenuItem(Name + "SmallCamps", Language.Get("Smite_SmallCamps")).SetValue(false));
+
+                Menu.AddItem(new MenuItem(Name + "Hotkey", Language.Get("G_Hotkey")).SetValue(new KeyBind('N', KeyBindType.Toggle)));
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
@@ -152,14 +206,10 @@ namespace SFXUtility.Features.Activators
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                var spell = ObjectManager.Player.Spellbook.Spells.FirstOrDefault(s => s.Name.Contains("Smite", StringComparison.OrdinalIgnoreCase));
-                if (spell != null)
-                    _smiteSpell = new Spell(spell.Slot, SmiteRange, TargetSelector.DamageType.True);
-
-                var hSpell =
-                    _heroSpells.FirstOrDefault(s => s.ChampionName.Equals(ObjectManager.Player.ChampionName, StringComparison.OrdinalIgnoreCase));
-                if (hSpell != null)
-                    _heroSpell = hSpell;
+                var smiteSpell =
+                    ObjectManager.Player.Spellbook.Spells.FirstOrDefault(s => s.Name.Contains("Smite", StringComparison.OrdinalIgnoreCase));
+                if (smiteSpell != null)
+                    _smiteSpell = new Spell(smiteSpell.Slot, SmiteRange, TargetSelector.DamageType.True);
 
                 _camps.AddRange(Jungle.Camps.Where(c => c.MapType == Utility.Map.GetMap().Type));
 
@@ -167,7 +217,7 @@ namespace SFXUtility.Features.Activators
                     ? (from c in _camps from m in c.Mobs.Where(m => m.IsBig) select m.Name).ToArray()
                     : (from c in _camps.Where(c => c.IsBig) from m in c.Mobs.Where(m => m.IsBig) select m.Name).ToArray();
 
-                if (!_camps.Any() || _smiteSpell == null && _heroSpell == null)
+                if (!_camps.Any() || _smiteSpell == null && !_heroSpells.Any())
                     return;
 
                 HandleEvents(_parent);
@@ -200,24 +250,30 @@ namespace SFXUtility.Features.Activators
 
         private void OnDrawingDraw(EventArgs args)
         {
-            var useableColor = Menu.Item(Name + "DrawingUseableColor").GetValue<Color>();
-            var unusableColor = Menu.Item(Name + "DrawingUnusableColor").GetValue<Color>();
+            if (!Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active)
+                return;
 
-            if (_smiteSpell != null && Menu.Item(Name + "DrawingSmiteRange").GetValue<bool>())
+            var minion = _currentMinion != null && !_currentMinion.IsDead && _currentMinion.IsValid;
+
+            if (_smiteSpell != null && Menu.Item(Name + "SpellSmiteDrawingRange").GetValue<bool>())
             {
-                Render.Circle.DrawCircle(ObjectManager.Player.ServerPosition, SmiteRange,
-                    _smiteSpell.IsReady() && _smiteSpell.CanCast(_currentMinion) ? useableColor : unusableColor);
+                Render.Circle.DrawCircle(ObjectManager.Player.Position, SmiteRange,
+                    minion && _smiteSpell.IsReady() && _smiteSpell.CanCast(_currentMinion)
+                        ? Menu.Item(Name + "SpellSmiteDrawingUseableColor").GetValue<Color>()
+                        : Menu.Item(Name + "SpellSmiteDrawingUnusableColor").GetValue<Color>(),
+                    Menu.Item(Name + "SpellSmiteDrawingThickness").GetValue<Slider>().Value);
             }
-            if (_heroSpell != null && Menu.Item(Name + "DrawingSpellRange").GetValue<bool>())
+
+            if (Menu.Item(Name + "Spell" + ObjectManager.Player.ChampionName + "Enabled").GetValue<bool>())
             {
-                Render.Circle.DrawCircle(ObjectManager.Player.ServerPosition, _heroSpell.Spell.Range,
-                    _heroSpell.CanCast(_currentMinion,
-                        (HitChance) (Menu.Item(Name + "SpellHeroMinHitChance").GetValue<StringList>().SelectedIndex + 3))
-                        ? useableColor
-                        : unusableColor);
+                foreach (var spell in _heroSpells.Where(s => s.Enabled && s.Drawing))
+                {
+                    Render.Circle.DrawCircle(ObjectManager.Player.ServerPosition, spell.Range,
+                        spell.CanCast(_currentMinion) ? spell.UseableColor : spell.UnusableColor, spell.Thickness);
+                }
             }
-            if (Menu.Item(Name + "DrawingDamageIndicator").GetValue<bool>() && _currentMinion != null && !_currentMinion.IsDead &&
-                _currentMinion.IsValid)
+
+            if (minion && Menu.Item(Name + "DrawingDamageIndicator").GetValue<bool>())
             {
                 var pos = Drawing.WorldToScreen(_currentMinion.Position);
                 Drawing.DrawText(pos.X, pos.Y + _currentMinion.BoundingRadius/2f, Menu.Item(Name + "DrawingDamageColor").GetValue<Color>(),
@@ -230,31 +286,38 @@ namespace SFXUtility.Features.Activators
         {
             try
             {
-                if (_delayActive)
+                if (_delayActive || !Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active)
                     return;
 
-                var smiteSpell = _smiteSpell != null && Menu.Item(Name + "SpellSmite").GetValue<bool>();
-                var heroSpell = _heroSpell != null &&
-                                Menu.Item(Name + "SpellHero" + _heroSpell.ChampionName + Utils.GetEnumName(_heroSpell.Spell.Slot)).GetValue<bool>();
-                var minHitChance = (HitChance) (Menu.Item(Name + "SpellHeroMinHitChance").GetValue<StringList>().SelectedIndex + 3);
+                var smiteSpellEnabled = _smiteSpell != null && Menu.Item(Name + "SpellSmiteUse").GetValue<bool>();
+                var heroSpellEnabled = Menu.Item(Name + "Spell" + ObjectManager.Player.ChampionName + "Enabled").GetValue<bool>();
+
+                HeroSpell heroSpell = null;
 
                 _currentMinion = ObjectManager.Player.ServerPosition.GetNearestMinionByNames(_mobNames);
                 if (_currentMinion != null)
                 {
+                    if (heroSpellEnabled)
+                    {
+                        heroSpell = _heroSpells.OrderByDescending(s => s.Priority).FirstOrDefault(s => s.Enabled && s.CanCast(_currentMinion));
+                        heroSpellEnabled = heroSpell != null;
+                    }
+
                     double totalDamage = 0;
-                    if (smiteSpell && _smiteSpell.CanCast(_currentMinion))
+                    if (smiteSpellEnabled && _smiteSpell.CanCast(_currentMinion))
                         totalDamage += ObjectManager.Player.GetSummonerSpellDamage(_currentMinion, Damage.SummonerSpell.Smite);
-                    if (heroSpell)
-                        totalDamage += _heroSpell.CalculateDamage(_currentMinion, minHitChance);
+                    if (heroSpellEnabled)
+                        totalDamage += heroSpell.CalculateDamage(_currentMinion, false);
+
                     if (totalDamage >= _currentMinion.Health)
                     {
-                        if (heroSpell)
+                        if (heroSpellEnabled)
                         {
-                            _heroSpell.Cast(_currentMinion);
-                            if (smiteSpell && _smiteSpell.CanCast(_currentMinion))
+                            heroSpell.Cast(_currentMinion);
+                            if (smiteSpellEnabled && _smiteSpell.CanCast(_currentMinion))
                             {
                                 _delayActive = true;
-                                Utility.DelayAction.Add((int) _heroSpell.CalculateHitDelay(_currentMinion), delegate
+                                Utility.DelayAction.Add((int) heroSpell.CalculateHitDelay(_currentMinion), delegate
                                 {
                                     if (_smiteSpell.CanCast(_currentMinion))
                                         _smiteSpell.Cast(_currentMinion);
@@ -262,7 +325,7 @@ namespace SFXUtility.Features.Activators
                                 });
                             }
                         }
-                        else if (smiteSpell && _smiteSpell.CanCast(_currentMinion))
+                        else if (smiteSpellEnabled && _smiteSpell.CanCast(_currentMinion))
                             _smiteSpell.Cast(_currentMinion);
                     }
                 }
@@ -276,79 +339,149 @@ namespace SFXUtility.Features.Activators
 
     internal class HeroSpell
     {
-        private readonly Func<Spell, Obj_AI_Minion, HitChance, double> _calculateDamage;
-        private readonly bool _enemyHitbox;
+        private Color _unusableColor = Color.Gray;
+        private Color _useableColor = Color.Teal;
 
-        public HeroSpell(string champName, SpellSlot slot, TargetSelector.DamageType damageType, SkillshotType? skillshotType, bool enemyHitbox,
-            float delay, bool collision, float range = float.MaxValue, float speed = float.MaxValue, float width = float.MaxValue,
-            Func<Spell, Obj_AI_Minion, HitChance, double> calculateDamage = null)
+        public HeroSpell(SpellSlot slot, int delay, bool isSkillshot, bool collision, HitChance minHitChance, TargetSelector.DamageType damageType,
+            SkillshotType skillshotType, bool enabled)
         {
-            ChampionName = champName;
-            _enemyHitbox = enemyHitbox;
-            _calculateDamage = calculateDamage;
-            Spell = new Spell(slot, range, damageType);
-            if (ObjectManager.Player.ChampionName.Equals(champName, StringComparison.OrdinalIgnoreCase))
+            Enabled = enabled;
+
+            Spell = new Spell(slot, float.MaxValue, damageType);
+            Delay = delay;
+            Collision = collision;
+            MinHitChance = minHitChance;
+            DamageType = damageType;
+
+            var spellData = ObjectManager.Player.Spellbook.GetSpell(slot);
+            Speed = spellData.SData.MissileSpeed;
+            Range = (spellData.SData.CastRange > spellData.SData.CastRangeDisplayOverride + 1000
+                ? spellData.SData.CastRangeDisplayOverride
+                : spellData.SData.CastRange) + ObjectManager.Player.BoundingRadius;
+            Width = spellData.SData.LineWidth;
+
+            SkillshotType = skillshotType;
+            IsSkillshot = isSkillshot;
+        }
+
+        public Color UseableColor
+        {
+            get { return _useableColor; }
+            set { _useableColor = value; }
+        }
+
+        public Color UnusableColor
+        {
+            get { return _unusableColor; }
+            set { _unusableColor = value; }
+        }
+
+        public int Thickness { get; set; }
+        public bool Drawing { get; set; }
+        public int Priority { get; set; }
+        public bool Enabled { get; set; }
+
+        public float Delay
+        {
+            get { return Spell.Delay; }
+            set { Spell.Delay = value; }
+        }
+
+        public float Width
+        {
+            get { return Spell.Width; }
+            set { Spell.Width = value; }
+        }
+
+        public float Speed
+        {
+            get { return Spell.Speed; }
+            set { Spell.Speed = value; }
+        }
+
+        public float Range
+        {
+            get { return Spell.Range; }
+            set { Spell.Range = value; }
+        }
+
+        public bool IsSkillshot
+        {
+            get { return Spell.IsSkillshot; }
+            set
             {
-                var spell = ObjectManager.Player.Spellbook.GetSpell(slot);
-                if (speed == float.MaxValue)
-                    speed = spell.SData.MissileSpeed;
-                if (range == float.MaxValue)
-                    range = spell.SData.CastRange > spell.SData.CastRangeDisplayOverride + 1000
-                        ? spell.SData.CastRangeDisplayOverride
-                        : spell.SData.CastRange;
-                if (width == float.MaxValue)
-                    width = spell.SData.LineWidth;
-
-                Spell.Range = range + ObjectManager.Player.BoundingRadius;
-
-                if (skillshotType == null)
-                    Spell.SetTargetted(delay, speed);
+                Spell.IsSkillshot = value;
+                if (IsSkillshot)
+                    Spell.SetSkillshot(Delay, Width, Speed, Collision, SkillshotType);
                 else
-                    Spell.SetSkillshot(delay, width, speed, collision, (SkillshotType) skillshotType);
+                    Spell.SetTargetted(Delay, Speed);
             }
         }
 
-        public string ChampionName { get; set; }
-        public Spell Spell { get; set; }
-
-        public double CalculateDamage(Obj_AI_Minion minion, HitChance minChance = HitChance.High)
+        public bool Collision
         {
-            if (!Spell.IsReady() || Spell.GetPrediction(minion, false, Spell.Range + (_enemyHitbox ? minion.BoundingRadius : 0)).Hitchance < minChance)
-                return 0;
-            if (_calculateDamage != null)
+            get { return Spell.Collision; }
+            set { Spell.Collision = value; }
+        }
+
+        public HitChance MinHitChance
+        {
+            get { return Spell.MinHitChance; }
+            set { Spell.MinHitChance = value; }
+        }
+
+        public TargetSelector.DamageType DamageType
+        {
+            get { return Spell.DamageType; }
+            set { Spell.DamageType = value; }
+        }
+
+        public SkillshotType SkillshotType
+        {
+            get { return Spell.Type; }
+            set
             {
-                try
-                {
-                    return _calculateDamage(Spell, minion, minChance);
-                }
-                catch (Exception ex)
-                {
-                    Global.Logger.AddItem(new LogItem(ex));
-                    return 0;
-                }
+                Spell.Type = value;
+                if (IsSkillshot)
+                    Spell.SetSkillshot(Delay, Width, Speed, Collision, value);
+                else
+                    Spell.SetTargetted(Delay, Speed);
             }
+        }
+
+        public SpellSlot Slot
+        {
+            get { return Spell.Slot; }
+            set { Spell.Slot = value; }
+        }
+
+        public Spell Spell { get; private set; }
+
+        public double CalculateDamage(Obj_AI_Minion minion, bool check = true)
+        {
+            if (check && !CanCast(minion))
+                return 0;
             return Spell.GetDamage(minion);
         }
 
-        public bool CanCast(Obj_AI_Minion minion, HitChance minChance = HitChance.High)
+        public bool CanCast(Obj_AI_Minion minion)
         {
-            return Spell.IsReady() &&
-                   Spell.GetPrediction(minion, false, Spell.Range + (_enemyHitbox ? minion.BoundingRadius : 0)).Hitchance >= minChance;
+            return minion != null && minion.IsValid && Spell.IsReady() &&
+                   Spell.GetPrediction(minion, false, Range + minion.BoundingRadius).Hitchance >= MinHitChance;
         }
 
         public void Cast(Obj_AI_Minion minion)
         {
             if (minion == null || Spell == null)
                 return;
-            Spell.Range += _enemyHitbox ? minion.BoundingRadius : 0;
+            Spell.Range += minion.BoundingRadius;
             Spell.Cast(minion);
-            Spell.Range -= _enemyHitbox ? minion.BoundingRadius : 0;
+            Spell.Range -= minion.BoundingRadius;
         }
 
         public float CalculateHitDelay(Obj_AI_Base target)
         {
-            return Spell.Delay + (Spell.Speed > 0 ? ((ObjectManager.Player.ServerPosition.Distance(target.ServerPosition)/(Spell.Speed/1000))) : 0) +
-                   Game.Ping/2f;
+            return Delay + (Speed > 0 ? ((ObjectManager.Player.ServerPosition.Distance(target.ServerPosition)/(Speed/1000))) : 0) + Game.Ping/2f;
         }
     }
 }

@@ -59,6 +59,11 @@
 	<entry key="G_Damage">Damage</entry>
 	<entry key="G_Indicator">Indicator</entry>
 	<entry key="G_HitChance">HitChance</entry>
+	<entry key="G_Priority">Priority</entry>
+	<entry key="G_Is">Is</entry>
+	<entry key="G_Skillshot">Skillshot</entry>
+	<entry key="G_Collision">Collision</entry>
+	<entry key="G_Type">Type</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: SFXUtility -->
@@ -91,7 +96,9 @@
 	<entry key="Smite_SmallCamps">Small Camps</entry>
 	<entry key="Smite_Smite">Smite</entry>
 	<entry key="Smite_MinHitChanceList">Low|Medium|High|Very High</entry>
-	"<!-- END: Smite -->
+	<entry key="Smite_DamageTypeList">Magical|Physical|True</entry>
+	<entry key="Smite_SkillshotTypeList">Line|Circle|Cone</entry>
+	<!-- END: Smite -->
 
 	<!-- START: Teleport -->
 	<entry key="F_Teleport">Teleport</entry>

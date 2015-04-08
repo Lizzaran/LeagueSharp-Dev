@@ -95,14 +95,13 @@ namespace SFXUtility.Features.Events
                 var startMenu = new Menu(Language.Get("Game_OnStart"), Name + "OnStart");
                 startMenu.AddItem(
                     new MenuItem(startMenu.Name + "Greeting", Language.Get("Game_Greeting")).SetValue(
-                        new StringList(Language.Get("Game_GreetingList").Split('|'))));
+                        new StringList(Language.GetList("Game_GreetingList"))));
                 startMenu.AddItem(
                     new MenuItem(startMenu.Name + "SayGreeting", Language.Get("G_Say") + " " + Language.Get("Game_Greeting")).SetValue(false));
 
                 var endMenu = new Menu(Language.Get("Game_OnEnd"), Name + "OnEnd");
                 endMenu.AddItem(
-                    new MenuItem(endMenu.Name + "Ending", Language.Get("Game_Ending")).SetValue(
-                        new StringList(Language.Get("Game_EndingList").Split('|'))));
+                    new MenuItem(endMenu.Name + "Ending", Language.Get("Game_Ending")).SetValue(new StringList(Language.GetList("Game_EndingList"))));
                 endMenu.AddItem(new MenuItem(endMenu.Name + "SayEnding", Language.Get("G_Say") + " " + Language.Get("Game_Ending")).SetValue(false));
 
                 Menu.AddSubMenu(startMenu);

@@ -26,6 +26,7 @@ namespace SFXLibrary
 
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Xml.Linq;
 
     #endregion
@@ -65,10 +66,11 @@ namespace SFXLibrary
             }
         }
 
-        public static string Get(string key)
+        public static string Get(string key, string overrideLanguage = null)
         {
             Dictionary<string, string> entries;
-            if (LanguagesDictionary.TryGetValue(Current, out entries))
+            var language = string.IsNullOrEmpty(overrideLanguage) ? Current : overrideLanguage;
+            if (LanguagesDictionary.TryGetValue(language, out entries))
             {
                 string value;
                 if (entries.TryGetValue(key, out value))
@@ -76,7 +78,16 @@ namespace SFXLibrary
                     return value;
                 }
             }
+            if (language != Default)
+            {
+                return Get(key, Default);
+            }
             return string.Format("[{0}]", key);
+        }
+
+        public static string[] GetList(string key, char seperator = '|', string overrideLanguage = null)
+        {
+            return Get(key, overrideLanguage).Split(seperator).ToArray();
         }
     }
 }
