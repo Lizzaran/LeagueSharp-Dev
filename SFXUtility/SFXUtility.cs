@@ -119,7 +119,7 @@ namespace SFXUtility
             }
         }
 
-        public event EventHandler OnUnload;
+        public event EventHandler<UnloadEventArgs> OnUnload;
 
         private void OnExit(object sender, EventArgs e)
         {
@@ -127,7 +127,7 @@ namespace SFXUtility
             {
                 if (!_unloadFired)
                 {
-                    OnUnload.RaiseEvent(null, null);
+                    OnUnload.RaiseEvent(null, new UnloadEventArgs(true));
                     _unloadFired = true;
                 }
             }
@@ -169,6 +169,16 @@ namespace SFXUtility
             {
                 Global.Logger.AddItem(new LogItem(ex) {Object = this});
             }
+        }
+    }
+
+    public class UnloadEventArgs : EventArgs
+    {
+        public bool Real;
+
+        public UnloadEventArgs(bool real = false)
+        {
+            Real = real;
         }
     }
 }

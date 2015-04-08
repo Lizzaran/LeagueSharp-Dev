@@ -48,7 +48,7 @@ namespace SFXUtility.Features.Timers
 
         public override bool Enabled
         {
-            get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
         public override string Name
@@ -76,19 +76,21 @@ namespace SFXUtility.Features.Timers
             Drawing.OnPostReset -= OnDrawingPostReset;
             Drawing.OnEndScene -= OnDrawingEndScene;
 
-            OnUnload(null, null);
+            OnUnload(null, new UnloadEventArgs());
 
             base.OnDisable();
         }
 
-        protected override void OnUnload(object sender, EventArgs eventArgs)
+        protected override void OnUnload(object sender, UnloadEventArgs args)
         {
+            if (args != null && args.Real)
+                base.OnUnload(sender, args);
+
             if (Initialized)
             {
                 OnDrawingPreReset(null);
                 OnDrawingPostReset(null);
             }
-            base.OnUnload(sender, eventArgs);
         }
 
         private void OnGameObjectDelete(GameObject sender, EventArgs args)
@@ -237,7 +239,9 @@ namespace SFXUtility.Features.Timers
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                SetupCamps();
+                _camps.AddRange(
+                    Classes.Jungle.Camps.Where(c => c.MapType == Utility.Map.GetMap().Type)
+                        .Select(c => new Camp(c.SpawnTime, c.RespawnTime, c.Position, c.Mobs, c.IsBig, c.MapType, c.Team)));
 
                 if (!_camps.Any())
                     return;
@@ -269,122 +273,28 @@ namespace SFXUtility.Features.Timers
             }
         }
 
-        private void SetupCamps()
+        private class Camp : Classes.Jungle.Camp
         {
-            switch (Utility.Map.GetMap().Type)
+            public Camp(float spawnTime, float respawnTime, Vector3 position, List<Classes.Jungle.Mob> mobs, bool isBig, Utility.Map.MapType mapType,
+                GameObjectTeam team, bool dead = false) : base(spawnTime, respawnTime, position, mobs, isBig, mapType, team)
             {
-                case Utility.Map.MapType.SummonersRift:
-                    _camps.AddRange(new List<Camp>
-                    {
-// Order: Blue
-                        new Camp(115, 300, new Vector3(3800.99f, 7883.53f, 52.18f),
-                            new[] {new Mob("SRU_Blue1.1.1"), new Mob("SRU_BlueMini1.1.2"), new Mob("SRU_BlueMini21.1.3")}),
-                        //Order: Wolves
-                        new Camp(115, 100, new Vector3(3849.95f, 6504.36f, 52.46f),
-                            new[] {new Mob("SRU_Murkwolf2.1.1"), new Mob("SRU_MurkwolfMini2.1.2"), new Mob("SRU_MurkwolfMini2.1.3")}),
-                        //Order: Chicken
-                        new Camp(115, 100, new Vector3(6943.41f, 5422.61f, 52.62f),
-                            new[]
-                            {
-                                new Mob("SRU_Razorbeak3.1.1"), new Mob("SRU_RazorbeakMini3.1.2"), new Mob("SRU_RazorbeakMini3.1.3"),
-                                new Mob("SRU_RazorbeakMini3.1.4")
-                            }),
-                        //Order: Red
-                        new Camp(115, 300, new Vector3(7813.07f, 4051.33f, 53.81f),
-                            new[] {new Mob("SRU_Red4.1.1"), new Mob("SRU_RedMini4.1.2"), new Mob("SRU_RedMini4.1.3")}),
-                        //Order: Krug
-                        new Camp(115, 100, new Vector3(8370.58f, 2718.15f, 51.09f), new[] {new Mob("SRU_Krug5.1.2"), new Mob("SRU_KrugMini5.1.1")}),
-                        //Order: Gromp
-                        new Camp(115, 100, new Vector3(2164.34f, 8383.02f, 51.78f), new[] {new Mob("SRU_Gromp13.1.1")}),
-                        //Chaos: Blue
-                        new Camp(115, 300, new Vector3(10984.11f, 6960.31f, 51.72f),
-                            new[] {new Mob("SRU_Blue7.1.1"), new Mob("SRU_BlueMini7.1.2"), new Mob("SRU_BlueMini27.1.3")}),
-                        //Chaos: Wolves
-                        new Camp(115, 100, new Vector3(10983.83f, 8328.73f, 62.22f),
-                            new[] {new Mob("SRU_Murkwolf8.1.1"), new Mob("SRU_MurkwolfMini8.1.2"), new Mob("SRU_MurkwolfMini8.1.3")}),
-                        //Chaos: Chicken
-                        new Camp(115, 100, new Vector3(7852.38f, 9562.62f, 52.30f),
-                            new[]
-                            {
-                                new Mob("SRU_Razorbeak9.1.1"), new Mob("SRU_RazorbeakMini9.1.2"), new Mob("SRU_RazorbeakMini9.1.3"),
-                                new Mob("SRU_RazorbeakMini9.1.4")
-                            }),
-                        //Chaos: Red
-                        new Camp(115, 300, new Vector3(7139.29f, 10779.34f, 56.38f),
-                            new[] {new Mob("SRU_Red10.1.1"), new Mob("SRU_RedMini10.1.2"), new Mob("SRU_RedMini10.1.3")}),
-                        //Chaos: Krug
-                        new Camp(115, 100, new Vector3(6476.17f, 12142.51f, 56.48f), new[] {new Mob("SRU_Krug11.1.2"), new Mob("SRU_KrugMini11.1.1")}),
-                        //Chaos: Gromp
-                        new Camp(115, 100, new Vector3(12671.83f, 6306.60f, 51.71f), new[] {new Mob("SRU_Gromp14.1.1")}),
-                        //Neutral: Dragon
-                        new Camp(150, 360, new Vector3(9813.83f, 4360.19f, -71.24f), new[] {new Mob("SRU_Dragon6.1.1")}),
-                        //Neutral: Baron
-                        new Camp(120, 420, new Vector3(4993.14f, 10491.92f, -71.24f), new[] {new Mob("SRU_Baron12.1.1")}),
-                        //Dragon: Crab
-                        new Camp(150, 180, new Vector3(10647.70f, 5144.68f, -62.81f), new[] {new Mob("SRU_Crab15.1.1")}),
-                        //Baron: Crab
-                        new Camp(150, 180, new Vector3(4285.04f, 9597.52f, -67.60f), new[] {new Mob("SRU_Crab16.1.1")})
-                    });
-                    break;
-                case Utility.Map.MapType.TwistedTreeline:
-                    _camps.AddRange(new List<Camp>
-                    {
-//Order: Wraiths
-                        new Camp(100, 75, new Vector3(3550f, 6250f, 60f),
-                            new[] {new Mob("TT_NWraith1.1.1"), new Mob("TT_NWraith21.1.2"), new Mob("TT_NWraith21.1.3")}),
-                        //Order: Golems
-                        new Camp(100, 75, new Vector3(4500f, 8550f, 60f), new[] {new Mob("TT_NGolem2.1.1"), new Mob("TT_NGolem22.1.2")}),
-                        //Order: Wolves
-                        new Camp(100, 75, new Vector3(5600f, 6400f, 60f),
-                            new[] {new Mob("TT_NWolf3.1.1"), new Mob("TT_NWolf23.1.2"), new Mob("TT_NWolf23.1.3")}),
-                        //Chaos: Wraiths
-                        new Camp(100, 75, new Vector3(10300f, 6250f, 60f),
-                            new[] {new Mob("TT_NWraith4.1.1"), new Mob("TT_NWraith24.1.2"), new Mob("TT_NWraith24.1.3")}),
-                        //Chaos: Golems
-                        new Camp(100, 75, new Vector3(9800f, 8550f, 60f), new[] {new Mob("TT_NGolem5.1.1"), new Mob("TT_NGolem25.1.2")}),
-                        //Chaos: Wolves
-                        new Camp(100, 75, new Vector3(8600f, 6400f, 60f),
-                            new[] {new Mob("TT_NWolf6.1.1"), new Mob("TT_NWolf26.1.2"), new Mob("TT_NWolf26.1.3")}),
-                        //Neutral: Vilemaw
-                        new Camp(600, 300, new Vector3(7150f, 11100f, 60f), new[] {new Mob("TT_Spiderboss8.1.1")})
-                    });
-                    break;
-            }
-        }
-
-        private class Camp
-        {
-            public Camp(float spawnTime, float respawnTime, Vector3 position, Mob[] mobs)
-            {
-                SpawnTime = spawnTime;
-                RespawnTime = respawnTime;
-                Position = position;
-                MinimapPosition = Drawing.WorldToMinimap(Position);
-                Mobs = mobs;
+                Dead = dead;
+                Mobs = mobs.Select(mob => new Mob(mob.Name)).ToList();
             }
 
-            // ReSharper disable once MemberCanBePrivate.Local
-            // ReSharper disable once UnusedAutoPropertyAccessor.Local
-            public float SpawnTime { get; set; }
-            public float RespawnTime { get; private set; }
-            public Vector3 Position { get; private set; }
-
-            public Vector2 MinimapPosition { get; private set; }
-            public Mob[] Mobs { get; private set; }
+            public new List<Mob> Mobs { get; private set; }
             public float NextRespawnTime { get; set; }
             public bool Dead { get; set; }
         }
 
-        private class Mob
+        private class Mob : Classes.Jungle.Mob
         {
-            public Mob(string name, bool dead = true)
+            public Mob(string name, bool dead = false) : base(name)
             {
-                Name = name;
                 Dead = dead;
             }
 
             public bool Dead { get; set; }
-            public string Name { get; private set; }
         }
     }
 }

@@ -44,6 +44,7 @@ namespace SFXUtility.Classes
         public abstract bool Enabled { get; }
         public abstract string Name { get; }
         public bool Initialized { get; protected set; }
+        public bool Unloaded { get; protected set; }
         public Menu Menu { get; set; }
         protected Menu BaseMenu { get; private set; }
         public event EventHandler OnInitialized;
@@ -75,8 +76,11 @@ namespace SFXUtility.Classes
             }
         }
 
-        protected virtual void OnUnload(object sender, EventArgs eventArgs)
+        protected virtual void OnUnload(object sender, UnloadEventArgs args)
         {
+            OnDisable();
+            if (args.Real)
+                Unloaded = true;
         }
 
         protected virtual void RaiseOnInitialized()
@@ -98,7 +102,7 @@ namespace SFXUtility.Classes
             {
                 parent.Menu.Item(parent.Name + "Enabled").ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
                 {
-                    if (args.GetNewValue<bool>())
+                    if (!Unloaded && args.GetNewValue<bool>())
                     {
                         if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
                         {
@@ -112,7 +116,7 @@ namespace SFXUtility.Classes
                 };
                 Menu.Item(Name + "Enabled").ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
                 {
-                    if (args.GetNewValue<bool>())
+                    if (!Unloaded && args.GetNewValue<bool>())
                     {
                         if (parent.Menu != null && parent.Menu.Item(parent.Name + "Enabled").GetValue<bool>())
                         {

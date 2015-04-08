@@ -47,7 +47,7 @@ namespace SFXUtility.Features.Drawings
 
         public override bool Enabled
         {
-            get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
         public override string Name
@@ -70,19 +70,21 @@ namespace SFXUtility.Features.Drawings
             Drawing.OnPostReset -= OnDrawingPostReset;
             Drawing.OnEndScene -= OnDrawingEndScene;
 
-            OnUnload(null, null);
+            OnUnload(null, new UnloadEventArgs());
 
             base.OnEnable();
         }
 
-        protected override void OnUnload(object sender, EventArgs eventArgs)
+        protected override void OnUnload(object sender, UnloadEventArgs args)
         {
+            if (args != null && args.Real)
+                base.OnUnload(sender, args);
+
             if (Initialized)
             {
                 OnDrawingPreReset(null);
                 OnDrawingPostReset(null);
             }
-            base.OnUnload(sender, eventArgs);
         }
 
         private void OnDrawingEndScene(EventArgs args)

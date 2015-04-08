@@ -52,7 +52,7 @@ namespace SFXUtility.Features.Detectors
 
         public override bool Enabled
         {
-            get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
         public override string Name
@@ -86,9 +86,8 @@ namespace SFXUtility.Features.Detectors
                     var posX = Drawing.Width*0.68f;
                     var posY = Drawing.Height*0.75f;
                     var count = 0;
-                    foreach (
-                        var teleport in
-                            _teleportObjects.Where(t => t.Hero.IsEnemy && t.LastStatus != Packet.S2C.Teleport.Status.Unknown && t.Update()))
+                    foreach (var teleport in
+                        _teleportObjects.Where(t => t.Hero.IsEnemy && t.LastStatus != Packet.S2C.Teleport.Status.Unknown && t.Update()))
                     {
                         var text = teleport.ToString();
                         if (!string.IsNullOrWhiteSpace(text))

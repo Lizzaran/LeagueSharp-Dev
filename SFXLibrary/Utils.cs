@@ -56,6 +56,11 @@ namespace SFXLibrary
             }
         }
 
+        public static string GetEnumName(SpellSlot slot)
+        {
+            return Enum.GetName(typeof (SpellSlot), slot);
+        }
+
         public static bool IsXmlValid(string schemaFile, string xmlFile)
         {
             try

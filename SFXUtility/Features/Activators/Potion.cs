@@ -48,7 +48,7 @@ namespace SFXUtility.Features.Activators
 
         public override bool Enabled
         {
-            get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
         public override string Name

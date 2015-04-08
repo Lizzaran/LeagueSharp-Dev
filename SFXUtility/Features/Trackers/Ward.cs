@@ -75,7 +75,7 @@ namespace SFXUtility.Features.Trackers
 
         public override bool Enabled
         {
-            get { return _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
         public override string Name
@@ -106,19 +106,21 @@ namespace SFXUtility.Features.Trackers
             Drawing.OnPostReset -= OnDrawingPostReset;
             Drawing.OnEndScene -= OnDrawingEndScene;
 
-            OnUnload(null, null);
+            OnUnload(null, new UnloadEventArgs());
 
             base.OnDisable();
         }
 
-        protected override void OnUnload(object sender, EventArgs eventArgs)
+        protected override void OnUnload(object sender, UnloadEventArgs args)
         {
+            if (args != null && args.Real)
+                base.OnUnload(sender, args);
+
             if (Initialized)
             {
                 OnDrawingPreReset(null);
                 OnDrawingPostReset(null);
             }
-            base.OnUnload(sender, eventArgs);
         }
 
         protected override void OnGameLoad(EventArgs args)
@@ -242,7 +244,7 @@ namespace SFXUtility.Features.Trackers
             if (spellMissile != null)
             {
                 var missile = spellMissile;
-                if (missile.SpellCaster.IsAlly)
+                if (missile.SpellCaster.IsEnemy)
                 {
                     if (missile.SData.Name.Equals("itemplacementmissile", StringComparison.OrdinalIgnoreCase) && !missile.SpellCaster.IsVisible)
                     {
@@ -268,7 +270,7 @@ namespace SFXUtility.Features.Trackers
                 if (o != null)
                 {
                     var wardObject = o;
-                    if (wardObject.IsAlly)
+                    if (wardObject.IsEnemy)
                     {
                         foreach (var ward in _wardStructs)
                         {
@@ -289,7 +291,7 @@ namespace SFXUtility.Features.Trackers
 
         private void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            if (!sender.IsAlly)
+            if (!sender.IsEnemy)
                 return;
 
             foreach (var ward in _wardStructs)

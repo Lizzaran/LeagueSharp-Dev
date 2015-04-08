@@ -52,6 +52,13 @@
 	<entry key="G_Width">Weite</entry>
 	<entry key="G_Say">Sage</entry>
 	<entry key="G_Scale">Maßstab</entry>
+	<entry key="G_Hero">Held</entry>
+	<entry key="G_Use">Benutze</entry>
+	<entry key="G_Useable">Benutzbar</entry>
+	<entry key="G_Unusable">Unbenutzbar</entry>
+	<entry key="G_Damage">Schaden</entry>
+	<entry key="G_Indicator">Indikator</entry>
+	<entry key="G_HitChance">Trefferchance</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: SFXUtility -->
@@ -78,6 +85,13 @@
 	<!-- START: Potion -->
 	<entry key="F_Potion">Traenke</entry>
 	<!-- END: Potion -->
+
+	<!-- START: Smite -->
+	<entry key="F_Smite">Zerschmettern</entry>
+	<entry key="Smite_SmallCamps">Kleine Lager</entry>
+	<entry key="Smite_Smite">Zerschmettern</entry>
+	<entry key="Smite_MinHitChanceList">Niedrig|Mittel|Hoch|Sehr Hoch</entry>
+	"<!-- END: Smite -->
 
 	<!-- START: Teleport -->
 	<entry key="F_Teleport">Teleport</entry>

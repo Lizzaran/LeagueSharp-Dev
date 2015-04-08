@@ -130,13 +130,13 @@ namespace SFXLibrary.Extensions.SharpDX
         public static Obj_AI_Minion GetNearestMinionByNames(this Vector3 position, string[] names)
         {
             var nearest = float.MaxValue;
-            var sMinion = default(Obj_AI_Minion);
+            Obj_AI_Minion sMinion = null;
             foreach (var minion in
                 ObjectManager.Get<Obj_AI_Minion>()
                     .Where(
                         minion =>
-                            minion != null && minion.IsValid &&
-                            names.Any(name => minion.SkinName.Equals(name, StringComparison.CurrentCultureIgnoreCase))))
+                            minion != null && minion.IsValid && names.Any(name => minion.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase)))
+                )
             {
                 var distance = Vector3.Distance(position, minion.ServerPosition);
                 if (nearest > distance || nearest == float.MaxValue)
