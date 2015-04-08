@@ -240,7 +240,7 @@ namespace SFXUtility.Features.Timers
                 _parent.Menu.AddSubMenu(Menu);
 
                 _camps.AddRange(
-                    Classes.Jungle.Camps.Where(c => c.MapType == Utility.Map.GetMap().Type)
+                    Data.Jungle.Camps.Where(c => c.MapType == Utility.Map.GetMap().Type)
                         .Select(c => new Camp(c.SpawnTime, c.RespawnTime, c.Position, c.Mobs, c.IsBig, c.MapType, c.Team)));
 
                 if (!_camps.Any())
@@ -273,9 +273,9 @@ namespace SFXUtility.Features.Timers
             }
         }
 
-        private class Camp : Classes.Jungle.Camp
+        private class Camp : Data.Jungle.Camp
         {
-            public Camp(float spawnTime, float respawnTime, Vector3 position, List<Classes.Jungle.Mob> mobs, bool isBig, Utility.Map.MapType mapType,
+            public Camp(float spawnTime, float respawnTime, Vector3 position, List<Data.Jungle.Mob> mobs, bool isBig, Utility.Map.MapType mapType,
                 GameObjectTeam team, bool dead = false) : base(spawnTime, respawnTime, position, mobs, isBig, mapType, team)
             {
                 Dead = dead;
@@ -287,7 +287,7 @@ namespace SFXUtility.Features.Timers
             public bool Dead { get; set; }
         }
 
-        private class Mob : Classes.Jungle.Mob
+        private class Mob : Data.Jungle.Mob
         {
             public Mob(string name, bool dead = false) : base(name)
             {

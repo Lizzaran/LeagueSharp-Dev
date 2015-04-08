@@ -20,7 +20,7 @@
 
 #endregion License
 
-namespace SFXUtility.Classes
+namespace SFXUtility.Data
 {
     #region
 

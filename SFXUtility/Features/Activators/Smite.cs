@@ -29,6 +29,7 @@ namespace SFXUtility.Features.Activators
     using System.Drawing;
     using System.Linq;
     using Classes;
+    using Data;
     using LeagueSharp;
     using LeagueSharp.Common;
     using SFXLibrary;

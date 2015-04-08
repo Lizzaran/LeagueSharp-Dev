@@ -66,7 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\Blowfish.cs" />
-    <Compile Include="Classes\Jungle.cs" />
+    <Compile Include="Data\Jungle.cs" />
     <Compile Include="Classes\Spectator.cs" />
     <Compile Include="Features\Activators\Activators.cs" />
     <Compile Include="Features\Activators\BushRevealer.cs" />
