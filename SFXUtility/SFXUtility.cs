@@ -75,7 +75,7 @@ namespace SFXUtility
                         {
                         }
                     }
-                    if (!args.GetNewValue<StringList>().SelectedValue.Equals("auto"))
+                    if (!args.GetNewValue<StringList>().SelectedValue.Equals("auto", StringComparison.OrdinalIgnoreCase))
                         File.Create(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, preName + args.GetNewValue<StringList>().SelectedValue));
                 };
 

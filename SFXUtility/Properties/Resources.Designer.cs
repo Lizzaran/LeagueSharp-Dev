@@ -252,6 +252,30 @@ namespace SFXUtility.Properties {
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
         ///
         ///&lt;!-- ReSharper disable MarkupTextTypo --&gt;
+        ///&lt;language lang=&quot;fr&quot;&gt;
+        ///
+        ///	&lt;!-- START: GLOBAL --&gt;
+        ///	&lt;entry key=&quot;G_Enabled&quot;&gt;Activé&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Hotkey&quot;&gt;Hotkey&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Ally&quot;&gt;Allié&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Enemy&quot;&gt;Ennemis&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Self&quot;&gt;Soi-même&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Drawing&quot;&gt;Dessins&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Color&quot;&gt;Couleur&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Circle&quot;&gt;Cercle&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Cross&quot;&gt;Croix&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Radius&quot;&gt;Radius [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string language_fr {
+            get {
+                return ResourceManager.GetString("language_fr", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+        ///
+        ///&lt;!-- ReSharper disable MarkupTextTypo --&gt;
         ///&lt;language lang=&quot;vi&quot;&gt;
         ///
         ///	&lt;!-- START: GLOBAL --&gt;
