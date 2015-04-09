@@ -35,7 +35,7 @@ namespace SFXLibrary
 
     public abstract class ProducerConsumer<T> : IDisposable
     {
-        private const int CheckInterval = 6000;
+        private readonly int _checkInterval;
         private readonly int _maxConsumers;
         private readonly int _minConsumers;
         private readonly Dictionary<CancellationTokenSource, Task> _pool = new Dictionary<CancellationTokenSource, Task>();
@@ -46,11 +46,12 @@ namespace SFXLibrary
         private int _requestedStopping;
         private int _started;
 
-        protected ProducerConsumer(int minConsumers = 1, int maxConsumers = 10, int producersPerConsumer = 5)
+        protected ProducerConsumer(int minConsumers = 1, int maxConsumers = 10, int producersPerConsumer = 5, int checkInterval = 10000)
         {
             _minConsumers = minConsumers;
             _maxConsumers = maxConsumers;
             _producersPerConsumer = producersPerConsumer;
+            _checkInterval = checkInterval;
             ManageConsumers();
         }
 
@@ -159,7 +160,7 @@ namespace SFXLibrary
                     }
                     else if (consumersToRun < consumers)
                     {
-                        if (CheckInterval + _lastCheck <= Environment.TickCount)
+                        if (_checkInterval + _lastCheck <= Environment.TickCount)
                         {
                             StopConsumers(consumers - consumersToRun);
                             _lastCheck = Environment.TickCount;
