@@ -52,15 +52,15 @@
 	<entry key="G_Width">Chiều Rộng</entry>
 	<entry key="G_Say">Nói</entry>
 	<entry key="G_Scale">Tỉ Lệ</entry>
-	<entry key="G_Hero">Anh Hùng</entry>
+	<entry key="G_Hero">Tướng</entry>
 	<entry key="G_Use">Dùng</entry>
 	<entry key="G_Useable">Sử Dụng Được</entry>
-	<entry key="G_Unusable">Không Zhể Dùng Được</entry>
+	<entry key="G_Unusable">Không Thể Sử Dụng</entry>
 	<entry key="G_Damage">Tổn Thất</entry>
 	<entry key="G_Indicator">Chỉ Số</entry>
-	<entry key="G_HitChance">Cơ Đình Công</entry>
+	<entry key="G_HitChance">HitChance</entry>
 	<!-- END: GLOBAL -->
-
+sida
 	<!-- START: SFXUtility -->
 	<entry key="F_SFXUtility">SFXUtility</entry>
 	<entry key="SFXUtility_Language">Ngôn Ngữ</entry>
@@ -87,9 +87,9 @@
 	<!-- END: Potion -->
 
 	<!-- START: Smite -->
-	<entry key="F_Smite">Smite</entry>
-	<entry key="Smite_SmallCamps">Trại Nhỏ</entry>
-	<entry key="Smite_Smite">Smite</entry>
+	<entry key="F_Smite">Trừng Phạt</entry>
+	<entry key="Smite_SmallCamps">Bãi Quái Nhỏ</entry>
+	<entry key="Smite_Smite">Trừng Phạt</entry>
 	<entry key="Smite_MinHitChanceList">Thấp|Trung Bình|Cao|Rất Cao</entry>
 	"<!-- END: Smite -->
 
@@ -178,9 +178,9 @@
 	<entry key="Trinket_Events">Events</entry>
 	<entry key="Trinket_Sightstone">Đá Tỏa Sáng</entry>
 	<entry key="Trinket_RubySightstone">Hồng Ngọc Tỏa Sáng</entry>
-	<entry key="Trinket_WrigglesLantern">Wriggle&apos;s Lantern</entry>
+	<entry key="Trinket_WrigglesLantern">Lồng Đèn Wriggle</entry>
 	<entry key="Trinket_BuyTrinket">Mua Phụ Kiện</entry>
-	<entry key="Trinket_SellUpgraded">Bán Trang Bị Đã Nâng Cấp</entry>
+	<entry key="Trinket_SellUpgraded">Bán Phụ Kiện Đã Nâng Cấp</entry>
 	<!-- END: Trinket -->
 
 	<!-- START: AntiFountain -->
@@ -221,7 +221,7 @@
 	<!-- END: LastPosition -->
 
 	<!-- START: Sidebar -->
-	<entry key="F_Sidebar">Sidebar</entry>
+	<entry key="F_Sidebar">Hiển Thị Dạng Cột</entry>
 	<entry key="Sidebar_Clickable">Nhấp Chuột</entry>
 	<!-- END: Sidebar -->
 
