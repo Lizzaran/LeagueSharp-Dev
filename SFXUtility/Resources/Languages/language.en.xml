@@ -223,6 +223,10 @@
 	<entry key="F_Destination">Destination</entry>
 	<!-- END: Destination -->
 
+	<!-- START: GoldEfficiency -->
+	<entry key="F_GoldEfficiency">Gold Efficiency</entry>
+	<!-- END: GoldEfficiency -->
+
 	<!-- START: LastPosition -->
 	<entry key="F_LastPosition">Last Position</entry>
 	<entry key="LastPosition_SSTimer">SS Timer</entry>
