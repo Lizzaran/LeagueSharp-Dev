@@ -24,6 +24,7 @@ namespace SFXUtility.Features.Events
     #region
 
     using System;
+    using System.Linq;
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
@@ -120,7 +121,7 @@ namespace SFXUtility.Features.Events
 
                 if (_onStartTriggerd)
                 {
-                    if (Menu.Item(Name + "OnStartSayGreeting").GetValue<bool>())
+                    if (Menu.Item(Name + "OnStartSayGreeting").GetValue<bool>() && !HeroManager.AllHeroes.Any(h => h.Level >= 2))
                     {
                         Utility.DelayAction.Add(Menu.Item(Name + "OnStartDelay").GetValue<Slider>().Value * 1000, delegate
                         {
