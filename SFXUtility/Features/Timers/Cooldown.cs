@@ -180,57 +180,65 @@ namespace SFXUtility.Features.Timers
                             (hero.IsEnemy && Menu.Item(Name + "DrawingEnemy").GetValue<bool>() ||
                              hero.IsAlly && Menu.Item(Name + "DrawingAlly").GetValue<bool>()) && hero.Position.IsOnScreen()))
                 {
-                    var x = (int) hero.HPBarPosition.X + -8;
-                    var y = (int) hero.HPBarPosition.Y + (hero.IsEnemy ? 17 : 14);
-
-                    _sprite.Begin(SpriteFlags.AlphaBlend);
-
-                    for (var i = 0; i < _summonerSlots.Length; i++)
+                    try
                     {
-                        var spell = hero.Spellbook.GetSpell(_summonerSlots[i]);
-                        var t = spell.CooldownExpires - Game.Time;
-                        var percent = (Math.Abs(spell.Cooldown) > float.Epsilon) ? t/spell.Cooldown : 1f;
-                        var n = (t > 0) ? (int) (19*(1f - percent)) : 19;
-                        var ts = TimeSpan.FromSeconds((int) t);
-                        var s = t > 60 ? string.Format("{0}:{1:D2}", ts.Minutes, ts.Seconds) : string.Format("{0:0}", t);
-                        if (t > 0)
-                            _text.DrawTextCentered(s, x - 5, y + 7 + 13*i, new ColorBGRA(255, 255, 255, 255));
-                        _sprite.Draw(_summonerTextures[spell.Name.ToLower()], new ColorBGRA(255, 255, 255, 255), new Rectangle(0, 12*n, 12, 12),
-                            new Vector3(-x - 3, -y - 1 - 13*i, 0));
-                    }
+                        var x = (int) hero.HPBarPosition.X + -8;
+                        var y = (int) hero.HPBarPosition.Y + (hero.IsEnemy ? 17 : 14);
 
-                    _sprite.Draw(_hudTexture, new ColorBGRA(255, 255, 255, 255), null, new Vector3(-x, -y, 0));
+                        _sprite.Begin(SpriteFlags.AlphaBlend);
 
-                    _sprite.End();
-
-                    var x2 = x + 19;
-                    var y2 = y + 20;
-
-                    _line.Begin();
-                    foreach (var slot in _spellSlots)
-                    {
-                        var spell = hero.Spellbook.GetSpell(slot);
-                        var t = spell.CooldownExpires - Game.Time;
-                        var percent = (t > 0 && Math.Abs(spell.Cooldown) > float.Epsilon) ? 1f - (t/spell.Cooldown) : 1f;
-
-                        if (t > 0 && t < 100)
+                        for (var i = 0; i < _summonerSlots.Length; i++)
                         {
-                            var s = string.Format(t < 1f ? "{0:0.0}" : "{0:0}", t);
-                            _text.DrawTextCentered(s, x2 + 23/2, y2 + 13, new ColorBGRA(255, 255, 255, 255));
+                            var spell = hero.Spellbook.GetSpell(_summonerSlots[i]);
+                            var t = spell.CooldownExpires - Game.Time;
+                            var percent = (Math.Abs(spell.Cooldown) > float.Epsilon) ? t/spell.Cooldown : 1f;
+                            var n = (t > 0) ? (int) (19*(1f - percent)) : 19;
+                            var ts = TimeSpan.FromSeconds((int) t);
+                            var s = t > 60 ? string.Format("{0}:{1:D2}", ts.Minutes, ts.Seconds) : string.Format("{0:0}", t);
+                            if (t > 0)
+                                _text.DrawTextCentered(s, x - 5, y + 7 + 13*i, new ColorBGRA(255, 255, 255, 255));
+                            _sprite.Draw(_summonerTextures[spell.Name.ToLower()], new ColorBGRA(255, 255, 255, 255), new Rectangle(0, 12*n, 12, 12),
+                                new Vector3(-x - 3, -y - 1 - 13*i, 0));
                         }
-                        var darkColor = (t > 0) ? new ColorBGRA(168, 98, 0, 255) : new ColorBGRA(0, 130, 15, 255);
-                        var lightColor = (t > 0) ? new ColorBGRA(235, 137, 0, 255) : new ColorBGRA(0, 168, 25, 255);
 
-                        if (hero.Spellbook.CanUseSpell(slot) != SpellState.NotLearned)
+                        _sprite.Draw(_hudTexture, new ColorBGRA(255, 255, 255, 255), null, new Vector3(-x, -y, 0));
+
+                        _sprite.End();
+
+                        var x2 = x + 19;
+                        var y2 = y + 20;
+
+                        _line.Begin();
+                        foreach (var slot in _spellSlots)
                         {
-                            for (var i = 0; i < 2; i++)
+                            var spell = hero.Spellbook.GetSpell(slot);
+                            var t = spell.CooldownExpires - Game.Time;
+                            var percent = (t > 0 && Math.Abs(spell.Cooldown) > float.Epsilon) ? 1f - (t/spell.Cooldown) : 1f;
+
+                            if (t > 0 && t < 100)
                             {
-                                _line.Draw(new[] {new Vector2(x2, y2 + i*2), new Vector2(x2 + percent*23, y2 + i*2)}, i == 0 ? lightColor : darkColor);
+                                var s = string.Format(t < 1f ? "{0:0.0}" : "{0:0}", t);
+                                _text.DrawTextCentered(s, x2 + 23/2, y2 + 13, new ColorBGRA(255, 255, 255, 255));
                             }
+                            var darkColor = (t > 0) ? new ColorBGRA(168, 98, 0, 255) : new ColorBGRA(0, 130, 15, 255);
+                            var lightColor = (t > 0) ? new ColorBGRA(235, 137, 0, 255) : new ColorBGRA(0, 168, 25, 255);
+
+                            if (hero.Spellbook.CanUseSpell(slot) != SpellState.NotLearned)
+                            {
+                                for (var i = 0; i < 2; i++)
+                                {
+                                    _line.Draw(new[] {new Vector2(x2, y2 + i*2), new Vector2(x2 + percent*23, y2 + i*2)},
+                                        i == 0 ? lightColor : darkColor);
+                                }
+                            }
+                            x2 = x2 + 27;
                         }
-                        x2 = x2 + 27;
+                        _line.End();
                     }
-                    _line.End();
+                    catch (Exception ex)
+                    {
+                        Global.Logger.AddItem(new LogItem(ex));
+                    }
                 }
             }
             catch (Exception ex)
@@ -241,16 +249,30 @@ namespace SFXUtility.Features.Timers
 
         private void OnDrawingPostReset(EventArgs args)
         {
-            _line.OnResetDevice();
-            _text.OnResetDevice();
-            _sprite.OnResetDevice();
+            try
+            {
+                _line.OnResetDevice();
+                _text.OnResetDevice();
+                _sprite.OnResetDevice();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnDrawingPreReset(EventArgs args)
         {
-            _line.OnLostDevice();
-            _text.OnLostDevice();
-            _sprite.OnLostDevice();
+            try
+            {
+                _line.OnLostDevice();
+                _text.OnLostDevice();
+                _sprite.OnLostDevice();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
     }
 }

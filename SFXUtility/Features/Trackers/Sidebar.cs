@@ -240,7 +240,7 @@ namespace SFXUtility.Features.Trackers
                 Hero = hero;
                 try
                 {
-                    _hudSprite = new Render.Sprite(Resources.SB_HUD, Vector2.Zero)
+                    _hudSprite = new Render.Sprite(Resources.SB_Hud, Vector2.Zero)
                     {
                         VisibleCondition = delegate
                         {
@@ -324,7 +324,7 @@ namespace SFXUtility.Features.Trackers
                         {
                             try
                             {
-                                return Active && spell.Level > 0 && spell.CooldownExpires - Game.Time <= 0;
+                                return Active && spell != null && spell.Level > 0 && spell.CooldownExpires - Game.Time <= 0;
                             }
                             catch (Exception ex)
                             {
@@ -342,7 +342,7 @@ namespace SFXUtility.Features.Trackers
                         {
                             try
                             {
-                                return Active && spell.Level > 0 && spell.CooldownExpires - Game.Time > 0;
+                                return Active && spell != null && spell.Level > 0 && spell.CooldownExpires - Game.Time > 0;
                             }
                             catch (Exception ex)
                             {
@@ -545,7 +545,7 @@ namespace SFXUtility.Features.Trackers
                             {
                                 try
                                 {
-                                    return Active && spell.CooldownExpires - Game.Time > 0;
+                                    return Active && spell != null;
                                 }
                                 catch (Exception ex)
                                 {
@@ -608,7 +608,7 @@ namespace SFXUtility.Features.Trackers
 
             public bool Active
             {
-                private get { return _active; }
+                private get { return _active && Hero != null && Hero.IsValid; }
                 set
                 {
                     _active = value;

@@ -120,12 +120,26 @@ namespace SFXUtility.Features.Drawings
 
         private void OnDrawingPostReset(EventArgs args)
         {
-            _text.OnResetDevice();
+            try
+            {
+                _text.OnResetDevice();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnDrawingPreReset(EventArgs args)
         {
-            _text.OnLostDevice();
+            try
+            {
+                _text.OnLostDevice();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnParentInitialized(object sender, EventArgs eventArgs)

@@ -24,6 +24,8 @@ namespace SFXUtility
 {
     #region
 
+    using System;
+    using System.IO;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
@@ -31,8 +33,13 @@ namespace SFXUtility
 
     public class Global
     {
+        public static ILogger Logger;
         public static IContainer IoC = new Container();
-        public static ILogger Logger = new ConsoleLogger();
         public static string DefaultFont = "Calibri";
+
+        static Global()
+        {
+            Logger = new FileLogger(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SFXUtility - Logs"));
+        }
     }
 }

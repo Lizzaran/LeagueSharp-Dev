@@ -228,90 +228,126 @@ namespace SFXUtility.Features.Trackers
 
         private void OnDrawingPostReset(EventArgs args)
         {
-            _text.OnResetDevice();
-            _sprite.OnResetDevice();
+            try
+            {
+                _text.OnResetDevice();
+                _sprite.OnResetDevice();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnDrawingPreReset(EventArgs args)
         {
-            _text.OnLostDevice();
-            _sprite.OnLostDevice();
+            try
+            {
+                _text.OnLostDevice();
+                _sprite.OnLostDevice();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnGameObjectCreate(GameObject sender, EventArgs args)
         {
-            var spellMissile = sender as Obj_SpellMissile;
-            if (spellMissile != null)
+            try
             {
-                var missile = spellMissile;
-                if (missile.SpellCaster.IsEnemy)
+                var spellMissile = sender as Obj_SpellMissile;
+                if (spellMissile != null)
                 {
-                    if (missile.SData.Name.Equals("itemplacementmissile", StringComparison.OrdinalIgnoreCase) && !missile.SpellCaster.IsVisible)
+                    var missile = spellMissile;
+                    if (missile.SpellCaster.IsEnemy)
                     {
-                        var sPos = missile.StartPosition;
-                        var ePos = missile.EndPosition;
-                        Utility.DelayAction.Add(1000, delegate
+                        if (missile.SData.Name.Equals("itemplacementmissile", StringComparison.OrdinalIgnoreCase) && !missile.SpellCaster.IsVisible)
                         {
-                            if (
-                                !_wardObjects.Any(
-                                    w => w.Position.To2D().Distance(sPos.To2D(), ePos.To2D(), false) < 300 && Math.Abs(w.StartT - Game.Time) < 2000))
+                            var sPos = missile.StartPosition;
+                            var ePos = missile.EndPosition;
+                            Utility.DelayAction.Add(1000, delegate
                             {
-                                _wardObjects.Add(new WardObject(_wardStructs[3],
-                                    new Vector3(ePos.X, ePos.Y, NavMesh.GetHeightForPosition(ePos.X, ePos.Y)), (int) Game.Time, null, true,
-                                    new Vector3(sPos.X, sPos.Y, NavMesh.GetHeightForPosition(sPos.X, sPos.Y))));
-                            }
-                        });
+                                if (
+                                    !_wardObjects.Any(
+                                        w =>
+                                            w.Position.To2D().Distance(sPos.To2D(), ePos.To2D(), false) < 300 && Math.Abs(w.StartT - Game.Time) < 2000))
+                                {
+                                    _wardObjects.Add(new WardObject(_wardStructs[3],
+                                        new Vector3(ePos.X, ePos.Y, NavMesh.GetHeightForPosition(ePos.X, ePos.Y)), (int) Game.Time, null, true,
+                                        new Vector3(sPos.X, sPos.Y, NavMesh.GetHeightForPosition(sPos.X, sPos.Y))));
+                                }
+                            });
+                        }
                     }
                 }
-            }
-            else
-            {
-                var o = sender as Obj_AI_Base;
-                if (o != null)
+                else
                 {
-                    var wardObject = o;
-                    if (wardObject.IsEnemy)
+                    var o = sender as Obj_AI_Base;
+                    if (o != null)
                     {
-                        foreach (var ward in _wardStructs)
+                        var wardObject = o;
+                        if (wardObject.IsEnemy)
                         {
-                            if (wardObject.BaseSkinName.Equals(ward.ObjectBaseSkinName, StringComparison.InvariantCultureIgnoreCase))
+                            foreach (var ward in _wardStructs)
                             {
-                                var startT = Game.Time - (int) ((wardObject.MaxMana - wardObject.Mana));
-                                _wardObjects.RemoveAll(
-                                    w =>
-                                        w.Position.Distance(wardObject.Position) < 200 &&
-                                        (Math.Abs(w.StartT - startT) < 1000 || ward.Type != WardType.Green));
-                                _wardObjects.Add(new WardObject(ward, wardObject.Position, (int) startT, wardObject));
+                                if (wardObject.BaseSkinName.Equals(ward.ObjectBaseSkinName, StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    var startT = Game.Time - (int) ((wardObject.MaxMana - wardObject.Mana));
+                                    _wardObjects.RemoveAll(
+                                        w =>
+                                            w.Position.Distance(wardObject.Position) < 200 &&
+                                            (Math.Abs(w.StartT - startT) < 1000 || ward.Type != WardType.Green));
+                                    _wardObjects.Add(new WardObject(ward, wardObject.Position, (int) startT, wardObject));
+                                }
                             }
                         }
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            if (!sender.IsEnemy)
-                return;
-
-            foreach (var ward in _wardStructs)
+            try
             {
-                if (args.SData.Name.Equals(ward.SpellName, StringComparison.OrdinalIgnoreCase))
+                if (!sender.IsEnemy)
+                    return;
+
+                foreach (var ward in _wardStructs)
                 {
-                    var endPosition = ObjectManager.Player.GetPath(args.End).ToList().Last();
-                    _wardObjects.Add(new WardObject(ward, endPosition, (int) Game.Time));
+                    if (args.SData.Name.Equals(ward.SpellName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var endPosition = ObjectManager.Player.GetPath(args.End).ToList().Last();
+                        _wardObjects.Add(new WardObject(ward, endPosition, (int) Game.Time));
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
         private void OnGameUpdate(EventArgs args)
         {
-            if (_lastCheck + CheckInterval > Environment.TickCount)
-                return;
-            _lastCheck = Environment.TickCount;
+            try
+            {
+                if (_lastCheck + CheckInterval > Environment.TickCount)
+                    return;
+                _lastCheck = Environment.TickCount;
 
-            _wardObjects.RemoveAll(w => w.EndTime <= Game.Time && w.Data.Duration != int.MaxValue);
-            _wardObjects.RemoveAll(w => w.Object != null && !w.Object.IsValid);
+                _wardObjects.RemoveAll(w => w.EndTime <= Game.Time && w.Data.Duration != int.MaxValue);
+                _wardObjects.RemoveAll(w => w.Object != null && !w.Object.IsValid);
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private class WardObject

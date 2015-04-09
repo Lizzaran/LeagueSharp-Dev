@@ -75,6 +75,7 @@
 	<entry key="SFXUtility_Forum">Forum</entry>
 	<entry key="SFXUtility_GitHub">GitHub</entry>
 	<entry key="SFXUtility_IRC">IRC</entry>
+	<entry key="SFX_Exception">Exception</entry>
 	<!-- END: SFXUtility -->
 
 	<!-- START: Features -->

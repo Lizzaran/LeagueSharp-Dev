@@ -66,7 +66,7 @@ namespace SFXUtility.Features.Events
 
         private List<SpellInfoStruct> GetOrderedPriorityList()
         {
-            return GetPriorityList().OrderBy(x => x.Value).Reverse().ToList();
+            return GetPriorityList().OrderByDescending(x => x.Value).ToList();
         }
 
         private SpellInfoStruct GetSpellInfoByPriority(int priority)

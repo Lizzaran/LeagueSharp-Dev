@@ -187,14 +187,28 @@ namespace SFXUtility.Features.Trackers
 
         private void OnDrawingPostReset(EventArgs args)
         {
-            _text.OnResetDevice();
-            _sprite.OnResetDevice();
+            try
+            {
+                _text.OnResetDevice();
+                _sprite.OnResetDevice();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnDrawingPreReset(EventArgs args)
         {
-            _text.OnLostDevice();
-            _sprite.OnLostDevice();
+            try
+            {
+                _text.OnLostDevice();
+                _sprite.OnLostDevice();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnParentInitialized(object sender, EventArgs eventArgs)

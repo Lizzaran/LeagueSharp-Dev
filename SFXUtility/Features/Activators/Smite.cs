@@ -273,7 +273,7 @@ namespace SFXUtility.Features.Activators
                 }
             }
 
-            if (minion && Menu.Item(Name + "DrawingDamageIndicator").GetValue<bool>())
+            if (minion && _currentMinion.IsVisible && Menu.Item(Name + "DrawingDamageIndicator").GetValue<bool>())
             {
                 var pos = Drawing.WorldToScreen(_currentMinion.Position);
                 Drawing.DrawText(pos.X, pos.Y + _currentMinion.BoundingRadius/2f, Menu.Item(Name + "DrawingDamageColor").GetValue<Color>(),
@@ -286,8 +286,15 @@ namespace SFXUtility.Features.Activators
         {
             try
             {
-                if (_delayActive || !Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active)
+                if (!Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active)
                     return;
+
+                if (_delayActive && _currentMinion != null && _currentMinion.IsValid && !_currentMinion.IsDead)
+                {
+                    if (ObjectManager.Player.GetSummonerSpellDamage(_currentMinion, Damage.SummonerSpell.Smite) >= _currentMinion.Health &&
+                        _smiteSpell.CanCast(_currentMinion))
+                        _smiteSpell.Cast(_currentMinion);
+                }
 
                 var smiteSpellEnabled = _smiteSpell != null && Menu.Item(Name + "SpellSmiteUse").GetValue<bool>();
                 var heroSpellEnabled = Menu.Item(Name + "Spell" + ObjectManager.Player.ChampionName + "Enabled").GetValue<bool>();

@@ -73,6 +73,7 @@
     <Compile Include="Extensions\NET\FloatExtensions.cs" />
     <Compile Include="Extensions\NET\IntegerExtensions.cs" />
     <Compile Include="Extensions\LeagueSharp\Obj_AI_HeroExtensions.cs" />
+    <Compile Include="Extensions\NET\ObjectExtensions.cs" />
     <Compile Include="Extensions\NET\OtherExtensions.cs" />
     <Compile Include="Extensions\NET\StringExtensions.cs" />
     <Compile Include="Extensions\SharpDX\SpriteExtension.cs" />
@@ -82,12 +83,6 @@
     <Compile Include="IoCContainer\Container.cs" />
     <Compile Include="IoCContainer\IContainer.cs" />
     <Compile Include="IoCContainer\MappingKey.cs" />
-    <Compile Include="JSON\Formatter.cs" />
-    <Compile Include="JSON\Getters.cs" />
-    <Compile Include="JSON\JSON.cs" />
-    <Compile Include="JSON\JsonSerializer.cs" />
-    <Compile Include="JSON\Reflection.cs" />
-    <Compile Include="JSON\SafeDictionary.cs" />
     <Compile Include="Logger\ConsoleLogger.cs" />
     <Compile Include="Logger\ILogger.cs" />
     <Compile Include="Mediator.cs" />

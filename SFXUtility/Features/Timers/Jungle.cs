@@ -177,14 +177,28 @@ namespace SFXUtility.Features.Timers
 
         private void OnDrawingPostReset(EventArgs args)
         {
-            _mapText.OnResetDevice();
-            _minimapText.OnResetDevice();
+            try
+            {
+                _mapText.OnResetDevice();
+                _minimapText.OnResetDevice();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnDrawingPreReset(EventArgs args)
         {
-            _mapText.OnLostDevice();
-            _minimapText.OnResetDevice();
+            try
+            {
+                _mapText.OnLostDevice();
+                _minimapText.OnResetDevice();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         protected override void OnGameLoad(EventArgs args)

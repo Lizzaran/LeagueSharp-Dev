@@ -25,56 +25,39 @@ namespace SFXLibrary.Logger
     #region
 
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.IO;
     using System.IO.Compression;
     using System.Linq;
     using System.Text;
     using Extensions.NET;
-    using JSON;
 
     #endregion
 
     public class FileLogger : ProducerConsumer<LogItem>, ILogger
     {
-        private readonly bool _compression;
         private readonly string _fileName;
-        private readonly string _logDir;
         private readonly HashSet<string> _unique = new HashSet<string>();
-        private bool _filterSensitiveData = true;
-        private string[] _sensitiveData;
 
-        public FileLogger(string logDir, string fileName = "{1}_{0}.txt", bool compression = false, LogLevel logLevel = LogLevel.Low)
+        public FileLogger(string logDir, string fileName = "{0}_{1}.txt")
         {
-            _logDir = logDir;
+            LogDir = logDir;
             _fileName = fileName;
-            _compression = compression;
-            LogLevel = logLevel;
 
             try
             {
-                Directory.CreateDirectory(_logDir);
+                Directory.CreateDirectory(LogDir);
             }
             catch
             {
             }
         }
 
-        public JSONParameters JSONParams { get; set; }
         public Dictionary<string, string> AdditionalData { get; set; }
-
-        public bool FilterSensitiveData
-        {
-            get { return _filterSensitiveData; }
-            set { _filterSensitiveData = value; }
-        }
-
-        public List<string> SensitiveData
-        {
-            get { return _sensitiveData.ToList(); }
-            set { _sensitiveData = value.ToArray(); }
-        }
-
+        public bool Compression { get; set; }
+        public bool OutputConsole { get; set; }
+        public string LogDir { get; set; }
         public LogLevel LogLevel { get; set; }
 
         public new void AddItem(LogItem item)
@@ -82,55 +65,14 @@ namespace SFXLibrary.Logger
             if (LogLevel == LogLevel.None || item == null || string.IsNullOrWhiteSpace(item.Exception.ToString()))
                 return;
 
-            var uniqueValue = (item.Exception + AdditionalData.ToDebugString()).Trim();
-            if (!_unique.Contains(uniqueValue))
-            {
-                _unique.Add(uniqueValue);
-                base.AddItem(item);
-            }
-        }
-
-        protected override void ProcessItem(LogItem item)
-        {
-            if (item == null || string.IsNullOrWhiteSpace(item.Exception.ToString()))
-                return;
-
             try
             {
-                var file = Path.Combine(_logDir,
-                    string.Format(_fileName, (item.Exception + AdditionalData.ToDebugString()).ToMd5Hash(), LogLevel.ToString().ToLower()));
-
-                if (File.Exists(file))
-                    return;
-
-                using (var fileStream = new FileStream(file, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, true))
-                using (Stream gzStream = new GZipStream(fileStream, CompressionMode.Compress, false))
+                var uniqueValue = (item.Exception + AdditionalData.ToDebugString()).Trim();
+                if (!_unique.Contains(uniqueValue))
                 {
-                    var log = string.Empty;
-                    switch (LogLevel)
-                    {
-                        case LogLevel.Low:
-                            log = JSON.ToJSON(item.Exception, JSONParams);
-                            break;
-
-                        case LogLevel.Medium:
-                        case LogLevel.High:
-                            log = JSON.ToJSON(item, JSONParams);
-                            break;
-                    }
-
-                    if (FilterSensitiveData)
-                        log = FilterData(log, _sensitiveData);
-
-                    var logByte = new UTF8Encoding(true).GetBytes(log);
-
-                    if (!string.IsNullOrWhiteSpace(log))
-                    {
-                        if (_compression)
-                            gzStream.Write(logByte, 0, logByte.Length);
-                        else
-                            fileStream.Write(logByte, 0, logByte.Length);
-                    }
+                    OnItemAdded.RaiseEvent(item, new EventArgs());
+                    _unique.Add(uniqueValue);
+                    base.AddItem(item);
                 }
             }
             catch (Exception ex)
@@ -139,9 +81,47 @@ namespace SFXLibrary.Logger
             }
         }
 
-        private string FilterData(string data, string[] sensitiveData)
+        public event EventHandler OnItemAdded;
+
+        protected override void ProcessItem(LogItem item)
         {
-            return data.Replace(sensitiveData, "[filtered]");
+            if (item == null || string.IsNullOrWhiteSpace(item.Exception.ToString()))
+                return;
+
+            try
+            {
+                var file = Path.Combine(LogDir,
+                    string.Format(_fileName, (item.Exception + AdditionalData.ToDebugString()).ToMd5Hash(), LogLevel.ToString().ToLower()));
+
+                if (File.Exists(file))
+                    return;
+
+                if (OutputConsole)
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine(item.Exception);
+                    Console.ResetColor();
+                }
+
+                using (var fileStream = new FileStream(file, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, true))
+                using (Stream gzStream = new GZipStream(fileStream, CompressionMode.Compress, false))
+                {
+                    var text = item.Exception.ToString();
+                    text = item.Exception.Data.Cast<DictionaryEntry>()
+                        .Aggregate(text, (current, entry) => current + string.Format("{0}{1}: {2}", Environment.NewLine, entry.Key, entry.Value));
+
+                    var logByte = new UTF8Encoding(true).GetBytes(text);
+
+                    if (Compression)
+                        gzStream.Write(logByte, 0, logByte.Length);
+                    else
+                        fileStream.Write(logByte, 0, logByte.Length);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         }
     }
 }

@@ -96,6 +96,7 @@
     <Compile Include="Features\Drawings\PerfectWard.cs" />
     <Compile Include="Features\Others\SummonerInfo.cs" />
     <Compile Include="Features\Others\TurnAround.cs" />
+    <Compile Include="Features\Trackers\GoldEfficiency.cs" />
     <Compile Include="Features\Trackers\Sidebar.cs" />
     <Compile Include="Features\Trackers\Destination.cs" />
     <Compile Include="Features\Drawings\Clone.cs" />
@@ -151,6 +152,7 @@
     <Content Include="Resources\Languages\language.de.xml" />
     <Content Include="Resources\Languages\language.fr.xml" />
     <Content Include="Resources\Languages\language.vi.xml" />
+    <Content Include="Resources\LP\LP_Bard.png" />
     <Content Include="Resources\LP\LP_Kalista.png" />
     <Content Include="Resources\LP\LP_Teleport.png" />
     <Content Include="Resources\LP\LP_RekSai.png" />
@@ -162,8 +164,11 @@
     <Content Include="Resources\SB\SB_Anivia.jpg" />
     <Content Include="Resources\SB\SB_Annie.jpg" />
     <Content Include="Resources\SB\SB_Ashe.jpg" />
+    <Content Include="Resources\SB\SB_Azir.jpg" />
+    <Content Include="Resources\SB\SB_Bard.jpg" />
     <Content Include="Resources\SB\SB_Blitzcrank.jpg" />
     <Content Include="Resources\SB\SB_Brand.jpg" />
+    <Content Include="Resources\SB\SB_Braum.jpg" />
     <Content Include="Resources\SB\SB_Caitlyn.jpg" />
     <Content Include="Resources\SB\SB_Cassiopeia.jpg" />
     <Content Include="Resources\SB\SB_Chogath.jpg" />
@@ -181,11 +186,12 @@
     <Content Include="Resources\SB\SB_Galio.jpg" />
     <Content Include="Resources\SB\SB_Gangplank.jpg" />
     <Content Include="Resources\SB\SB_Garen.jpg" />
+    <Content Include="Resources\SB\SB_Gnar.jpg" />
     <Content Include="Resources\SB\SB_Gragas.jpg" />
     <Content Include="Resources\SB\SB_Graves.jpg" />
     <Content Include="Resources\SB\SB_Hecarim.jpg" />
     <Content Include="Resources\SB\SB_Heimerdinger.jpg" />
-    <Content Include="Resources\SB\SB_HUD.png" />
+    <Content Include="Resources\SB\SB_Hud.png" />
     <Content Include="Resources\SB\SB_Invisible.png" />
     <Content Include="Resources\SB\SB_Irelia.jpg" />
     <Content Include="Resources\SB\SB_Janna.jpg" />
@@ -193,6 +199,7 @@
     <Content Include="Resources\SB\SB_Jax.jpg" />
     <Content Include="Resources\SB\SB_Jayce.jpg" />
     <Content Include="Resources\SB\SB_Jinx.jpg" />
+    <Content Include="Resources\SB\SB_Kalista.jpg" />
     <Content Include="Resources\SB\SB_Karma.jpg" />
     <Content Include="Resources\SB\SB_Karthus.jpg" />
     <Content Include="Resources\SB\SB_Kassadin.jpg" />
@@ -231,6 +238,7 @@
     <Content Include="Resources\SB\SB_RecallAbort.png" />
     <Content Include="Resources\SB\SB_RecallFinish.png" />
     <Content Include="Resources\SB\SB_RecallStart.png" />
+    <Content Include="Resources\SB\SB_RekSai.jpg" />
     <Content Include="Resources\SB\SB_Renekton.jpg" />
     <Content Include="Resources\SB\SB_Rengar.jpg" />
     <Content Include="Resources\SB\SB_Riven.jpg" />

@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- ILogger.cs is part of SFXLibrary.
+ ObjectExtensions.cs is part of SFXLibrary.
 
  SFXLibrary is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,38 +20,35 @@
 
 #endregion License
 
-namespace SFXLibrary.Logger
+namespace SFXLibrary.Extensions.NET
 {
     #region
 
-    using System;
-    using System.ComponentModel;
+    using System.IO;
+    using System.Xml.Serialization;
 
     #endregion
 
-    public interface ILogger
+    public static class ObjectExtensions
     {
-        LogLevel LogLevel { get; set; }
-        void AddItem(LogItem item);
-        event EventHandler OnItemAdded;
-    }
-
-    [DefaultValue(High)]
-    public enum LogLevel
-    {
-        None = 0,
-        Low = 1,
-        Medium = 2,
-        High = 3
-    }
-
-    public class LogItem
-    {
-        public LogItem(Exception exception)
+        public static string ToXml(this object obj)
         {
-            Exception = exception;
+            var s = new XmlSerializer(obj.GetType());
+            using (var writer = new StringWriter())
+            {
+                s.Serialize(writer, obj);
+                return writer.ToString();
+            }
         }
 
-        public Exception Exception { get; private set; }
+        public static T FromXml<T>(this string data)
+        {
+            var s = new XmlSerializer(typeof (T));
+            using (var reader = new StringReader(data))
+            {
+                var obj = s.Deserialize(reader);
+                return (T) obj;
+            }
+        }
     }
 }

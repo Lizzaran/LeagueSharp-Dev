@@ -73,16 +73,16 @@ namespace SFXLibrary
                 {
                     foreach (var consumer in _pool.ToList())
                     {
-                        if (consumer.Key != null && !consumer.Key.IsCancellationRequested)
+                        try
                         {
-                            try
+                            if (consumer.Key != null && !consumer.Key.IsCancellationRequested)
                             {
                                 consumer.Key.Cancel();
                                 consumer.Key.Dispose();
                             }
-                            catch
-                            {
-                            }
+                        }
+                        catch
+                        {
                         }
                     }
                 }

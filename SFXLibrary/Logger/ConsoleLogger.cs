@@ -25,6 +25,9 @@ namespace SFXLibrary.Logger
     #region
 
     using System;
+    using System.Collections;
+    using System.Linq;
+    using Extensions.NET;
 
     #endregion
 
@@ -39,13 +42,15 @@ namespace SFXLibrary.Logger
 
             try
             {
+                OnItemAdded.RaiseEvent(item, new EventArgs());
+
+                var text = item.Exception.ToString();
+                text = item.Exception.Data.Cast<DictionaryEntry>()
+                    .Aggregate(text, (current, entry) => current + string.Format("{0}{1}: {2}", Environment.NewLine, entry.Key, entry.Value));
+
+
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                if (item.Object != null)
-                {
-                    Console.WriteLine(item.Object.GetType().Name);
-                    Console.WriteLine("--------------------------");
-                }
-                Console.WriteLine(item.Exception);
+                Console.WriteLine(text);
                 Console.ResetColor();
             }
             catch (Exception ex)
@@ -53,5 +58,7 @@ namespace SFXLibrary.Logger
                 Console.WriteLine(ex);
             }
         }
+
+        public event EventHandler OnItemAdded;
     }
 }

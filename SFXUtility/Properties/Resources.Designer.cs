@@ -389,6 +389,16 @@ namespace SFXUtility.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap LP_Bard {
+            get {
+                object obj = ResourceManager.GetObject("LP_Bard", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap LP_Blitzcrank {
             get {
                 object obj = ResourceManager.GetObject("LP_Blitzcrank", resourceCulture);
@@ -1519,26 +1529,6 @@ namespace SFXUtility.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap LP_Zilean {
-            get {
-                object obj = ResourceManager.GetObject("LP_Zilean", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap LP_Zyra {
-            get {
-                object obj = ResourceManager.GetObject("LP_Zyra", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
         internal static System.Drawing.Bitmap SB_Aatrox {
             get {
                 object obj = ResourceManager.GetObject("SB_Aatrox", resourceCulture);
@@ -1619,6 +1609,26 @@ namespace SFXUtility.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap SB_Azir {
+            get {
+                object obj = ResourceManager.GetObject("SB_Azir", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Bard {
+            get {
+                object obj = ResourceManager.GetObject("SB_Bard", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap SB_Blitzcrank {
             get {
                 object obj = ResourceManager.GetObject("SB_Blitzcrank", resourceCulture);
@@ -1632,6 +1642,16 @@ namespace SFXUtility.Properties {
         internal static System.Drawing.Bitmap SB_Brand {
             get {
                 object obj = ResourceManager.GetObject("SB_Brand", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Braum {
+            get {
+                object obj = ResourceManager.GetObject("SB_Braum", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -1809,6 +1829,16 @@ namespace SFXUtility.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap SB_Gnar {
+            get {
+                object obj = ResourceManager.GetObject("SB_Gnar", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap SB_Gragas {
             get {
                 object obj = ResourceManager.GetObject("SB_Gragas", resourceCulture);
@@ -1849,9 +1879,9 @@ namespace SFXUtility.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap SB_HUD {
+        internal static System.Drawing.Bitmap SB_Hud {
             get {
-                object obj = ResourceManager.GetObject("SB_HUD", resourceCulture);
+                object obj = ResourceManager.GetObject("SB_Hud", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -1922,6 +1952,16 @@ namespace SFXUtility.Properties {
         internal static System.Drawing.Bitmap SB_Jinx {
             get {
                 object obj = ResourceManager.GetObject("SB_Jinx", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Kalista {
+            get {
+                object obj = ResourceManager.GetObject("SB_Kalista", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -2302,6 +2342,16 @@ namespace SFXUtility.Properties {
         internal static System.Drawing.Bitmap SB_RecallStart {
             get {
                 object obj = ResourceManager.GetObject("SB_RecallStart", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_RekSai {
+            get {
+                object obj = ResourceManager.GetObject("SB_RekSai", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

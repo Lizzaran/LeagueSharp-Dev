@@ -51,6 +51,13 @@ namespace SFXUtility
         {
             Global.Logger.LogLevel = LogLevel.High;
 
+            AppDomain.CurrentDomain.UnhandledException += delegate(object sender, UnhandledExceptionEventArgs eventArgs)
+            {
+                var ex = sender as Exception;
+                if (ex != null)
+                    Global.Logger.AddItem(new LogItem(ex));
+            };
+
             Language.Default = "en";
 
             var currentAsm = Assembly.GetExecutingAssembly();
@@ -133,6 +140,7 @@ namespace SFXUtility
             Global.IoC.Register(() => new Object(), true, true);
 
             Global.IoC.Register(() => new Trackers(), true, true);
+            Global.IoC.Register(() => new GoldEfficiency(), true, true);
             Global.IoC.Register(() => new Destination(), true, true);
             Global.IoC.Register(() => new LastPosition(), true, true);
             Global.IoC.Register(() => new Ward(), true, true);

@@ -31,7 +31,6 @@ namespace SFXUtility
     using LeagueSharp;
     using LeagueSharp.Common;
     using SFXLibrary;
-    using SFXLibrary.Data;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Logger;
     using Version = System.Version;
@@ -58,8 +57,9 @@ namespace SFXUtility
                 infoMenu.AddItem(new MenuItem(infoMenu.Name + "Forum", Language.Get("SFXUtility_Forum") + ": Lizzaran"));
                 infoMenu.AddItem(new MenuItem(infoMenu.Name + "Github", Language.Get("SFXUtility_GitHub") + ": Lizzaran"));
                 infoMenu.AddItem(new MenuItem(infoMenu.Name + "IRC", Language.Get("SFXUtility_IRC") + ": Appril"));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Exception", string.Format("{0}: {1}", Language.Get("SFX_Exception"), 0)));
 
-                infoMenu.AddSubMenu(infoMenu);
+                Menu.AddSubMenu(infoMenu);
 
                 Menu.Item(Name + "Language").ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
                 {
@@ -108,14 +108,11 @@ namespace SFXUtility
         {
             if (args.EventId == GameEventId.OnLeave || args.EventId == GameEventId.OnEndGame || args.EventId == GameEventId.OnQuit)
             {
-                try
-                {
-                    OnExit(null, null);
-                }
-                catch (Exception ex)
-                {
-                    Global.Logger.AddItem(new LogItem(ex));
-                }
+                OnExit(null, null);
+            }
+            if (args.EventId == GameEventId.OnHQDie || args.EventId == GameEventId.OnHQKill)
+            {
+                Notifications.AddNotification(new Notification(Menu.Item(Name + "InfoException").DisplayName));
             }
         }
 
@@ -139,35 +136,38 @@ namespace SFXUtility
 
         private void OnGameEnd(EventArgs args)
         {
-            try
-            {
-                OnExit(null, null);
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
+            OnExit(null, null);
         }
 
         private void OnGameLoad(EventArgs args)
         {
             try
             {
-                var logger = Global.Logger as FileLogger;
-
-                if (logger != null)
-                {
-                    logger.SensitiveData = Sensitive.Data;
-                    logger.AdditionalData = Additional.Data;
-                }
-
                 Chat.Local(string.Format("{0} v{1}.{2}.{3} {4}.", Name, Version.Major, Version.Minor, Version.Build, Language.Get("SFXUtility_Loaded")));
 
                 Menu.AddToMainMenu();
+
+                var errorText = Language.Get("SFX_Exception");
+                Global.Logger.OnItemAdded += delegate
+                {
+                    try
+                    {
+                        var text = Menu.Item(Name + "InfoException").DisplayName.Replace(errorText + ": ", string.Empty);
+                        int count;
+                        if (int.TryParse(text, out count))
+                        {
+                            Menu.Item(Name + "InfoException").DisplayName = string.Format("{0}: {1}", errorText, count + 1);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                    }
+                };
             }
             catch (Exception ex)
             {
-                Global.Logger.AddItem(new LogItem(ex) {Object = this});
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
     }
