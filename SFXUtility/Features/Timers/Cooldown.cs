@@ -230,10 +230,6 @@ namespace SFXUtility.Features.Timers
                                     _sprite.Draw(_summonerTextures[spell.Name.ToLower()], new ColorBGRA(255, 255, 255, 255),
                                         new Rectangle(0, 12*n, 12, 12), new Vector3(-x - 3, -y - 1 - 13*i, 0));
                                 }
-                                else
-                                {
-                                    Global.Logger.AddItem(new LogItem(new Exception("_summonerTextures doesn't contain: " + spell.Name.ToLower())));
-                                }
                             }
                         }
 

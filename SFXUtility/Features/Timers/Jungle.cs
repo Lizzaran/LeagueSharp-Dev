@@ -110,7 +110,7 @@ namespace SFXUtility.Features.Timers
                         if (camp.Dead)
                         {
                             camp.Dead = true;
-                            camp.NextRespawnTime = (int) Game.ClockTime + camp.RespawnTime - 5;
+                            camp.NextRespawnTime = (int) Game.ClockTime + camp.RespawnTime - 3;
                         }
                     }
                 }
