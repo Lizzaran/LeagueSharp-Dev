@@ -66,18 +66,21 @@ namespace SFXUtility.Features.Drawings
                 var lineColor = Menu.Item(Name + "DrawingLineColor").GetValue<Color>();
                 var fillColor = Menu.Item(Name + "DrawingFillColor").GetValue<Color>();
 
-                foreach (var enemy in HeroManager.Enemies.Where(e => e.IsHPBarRendered && e.Position.IsOnScreen()))
+                foreach (var enemy in HeroManager.Enemies.Where(e => e.IsValid && !e.IsDead && e.IsHPBarRendered && e.Position.IsOnScreen()))
                 {
                     var barPos = enemy.HPBarPosition;
                     var damage = (float) CalculateComboDamage(enemy);
-                    var percentHealthAfterDamage = Math.Max(0, enemy.Health - damage)/enemy.MaxHealth;
-                    var yPos = barPos.Y + 20;
-                    var xPosDamage = barPos.X + 10 + 103*percentHealthAfterDamage;
-                    var xPosCurrentHp = barPos.X + 10 + 103*enemy.Health/enemy.MaxHealth;
-                    var posX = barPos.X + 9 + (107*percentHealthAfterDamage);
+                    if (damage > 1)
+                    {
+                        var percentHealthAfterDamage = Math.Max(0, enemy.Health - damage)/enemy.MaxHealth;
+                        var yPos = barPos.Y + 20;
+                        var xPosDamage = barPos.X + 10 + 103*percentHealthAfterDamage;
+                        var xPosCurrentHp = barPos.X + 10 + 103*enemy.Health/enemy.MaxHealth;
+                        var posX = barPos.X + 9 + (107*percentHealthAfterDamage);
 
-                    Drawing.DrawLine(xPosDamage, yPos, xPosDamage, yPos + 8, 2, lineColor);
-                    Drawing.DrawLine(posX, yPos, posX + (xPosCurrentHp - xPosDamage), yPos, 8, fillColor);
+                        Drawing.DrawLine(xPosDamage, yPos, xPosDamage, yPos + 8, 2, lineColor);
+                        Drawing.DrawLine(posX, yPos, posX + (xPosCurrentHp - xPosDamage), yPos, 8, fillColor);
+                    }
                 }
             }
             catch (Exception ex)

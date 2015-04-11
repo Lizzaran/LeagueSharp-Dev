@@ -92,7 +92,7 @@ namespace SFXLibrary.Logger
             try
             {
                 var file = Path.Combine(LogDir,
-                    string.Format(_fileName, (item.Exception + AdditionalData.ToDebugString()).ToMd5Hash(), LogLevel.ToString().ToLower()));
+                    string.Format(_fileName, LogLevel.ToString().ToLower(), (item.Exception + AdditionalData.ToDebugString()).ToMd5Hash()));
 
                 if (File.Exists(file))
                     return;

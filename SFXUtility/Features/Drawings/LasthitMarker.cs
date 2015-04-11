@@ -72,21 +72,24 @@ namespace SFXUtility.Features.Drawings
                 foreach (var minion in _minions)
                 {
                     var aaDamage = ObjectManager.Player.GetAutoAttackDamage(minion, true);
-                    var killable = minion.Health <= aaDamage;
-                    if (hpBar && minion.IsHPBarRendered)
+                    if (aaDamage > 1)
                     {
-                        var barPos = minion.HPBarPosition;
-                        var offset = 62/(minion.MaxHealth/aaDamage);
-                        offset = offset > 62 ? 62 : offset;
-                        var tmpThk = (int) (62 - offset);
-                        hpLinesThickness = tmpThk > hpLinesThickness ? hpLinesThickness : (tmpThk == 0 ? 1 : tmpThk);
-                        Drawing.DrawLine(new Vector2(barPos.X + 45 + (float) offset, barPos.Y + 17),
-                            new Vector2(barPos.X + 45 + (float) offset, barPos.Y + 24), hpLinesThickness,
-                            killable ? hpKillableColor : hpUnkillableColor);
-                    }
-                    if (circle && killable)
-                    {
-                        Render.Circle.DrawCircle(minion.Position, minion.BoundingRadius + radius, circleColor, thickness);
+                        var killable = minion.Health <= aaDamage;
+                        if (hpBar && minion.IsHPBarRendered)
+                        {
+                            var barPos = minion.HPBarPosition;
+                            var offset = 62/(minion.MaxHealth/aaDamage);
+                            offset = offset > 62 ? 62 : offset;
+                            var tmpThk = (int) (62 - offset);
+                            hpLinesThickness = tmpThk > hpLinesThickness ? hpLinesThickness : (tmpThk == 0 ? 1 : tmpThk);
+                            Drawing.DrawLine(new Vector2(barPos.X + 45 + (float) offset, barPos.Y + 17),
+                                new Vector2(barPos.X + 45 + (float) offset, barPos.Y + 24), hpLinesThickness,
+                                killable ? hpKillableColor : hpUnkillableColor);
+                        }
+                        if (circle && killable)
+                        {
+                            Render.Circle.DrawCircle(minion.Position, minion.BoundingRadius + radius, circleColor, thickness);
+                        }
                     }
                 }
             }

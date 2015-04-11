@@ -39,8 +39,8 @@ namespace SFXUtility
 
     internal class SFXUtility
     {
-        private bool _unloadTriggered;
         private bool _endTriggered;
+        private bool _unloadTriggered;
 
         public SFXUtility()
         {
