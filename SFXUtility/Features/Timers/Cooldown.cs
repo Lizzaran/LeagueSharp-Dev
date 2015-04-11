@@ -48,6 +48,7 @@ namespace SFXUtility.Features.Timers
         private readonly SpellSlot[] _spellSlots = {SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R};
         private readonly SpellSlot[] _summonerSlots = {SpellSlot.Summoner1, SpellSlot.Summoner2};
         private readonly Dictionary<string, Texture> _summonerTextures = new Dictionary<string, Texture>();
+        private List<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
         private Texture _hudTexture;
         private Line _line;
         private Timers _parent;
@@ -132,6 +133,24 @@ namespace SFXUtility.Features.Timers
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
+                Menu.Item(Name + "DrawingEnemy").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
+                {
+                    var ally = Menu.Item(Name + "DrawingAlly").GetValue<bool>();
+                    var enemy = args.GetNewValue<bool>();
+                    _heroes = ally && enemy
+                        ? HeroManager.AllHeroes
+                        : (ally ? HeroManager.Allies : (enemy ? HeroManager.Enemies : new List<Obj_AI_Hero>()));
+                };
+
+                Menu.Item(Name + "DrawingAlly").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
+                {
+                    var ally = args.GetNewValue<bool>();
+                    var enemy = Menu.Item(Name + "DrawingEnemy").GetValue<bool>();
+                    _heroes = ally && enemy
+                        ? HeroManager.AllHeroes
+                        : (ally ? HeroManager.Allies : (enemy ? HeroManager.Enemies : new List<Obj_AI_Hero>()));
+                };
+
                 _parent.Menu.AddSubMenu(Menu);
 
                 foreach (var sName in
@@ -147,7 +166,7 @@ namespace SFXUtility.Features.Timers
 
                 _sprite = new Sprite(Drawing.Direct3DDevice);
                 _hudTexture = Resources.CD_Hud.ToTexture();
-                _line = new Line(Drawing.Direct3DDevice) {Width = 2};
+                _line = new Line(Drawing.Direct3DDevice) {Width = 4};
                 _text = new Font(Drawing.Direct3DDevice,
                     new FontDescription
                     {
@@ -156,6 +175,12 @@ namespace SFXUtility.Features.Timers
                         OutputPrecision = FontPrecision.Default,
                         Quality = FontQuality.Default
                     });
+
+                _heroes = Menu.Item(Name + "DrawingAlly").GetValue<bool>() && Menu.Item(Name + "DrawingEnemy").GetValue<bool>()
+                    ? HeroManager.AllHeroes
+                    : (Menu.Item(Name + "DrawingAlly").GetValue<bool>()
+                        ? HeroManager.Allies
+                        : (Menu.Item(Name + "DrawingEnemy").GetValue<bool>() ? HeroManager.Enemies : new List<Obj_AI_Hero>()));
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();
@@ -173,16 +198,16 @@ namespace SFXUtility.Features.Timers
                 if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
                     return;
 
-                foreach (var hero in
-                    HeroManager.AllHeroes.Where(
-                        hero =>
-                            hero != null && hero.IsValid && !hero.IsMe && hero.IsHPBarRendered &&
-                            (hero.IsEnemy && Menu.Item(Name + "DrawingEnemy").GetValue<bool>() ||
-                             hero.IsAlly && Menu.Item(Name + "DrawingAlly").GetValue<bool>()) && hero.Position.IsOnScreen()))
+                foreach (
+                    var hero in
+                        _heroes.Where(hero => hero != null && hero.IsValid && !hero.IsMe && hero.IsHPBarRendered && hero.Position.IsOnScreen()))
                 {
                     try
                     {
-                        var x = (int) hero.HPBarPosition.X + -8;
+                        if (!hero.Position.IsValid() || !hero.HPBarPosition.IsValid())
+                            return;
+
+                        var x = (int) hero.HPBarPosition.X - 8;
                         var y = (int) hero.HPBarPosition.Y + (hero.IsEnemy ? 17 : 14);
 
                         _sprite.Begin(SpriteFlags.AlphaBlend);
@@ -190,15 +215,27 @@ namespace SFXUtility.Features.Timers
                         for (var i = 0; i < _summonerSlots.Length; i++)
                         {
                             var spell = hero.Spellbook.GetSpell(_summonerSlots[i]);
-                            var t = spell.CooldownExpires - Game.Time;
-                            var percent = (Math.Abs(spell.Cooldown) > float.Epsilon) ? t/spell.Cooldown : 1f;
-                            var n = (t > 0) ? (int) (19*(1f - percent)) : 19;
-                            var ts = TimeSpan.FromSeconds((int) t);
-                            var s = t > 60 ? string.Format("{0}:{1:D2}", ts.Minutes, ts.Seconds) : string.Format("{0:0}", t);
-                            if (t > 0)
-                                _text.DrawTextCentered(s, x - 5, y + 7 + 13*i, new ColorBGRA(255, 255, 255, 255));
-                            _sprite.Draw(_summonerTextures[spell.Name.ToLower()], new ColorBGRA(255, 255, 255, 255), new Rectangle(0, 12*n, 12, 12),
-                                new Vector3(-x - 3, -y - 1 - 13*i, 0));
+                            if (spell != null)
+                            {
+                                var t = spell.CooldownExpires - Game.Time;
+                                var percent = (Math.Abs(spell.Cooldown) > float.Epsilon) ? t/spell.Cooldown : 1f;
+                                var n = (t > 0) ? (int) (19*(1f - percent)) : 19;
+                                var ts = TimeSpan.FromSeconds((int) t);
+                                var s = t > 60 ? string.Format("{0}:{1:D2}", ts.Minutes, ts.Seconds) : string.Format("{0:0}", t);
+                                if (t > 0)
+                                {
+                                    _text.DrawTextCentered(s, x - 5, y + 7 + 13*i, new ColorBGRA(255, 255, 255, 255));
+                                }
+                                if (_summonerTextures.ContainsKey(spell.Name.ToLower()))
+                                {
+                                    _sprite.Draw(_summonerTextures[spell.Name.ToLower()], new ColorBGRA(255, 255, 255, 255),
+                                        new Rectangle(0, 12*n, 12, 12), new Vector3(-x - 3, -y - 1 - 13*i, 0));
+                                }
+                                else
+                                {
+                                    Global.Logger.AddItem(new LogItem(new Exception("_summonerTextures doesn't contain: " + spell.Name.ToLower())));
+                                }
+                            }
                         }
 
                         _sprite.Draw(_hudTexture, new ColorBGRA(255, 255, 255, 255), null, new Vector3(-x, -y, 0));
@@ -206,32 +243,30 @@ namespace SFXUtility.Features.Timers
                         _sprite.End();
 
                         var x2 = x + 19;
-                        var y2 = y + 20;
+                        var y2 = y + 21;
 
                         _line.Begin();
                         foreach (var slot in _spellSlots)
                         {
                             var spell = hero.Spellbook.GetSpell(slot);
-                            var t = spell.CooldownExpires - Game.Time;
-                            var percent = (t > 0 && Math.Abs(spell.Cooldown) > float.Epsilon) ? 1f - (t/spell.Cooldown) : 1f;
-
-                            if (t > 0 && t < 100)
+                            if (spell != null)
                             {
-                                var s = string.Format(t < 1f ? "{0:0.0}" : "{0:0}", t);
-                                _text.DrawTextCentered(s, x2 + 23/2, y2 + 13, new ColorBGRA(255, 255, 255, 255));
-                            }
-                            var darkColor = (t > 0) ? new ColorBGRA(168, 98, 0, 255) : new ColorBGRA(0, 130, 15, 255);
-                            var lightColor = (t > 0) ? new ColorBGRA(235, 137, 0, 255) : new ColorBGRA(0, 168, 25, 255);
+                                var t = spell.CooldownExpires - Game.Time;
+                                var percent = (t > 0 && Math.Abs(spell.Cooldown) > float.Epsilon) ? 1f - (t/spell.Cooldown) : 1f;
 
-                            if (hero.Spellbook.CanUseSpell(slot) != SpellState.NotLearned)
-                            {
-                                for (var i = 0; i < 2; i++)
+                                if (t > 0 && t < 100)
                                 {
-                                    _line.Draw(new[] {new Vector2(x2, y2 + i*2), new Vector2(x2 + percent*23, y2 + i*2)},
-                                        i == 0 ? lightColor : darkColor);
+                                    var s = string.Format(t < 1f ? "{0:0.0}" : "{0:0}", t);
+                                    _text.DrawTextCentered(s, x2 + 23/2, y2 + 13, new ColorBGRA(255, 255, 255, 255));
                                 }
+
+                                if (hero.Spellbook.CanUseSpell(slot) != SpellState.NotLearned)
+                                {
+                                    _line.Draw(new[] {new Vector2(x2, y2), new Vector2(x2 + percent*23, y2)},
+                                        (t > 0) ? new ColorBGRA(235, 137, 0, 255) : new ColorBGRA(0, 168, 25, 255));
+                                }
+                                x2 = x2 + 27;
                             }
-                            x2 = x2 + 27;
                         }
                         _line.End();
                     }

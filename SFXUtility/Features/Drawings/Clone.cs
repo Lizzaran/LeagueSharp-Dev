@@ -32,7 +32,6 @@ namespace SFXUtility.Features.Drawings
     using LeagueSharp;
     using LeagueSharp.Common;
     using SFXLibrary;
-    using SFXLibrary.Extensions.NET;
     using SFXLibrary.Logger;
 
     #endregion
@@ -40,7 +39,7 @@ namespace SFXUtility.Features.Drawings
     internal class Clone : Base
     {
         private readonly string[] _cloneHeroes = {"Shaco", "LeBlanc", "MonkeyKing", "Yorick"};
-        private List<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
+        private readonly List<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
         private Drawings _parent;
 
         public override bool Enabled
@@ -129,7 +128,7 @@ namespace SFXUtility.Features.Drawings
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _heroes = HeroManager.Enemies.Where(e => _cloneHeroes.Contains(e.ChampionName, StringComparison.OrdinalIgnoreCase)).ToList();
+                _heroes.AddRange(HeroManager.Enemies.Where(e => _cloneHeroes.Any(e.ChampionName.Contains)));
 
                 if (!_heroes.Any())
                     return;

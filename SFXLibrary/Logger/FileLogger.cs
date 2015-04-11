@@ -40,7 +40,7 @@ namespace SFXLibrary.Logger
         private readonly string _fileName;
         private readonly HashSet<string> _unique = new HashSet<string>();
 
-        public FileLogger(string logDir, string fileName = "{0}_{1}.txt", int minConsumers = 0, int maxConsumers = 3, int producersPerConsumer = 5,
+        public FileLogger(string logDir, string fileName = "{0}_{1}.txt", int minConsumers = 1, int maxConsumers = 3, int producersPerConsumer = 5,
             int checkInterval = 10000) : base(minConsumers, maxConsumers, producersPerConsumer, checkInterval)
         {
             LogDir = logDir;

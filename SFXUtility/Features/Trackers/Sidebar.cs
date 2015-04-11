@@ -545,7 +545,7 @@ namespace SFXUtility.Features.Trackers
                             {
                                 try
                                 {
-                                    return Active && spell != null;
+                                    return Active && spell != null && spell.CooldownExpires - Game.Time > 0;
                                 }
                                 catch (Exception ex)
                                 {

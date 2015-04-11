@@ -39,7 +39,8 @@ namespace SFXUtility
 
     internal class SFXUtility
     {
-        private bool _unloadFired;
+        private bool _unloadTriggered;
+        private bool _endTriggered;
 
         public SFXUtility()
         {
@@ -110,8 +111,9 @@ namespace SFXUtility
             {
                 OnExit(null, null);
             }
-            if (args.EventId == GameEventId.OnHQDie || args.EventId == GameEventId.OnHQKill)
+            if (!_endTriggered && args.EventId == GameEventId.OnHQDie || args.EventId == GameEventId.OnHQKill)
             {
+                _endTriggered = true;
                 Notifications.AddNotification(new Notification(Menu.Item(Name + "InfoException").DisplayName));
             }
         }
@@ -122,10 +124,10 @@ namespace SFXUtility
         {
             try
             {
-                if (!_unloadFired)
+                if (!_unloadTriggered)
                 {
+                    _unloadTriggered = true;
                     OnUnload.RaiseEvent(null, new UnloadEventArgs(true));
-                    _unloadFired = true;
                 }
             }
             catch (Exception ex)

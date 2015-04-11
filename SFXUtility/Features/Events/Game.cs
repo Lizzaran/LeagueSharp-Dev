@@ -19,6 +19,7 @@
 */
 
 #endregion License
+
 namespace SFXUtility.Features.Events
 {
     #region
@@ -41,10 +42,7 @@ namespace SFXUtility.Features.Events
 
         public Game()
         {
-            LeagueSharp.Game.OnStart += delegate
-            {
-                _onStartTriggerd = true;
-            };
+            LeagueSharp.Game.OnStart += delegate { _onStartTriggerd = true; };
         }
 
         public override bool Enabled
@@ -99,9 +97,11 @@ namespace SFXUtility.Features.Events
 
                 var startMenu = new Menu(Language.Get("Game_OnStart"), Name + "OnStart");
                 startMenu.AddItem(new MenuItem(startMenu.Name + "Delay", Language.Get("G_Delay")).SetValue(new Slider(20, 0, 75)));
-                startMenu.AddItem(new MenuItem(startMenu.Name + "Greeting", Language.Get("Game_Greeting")).SetValue(
+                startMenu.AddItem(
+                    new MenuItem(startMenu.Name + "Greeting", Language.Get("Game_Greeting")).SetValue(
                         new StringList(Language.GetList("Game_GreetingList"))));
-                startMenu.AddItem(new MenuItem(startMenu.Name + "SayGreeting", Language.Get("G_Say") + " " + Language.Get("Game_Greeting")).SetValue(false));
+                startMenu.AddItem(
+                    new MenuItem(startMenu.Name + "SayGreeting", Language.Get("G_Say") + " " + Language.Get("Game_Greeting")).SetValue(false));
 
                 var endMenu = new Menu(Language.Get("Game_OnEnd"), Name + "OnEnd");
                 endMenu.AddItem(
@@ -123,10 +123,8 @@ namespace SFXUtility.Features.Events
                 {
                     if (Menu.Item(Name + "OnStartSayGreeting").GetValue<bool>() && !HeroManager.AllHeroes.Any(h => h.Level >= 2))
                     {
-                        Utility.DelayAction.Add(Menu.Item(Name + "OnStartDelay").GetValue<Slider>().Value * 1000, delegate
-                        {
-                            LeagueSharp.Game.Say("/all " + Menu.Item(Name + "OnStartGreeting").GetValue<StringList>().SelectedValue);
-                        });
+                        Utility.DelayAction.Add(Menu.Item(Name + "OnStartDelay").GetValue<Slider>().Value*1000,
+                            delegate { LeagueSharp.Game.Say("/all " + Menu.Item(Name + "OnStartGreeting").GetValue<StringList>().SelectedValue); });
                     }
                 }
             }
@@ -138,7 +136,8 @@ namespace SFXUtility.Features.Events
 
         private void OnGameNotify(GameNotifyEventArgs args)
         {
-            if (_onEndTriggerd || (args.EventId != GameEventId.OnEndGame && args.EventId != GameEventId.OnHQDie && args.EventId != GameEventId.OnHQKill))
+            if (_onEndTriggerd ||
+                (args.EventId != GameEventId.OnEndGame && args.EventId != GameEventId.OnHQDie && args.EventId != GameEventId.OnHQKill))
                 return;
 
             _onEndTriggerd = true;
