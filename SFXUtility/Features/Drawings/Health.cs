@@ -77,7 +77,7 @@ namespace SFXUtility.Features.Drawings
 
         protected override void OnUnload(object sender, UnloadEventArgs args)
         {
-            if (args != null && args.Real)
+            if (args != null && args.Final)
                 base.OnUnload(sender, args);
 
             if (Initialized)
@@ -99,7 +99,7 @@ namespace SFXUtility.Features.Drawings
                 {
                     foreach (var turret in _turrets.Where(t => t != null && t.IsValid && !t.IsDead))
                     {
-                        _text.DrawTextCentered(((int) (percent ? turret.Health/turret.MaxHealth*100 : turret.Health)).ToString(),
+                        _text.DrawTextCentered(((int) (percent ? turret.HealthPercent : turret.Health)).ToString(),
                             Drawing.WorldToMinimap(turret.Position), Color.White);
                     }
                 }
@@ -107,7 +107,7 @@ namespace SFXUtility.Features.Drawings
                 {
                     foreach (var inhib in _inhibs.Where(i => i != null && i.IsValid && !i.IsDead && i.Health > 1f))
                     {
-                        _text.DrawTextCentered(((int) (percent ? inhib.Health/inhib.MaxHealth*100 : inhib.Health)).ToString(),
+                        _text.DrawTextCentered(((int) (percent ? inhib.HealthPercent : inhib.Health)).ToString(),
                             Drawing.WorldToMinimap(inhib.Position), Color.White);
                     }
                 }

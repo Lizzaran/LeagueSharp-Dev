@@ -71,60 +71,35 @@ namespace SFXLibrary.Extensions.SharpDX
                 }.Any(intersection => intersection.Intersects);
         }
 
-        public static Vector2 ClosestIntersection(this List<Geometry.IntersectionResult> intersections, Vector2 lineStart)
+        public static Geometry.IntersectionResult Intersects(this Vector2 lineStart, Vector2 lineEnd, Vector2 circlePos, float circleRadius)
         {
-            if (intersections.Count == 1)
-                return intersections[0].Point;
-
-            var point = new Vector2();
-            var distance = float.MaxValue;
-            foreach (var intersection in intersections.Where(intersection => intersection.Intersects))
+            if (IsIntersecting(lineStart, lineEnd, circlePos, circleRadius))
             {
-                var dist = Vector2.Distance(lineStart, intersection.Point);
-                if (dist < distance)
+                var m = (lineEnd.Y - lineStart.Y)/(lineEnd.X - lineStart.X);
+                var d = lineStart.Y - m*lineStart.X;
+                var a = 1 + m*m;
+                var b = 2*(m*d - m*circlePos.Y - circlePos.X);
+                var c = circlePos.X*circlePos.X + d*d + circlePos.Y*circlePos.Y - circleRadius*circleRadius - 2*d*circlePos.Y;
+                var sqRtTerm = Math.Sqrt(b*b - 4*a*c);
+                var x = ((-b) + sqRtTerm)/(2*a);
+                if ((x < Math.Min(lineStart.X, lineEnd.X) || (x > Math.Max(lineStart.X, lineEnd.X))))
                 {
-                    distance = dist;
-                    point = intersection.Point;
+                    x = ((-b) - sqRtTerm)/(2*a);
                 }
+                var y = m*x + d;
+                return new Geometry.IntersectionResult(true, new Vector2((float) x, (float) y));
             }
-            return point;
+            return new Geometry.IntersectionResult(false);
         }
 
-        // Find the points of intersection.
-        public static List<Geometry.IntersectionResult> FindLineCircleIntersections(this Vector2 lineStart, Vector2 lineEnd, Vector2 circleCenter,
-            float circleRadius)
+        public static bool IsInsideCircle(this Vector2 point, Vector2 circlePos, float circleRad)
         {
-            var intersections = new List<Geometry.IntersectionResult>();
-            float t;
-            var dx = lineEnd.X - lineStart.X;
-            var dy = lineEnd.Y - lineStart.Y;
-            var a = dx*dx + dy*dy;
-            var b = 2*(dx*(lineStart.X - circleCenter.X) + dy*(lineStart.Y - circleCenter.Y));
-            var c = (lineStart.X - circleCenter.X)*(lineStart.X - circleCenter.X) + (lineStart.Y - circleCenter.Y)*(lineStart.Y - circleCenter.Y) -
-                    circleRadius*circleRadius;
+            return Math.Sqrt(Math.Pow((circlePos.X - point.X), 2) + Math.Pow((circlePos.Y - point.Y), 2)) < circleRad;
+        }
 
-            var det = b*b - 4*a*c;
-            if ((a <= 0.0000001) || (det < 0))
-            {
-                return intersections;
-            }
-            if (det == 0)
-            {
-                t = -b/(2*a);
-                intersections.Add(new Geometry.IntersectionResult(true, new Vector2(lineStart.X + t*dx, lineStart.X + t*dx)));
-            }
-            else
-            {
-                t = (float) ((-b + Math.Sqrt(det))/(2*a));
-                var point1 = new Vector2(lineStart.X + t*dx, lineStart.Y + t*dy);
-                point1.Normalize();
-                intersections.Add(new Geometry.IntersectionResult(true, point1));
-                t = (float) ((-b - Math.Sqrt(det))/(2*a));
-                var point2 = new Vector2(lineStart.X + t*dx, lineStart.Y + t*dy);
-                point2.Normalize();
-                intersections.Add(new Geometry.IntersectionResult(true, point2));
-            }
-            return intersections;
+        public static bool IsIntersecting(this Vector2 lineStart, Vector2 lineEnd, Vector2 circlePos, float circleRadius)
+        {
+            return IsInsideCircle(lineStart, circlePos, circleRadius) ^ IsInsideCircle(lineEnd, circlePos, circleRadius);
         }
 
         public static Obj_AI_Minion GetNearestMinionByNames(this Vector3 position, string[] names)

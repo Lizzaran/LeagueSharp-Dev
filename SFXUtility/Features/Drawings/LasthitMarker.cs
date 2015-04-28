@@ -31,6 +31,7 @@ namespace SFXUtility.Features.Drawings
     using LeagueSharp;
     using LeagueSharp.Common;
     using SFXLibrary;
+    using SFXLibrary.Extensions.NET;
     using SFXLibrary.Logger;
     using SharpDX;
     using Color = System.Drawing.Color;
@@ -72,24 +73,19 @@ namespace SFXUtility.Features.Drawings
                 foreach (var minion in _minions)
                 {
                     var aaDamage = ObjectManager.Player.GetAutoAttackDamage(minion, true);
-                    if (aaDamage > 1)
+                    var killable = minion.Health <= aaDamage;
+                    if (hpBar)
                     {
-                        var killable = minion.Health <= aaDamage;
-                        if (hpBar && minion.IsHPBarRendered)
-                        {
-                            var barPos = minion.HPBarPosition;
-                            var offset = 62/(minion.MaxHealth/aaDamage);
-                            offset = offset > 62 ? 62 : offset;
-                            var tmpThk = (int) (62 - offset);
-                            hpLinesThickness = tmpThk > hpLinesThickness ? hpLinesThickness : (tmpThk == 0 ? 1 : tmpThk);
-                            Drawing.DrawLine(new Vector2(barPos.X + 45 + (float) offset, barPos.Y + 17),
-                                new Vector2(barPos.X + 45 + (float) offset, barPos.Y + 24), hpLinesThickness,
-                                killable ? hpKillableColor : hpUnkillableColor);
-                        }
-                        if (circle && killable)
-                        {
-                            Render.Circle.DrawCircle(minion.Position, minion.BoundingRadius + radius, circleColor, thickness);
-                        }
+                        var barPos = minion.HPBarPosition;
+                        var barWidth = minion.HasBuff("turretshield", true) ? 70 : (minion.IsMelee() ? 75 : 80);
+                        var offset = (float) (barWidth/(minion.MaxHealth/aaDamage));
+                        offset = offset < barWidth ? offset : barWidth;
+                        Drawing.DrawLine(new Vector2(barPos.X + 45 + offset, barPos.Y + 17), new Vector2(barPos.X + 45 + offset, barPos.Y + 24),
+                            hpLinesThickness, killable ? hpKillableColor : hpUnkillableColor);
+                    }
+                    if (circle && killable)
+                    {
+                        Render.Circle.DrawCircle(minion.Position, minion.BoundingRadius + radius, circleColor, thickness);
                     }
                 }
             }
@@ -188,9 +184,9 @@ namespace SFXUtility.Features.Drawings
                     ObjectManager.Get<Obj_AI_Minion>()
                         .Where(
                             minion =>
-                                minion != null && minion.IsValid && minion.IsTargetable && minion.Health > 0.1f &&
+                                minion != null && minion.IsValid && !minion.IsDead && minion.IsTargetable && minion.IsHPBarRendered &&
+                                minion.Health > 0.1f && minion.BaseSkinName.Contains("Minion", StringComparison.OrdinalIgnoreCase) &&
                                 minion.Team == (ObjectManager.Player.Team == GameObjectTeam.Order ? GameObjectTeam.Chaos : GameObjectTeam.Order) &&
-                                (!minion.Name.ToLower().Contains("ward") && !minion.Name.ToLower().Contains("trinket")) &&
                                 minion.Position.IsOnScreen());
             }
             catch (Exception ex)

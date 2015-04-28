@@ -31,6 +31,7 @@ namespace SFXUtility.Features.Activators
     using LeagueSharp;
     using LeagueSharp.Common;
     using SFXLibrary;
+    using SFXLibrary.Extensions.NET;
     using SFXLibrary.Logger;
 
     #endregion
@@ -145,13 +146,20 @@ namespace SFXUtility.Features.Activators
         {
             try
             {
+                if (ObjectManager.Player.IsDead || ObjectManager.Player.InFountain() ||
+                    ObjectManager.Player.Buffs.Any(
+                        b =>
+                            b.Name.Contains("Recall", StringComparison.OrdinalIgnoreCase) ||
+                            b.Name.Contains("Teleport", StringComparison.OrdinalIgnoreCase)))
+                    return;
+
                 var enemyDist = Menu.Item(Name + "MinEnemyDistance").GetValue<Slider>().Value;
                 if (enemyDist != 0 && !HeroManager.Enemies.Any(e => e.Position.Distance(ObjectManager.Player.Position) <= enemyDist))
                     return;
 
                 if (Menu.Item(Name + "HealthEnabled").GetValue<bool>())
                 {
-                    if ((ObjectManager.Player.Health/ObjectManager.Player.MaxHealth)*100 <= Menu.Item(Name + "HealthPercent").GetValue<Slider>().Value)
+                    if (ObjectManager.Player.HealthPercent <= Menu.Item(Name + "HealthPercent").GetValue<Slider>().Value)
                     {
                         var healthSlot = GetPotionSlot(PotionType.Health);
                         if (healthSlot != null && !IsBuffActive(PotionType.Health))
@@ -161,7 +169,7 @@ namespace SFXUtility.Features.Activators
 
                 if (Menu.Item(Name + "ManaEnabled").GetValue<bool>())
                 {
-                    if ((ObjectManager.Player.Mana/ObjectManager.Player.MaxMana)*100 <= Menu.Item(Name + "ManaPercent").GetValue<Slider>().Value)
+                    if (ObjectManager.Player.ManaPercent <= Menu.Item(Name + "ManaPercent").GetValue<Slider>().Value)
                     {
                         var manaSlot = GetPotionSlot(PotionType.Mana);
                         if (manaSlot != null && !IsBuffActive(PotionType.Mana))

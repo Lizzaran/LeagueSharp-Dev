@@ -87,7 +87,7 @@ namespace SFXUtility.Features.Timers
 
         protected override void OnUnload(object sender, UnloadEventArgs args)
         {
-            if (args != null && args.Real)
+            if (args != null && args.Final)
                 base.OnUnload(sender, args);
 
             if (Initialized)
@@ -158,10 +158,11 @@ namespace SFXUtility.Features.Timers
                         .SelectMany(
                             h =>
                                 _summonerSlots.Select(summoner => h.Spellbook.GetSpell(summoner).Name.ToLower())
-                                    .Where(sName => !_summonerTextures.ContainsKey(sName))))
+                                    .Where(sName => !_summonerTextures.ContainsKey(FixSummonerName(sName)))))
                 {
-                    _summonerTextures[sName] =
-                        ((Bitmap) Resources.ResourceManager.GetObject(string.Format("CD_{0}", sName)) ?? Resources.CD_summonerbarrier).ToTexture();
+                    _summonerTextures[FixSummonerName(sName)] =
+                        ((Bitmap) Resources.ResourceManager.GetObject(string.Format("CD_{0}", FixSummonerName(sName))) ?? Resources.CD_summonerbarrier)
+                            .ToTexture();
                 }
 
                 _sprite = new Sprite(Drawing.Direct3DDevice);
@@ -189,6 +190,13 @@ namespace SFXUtility.Features.Timers
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        private string FixSummonerName(string name)
+        {
+            return name.Contains("Smite", StringComparison.OrdinalIgnoreCase)
+                ? "summonersmite"
+                : (name.Contains("Teleport", StringComparison.OrdinalIgnoreCase) ? "summonerteleport" : name.ToLower());
         }
 
         private void OnDrawingEndScene(EventArgs args)
@@ -225,9 +233,9 @@ namespace SFXUtility.Features.Timers
                                 {
                                     _text.DrawTextCentered(s, x - 5, y + 7 + 13*i, new ColorBGRA(255, 255, 255, 255));
                                 }
-                                if (_summonerTextures.ContainsKey(spell.Name.ToLower()))
+                                if (_summonerTextures.ContainsKey(FixSummonerName(spell.Name)))
                                 {
-                                    _sprite.Draw(_summonerTextures[spell.Name.ToLower()], new ColorBGRA(255, 255, 255, 255),
+                                    _sprite.Draw(_summonerTextures[FixSummonerName(spell.Name)], new ColorBGRA(255, 255, 255, 255),
                                         new Rectangle(0, 12*n, 12, 12), new Vector3(-x - 3, -y - 1 - 13*i, 0));
                                 }
                             }

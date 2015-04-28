@@ -117,17 +117,24 @@ namespace SFXUtility.Features.Others
 
         private void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
         {
-            if (!sender.Owner.IsMe || _fountainTurret.Distance(ObjectManager.Player.ServerPosition) > 2000f)
-                return;
-
-            if (AntiGapcloser.Spells.Any(a => a.SpellName == sender.GetSpell(args.Slot).Name))
+            try
             {
-                var intersections = args.StartPosition.To2D()
-                    .FindLineCircleIntersections(args.EndPosition.To2D(), _fountainTurret.ServerPosition.To2D(), FountainRange/2);
-                if (intersections.Count > 0)
+                if (!sender.Owner.IsMe || _fountainTurret.Distance(ObjectManager.Player.ServerPosition) > 2000f + FountainRange)
+                    return;
+
+                if (AntiGapcloser.Spells.Any(a => a.SpellName == sender.GetSpell(args.Slot).Name))
                 {
-                    args.Process = false;
+                    var intersection = args.StartPosition.To2D()
+                        .Intersects(args.EndPosition.To2D(), _fountainTurret.ServerPosition.To2D(), FountainRange/2);
+                    if (intersection.Intersects)
+                    {
+                        args.Process = false;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -135,16 +142,15 @@ namespace SFXUtility.Features.Others
         {
             try
             {
-                if (!sender.IsMe || _fountainTurret.Distance(ObjectManager.Player.ServerPosition) > 2000f)
+                if (!sender.IsMe || _fountainTurret.Distance(ObjectManager.Player.ServerPosition) > 3000f + FountainRange)
                     return;
 
                 for (int i = 0, l = args.Path.Length - 1; i < l; i++)
                 {
-                    var intersections = args.Path[i].To2D()
-                        .FindLineCircleIntersections(args.Path[i + 1].To2D(), _fountainTurret.Position.To2D(), FountainRange/2);
-                    if (intersections.Count > 0)
+                    var intersection = args.Path[i].To2D().Intersects(args.Path[i + 1].To2D(), _fountainTurret.Position.To2D(), FountainRange);
+                    if (intersection.Intersects)
                     {
-                        ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, intersections.ClosestIntersection(args.Path[i].To2D()).To3D());
+                        ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, intersection.Point.To3D());
                     }
                 }
             }

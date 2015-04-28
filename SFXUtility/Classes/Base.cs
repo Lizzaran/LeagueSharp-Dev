@@ -79,7 +79,7 @@ namespace SFXUtility.Classes
         protected virtual void OnUnload(object sender, UnloadEventArgs args)
         {
             OnDisable();
-            if (args.Real)
+            if (args != null && args.Final)
                 Unloaded = true;
         }
 

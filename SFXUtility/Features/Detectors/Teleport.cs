@@ -302,20 +302,22 @@ namespace SFXUtility.Features.Detectors
                 {
                     time = Game.Time - _lastActionTime;
                 }
-                var hPercent = (int) ((Hero.Health/Hero.MaxHealth)*100);
                 switch (LastType)
                 {
                     case Packet.S2C.Teleport.Type.Recall:
                         switch (LastStatus)
                         {
                             case Packet.S2C.Teleport.Status.Start:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Recalling"), Hero.ChampionName, hPercent, time);
+                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Recalling"), Hero.ChampionName,
+                                    Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Finish:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Recalled"), Hero.ChampionName, hPercent, time);
+                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Recalled"), Hero.ChampionName,
+                                    Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Abort:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Aborted"), Hero.ChampionName, hPercent, time);
+                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Aborted"), Hero.ChampionName,
+                                    Hero.HealthPercent, time);
                         }
                         break;
 
@@ -323,15 +325,16 @@ namespace SFXUtility.Features.Detectors
                         switch (LastStatus)
                         {
                             case Packet.S2C.Teleport.Status.Start:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Teleporting"), Hero.ChampionName, hPercent,
-                                    time);
+                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Teleporting"), Hero.ChampionName,
+                                    Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Finish:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Teleported"), Hero.ChampionName, hPercent,
-                                    time);
+                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Teleported"), Hero.ChampionName,
+                                    Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Abort:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Aborted"), Hero.ChampionName, hPercent, time);
+                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Aborted"), Hero.ChampionName,
+                                    Hero.HealthPercent, time);
                         }
                         break;
 
@@ -340,15 +343,16 @@ namespace SFXUtility.Features.Detectors
                         switch (LastStatus)
                         {
                             case Packet.S2C.Teleport.Status.Start:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Transporting"), Hero.ChampionName, hPercent,
-                                    time);
+                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Transporting"), Hero.ChampionName,
+                                    Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Finish:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Transported"), Hero.ChampionName, hPercent,
-                                    time);
+                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Transported"), Hero.ChampionName,
+                                    Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Abort:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Aborted"), Hero.ChampionName, hPercent, time);
+                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Aborted"), Hero.ChampionName,
+                                    Hero.HealthPercent, time);
                         }
                         break;
                 }

@@ -30,7 +30,6 @@ namespace SFXUtility.Features.Others
     using LeagueSharp;
     using LeagueSharp.Common;
     using SFXLibrary;
-    using SFXLibrary.Extensions.NET;
     using SFXLibrary.Logger;
 
     #endregion
@@ -115,15 +114,15 @@ namespace SFXUtility.Features.Others
                 if (ObjectManager.Player.IsDead)
                     return;
 
-                if ((ObjectManager.Player.Health/ObjectManager.Player.MaxHealth)*100 <= Menu.Item(Name + "Percent").GetValue<Slider>().Value ||
+                if (ObjectManager.Player.HealthPercent <= Menu.Item(Name + "Percent").GetValue<Slider>().Value ||
                     Menu.Item(Name + "Hotkey").IsActive())
                 {
                     var lantern =
                         ObjectManager.Get<Obj_AI_Base>()
-                            .FirstOrDefault(o => o.IsValid && o.IsAlly && o.Name.Contains("ThreshLantern", StringComparison.OrdinalIgnoreCase));
+                            .FirstOrDefault(obj => obj.IsValid && obj.IsAlly && obj.Name.Equals("ThreshLantern", StringComparison.OrdinalIgnoreCase));
                     if (lantern != null && lantern.IsValidTarget(500, false, ObjectManager.Player.ServerPosition))
                     {
-                        lantern.UseObject();
+                        ObjectManager.Player.Spellbook.CastSpell((SpellSlot) 62, lantern);
                     }
                 }
             }

@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- GoldEfficiency.cs is part of SFXUtility.
+ goldefficiency.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -84,7 +84,7 @@ namespace SFXUtility.Features.Trackers
 
         protected override void OnUnload(object sender, UnloadEventArgs args)
         {
-            if (args != null && args.Real)
+            if (args != null && args.Final)
                 base.OnUnload(sender, args);
 
             if (Initialized)

@@ -176,11 +176,11 @@ namespace SFXUtility
 
     public class UnloadEventArgs : EventArgs
     {
-        public bool Real;
+        public bool Final;
 
-        public UnloadEventArgs(bool real = false)
+        public UnloadEventArgs(bool final = false)
         {
-            Real = real;
+            Final = final;
         }
     }
 }

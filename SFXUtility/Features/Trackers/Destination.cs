@@ -358,7 +358,7 @@ namespace SFXUtility.Features.Trackers
                 }
                 else if (!destination.OutOfBush && destination.Hero.IsVisible && Game.Time > (destination.TimeCasted + destination.Delay))
                 {
-                    destination.EndPos = destination.Hero.ServerPosition;
+                    destination.EndPos = destination.Hero.Position;
                 }
             }
         }
@@ -380,9 +380,12 @@ namespace SFXUtility.Features.Trackers
             public DestinationObject(Obj_AI_Hero hero, SpellDataInst spell)
             {
                 Hero = hero;
-                SpellName = spell.SData.Name;
-                Range = spell.SData.CastRange;
-                Delay = spell.SData.SpellCastTime;
+                if (spell != null)
+                {
+                    SpellName = spell.SData.Name;
+                    Range = spell.SData.CastRange;
+                    Delay = spell.SData.SpellCastTime;
+                }
             }
         }
     }

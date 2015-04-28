@@ -113,7 +113,7 @@ namespace SFXUtility.Features.Trackers
 
         protected override void OnUnload(object sender, UnloadEventArgs args)
         {
-            if (args != null && args.Real)
+            if (args != null && args.Final)
                 base.OnUnload(sender, args);
 
             if (Initialized)
@@ -256,11 +256,10 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                var spellMissile = sender as Obj_SpellMissile;
-                if (spellMissile != null)
+                var missile = sender as Obj_SpellMissile;
+                if (missile != null)
                 {
-                    var missile = spellMissile;
-                    if (missile.SpellCaster.IsEnemy)
+                    if (missile.SpellCaster != null && missile.SpellCaster.IsEnemy)
                     {
                         if (missile.SData.Name.Equals("itemplacementmissile", StringComparison.OrdinalIgnoreCase) && !missile.SpellCaster.IsVisible)
                         {
@@ -283,10 +282,9 @@ namespace SFXUtility.Features.Trackers
                 }
                 else
                 {
-                    var o = sender as Obj_AI_Base;
-                    if (o != null)
+                    var wardObject = sender as Obj_AI_Base;
+                    if (wardObject != null)
                     {
-                        var wardObject = o;
                         if (wardObject.IsEnemy)
                         {
                             foreach (var ward in _wardStructs)

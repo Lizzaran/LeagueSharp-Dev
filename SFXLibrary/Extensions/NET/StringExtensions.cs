@@ -25,11 +25,13 @@ namespace SFXLibrary.Extensions.NET
     #region
 
     using System;
+    using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Security.Cryptography;
     using System.Text;
+    using System.Text.RegularExpressions;
     using System.Xml;
     using System.Xml.Serialization;
 
@@ -212,10 +214,14 @@ namespace SFXLibrary.Extensions.NET
             var posB = value.IndexOf(b, comp);
             if (posA == -1 || posB == -1)
                 return null;
-            var adjustedPosA = posA + a.Length;
-            if (adjustedPosA >= posB)
-                return null;
-            return value.Substring(adjustedPosA, posB - adjustedPosA);
+            var adjPos = posA + a.Length;
+            return adjPos >= posB ? null : value.Substring(adjPos, posB - adjPos);
+        }
+
+        public static List<string> BetweenList(this string value, string start, string end, StringComparison comp = StringComparison.Ordinal)
+        {
+            return
+                (from Match match in new Regex(Regex.Escape(start) + "(.*?)" + Regex.Escape(end)).Matches(value) select match.Groups[1].Value).ToList();
         }
     }
 }

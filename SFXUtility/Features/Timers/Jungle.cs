@@ -83,7 +83,7 @@ namespace SFXUtility.Features.Timers
 
         protected override void OnUnload(object sender, UnloadEventArgs args)
         {
-            if (args != null && args.Real)
+            if (args != null && args.Final)
                 base.OnUnload(sender, args);
 
             if (Initialized)

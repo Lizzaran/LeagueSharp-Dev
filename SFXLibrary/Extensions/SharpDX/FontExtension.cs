@@ -46,8 +46,8 @@ namespace SFXLibrary.Extensions.SharpDX
 
         public static void DrawTextLeft(this Font font, string text, Vector2 position, Color color)
         {
-            font.DrawText(null, text, (int)(position.X - font.MeasureText(null, text, FontDrawFlags.Center).Width),
-                (int)(position.Y - font.MeasureText(null, text, FontDrawFlags.Center).Height / 2f), color);
+            font.DrawText(null, text, (int) (position.X - font.MeasureText(null, text, FontDrawFlags.Center).Width),
+                (int) (position.Y - font.MeasureText(null, text, FontDrawFlags.Center).Height/2f), color);
         }
 
         public static void DrawTextLeft(this Font font, string text, int x, int y, Color color)
@@ -57,8 +57,8 @@ namespace SFXLibrary.Extensions.SharpDX
 
         public static void DrawTextRight(this Font font, string text, Vector2 position, Color color)
         {
-            font.DrawText(null, text, (int)(position.X + font.MeasureText(null, text, FontDrawFlags.Center).Width),
-                (int)(position.Y - font.MeasureText(null, text, FontDrawFlags.Center).Height / 2f), color);
+            font.DrawText(null, text, (int) (position.X + font.MeasureText(null, text, FontDrawFlags.Center).Width),
+                (int) (position.Y - font.MeasureText(null, text, FontDrawFlags.Center).Height/2f), color);
         }
 
         public static void DrawTextRight(this Font font, string text, int x, int y, Color color)

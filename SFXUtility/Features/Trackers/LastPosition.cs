@@ -133,7 +133,7 @@ namespace SFXUtility.Features.Trackers
 
         protected override void OnUnload(object sender, UnloadEventArgs args)
         {
-            if (args != null && args.Real)
+            if (args != null && args.Final)
                 base.OnUnload(sender, args);
 
             if (Initialized)
@@ -164,9 +164,9 @@ namespace SFXUtility.Features.Trackers
                     }
                     if (!lp.Hero.IsVisible && !lp.Hero.IsDead)
                     {
-                        var pos = Drawing.WorldToMinimap(lp.Hero.Position);
+                        var pos = lp.Teleported ? _spawnPoint : Drawing.WorldToMinimap(lp.Hero.Position);
 
-                        _sprite.DrawCentered(_heroTextures[lp.Hero.NetworkId], lp.Teleported ? _spawnPoint : pos);
+                        _sprite.DrawCentered(_heroTextures[lp.Hero.NetworkId], pos);
                         if (lp.IsTeleporting)
                             _sprite.DrawCentered(_teleportTexture, pos);
 
