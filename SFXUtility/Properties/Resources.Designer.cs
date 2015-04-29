@@ -1529,6 +1529,26 @@ namespace SFXUtility.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap LP_Zilean {
+            get {
+                object obj = ResourceManager.GetObject("LP_Zilean", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap LP_Zyra {
+            get {
+                object obj = ResourceManager.GetObject("LP_Zyra", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap SB_Aatrox {
             get {
                 object obj = ResourceManager.GetObject("SB_Aatrox", resourceCulture);

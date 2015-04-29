@@ -541,6 +541,12 @@
   <data name="LP_Ziggs" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\lp\lp_ziggs.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="LP_Zilean" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\lp\lp_zilean.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="LP_Zyra" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\lp\lp_zyra.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="SB_Aatrox" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\sb\sb_aatrox.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>

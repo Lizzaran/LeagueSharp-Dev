@@ -107,7 +107,7 @@ namespace SFXUtility
 
         private void OnGameNotify(GameNotifyEventArgs args)
         {
-            if (args.EventId == GameEventId.OnLeave || args.EventId == GameEventId.OnEndGame || args.EventId == GameEventId.OnQuit)
+            if (args.EventId == GameEventId.OnEndGame)
             {
                 OnExit(null, null);
             }

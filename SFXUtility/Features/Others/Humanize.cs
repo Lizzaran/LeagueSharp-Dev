@@ -19,7 +19,6 @@
 */
 
 #endregion License
-
 namespace SFXUtility.Features.Others
 {
     #region
@@ -36,7 +35,7 @@ namespace SFXUtility.Features.Others
 
     internal class Humanize : Base
     {
-        private readonly List<float> _lastSpell = new List<float>();
+        private readonly Dictionary<SpellSlot, float> _lastSpell = new Dictionary<SpellSlot, float>();
         private float _lastMovement;
         private Others _parent;
 
@@ -113,35 +112,53 @@ namespace SFXUtility.Features.Others
 
         private void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
         {
-            if (sender == null || !sender.Owner.IsMe ||
+            try
+            {
+                if (sender == null || !sender.Owner.IsMe ||
                 !(args.Slot == SpellSlot.Q || args.Slot == SpellSlot.W || args.Slot == SpellSlot.E || args.Slot == SpellSlot.R))
-            {
-                return;
-            }
+                {
+                    return;
+                }
 
-            if (Environment.TickCount - _lastSpell[(int) args.Slot] < Menu.Item(Name + "DelaySpell").GetValue<Slider>().Value)
-            {
-                args.Process = false;
-                return;
-            }
+                float timestamp;
+                if (_lastSpell.TryGetValue(args.Slot, out timestamp))
+                {
+                    if (Environment.TickCount - timestamp < Menu.Item(Name + "DelaySpell").GetValue<Slider>().Value)
+                    {
+                        args.Process = false;
+                        return;
+                    }
+                }
 
-            _lastSpell[(int) args.Slot] = Environment.TickCount;
+                _lastSpell[args.Slot] = Environment.TickCount;
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnObjAiBaseIssueOrder(Obj_AI_Base sender, GameObjectIssueOrderEventArgs args)
         {
-            if (sender == null || !sender.IsValid || !sender.IsMe || args.Order != GameObjectOrder.MoveTo)
+            try
             {
-                return;
-            }
+                if (sender == null || !sender.IsValid || !sender.IsMe || args.Order != GameObjectOrder.MoveTo)
+                {
+                    return;
+                }
 
-            if (Environment.TickCount - _lastMovement < Menu.Item(Name + "DelayMovement").GetValue<Slider>().Value)
+                if (Environment.TickCount - _lastMovement < Menu.Item(Name + "DelayMovement").GetValue<Slider>().Value)
+                {
+                    args.Process = false;
+                    return;
+                }
+
+                _lastMovement = Environment.TickCount;
+            }
+            catch (Exception ex)
             {
-                args.Process = false;
-                return;
+                Global.Logger.AddItem(new LogItem(ex));
             }
-
-            _lastMovement = Environment.TickCount;
         }
     }
 }
