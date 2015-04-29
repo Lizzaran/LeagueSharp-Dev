@@ -77,7 +77,7 @@ namespace SFXUtility.Features.Drawings
                     if (hpBar)
                     {
                         var barPos = minion.HPBarPosition;
-                        var barWidth = minion.HasBuff("turretshield", true) ? 70 : (minion.IsMelee() ? 75 : 80);
+                        var barWidth = minion.HasBuff("turretshield", true) ? 88 : 63;
                         var offset = (float) (barWidth/(minion.MaxHealth/aaDamage));
                         offset = offset < barWidth ? offset : barWidth;
                         Drawing.DrawLine(new Vector2(barPos.X + 45 + offset, barPos.Y + 17), new Vector2(barPos.X + 45 + offset, barPos.Y + 24),
