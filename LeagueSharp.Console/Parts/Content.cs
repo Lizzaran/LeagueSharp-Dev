@@ -155,8 +155,8 @@ namespace LeagueSharp.Console.Parts
         private static string GetText()
         {
             var wrapped = WrapText(Console.Output, Width - Scrollbar.Width - Padding*2, FontName, FontHeight);
-            var lines = (int) ((Height - Padding*2)/(FontHeight*1.3));
-            var offset = (int) ((Scrollbar.DragTop/(FontHeight*1.3))*Scrollbar.Multiplicator);
+            var lines = (int) ((Height - Padding*2)/Scrollbar.FontHeight);
+            var offset = (int)((Scrollbar.DragTop / Scrollbar.FontHeight) * Scrollbar.Multiplicator);
             return string.Join(Environment.NewLine,
                 wrapped.GetRange(offset, offset + lines > wrapped.Count ? wrapped.Count - offset : lines).ToArray());
         }

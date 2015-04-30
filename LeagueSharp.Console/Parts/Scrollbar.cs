@@ -52,6 +52,8 @@ namespace LeagueSharp.Console.Parts
 
         public static int Width { get; set; }
 
+        public static int FontHeight { get; set; }
+
         public static int Height
         {
             get
