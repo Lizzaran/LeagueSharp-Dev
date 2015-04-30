@@ -261,7 +261,8 @@ namespace SFXUtility.Features.Trackers
                 {
                     if (missile.SpellCaster != null && missile.SpellCaster.IsEnemy)
                     {
-                        if (missile.SData.Name.Equals("itemplacementmissile", StringComparison.OrdinalIgnoreCase) && !missile.SpellCaster.IsVisible)
+                        if (missile.SData != null && missile.SData.Name.Equals("itemplacementmissile", StringComparison.OrdinalIgnoreCase) &&
+                            !missile.SpellCaster.IsVisible)
                         {
                             var sPos = missile.StartPosition;
                             var ePos = missile.EndPosition;
@@ -320,8 +321,11 @@ namespace SFXUtility.Features.Trackers
                 {
                     if (args.SData.Name.Equals(ward.SpellName, StringComparison.OrdinalIgnoreCase))
                     {
-                        var endPosition = ObjectManager.Player.GetPath(args.End).ToList().Last();
-                        _wardObjects.Add(new WardObject(ward, endPosition, (int) Game.Time));
+                        var posList = ObjectManager.Player.GetPath(args.End);
+                        if (posList.Count() > 0)
+                        {
+                            _wardObjects.Add(new WardObject(ward, posList.Last(), (int) Game.Time));
+                        }
                     }
                 }
             }
