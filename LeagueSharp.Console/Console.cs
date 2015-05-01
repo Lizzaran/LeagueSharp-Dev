@@ -19,6 +19,7 @@
 */
 
 #endregion License
+
 namespace LeagueSharp.Console
 {
     #region
@@ -34,6 +35,8 @@ namespace LeagueSharp.Console
     {
         private static Vector2 _offset;
         private static string _output = string.Empty;
+        private static int _height;
+        private static int _width;
 
         static Console()
         {
@@ -101,8 +104,25 @@ namespace LeagueSharp.Console
             }
         }
 
-        public static int Width { get; set; }
-        public static int Height { get; set; }
+        public static int Width
+        {
+            get { return _width; }
+            set
+            {
+                _width = value;
+                RaiseEvent(OnChange);
+            }
+        }
+
+        public static int Height
+        {
+            get { return _height; }
+            set
+            {
+                _height = value;
+                RaiseEvent(OnChange);
+            }
+        }
 
         internal static string Output
         {
@@ -122,6 +142,8 @@ namespace LeagueSharp.Console
         }
 
         internal static bool IsMoving { get; set; }
+        internal static event EventHandler OnChange;
+        internal static event EventHandler OnWrite;
 
         ~Console()
         {
@@ -168,9 +190,28 @@ namespace LeagueSharp.Console
 
         public static void Write(string value)
         {
-            var scrollDown = Scrollbar.DragTop == Content.Height - Scrollbar.Height;
-            Output += value;
-            Scrollbar.DragTop = scrollDown ? Content.Height - Scrollbar.Height : Scrollbar.DragTop;
+            try
+            {
+                var scrollDown = Scrollbar.DragTop == Content.Height - Scrollbar.Height;
+                Output += value;
+                Scrollbar.DragTop = scrollDown ? Content.Height - Scrollbar.Height : Scrollbar.DragTop;
+                RaiseEvent(OnWrite);
+            }
+            catch
+            {
+            }
+        }
+
+        private static void RaiseEvent(EventHandler evt)
+        {
+            try
+            {
+                if (evt != null)
+                    evt(null, null);
+            }
+            catch
+            {
+            }
         }
 
         public static void WriteLine(string value)

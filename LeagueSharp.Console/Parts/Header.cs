@@ -19,6 +19,7 @@
 */
 
 #endregion License
+
 namespace LeagueSharp.Console.Parts
 {
     #region

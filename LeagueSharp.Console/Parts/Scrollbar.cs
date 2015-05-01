@@ -19,6 +19,7 @@
 */
 
 #endregion License
+
 namespace LeagueSharp.Console.Parts
 {
     #region
@@ -27,7 +28,7 @@ namespace LeagueSharp.Console.Parts
     using Common;
     using SharpDX;
     using SharpDX.Direct3D9;
-    using Console = LeagueSharp.Console.Console;
+    using Console = Console;
 
     #endregion
 
@@ -39,6 +40,7 @@ namespace LeagueSharp.Console.Parts
         private static bool _dragStart;
         private static Color _backgroundColor;
         private static int _dragTop;
+        private static int _width;
 
         static Scrollbar()
         {
@@ -52,7 +54,15 @@ namespace LeagueSharp.Console.Parts
             set { _backgroundColor = value; }
         }
 
-        public static int Width { get; set; }
+        public static int Width
+        {
+            get { return _width; }
+            set
+            {
+                _width = value;
+                RaiseEvent(OnChange);
+            }
+        }
 
         public static int Height
         {
@@ -68,7 +78,7 @@ namespace LeagueSharp.Console.Parts
             get
             {
                 var percent = ((float) Content.Height/Content.RealHeight)*100f;
-                return (int)Math.Ceiling(100 / (percent > 100 ? 100 : percent));
+                return (int) Math.Ceiling(100/(percent > 100 ? 100 : percent));
             }
         }
 
@@ -95,6 +105,21 @@ namespace LeagueSharp.Console.Parts
                     val = Content.Height - Height;
                 }
                 _dragTop = val;
+                RaiseEvent(OnChange);
+            }
+        }
+
+        internal static event EventHandler OnChange;
+
+        private static void RaiseEvent(EventHandler evt)
+        {
+            try
+            {
+                if (evt != null)
+                    evt(null, null);
+            }
+            catch
+            {
             }
         }
 
