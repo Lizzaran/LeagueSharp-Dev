@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Scrollbar.cs is part of LeagueSharp.Console.
+ scrollbar.cs is part of LeagueSharp.Console.
 
  LeagueSharp.Console is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by

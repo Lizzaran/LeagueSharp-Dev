@@ -90,7 +90,7 @@ namespace LeagueSharp.Console.Parts
                 var offset = Console.Minimized ? MinimizedOffset : Offset;
                 if (Utils.IsUnderRectangle(p, offset.X - Width/2f, offset.Y, Width, Height))
                 {
-                    Console.Minimized = !Console.Minimized;
+                    Console.Menu.Item(Console.Menu.Name + "Minimized").SetValue(!Console.Menu.Item(Console.Menu.Name + "Minimized").GetValue<bool>());
                 }
             }
         }

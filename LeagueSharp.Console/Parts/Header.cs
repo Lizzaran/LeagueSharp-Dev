@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Header.cs is part of LeagueSharp.Console.
+ header.cs is part of LeagueSharp.Console.
 
  LeagueSharp.Console is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -130,7 +130,11 @@ namespace LeagueSharp.Console.Parts
 
             Console.IsMoving = true;
             var pos = Drawing.WorldToScreen(Game.CursorPos);
-            Console.Offset = new Vector2(pos.X + _dragOffset.X - _dragPosition.X, pos.Y + _dragOffset.Y - _dragPosition.Y);
+
+            Console.Menu.Item(Console.Menu.Name + "OffsetLeft")
+                .SetValue(new Slider((int) (pos.X + _dragOffset.X - _dragPosition.X), 0, Drawing.Width));
+            Console.Menu.Item(Console.Menu.Name + "OffsetTop")
+                .SetValue(new Slider((int) (pos.Y + _dragOffset.Y - _dragPosition.Y), 0, Drawing.Height));
         }
 
         public static void PostReset()

@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Console.cs is part of LeagueSharp.Console.
+ console.cs is part of LeagueSharp.Console.
 
  LeagueSharp.Console is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -26,44 +26,127 @@ namespace LeagueSharp.Console
 
     using System;
     using System.Globalization;
+    using Common;
     using Parts;
     using SharpDX;
+    using Color = System.Drawing.Color;
 
     #endregion
 
-    public class Console
+    public static class Console
     {
         private static Vector2 _offset;
         private static string _output = string.Empty;
         private static int _height;
         private static int _width;
+        internal static Menu Menu;
 
         static Console()
         {
-            Width = (int) (Drawing.Width/2.5);
-            Height = (int) (Drawing.Height/2.5);
+            Menu = new Menu("Console", "Console", true);
 
-            Offset = new Vector2(Drawing.Width/2f, (Drawing.Height - Height)/2f);
+            var headerMenu = Menu.AddSubMenu(new Menu("Header", Menu.Name + "Header"));
+            headerMenu.AddItem(
+                new MenuItem(headerMenu.Name + "BackgroundColor", "Background Color").SetShared().SetValue(SharpDX.Color.DarkSlateGray.Convert()))
+                .ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { Header.BackgroundColor = args.GetNewValue<Color>().Convert(); };
+            headerMenu.AddItem(
+                new MenuItem(headerMenu.Name + "ForegroundColor", "Foreground Color").SetShared().SetValue(SharpDX.Color.White.Convert()))
+                .ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { Header.ForegroundColor = args.GetNewValue<Color>().Convert(); };
+            headerMenu.AddItem(new MenuItem(headerMenu.Name + "Height", "Height").SetShared().SetValue(new Slider(25, 15, 50))).ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { Header.Height = args.GetNewValue<Slider>().Value; };
+            headerMenu.AddItem(new MenuItem(headerMenu.Name + "FontSize", "Font Size").SetShared().SetValue(new Slider(18, 10, 30))).ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { Header.FontHeight = args.GetNewValue<Slider>().Value; };
 
-            Alpha = 200;
+            var contentMenu = Menu.AddSubMenu(new Menu("Content", Menu.Name + "Content"));
+            contentMenu.AddItem(
+                new MenuItem(contentMenu.Name + "BackgroundColor", "Background Color").SetShared().SetValue(SharpDX.Color.Black.Convert()))
+                .ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { Content.BackgroundColor = args.GetNewValue<Color>().Convert(); };
+            contentMenu.AddItem(
+                new MenuItem(contentMenu.Name + "ForegroundColor", "Foreground Color").SetShared().SetValue(SharpDX.Color.White.Convert()))
+                .ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { Content.ForegroundColor = args.GetNewValue<Color>().Convert(); };
+            contentMenu.AddItem(new MenuItem(contentMenu.Name + "Padding", "Padding").SetShared().SetValue(new Slider(10, 0, 30))).ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { Content.Padding = args.GetNewValue<Slider>().Value; };
+            contentMenu.AddItem(new MenuItem(contentMenu.Name + "FontSize", "Font Size").SetShared().SetValue(new Slider(18, 10, 30))).ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { Content.FontHeight = args.GetNewValue<Slider>().Value; };
 
-            Header.BackgroundColor = Color.DarkSlateGray;
-            Header.ForegroundColor = Color.White;
-            Header.Height = 25;
-            Header.FontHeight = 18;
+            var scrollbarMenu = Menu.AddSubMenu(new Menu("Scrollbar", Menu.Name + "Scrollbar"));
+            scrollbarMenu.AddItem(
+                new MenuItem(scrollbarMenu.Name + "BackgroundColor", "Background Color").SetShared().SetValue(SharpDX.Color.DarkGray.Convert()))
+                .ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { Scrollbar.BackgroundColor = args.GetNewValue<Color>().Convert(); };
+            scrollbarMenu.AddItem(new MenuItem(scrollbarMenu.Name + "Width", "Width").SetShared().SetValue(new Slider(15, 5, 50))).ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { Scrollbar.Width = args.GetNewValue<Slider>().Value; };
+            scrollbarMenu.AddItem(new MenuItem(scrollbarMenu.Name + "Interval", "Interval").SetShared().SetValue(new Slider(5, 1, 25))).ValueChanged
+                += delegate(object sender, OnValueChangeEventArgs args) { Scrollbar.Interval = args.GetNewValue<Slider>().Value; };
+
+            var minimizeMenu = Menu.AddSubMenu(new Menu("Minimize", Menu.Name + "Minimize"));
+            minimizeMenu.AddItem(
+                new MenuItem(minimizeMenu.Name + "BackgroundColor", "Background Color").SetShared().SetValue(SharpDX.Color.DarkSlateGray.Convert()))
+                .ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { Parts.Minimize.BackgroundColor = args.GetNewValue<Color>().Convert(); };
+            minimizeMenu.AddItem(
+                new MenuItem(minimizeMenu.Name + "ForegroundColor", "Foreground Color").SetShared().SetValue(SharpDX.Color.White.Convert()))
+                .ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { Parts.Minimize.ForegroundColor = args.GetNewValue<Color>().Convert(); };
+
+            Menu.AddItem(new MenuItem(Menu.Name + "Width", "Width").SetShared().SetValue(new Slider((int) (Drawing.Width/2.5), 100, Drawing.Width)))
+                .ValueChanged += delegate(object sender, OnValueChangeEventArgs args) { Width = args.GetNewValue<Slider>().Value; };
+            Menu.AddItem(new MenuItem(Menu.Name + "Height", "Height").SetShared()
+                .SetValue(new Slider((int) (Drawing.Height/2.5), 100, Drawing.Height))).ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { Height = args.GetNewValue<Slider>().Value; };
+            Menu.AddItem(new MenuItem(Menu.Name + "OffsetLeft", "Offset Left").SetShared().SetValue(new Slider(0, 0, Drawing.Width))).ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args)
+                {
+                    Offset = new Vector2(args.GetNewValue<Slider>().Value, Menu.Item(Menu.Name + "OffsetTop").GetValue<Slider>().Value);
+                };
+            Menu.AddItem(new MenuItem(Menu.Name + "OffsetTop", "Offset Top").SetShared().SetValue(new Slider(0, 0, Drawing.Height))).ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args)
+                {
+                    Offset = new Vector2(Menu.Item(Menu.Name + "OffsetLeft").GetValue<Slider>().Value, args.GetNewValue<Slider>().Value);
+                };
+            Menu.AddItem(new MenuItem(Menu.Name + "Alpha", "Alpha").SetShared().SetValue(new Slider(200, 0, 255))).ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { Alpha = args.GetNewValue<Slider>().Value; };
+
+            Menu.AddItem(new MenuItem(Menu.Name + "Hidden", "Hidden").SetShared().SetValue(false)).ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { Hidden = args.GetNewValue<bool>(); };
+
+            Menu.AddItem(new MenuItem(Menu.Name + "Minimized", "Minimized").SetShared().SetValue(false)).ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { Minimized = args.GetNewValue<bool>(); };
+
+            Menu.AddToMainMenu();
+
+            Width = Menu.Item(Menu.Name + "Width").GetValue<Slider>().Value;
+            Height = Menu.Item(Menu.Name + "Height").GetValue<Slider>().Value;
+
+            Offset = new Vector2(Menu.Item(Menu.Name + "OffsetLeft").GetValue<Slider>().Value,
+                Menu.Item(Menu.Name + "OffsetTop").GetValue<Slider>().Value);
+
+            Alpha = Menu.Item(Menu.Name + "Alpha").GetValue<Slider>().Value;
+
+            Hidden = Menu.Item(Menu.Name + "Hidden").GetValue<bool>();
+            Minimized = Menu.Item(Menu.Name + "Minimized").GetValue<bool>();
+
+            Header.BackgroundColor = Menu.Item(headerMenu.Name + "BackgroundColor").GetValue<Color>().Convert();
+            Header.ForegroundColor = Menu.Item(headerMenu.Name + "ForegroundColor").GetValue<Color>().Convert();
+            Header.Height = Menu.Item(headerMenu.Name + "Height").GetValue<Slider>().Value;
+            Header.FontHeight = Menu.Item(headerMenu.Name + "FontSize").GetValue<Slider>().Value;
             Header.Content = "LeagueSharp.Console";
 
-            Content.BackgroundColor = Color.Black;
-            Content.ForegroundColor = Color.White;
-            Content.Padding = 10;
-            Content.FontHeight = 18;
+            Content.BackgroundColor = Menu.Item(contentMenu.Name + "BackgroundColor").GetValue<Color>().Convert();
+            Content.ForegroundColor = Menu.Item(contentMenu.Name + "ForegroundColor").GetValue<Color>().Convert();
+            Content.Padding = Menu.Item(contentMenu.Name + "Padding").GetValue<Slider>().Value;
+            Content.FontHeight = Menu.Item(contentMenu.Name + "FontSize").GetValue<Slider>().Value;
 
-            Scrollbar.BackgroundColor = Color.DarkGray;
-            Scrollbar.Width = 15;
-            Scrollbar.Interval = 5;
+            Scrollbar.BackgroundColor = Menu.Item(scrollbarMenu.Name + "BackgroundColor").GetValue<Color>().Convert();
+            Scrollbar.Width = Menu.Item(scrollbarMenu.Name + "Width").GetValue<Slider>().Value;
+            Scrollbar.Interval = Menu.Item(scrollbarMenu.Name + "Interval").GetValue<Slider>().Value;
 
-            Parts.Minimize.BackgroundColor = Color.DarkSlateGray;
-            Parts.Minimize.ForegroundColor = Color.White;
+            Parts.Minimize.BackgroundColor = Menu.Item(minimizeMenu.Name + "BackgroundColor").GetValue<Color>().Convert();
+            Parts.Minimize.ForegroundColor = Menu.Item(minimizeMenu.Name + "ForegroundColor").GetValue<Color>().Convert();
 
             Drawing.OnPreReset += OnDrawingPreReset;
             Drawing.OnPostReset += OnDrawingPostReset;
@@ -142,15 +225,19 @@ namespace LeagueSharp.Console
         }
 
         internal static bool IsMoving { get; set; }
+
+        internal static Color Convert(this SharpDX.Color color)
+        {
+            return Color.FromArgb(color.A, color.R, color.G, color.B);
+        }
+
+        internal static SharpDX.Color Convert(this Color color)
+        {
+            return new SharpDX.Color(color.R, color.G, color.B, color.A);
+        }
+
         internal static event EventHandler OnChange;
         internal static event EventHandler OnWrite;
-
-        ~Console()
-        {
-            Drawing.OnPreReset -= OnDrawingPreReset;
-            Drawing.OnPostReset -= OnDrawingPostReset;
-            Drawing.OnEndScene -= OnDrawingEndScene;
-        }
 
         private static void OnDrawingEndScene(EventArgs args)
         {
