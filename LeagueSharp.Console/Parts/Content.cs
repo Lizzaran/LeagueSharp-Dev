@@ -156,44 +156,13 @@ namespace LeagueSharp.Console.Parts
 
         private static string GetText()
         {
-            var wrapped = WrapText2(Console.Output, Width - Scrollbar.Width - Padding * 2, FontName, FontHeight);
+            var wrapped = WrapText(Console.Output, Width - Scrollbar.Width - Padding * 2, FontName, FontHeight);
             var lines = (int) ((Height - Padding*2)/FontHeight);
             var offset = (int)((Scrollbar.DragTop * Scrollbar.Multiplicator / FontHeight));
             return string.Join(Environment.NewLine, wrapped.GetRange(offset, offset + lines > wrapped.Count ? wrapped.Count - offset : lines).ToArray());
         }
 
         private static List<string> WrapText(string text, int width, string fontName, float fontHeight)
-        {
-            var originalLines = text.Split(new[] {" "}, StringSplitOptions.None);
-
-            var wrappedLines = new List<string>();
-
-            var actualLine = new StringBuilder();
-            double actualWidth = 0;
-
-            foreach (var item in originalLines)
-            {
-                var formatted = new FormattedText(item, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, new Typeface(fontName), fontHeight,
-                    Brushes.Black);
-
-                actualLine.Append(item + " ");
-                actualWidth += formatted.Width;
-
-                if (actualWidth > width)
-                {
-                    wrappedLines.Add(actualLine.ToString());
-                    actualLine.Clear();
-                    actualWidth = 0;
-                }
-            }
-
-            if (actualLine.Length > 0)
-                wrappedLines.Add(actualLine.ToString());
-
-            return wrappedLines;
-        }
-
-        private static List<string> WrapText2(string text, int width, string fontName, float fontHeight)
         {
             var originalLines = text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
             var wrappedLines = new List<string>();
