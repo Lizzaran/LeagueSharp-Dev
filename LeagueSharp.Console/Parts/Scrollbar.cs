@@ -23,9 +23,11 @@ namespace LeagueSharp.Console.Parts
 {
     #region
 
+    using System;
     using Common;
     using SharpDX;
     using SharpDX.Direct3D9;
+    using Console = LeagueSharp.Console.Console;
 
     #endregion
 
@@ -52,8 +54,6 @@ namespace LeagueSharp.Console.Parts
 
         public static int Width { get; set; }
 
-        public static int FontHeight { get; set; }
-
         public static int Height
         {
             get
@@ -68,7 +68,7 @@ namespace LeagueSharp.Console.Parts
             get
             {
                 var percent = ((float) Content.Height/Content.RealHeight)*100f;
-                return 100/(percent > 100 ? 100 : percent);
+                return (int)Math.Ceiling(100 / (percent > 100 ? 100 : percent));
             }
         }
 

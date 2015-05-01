@@ -56,7 +56,6 @@ namespace LeagueSharp.Console
             Content.FontHeight = 18;
 
             Scrollbar.BackgroundColor = Color.DarkGray;
-            Scrollbar.FontHeight = (int)(Content.FontHeight * 1.3);
             Scrollbar.Width = 15;
             Scrollbar.Interval = 5;
 

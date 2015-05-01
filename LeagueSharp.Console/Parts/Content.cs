@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Content.cs is part of LeagueSharp.Console.
+ content.cs is part of LeagueSharp.Console.
 
  LeagueSharp.Console is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 */
 
 #endregion License
+
 namespace LeagueSharp.Console.Parts
 {
     #region
@@ -70,8 +71,9 @@ namespace LeagueSharp.Console.Parts
             get { return _font.Description.Height; }
             set
             {
+                var height = value > 30 ? 30 : (value < 10 ? 10 : value);
                 _font = new Font(Drawing.Direct3DDevice,
-                    new FontDescription {FaceName = FontName, Height = value, OutputPrecision = FontPrecision.Default, Quality = FontQuality.Default});
+                    new FontDescription { FaceName = FontName, Height = height, OutputPrecision = FontPrecision.Default, Quality = FontQuality.Default });
             }
         }
 
@@ -154,11 +156,10 @@ namespace LeagueSharp.Console.Parts
 
         private static string GetText()
         {
-            var wrapped = WrapText(Console.Output, Width - Scrollbar.Width - Padding*2, FontName, FontHeight);
-            var lines = (int) ((Height - Padding*2)/Scrollbar.FontHeight);
-            var offset = (int)((Scrollbar.DragTop / Scrollbar.FontHeight) * Scrollbar.Multiplicator);
-            return string.Join(Environment.NewLine,
-                wrapped.GetRange(offset, offset + lines > wrapped.Count ? wrapped.Count - offset : lines).ToArray());
+            var wrapped = WrapText2(Console.Output, Width - Scrollbar.Width - Padding * 2, FontName, FontHeight);
+            var lines = (int) ((Height - Padding*2)/FontHeight);
+            var offset = (int)((Scrollbar.DragTop * Scrollbar.Multiplicator / FontHeight));
+            return string.Join(Environment.NewLine, wrapped.GetRange(offset, offset + lines > wrapped.Count ? wrapped.Count - offset : lines).ToArray());
         }
 
         private static List<string> WrapText(string text, int width, string fontName, float fontHeight)
@@ -189,6 +190,42 @@ namespace LeagueSharp.Console.Parts
             if (actualLine.Length > 0)
                 wrappedLines.Add(actualLine.ToString());
 
+            return wrappedLines;
+        }
+
+        private static List<string> WrapText2(string text, int width, string fontName, float fontHeight)
+        {
+            var originalLines = text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+            var wrappedLines = new List<string>();
+
+            double actualWidth = 0;
+            StringBuilder sb = new StringBuilder();
+
+            foreach (var line in originalLines)
+            {
+                var words = line.Split(new[] { " " }, StringSplitOptions.None);
+
+                foreach (var item in words)
+                {
+                    sb.Append(item + " ");
+                    actualWidth += new FormattedText(item, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, new Typeface(fontName), fontHeight,Brushes.Black).Width;
+
+                    if (actualWidth > width)
+                    {
+                        wrappedLines.Add(sb.ToString());
+                        sb.Clear();
+                        actualWidth = 0;
+                    }
+                }
+
+                if (sb.Length > 0)
+                {
+                    wrappedLines.Add(sb.ToString());
+                }
+
+                sb.Clear();
+                actualWidth = 0;
+            }
             return wrappedLines;
         }
     }
