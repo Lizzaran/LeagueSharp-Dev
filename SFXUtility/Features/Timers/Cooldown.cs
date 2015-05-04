@@ -59,10 +59,9 @@ namespace SFXUtility.Features.Timers
             new ManualSpell("Zyra", "ZyraSeed", SpellSlot.W),
             new ManualSpell("Velkoz", "VelkozW", SpellSlot.W),
             new ManualSpell("Corki", "MissileBarrage", SpellSlot.R),
-            new ManualSpell("Corki", "MissileBarrage2", SpellSlot.R),
-            new ManualSpell("Akali", "", SpellSlot.R),
-            new ManualSpell("Teemo", "", SpellSlot.R),
-            new ManualSpell("Azir", "", SpellSlot.W)
+            new ManualSpell("Akali", "AkaliShadowDance", SpellSlot.R),
+            new ManualSpell("Teemo", "BantamTrap", SpellSlot.R),
+            new ManualSpell("Azir", "AzirW", SpellSlot.W)
         };
         private readonly SpellSlot[] _spellSlots = {SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R};
         private readonly SpellSlot[] _summonerSlots = {SpellSlot.Summoner1, SpellSlot.Summoner2};
@@ -111,7 +110,7 @@ namespace SFXUtility.Features.Timers
         private void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
             var hero = sender as Obj_AI_Hero;
-            if (hero != null)
+            if (hero != null && !hero.IsMe)
             {
                 var data = _manualSpells.FirstOrDefault(m => m.Spell.Equals(args.SData.Name, StringComparison.OrdinalIgnoreCase));
                 if (data != null)
