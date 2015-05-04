@@ -213,7 +213,7 @@ namespace SFXUtility.Features.Timers
                 _parent.Menu.AddSubMenu(Menu);
 
                 foreach (var sName in
-                    HeroManager.AllHeroes.Where(h => h.IsMe)
+                    HeroManager.AllHeroes.Where(h => !h.IsMe)
                         .SelectMany(
                             h =>
                                 _summonerSlots.Select(summoner => h.Spellbook.GetSpell(summoner).Name.ToLower())
@@ -266,7 +266,7 @@ namespace SFXUtility.Features.Timers
                     return;
 
                 foreach (var hero in
-                    _heroes.Where(hero => hero != null && hero.IsValid && hero.IsMe && hero.IsHPBarRendered && hero.Position.IsOnScreen()))
+                    _heroes.Where(hero => hero != null && hero.IsValid && !hero.IsMe && hero.IsHPBarRendered && hero.Position.IsOnScreen()))
                 {
                     try
                     {
