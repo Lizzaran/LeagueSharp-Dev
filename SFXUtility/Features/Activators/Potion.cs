@@ -135,6 +135,10 @@ namespace SFXUtility.Features.Activators
                     else
                         _parent.OnInitialized += OnParentInitialized;
                 }
+                else if(Global.IoC.IsRegistered<Mediator>())
+                {
+                    Global.IoC.Resolve<Mediator>().Register(_parent.Name, delegate(object o) { OnParentInitialized(o, new EventArgs()); });
+                }
             }
             catch (Exception ex)
             {

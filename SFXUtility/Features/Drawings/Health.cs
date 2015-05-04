@@ -31,6 +31,7 @@ namespace SFXUtility.Features.Drawings
     using LeagueSharp;
     using LeagueSharp.Common;
     using SFXLibrary;
+    using SFXLibrary.Extensions.NET;
     using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.Logger;
     using SharpDX;
@@ -99,7 +100,7 @@ namespace SFXUtility.Features.Drawings
                 {
                     foreach (var turret in _turrets.Where(t => t != null && t.IsValid && !t.IsDead))
                     {
-                        _text.DrawTextCentered(((int) (percent ? (int)turret.HealthPercent : turret.Health)).ToString(),
+                        _text.DrawTextCentered(((int)(percent ? (int)turret.HealthPercent : turret.Health)).ToStringLookUp(),
                             Drawing.WorldToMinimap(turret.Position), Color.White);
                     }
                 }
@@ -107,7 +108,7 @@ namespace SFXUtility.Features.Drawings
                 {
                     foreach (var inhib in _inhibs.Where(i => i != null && i.IsValid && !i.IsDead && i.Health > 1f))
                     {
-                        _text.DrawTextCentered(((int)(percent ? (int)inhib.HealthPercent : inhib.Health)).ToString(),
+                        _text.DrawTextCentered(((int)(percent ? (int)inhib.HealthPercent : inhib.Health)).ToStringLookUp(),
                             Drawing.WorldToMinimap(inhib.Position), Color.White);
                     }
                 }

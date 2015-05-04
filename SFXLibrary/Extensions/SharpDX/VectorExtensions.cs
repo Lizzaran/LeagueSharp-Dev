@@ -71,25 +71,36 @@ namespace SFXLibrary.Extensions.SharpDX
                 }.Any(intersection => intersection.Intersects);
         }
 
-        public static Geometry.IntersectionResult Intersects(this Vector2 lineStart, Vector2 lineEnd, Vector2 circlePos, float circleRadius)
+        public static Vector2 FindNearestLineCircleIntersections(this Vector2 start, Vector2 end, Vector2 circlePos, float radius)
         {
-            if (IsIntersecting(lineStart, lineEnd, circlePos, circleRadius))
+            float t;
+            var dx = end.X - start.X;
+            var dy = end.Y - start.Y;
+
+            var a = dx*dx + dy*dy;
+            var b = 2 * (dx * (start.X - circlePos.X) + dy * (start.Y - circlePos.Y));
+            var c = (start.X - circlePos.X) * (start.X - circlePos.X) + (start.Y - circlePos.Y) * (start.Y - circlePos.Y) - radius * radius;
+
+            var det = b*b - 4*a*c;
+            if ((a <= 0.0000001) || (det < 0))
             {
-                var m = (lineEnd.Y - lineStart.Y)/(lineEnd.X - lineStart.X);
-                var d = lineStart.Y - m*lineStart.X;
-                var a = 1 + m*m;
-                var b = 2*(m*d - m*circlePos.Y - circlePos.X);
-                var c = circlePos.X*circlePos.X + d*d + circlePos.Y*circlePos.Y - circleRadius*circleRadius - 2*d*circlePos.Y;
-                var sqRtTerm = Math.Sqrt(b*b - 4*a*c);
-                var x = ((-b) + sqRtTerm)/(2*a);
-                if ((x < Math.Min(lineStart.X, lineEnd.X) || (x > Math.Max(lineStart.X, lineEnd.X))))
-                {
-                    x = ((-b) - sqRtTerm)/(2*a);
-                }
-                var y = m*x + d;
-                return new Geometry.IntersectionResult(true, new Vector2((float) x, (float) y));
+                return Vector2.Zero;
             }
-            return new Geometry.IntersectionResult(false);
+            if (det == 0)
+            {
+                t = -b/(2*a);
+                return new Vector2(start.X + t * dx, start.Y + t * dy);
+            }
+
+            t = (float) ((-b + Math.Sqrt(det))/(2*a));
+            var intersection1 = new Vector2(start.X + t * dx, start.Y + t * dy);
+            t = (float) ((-b - Math.Sqrt(det))/(2*a));
+            var intersection2 = new Vector2(start.X + t * dx, start.Y + t * dy);
+
+            return Vector2.Distance(intersection1, Geometry.To2D(ObjectManager.Player.Position)) >
+                   Vector2.Distance(intersection2, Geometry.To2D(ObjectManager.Player.Position))
+                ? intersection2
+                : intersection1;
         }
 
         public static bool IsInsideCircle(this Vector2 point, Vector2 circlePos, float circleRad)

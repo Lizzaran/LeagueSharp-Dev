@@ -40,12 +40,11 @@ namespace SFXLibrary.Logger
         private readonly string _fileName;
         private readonly HashSet<string> _unique = new HashSet<string>();
 
-        public FileLogger(string logDir, string fileName = "{0}_{1}.txt", int minConsumers = 1, int maxConsumers = 3, int producersPerConsumer = 5,
+        public FileLogger(string logDir, string fileName = "{0}_{1}_{2}.txt", int minConsumers = 1, int maxConsumers = 3, int producersPerConsumer = 5,
             int checkInterval = 10000) : base(minConsumers, maxConsumers, producersPerConsumer, checkInterval)
         {
             LogDir = logDir;
             _fileName = fileName;
-
             try
             {
                 Directory.CreateDirectory(LogDir);
@@ -92,7 +91,7 @@ namespace SFXLibrary.Logger
             try
             {
                 var file = Path.Combine(LogDir,
-                    string.Format(_fileName, LogLevel.ToString().ToLower(), (item.Exception + AdditionalData.ToDebugString()).ToMd5Hash()));
+                    string.Format(_fileName, DateTime.Now.ToString("yyyy_MM_dd"), LogLevel.ToString().ToLower(), (item.Exception + AdditionalData.ToDebugString()).ToMd5Hash()));
 
                 if (File.Exists(file))
                     return;

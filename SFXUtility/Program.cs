@@ -125,11 +125,11 @@ namespace SFXUtility
             Global.IoC.Register(() => new Trinket(), true, true);
 
             Global.IoC.Register(() => new Others(), true, true);
-            Global.IoC.Register(() => new AntiFountain(), true, true);
             Global.IoC.Register(() => new AntiTrap(), true, true);
             Global.IoC.Register(() => new AutoLantern(), true, true);
             Global.IoC.Register(() => new ExtendFlash(), true, true);
             Global.IoC.Register(() => new Humanize(), true, true);
+            Global.IoC.Register(() => new SkinChanger(), true, true);
             Global.IoC.Register(() => new SummonerInfo(), true, true);
             Global.IoC.Register(() => new TurnAround(), true, true);
 

@@ -223,5 +223,14 @@ namespace SFXLibrary.Extensions.NET
             return
                 (from Match match in new Regex(Regex.Escape(start) + "(.*?)" + Regex.Escape(end)).Matches(value) select match.Groups[1].Value).ToList();
         }
+
+        public static string FirstCharToUpper(this string value)
+        {
+            if (value == null)
+                return null;
+            if (value.Length > 1)
+                return char.ToUpper(value[0]) + value.Substring(1);
+            return value.ToUpper();
+        }
     }
 }

@@ -30,6 +30,7 @@ namespace SFXUtility.Features.Trackers
     using System.Collections.Generic;
     using System.Linq;
     using Classes;
+    using ClipperLib;
     using LeagueSharp;
     using LeagueSharp.Common;
     using Properties;
@@ -50,20 +51,20 @@ namespace SFXUtility.Features.Trackers
 
         private readonly List<WardStruct> _wardStructs = new List<WardStruct>
         {
-            new WardStruct(60, "YellowTrinket", "TrinketTotemLvl1", WardType.Green),
-            new WardStruct(60*3, "YellowTrinketUpgrade", "TrinketTotemLvl2", WardType.Green),
-            new WardStruct(60*3, "SightWard", "TrinketTotemLvl3", WardType.Green),
-            new WardStruct(60*3, "SightWard", "SightWard", WardType.Green),
-            new WardStruct(60*3, "SightWard", "ItemGhostWard", WardType.Green),
-            new WardStruct(60*3, "SightWard", "wrigglelantern", WardType.Green),
-            new WardStruct(60*3, "SightWard", "ItemFeralFlare", WardType.Green),
-            new WardStruct(int.MaxValue, "VisionWard", "TrinketTotemLvl3B", WardType.Pink),
-            new WardStruct(int.MaxValue, "VisionWard", "VisionWard", WardType.Pink),
-            new WardStruct(60*4, "CaitlynTrap", "CaitlynYordleTrap", WardType.Trap),
-            new WardStruct(60*10, "TeemoMushroom", "BantamTrap", WardType.Trap),
-            new WardStruct(60*1, "ShacoBox", "JackInTheBox", WardType.Trap),
-            new WardStruct(60*2, "Nidalee_Spear", "Bushwhack", WardType.Trap),
-            new WardStruct(60*10, "Noxious_Trap", "BantamTrap", WardType.Trap)
+            new WardStruct(60, 1100, "YellowTrinket", "TrinketTotemLvl1", WardType.Green),
+            new WardStruct(60*3, 1100, "YellowTrinketUpgrade", "TrinketTotemLvl2", WardType.Green),
+            new WardStruct(60*3, 1100, "SightWard", "TrinketTotemLvl3", WardType.Green),
+            new WardStruct(60*3, 1100, "SightWard", "SightWard", WardType.Green),
+            new WardStruct(60*3, 1100, "SightWard", "ItemGhostWard", WardType.Green),
+            new WardStruct(60*3, 1100, "SightWard", "wrigglelantern", WardType.Green),
+            new WardStruct(60*3, 1100, "SightWard", "ItemFeralFlare", WardType.Green),
+            new WardStruct(int.MaxValue, 1100, "VisionWard", "TrinketTotemLvl3B", WardType.Pink),
+            new WardStruct(int.MaxValue, 1100, "VisionWard", "VisionWard", WardType.Pink),
+            new WardStruct(60*4, 212, "CaitlynTrap", "CaitlynYordleTrap", WardType.Trap),
+            new WardStruct(60*10, 212, "TeemoMushroom", "BantamTrap", WardType.Trap),
+            new WardStruct(60*1, 212, "ShacoBox", "JackInTheBox", WardType.Trap),
+            new WardStruct(60*2, 212, "Nidalee_Spear", "Bushwhack", WardType.Trap),
+            new WardStruct(60*10, 212, "Noxious_Trap", "BantamTrap", WardType.Trap)
         };
 
         private Texture _greenWardTexture;
@@ -71,6 +72,7 @@ namespace SFXUtility.Features.Trackers
         private Trackers _parent;
         private Texture _pinkWardTexture;
         private Sprite _sprite;
+        private Line _line;
         private Font _text;
 
         public override bool Enabled
@@ -93,6 +95,7 @@ namespace SFXUtility.Features.Trackers
             Drawing.OnPostReset += OnDrawingPostReset;
             Drawing.OnEndScene += OnDrawingEndScene;
 
+            Game.OnWndProc += OnGameWndProc;
             base.OnEnable();
         }
 
@@ -105,6 +108,8 @@ namespace SFXUtility.Features.Trackers
             Drawing.OnPreReset -= OnDrawingPreReset;
             Drawing.OnPostReset -= OnDrawingPostReset;
             Drawing.OnEndScene -= OnDrawingEndScene;
+
+            Game.OnWndProc += OnGameWndProc;
 
             OnUnload(null, new UnloadEventArgs());
 
@@ -163,7 +168,7 @@ namespace SFXUtility.Features.Trackers
                         new Slider(2, 1, 10)));
 
                 Menu.AddSubMenu(drawingMenu);
-
+                Menu.AddItem(new MenuItem(Name + "Hotkey", Language.Get("G_Hotkey")).SetValue(new KeyBind(16, KeyBindType.Press)));
                 Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
@@ -179,6 +184,7 @@ namespace SFXUtility.Features.Trackers
                         OutputPrecision = FontPrecision.Default,
                         Quality = FontQuality.Default
                     });
+                _line = new Line(Drawing.Direct3DDevice) { Width = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value };
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();
@@ -186,6 +192,18 @@ namespace SFXUtility.Features.Trackers
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void OnGameWndProc(WndEventArgs args)
+        {
+            if (args.Msg == (ulong)WindowsMessages.WM_LBUTTONDBLCLCK && Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active)
+            {
+                var ward = _wardObjects.OrderBy(w => Game.CursorPos.Distance(w.Position)).FirstOrDefault();
+                if (ward != null && Game.CursorPos.Distance(ward.Position) <= Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value)
+                {
+                    _wardObjects.Remove(ward);
+                }
             }
         }
 
@@ -199,6 +217,7 @@ namespace SFXUtility.Features.Trackers
                 var totalSeconds = Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1;
                 var circleRadius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value;
                 var circleThickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
+                var hotkey = Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active;
 
                 _sprite.Begin(SpriteFlags.AlphaBlend);
                 foreach (var ward in _wardObjects)
@@ -217,6 +236,16 @@ namespace SFXUtility.Features.Trackers
                     {
                         _sprite.DrawCentered(ward.Data.Type == WardType.Green ? _greenWardTexture : _pinkWardTexture, ward.MinimapPosition.To2D());
                     }
+                    if (hotkey)
+                    {
+                        Render.Circle.DrawCircle(ward.Position, ward.Data.Range, Color.FromArgb(30, ward.Data.Color), -142857, true);
+                        if (ward.IsFromMissile)
+                        {
+                            _line.Begin();
+                            _line.Draw(new[] { Drawing.WorldToScreen(ward.StartPosition), Drawing.WorldToScreen(ward.Position) }, SharpDX.Color.White);
+                            _line.End();
+                        }
+                    }
                 }
                 _sprite.End();
             }
@@ -232,6 +261,7 @@ namespace SFXUtility.Features.Trackers
             {
                 _text.OnResetDevice();
                 _sprite.OnResetDevice();
+                _line.OnResetDevice();
             }
             catch (Exception ex)
             {
@@ -245,6 +275,7 @@ namespace SFXUtility.Features.Trackers
             {
                 _text.OnLostDevice();
                 _sprite.OnLostDevice();
+                _line.OnLostDevice();
             }
             catch (Exception ex)
             {
@@ -268,10 +299,7 @@ namespace SFXUtility.Features.Trackers
                             var ePos = missile.EndPosition;
                             Utility.DelayAction.Add(1000, delegate
                             {
-                                if (
-                                    !_wardObjects.Any(
-                                        w =>
-                                            w.Position.To2D().Distance(sPos.To2D(), ePos.To2D(), false) < 300 && Math.Abs(w.StartT - Game.Time) < 2000))
+                                if (!_wardObjects.Any(w => w.Position.To2D().Distance(sPos.To2D(), ePos.To2D(), false) < 500 && Math.Abs(w.StartT - Game.Time) < 2000))
                                 {
                                     _wardObjects.Add(new WardObject(_wardStructs[3],
                                         new Vector3(ePos.X, ePos.Y, NavMesh.GetHeightForPosition(ePos.X, ePos.Y)), (int) Game.Time, null, true,
@@ -293,11 +321,11 @@ namespace SFXUtility.Features.Trackers
                                 if (wardObject.BaseSkinName.Equals(ward.ObjectBaseSkinName, StringComparison.InvariantCultureIgnoreCase))
                                 {
                                     var startT = Game.Time - (int) ((wardObject.MaxMana - wardObject.Mana));
-                                    _wardObjects.RemoveAll(
-                                        w =>
-                                            w.Position.Distance(wardObject.Position) < 200 &&
-                                            (Math.Abs(w.StartT - startT) < 1000 || ward.Type != WardType.Green));
-                                    _wardObjects.Add(new WardObject(ward, wardObject.Position, (int) startT, wardObject));
+                                    _wardObjects.RemoveAll(w =>w.Position.Distance(wardObject.Position) < 200 &&(Math.Abs(w.StartT - startT) < 1000 || ward.Type != WardType.Green));
+                                    if (!_wardObjects.Any(w => w.Position.To2D().Distance(wardObject.Position) < 500 && Math.Abs(w.StartT - Game.Time) < 2000))
+                                    {
+                                        _wardObjects.Add(new WardObject(ward, wardObject.Position, (int)startT, wardObject));
+                                    }
                                 }
                             }
                         }
@@ -324,7 +352,10 @@ namespace SFXUtility.Features.Trackers
                         var posList = ObjectManager.Player.GetPath(args.End);
                         if (posList.Count() > 0)
                         {
-                            _wardObjects.Add(new WardObject(ward, posList.Last(), (int) Game.Time));
+                            if (!_wardObjects.Any(w => w.Position.To2D().Distance(posList.Last()) < 500 && Math.Abs(w.StartT - Game.Time) < 2000))
+                            {
+                                _wardObjects.Add(new WardObject(ward, posList.Last(), (int)Game.Time));
+                            }
                         }
                     }
                 }
@@ -358,29 +389,39 @@ namespace SFXUtility.Features.Trackers
             public readonly Obj_AI_Base Object;
             public readonly int StartT;
             public Vector3 Position;
-            // ReSharper disable once MemberCanBePrivate.Local
-            // ReSharper disable once NotAccessedField.Local
-            public Vector3 StartPosition;
+            public readonly Vector3 StartPosition;
 
             public WardObject(WardStruct data, Vector3 position, int startT, Obj_AI_Base wardObject = null, bool isFromMissile = false,
                 Vector3 startPosition = default(Vector3))
             {
                 IsFromMissile = isFromMissile;
                 Data = data;
-                Position = position;
+                Position = RealPosition(position);
                 MinimapPosition = Drawing.WorldToMinimap(Position).To3D();
                 StartT = startT;
                 StartPosition = startPosition;
                 Object = wardObject;
             }
 
-            // ReSharper disable once MemberCanBePrivate.Local
-            // ReSharper disable once UnusedAutoPropertyAccessor.Local
             public bool IsFromMissile { get; private set; }
 
             public int EndTime
             {
                 get { return StartT + Data.Duration; }
+            }
+
+            private Vector3 RealPosition(Vector3 end)
+            {
+                if (end.IsWall())
+                {
+                    List<IntPoint> clipper = new List<IntPoint>();
+                    for (int i = 0; i < 500; i++)
+                    {
+                        clipper.AddRange(new Geometry.Polygon.Circle(end, i, 15).ToClipperPath());
+                    }
+                    return clipper.Select(p => new Vector2(p.X, p.Y).To3D()).Where(v => !v.IsWall()).ToList().OrderBy(p => p.Distance(end)).FirstOrDefault();
+                }
+                return end;
             }
 
             public WardStruct Data { get; private set; }
@@ -396,13 +437,15 @@ namespace SFXUtility.Features.Trackers
         private struct WardStruct
         {
             public readonly int Duration;
+            public readonly int Range;
             public readonly string ObjectBaseSkinName;
             public readonly string SpellName;
             public readonly WardType Type;
 
-            public WardStruct(int duration, string objectBaseSkinName, string spellName, WardType type)
+            public WardStruct(int duration, int range, string objectBaseSkinName, string spellName, WardType type)
             {
                 Duration = duration;
+                Range = range;
                 ObjectBaseSkinName = objectBaseSkinName;
                 SpellName = spellName;
                 Type = type;

@@ -207,6 +207,10 @@
 	<entry key="F_Humanize">Humanize</entry>
 	<!-- END: Humanize -->
 
+	<!-- START: SkinChanger -->
+	<entry key="F_SkinChanger">Skin Changer</entry>
+	<!-- END: SkinChanger -->
+
 	<!-- START: TurnAround -->
 	<entry key="F_TurnAround">Turn Around</entry>
 	<!-- END: TurnAround -->

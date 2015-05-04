@@ -20,7 +20,6 @@
 
 #endregion License
 
-
 #pragma warning disable 618
 
 namespace SFXUtility.Features.Trackers
@@ -37,6 +36,7 @@ namespace SFXUtility.Features.Trackers
     using LeagueSharp.Common;
     using Properties;
     using SFXLibrary;
+    using SFXLibrary.Extensions.NET;
     using SFXLibrary.Logger;
     using SharpDX;
     using Color = SharpDX.Color;
@@ -350,7 +350,7 @@ namespace SFXUtility.Features.Trackers
                                 return false;
                             }
                         },
-                        TextUpdate = () => ((int) (Hero.Spellbook.GetSpell(SpellSlot.R).CooldownExpires - Game.Time)).ToString()
+                        TextUpdate = () => ((int)(Hero.Spellbook.GetSpell(SpellSlot.R).CooldownExpires - Game.Time)).ToStringLookUp()
                     };
 
 
@@ -393,13 +393,13 @@ namespace SFXUtility.Features.Trackers
                         TextUpdate = () => string.Format("{0} / {1}", (int) Hero.Health, (int) Hero.MaxHealth)
                     };
 
-                    if (!_champsNoEnergy.Contains(Hero.ChampionName))
+                    if (!Enumerable.Contains(_champsNoEnergy, Hero.ChampionName))
                     {
                         _manaLine = new Render.Line(new Vector2(_healthLine.Start.X, _healthLine.Start.Y + _healthLine.Width + 4),
                             new Vector2(_heroSprite.X + _heroSprite.Width - 2, _heroSprite.Y + _heroSprite.Height + _healthLine.Width + 4), 9,
-                            _champsEnergy.Contains(Hero.ChampionName)
+                            Enumerable.Contains(_champsEnergy, Hero.ChampionName)
                                 ? Color.Yellow
-                                : (_champsRage.Contains(Hero.ChampionName) ? Color.DarkRed : Color.Blue))
+                                : (Enumerable.Contains(_champsRage, Hero.ChampionName) ? Color.DarkRed : Color.Blue))
                         {
                             VisibleCondition = delegate
                             {
@@ -463,7 +463,7 @@ namespace SFXUtility.Features.Trackers
                             }
                             else if (!Hero.IsDead)
                                 _deathDuration = 0;
-                            return ((int) (_deathDuration - Game.Time)).ToString();
+                            return ((int)(_deathDuration - Game.Time)).ToStringLookUp();
                         }
                     };
 
@@ -483,7 +483,7 @@ namespace SFXUtility.Features.Trackers
                                 return false;
                             }
                         },
-                        TextUpdate = () => Hero.Level.ToString()
+                        TextUpdate = () => Hero.Level.ToStringLookUp()
                     };
 
                     _csText = new Render.Text(new Vector2(_heroSprite.X - 16, _heroSprite.Y + _heroSprite.Height + 3), string.Empty, 18,
@@ -502,7 +502,7 @@ namespace SFXUtility.Features.Trackers
                                 return false;
                             }
                         },
-                        TextUpdate = () => Hero.MinionsKilled.ToString()
+                        TextUpdate = () => Hero.MinionsKilled.ToStringLookUp()
                     };
                 }
                 catch (Exception ex)
@@ -553,7 +553,7 @@ namespace SFXUtility.Features.Trackers
                                     return false;
                                 }
                             },
-                            TextUpdate = () => ((int) (spell.CooldownExpires - Game.Time)).ToString()
+                            TextUpdate = () => ((int) (spell.CooldownExpires - Game.Time)).ToStringLookUp()
                         };
                         _summonerTexts.Add(text);
                     }

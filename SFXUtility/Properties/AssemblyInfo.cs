@@ -36,7 +36,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration(("Release"))]
 [assembly: AssemblyCompany("Sentryfox")]
 [assembly: AssemblyProduct("SFXUtility")]
-[assembly: AssemblyCopyright("Copyright © Sentryfox 2014 - 2015")]
+[assembly: AssemblyCopyright("Copyright © 2014 - 2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -62,4 +62,4 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 
 [assembly: AssemblyVersion("0.7.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("0.7.0.0")]

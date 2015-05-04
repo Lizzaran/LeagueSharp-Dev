@@ -45,6 +45,25 @@ namespace SFXUtility.Features.Timers
 
     internal class Cooldown : Base
     {
+        private readonly List<ManualSpell> _manualSpells = new List<ManualSpell>
+        {
+            new ManualSpell("Lux", "LuxLightStrikeKugel", SpellSlot.E),
+            new ManualSpell("Gragas", "GragasQ", SpellSlot.Q),
+            new ManualSpell("Riven", "rivenizunablade", SpellSlot.R),
+            new ManualSpell("TwistedFate", "PickACard", SpellSlot.W),
+            new ManualSpell("Velkoz", "VelkozQ", SpellSlot.Q),
+            new ManualSpell("Xerath", "xeratharcanopulse2", SpellSlot.Q),
+            new ManualSpell("Ziggs", "ZiggsW", SpellSlot.W),
+            new ManualSpell("Rumble", "RumbleGrenade", SpellSlot.E),
+            new ManualSpell("Riven", "RivenTriCleave", SpellSlot.Q),
+            new ManualSpell("Zyra", "ZyraSeed", SpellSlot.W),
+            new ManualSpell("Velkoz", "VelkozW", SpellSlot.W),
+            new ManualSpell("Corki", "MissileBarrage", SpellSlot.R),
+            new ManualSpell("Corki", "MissileBarrage2", SpellSlot.R),
+            new ManualSpell("Akali", "", SpellSlot.R),
+            new ManualSpell("Teemo", "", SpellSlot.R),
+            new ManualSpell("Azir", "", SpellSlot.W)
+        };
         private readonly SpellSlot[] _spellSlots = {SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R};
         private readonly SpellSlot[] _summonerSlots = {SpellSlot.Summoner1, SpellSlot.Summoner2};
         private readonly Dictionary<string, Texture> _summonerTextures = new Dictionary<string, Texture>();
@@ -71,6 +90,8 @@ namespace SFXUtility.Features.Timers
             Drawing.OnPostReset += OnDrawingPostReset;
             Drawing.OnEndScene += OnDrawingEndScene;
 
+            Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
+
             base.OnEnable();
         }
 
@@ -80,9 +101,47 @@ namespace SFXUtility.Features.Timers
             Drawing.OnPostReset -= OnDrawingPostReset;
             Drawing.OnEndScene -= OnDrawingEndScene;
 
+            Obj_AI_Base.OnProcessSpellCast -= OnObjAiBaseProcessSpellCast;
+
             OnUnload(null, new UnloadEventArgs());
 
             base.OnDisable();
+        }
+
+        private void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
+        {
+            var hero = sender as Obj_AI_Hero;
+            if (hero != null)
+            {
+                var data = _manualSpells.FirstOrDefault(m => m.Spell.Equals(args.SData.Name, StringComparison.OrdinalIgnoreCase));
+                if (data != null)
+                {
+                    if (args.SData.MaxAmmo > 0)
+                    {
+                        var spell = hero.GetSpell(data.Slot);
+                        if (spell != null)
+                        {
+                            if (spell.Ammo == 0)
+                            {
+                                var cooldown = spell.SData.AmmoRechargeTimeArray.FirstOrDefault(s => s > 0);
+                                cooldown = spell.SData.AmmoNotAffectedByCDR ? cooldown : (cooldown - (cooldown / 100 * (hero.PercentCooldownMod * -1 * 100)));
+                                data.Cooldown = cooldown;
+                                data.CooldownExpires = spell.AmmoRechargeStart;
+                            }
+                            else
+                            {
+                                data.Cooldown = args.SData.Cooldown - (args.SData.Cooldown / 100 * (hero.PercentCooldownMod * -1 * 100));
+                                data.CooldownExpires = Game.Time + data.Cooldown;
+                            }
+                        }
+                    }
+                    else if (data.CooldownExpires - Game.Time < 0.5)
+                    {
+                        data.Cooldown = args.SData.Cooldown - (args.SData.Cooldown / 100 * (hero.PercentCooldownMod * -1 * 100));
+                        data.CooldownExpires = Game.Time + data.Cooldown;
+                    }
+                }
+            }
         }
 
         protected override void OnUnload(object sender, UnloadEventArgs args)
@@ -154,7 +213,7 @@ namespace SFXUtility.Features.Timers
                 _parent.Menu.AddSubMenu(Menu);
 
                 foreach (var sName in
-                    HeroManager.AllHeroes.Where(h => !h.IsMe)
+                    HeroManager.AllHeroes.Where(h => h.IsMe)
                         .SelectMany(
                             h =>
                                 _summonerSlots.Select(summoner => h.Spellbook.GetSpell(summoner).Name.ToLower())
@@ -207,7 +266,7 @@ namespace SFXUtility.Features.Timers
                     return;
 
                 foreach (var hero in
-                    _heroes.Where(hero => hero != null && hero.IsValid && !hero.IsMe && hero.IsHPBarRendered && hero.Position.IsOnScreen()))
+                    _heroes.Where(hero => hero != null && hero.IsValid && hero.IsMe && hero.IsHPBarRendered && hero.Position.IsOnScreen()))
                 {
                     try
                     {
@@ -254,15 +313,15 @@ namespace SFXUtility.Features.Timers
                             var spell = hero.Spellbook.GetSpell(slot);
                             if (spell != null)
                             {
-                                var t = spell.CooldownExpires - Game.Time;
-                                var percent = (t > 0 && Math.Abs(spell.Cooldown) > float.Epsilon) ? 1f - (t/spell.Cooldown) : 1f;
-
+                                var manual = _manualSpells.FirstOrDefault(m => m.Slot.Equals(slot) && m.Champ.Equals(hero.ChampionName, StringComparison.OrdinalIgnoreCase));
+                                var t = (manual != null ? manual.CooldownExpires : spell.CooldownExpires) - Game.Time;
+                                var spellCooldown = manual != null ? manual.Cooldown : spell.Cooldown;
+                                var percent = (t > 0 && Math.Abs(spellCooldown) > float.Epsilon) ? 1f - (t / spellCooldown) : 1f;
                                 if (t > 0 && t < 100)
                                 {
                                     var s = string.Format(t < 1f ? "{0:0.0}" : "{0:0}", t);
                                     _text.DrawTextCentered(s, x2 + 23/2, y2 + 13, new ColorBGRA(255, 255, 255, 255));
                                 }
-
                                 if (hero.Spellbook.CanUseSpell(slot) != SpellState.NotLearned)
                                 {
                                     _line.Draw(new[] {new Vector2(x2, y2), new Vector2(x2 + percent*23, y2)},
@@ -311,6 +370,22 @@ namespace SFXUtility.Features.Timers
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+    }
+
+    internal class ManualSpell
+    {
+        public string Champ { get; private set; }
+        public string Spell { get; private set; }
+        public SpellSlot Slot { get; private set; }
+        public float Cooldown { get; set; }
+        public float CooldownExpires { get; set; }
+
+        public ManualSpell(string champ, string spell, SpellSlot slot)
+        {
+            Champ = champ;
+            Spell = spell;
+            Slot = slot;
         }
     }
 }

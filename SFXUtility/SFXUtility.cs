@@ -28,7 +28,6 @@ namespace SFXUtility
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using LeagueSharp;
     using LeagueSharp.Common;
     using SFXLibrary;
     using SFXLibrary.Extensions.NET;
@@ -39,7 +38,6 @@ namespace SFXUtility
 
     internal class SFXUtility
     {
-        private bool _endTriggered;
         private bool _unloadTriggered;
 
         public SFXUtility()
@@ -83,8 +81,6 @@ namespace SFXUtility
                 AppDomain.CurrentDomain.DomainUnload += OnExit;
                 AppDomain.CurrentDomain.ProcessExit += OnExit;
                 CustomEvents.Game.OnGameEnd += OnGameEnd;
-                Game.OnEnd += OnGameEnd;
-                Game.OnNotify += OnGameNotify;
                 CustomEvents.Game.OnGameLoad += OnGameLoad;
             }
             catch (Exception ex)
@@ -105,19 +101,6 @@ namespace SFXUtility
             get { return Assembly.GetExecutingAssembly().GetName().Version; }
         }
 
-        private void OnGameNotify(GameNotifyEventArgs args)
-        {
-            if (args.EventId == GameEventId.OnEndGame)
-            {
-                OnExit(null, null);
-            }
-            if (!_endTriggered && args.EventId == GameEventId.OnHQDie || args.EventId == GameEventId.OnHQKill)
-            {
-                _endTriggered = true;
-                Notifications.AddNotification(new Notification(Menu.Item(Name + "InfoException").DisplayName));
-            }
-        }
-
         public event EventHandler<UnloadEventArgs> OnUnload;
 
         private void OnExit(object sender, EventArgs e)
@@ -128,6 +111,7 @@ namespace SFXUtility
                 {
                     _unloadTriggered = true;
                     OnUnload.RaiseEvent(null, new UnloadEventArgs(true));
+                    Notifications.AddNotification(new Notification(Menu.Item(Name + "InfoException").DisplayName));
                 }
             }
             catch (Exception ex)
@@ -138,15 +122,13 @@ namespace SFXUtility
 
         private void OnGameEnd(EventArgs args)
         {
-            OnExit(null, null);
+            OnExit(null, args);
         }
 
         private void OnGameLoad(EventArgs args)
         {
             try
             {
-                Chat.Local(string.Format("{0} v{1}.{2}.{3} {4}.", Name, Version.Major, Version.Minor, Version.Build, Language.Get("SFXUtility_Loaded")));
-
                 Menu.AddToMainMenu();
 
                 var errorText = Language.Get("SFX_Exception");

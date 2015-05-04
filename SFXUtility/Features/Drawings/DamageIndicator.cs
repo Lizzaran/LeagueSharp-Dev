@@ -63,16 +63,23 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
+                var lineColor = Menu.Item(Name + "DrawingLineColor").GetValue<Color>();
                 var fillColor = Menu.Item(Name + "DrawingFillColor").GetValue<Color>();
 
                 foreach (var enemy in HeroManager.Enemies.Where(e => e.IsValid && !e.IsDead && e.IsHPBarRendered && e.Position.IsOnScreen()))
                 {
                     var barPos = enemy.HPBarPosition;
-                    var cDamage = (float) CalculateComboDamage(enemy);
-                    if (cDamage > 1)
+                    var damage = (float)CalculateComboDamage(enemy);
+                    if (damage > 1)
                     {
-                        var xPos = barPos.X + 10 + 103*Math.Max(0, enemy.Health - cDamage)/enemy.MaxHealth;
-                        Drawing.DrawLine(xPos, barPos.Y + 20, xPos, barPos.Y + 20 + 8, 2, fillColor);
+                        var percentHealthAfterDamage = Math.Max(0, enemy.Health - damage) / enemy.MaxHealth;
+                        var yPos = barPos.Y + 20;
+                        var xPosDamage = barPos.X + 10 + 103 * percentHealthAfterDamage;
+                        var xPosCurrentHp = barPos.X + 10 + 103 * enemy.Health / enemy.MaxHealth;
+                        var posX = barPos.X + 9 + (107 * percentHealthAfterDamage);
+
+                        Drawing.DrawLine(xPosDamage, yPos, xPosDamage, yPos + 8, 2, lineColor);
+                        Drawing.DrawLine(posX, yPos, posX + (xPosCurrentHp - xPosDamage), yPos, 8, fillColor);
                     }
                 }
             }
@@ -123,6 +130,9 @@ namespace SFXUtility.Features.Drawings
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "LineColor", Language.Get("G_Line") + " " + Language.Get("G_Color")).SetValue(
+                        Color.DarkRed.ToArgb(90)));
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + "FillColor", Language.Get("G_Fill") + " " + Language.Get("G_Color")).SetValue(Color.Red.ToArgb(90)));
 

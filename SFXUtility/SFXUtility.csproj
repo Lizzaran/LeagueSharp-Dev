@@ -45,6 +45,9 @@
     </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="clipper_library">
+      <HintPath>G:\LeagueSharp\System\clipper_library.dll</HintPath>
+    </Reference>
     <Reference Include="LeagueSharp">
       <HintPath>G:\LeagueSharp\System\LeagueSharp.dll</HintPath>
     </Reference>
@@ -63,6 +66,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Web.Extensions" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\Blowfish.cs" />
@@ -86,7 +90,6 @@
     <Compile Include="Features\Drawings\Health.cs" />
     <Compile Include="Features\Events\Events.cs" />
     <Compile Include="Features\Events\Game.cs" />
-    <Compile Include="Features\Others\AntiFountain.cs" />
     <Compile Include="Features\Others\AntiTrap.cs" />
     <Compile Include="Features\Others\ExtendFlash.cs" />
     <Compile Include="Features\Others\Humanize.cs" />
@@ -94,6 +97,7 @@
     <Compile Include="Features\Others\AutoLantern.cs" />
     <Compile Include="Features\Others\Others.cs" />
     <Compile Include="Features\Drawings\PerfectWard.cs" />
+    <Compile Include="Features\Others\SkinChanger.cs" />
     <Compile Include="Features\Others\SummonerInfo.cs" />
     <Compile Include="Features\Others\TurnAround.cs" />
     <Compile Include="Features\Trackers\GoldEfficiency.cs" />
