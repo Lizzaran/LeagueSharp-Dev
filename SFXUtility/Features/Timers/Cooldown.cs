@@ -99,8 +99,31 @@ namespace SFXUtility.Features.Timers
                     : _manualEnemySpells.FirstOrDefault(m => m.Spell.Equals(args.SData.Name, StringComparison.OrdinalIgnoreCase));
                 if (data != null)
                 {
-                    data.Cooldown = args.SData.Cooldown - (args.SData.Cooldown/100*(hero.PercentCooldownMod*-1*100));
-                    data.CooldownExpires = Game.Time + data.Cooldown;
+                    if (args.SData.MaxAmmo > 0)
+                    {
+                        var spell = hero.GetSpell(data.Slot);
+                        if (spell != null)
+                        {
+                            if (spell.Ammo == 0)
+                            {
+                                var cooldown = spell.SData.AmmoRechargeTimeArray.FirstOrDefault(s => s > 0);
+                                cooldown = spell.SData.AmmoNotAffectedByCDR ? cooldown : (cooldown - (cooldown/100*(hero.PercentCooldownMod*-1*100)));
+                                data.Cooldown = cooldown;
+                                data.CooldownExpires = spell.AmmoRechargeStart;
+                            }
+                            else
+                            {
+                                data.Cooldown = spell.Cooldown - (spell.Cooldown/100*(hero.PercentCooldownMod*-1*100));
+                                data.CooldownExpires = Game.Time + data.Cooldown;
+                            }
+                        }
+                    }
+                    else if (data.CooldownExpires - Game.Time < 0.5)
+                    {
+                        var spell = hero.GetSpell(data.Slot);
+                        data.Cooldown = spell.Cooldown - (spell.Cooldown/100*(hero.PercentCooldownMod*-1*100));
+                        data.CooldownExpires = Game.Time + data.Cooldown;
+                    }
                 }
             }
         }
@@ -251,7 +274,7 @@ namespace SFXUtility.Features.Timers
                                 var s = t > 60 ? string.Format("{0}:{1:D2}", ts.Minutes, ts.Seconds) : string.Format("{0:0}", t);
                                 if (t > 0)
                                 {
-                                    _text.DrawTextCentered(s, x - 14, y + 7 + 13*i, new ColorBGRA(255, 255, 255, 255));
+                                    _text.DrawTextCentered(s, x - 15, y + 7 + 13*i, new ColorBGRA(255, 255, 255, 255));
                                 }
                                 if (_summonerTextures.ContainsKey(FixSummonerName(spell.Name)))
                                 {
@@ -348,7 +371,8 @@ namespace SFXUtility.Features.Timers
             new ManualSpell("Xerath", "xeratharcanopulse2", SpellSlot.Q),
             new ManualSpell("Ziggs", "ZiggsW", SpellSlot.W),
             new ManualSpell("Rumble", "RumbleGrenade", SpellSlot.E),
-            new ManualSpell("Riven", "RivenTriCleave", SpellSlot.Q)
+            new ManualSpell("Riven", "RivenTriCleave", SpellSlot.Q),
+            new ManualSpell("Fizz", "FizzJump", SpellSlot.E)
         };
 
         private readonly List<ManualSpell> _manualEnemySpells = new List<ManualSpell>
@@ -361,7 +385,8 @@ namespace SFXUtility.Features.Timers
             new ManualSpell("Xerath", "xeratharcanopulse2", SpellSlot.Q),
             new ManualSpell("Ziggs", "ZiggsW", SpellSlot.W),
             new ManualSpell("Rumble", "RumbleGrenade", SpellSlot.E),
-            new ManualSpell("Riven", "RivenTriCleave", SpellSlot.Q)
+            new ManualSpell("Riven", "RivenTriCleave", SpellSlot.Q),
+            new ManualSpell("Fizz", "FizzJump", SpellSlot.E)
         };
 
         // ReSharper restore StringLiteralTypo
