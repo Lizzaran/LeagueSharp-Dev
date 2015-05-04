@@ -46,9 +46,10 @@ namespace SFXUtility
             {
                 Menu = new Menu(Name, Name, true);
 
-                Menu.AddItem(
-                    new MenuItem(Name + "Language", Language.Get("SFXUtility_Language")).SetValue(
-                        new StringList(new[] {"auto"}.Concat(Language.Languages.ToArray()).ToArray())));
+                Menu.AddItem(new MenuItem(Name + "Font", Language.Get("SFXUtility_Font")).SetValue(new StringList(new[] { "Calibri", "Arial", "Tahoma", "Verdana", "Times New Roman", "Lucida Console", "Comic Sans MS" })));
+                Menu.AddItem(new MenuItem(Name + "Language", Language.Get("SFXUtility_Language")).SetValue(new StringList(new[] { "auto" }.Concat(Language.Languages.ToArray()).ToArray())));
+
+                Global.DefaultFont = Menu.Item(Name + "Font").GetValue<StringList>().SelectedValue;
 
                 var infoMenu = new Menu(Language.Get("SFXUtility_Info"), Name + "Info");
 

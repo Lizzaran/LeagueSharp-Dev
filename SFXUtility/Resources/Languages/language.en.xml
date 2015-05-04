@@ -68,6 +68,7 @@
 
 	<!-- START: SFXUtility -->
 	<entry key="F_SFXUtility">SFXUtility</entry>
+	<entry key="SFXUtility_Font">Font</entry>
 	<entry key="SFXUtility_Language">Language</entry>
 	<entry key="SFXUtility_Loaded">loaded</entry>
 	<entry key="SFXUtility_Info">Info</entry>

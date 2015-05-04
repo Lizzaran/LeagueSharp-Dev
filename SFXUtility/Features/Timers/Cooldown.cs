@@ -45,24 +45,6 @@ namespace SFXUtility.Features.Timers
 
     internal class Cooldown : Base
     {
-        private readonly List<ManualSpell> _manualSpells = new List<ManualSpell>
-        {
-            new ManualSpell("Lux", "LuxLightStrikeKugel", SpellSlot.E),
-            new ManualSpell("Gragas", "GragasQ", SpellSlot.Q),
-            new ManualSpell("Riven", "rivenizunablade", SpellSlot.R),
-            new ManualSpell("TwistedFate", "PickACard", SpellSlot.W),
-            new ManualSpell("Velkoz", "VelkozQ", SpellSlot.Q),
-            new ManualSpell("Xerath", "xeratharcanopulse2", SpellSlot.Q),
-            new ManualSpell("Ziggs", "ZiggsW", SpellSlot.W),
-            new ManualSpell("Rumble", "RumbleGrenade", SpellSlot.E),
-            new ManualSpell("Riven", "RivenTriCleave", SpellSlot.Q),
-            new ManualSpell("Zyra", "ZyraSeed", SpellSlot.W),
-            new ManualSpell("Velkoz", "VelkozW", SpellSlot.W),
-            new ManualSpell("Corki", "MissileBarrage", SpellSlot.R),
-            new ManualSpell("Akali", "AkaliShadowDance", SpellSlot.R),
-            new ManualSpell("Teemo", "BantamTrap", SpellSlot.R),
-            new ManualSpell("Azir", "AzirW", SpellSlot.W)
-        };
         private readonly SpellSlot[] _spellSlots = {SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R};
         private readonly SpellSlot[] _summonerSlots = {SpellSlot.Summoner1, SpellSlot.Summoner2};
         private readonly Dictionary<string, Texture> _summonerTextures = new Dictionary<string, Texture>();
@@ -112,33 +94,13 @@ namespace SFXUtility.Features.Timers
             var hero = sender as Obj_AI_Hero;
             if (hero != null && !hero.IsMe)
             {
-                var data = _manualSpells.FirstOrDefault(m => m.Spell.Equals(args.SData.Name, StringComparison.OrdinalIgnoreCase));
+                var data = hero.IsAlly
+                    ? _manualAllySpells.FirstOrDefault(m => m.Spell.Equals(args.SData.Name, StringComparison.OrdinalIgnoreCase))
+                    : _manualEnemySpells.FirstOrDefault(m => m.Spell.Equals(args.SData.Name, StringComparison.OrdinalIgnoreCase));
                 if (data != null)
                 {
-                    if (args.SData.MaxAmmo > 0)
-                    {
-                        var spell = hero.GetSpell(data.Slot);
-                        if (spell != null)
-                        {
-                            if (spell.Ammo == 0)
-                            {
-                                var cooldown = spell.SData.AmmoRechargeTimeArray.FirstOrDefault(s => s > 0);
-                                cooldown = spell.SData.AmmoNotAffectedByCDR ? cooldown : (cooldown - (cooldown / 100 * (hero.PercentCooldownMod * -1 * 100)));
-                                data.Cooldown = cooldown;
-                                data.CooldownExpires = spell.AmmoRechargeStart;
-                            }
-                            else
-                            {
-                                data.Cooldown = args.SData.Cooldown - (args.SData.Cooldown / 100 * (hero.PercentCooldownMod * -1 * 100));
-                                data.CooldownExpires = Game.Time + data.Cooldown;
-                            }
-                        }
-                    }
-                    else if (data.CooldownExpires - Game.Time < 0.5)
-                    {
-                        data.Cooldown = args.SData.Cooldown - (args.SData.Cooldown / 100 * (hero.PercentCooldownMod * -1 * 100));
-                        data.CooldownExpires = Game.Time + data.Cooldown;
-                    }
+                    data.Cooldown = args.SData.Cooldown - (args.SData.Cooldown/100*(hero.PercentCooldownMod*-1*100));
+                    data.CooldownExpires = Game.Time + data.Cooldown;
                 }
             }
         }
@@ -289,7 +251,7 @@ namespace SFXUtility.Features.Timers
                                 var s = t > 60 ? string.Format("{0}:{1:D2}", ts.Minutes, ts.Seconds) : string.Format("{0:0}", t);
                                 if (t > 0)
                                 {
-                                    _text.DrawTextCentered(s, x - 5, y + 7 + 13*i, new ColorBGRA(255, 255, 255, 255));
+                                    _text.DrawTextCentered(s, x - 14, y + 7 + 13*i, new ColorBGRA(255, 255, 255, 255));
                                 }
                                 if (_summonerTextures.ContainsKey(FixSummonerName(spell.Name)))
                                 {
@@ -312,10 +274,14 @@ namespace SFXUtility.Features.Timers
                             var spell = hero.Spellbook.GetSpell(slot);
                             if (spell != null)
                             {
-                                var manual = _manualSpells.FirstOrDefault(m => m.Slot.Equals(slot) && m.Champ.Equals(hero.ChampionName, StringComparison.OrdinalIgnoreCase));
+                                var manual = hero.IsAlly
+                                    ? _manualAllySpells.FirstOrDefault(
+                                        m => m.Slot.Equals(slot) && m.Champ.Equals(hero.ChampionName, StringComparison.OrdinalIgnoreCase))
+                                    : _manualEnemySpells.FirstOrDefault(
+                                        m => m.Slot.Equals(slot) && m.Champ.Equals(hero.ChampionName, StringComparison.OrdinalIgnoreCase));
                                 var t = (manual != null ? manual.CooldownExpires : spell.CooldownExpires) - Game.Time;
                                 var spellCooldown = manual != null ? manual.Cooldown : spell.Cooldown;
-                                var percent = (t > 0 && Math.Abs(spellCooldown) > float.Epsilon) ? 1f - (t / spellCooldown) : 1f;
+                                var percent = (t > 0 && Math.Abs(spellCooldown) > float.Epsilon) ? 1f - (t/spellCooldown) : 1f;
                                 if (t > 0 && t < 100)
                                 {
                                     var s = string.Format(t < 1f ? "{0:0.0}" : "{0:0}", t);
@@ -370,21 +336,50 @@ namespace SFXUtility.Features.Timers
                 Global.Logger.AddItem(new LogItem(ex));
             }
         }
+
+        // ReSharper disable StringLiteralTypo
+        private readonly List<ManualSpell> _manualAllySpells = new List<ManualSpell>
+        {
+            new ManualSpell("Lux", "LuxLightStrikeKugel", SpellSlot.E),
+            new ManualSpell("Gragas", "GragasQ", SpellSlot.Q),
+            new ManualSpell("Riven", "rivenizunablade", SpellSlot.R),
+            new ManualSpell("TwistedFate", "PickACard", SpellSlot.W),
+            new ManualSpell("Velkoz", "VelkozQ", SpellSlot.Q),
+            new ManualSpell("Xerath", "xeratharcanopulse2", SpellSlot.Q),
+            new ManualSpell("Ziggs", "ZiggsW", SpellSlot.W),
+            new ManualSpell("Rumble", "RumbleGrenade", SpellSlot.E),
+            new ManualSpell("Riven", "RivenTriCleave", SpellSlot.Q)
+        };
+
+        private readonly List<ManualSpell> _manualEnemySpells = new List<ManualSpell>
+        {
+            new ManualSpell("Lux", "LuxLightStrikeKugel", SpellSlot.E),
+            new ManualSpell("Gragas", "GragasQ", SpellSlot.Q),
+            new ManualSpell("Riven", "rivenizunablade", SpellSlot.R),
+            new ManualSpell("TwistedFate", "PickACard", SpellSlot.W),
+            new ManualSpell("Velkoz", "VelkozQ", SpellSlot.Q),
+            new ManualSpell("Xerath", "xeratharcanopulse2", SpellSlot.Q),
+            new ManualSpell("Ziggs", "ZiggsW", SpellSlot.W),
+            new ManualSpell("Rumble", "RumbleGrenade", SpellSlot.E),
+            new ManualSpell("Riven", "RivenTriCleave", SpellSlot.Q)
+        };
+
+        // ReSharper restore StringLiteralTypo
     }
 
     internal class ManualSpell
     {
-        public string Champ { get; private set; }
-        public string Spell { get; private set; }
-        public SpellSlot Slot { get; private set; }
-        public float Cooldown { get; set; }
-        public float CooldownExpires { get; set; }
-
         public ManualSpell(string champ, string spell, SpellSlot slot)
         {
             Champ = champ;
             Spell = spell;
             Slot = slot;
         }
+
+        public string Champ { get; private set; }
+        public string Spell { get; private set; }
+        public SpellSlot Slot { get; private set; }
+        public float Cooldown { get; set; }
+        public float CooldownExpires { get; set; }
     }
 }
