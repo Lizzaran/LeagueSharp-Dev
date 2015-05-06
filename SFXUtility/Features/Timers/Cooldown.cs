@@ -352,10 +352,10 @@ namespace SFXUtility.Features.Timers
             new ManualSpell("TwistedFate", "PickACard", SpellSlot.W, new[] {6f, 6f, 6f, 6f, 6f}),
             new ManualSpell("Velkoz", "VelkozQ", SpellSlot.Q, new[] {7f, 7f, 7f, 7f, 7f}),
             new ManualSpell("Xerath", "xeratharcanopulse2", SpellSlot.Q, new[] {9f, 8f, 7f, 6f, 5f}),
-            new ManualSpell("Ziggs", "ZiggsW", SpellSlot.W, new[] {26f, 24f, 22f, 20f, 18f}, 2),
+            new ManualSpell("Ziggs", "ZiggsW", SpellSlot.W, new[] {26f, 24f, 22f, 20f, 18f}),
             new ManualSpell("Rumble", "RumbleGrenade", SpellSlot.E, new[] {10f, 10f, 10f, 10f, 10f}),
             new ManualSpell("Riven", "RivenTriCleave", SpellSlot.Q, new[] {13f, 13f, 13f, 13f, 13f}),
-            new ManualSpell("Fizz", "FizzJump", SpellSlot.E, new[] {16f, 14f, 12f, 10f, 8f})
+            new ManualSpell("Fizz", "FizzJump", SpellSlot.E, new[] {16f, 14f, 12f, 10f, 8f}, 0.75f)
         };
 
         private readonly List<ManualSpell> _manualEnemySpells = new List<ManualSpell>
@@ -366,10 +366,10 @@ namespace SFXUtility.Features.Timers
             new ManualSpell("TwistedFate", "PickACard", SpellSlot.W, new[] {6f, 6f, 6f, 6f, 6f}),
             new ManualSpell("Velkoz", "VelkozQ", SpellSlot.Q, new[] {7f, 7f, 7f, 7f, 7f}),
             new ManualSpell("Xerath", "xeratharcanopulse2", SpellSlot.Q, new[] {9f, 8f, 7f, 6f, 5f}),
-            new ManualSpell("Ziggs", "ZiggsW", SpellSlot.W, new[] {26f, 24f, 22f, 20f, 18f}, 2),
+            new ManualSpell("Ziggs", "ZiggsW", SpellSlot.W, new[] {26f, 24f, 22f, 20f, 18f}),
             new ManualSpell("Rumble", "RumbleGrenade", SpellSlot.E, new[] {10f, 10f, 10f, 10f, 10f}),
             new ManualSpell("Riven", "RivenTriCleave", SpellSlot.Q, new[] {13f, 13f, 13f, 13f, 13f}),
-            new ManualSpell("Fizz", "FizzJump", SpellSlot.E, new[] {16f, 14f, 12f, 10f, 8f})
+            new ManualSpell("Fizz", "FizzJump", SpellSlot.E, new[] {16f, 14f, 12f, 10f, 8f}, 0.75f)
         };
 
         // ReSharper restore StringLiteralTypo
@@ -377,7 +377,7 @@ namespace SFXUtility.Features.Timers
 
     internal class ManualSpell
     {
-        public ManualSpell(string champ, string spell, SpellSlot slot, float[] cooldowns, int additional = 0)
+        public ManualSpell(string champ, string spell, SpellSlot slot, float[] cooldowns, float additional = 0)
         {
             Champ = champ;
             Spell = spell;
@@ -390,7 +390,7 @@ namespace SFXUtility.Features.Timers
         public string Spell { get; private set; }
         public SpellSlot Slot { get; private set; }
         public float[] Cooldowns { get; set; }
-        public int Additional { get; set; }
+        public float Additional { get; set; }
         public float Cooldown { get; set; }
         public float CooldownExpires { get; set; }
     }
