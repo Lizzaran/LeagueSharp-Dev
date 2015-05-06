@@ -352,7 +352,7 @@ namespace SFXUtility.Features.Timers
             new ManualSpell("TwistedFate", "PickACard", SpellSlot.W, new[] {6f, 6f, 6f, 6f, 6f}),
             new ManualSpell("Velkoz", "VelkozQ", SpellSlot.Q, new[] {7f, 7f, 7f, 7f, 7f}),
             new ManualSpell("Xerath", "xeratharcanopulse2", SpellSlot.Q, new[] {9f, 8f, 7f, 6f, 5f}),
-            new ManualSpell("Ziggs", "ZiggsW", SpellSlot.W, new[] {26f, 24f, 22f, 20f, 18f}),
+            new ManualSpell("Ziggs", "ZiggsW", SpellSlot.W, new[] {26f, 24f, 22f, 20f, 18f}, 2),
             new ManualSpell("Rumble", "RumbleGrenade", SpellSlot.E, new[] {10f, 10f, 10f, 10f, 10f}),
             new ManualSpell("Riven", "RivenTriCleave", SpellSlot.Q, new[] {13f, 13f, 13f, 13f, 13f}),
             new ManualSpell("Fizz", "FizzJump", SpellSlot.E, new[] {16f, 14f, 12f, 10f, 8f})
@@ -362,11 +362,11 @@ namespace SFXUtility.Features.Timers
         {
             new ManualSpell("Lux", "LuxLightStrikeKugel", SpellSlot.E, new[] {10f, 10f, 10f, 10f, 10f}),
             new ManualSpell("Gragas", "GragasQ", SpellSlot.Q, new[] {11f, 10f, 9f, 8f, 7f}),
-            new ManualSpell("Riven", "RivenFengShuiEngine", SpellSlot.R, new[] {110f, 80f, 50f}, 15*1000),
+            new ManualSpell("Riven", "RivenFengShuiEngine", SpellSlot.R, new[] {110f, 80f, 50f}, 15),
             new ManualSpell("TwistedFate", "PickACard", SpellSlot.W, new[] {6f, 6f, 6f, 6f, 6f}),
             new ManualSpell("Velkoz", "VelkozQ", SpellSlot.Q, new[] {7f, 7f, 7f, 7f, 7f}),
             new ManualSpell("Xerath", "xeratharcanopulse2", SpellSlot.Q, new[] {9f, 8f, 7f, 6f, 5f}),
-            new ManualSpell("Ziggs", "ZiggsW", SpellSlot.W, new[] {26f, 24f, 22f, 20f, 18f}),
+            new ManualSpell("Ziggs", "ZiggsW", SpellSlot.W, new[] {26f, 24f, 22f, 20f, 18f}, 2),
             new ManualSpell("Rumble", "RumbleGrenade", SpellSlot.E, new[] {10f, 10f, 10f, 10f, 10f}),
             new ManualSpell("Riven", "RivenTriCleave", SpellSlot.Q, new[] {13f, 13f, 13f, 13f, 13f}),
             new ManualSpell("Fizz", "FizzJump", SpellSlot.E, new[] {16f, 14f, 12f, 10f, 8f})
