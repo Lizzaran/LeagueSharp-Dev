@@ -290,7 +290,7 @@ namespace SFXUtility.Features.Trackers
                 var missile = sender as Obj_SpellMissile;
                 if (missile != null)
                 {
-                    if (missile.SpellCaster != null && missile.SpellCaster.IsEnemy)
+                    if (missile.SpellCaster != null && !missile.SpellCaster.IsAlly)
                     {
                         if (missile.SData != null && missile.SData.Name.Equals("itemplacementmissile", StringComparison.OrdinalIgnoreCase) &&
                             !missile.SpellCaster.IsVisible)
@@ -299,7 +299,7 @@ namespace SFXUtility.Features.Trackers
                             var ePos = missile.EndPosition;
                             Utility.DelayAction.Add(1000, delegate
                             {
-                                if (!_wardObjects.Any(w => w.Position.To2D().Distance(sPos.To2D(), ePos.To2D(), false) < 500 && Math.Abs(w.StartT - Game.Time) < 2000))
+                                if (!_wardObjects.Any(w => w.Position.To2D().Distance(sPos.To2D(), ePos.To2D(), false) < 300 && Math.Abs(w.StartT - Game.Time) < 2000))
                                 {
                                     _wardObjects.Add(new WardObject(_wardStructs[3],
                                         new Vector3(ePos.X, ePos.Y, NavMesh.GetHeightForPosition(ePos.X, ePos.Y)), (int) Game.Time, null, true,
@@ -314,18 +314,15 @@ namespace SFXUtility.Features.Trackers
                     var wardObject = sender as Obj_AI_Base;
                     if (wardObject != null)
                     {
-                        if (wardObject.IsEnemy)
+                        if (!wardObject.IsAlly)
                         {
                             foreach (var ward in _wardStructs)
                             {
-                                if (wardObject.BaseSkinName.Equals(ward.ObjectBaseSkinName, StringComparison.InvariantCultureIgnoreCase))
+                                if (wardObject.BaseSkinName.Equals(ward.ObjectBaseSkinName, StringComparison.OrdinalIgnoreCase))
                                 {
                                     var startT = Game.Time - (int) ((wardObject.MaxMana - wardObject.Mana));
                                     _wardObjects.RemoveAll(w =>w.Position.Distance(wardObject.Position) < 200 &&(Math.Abs(w.StartT - startT) < 1000 || ward.Type != WardType.Green));
-                                    if (!_wardObjects.Any(w => w.Position.To2D().Distance(wardObject.Position) < 500 && Math.Abs(w.StartT - Game.Time) < 2000))
-                                    {
-                                        _wardObjects.Add(new WardObject(ward, wardObject.Position, (int)startT, wardObject));
-                                    }
+                                    _wardObjects.Add(new WardObject(ward, wardObject.Position, (int)startT, wardObject));
                                 }
                             }
                         }
@@ -342,21 +339,14 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                if (!sender.IsEnemy)
+                if (sender.IsAlly)
                     return;
 
                 foreach (var ward in _wardStructs)
                 {
                     if (args.SData.Name.Equals(ward.SpellName, StringComparison.OrdinalIgnoreCase))
                     {
-                        var posList = ObjectManager.Player.GetPath(args.End);
-                        if (posList.Count() > 0)
-                        {
-                            if (!_wardObjects.Any(w => w.Position.To2D().Distance(posList.Last()) < 500 && Math.Abs(w.StartT - Game.Time) < 2000))
-                            {
-                                _wardObjects.Add(new WardObject(ward, posList.Last(), (int)Game.Time));
-                            }
-                        }
+                        _wardObjects.Add(new WardObject(ward, ObjectManager.Player.GetPath(args.End).LastOrDefault(), (int)Game.Time));
                     }
                 }
             }
@@ -415,7 +405,7 @@ namespace SFXUtility.Features.Trackers
                 if (end.IsWall())
                 {
                     List<IntPoint> clipper = new List<IntPoint>();
-                    for (int i = 0; i < 500; i++)
+                    for (int i = 0; i < 1000; i = i + 2)
                     {
                         clipper.AddRange(new Geometry.Polygon.Circle(end, i, 15).ToClipperPath());
                     }
