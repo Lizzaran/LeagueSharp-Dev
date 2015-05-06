@@ -94,50 +94,18 @@ namespace SFXUtility.Features.Timers
             var hero = sender as Obj_AI_Hero;
             if (hero != null && !hero.IsMe)
             {
-                Console.WriteLine(args.SData.Name);
                 var data = hero.IsAlly
                     ? _manualAllySpells.FirstOrDefault(m => m.Spell.Equals(args.SData.Name, StringComparison.OrdinalIgnoreCase))
                     : _manualEnemySpells.FirstOrDefault(m => m.Spell.Equals(args.SData.Name, StringComparison.OrdinalIgnoreCase));
-                if (data != null)
+                if (data != null && data.CooldownExpires - Game.Time < 0.5)
                 {
-                    if (args.SData.MaxAmmo > 0)
+                    var spell = hero.GetSpell(data.Slot);
+                    if (spell != null)
                     {
-                        var spell = hero.GetSpell(data.Slot);
-                        if (spell != null)
-                        {
-                            if (spell.Ammo == 0)
-                            {
-                                var cooldown = spell.SData.AmmoRechargeTimeArray.FirstOrDefault(s => s > 0);
-                                cooldown = spell.SData.AmmoNotAffectedByCDR ? cooldown : (cooldown - (cooldown/100*(hero.PercentCooldownMod*-1*100)));
-                                data.Cooldown = cooldown;
-                                Utility.DelayAction.Add(data.CooldownOffset,
-                                    delegate
-                                    {
-                                        data.CooldownExpires = spell.AmmoRechargeStart + data.CooldownOffset > 0 ? data.CooldownOffset/1000f : 0;
-                                    });
-                            }
-                            else
-                            {
-                                data.Cooldown = spell.Cooldown - (spell.Cooldown/100*(hero.PercentCooldownMod*-1*100));
-                                data.CooldownExpires = Game.Time + data.Cooldown;
-                            }
-                        }
-                    }
-                    else if (data.CooldownExpires - Game.Time < 0.5)
-                    {
-                        var spell = hero.GetSpell(data.Slot);
-                        var cooldown = spell.Cooldown == 0 ? args.SData.Cooldown : spell.Cooldown;
-                        cooldown += data.CooldownOffset;
-                        data.Cooldown = cooldown - (cooldown/100*(hero.PercentCooldownMod*-1*100));
-                        if (data.DelayOffset == 0)
-                        {
-                            data.CooldownExpires = Game.Time + data.Cooldown;
-                        }
-                        else
-                        {
-                            Utility.DelayAction.Add(data.DelayOffset,
-                                delegate { data.CooldownExpires = Game.Time + data.Cooldown + (data.DelayOffset > 0 ? data.DelayOffset/1000f : 0); });
-                        }
+                        var cooldown = data.Cooldowns[spell.Level - 1];
+                        var cdr = hero.PercentCooldownMod*-1*100;
+                        data.Cooldown = cooldown - (cooldown / 100 * (cdr > 40 ? 40 : cdr)) + data.Additional;
+                        data.CooldownExpires = Game.Time + data.Cooldown;
                     }
                 }
             }
@@ -378,30 +346,30 @@ namespace SFXUtility.Features.Timers
         // ReSharper disable StringLiteralTypo
         private readonly List<ManualSpell> _manualAllySpells = new List<ManualSpell>
         {
-            new ManualSpell("Lux", "LuxLightStrikeKugel", SpellSlot.E),
-            new ManualSpell("Gragas", "GragasQ", SpellSlot.Q),
-            new ManualSpell("Riven", "RivenFengShuiEngine", SpellSlot.R, 15*1000),
-            new ManualSpell("TwistedFate", "PickACard", SpellSlot.W),
-            new ManualSpell("Velkoz", "VelkozQ", SpellSlot.Q),
-            new ManualSpell("Xerath", "xeratharcanopulse2", SpellSlot.Q),
-            new ManualSpell("Ziggs", "ZiggsW", SpellSlot.W, 0, -4),
-            new ManualSpell("Rumble", "RumbleGrenade", SpellSlot.E),
-            new ManualSpell("Riven", "RivenTriCleave", SpellSlot.Q),
-            new ManualSpell("Fizz", "FizzJump", SpellSlot.E)
+            new ManualSpell("Lux", "LuxLightStrikeKugel", SpellSlot.E, new[] {10f, 10f, 10f, 10f, 10f}),
+            new ManualSpell("Gragas", "GragasQ", SpellSlot.Q, new[] {11f, 10f, 9f, 8f, 7f}),
+            new ManualSpell("Riven", "RivenFengShuiEngine", SpellSlot.R, new[] {110f, 80f, 50f}, 15),
+            new ManualSpell("TwistedFate", "PickACard", SpellSlot.W, new[] {6f, 6f, 6f, 6f, 6f}),
+            new ManualSpell("Velkoz", "VelkozQ", SpellSlot.Q, new[] {7f, 7f, 7f, 7f, 7f}),
+            new ManualSpell("Xerath", "xeratharcanopulse2", SpellSlot.Q, new[] {9f, 8f, 7f, 6f, 5f}),
+            new ManualSpell("Ziggs", "ZiggsW", SpellSlot.W, new[] {26f, 24f, 22f, 20f, 18f}),
+            new ManualSpell("Rumble", "RumbleGrenade", SpellSlot.E, new[] {10f, 10f, 10f, 10f, 10f}),
+            new ManualSpell("Riven", "RivenTriCleave", SpellSlot.Q, new[] {13f, 13f, 13f, 13f, 13f}),
+            new ManualSpell("Fizz", "FizzJump", SpellSlot.E, new[] {16f, 14f, 12f, 10f, 8f})
         };
 
         private readonly List<ManualSpell> _manualEnemySpells = new List<ManualSpell>
         {
-            new ManualSpell("Lux", "LuxLightStrikeKugel", SpellSlot.E),
-            new ManualSpell("Gragas", "GragasQ", SpellSlot.Q),
-            new ManualSpell("Riven", "RivenFengShuiEngine", SpellSlot.R, 15*1000),
-            new ManualSpell("TwistedFate", "PickACard", SpellSlot.W),
-            new ManualSpell("Velkoz", "VelkozQ", SpellSlot.Q),
-            new ManualSpell("Xerath", "xeratharcanopulse2", SpellSlot.Q),
-            new ManualSpell("Ziggs", "ZiggsW", SpellSlot.W, 0, -4),
-            new ManualSpell("Rumble", "RumbleGrenade", SpellSlot.E),
-            new ManualSpell("Riven", "RivenTriCleave", SpellSlot.Q),
-            new ManualSpell("Fizz", "FizzJump", SpellSlot.E)
+            new ManualSpell("Lux", "LuxLightStrikeKugel", SpellSlot.E, new[] {10f, 10f, 10f, 10f, 10f}),
+            new ManualSpell("Gragas", "GragasQ", SpellSlot.Q, new[] {11f, 10f, 9f, 8f, 7f}),
+            new ManualSpell("Riven", "RivenFengShuiEngine", SpellSlot.R, new[] {110f, 80f, 50f}, 15*1000),
+            new ManualSpell("TwistedFate", "PickACard", SpellSlot.W, new[] {6f, 6f, 6f, 6f, 6f}),
+            new ManualSpell("Velkoz", "VelkozQ", SpellSlot.Q, new[] {7f, 7f, 7f, 7f, 7f}),
+            new ManualSpell("Xerath", "xeratharcanopulse2", SpellSlot.Q, new[] {9f, 8f, 7f, 6f, 5f}),
+            new ManualSpell("Ziggs", "ZiggsW", SpellSlot.W, new[] {26f, 24f, 22f, 20f, 18f}),
+            new ManualSpell("Rumble", "RumbleGrenade", SpellSlot.E, new[] {10f, 10f, 10f, 10f, 10f}),
+            new ManualSpell("Riven", "RivenTriCleave", SpellSlot.Q, new[] {13f, 13f, 13f, 13f, 13f}),
+            new ManualSpell("Fizz", "FizzJump", SpellSlot.E, new[] {16f, 14f, 12f, 10f, 8f})
         };
 
         // ReSharper restore StringLiteralTypo
@@ -409,20 +377,20 @@ namespace SFXUtility.Features.Timers
 
     internal class ManualSpell
     {
-        public ManualSpell(string champ, string spell, SpellSlot slot, int delayOffset = 0, int cooldownOffset = 0)
+        public ManualSpell(string champ, string spell, SpellSlot slot, float[] cooldowns, int additional = 0)
         {
             Champ = champ;
             Spell = spell;
             Slot = slot;
-            DelayOffset = delayOffset;
-            CooldownOffset = cooldownOffset;
+            Cooldowns = cooldowns;
+            Additional = additional;
         }
 
         public string Champ { get; private set; }
         public string Spell { get; private set; }
         public SpellSlot Slot { get; private set; }
-        public int DelayOffset { get; set; }
-        public int CooldownOffset { get; set; }
+        public float[] Cooldowns { get; set; }
+        public int Additional { get; set; }
         public float Cooldown { get; set; }
         public float CooldownExpires { get; set; }
     }
