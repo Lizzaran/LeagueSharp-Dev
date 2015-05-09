@@ -316,12 +316,12 @@ namespace SFXUtility.Features.Trackers
                         {
                             var sPos = missile.StartPosition;
                             var ePos = missile.EndPosition;
-                            Utility.DelayAction.Add(1000, delegate
+                            Utility.DelayAction.Add(500, delegate
                             {
                                 if (
                                     !_wardObjects.Any(
                                         w =>
-                                            w.Position.To2D().Distance(sPos.To2D(), ePos.To2D(), false) < 300 && Math.Abs(w.StartT - Game.Time) < 2000))
+                                            w.Position.To2D().Distance(sPos.To2D(), ePos.To2D(), false) < 300 && Math.Abs(w.StartT - Game.Time) < 600))
                                 {
                                     _wardObjects.Add(new WardObject(_wardStructs[3],
                                         new Vector3(ePos.X, ePos.Y, NavMesh.GetHeightForPosition(ePos.X, ePos.Y)), (int) Game.Time, null, true,
@@ -346,7 +346,7 @@ namespace SFXUtility.Features.Trackers
                                     _wardObjects.RemoveAll(
                                         w =>
                                             w.Position.Distance(wardObject.Position) < 200 &&
-                                            (Math.Abs(w.StartT - startT) < 1000 || ward.Type != WardType.Green));
+                                            (Math.Abs(w.StartT - startT) < 500 || ward.Type != WardType.Green));
                                     _wardObjects.Add(new WardObject(ward, wardObject.Position, (int) startT, wardObject));
                                 }
                             }
