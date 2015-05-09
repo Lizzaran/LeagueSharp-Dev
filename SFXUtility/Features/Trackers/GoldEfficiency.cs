@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- goldefficiency.cs is part of SFXUtility.
+ GoldEfficiency.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -153,6 +153,9 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
+                if (!DrawActive)
+                    return;
+
                 if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
                     return;
 
@@ -172,6 +175,9 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
+                if (!DrawActive)
+                    return;
+
                 _text.OnResetDevice();
             }
             catch (Exception ex)
@@ -184,6 +190,9 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
+                if (!DrawActive)
+                    return;
+
                 _text.OnLostDevice();
             }
             catch (Exception ex)

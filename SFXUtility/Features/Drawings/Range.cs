@@ -223,6 +223,9 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
+                if (!DrawActive)
+                    return;
+
                 DrawExperience();
                 DrawTurret();
                 DrawAttack();

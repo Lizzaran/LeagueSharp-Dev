@@ -63,6 +63,9 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
+                if (!DrawActive)
+                    return;
+
                 var lineColor = Menu.Item(Name + "DrawingLineColor").GetValue<Color>();
                 var fillColor = Menu.Item(Name + "DrawingFillColor").GetValue<Color>();
 

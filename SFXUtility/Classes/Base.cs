@@ -39,12 +39,14 @@ namespace SFXUtility.Classes
             BaseMenu = sfx.Menu;
             sfx.OnUnload += OnUnload;
             CustomEvents.Game.OnGameLoad += OnGameLoad;
+            DrawActive = true;
         }
 
         public abstract bool Enabled { get; }
         public abstract string Name { get; }
         public bool Initialized { get; protected set; }
         public bool Unloaded { get; protected set; }
+        public bool DrawActive { get; set; }
         public Menu Menu { get; set; }
         protected Menu BaseMenu { get; private set; }
         public event EventHandler OnInitialized;

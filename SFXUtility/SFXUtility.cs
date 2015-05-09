@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- SFXUtility.cs is part of SFXUtility.
+ sfxutility.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -28,6 +28,8 @@ namespace SFXUtility
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using Classes;
+    using LeagueSharp;
     using LeagueSharp.Common;
     using SFXLibrary;
     using SFXLibrary.Extensions.NET;
@@ -46,8 +48,12 @@ namespace SFXUtility
             {
                 Menu = new Menu(Name, Name, true);
 
-                Menu.AddItem(new MenuItem(Name + "Font", Language.Get("SFXUtility_Font")).SetValue(new StringList(new[] { "Calibri", "Arial", "Tahoma", "Verdana", "Times New Roman", "Lucida Console", "Comic Sans MS" })));
-                Menu.AddItem(new MenuItem(Name + "Language", Language.Get("SFXUtility_Language")).SetValue(new StringList(new[] { "auto" }.Concat(Language.Languages.ToArray()).ToArray())));
+                Menu.AddItem(
+                    new MenuItem(Name + "Font", Language.Get("SFXUtility_Font")).SetValue(
+                        new StringList(new[] {"Calibri", "Arial", "Tahoma", "Verdana", "Times New Roman", "Lucida Console", "Comic Sans MS"})));
+                Menu.AddItem(
+                    new MenuItem(Name + "Language", Language.Get("SFXUtility_Language")).SetValue(
+                        new StringList(new[] {"auto"}.Concat(Language.Languages.ToArray()).ToArray())));
 
                 Global.DefaultFont = Menu.Item(Name + "Font").GetValue<StringList>().SelectedValue;
 
@@ -83,6 +89,7 @@ namespace SFXUtility
                 AppDomain.CurrentDomain.ProcessExit += OnExit;
                 CustomEvents.Game.OnGameEnd += OnGameEnd;
                 CustomEvents.Game.OnGameLoad += OnGameLoad;
+                Game.OnWndProc += OnGameWndProc;
             }
             catch (Exception ex)
             {
@@ -147,6 +154,37 @@ namespace SFXUtility
                     catch (Exception ex)
                     {
                         Console.WriteLine(ex);
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private static void OnGameWndProc(WndEventArgs args)
+        {
+            try
+            {
+                Game.OnWndProc += delegate(WndEventArgs eventArgs)
+                {
+                    if (eventArgs.Msg == 0x1C)
+                    {
+                        if (eventArgs.WParam != 0)
+                        {
+                            foreach (var map in Global.IoC.Mappings.Where(m => m.Key.Instance != null && m.Key.Instance is Base))
+                            {
+                                ((Base) map.Key.Instance).DrawActive = true;
+                            }
+                        }
+                        else
+                        {
+                            foreach (var map in Global.IoC.Mappings.Where(m => m.Key.Instance != null && m.Key.Instance is Base))
+                            {
+                                ((Base)map.Key.Instance).DrawActive = false;
+                            }
+                        }
                     }
                 };
             }

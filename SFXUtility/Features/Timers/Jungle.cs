@@ -141,6 +141,9 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
+                if (!DrawActive)
+                    return;
+
                 if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
                     return;
 
@@ -179,6 +182,9 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
+                if (!DrawActive)
+                    return;
+
                 _mapText.OnResetDevice();
                 _minimapText.OnResetDevice();
             }
@@ -192,6 +198,9 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
+                if (!DrawActive)
+                    return;
+
                 _mapText.OnLostDevice();
                 _minimapText.OnResetDevice();
             }

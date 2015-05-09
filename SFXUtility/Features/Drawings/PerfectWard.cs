@@ -278,6 +278,9 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
+                if (!DrawActive)
+                    return;
+
                 if (!Menu.Item(Name + "Hotkey").IsActive())
                     return;
 

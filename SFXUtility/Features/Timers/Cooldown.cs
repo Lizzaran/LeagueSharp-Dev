@@ -229,6 +229,9 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
+                if (!DrawActive)
+                    return;
+
                 if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
                     return;
 
@@ -319,6 +322,9 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
+                if (!DrawActive)
+                    return;
+
                 _line.OnResetDevice();
                 _text.OnResetDevice();
                 _sprite.OnResetDevice();
@@ -333,6 +339,9 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
+                if (!DrawActive)
+                    return;
+
                 _line.OnLostDevice();
                 _text.OnLostDevice();
                 _sprite.OnLostDevice();
@@ -350,7 +359,7 @@ namespace SFXUtility.Features.Timers
             new ManualSpell("Gragas", "GragasQ", SpellSlot.Q, new[] {11f, 10f, 9f, 8f, 7f}),
             new ManualSpell("Riven", "RivenFengShuiEngine", SpellSlot.R, new[] {110f, 80f, 50f}, 15),
             new ManualSpell("TwistedFate", "PickACard", SpellSlot.W, new[] {6f, 6f, 6f, 6f, 6f}),
-            new ManualSpell("Velkoz", "VelkozQ", SpellSlot.Q, new[] {7f, 7f, 7f, 7f, 7f}),
+            new ManualSpell("Velkoz", "VelkozQ", SpellSlot.Q, new[] {7f, 7f, 7f, 7f, 7f}, 0.75f),
             new ManualSpell("Xerath", "xeratharcanopulse2", SpellSlot.Q, new[] {9f, 8f, 7f, 6f, 5f}),
             new ManualSpell("Ziggs", "ZiggsW", SpellSlot.W, new[] {26f, 24f, 22f, 20f, 18f}),
             new ManualSpell("Rumble", "RumbleGrenade", SpellSlot.E, new[] {10f, 10f, 10f, 10f, 10f}),
@@ -364,7 +373,7 @@ namespace SFXUtility.Features.Timers
             new ManualSpell("Gragas", "GragasQ", SpellSlot.Q, new[] {11f, 10f, 9f, 8f, 7f}),
             new ManualSpell("Riven", "RivenFengShuiEngine", SpellSlot.R, new[] {110f, 80f, 50f}, 15),
             new ManualSpell("TwistedFate", "PickACard", SpellSlot.W, new[] {6f, 6f, 6f, 6f, 6f}),
-            new ManualSpell("Velkoz", "VelkozQ", SpellSlot.Q, new[] {7f, 7f, 7f, 7f, 7f}),
+            new ManualSpell("Velkoz", "VelkozQ", SpellSlot.Q, new[] {7f, 7f, 7f, 7f, 7f}, 0.75f),
             new ManualSpell("Xerath", "xeratharcanopulse2", SpellSlot.Q, new[] {9f, 8f, 7f, 6f, 5f}),
             new ManualSpell("Ziggs", "ZiggsW", SpellSlot.W, new[] {26f, 24f, 22f, 20f, 18f}),
             new ManualSpell("Rumble", "RumbleGrenade", SpellSlot.E, new[] {10f, 10f, 10f, 10f, 10f}),

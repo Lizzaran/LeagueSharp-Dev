@@ -34,7 +34,7 @@ namespace SFXUtility
     public class Global
     {
         public static ILogger Logger;
-        public static IContainer IoC = new Container();
+        public static Container IoC = new Container();
         public static string DefaultFont = "Calibri";
 
         static Global()

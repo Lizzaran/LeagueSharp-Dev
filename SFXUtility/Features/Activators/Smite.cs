@@ -250,7 +250,7 @@ namespace SFXUtility.Features.Activators
 
         private void OnDrawingDraw(EventArgs args)
         {
-            if (!Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active || ObjectManager.Player.IsDead)
+            if (!Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active || ObjectManager.Player.IsDead || !DrawActive)
                 return;
 
             var minion = _currentMinion != null && !_currentMinion.IsDead && _currentMinion.IsValid;

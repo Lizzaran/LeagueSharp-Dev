@@ -211,6 +211,9 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
+                if (!DrawActive)
+                    return;
+
                 if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
                     return;
 
@@ -259,6 +262,9 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
+                if (!DrawActive)
+                    return;
+
                 _text.OnResetDevice();
                 _sprite.OnResetDevice();
                 _line.OnResetDevice();
@@ -273,6 +279,9 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
+                if (!DrawActive)
+                    return;
+
                 _text.OnLostDevice();
                 _sprite.OnLostDevice();
                 _line.OnLostDevice();

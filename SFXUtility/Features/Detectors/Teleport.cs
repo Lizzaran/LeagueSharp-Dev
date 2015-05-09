@@ -80,6 +80,9 @@ namespace SFXUtility.Features.Detectors
         {
             try
             {
+                if (!DrawActive)
+                    return;
+
                 if (Menu.Item(Name + "DrawingTextEnabled").GetValue<bool>())
                 {
                     var posX = Drawing.Width*0.68f;

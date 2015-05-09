@@ -32,22 +32,22 @@ namespace SFXLibrary.IoCContainer
 
     public class Container : IContainer
     {
-        private readonly Dictionary<MappingKey, Func<object>> _mappings;
+        public readonly Dictionary<MappingKey, Func<object>> Mappings;
 
         public Container()
         {
-            _mappings = new Dictionary<MappingKey, Func<object>>();
+            Mappings = new Dictionary<MappingKey, Func<object>>();
         }
 
         public void Deregister(Type type, string instanceName = null)
         {
             var key = new MappingKey(type, default(bool), instanceName);
             Func<object> obj;
-            if (_mappings.TryGetValue(key, out obj))
+            if (Mappings.TryGetValue(key, out obj))
             {
                 try
                 {
-                    _mappings.Remove(_mappings.FirstOrDefault(x => x.Value == obj).Key);
+                    Mappings.Remove(Mappings.FirstOrDefault(x => x.Value == obj).Key);
                 }
                 catch (Exception ex)
                 {
@@ -63,7 +63,7 @@ namespace SFXLibrary.IoCContainer
 
         public bool IsRegistered(Type type, string instanceName = null)
         {
-            return type != null && _mappings.ContainsKey(new MappingKey(type, default(bool), instanceName));
+            return type != null && Mappings.ContainsKey(new MappingKey(type, default(bool), instanceName));
         }
 
         public bool IsRegistered<T>(string instanceName = null)
@@ -101,7 +101,7 @@ namespace SFXLibrary.IoCContainer
 
             var key = new MappingKey(type, singleton, instanceName);
 
-            if (!_mappings.ContainsKey(key))
+            if (!Mappings.ContainsKey(key))
             {
                 if (initialize)
                 {
@@ -121,7 +121,7 @@ namespace SFXLibrary.IoCContainer
                         Console.WriteLine(ex);
                     }
                 }
-                _mappings.Add(key, createInstanceDelegate);
+                Mappings.Add(key, createInstanceDelegate);
             }
         }
 
@@ -140,9 +140,9 @@ namespace SFXLibrary.IoCContainer
             Func<object> obj;
             try
             {
-                if (_mappings.TryGetValue(key, out obj))
+                if (Mappings.TryGetValue(key, out obj))
                 {
-                    var mk = _mappings.FirstOrDefault(x => x.Value == obj).Key;
+                    var mk = Mappings.FirstOrDefault(x => x.Value == obj).Key;
 
                     if (mk.Singleton)
                     {
@@ -165,7 +165,7 @@ namespace SFXLibrary.IoCContainer
 
         public override string ToString()
         {
-            return _mappings == null ? "No mappings" : string.Join(Environment.NewLine, _mappings.Keys);
+            return Mappings == null ? "No mappings" : string.Join(Environment.NewLine, Mappings.Keys);
         }
     }
 }
