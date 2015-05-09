@@ -119,9 +119,6 @@ namespace SFXUtility.Features.Activators
                     championDrawingMenu.AddItem(
                         new MenuItem(championDrawingMenu.Name + "Thickness", Language.Get("G_Thickness")).SetValue(new Slider(2, 1, 10)));
                     championDrawingMenu.AddItem(new MenuItem(championDrawingMenu.Name + "Range", Language.Get("G_Range")).SetValue(false));
-
-                    championSpellMenu.AddItem(
-                        new MenuItem(championSpellMenu.Name + "Delay", Language.Get("G_Delay")).SetValue(new Slider(125, 0, 1000)));
                     championSpellMenu.AddItem(
                         new MenuItem(championSpellMenu.Name + "IsSkillshot", Language.Get("G_Is") + " " + Language.Get("G_Skillshot")).SetValue(false));
                     championSpellMenu.AddItem(new MenuItem(championSpellMenu.Name + "Collision", Language.Get("G_Collision")).SetValue(false));
@@ -136,8 +133,7 @@ namespace SFXUtility.Features.Activators
                             new StringList(Language.GetList("Smite_SkillshotTypeList"))));
                     championSpellMenu.AddItem(new MenuItem(championSpellMenu.Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
-                    var heroSpell = new HeroSpell(spell.Slot, Menu.Item(championSpellMenu.Name + "Delay").GetValue<Slider>().Value,
-                        Menu.Item(championSpellMenu.Name + "IsSkillshot").GetValue<bool>(),
+                    var heroSpell = new HeroSpell(spell.Slot, Menu.Item(championSpellMenu.Name + "IsSkillshot").GetValue<bool>(),
                         Menu.Item(championSpellMenu.Name + "Collision").GetValue<bool>(),
                         (HitChance) (Menu.Item(championSpellMenu.Name + "MinHitChance").GetValue<StringList>().SelectedIndex + 3),
                         (TargetSelector.DamageType) (Menu.Item(championSpellMenu.Name + "DamageType").GetValue<StringList>().SelectedIndex),
@@ -153,7 +149,6 @@ namespace SFXUtility.Features.Activators
 
                     Menu.Item(championPriorityMenu.Name + spellName).ValueChanged +=
                         (o, args) => heroSpell.Priority = args.GetNewValue<Slider>().Value;
-                    Menu.Item(championSpellMenu.Name + "Delay").ValueChanged += (o, args) => heroSpell.Delay = args.GetNewValue<Slider>().Value;
                     Menu.Item(championSpellMenu.Name + "IsSkillshot").ValueChanged += (o, args) => heroSpell.IsSkillshot = args.GetNewValue<bool>();
                     Menu.Item(championSpellMenu.Name + "Collision").ValueChanged += (o, args) => heroSpell.Collision = args.GetNewValue<bool>();
                     Menu.Item(championSpellMenu.Name + "MinHitChance").ValueChanged +=
@@ -349,18 +344,18 @@ namespace SFXUtility.Features.Activators
         private Color _unusableColor = Color.Gray;
         private Color _useableColor = Color.Teal;
 
-        public HeroSpell(SpellSlot slot, int delay, bool isSkillshot, bool collision, HitChance minHitChance, TargetSelector.DamageType damageType,
+        public HeroSpell(SpellSlot slot, bool isSkillshot, bool collision, HitChance minHitChance, TargetSelector.DamageType damageType,
             SkillshotType skillshotType, bool enabled)
         {
             Enabled = enabled;
 
             Spell = new Spell(slot, float.MaxValue, damageType);
-            Delay = delay;
             Collision = collision;
             MinHitChance = minHitChance;
             DamageType = damageType;
 
             var spellData = ObjectManager.Player.Spellbook.GetSpell(slot);
+            Delay = spellData.SData.CastFrame/30;
             Speed = spellData.SData.MissileSpeed;
             Range = (spellData.SData.CastRange > spellData.SData.CastRangeDisplayOverride + 1000
                 ? spellData.SData.CastRangeDisplayOverride

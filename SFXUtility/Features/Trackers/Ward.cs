@@ -165,6 +165,14 @@ namespace SFXUtility.Features.Trackers
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + "CircleThickness", Language.Get("G_Circle") + " " + Language.Get("G_Thickness")).SetValue(
                         new Slider(2, 1, 10)));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "GreenColor", Language.Get("Ward_Green") + " " + Language.Get("G_Color")).SetValue(Color.Lime));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "PinkColor", Language.Get("Ward_Pink") + " " + Language.Get("G_Color")).SetValue(Color.Magenta));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "TrapColor", Language.Get("Ward_Trap") + " " + Language.Get("G_Color")).SetValue(Color.Red));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "VisionRange", Language.Get("Ward_Vision") + " " + Language.Get("G_Range")).SetValue(true));
 
                 Menu.AddSubMenu(drawingMenu);
                 Menu.AddItem(new MenuItem(Name + "Hotkey", Language.Get("G_Hotkey")).SetValue(new KeyBind(16, KeyBindType.Press)));
@@ -216,21 +224,28 @@ namespace SFXUtility.Features.Trackers
                 var totalSeconds = Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1;
                 var circleRadius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value;
                 var circleThickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
+                var visionRange = Menu.Item(Name + "DrawingVisionRange").GetValue<bool>();
                 var hotkey = Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active;
 
                 _sprite.Begin(SpriteFlags.AlphaBlend);
                 foreach (var ward in _wardObjects)
                 {
+                    var color =
+                        Menu.Item(Name + "Drawing" +
+                                  (ward.Data.Type == WardType.Green ? "Green" : (ward.Data.Type == WardType.Pink ? "Pink" : "Trap")) + "Color")
+                            .GetValue<Color>();
                     if (ward.Position.IsOnScreen())
                     {
                         if (ward.Data.Type != WardType.Green)
                         {
-                            Render.Circle.DrawCircle(ward.Position, circleRadius, ward.Data.Color, circleThickness);
+                            Render.Circle.DrawCircle(ward.Position, circleRadius, color, circleThickness);
                         }
                         if (ward.Data.Type == WardType.Green)
                         {
-                            _text.DrawTextCentered((ward.EndTime - Game.Time).FormatTime(totalSeconds), Drawing.WorldToScreen(ward.Position),
-                                (new SharpDX.Color(ward.Data.Color.R, ward.Data.Color.G, ward.Data.Color.B, ward.Data.Color.A)));
+                            _text.DrawTextCentered(
+                                string.Format("{0} {1} {0}", ward.IsFromMissile ? "??" : string.Empty,
+                                    (ward.EndTime - Game.Time).FormatTime(totalSeconds)), Drawing.WorldToScreen(ward.Position),
+                                (new SharpDX.Color(color.R, color.G, color.B, color.A)));
                         }
                     }
                     if (ward.Data.Type != WardType.Trap)
@@ -239,7 +254,10 @@ namespace SFXUtility.Features.Trackers
                     }
                     if (hotkey)
                     {
-                        Render.Circle.DrawCircle(ward.Position, ward.Data.Range, Color.FromArgb(30, ward.Data.Color), -142857, true);
+                        if (visionRange)
+                        {
+                            Render.Circle.DrawCircle(ward.Position, ward.Data.Range, Color.FromArgb(30, color), circleThickness);
+                        }
                         if (ward.IsFromMissile)
                         {
                             _line.Begin();
@@ -386,7 +404,7 @@ namespace SFXUtility.Features.Trackers
             public readonly Obj_AI_Base Object;
             public readonly Vector3 StartPosition;
             public readonly int StartT;
-            public Vector3 Position;
+            private Vector3 _position;
 
             public WardObject(WardStruct data, Vector3 position, int startT, Obj_AI_Base wardObject = null, bool isFromMissile = false,
                 Vector3 startPosition = default(Vector3))
@@ -400,16 +418,24 @@ namespace SFXUtility.Features.Trackers
                 Object = wardObject;
             }
 
+            public Vector3 Position
+            {
+                get
+                {
+                    if (Object != null && Object.IsValid && Object.IsVisible)
+                    {
+                        _position = Object.Position;
+                    }
+                    return _position;
+                }
+                private set { _position = value; }
+            }
+
             public bool IsFromMissile { get; private set; }
 
             public int EndTime
             {
-                get { return StartTime + Data.Duration; }
-            }
-
-            public int StartTime
-            {
-                get { return StartT; }
+                get { return StartT + Data.Duration; }
             }
 
             public WardStruct Data { get; private set; }
@@ -456,22 +482,6 @@ namespace SFXUtility.Features.Trackers
                 ObjectBaseSkinName = objectBaseSkinName;
                 SpellName = spellName;
                 Type = type;
-            }
-
-            public Color Color
-            {
-                get
-                {
-                    switch (Type)
-                    {
-                        case WardType.Green:
-                            return Color.Lime;
-                        case WardType.Pink:
-                            return Color.Magenta;
-                        default:
-                            return Color.Red;
-                    }
-                }
             }
         }
     }

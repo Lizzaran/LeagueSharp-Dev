@@ -244,6 +244,10 @@
 
 	<!-- START: Ward -->
 	<entry key="F_Ward">Ward</entry>
+	<entry key="Ward_Green">Green</entry>
+	<entry key="Ward_Pink">Pink</entry>
+	<entry key="Ward_Trap">Trap</entry>
+	<entry key="Ward_Vision">Vision</entry>
 	<!-- END: Ward -->
 
 </language>
