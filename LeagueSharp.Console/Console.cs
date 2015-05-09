@@ -148,35 +148,11 @@ namespace LeagueSharp.Console
             Parts.Minimize.BackgroundColor = Menu.Item(minimizeMenu.Name + "BackgroundColor").GetValue<Color>().Convert();
             Parts.Minimize.ForegroundColor = Menu.Item(minimizeMenu.Name + "ForegroundColor").GetValue<Color>().Convert();
 
-            Game.OnWndProc += OnGameWndProc;
-
             Drawing.OnPreReset += OnDrawingPreReset;
             Drawing.OnPostReset += OnDrawingPostReset;
             Drawing.OnEndScene += OnDrawingEndScene;
 
             WriteLine("LeagueSharp.Console successfully loaded." + Environment.NewLine);
-        }
-
-        private static void OnGameWndProc(WndEventArgs args)
-        {
-            Game.OnWndProc += delegate(WndEventArgs eventArgs)
-            {
-                if (eventArgs.Msg == 0x1C)
-                {
-                    if (eventArgs.WParam != 0)
-                    {
-                        Drawing.OnPreReset += OnDrawingPreReset;
-                        Drawing.OnPostReset += OnDrawingPostReset;
-                        Drawing.OnEndScene += OnDrawingEndScene;
-                    }
-                    else
-                    {
-                        Drawing.OnPreReset -= OnDrawingPreReset;
-                        Drawing.OnPostReset -= OnDrawingPostReset;
-                        Drawing.OnEndScene -= OnDrawingEndScene;
-                    }
-                }
-            };
         }
 
         internal static bool Minimized { get; set; }
