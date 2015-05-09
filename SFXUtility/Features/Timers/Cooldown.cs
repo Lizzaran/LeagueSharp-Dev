@@ -19,7 +19,6 @@
 */
 
 #endregion License
-
 namespace SFXUtility.Features.Timers
 {
     #region
@@ -92,7 +91,7 @@ namespace SFXUtility.Features.Timers
         private void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
             var hero = sender as Obj_AI_Hero;
-            if (hero != null && !hero.IsMe)
+            if (hero != null && hero.IsMe)
             {
                 var data = hero.IsAlly
                     ? _manualAllySpells.FirstOrDefault(m => m.Spell.Equals(args.SData.Name, StringComparison.OrdinalIgnoreCase))
@@ -152,6 +151,8 @@ namespace SFXUtility.Features.Timers
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "TimeFormat", Language.Get("G_TimeFormat")).SetValue(new StringList(new[] { "mm:ss", "ss" })));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", Language.Get("G_FontSize")).SetValue(new Slider(13, 3, 30)));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Enemy", Language.Get("G_Enemy")).SetValue(false));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Ally", Language.Get("G_Ally")).SetValue(false));
 
@@ -180,7 +181,7 @@ namespace SFXUtility.Features.Timers
                 _parent.Menu.AddSubMenu(Menu);
 
                 foreach (var sName in
-                    HeroManager.AllHeroes.Where(h => !h.IsMe)
+                    HeroManager.AllHeroes.Where(h => h.IsMe)
                         .SelectMany(
                             h =>
                                 _summonerSlots.Select(summoner => h.Spellbook.GetSpell(summoner).Name.ToLower())
@@ -198,7 +199,7 @@ namespace SFXUtility.Features.Timers
                     new FontDescription
                     {
                         FaceName = Global.DefaultFont,
-                        Height = 13,
+                        Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
                         OutputPrecision = FontPrecision.Default,
                         Quality = FontQuality.Default
                     });
@@ -232,8 +233,9 @@ namespace SFXUtility.Features.Timers
                 if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
                     return;
 
+                var totalSeconds = Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1;
                 foreach (var hero in
-                    _heroes.Where(hero => hero != null && hero.IsValid && !hero.IsMe && hero.IsHPBarRendered && hero.Position.IsOnScreen()))
+                    _heroes.Where(hero => hero != null && hero.IsValid && hero.IsMe && hero.IsHPBarRendered && hero.Position.IsOnScreen()))
                 {
                     try
                     {
@@ -250,14 +252,12 @@ namespace SFXUtility.Features.Timers
                             var spell = hero.Spellbook.GetSpell(_summonerSlots[i]);
                             if (spell != null)
                             {
-                                var t = spell.CooldownExpires - Game.Time;
+                                var t = spell.IsReady() ? 0 : spell.CooldownExpires - Game.Time;
                                 var percent = (Math.Abs(spell.Cooldown) > float.Epsilon) ? t/spell.Cooldown : 1f;
                                 var n = (t > 0) ? (int) (19*(1f - percent)) : 19;
-                                var ts = TimeSpan.FromSeconds((int) t);
-                                var s = t > 60 ? string.Format("{0}:{1:D2}", ts.Minutes, ts.Seconds) : string.Format("{0:0}", t);
                                 if (t > 0)
                                 {
-                                    _text.DrawTextCentered(s, x - 15, y + 7 + 13*i, new ColorBGRA(255, 255, 255, 255));
+                                    _text.DrawTextCentered(t.FormatTime(totalSeconds), x - 13, y + 7 + 13*i, new ColorBGRA(255, 255, 255, 255));
                                 }
                                 if (_summonerTextures.ContainsKey(FixSummonerName(spell.Name)))
                                 {
@@ -290,8 +290,7 @@ namespace SFXUtility.Features.Timers
                                 var percent = (t > 0 && Math.Abs(spellCooldown) > float.Epsilon) ? 1f - (t/spellCooldown) : 1f;
                                 if (t > 0 && t < 100)
                                 {
-                                    var s = string.Format(t < 1f ? "{0:0.0}" : "{0:0}", t);
-                                    _text.DrawTextCentered(s, x2 + 23/2, y2 + 13, new ColorBGRA(255, 255, 255, 255));
+                                    _text.DrawTextCentered(t.FormatTime(totalSeconds), x2 + 23/2, y2 + 13, new ColorBGRA(255, 255, 255, 255));
                                 }
                                 if (hero.Spellbook.CanUseSpell(slot) != SpellState.NotLearned)
                                 {

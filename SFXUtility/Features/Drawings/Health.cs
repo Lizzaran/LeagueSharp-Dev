@@ -98,7 +98,7 @@ namespace SFXUtility.Features.Drawings
                 var percent = Menu.Item(Name + "DrawingPercent").GetValue<bool>();
                 if (Menu.Item(Name + "Turret").GetValue<bool>())
                 {
-                    foreach (var turret in _turrets.Where(t => t != null && t.IsValid && !t.IsDead))
+                    foreach (var turret in _turrets.Where(t => t != null && t.IsValid && !t.IsDead && t.HealthPercent <= 75))
                     {
                         _text.DrawTextCentered(((int) (percent ? (int) turret.HealthPercent : turret.Health)).ToStringLookUp(),
                             Drawing.WorldToMinimap(turret.Position), Color.White);
@@ -106,7 +106,7 @@ namespace SFXUtility.Features.Drawings
                 }
                 if (Menu.Item(Name + "Inhibitor").GetValue<bool>())
                 {
-                    foreach (var inhib in _inhibs.Where(i => i != null && i.IsValid && !i.IsDead && i.Health > 1f))
+                    foreach (var inhib in _inhibs.Where(i => i != null && i.IsValid && !i.IsDead && i.Health > 1f && i.HealthPercent <= 75))
                     {
                         _text.DrawTextCentered(((int) (percent ? (int) inhib.HealthPercent : inhib.Health)).ToStringLookUp(),
                             Drawing.WorldToMinimap(inhib.Position), Color.White);
