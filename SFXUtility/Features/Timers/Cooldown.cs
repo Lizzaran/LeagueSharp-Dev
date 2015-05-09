@@ -91,7 +91,7 @@ namespace SFXUtility.Features.Timers
         private void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
             var hero = sender as Obj_AI_Hero;
-            if (hero != null && hero.IsMe)
+            if (hero != null && !hero.IsMe)
             {
                 var data = hero.IsAlly
                     ? _manualAllySpells.FirstOrDefault(m => m.Spell.Equals(args.SData.Name, StringComparison.OrdinalIgnoreCase))
@@ -181,7 +181,7 @@ namespace SFXUtility.Features.Timers
                 _parent.Menu.AddSubMenu(Menu);
 
                 foreach (var sName in
-                    HeroManager.AllHeroes.Where(h => h.IsMe)
+                    HeroManager.AllHeroes.Where(h => !h.IsMe)
                         .SelectMany(
                             h =>
                                 _summonerSlots.Select(summoner => h.Spellbook.GetSpell(summoner).Name.ToLower())
@@ -235,7 +235,7 @@ namespace SFXUtility.Features.Timers
 
                 var totalSeconds = Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1;
                 foreach (var hero in
-                    _heroes.Where(hero => hero != null && hero.IsValid && hero.IsMe && hero.IsHPBarRendered && hero.Position.IsOnScreen()))
+                    _heroes.Where(hero => hero != null && hero.IsValid && !hero.IsMe && hero.IsHPBarRendered && hero.Position.IsOnScreen()))
                 {
                     try
                     {
