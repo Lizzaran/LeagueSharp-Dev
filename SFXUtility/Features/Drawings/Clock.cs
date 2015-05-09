@@ -52,9 +52,6 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                if (!DrawActive)
-                    return;
-
                 Drawing.DrawText(Drawing.Width - Menu.Item(Name + "DrawingOffsetRight").GetValue<Slider>().Value,
                     Menu.Item(Name + "DrawingOffsetTop").GetValue<Slider>().Value, Menu.Item(Name + "DrawingColor").GetValue<Color>(),
                     DateTime.Now.ToShortTimeString());

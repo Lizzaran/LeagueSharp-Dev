@@ -19,6 +19,7 @@
 */
 
 #endregion License
+
 namespace SFXUtility.Features.Others
 {
     #region
@@ -115,7 +116,7 @@ namespace SFXUtility.Features.Others
             try
             {
                 if (sender == null || !sender.Owner.IsMe ||
-                !(args.Slot == SpellSlot.Q || args.Slot == SpellSlot.W || args.Slot == SpellSlot.E || args.Slot == SpellSlot.R))
+                    !(args.Slot == SpellSlot.Q || args.Slot == SpellSlot.W || args.Slot == SpellSlot.E || args.Slot == SpellSlot.R))
                 {
                     return;
                 }

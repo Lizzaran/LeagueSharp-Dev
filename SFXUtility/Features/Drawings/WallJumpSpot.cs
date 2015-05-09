@@ -56,9 +56,6 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                if (!DrawActive)
-                    return;
-
                 var radius = Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value;
                 var fromColor = Menu.Item(Name + "DrawingFromColor").GetValue<Color>();
                 var toColor = Menu.Item(Name + "DrawingToColor").GetValue<Color>();

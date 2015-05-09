@@ -181,25 +181,24 @@ namespace SFXUtility.Features.Others
                                     continue;
 
                                 var localSkin = skin;
-                                champMenu.AddItem(new MenuItem(champMenu.Name + skin.Key, skin.Key).SetValue(false)).ValueChanged +=
-                                    (s, e) =>
+                                champMenu.AddItem(new MenuItem(champMenu.Name + skin.Key, skin.Key).SetValue(false)).ValueChanged += (s, e) =>
+                                {
+                                    if (e.GetNewValue<bool>())
                                     {
-                                        if (e.GetNewValue<bool>())
+                                        champMenu.Items.ForEach(p =>
                                         {
-                                            champMenu.Items.ForEach(p =>
+                                            if (p.GetValue<bool>() && p.Name != skin.Key)
                                             {
-                                                if (p.GetValue<bool>() && p.Name != skin.Key)
-                                                {
-                                                    p.SetValue(false);
-                                                }
-                                            });
-                                            heroSkin.CurrentSkin = localSkin.Value;
-                                            if (Enabled && !localHero.IsDead)
-                                            {
-                                                heroSkin.SetSkin();
+                                                p.SetValue(false);
                                             }
+                                        });
+                                        heroSkin.CurrentSkin = localSkin.Value;
+                                        if (Enabled && !localHero.IsDead)
+                                        {
+                                            heroSkin.SetSkin();
                                         }
-                                    };
+                                    }
+                                };
                                 if (champMenu.Item(champMenu.Name + skin.Key).GetValue<bool>())
                                 {
                                     heroSkin.CurrentSkin = localSkin.Value;

@@ -20,6 +20,7 @@
 
 #endregion License
 
+
 #pragma warning disable 618
 
 namespace SFXUtility.Features.Trackers
@@ -350,7 +351,7 @@ namespace SFXUtility.Features.Trackers
                                 return false;
                             }
                         },
-                        TextUpdate = () => ((int)(Hero.Spellbook.GetSpell(SpellSlot.R).CooldownExpires - Game.Time)).ToStringLookUp()
+                        TextUpdate = () => ((int) (Hero.Spellbook.GetSpell(SpellSlot.R).CooldownExpires - Game.Time)).ToStringLookUp()
                     };
 
 
@@ -463,7 +464,7 @@ namespace SFXUtility.Features.Trackers
                             }
                             else if (!Hero.IsDead)
                                 _deathDuration = 0;
-                            return ((int)(_deathDuration - Game.Time)).ToStringLookUp();
+                            return ((int) (_deathDuration - Game.Time)).ToStringLookUp();
                         }
                     };
 

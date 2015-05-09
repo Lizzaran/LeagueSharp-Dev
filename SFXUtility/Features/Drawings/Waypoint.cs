@@ -96,9 +96,6 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                if (!DrawActive)
-                    return;
-
                 var crossColor = Menu.Item(Name + "DrawingCrossColor").GetValue<Color>();
                 var lineColor = Menu.Item(Name + "DrawingLineColor").GetValue<Color>();
 

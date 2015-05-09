@@ -104,7 +104,7 @@ namespace SFXUtility.Features.Timers
                     {
                         var cooldown = data.Cooldowns[spell.Level - 1];
                         var cdr = hero.PercentCooldownMod*-1*100;
-                        data.Cooldown = cooldown - (cooldown / 100 * (cdr > 40 ? 40 : cdr)) + data.Additional;
+                        data.Cooldown = cooldown - (cooldown/100*(cdr > 40 ? 40 : cdr)) + data.Additional;
                         data.CooldownExpires = Game.Time + data.Cooldown;
                     }
                 }
@@ -229,9 +229,6 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
-                if (!DrawActive)
-                    return;
-
                 if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
                     return;
 
@@ -322,9 +319,6 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
-                if (!DrawActive)
-                    return;
-
                 _line.OnResetDevice();
                 _text.OnResetDevice();
                 _sprite.OnResetDevice();
@@ -339,9 +333,6 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
-                if (!DrawActive)
-                    return;
-
                 _line.OnLostDevice();
                 _text.OnLostDevice();
                 _sprite.OnLostDevice();

@@ -196,9 +196,6 @@ namespace SFXUtility.Features.Trackers
 
         private void OnDrawingDraw(EventArgs args)
         {
-            if (!DrawActive)
-                return;
-
             var color = Menu.Item(Name + "DrawingColor").GetValue<Color>();
             var radius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value;
             var thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;

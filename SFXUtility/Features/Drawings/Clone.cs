@@ -68,9 +68,6 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                if (!DrawActive)
-                    return;
-
                 var color = Menu.Item(Name + "DrawingCircleColor").GetValue<Color>();
                 var radius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value;
                 var thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;

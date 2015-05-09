@@ -20,6 +20,7 @@
 
 #endregion License
 
+
 #pragma warning disable 618
 
 namespace SFXUtility.Features.Detectors
@@ -80,9 +81,6 @@ namespace SFXUtility.Features.Detectors
         {
             try
             {
-                if (!DrawActive)
-                    return;
-
                 if (Menu.Item(Name + "DrawingTextEnabled").GetValue<bool>())
                 {
                     var posX = Drawing.Width*0.68f;
@@ -311,15 +309,15 @@ namespace SFXUtility.Features.Detectors
                         {
                             case Packet.S2C.Teleport.Status.Start:
                                 return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Recalling"), Hero.ChampionName,
-                                    (int)Hero.HealthPercent, time);
+                                    (int) Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Finish:
                                 return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Recalled"), Hero.ChampionName,
-                                    (int)Hero.HealthPercent, time);
+                                    (int) Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Abort:
                                 return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Aborted"), Hero.ChampionName,
-                                    (int)Hero.HealthPercent, time);
+                                    (int) Hero.HealthPercent, time);
                         }
                         break;
 
@@ -328,15 +326,15 @@ namespace SFXUtility.Features.Detectors
                         {
                             case Packet.S2C.Teleport.Status.Start:
                                 return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Teleporting"), Hero.ChampionName,
-                                    (int)Hero.HealthPercent, time);
+                                    (int) Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Finish:
                                 return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Teleported"), Hero.ChampionName,
-                                    (int)Hero.HealthPercent, time);
+                                    (int) Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Abort:
                                 return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Aborted"), Hero.ChampionName,
-                                    (int)Hero.HealthPercent, time);
+                                    (int) Hero.HealthPercent, time);
                         }
                         break;
 
@@ -346,15 +344,15 @@ namespace SFXUtility.Features.Detectors
                         {
                             case Packet.S2C.Teleport.Status.Start:
                                 return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Transporting"), Hero.ChampionName,
-                                    (int)Hero.HealthPercent, time);
+                                    (int) Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Finish:
                                 return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Transported"), Hero.ChampionName,
-                                    (int)Hero.HealthPercent, time);
+                                    (int) Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Abort:
                                 return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Aborted"), Hero.ChampionName,
-                                    (int)Hero.HealthPercent, time);
+                                    (int) Hero.HealthPercent, time);
                         }
                         break;
                 }

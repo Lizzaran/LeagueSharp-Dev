@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- sfxutility.cs is part of SFXUtility.
+ SFXUtility.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -28,8 +28,6 @@ namespace SFXUtility
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using Classes;
-    using LeagueSharp;
     using LeagueSharp.Common;
     using SFXLibrary;
     using SFXLibrary.Extensions.NET;
@@ -89,7 +87,6 @@ namespace SFXUtility
                 AppDomain.CurrentDomain.ProcessExit += OnExit;
                 CustomEvents.Game.OnGameEnd += OnGameEnd;
                 CustomEvents.Game.OnGameLoad += OnGameLoad;
-                Game.OnWndProc += OnGameWndProc;
             }
             catch (Exception ex)
             {
@@ -154,37 +151,6 @@ namespace SFXUtility
                     catch (Exception ex)
                     {
                         Console.WriteLine(ex);
-                    }
-                };
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private static void OnGameWndProc(WndEventArgs args)
-        {
-            try
-            {
-                Game.OnWndProc += delegate(WndEventArgs eventArgs)
-                {
-                    if (eventArgs.Msg == 0x1C)
-                    {
-                        if (eventArgs.WParam != 0)
-                        {
-                            foreach (var map in Global.IoC.Mappings.Where(m => m.Key.Instance != null && m.Key.Instance is Base))
-                            {
-                                ((Base) map.Key.Instance).DrawActive = true;
-                            }
-                        }
-                        else
-                        {
-                            foreach (var map in Global.IoC.Mappings.Where(m => m.Key.Instance != null && m.Key.Instance is Base))
-                            {
-                                ((Base)map.Key.Instance).DrawActive = false;
-                            }
-                        }
                     }
                 };
             }

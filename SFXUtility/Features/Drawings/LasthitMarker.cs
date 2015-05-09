@@ -57,9 +57,6 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                if (!DrawActive)
-                    return;
-
                 if (!_minions.Any())
                     return;
 
