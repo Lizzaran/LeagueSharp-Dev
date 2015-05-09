@@ -30,7 +30,6 @@ namespace SFXUtility.Features.Trackers
     using System.Collections.Generic;
     using System.Linq;
     using Classes;
-    using ClipperLib;
     using LeagueSharp;
     using LeagueSharp.Common;
     using Properties;
@@ -162,7 +161,7 @@ namespace SFXUtility.Features.Trackers
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", Language.Get("G_FontSize")).SetValue(new Slider(13, 3, 30)));
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + "CircleRadius", Language.Get("G_Circle") + " " + Language.Get("G_Radius")).SetValue(new Slider(
-                        150, 25, 300)));
+                        150, 0, 300)));
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + "CircleThickness", Language.Get("G_Circle") + " " + Language.Get("G_Thickness")).SetValue(
                         new Slider(2, 1, 10)));
@@ -200,7 +199,7 @@ namespace SFXUtility.Features.Trackers
             if (args.Msg == (ulong) WindowsMessages.WM_LBUTTONDBLCLCK && Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active)
             {
                 var ward = _wardObjects.OrderBy(w => Game.CursorPos.Distance(w.Position)).FirstOrDefault();
-                if (ward != null && Game.CursorPos.Distance(ward.Position) <= Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value)
+                if (ward != null && Game.CursorPos.Distance(ward.Position) <= 200)
                 {
                     _wardObjects.Remove(ward);
                 }
@@ -224,12 +223,14 @@ namespace SFXUtility.Features.Trackers
                 {
                     if (ward.Position.IsOnScreen())
                     {
-                        Render.Circle.DrawCircle(ward.Position, circleRadius, ward.Data.Color, circleThickness);
-
-                        if (ward.Data.Duration != int.MaxValue)
+                        if (ward.Data.Type != WardType.Green)
+                        {
+                            Render.Circle.DrawCircle(ward.Position, circleRadius, ward.Data.Color, circleThickness);
+                        }
+                        if (ward.Data.Type == WardType.Green)
                         {
                             _text.DrawTextCentered((ward.EndTime - Game.Time).FormatTime(totalSeconds), Drawing.WorldToScreen(ward.Position),
-                                SharpDX.Color.White);
+                                (new SharpDX.Color(ward.Data.Color.R, ward.Data.Color.G, ward.Data.Color.B, ward.Data.Color.A)));
                         }
                     }
                     if (ward.Data.Type != WardType.Trap)
@@ -395,7 +396,7 @@ namespace SFXUtility.Features.Trackers
                 Position = RealPosition(position);
                 MinimapPosition = Drawing.WorldToMinimap(Position).To3D();
                 StartT = startT;
-                StartPosition = startPosition;
+                StartPosition = RealPosition(startPosition);
                 Object = wardObject;
             }
 
@@ -403,7 +404,12 @@ namespace SFXUtility.Features.Trackers
 
             public int EndTime
             {
-                get { return StartT + Data.Duration; }
+                get { return StartTime + Data.Duration; }
+            }
+
+            public int StartTime
+            {
+                get { return StartT; }
             }
 
             public WardStruct Data { get; private set; }
@@ -412,17 +418,17 @@ namespace SFXUtility.Features.Trackers
             {
                 if (end.IsWall())
                 {
-                    var clipper = new List<IntPoint>();
                     for (var i = 0; i < 1000; i = i + 2)
                     {
-                        clipper.AddRange(new Geometry.Polygon.Circle(end, i, 15).ToClipperPath());
+                        var c = new Geometry.Polygon.Circle(end, i, 15).ToClipperPath();
+                        foreach (var item in c)
+                        {
+                            if (!(new Vector2(item.X, item.Y).To3D().IsWall()))
+                            {
+                                return new Vector3(item.X, item.Y, NavMesh.GetHeightForPosition(item.X, item.Y));
+                            }
+                        }
                     }
-                    return
-                        clipper.Select(p => new Vector2(p.X, p.Y).To3D())
-                            .Where(v => !v.IsWall())
-                            .ToList()
-                            .OrderBy(p => p.Distance(end))
-                            .FirstOrDefault();
                 }
                 return end;
             }
