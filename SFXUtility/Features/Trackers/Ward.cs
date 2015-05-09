@@ -207,7 +207,7 @@ namespace SFXUtility.Features.Trackers
             if (args.Msg == (ulong) WindowsMessages.WM_LBUTTONDBLCLCK && Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active)
             {
                 var ward = _wardObjects.OrderBy(w => Game.CursorPos.Distance(w.Position)).FirstOrDefault();
-                if (ward != null && Game.CursorPos.Distance(ward.Position) <= 500)
+                if (ward != null && Game.CursorPos.Distance(ward.Position) <= 300)
                 {
                     _wardObjects.Remove(ward);
                 }
@@ -316,7 +316,10 @@ namespace SFXUtility.Features.Trackers
                         {
                             var sPos = missile.StartPosition;
                             var ePos = missile.EndPosition;
-
+                            _wardObjects.RemoveAll(
+                                w =>
+                                    w.Position.To2D().Distance(sPos.To2D(), ePos.To2D(), false) < 300 && ((int) Game.Time - w.StartT < 0.5) &&
+                                    w.Data.Type == WardType.Green);
                             var offset =
                                 _wardObjects.Count(
                                     w => w.Position.To2D().Distance(sPos.To2D(), ePos.To2D(), false) < 300 && w.Data.Type == WardType.Green)*
@@ -338,6 +341,10 @@ namespace SFXUtility.Features.Trackers
                             {
                                 if (wardObject.BaseSkinName.Equals(ward.ObjectBaseSkinName, StringComparison.OrdinalIgnoreCase))
                                 {
+                                    _wardObjects.RemoveAll(
+                                        w =>
+                                            w.Position.Distance(wardObject.Position) < 300 && ((int) Game.Time - w.StartT < 0.5) &&
+                                            w.Data.Type == WardType.Green);
                                     var offset =
                                         _wardObjects.Count(w => w.Position.Distance(wardObject.Position) < 200 && w.Data.Type == WardType.Green)*
                                         (Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value + 3);
@@ -396,12 +403,12 @@ namespace SFXUtility.Features.Trackers
 
         private class WardObject
         {
-            private readonly int _startT;
             public readonly bool Corrected;
             public readonly Vector3 EndPosition;
             public readonly Vector3 MinimapPosition;
             public readonly Obj_AI_Base Object;
             public readonly Vector3 StartPosition;
+            public readonly int StartT;
             private Vector3 _position;
 
             public WardObject(WardStruct data, Vector3 position, int startT, Obj_AI_Base wardObject = null, bool isFromMissile = false,
@@ -422,7 +429,7 @@ namespace SFXUtility.Features.Trackers
                 Position = RealPosition(pos);
                 EndPosition = Position.Equals(position) ? position : RealPosition(position);
                 MinimapPosition = Drawing.WorldToMinimap(Position).To3D();
-                _startT = startT;
+                StartT = startT;
                 StartPosition = startPosition.Equals(default(Vector3)) ? startPosition : RealPosition(startPosition);
                 Object = wardObject;
             }
@@ -444,7 +451,7 @@ namespace SFXUtility.Features.Trackers
 
             public int EndTime
             {
-                get { return _startT + Data.Duration; }
+                get { return StartT + Data.Duration; }
             }
 
             public WardStruct Data { get; private set; }
@@ -461,7 +468,7 @@ namespace SFXUtility.Features.Trackers
                         grass.Add(pos);
                     }
                 }
-                return grass.Count > 0 ? grass[(int)((grass.Count / 2d) + 0.5d * Math.Sign(grass.Count / 2d))] : end;
+                return grass.Count > 0 ? grass[(int) ((grass.Count/2d) + 0.5d*Math.Sign(grass.Count/2d))] : end;
             }
 
             private Vector3 RealPosition(Vector3 end)
