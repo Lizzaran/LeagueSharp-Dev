@@ -261,7 +261,7 @@ namespace SFXUtility.Features.Trackers
                         if (ward.IsFromMissile)
                         {
                             _line.Begin();
-                            _line.Draw(new[] {Drawing.WorldToScreen(ward.StartPosition), Drawing.WorldToScreen(ward.Position)}, SharpDX.Color.White);
+                            _line.Draw(new[] {Drawing.WorldToScreen(ward.StartPosition), Drawing.WorldToScreen(ward.EndPosition)}, SharpDX.Color.White);
                             _line.End();
                         }
                     }
@@ -320,8 +320,7 @@ namespace SFXUtility.Features.Trackers
                             {
                                 if (
                                     !_wardObjects.Any(
-                                        w =>
-                                            w.Position.To2D().Distance(sPos.To2D(), ePos.To2D(), false) < 300 && Math.Abs(w.StartT - Game.Time) < 600))
+                                        w => w.Position.To2D().Distance(sPos.To2D(), ePos.To2D(), false) < 300 && Math.Abs(w.StartT - Game.Time) < 600))
                                 {
                                     _wardObjects.Add(new WardObject(_wardStructs[3],
                                         new Vector3(ePos.X, ePos.Y, NavMesh.GetHeightForPosition(ePos.X, ePos.Y)), (int) Game.Time, null, true,
@@ -400,6 +399,7 @@ namespace SFXUtility.Features.Trackers
 
         private class WardObject
         {
+            public readonly Vector3 EndPosition;
             public readonly Vector3 MinimapPosition;
             public readonly Obj_AI_Base Object;
             public readonly Vector3 StartPosition;
@@ -411,10 +411,11 @@ namespace SFXUtility.Features.Trackers
             {
                 IsFromMissile = isFromMissile;
                 Data = data;
-                Position = RealPosition(position);
+                Position = IsFromMissile ? RealPosition(GuessPosition(startPosition, position)) : RealPosition(position);
+                EndPosition = Position.Equals(position) ? position : RealPosition(position);
                 MinimapPosition = Drawing.WorldToMinimap(Position).To3D();
                 StartT = startT;
-                StartPosition = RealPosition(startPosition);
+                StartPosition = startPosition.Equals(default(Vector3)) ? startPosition : RealPosition(startPosition);
                 Object = wardObject;
             }
 
@@ -439,6 +440,21 @@ namespace SFXUtility.Features.Trackers
             }
 
             public WardStruct Data { get; private set; }
+
+            private Vector3 GuessPosition(Vector3 start, Vector3 end)
+            {
+                var grass = new List<Vector3>();
+                var distance = start.Distance(end);
+                for (var i = 0; i < distance; i = i + 2)
+                {
+                    var pos = start.Extend(end, i);
+                    if (NavMesh.IsWallOfGrass(pos, 1))
+                    {
+                        grass.Add(pos);
+                    }
+                }
+                return grass.Count > 0 ? grass[(int) ((grass.Count/2d) + 0.5d*Math.Sign(grass.Count/2d))] : end;
+            }
 
             private Vector3 RealPosition(Vector3 end)
             {
