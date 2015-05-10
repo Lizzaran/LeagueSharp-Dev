@@ -174,6 +174,7 @@ namespace SFXUtility.Features.Trackers
                     new MenuItem(drawingMenu.Name + "TrapColor", Language.Get("Ward_Trap") + " " + Language.Get("G_Color")).SetValue(Color.Red));
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + "VisionRange", Language.Get("Ward_Vision") + " " + Language.Get("G_Range")).SetValue(true));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Minimap", Language.Get("G_Minimap")).SetValue(true));
 
                 Menu.AddSubMenu(drawingMenu);
 
@@ -194,6 +195,7 @@ namespace SFXUtility.Features.Trackers
                         OutputPrecision = FontPrecision.Default,
                         Quality = FontQuality.Default
                     });
+
                 _line = new Line(Drawing.Direct3DDevice) {Width = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value};
 
                 HandleEvents(_parent);
@@ -228,6 +230,7 @@ namespace SFXUtility.Features.Trackers
                 var circleRadius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value;
                 var circleThickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
                 var visionRange = Menu.Item(Name + "DrawingVisionRange").GetValue<bool>();
+                var minimap = Menu.Item(Name + "DrawingMinimap").GetValue<bool>();
                 var hotkey = Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active;
 
                 _sprite.Begin(SpriteFlags.AlphaBlend);
@@ -241,7 +244,10 @@ namespace SFXUtility.Features.Trackers
                     {
                         if (ward.Data.Type != WardType.Green)
                         {
-                            Render.Circle.DrawCircle(ward.Position, circleRadius, color, circleThickness);
+                            if (ward.Object == null || !ward.Object.IsVisible)
+                            {
+                                Render.Circle.DrawCircle(ward.Position, circleRadius, color, circleThickness);
+                            }
                         }
                         if (ward.Data.Type == WardType.Green)
                         {
@@ -251,7 +257,7 @@ namespace SFXUtility.Features.Trackers
                                 (new SharpDX.Color(color.R, color.G, color.B, color.A)));
                         }
                     }
-                    if (ward.Data.Type != WardType.Trap)
+                    if (minimap && ward.Data.Type != WardType.Trap)
                     {
                         _sprite.DrawCentered(ward.Data.Type == WardType.Green ? _greenWardTexture : _pinkWardTexture, ward.MinimapPosition.To2D());
                     }
@@ -409,6 +415,14 @@ namespace SFXUtility.Features.Trackers
                         w =>
                             w.Data.Duration != int.MaxValue &&
                             w.Position.Distance(wObj.Position) < Menu.Item(Name + "FilterWards").GetValue<Slider>().Value);
+                    _wardObjects.RemoveAll(
+                        w =>
+                            w.Data.Duration != int.MaxValue && w.IsFromMissile && !w.Corrected &&
+                            wObj.Position.Distance(w.StartPosition) < Menu.Item(Name + "FilterWards").GetValue<Slider>().Value*2);
+                }
+                else
+                {
+                    _wardObjects.RemoveAll(w => w.Data.Duration != int.MaxValue && w.IsFromMissile && w.Position.Distance(wObj.Position) < 100);
                 }
             }
             catch (Exception ex)
