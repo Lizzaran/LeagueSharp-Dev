@@ -167,6 +167,8 @@ namespace SFXUtility.Features.Trackers
                     new MenuItem(drawingMenu.Name + "CircleThickness", Language.Get("G_Circle") + " " + Language.Get("G_Thickness")).SetValue(
                         new Slider(2, 1, 10)));
                 drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "GreenCircle", Language.Get("Ward_Green") + " " + Language.Get("G_Circle")).SetValue(true));
+                drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + "GreenColor", Language.Get("Ward_Green") + " " + Language.Get("G_Color")).SetValue(Color.Lime));
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + "PinkColor", Language.Get("Ward_Pink") + " " + Language.Get("G_Color")).SetValue(Color.Magenta));
@@ -231,6 +233,7 @@ namespace SFXUtility.Features.Trackers
                 var circleThickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
                 var visionRange = Menu.Item(Name + "DrawingVisionRange").GetValue<bool>();
                 var minimap = Menu.Item(Name + "DrawingMinimap").GetValue<bool>();
+                var greenCircle = Menu.Item(Name + "DrawingGreenCircle").GetValue<bool>();
                 var hotkey = Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active;
 
                 _sprite.Begin(SpriteFlags.AlphaBlend);
@@ -242,7 +245,7 @@ namespace SFXUtility.Features.Trackers
                             .GetValue<Color>();
                     if (ward.Position.IsOnScreen())
                     {
-                        if (ward.Data.Type != WardType.Green)
+                        if (greenCircle || ward.Data.Type != WardType.Green)
                         {
                             if (ward.Object == null || !ward.Object.IsVisible)
                             {
