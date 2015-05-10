@@ -178,7 +178,7 @@ namespace SFXUtility.Features.Trackers
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "FilterWards", Language.Get("Ward_FilterWards")).SetValue(new Slider(100, 0, 600)));
+                Menu.AddItem(new MenuItem(Name + "FilterWards", Language.Get("Ward_FilterWards")).SetValue(new Slider(250, 0, 600)));
                 Menu.AddItem(new MenuItem(Name + "Hotkey", Language.Get("G_Hotkey")).SetValue(new KeyBind(16, KeyBindType.Press)));
                 Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
@@ -409,20 +409,34 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
+                var range = Menu.Item(Name + "FilterWards").GetValue<Slider>().Value;
                 if (wObj.Data.Duration != int.MaxValue)
                 {
-                    _wardObjects.RemoveAll(
-                        w =>
-                            w.Data.Duration != int.MaxValue &&
-                            w.Position.Distance(wObj.Position) < Menu.Item(Name + "FilterWards").GetValue<Slider>().Value);
-                    _wardObjects.RemoveAll(
-                        w =>
-                            w.Data.Duration != int.MaxValue && w.IsFromMissile && !w.Corrected &&
-                            wObj.Position.Distance(w.StartPosition) < Menu.Item(Name + "FilterWards").GetValue<Slider>().Value*2);
+                    foreach (var obj in _wardObjects.Where(w => w.Data.Duration != int.MaxValue && w.IsFromMissile && !w.Corrected).ToList())
+                    {
+                        if (wObj.Position.Distance(obj.Position) < range)
+                        {
+                            _wardObjects.Remove(obj);
+                            return;
+                        }
+                        var newPoint = obj.StartPosition.Extend(obj.EndPosition, -(range*1.5f));
+                        if (wObj.Position.Distance(newPoint) < range)
+                        {
+                            _wardObjects.Remove(obj);
+                            return;
+                        }
+                    }
                 }
                 else
                 {
-                    _wardObjects.RemoveAll(w => w.Data.Duration != int.MaxValue && w.IsFromMissile && w.Position.Distance(wObj.Position) < 100);
+                    foreach (
+                        var obj in
+                            _wardObjects.Where(w => w.Data.Duration != int.MaxValue && w.IsFromMissile && w.Position.Distance(wObj.Position) < 100)
+                                .ToList())
+                    {
+                        _wardObjects.Remove(obj);
+                        return;
+                    }
                 }
             }
             catch (Exception ex)
@@ -469,6 +483,10 @@ namespace SFXUtility.Features.Trackers
                     {
                         pos = newPos;
                         Corrected = true;
+                    }
+                    if (!Corrected)
+                    {
+                        pos = startPosition;
                     }
                 }
                 IsFromMissile = isFromMissile;
