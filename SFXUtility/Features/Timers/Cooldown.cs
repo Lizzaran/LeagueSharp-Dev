@@ -19,6 +19,7 @@
 */
 
 #endregion License
+
 namespace SFXUtility.Features.Timers
 {
     #region
@@ -28,6 +29,7 @@ namespace SFXUtility.Features.Timers
     using System.Drawing;
     using System.Linq;
     using Classes;
+    using Detectors;
     using LeagueSharp;
     using LeagueSharp.Common;
     using Properties;
@@ -44,9 +46,11 @@ namespace SFXUtility.Features.Timers
 
     internal class Cooldown : Base
     {
+        private const int TeleportCd = 240;
         private readonly SpellSlot[] _spellSlots = {SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R};
         private readonly SpellSlot[] _summonerSlots = {SpellSlot.Summoner1, SpellSlot.Summoner2};
         private readonly Dictionary<string, Texture> _summonerTextures = new Dictionary<string, Texture>();
+        private readonly Dictionary<int, float> _teleports = new Dictionary<int, float>();
         private List<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
         private Texture _hudTexture;
         private Line _line;
@@ -69,6 +73,7 @@ namespace SFXUtility.Features.Timers
             Drawing.OnPreReset += OnDrawingPreReset;
             Drawing.OnPostReset += OnDrawingPostReset;
             Drawing.OnEndScene += OnDrawingEndScene;
+
 
             Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
 
@@ -151,7 +156,8 @@ namespace SFXUtility.Features.Timers
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "TimeFormat", Language.Get("G_TimeFormat")).SetValue(new StringList(new[] { "mm:ss", "ss" })));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "TimeFormat", Language.Get("G_TimeFormat")).SetValue(new StringList(new[] {"mm:ss", "ss"})));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", Language.Get("G_FontSize")).SetValue(new Slider(13, 3, 30)));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Enemy", Language.Get("G_Enemy")).SetValue(false));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Ally", Language.Get("G_Ally")).SetValue(false));
@@ -179,6 +185,12 @@ namespace SFXUtility.Features.Timers
                 };
 
                 _parent.Menu.AddSubMenu(Menu);
+
+                if (Global.IoC.IsRegistered<Teleport>())
+                {
+                    var rt = Global.IoC.Resolve<Teleport>();
+                    rt.OnFinish += TeleportFinish;
+                }
 
                 foreach (var sName in
                     HeroManager.AllHeroes.Where(h => !h.IsMe)
@@ -219,6 +231,11 @@ namespace SFXUtility.Features.Timers
             }
         }
 
+        private void TeleportFinish(object sender, TeleportEventArgs e)
+        {
+            _teleports[e.UnitNetworkId] = Game.Time + TeleportCd;
+        }
+
         private string FixSummonerName(string name)
         {
             return name.Contains("Smite", StringComparison.OrdinalIgnoreCase)
@@ -252,8 +269,14 @@ namespace SFXUtility.Features.Timers
                             var spell = hero.Spellbook.GetSpell(_summonerSlots[i]);
                             if (spell != null)
                             {
-                                var t = spell.IsReady() ? 0 : spell.CooldownExpires - Game.Time;
-                                var percent = (Math.Abs(spell.Cooldown) > float.Epsilon) ? t/spell.Cooldown : 1f;
+                                var teleportCd = 0f;
+                                if (spell.Name.Contains("Teleport", StringComparison.OrdinalIgnoreCase) && _teleports.ContainsKey(hero.NetworkId))
+                                {
+                                    _teleports.TryGetValue(hero.NetworkId, out teleportCd);
+                                }
+                                var t = teleportCd > 0.1 ? teleportCd - Game.Time : (spell.IsReady() ? 0 : spell.CooldownExpires - Game.Time);
+                                var sCd = teleportCd > 0.1 ? TeleportCd : spell.Cooldown;
+                                var percent = (Math.Abs(sCd) > float.Epsilon) ? t/sCd : 1f;
                                 var n = (t > 0) ? (int) (19*(1f - percent)) : 19;
                                 if (t > 0)
                                 {
