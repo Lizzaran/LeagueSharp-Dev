@@ -248,6 +248,7 @@
 	<entry key="Ward_Pink">Pink</entry>
 	<entry key="Ward_Trap">Trap</entry>
 	<entry key="Ward_Vision">Vision</entry>
+	<entry key="Ward_FilterWards">Filter Wards</entry>
 	<!-- END: Ward -->
 
 </language>

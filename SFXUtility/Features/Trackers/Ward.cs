@@ -20,8 +20,6 @@
 
 #endregion License
 
-// Credits: TC-Crew
-
 namespace SFXUtility.Features.Trackers
 {
     #region
@@ -89,10 +87,12 @@ namespace SFXUtility.Features.Trackers
             Game.OnUpdate += OnGameUpdate;
             Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
             GameObject.OnCreate += OnGameObjectCreate;
+            GameObject.OnDelete += OnGameObjectDelete;
 
             Drawing.OnPreReset += OnDrawingPreReset;
             Drawing.OnPostReset += OnDrawingPostReset;
             Drawing.OnEndScene += OnDrawingEndScene;
+
 
             Game.OnWndProc += OnGameWndProc;
             base.OnEnable();
@@ -103,6 +103,7 @@ namespace SFXUtility.Features.Trackers
             Game.OnUpdate -= OnGameUpdate;
             Obj_AI_Base.OnProcessSpellCast -= OnObjAiBaseProcessSpellCast;
             GameObject.OnCreate -= OnGameObjectCreate;
+            GameObject.OnDelete -= OnGameObjectDelete;
 
             Drawing.OnPreReset -= OnDrawingPreReset;
             Drawing.OnPostReset -= OnDrawingPostReset;
@@ -175,6 +176,8 @@ namespace SFXUtility.Features.Trackers
                     new MenuItem(drawingMenu.Name + "VisionRange", Language.Get("Ward_Vision") + " " + Language.Get("G_Range")).SetValue(true));
 
                 Menu.AddSubMenu(drawingMenu);
+
+                Menu.AddItem(new MenuItem(Name + "FilterWards", Language.Get("Ward_FilterWards")).SetValue(new Slider(100, 0, 600)));
                 Menu.AddItem(new MenuItem(Name + "Hotkey", Language.Get("G_Hotkey")).SetValue(new KeyBind(16, KeyBindType.Press)));
                 Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
 
@@ -302,6 +305,18 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
+        private void OnGameObjectDelete(GameObject sender, EventArgs args)
+        {
+            var ward = sender as Obj_AI_Base;
+            if (ward != null && sender.Name.Contains("Ward", StringComparison.OrdinalIgnoreCase))
+            {
+                _wardObjects.RemoveAll(
+                    w =>
+                        (Math.Abs(w.Position.X - ward.Position.X) <= (w.IsFromMissile ? 25 : 10)) &&
+                        (Math.Abs(w.Position.Y - ward.Position.Y) <= (w.IsFromMissile ? 25 : 10)));
+            }
+        }
+
         private void OnGameObjectCreate(GameObject sender, EventArgs args)
         {
             try
@@ -323,11 +338,11 @@ namespace SFXUtility.Features.Trackers
                                     !_wardObjects.Any(
                                         w => w.Position.To2D().Distance(sPos.To2D(), ePos.To2D(), false) < 300 && ((int) Game.Time - w.StartT < 2)))
                                 {
-                                    var offset = _wardObjects.Count(w => w.Position.To2D().Distance(sPos.To2D(), ePos.To2D(), false) < 300)*
-                                                 (Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value + 3);
-                                    _wardObjects.Add(new WardObject(_wardStructs[3],
-                                        new Vector3(ePos.X - offset, ePos.Y - offset, NavMesh.GetHeightForPosition(ePos.X, ePos.Y)), (int) Game.Time,
-                                        null, true, new Vector3(sPos.X - offset, sPos.Y - offset, NavMesh.GetHeightForPosition(sPos.X, sPos.Y))));
+                                    var wObj = new WardObject(_wardStructs[3],
+                                        new Vector3(ePos.X, ePos.Y, NavMesh.GetHeightForPosition(ePos.X, ePos.Y)), (int) Game.Time, null, true,
+                                        new Vector3(sPos.X, sPos.Y, NavMesh.GetHeightForPosition(sPos.X, sPos.Y)));
+                                    CheckDuplicateWards(wObj);
+                                    _wardObjects.Add(wObj);
                                 }
                             });
                         }
@@ -345,11 +360,10 @@ namespace SFXUtility.Features.Trackers
                                 if (wardObject.BaseSkinName.Equals(ward.ObjectBaseSkinName, StringComparison.OrdinalIgnoreCase))
                                 {
                                     _wardObjects.RemoveAll(w => w.Position.Distance(wardObject.Position) < 300 && ((int) Game.Time - w.StartT < 0.5));
-                                    var offset = _wardObjects.Count(w => w.Position.Distance(wardObject.Position) < 200)*
-                                                 (Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value + 3);
-                                    _wardObjects.Add(new WardObject(ward,
-                                        new Vector3(wardObject.Position.X - offset, wardObject.Position.Y - offset, wardObject.Position.Z),
-                                        (int) (Game.Time - (int) ((wardObject.MaxMana - wardObject.Mana))), wardObject));
+                                    var wObj = new WardObject(ward, new Vector3(wardObject.Position.X, wardObject.Position.Y, wardObject.Position.Z),
+                                        (int) (Game.Time - (int) ((wardObject.MaxMana - wardObject.Mana))), wardObject);
+                                    CheckDuplicateWards(wObj);
+                                    _wardObjects.Add(wObj);
                                 }
                             }
                         }
@@ -373,8 +387,28 @@ namespace SFXUtility.Features.Trackers
                 {
                     if (args.SData.Name.Equals(ward.SpellName, StringComparison.OrdinalIgnoreCase))
                     {
-                        _wardObjects.Add(new WardObject(ward, ObjectManager.Player.GetPath(args.End).LastOrDefault(), (int) Game.Time));
+                        var wObj = new WardObject(ward, ObjectManager.Player.GetPath(args.End).LastOrDefault(), (int) Game.Time);
+                        CheckDuplicateWards(wObj);
+                        _wardObjects.Add(wObj);
                     }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void CheckDuplicateWards(WardObject wObj)
+        {
+            try
+            {
+                if (wObj.Data.Duration != int.MaxValue)
+                {
+                    _wardObjects.RemoveAll(
+                        w =>
+                            w.Data.Duration != int.MaxValue &&
+                            w.Position.Distance(wObj.Position) < Menu.Item(Name + "FilterWards").GetValue<Slider>().Value);
                 }
             }
             catch (Exception ex)
