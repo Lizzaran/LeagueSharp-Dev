@@ -422,11 +422,14 @@ namespace SFXUtility.Features.Trackers
                             _wardObjects.Remove(obj);
                             return;
                         }
-                        var newPoint = obj.StartPosition.Extend(obj.EndPosition, -(range*1.5f));
-                        if (wObj.Position.Distance(newPoint) < range)
+                        if (obj.IsFromMissile && !obj.Corrected)
                         {
-                            _wardObjects.Remove(obj);
-                            return;
+                            var newPoint = obj.StartPosition.Extend(obj.EndPosition, -(range * 1.5f));
+                            if (wObj.Position.Distance(newPoint) < range)
+                            {
+                                _wardObjects.Remove(obj);
+                                return;
+                            }
                         }
                     }
                 }
