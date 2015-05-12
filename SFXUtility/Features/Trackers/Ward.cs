@@ -415,7 +415,7 @@ namespace SFXUtility.Features.Trackers
                 var range = Menu.Item(Name + "FilterWards").GetValue<Slider>().Value;
                 if (wObj.Data.Duration != int.MaxValue)
                 {
-                    foreach (var obj in _wardObjects.Where(w => w.Data.Duration != int.MaxValue && w.IsFromMissile && !w.Corrected).ToList())
+                    foreach (var obj in _wardObjects.Where(w => w.Data.Duration != int.MaxValue).ToList())
                     {
                         if (wObj.Position.Distance(obj.Position) < range)
                         {
