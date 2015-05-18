@@ -107,7 +107,7 @@ namespace SFXUtility.Features.Timers
             {"zilean_base_r_buf.troy", new AbilityItem("zilean", "R " + Global.Lang.Get("Ability_Revive"), 3f, true)},
             {"zyra_r_cast_green_team.troy", new AbilityItem("zyra", "R " + Global.Lang.Get("G_Ally"), 2f, true)},
             {"zyra_r_cast_red_team.troy", new AbilityItem("zyra", "R " + Global.Lang.Get("G_Enemy"), 2f, true)},
-            {"zhonyas_ring_activate.troy", new AbilityItem("items", Global.Lang.Get("Ability_Zhonyas"), 2.5f, true)},
+            {"zhonyas_ring_activate.troy", new AbilityItem("items", Global.Lang.Get("Ability_Zhonyas"), 2.5f, true)}
         };
 
         // ReSharper restore StringLiteralTypo
@@ -230,7 +230,7 @@ namespace SFXUtility.Features.Timers
                 foreach (var ability in _drawings.Where(d => d.Position.IsOnScreen()))
                 {
                     var position = Drawing.WorldToScreen(ability.Position);
-                    var time = (ability.End - Game.Time).FormatTime(true);
+                    var time = (ability.End - Game.Time).ToString("0.0");
 
                     if (outline)
                     {
@@ -240,7 +240,7 @@ namespace SFXUtility.Features.Timers
                         _text.DrawText(null, time, (int) position.X - 1 + offsetLeft, (int) position.Y + offsetTop, Color.Black);
                     }
 
-                    _text.DrawText(null, time, (int) position.X + offsetLeft, (int) position.Y + offsetTop, ability.Color);
+                    _text.DrawText(null, time, (int)position.X + offsetLeft, (int)position.Y + offsetTop, ability.Color);
                 }
             }
             catch (Exception ex)
@@ -318,7 +318,8 @@ namespace SFXUtility.Features.Timers
                 var counter = 0;
 
                 var spellMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Spell") + " " + group, Name + "Spell" + group));
-                foreach (var items in _abilities.GroupBy(a => a.Value.Champ))
+                var listItems = _abilities.OrderBy(a => a.Value.Champ).GroupBy(a => a.Value.Champ).ToList();
+                foreach (var items in listItems)
                 {
                     var champMenu = new Menu(items.Key.FirstCharToUpper(), spellMenu + items.Key);
                     foreach (var item in items)
@@ -340,7 +341,7 @@ namespace SFXUtility.Features.Timers
                     }
                     spellMenu.AddSubMenu(champMenu);
                     counter++;
-                    if (counter == 10)
+                    if (counter == 10 && group * 10 != listItems.Count())
                     {
                         counter = 0;
                         group++;

@@ -128,7 +128,7 @@ namespace SFXUtility.Features.Activators
                     foreach (var enemy in HeroManager.Enemies.Where(e => e.IsVisible && !e.IsDead))
                     {
                         var itemDamage = (items ? Items.CalculateComboDamage(enemy) : 0) - 20;
-                        var summonerDamage = (items ? Items.CalculateComboDamage(enemy) : 0) - 20;
+                        var summonerDamage = (items ? Summoners.CalculateComboDamage(enemy, true, true) : 0) - 20;
                         if (items && itemDamage > enemy.Health)
                         {
                             Items.UseComboItems(enemy);

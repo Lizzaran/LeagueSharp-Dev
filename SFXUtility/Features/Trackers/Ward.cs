@@ -334,19 +334,16 @@ namespace SFXUtility.Features.Trackers
                 var missile = sender as Obj_SpellMissile;
                 if (missile != null)
                 {
-                    if (missile.SpellCaster != null && !missile.SpellCaster.IsAlly)
+                    if (missile.SpellCaster != null && !missile.SpellCaster.IsAlly && missile.SData != null)
                     {
-                        if (missile.SData != null && missile.SData.Name.Equals("itemplacementmissile", StringComparison.OrdinalIgnoreCase) &&
-                            !missile.SpellCaster.IsVisible)
+                        if (missile.SData.Name.Equals("itemplacementmissile", StringComparison.OrdinalIgnoreCase) &&!missile.SpellCaster.IsVisible)
                         {
                             var sPos = missile.StartPosition;
                             var ePos = missile.EndPosition;
 
                             Utility.DelayAction.Add(500, delegate
                             {
-                                if (
-                                    !_wardObjects.Any(
-                                        w => w.Position.To2D().Distance(sPos.To2D(), ePos.To2D(), false) < 300 && ((int) Game.Time - w.StartT < 2)))
+                                if (!_wardObjects.Any(w => w.Position.To2D().Distance(sPos.To2D(), ePos.To2D(), false) < 300 && ((int) Game.Time - w.StartT < 2)))
                                 {
                                     var wObj = new WardObject(_wardStructs[3],
                                         new Vector3(ePos.X, ePos.Y, NavMesh.GetHeightForPosition(ePos.X, ePos.Y)), (int) Game.Time, null, true,
@@ -361,20 +358,17 @@ namespace SFXUtility.Features.Trackers
                 else
                 {
                     var wardObject = sender as Obj_AI_Base;
-                    if (wardObject != null)
+                    if (wardObject != null && !wardObject.IsAlly)
                     {
-                        if (!wardObject.IsAlly)
+                        foreach (var ward in _wardStructs)
                         {
-                            foreach (var ward in _wardStructs)
+                            if (wardObject.BaseSkinName.Equals(ward.ObjectBaseSkinName, StringComparison.OrdinalIgnoreCase))
                             {
-                                if (wardObject.BaseSkinName.Equals(ward.ObjectBaseSkinName, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    _wardObjects.RemoveAll(w => w.Position.Distance(wardObject.Position) < 300 && ((int) Game.Time - w.StartT < 0.5));
-                                    var wObj = new WardObject(ward, new Vector3(wardObject.Position.X, wardObject.Position.Y, wardObject.Position.Z),
-                                        (int) (Game.Time - (int) ((wardObject.MaxMana - wardObject.Mana))), wardObject);
-                                    CheckDuplicateWards(wObj);
-                                    _wardObjects.Add(wObj);
-                                }
+                                _wardObjects.RemoveAll(w => w.Position.Distance(wardObject.Position) < 300 && ((int)Game.Time - w.StartT < 0.5));
+                                var wObj = new WardObject(ward, new Vector3(wardObject.Position.X, wardObject.Position.Y, wardObject.Position.Z),
+                                    (int)(Game.Time - (int)((wardObject.MaxMana - wardObject.Mana))), wardObject);
+                                CheckDuplicateWards(wObj);
+                                _wardObjects.Add(wObj);
                             }
                         }
                     }
