@@ -20,7 +20,6 @@
 
 #endregion License
 
-
 #pragma warning disable 618
 
 namespace SFXUtility.Features.Trackers
@@ -154,7 +153,7 @@ namespace SFXUtility.Features.Trackers
             if (!Menu.Item(Name + "Clickable").GetValue<bool>())
                 return;
 
-            if (args.Msg == (uint) WindowsMessages.WM_LBUTTONUP)
+            if (args.Msg == (uint)WindowsMessages.WM_LBUTTONUP)
             {
                 var pos = Utils.GetCursorPos();
                 foreach (var enemy in _enemyObjects.Where(e => Utils.IsUnderRectangle(pos, e.Position.X, e.Position.Y, e.Width, e.Height)))
@@ -178,7 +177,7 @@ namespace SFXUtility.Features.Trackers
                     }
                 }
             }
-            if (args.Msg == (uint) WindowsMessages.WM_RBUTTONUP)
+            if (args.Msg == (uint)WindowsMessages.WM_RBUTTONUP)
             {
                 var pos = Utils.GetCursorPos();
                 foreach (var enemy in
@@ -208,8 +207,8 @@ namespace SFXUtility.Features.Trackers
                 "Rumble"
             };
 
-            private readonly string[] _champsNoEnergy = {"Aatrox", "DrMundo", "Vladimir", "Zac", "Katarina", "Garen", "Riven"};
-            private readonly string[] _champsRage = {"Shyvana"};
+            private readonly string[] _champsNoEnergy = { "Aatrox", "DrMundo", "Vladimir", "Zac", "Katarina", "Garen", "Riven" };
+            private readonly string[] _champsRage = { "Shyvana" };
             private readonly Render.Text _csText;
             private readonly Render.Text _deathText;
             private readonly Render.Line _healthLine;
@@ -220,7 +219,7 @@ namespace SFXUtility.Features.Trackers
             private readonly Render.Text _levelText;
             private readonly Render.Line _manaLine;
             private readonly Render.Text _manaText;
-            private readonly SpellSlot[] _summonerSpellSlots = {SpellSlot.Summoner1, SpellSlot.Summoner2};
+            private readonly SpellSlot[] _summonerSpellSlots = { SpellSlot.Summoner1, SpellSlot.Summoner2 };
             private readonly List<Render.Sprite> _summonerSprites = new List<Render.Sprite>();
             private readonly List<Render.Text> _summonerTexts = new List<Render.Text>();
             private readonly Render.Sprite _teleportAbortSprite;
@@ -254,7 +253,7 @@ namespace SFXUtility.Features.Trackers
                             }
                         }
                     };
-                    _hudSprite.Position = new Vector2(Drawing.Width - _hudSprite.Width, index*(_hudSprite.Height + 5) + offsetTop);
+                    _hudSprite.Position = new Vector2(Drawing.Width - _hudSprite.Width, index * (_hudSprite.Height + 5) + offsetTop);
 
                     _invisibleSprite = new Render.Sprite(Resources.SB_Invisible, _hudSprite.Position)
                     {
@@ -274,7 +273,7 @@ namespace SFXUtility.Features.Trackers
 
                     _heroSprite =
                         new Render.Sprite(
-                            (Bitmap) Resources.ResourceManager.GetObject(string.Format("SB_{0}", Hero.ChampionName)) ?? Resources.SB_Aatrox,
+                            (Bitmap)Resources.ResourceManager.GetObject(string.Format("SB_{0}", Hero.ChampionName)) ?? Resources.SB_Aatrox,
                             Vector2.Zero)
                         {
                             VisibleCondition = delegate
@@ -349,7 +348,7 @@ namespace SFXUtility.Features.Trackers
                                 return false;
                             }
                         },
-                        TextUpdate = () => ((int) (Hero.Spellbook.GetSpell(SpellSlot.R).CooldownExpires - Game.Time)).ToStringLookUp()
+                        TextUpdate = () => ((int)(Hero.Spellbook.GetSpell(SpellSlot.R).CooldownExpires - Game.Time)).ToStringLookUp()
                     };
 
 
@@ -370,7 +369,7 @@ namespace SFXUtility.Features.Trackers
                         },
                         EndPositionUpdate =
                             () =>
-                                new Vector2(_heroSprite.X + (_heroSprite.Width - 2)*(Hero.Health/Hero.MaxHealth),
+                                new Vector2(_heroSprite.X + (_heroSprite.Width - 2) * (Hero.Health / Hero.MaxHealth),
                                     _heroSprite.Y + _heroSprite.Height + 6)
                     };
 
@@ -389,7 +388,7 @@ namespace SFXUtility.Features.Trackers
                                 return false;
                             }
                         },
-                        TextUpdate = () => string.Format("{0} / {1}", (int) Hero.Health, (int) Hero.MaxHealth)
+                        TextUpdate = () => string.Format("{0} / {1}", (int)Hero.Health, (int)Hero.MaxHealth)
                     };
 
                     if (!Enumerable.Contains(_champsNoEnergy, Hero.ChampionName))
@@ -414,7 +413,7 @@ namespace SFXUtility.Features.Trackers
                             },
                             EndPositionUpdate =
                                 () =>
-                                    new Vector2(_heroSprite.X + (_heroSprite.Width - 2)*(Hero.Mana/Hero.MaxMana),
+                                    new Vector2(_heroSprite.X + (_heroSprite.Width - 2) * (Hero.Mana / Hero.MaxMana),
                                         _heroSprite.Y + _heroSprite.Height + _healthLine.Width + 10)
                         };
 
@@ -433,11 +432,11 @@ namespace SFXUtility.Features.Trackers
                                     return false;
                                 }
                             },
-                            TextUpdate = () => string.Format("{0} / {1}", (int) Hero.Mana, (int) Hero.MaxMana)
+                            TextUpdate = () => string.Format("{0} / {1}", (int)Hero.Mana, (int)Hero.MaxMana)
                         };
                     }
 
-                    _deathText = new Render.Text(new Vector2(_heroSprite.X + _heroSprite.Width/2f, _heroSprite.Y + _heroSprite.Height/2f),
+                    _deathText = new Render.Text(new Vector2(_heroSprite.X + _heroSprite.Width / 2f, _heroSprite.Y + _heroSprite.Height / 2f),
                         string.Empty, 30, Color.White)
                     {
                         OutLined = true,
@@ -462,7 +461,7 @@ namespace SFXUtility.Features.Trackers
                             }
                             else if (!Hero.IsDead)
                                 _deathDuration = 0;
-                            return ((int) (_deathDuration - Game.Time)).ToStringLookUp();
+                            return ((int)(_deathDuration - Game.Time)).ToStringLookUp();
                         }
                     };
 
@@ -516,7 +515,7 @@ namespace SFXUtility.Features.Trackers
                         var spell = Hero.Spellbook.GetSpell(_summonerSpellSlots[i]);
                         var sprite =
                             new Render.Sprite(
-                                (Bitmap) Resources.ResourceManager.GetObject(string.Format("SB_{0}", spell.Name.ToLower())) ??
+                                (Bitmap)Resources.ResourceManager.GetObject(string.Format("SB_{0}", spell.Name.ToLower())) ??
                                 Resources.SB_summonerbarrier, Vector2.Zero)
                             {
                                 VisibleCondition = delegate
@@ -532,10 +531,10 @@ namespace SFXUtility.Features.Trackers
                                     }
                                 }
                             };
-                        sprite.Position = new Vector2(_heroSprite.X - sprite.Width + 2, _heroSprite.Y + 6 + i*sprite.Height + i*2);
+                        sprite.Position = new Vector2(_heroSprite.X - sprite.Width + 2, _heroSprite.Y + 6 + i * sprite.Height + i * 2);
                         _summonerSprites.Add(sprite);
 
-                        var text = new Render.Text(new Vector2(sprite.Position.X - 1 - sprite.Width/2f, sprite.Position.Y + sprite.Height/2f),
+                        var text = new Render.Text(new Vector2(sprite.Position.X - 1 - sprite.Width / 2f, sprite.Position.Y + sprite.Height / 2f),
                             string.Empty, 15, Color.LightGray)
                         {
                             OutLined = true,
@@ -544,7 +543,7 @@ namespace SFXUtility.Features.Trackers
                             {
                                 try
                                 {
-                                    return Active && spell != null && spell.CooldownExpires - Game.Time > 0;
+                                    return Active && spell.Slot != SpellSlot.Unknown && spell.CooldownExpires - Game.Time > 0;
                                 }
                                 catch (Exception ex)
                                 {
@@ -552,7 +551,7 @@ namespace SFXUtility.Features.Trackers
                                     return false;
                                 }
                             },
-                            TextUpdate = () => ((int) (spell.CooldownExpires - Game.Time)).ToStringLookUp()
+                            TextUpdate = () => ((int)(spell.CooldownExpires - Game.Time)).ToStringLookUp()
                         };
                         _summonerTexts.Add(text);
                     }

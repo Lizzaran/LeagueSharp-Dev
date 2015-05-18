@@ -146,6 +146,12 @@
 	<entry key="F_PerfectWard">Perfect Ward</entry>
 	<!-- END: PerfectWard -->
 
+	<!-- START: KillSteal -->
+	<entry key="F_KillSteal">KillSteal</entry>
+	<entry key="KillSteal_Summoners">Summoners</entry>
+	<entry key="KillSteal_Items">Items</entry>
+	<!-- END: KillSteal -->
+
 	<!-- START: Range -->
 	<entry key="F_Range">Range</entry>
 	<!-- END: Range -->
@@ -227,7 +233,7 @@
 
 	<!-- START: Ability -->
 	<entry key="F_Ability">Ability</entry>
-	<entry key="Ability_Passive">Ability</entry>
+	<entry key="Ability_Passive">Passive</entry>
 	<entry key="Ability_Revive">Revive</entry>
 	<entry key="Ability_Zhonyas">Zhonyas</entry>
 	<entry key="Ability_Guardian">Guardian</entry>

@@ -80,7 +80,7 @@ namespace SFXUtility.Features.Timers
             {"monkeyking_base_r_cas.troy", new AbilityItem("wukong", "R", 4f, false)},
             {"morgana_base_r_indicator_ring.troy", new AbilityItem("morgana", "R", 3.5f, false)},
             {"nickoftime_tar.troy", new AbilityItem("zilean", "R", 5f, false)},
-            {"olaf_ragnorok_enraged.troy", new AbilityItem("olaf", Global.Lang.Get("Ability_R"), 6f, false)},
+            {"olaf_ragnorok_enraged.troy", new AbilityItem("olaf", "R", 6f, false)},
             {"pantheon_base_r_cas.troy", new AbilityItem("pantheon", "R 1", 2f, true)},
             {"pantheon_base_r_indicator_green.troy", new AbilityItem("pantheon", "R 2 " + Global.Lang.Get("G_Ally"), 4.5f, true)},
             {"pantheon_base_r_indicator_red.troy", new AbilityItem("pantheon", "R 2 " + Global.Lang.Get("G_Enemy"), 4.5f, true)},
@@ -176,7 +176,7 @@ namespace SFXUtility.Features.Timers
                 if (!sender.IsValid || sender.Type != GameObjectType.obj_GeneralParticleEmitter || (!sender.IsMe && !sender.IsAlly && !sender.IsEnemy))
                     return;
 
-                _drawings.RemoveAll(i => Game.Time > i.End);
+                _drawings.RemoveAll(i => i.Id == sender.NetworkId || Game.Time > i.End);
             }
             catch (Exception ex)
             {
@@ -200,9 +200,10 @@ namespace SFXUtility.Features.Timers
                     if (ability.Enabled)
                     {
                         _drawings.Add(ability.IsFixed
-                            ? new AbilityDraw {Position = sender.Position, End = Game.Time + ability.Time, Color = ability.Color}
+                            ? new AbilityDraw {Id = sender.NetworkId, Position = sender.Position, End = Game.Time + ability.Time, Color = ability.Color}
                             : new AbilityDraw
                             {
+                                Id = sender.NetworkId,
                                 Hero = HeroManager.AllHeroes.FirstOrDefault(h => h.NetworkId == sender.NetworkId),
                                 End = Game.Time + ability.Time,
                                 Color = ability.Color
@@ -227,7 +228,7 @@ namespace SFXUtility.Features.Timers
                 var offsetTop = Menu.Item(Menu.Name + "DrawingOffsetTop").GetValue<Slider>().Value;
                 var offsetLeft = Menu.Item(Menu.Name + "DrawingOffsetLeft").GetValue<Slider>().Value;
 
-                foreach (var ability in _drawings.Where(d => d.Position.IsOnScreen()))
+                foreach (var ability in _drawings.Where(d => d.Position.IsOnScreen() && d.End <= Game.Time))
                 {
                     var position = Drawing.WorldToScreen(ability.Position);
                     var time = (ability.End - Game.Time).ToString("0.0");
@@ -411,6 +412,8 @@ namespace SFXUtility.Features.Timers
 
             public Obj_AI_Hero Hero { get; set; }
             public float End { get; set; }
+
+            public int Id { get; set; }
         }
     }
 }

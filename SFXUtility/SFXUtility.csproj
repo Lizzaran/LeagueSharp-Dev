@@ -105,6 +105,7 @@
     <Compile Include="Features\Others\TurnAround.cs" />
     <Compile Include="Features\Trackers\GoldEfficiency.cs" />
     <Compile Include="Features\Trackers\Sidebar.cs" />
+    <Compile Include="Features\Trackers\Sidebar2.cs" />
     <Compile Include="Features\Trackers\Destination.cs" />
     <Compile Include="Features\Drawings\Clone.cs" />
     <Compile Include="Features\Timers\Cooldown.cs" />

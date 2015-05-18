@@ -30,6 +30,7 @@ namespace SFXUtility
     using System.Linq;
     using System.Reflection;
     using System.Resources;
+    using System.Threading;
     using Feature;
     using Features.Activators;
     using Features.Detectors;
@@ -48,102 +49,105 @@ namespace SFXUtility
         // ReSharper disable once UnusedParameter.Local
         private static void Main(string[] args)
         {
-            Global.Logger.LogLevel = LogLevel.High;
-
-            AppDomain.CurrentDomain.UnhandledException += delegate(object sender, UnhandledExceptionEventArgs eventArgs)
+            ThreadPool.QueueUserWorkItem(delegate
             {
-                var ex = sender as Exception;
-                if (ex != null)
-                    Global.Logger.AddItem(new LogItem(ex));
-            };
+                Global.Logger.LogLevel = LogLevel.High;
 
-            Global.Lang.Default = "en";
-
-            var currentAsm = Assembly.GetExecutingAssembly();
-            foreach (var resName in currentAsm.GetManifestResourceNames())
-            {
-                ResourceReader resReader = null;
-                using (var stream = currentAsm.GetManifestResourceStream(resName))
+                AppDomain.CurrentDomain.UnhandledException += delegate(object sender, UnhandledExceptionEventArgs eventArgs)
                 {
-                    if (stream != null)
-                        resReader = new ResourceReader(stream);
+                    var ex = sender as Exception;
+                    if (ex != null)
+                        Global.Logger.AddItem(new LogItem(ex));
+                };
 
-                    if (resReader != null)
+                Global.Lang.Default = "en";
+
+                var currentAsm = Assembly.GetExecutingAssembly();
+                foreach (var resName in currentAsm.GetManifestResourceNames())
+                {
+                    ResourceReader resReader = null;
+                    using (var stream = currentAsm.GetManifestResourceStream(resName))
                     {
-                        var en = resReader.GetEnumerator();
+                        if (stream != null)
+                            resReader = new ResourceReader(stream);
 
-                        while (en.MoveNext())
+                        if (resReader != null)
                         {
-                            if (en.Key.ToString().StartsWith("language_"))
-                                Global.Lang.Parse(en.Value.ToString());
+                            var en = resReader.GetEnumerator();
+
+                            while (en.MoveNext())
+                            {
+                                if (en.Key.ToString().StartsWith("language_"))
+                                    Global.Lang.Parse(en.Value.ToString());
+                            }
                         }
                     }
                 }
-            }
 
-            var lang =
-                Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, @"sfxutility.language.*", SearchOption.TopDirectoryOnly)
-                    .Select(Path.GetExtension)
-                    .FirstOrDefault();
-            if (lang != null && Global.Lang.Languages.Any(l => l.Equals(lang.Substring(1))))
-                Global.Lang.Current = lang.Substring(1);
-            else
-                Global.Lang.Current = CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
+                var lang =
+                    Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, @"sfxutility.language.*", SearchOption.TopDirectoryOnly)
+                        .Select(Path.GetExtension)
+                        .FirstOrDefault();
+                if (lang != null && Global.Lang.Languages.Any(l => l.Equals(lang.Substring(1))))
+                    Global.Lang.Current = lang.Substring(1);
+                else
+                    Global.Lang.Current = CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
 
-            Global.IoC.Register(() => new SFXUtility(), true, true);
+                Global.IoC.Register(() => new SFXUtility(), true, true);
 
-            Global.IoC.Register(() => new Activators(), true, true);
-            Global.IoC.Register(() => new BushRevealer(), true, true);
-            Global.IoC.Register(() => new InvisibilityRevealer(), true, true);
-            Global.IoC.Register(() => new KillSteal(), true, true);
-            Global.IoC.Register(() => new Potion(), true, true);
-            Global.IoC.Register(() => new Smite(), true, true);
+                Global.IoC.Register(() => new Activators(), true, true);
+                Global.IoC.Register(() => new BushRevealer(), true, true);
+                Global.IoC.Register(() => new InvisibilityRevealer(), true, true);
+                Global.IoC.Register(() => new KillSteal(), true, true);
+                Global.IoC.Register(() => new Potion(), true, true);
+                Global.IoC.Register(() => new Smite(), true, true);
 
-            Global.IoC.Register(() => new Detectors(), true, true);
-            Global.IoC.Register(() => new Gank(), true, true);
-            Global.IoC.Register(() => new Replay(), true, true);
-            Global.IoC.Register(() => new SharedExperience(), true, true);
-            Global.IoC.Register(() => new Teleport(), true, true);
+                Global.IoC.Register(() => new Detectors(), true, true);
+                Global.IoC.Register(() => new Gank(), true, true);
+                Global.IoC.Register(() => new Replay(), true, true);
+                Global.IoC.Register(() => new SharedExperience(), true, true);
+                Global.IoC.Register(() => new Teleport(), true, true);
 
-            Global.IoC.Register(() => new Drawings(), true, true);
-            Global.IoC.Register(() => new Clock(), true, true);
-            Global.IoC.Register(() => new Clone(), true, true);
-            Global.IoC.Register(() => new DamageIndicator(), true, true);
-            Global.IoC.Register(() => new Health(), true, true);
-            Global.IoC.Register(() => new LasthitMarker(), true, true);
-            Global.IoC.Register(() => new PerfectWard(), true, true);
-            Global.IoC.Register(() => new Range(), true, true);
-            Global.IoC.Register(() => new SafeJungleSpot(), true, true);
-            Global.IoC.Register(() => new Sidebar(), true, true);
-            Global.IoC.Register(() => new WallJumpSpot(), true, true);
-            Global.IoC.Register(() => new Waypoint(), true, true);
+                Global.IoC.Register(() => new Drawings(), true, true);
+                Global.IoC.Register(() => new Clock(), true, true);
+                Global.IoC.Register(() => new Clone(), true, true);
+                Global.IoC.Register(() => new DamageIndicator(), true, true);
+                Global.IoC.Register(() => new Health(), true, true);
+                Global.IoC.Register(() => new LasthitMarker(), true, true);
+                Global.IoC.Register(() => new PerfectWard(), true, true);
+                Global.IoC.Register(() => new Range(), true, true);
+                Global.IoC.Register(() => new SafeJungleSpot(), true, true);
+                Global.IoC.Register(() => new WallJumpSpot(), true, true);
+                Global.IoC.Register(() => new Waypoint(), true, true);
 
-            Global.IoC.Register(() => new Events(), true, true);
-            Global.IoC.Register(() => new AutoLeveler(), true, true);
-            Global.IoC.Register(() => new Game(), true, true);
-            Global.IoC.Register(() => new Trinket(), true, true);
+                Global.IoC.Register(() => new Events(), true, true);
+                Global.IoC.Register(() => new AutoLeveler(), true, true);
+                Global.IoC.Register(() => new Game(), true, true);
+                Global.IoC.Register(() => new Trinket(), true, true);
 
-            Global.IoC.Register(() => new Others(), true, true);
-            Global.IoC.Register(() => new AntiTrap(), true, true);
-            Global.IoC.Register(() => new AutoLantern(), true, true);
-            Global.IoC.Register(() => new ExtendFlash(), true, true);
-            Global.IoC.Register(() => new Humanize(), true, true);
-            Global.IoC.Register(() => new Ping(), true, true);
-            Global.IoC.Register(() => new SkinChanger(), true, true);
-            Global.IoC.Register(() => new SummonerInfo(), true, true);
-            Global.IoC.Register(() => new TurnAround(), true, true);
+                Global.IoC.Register(() => new Others(), true, true);
+                Global.IoC.Register(() => new AntiTrap(), true, true);
+                Global.IoC.Register(() => new AutoLantern(), true, true);
+                Global.IoC.Register(() => new ExtendFlash(), true, true);
+                Global.IoC.Register(() => new Humanize(), true, true);
+                Global.IoC.Register(() => new Ping(), true, true);
+                Global.IoC.Register(() => new SkinChanger(), true, true);
+                Global.IoC.Register(() => new SummonerInfo(), true, true);
+                Global.IoC.Register(() => new TurnAround(), true, true);
 
-            Global.IoC.Register(() => new Timers(), true, true);
-            Global.IoC.Register(() => new Ability(), true, true);
-            Global.IoC.Register(() => new Cooldown(), true, true);
-            Global.IoC.Register(() => new Jungle(), true, true);
-            Global.IoC.Register(() => new Object(), true, true);
+                Global.IoC.Register(() => new Timers(), true, true);
+                Global.IoC.Register(() => new Ability(), true, true);
+                Global.IoC.Register(() => new Cooldown(), true, true);
+                Global.IoC.Register(() => new Jungle(), true, true);
+                Global.IoC.Register(() => new Object(), true, true);
 
-            Global.IoC.Register(() => new Trackers(), true, true);
-            Global.IoC.Register(() => new GoldEfficiency(), true, true);
-            Global.IoC.Register(() => new Destination(), true, true);
-            Global.IoC.Register(() => new LastPosition(), true, true);
-            Global.IoC.Register(() => new Ward(), true, true);
+                Global.IoC.Register(() => new Trackers(), true, true);
+                Global.IoC.Register(() => new GoldEfficiency(), true, true);
+                Global.IoC.Register(() => new Destination(), true, true);
+                Global.IoC.Register(() => new LastPosition(), true, true);
+                Global.IoC.Register(() => new Sidebar(), true, true);
+                Global.IoC.Register(() => new Ward(), true, true);
+            }, null);
         }
     }
 }
