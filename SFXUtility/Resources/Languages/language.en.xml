@@ -80,6 +80,10 @@
 	<entry key="SFX_Exception">Exception</entry>
 	<!-- END: SFXUtility -->
 
+	<!-- START: Language -->
+	<entry key="Language_Auto">auto</entry>
+	<!-- END: Language -->
+
 	<!-- START: Features -->
 	<entry key="F_Activators">Activators</entry>
 	<entry key="F_Detectors">Detectors</entry>

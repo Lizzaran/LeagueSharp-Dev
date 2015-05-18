@@ -82,7 +82,7 @@ namespace SFXUtility
             }
 
             var lang =
-                Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, @"sfxutility.Global.Lang.*", SearchOption.TopDirectoryOnly)
+                Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, @"sfxutility.language.*", SearchOption.TopDirectoryOnly)
                     .Select(Path.GetExtension)
                     .FirstOrDefault();
             if (lang != null && Global.Lang.Languages.Any(l => l.Equals(lang.Substring(1))))

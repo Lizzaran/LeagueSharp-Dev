@@ -50,7 +50,7 @@ namespace SFXUtility
                         new StringList(new[] {"Calibri", "Arial", "Tahoma", "Verdana", "Times New Roman", "Lucida Console", "Comic Sans MS"})));
                 Menu.AddItem(
                     new MenuItem(Name + "Language", Global.Lang.Get("SFXUtility_Language")).SetValue(
-                        new StringList(new[] {"auto"}.Concat(Global.Lang.Languages.ToArray()).ToArray())));
+                        new StringList(new[] { Global.Lang.Get("Language_Auto") }.Concat(Global.Lang.Languages.ToArray()).ToArray())));
 
                 Global.DefaultFont = Menu.Item(Name + "Font").GetValue<StringList>().SelectedValue;
 
@@ -64,23 +64,27 @@ namespace SFXUtility
 
                 Menu.AddSubMenu(infoMenu);
 
-                Menu.Item(Name + "Language").ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
+                try
                 {
-                    const string preName = "sfxutility.Global.Lang.";
-                    var files = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, preName + "*", SearchOption.TopDirectoryOnly);
-                    foreach (var file in files)
+                    var file = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "sfxutility.language.*", SearchOption.TopDirectoryOnly).FirstOrDefault();
+                    if (!string.IsNullOrEmpty(file))
                     {
-                        try
+                        var ext = Path.GetExtension(file);
+                        if (!string.IsNullOrEmpty(ext))
                         {
-                            File.Delete(file);
-                        }
-                        catch
-                        {
+                            ext = ext.RightSubstring(ext.Length - 1);
+                            Menu.Item(Menu.Name + "Language")
+                                .SetValue(
+                                    new StringList(
+                                        new[] { ext }.Concat(
+                                            Menu.Item(Menu.Name + "Language").GetValue<StringList>().SList.Where(val => val != ext).ToArray()).ToArray()));
                         }
                     }
-                    if (!args.GetNewValue<StringList>().SelectedValue.Equals("auto", StringComparison.OrdinalIgnoreCase))
-                        File.Create(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, preName + args.GetNewValue<StringList>().SelectedValue));
-                };
+                }
+                catch (Exception ex)
+                {
+                    Global.Logger.AddItem(new LogItem(ex));
+                }
 
                 AppDomain.CurrentDomain.DomainUnload += OnExit;
                 AppDomain.CurrentDomain.ProcessExit += OnExit;
@@ -114,6 +118,33 @@ namespace SFXUtility
                 if (!_unloadTriggered)
                 {
                     _unloadTriggered = true;
+                    
+                    try
+                    {
+                        var preName = "sfxutility.language.";
+                        var autoName = Global.Lang.Get("Language_Auto");
+                        var files = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, preName + "*", SearchOption.TopDirectoryOnly);
+                        var selectedLanguage = Menu.Item(Menu.Name + "Language").GetValue<StringList>().SelectedValue;
+                        foreach (var file in files)
+                        {
+                            try
+                            {
+                                File.Delete(file);
+                            }
+                            catch
+                            {
+                            }
+                        }
+                        if (!selectedLanguage.Equals(autoName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            File.Create(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, preName + selectedLanguage));
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Global.Logger.AddItem(new LogItem(ex));
+                    }
+
                     OnUnload.RaiseEvent(null, new UnloadEventArgs(true));
                     Notifications.AddNotification(new Notification(Menu.Item(Name + "InfoException").DisplayName));
                 }
