@@ -33,8 +33,8 @@ namespace LeagueSharp.Console.Parts
     using SharpDX;
     using SharpDX.Direct3D9;
     using Color = SharpDX.Color;
-    using Console = Console;
-    using Drawing = Drawing;
+    using Console = LeagueSharp.Console.Console;
+    using Drawing = LeagueSharp.Drawing;
 
     #endregion
 

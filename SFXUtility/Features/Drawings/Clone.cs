@@ -31,14 +31,13 @@ namespace SFXUtility.Features.Drawings
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary;
     using SFXLibrary.Logger;
 
     #endregion
 
     internal class Clone : Base
     {
-        private readonly string[] _cloneHeroes = {"Shaco", "LeBlanc", "MonkeyKing", "Yorick"};
+        private readonly List<string> _cloneHeroes = new List<string> {"shaco", "leblanc", "monkeyking", "yorick"};
         private readonly List<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
         private Drawings _parent;
 
@@ -49,7 +48,7 @@ namespace SFXUtility.Features.Drawings
 
         public override string Name
         {
-            get { return Language.Get("F_Clone"); }
+            get { return Global.Lang.Get("F_Clone"); }
         }
 
         protected override void OnEnable()
@@ -112,23 +111,24 @@ namespace SFXUtility.Features.Drawings
 
                 Menu = new Menu(Name, Name);
 
-                var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
+                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "CircleColor", Language.Get("G_Circle") + " " + Language.Get("G_Color")).SetValue(
+                    new MenuItem(drawingMenu.Name + "CircleColor", Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Color")).SetValue(
                         Color.YellowGreen));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "CircleRadius", Language.Get("G_Circle") + " " + Language.Get("G_Radius")).SetValue(new Slider(30)));
+                    new MenuItem(drawingMenu.Name + "CircleRadius", Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Radius")).SetValue(
+                        new Slider(30)));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "CircleThickness", Language.Get("G_Circle") + " " + Language.Get("G_Thickness")).SetValue(
+                    new MenuItem(drawingMenu.Name + "CircleThickness", Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Thickness")).SetValue(
                         new Slider(2, 1, 10)));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _heroes.AddRange(HeroManager.Enemies.Where(e => _cloneHeroes.Any(e.ChampionName.Contains)));
+                _heroes.AddRange(HeroManager.Enemies.Where(hero => _cloneHeroes.Contains(hero.ChampionName.ToLower())));
 
                 if (!_heroes.Any())
                     return;

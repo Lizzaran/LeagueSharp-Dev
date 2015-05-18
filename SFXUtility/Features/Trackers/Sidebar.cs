@@ -36,12 +36,10 @@ namespace SFXUtility.Features.Trackers
     using LeagueSharp;
     using LeagueSharp.Common;
     using Properties;
-    using SFXLibrary;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Logger;
     using SharpDX;
     using Color = SharpDX.Color;
-    using Utils = LeagueSharp.Common.Utils;
 
     #endregion
 
@@ -57,7 +55,7 @@ namespace SFXUtility.Features.Trackers
 
         public override string Name
         {
-            get { return Language.Get("F_Sidebar"); }
+            get { return Global.Lang.Get("F_Sidebar"); }
         }
 
         protected override void OnGameLoad(EventArgs args)
@@ -102,16 +100,16 @@ namespace SFXUtility.Features.Trackers
 
                 Menu = new Menu(Name, Name);
 
-                var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
+                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
 
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "OffsetTop", Language.Get("G_Offset") + " " + Language.Get("G_Top")).SetValue(new Slider(150, 0,
-                        1000)));
+                    new MenuItem(drawingMenu.Name + "OffsetTop", Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Top")).SetValue(new Slider(
+                        150, 0, 1000)));
 
                 Menu.AddSubMenu(drawingMenu);
-                Menu.AddItem(new MenuItem(Name + "Clickable", Language.Get("Sidebar_Clickable")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Clickable", Global.Lang.Get("Sidebar_Clickable")).SetValue(false));
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 

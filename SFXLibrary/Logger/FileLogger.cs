@@ -91,7 +91,8 @@ namespace SFXLibrary.Logger
             try
             {
                 var file = Path.Combine(LogDir,
-                    string.Format(_fileName, DateTime.Now.ToString("yyyy_MM_dd"), LogLevel.ToString().ToLower(), (item.Exception + AdditionalData.ToDebugString()).ToMd5Hash()));
+                    string.Format(_fileName, DateTime.Now.ToString("yyyy_MM_dd"), LogLevel.ToString().ToLower(),
+                        (item.Exception + AdditionalData.ToDebugString()).ToMd5Hash()));
 
                 if (File.Exists(file))
                     return;

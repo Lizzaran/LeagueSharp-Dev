@@ -29,7 +29,6 @@ namespace SFXUtility.Features.Others
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary;
     using SFXLibrary.Logger;
 
     #endregion
@@ -45,7 +44,7 @@ namespace SFXUtility.Features.Others
 
         public override string Name
         {
-            get { return Language.Get("F_AutoLantern"); }
+            get { return Global.Lang.Get("F_AutoLantern"); }
         }
 
         protected override void OnEnable()
@@ -88,10 +87,11 @@ namespace SFXUtility.Features.Others
 
                 Menu = new Menu(Name, Name);
 
-                Menu.AddItem(new MenuItem(Name + "Percent", Language.Get("G_Health") + " " + Language.Get("G_Percent")).SetValue(new Slider(20, 0, 50)));
-                Menu.AddItem(new MenuItem(Name + "Hotkey", Language.Get("G_Hotkey")).SetValue(new KeyBind('U', KeyBindType.Press)));
+                Menu.AddItem(
+                    new MenuItem(Name + "Percent", Global.Lang.Get("G_Health") + " " + Global.Lang.Get("G_Percent")).SetValue(new Slider(20, 0, 50)));
+                Menu.AddItem(new MenuItem(Name + "Hotkey", Global.Lang.Get("G_Hotkey")).SetValue(new KeyBind('U', KeyBindType.Press)));
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 

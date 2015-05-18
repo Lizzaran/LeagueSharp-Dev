@@ -30,7 +30,6 @@ namespace SFXUtility.Features.Timers
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.Logger;
@@ -41,7 +40,10 @@ namespace SFXUtility.Features.Timers
 
     internal class Jungle : Base
     {
+        private const float CheckInterval = 800f;
         private readonly List<Camp> _camps = new List<Camp>();
+        private int _dragonStacks;
+        private float _lastCheck = Environment.TickCount;
         private Font _mapText;
         private Font _minimapText;
         private Timers _parent;
@@ -53,13 +55,14 @@ namespace SFXUtility.Features.Timers
 
         public override string Name
         {
-            get { return Language.Get("F_Jungle"); }
+            get { return Global.Lang.Get("F_Jungle"); }
         }
 
         protected override void OnEnable()
         {
             GameObject.OnCreate += OnGameObjectCreate;
             GameObject.OnDelete += OnGameObjectDelete;
+            Game.OnUpdate += OnGameUpdate;
 
             Drawing.OnPreReset += OnDrawingPreReset;
             Drawing.OnPostReset += OnDrawingPostReset;
@@ -71,6 +74,7 @@ namespace SFXUtility.Features.Timers
         {
             GameObject.OnCreate -= OnGameObjectCreate;
             GameObject.OnDelete -= OnGameObjectDelete;
+            Game.OnUpdate -= OnGameUpdate;
 
             Drawing.OnPreReset -= OnDrawingPreReset;
             Drawing.OnPostReset -= OnDrawingPostReset;
@@ -133,6 +137,50 @@ namespace SFXUtility.Features.Timers
                 {
                     mob.Dead = false;
                     camp.Dead = false;
+                }
+            }
+        }
+
+        private void OnGameUpdate(EventArgs args)
+        {
+            if (_lastCheck + CheckInterval > Environment.TickCount)
+                return;
+
+            _lastCheck = Environment.TickCount;
+
+
+            var dragonStacks = 0;
+            foreach (var enemy in HeroManager.Enemies)
+            {
+                var buff = enemy.Buffs.FirstOrDefault(b => b.Name.Equals("s5test_dragonslayerbuff", StringComparison.OrdinalIgnoreCase));
+                if (buff != null && buff.Count > dragonStacks)
+                {
+                    dragonStacks = buff.Count;
+                }
+            }
+            if (dragonStacks > _dragonStacks)
+            {
+                var dCamp = _camps.FirstOrDefault(c => c.Mobs.Any(m => m.Name.Contains("Dragon")));
+                if (dCamp != null && !dCamp.Dead)
+                {
+                    dCamp.Dead = true;
+                    dCamp.NextRespawnTime = (int) Game.Time + dCamp.RespawnTime;
+                }
+            }
+            _dragonStacks = dragonStacks;
+
+            var bCamp = _camps.FirstOrDefault(c => c.Mobs.Any(m => m.Name.Contains("Baron")));
+            if (bCamp != null && !bCamp.Dead)
+            {
+                var heroes = HeroManager.Enemies.Where(e => e.IsVisible);
+                foreach (var hero in heroes)
+                {
+                    var buff = hero.Buffs.FirstOrDefault(b => b.Name.Equals("exaltedwithbaronnashor", StringComparison.OrdinalIgnoreCase));
+                    if (buff != null)
+                    {
+                        bCamp.Dead = true;
+                        bCamp.NextRespawnTime = (int) buff.StartTime + bCamp.RespawnTime;
+                    }
                 }
             }
         }
@@ -229,27 +277,28 @@ namespace SFXUtility.Features.Timers
 
                 Menu = new Menu(Name, Name);
 
-                var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
-                var drawingMapMenu = new Menu(Language.Get("G_Map"), drawingMenu.Name + "Map");
-                var drawingMinimapMenu = new Menu(Language.Get("G_Minimap"), drawingMenu.Name + "Minimap");
+                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
+                var drawingMapMenu = new Menu(Global.Lang.Get("G_Map"), drawingMenu.Name + "Map");
+                var drawingMinimapMenu = new Menu(Global.Lang.Get("G_Minimap"), drawingMenu.Name + "Minimap");
 
                 drawingMapMenu.AddItem(
-                    new MenuItem(drawingMapMenu.Name + "TimeFormat", Language.Get("G_TimeFormat")).SetValue(new StringList(new[] {"mm:ss", "ss"})));
-                drawingMapMenu.AddItem(new MenuItem(drawingMapMenu.Name + "FontSize", Language.Get("G_FontSize")).SetValue(new Slider(20, 3, 30)));
-                drawingMapMenu.AddItem(new MenuItem(drawingMapMenu.Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                    new MenuItem(drawingMapMenu.Name + "TimeFormat", Global.Lang.Get("G_TimeFormat")).SetValue(new StringList(new[] {"mm:ss", "ss"})));
+                drawingMapMenu.AddItem(new MenuItem(drawingMapMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(new Slider(20, 3, 30)));
+                drawingMapMenu.AddItem(new MenuItem(drawingMapMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 drawingMinimapMenu.AddItem(
-                    new MenuItem(drawingMinimapMenu.Name + "TimeFormat", Language.Get("G_TimeFormat")).SetValue(new StringList(new[] {"mm:ss", "ss"})));
+                    new MenuItem(drawingMinimapMenu.Name + "TimeFormat", Global.Lang.Get("G_TimeFormat")).SetValue(
+                        new StringList(new[] {"mm:ss", "ss"})));
                 drawingMinimapMenu.AddItem(
-                    new MenuItem(drawingMinimapMenu.Name + "FontSize", Language.Get("G_FontSize")).SetValue(new Slider(13, 3, 30)));
-                drawingMinimapMenu.AddItem(new MenuItem(drawingMinimapMenu.Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                    new MenuItem(drawingMinimapMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(new Slider(13, 3, 30)));
+                drawingMinimapMenu.AddItem(new MenuItem(drawingMinimapMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 drawingMenu.AddSubMenu(drawingMapMenu);
                 drawingMenu.AddSubMenu(drawingMinimapMenu);
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 

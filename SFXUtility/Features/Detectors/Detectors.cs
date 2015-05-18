@@ -27,7 +27,6 @@ namespace SFXUtility.Features.Detectors
     using System;
     using Classes;
     using LeagueSharp.Common;
-    using SFXLibrary;
     using SFXLibrary.Logger;
 
     #endregion
@@ -41,7 +40,7 @@ namespace SFXUtility.Features.Detectors
 
         public override string Name
         {
-            get { return Language.Get("F_Detectors"); }
+            get { return Global.Lang.Get("F_Detectors"); }
         }
 
         protected override void OnGameLoad(EventArgs args)
@@ -50,7 +49,7 @@ namespace SFXUtility.Features.Detectors
             {
                 Menu = new Menu(Name, Name);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 BaseMenu.AddSubMenu(Menu);
 

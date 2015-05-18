@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Health.cs is part of SFXUtility.
+ Ping.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,17 +20,15 @@
 
 #endregion License
 
-namespace SFXUtility.Features.Drawings
+namespace SFXUtility.Features.Others
 {
     #region
 
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary.Extensions.NET;
     using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.Logger;
     using SharpDX;
@@ -38,11 +36,10 @@ namespace SFXUtility.Features.Drawings
 
     #endregion
 
-    internal class Health : Base
+    internal class Ping : Base
     {
-        private readonly List<Obj_BarracksDampener> _inhibs = new List<Obj_BarracksDampener>();
-        private readonly List<Obj_AI_Turret> _turrets = new List<Obj_AI_Turret>();
-        private Drawings _parent;
+        private readonly List<PingItem> _pingItems = new List<PingItem>();
+        private Others _parent;
         private Font _text;
 
         public override bool Enabled
@@ -52,11 +49,12 @@ namespace SFXUtility.Features.Drawings
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_Health"); }
+            get { return Global.Lang.Get("F_Ping"); }
         }
 
         protected override void OnEnable()
         {
+            Game.OnPing += OnGamePing;
             Drawing.OnPreReset += OnDrawingPreReset;
             Drawing.OnPostReset += OnDrawingPostReset;
             Drawing.OnEndScene += OnDrawingEndScene;
@@ -66,24 +64,95 @@ namespace SFXUtility.Features.Drawings
 
         protected override void OnDisable()
         {
+            Game.OnPing -= OnGamePing;
             Drawing.OnPreReset -= OnDrawingPreReset;
             Drawing.OnPostReset -= OnDrawingPostReset;
             Drawing.OnEndScene -= OnDrawingEndScene;
 
-            OnUnload(null, new UnloadEventArgs());
-
-            base.OnEnable();
+            base.OnDisable();
         }
 
         protected override void OnUnload(object sender, UnloadEventArgs args)
         {
-            if (args != null && args.Final)
-                base.OnUnload(sender, args);
-
-            if (Initialized)
+            try
             {
-                OnDrawingPreReset(null);
-                OnDrawingPostReset(null);
+                if (args != null && args.Final)
+                    base.OnUnload(sender, args);
+
+                if (Initialized)
+                {
+                    OnDrawingPreReset(null);
+                    OnDrawingPostReset(null);
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        protected override void OnGameLoad(EventArgs args)
+        {
+            try
+            {
+                if (Global.IoC.IsRegistered<Others>())
+                {
+                    _parent = Global.IoC.Resolve<Others>();
+                    if (_parent.Initialized)
+                        OnParentInitialized(null, null);
+                    else
+                        _parent.OnInitialized += OnParentInitialized;
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void OnParentInitialized(object sender, EventArgs eventArgs)
+        {
+            try
+            {
+                if (_parent.Menu == null)
+                    return;
+
+                Menu = new Menu(Name, Name);
+
+                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(new Slider(25, 10, 30)));
+
+                Menu.AddSubMenu(drawingMenu);
+
+                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+
+                _parent.Menu.AddSubMenu(Menu);
+
+                _text = new Font(Drawing.Direct3DDevice,
+                    new FontDescription
+                    {
+                        FaceName = Global.DefaultFont,
+                        Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
+                        OutputPrecision = FontPrecision.Default,
+                        Quality = FontQuality.Default
+                    });
+
+                HandleEvents(_parent);
+                RaiseOnInitialized();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void OnGamePing(GamePingEventArgs args)
+        {
+            var hero = args.Source as Obj_AI_Hero;
+            if (hero != null && hero.IsValid && args.PingType != PingCategory.OnMyWay)
+            {
+                _pingItems.Add(new PingItem(hero.ChampionName, Game.Time + (args.PingType == PingCategory.Danger ? 1f : 1.8f), args.Position,
+                    args.Target));
             }
         }
 
@@ -94,22 +163,13 @@ namespace SFXUtility.Features.Drawings
                 if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
                     return;
 
-                var percent = Menu.Item(Name + "DrawingPercent").GetValue<bool>();
-                if (Menu.Item(Name + "Turret").GetValue<bool>())
+                _pingItems.RemoveAll(p => p.EndTime < Game.Time);
+                foreach (var ping in _pingItems)
                 {
-                    foreach (var turret in _turrets.Where(t => t != null && t.IsValid && !t.IsDead && t.HealthPercent <= 75))
-                    {
-                        _text.DrawTextCentered(((int) (percent ? (int) turret.HealthPercent : turret.Health)).ToStringLookUp(),
-                            Drawing.WorldToMinimap(turret.Position), Color.White);
-                    }
-                }
-                if (Menu.Item(Name + "Inhibitor").GetValue<bool>())
-                {
-                    foreach (var inhib in _inhibs.Where(i => i != null && i.IsValid && !i.IsDead && i.Health > 1f && i.HealthPercent <= 75))
-                    {
-                        _text.DrawTextCentered(((int) (percent ? (int) inhib.HealthPercent : inhib.Health)).ToStringLookUp(),
-                            Drawing.WorldToMinimap(inhib.Position), Color.White);
-                    }
+                    var pos = ping.Target != null && ping.Target.IsValid
+                        ? Drawing.WorldToScreen(ping.Target.Position)
+                        : Drawing.WorldToScreen(ping.Position.To3D());
+                    _text.DrawTextCentered(ping.Name, (int) pos.X, (int) pos.Y - 25, Color.White);
                 }
             }
             catch (Exception ex)
@@ -142,69 +202,20 @@ namespace SFXUtility.Features.Drawings
             }
         }
 
-        private void OnParentInitialized(object sender, EventArgs eventArgs)
+        internal class PingItem
         {
-            try
+            public PingItem(string name, float endTime, Vector2 position, GameObject target)
             {
-                if (_parent.Menu == null)
-                    return;
-
-                Menu = new Menu(Name, Name);
-
-                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Percent", Global.Lang.Get("G_Percent")).SetValue(false));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(new Slider(13, 3, 30)));
-
-                Menu.AddSubMenu(drawingMenu);
-
-                Menu.AddItem(new MenuItem(Name + "Turret", Global.Lang.Get("G_Turret")).SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "Inhibitor", Global.Lang.Get("G_Inhibitor")).SetValue(false));
-
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
-
-                _parent.Menu.AddSubMenu(Menu);
-
-                _turrets.AddRange(ObjectManager.Get<Obj_AI_Turret>().Where(t => t.IsValid && !t.IsDead && t.Health > 1f && t.Health < 9999f));
-                _inhibs.AddRange(ObjectManager.Get<Obj_BarracksDampener>().Where(i => i.IsValid));
-
-                if (!_turrets.Any() || !_inhibs.Any())
-                    return;
-
-                _text = new Font(Drawing.Direct3DDevice,
-                    new FontDescription
-                    {
-                        FaceName = Global.DefaultFont,
-                        Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
-                        OutputPrecision = FontPrecision.Default,
-                        Quality = FontQuality.Default
-                    });
-
-                HandleEvents(_parent);
-                RaiseOnInitialized();
+                Name = name;
+                EndTime = endTime;
+                Position = position;
+                Target = target;
             }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
 
-        protected override void OnGameLoad(EventArgs args)
-        {
-            try
-            {
-                if (Global.IoC.IsRegistered<Drawings>())
-                {
-                    _parent = Global.IoC.Resolve<Drawings>();
-                    if (_parent.Initialized)
-                        OnParentInitialized(null, null);
-                    else
-                        _parent.OnInitialized += OnParentInitialized;
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
+            public string Name { get; set; }
+            public float EndTime { get; set; }
+            public Vector2 Position { get; set; }
+            public GameObject Target { get; set; }
         }
     }
 }

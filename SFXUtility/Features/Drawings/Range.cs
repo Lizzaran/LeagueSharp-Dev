@@ -30,7 +30,6 @@ namespace SFXUtility.Features.Drawings
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary;
     using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.Logger;
 
@@ -49,7 +48,7 @@ namespace SFXUtility.Features.Drawings
 
         public override string Name
         {
-            get { return Language.Get("F_Range"); }
+            get { return Global.Lang.Get("F_Range"); }
         }
 
         private void DrawAttack()
@@ -243,51 +242,53 @@ namespace SFXUtility.Features.Drawings
 
                 Menu = new Menu(Name, Name);
 
-                var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
+                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "CircleThickness", Language.Get("G_Circle") + " " + Language.Get("G_Thickness")).SetValue(
+                    new MenuItem(drawingMenu.Name + "CircleThickness", Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Thickness")).SetValue(
                         new Slider(2, 1, 10)));
 
-                var experienceMenu = new Menu(Language.Get("G_Experience"), Name + "Experience");
+                var experienceMenu = new Menu(Global.Lang.Get("G_Experience"), Name + "Experience");
                 experienceMenu.AddItem(
-                    new MenuItem(experienceMenu.Name + "ColorSelf", Language.Get("G_Color") + " " + Language.Get("G_Self")).SetValue(Color.Gray));
+                    new MenuItem(experienceMenu.Name + "ColorSelf", Global.Lang.Get("G_Color") + " " + Global.Lang.Get("G_Self")).SetValue(Color.Gray));
                 experienceMenu.AddItem(
-                    new MenuItem(experienceMenu.Name + "ColorAlly", Language.Get("G_Color") + " " + Language.Get("G_Ally")).SetValue(Color.Gray));
+                    new MenuItem(experienceMenu.Name + "ColorAlly", Global.Lang.Get("G_Color") + " " + Global.Lang.Get("G_Ally")).SetValue(Color.Gray));
                 experienceMenu.AddItem(
-                    new MenuItem(experienceMenu.Name + "ColorEnemy", Language.Get("G_Color") + " " + Language.Get("G_Enemy")).SetValue(Color.Gray));
-                experienceMenu.AddItem(new MenuItem(experienceMenu.Name + "Self", Language.Get("G_Self")).SetValue(false));
-                experienceMenu.AddItem(new MenuItem(experienceMenu.Name + "Ally", Language.Get("G_Ally")).SetValue(false));
-                experienceMenu.AddItem(new MenuItem(experienceMenu.Name + "Enemy", Language.Get("G_Enemy")).SetValue(false));
+                    new MenuItem(experienceMenu.Name + "ColorEnemy", Global.Lang.Get("G_Color") + " " + Global.Lang.Get("G_Enemy")).SetValue(
+                        Color.Gray));
+                experienceMenu.AddItem(new MenuItem(experienceMenu.Name + "Self", Global.Lang.Get("G_Self")).SetValue(false));
+                experienceMenu.AddItem(new MenuItem(experienceMenu.Name + "Ally", Global.Lang.Get("G_Ally")).SetValue(false));
+                experienceMenu.AddItem(new MenuItem(experienceMenu.Name + "Enemy", Global.Lang.Get("G_Enemy")).SetValue(false));
 
-                var attackMenu = new Menu(Language.Get("G_Attack"), Name + "Attack");
+                var attackMenu = new Menu(Global.Lang.Get("G_Attack"), Name + "Attack");
                 attackMenu.AddItem(
-                    new MenuItem(attackMenu.Name + "ColorSelf", Language.Get("G_Color") + " " + Language.Get("G_Self")).SetValue(Color.Yellow));
+                    new MenuItem(attackMenu.Name + "ColorSelf", Global.Lang.Get("G_Color") + " " + Global.Lang.Get("G_Self")).SetValue(Color.Yellow));
                 attackMenu.AddItem(
-                    new MenuItem(attackMenu.Name + "ColorAlly", Language.Get("G_Color") + " " + Language.Get("G_Ally")).SetValue(Color.Yellow));
+                    new MenuItem(attackMenu.Name + "ColorAlly", Global.Lang.Get("G_Color") + " " + Global.Lang.Get("G_Ally")).SetValue(Color.Yellow));
                 attackMenu.AddItem(
-                    new MenuItem(attackMenu.Name + "ColorEnemy", Language.Get("G_Color") + " " + Language.Get("G_Enemy")).SetValue(Color.Yellow));
-                attackMenu.AddItem(new MenuItem(attackMenu.Name + "Self", Language.Get("G_Self")).SetValue(false));
-                attackMenu.AddItem(new MenuItem(attackMenu.Name + "Ally", Language.Get("G_Ally")).SetValue(false));
-                attackMenu.AddItem(new MenuItem(attackMenu.Name + "Enemy", Language.Get("G_Enemy")).SetValue(false));
+                    new MenuItem(attackMenu.Name + "ColorEnemy", Global.Lang.Get("G_Color") + " " + Global.Lang.Get("G_Enemy")).SetValue(Color.Yellow));
+                attackMenu.AddItem(new MenuItem(attackMenu.Name + "Self", Global.Lang.Get("G_Self")).SetValue(false));
+                attackMenu.AddItem(new MenuItem(attackMenu.Name + "Ally", Global.Lang.Get("G_Ally")).SetValue(false));
+                attackMenu.AddItem(new MenuItem(attackMenu.Name + "Enemy", Global.Lang.Get("G_Enemy")).SetValue(false));
 
-                var turretMenu = new Menu(Language.Get("G_Turret"), Name + "Turret");
+                var turretMenu = new Menu(Global.Lang.Get("G_Turret"), Name + "Turret");
                 turretMenu.AddItem(
-                    new MenuItem(turretMenu.Name + "ColorAlly", Language.Get("G_Color") + " " + Language.Get("G_Ally")).SetValue(Color.DarkGreen));
+                    new MenuItem(turretMenu.Name + "ColorAlly", Global.Lang.Get("G_Color") + " " + Global.Lang.Get("G_Ally")).SetValue(Color.DarkGreen));
                 turretMenu.AddItem(
-                    new MenuItem(turretMenu.Name + "ColorEnemy", Language.Get("G_Color") + " " + Language.Get("G_Enemy")).SetValue(Color.DarkRed));
-                turretMenu.AddItem(new MenuItem(turretMenu.Name + "Ally", Language.Get("G_Ally")).SetValue(false));
-                turretMenu.AddItem(new MenuItem(turretMenu.Name + "Enemy", Language.Get("G_Enemy")).SetValue(false));
+                    new MenuItem(turretMenu.Name + "ColorEnemy", Global.Lang.Get("G_Color") + " " + Global.Lang.Get("G_Enemy")).SetValue(Color.DarkRed));
+                turretMenu.AddItem(new MenuItem(turretMenu.Name + "Ally", Global.Lang.Get("G_Ally")).SetValue(false));
+                turretMenu.AddItem(new MenuItem(turretMenu.Name + "Enemy", Global.Lang.Get("G_Enemy")).SetValue(false));
 
-                var spellMenu = new Menu(Language.Get("G_Spell"), Name + "Spell");
+                var spellMenu = new Menu(Global.Lang.Get("G_Spell"), Name + "Spell");
                 spellMenu.AddItem(
                     new MenuItem(spellMenu.Name + "MaxRange",
-                        Language.Get("G_Maximum") + " " + Language.Get("G_Spell") + " " + Language.Get("G_Range")).SetValue(new Slider(1000, 500, 3000)));
+                        Global.Lang.Get("G_Maximum") + " " + Global.Lang.Get("G_Spell") + " " + Global.Lang.Get("G_Range")).SetValue(new Slider(1000,
+                            500, 3000)));
 
-                var spellSelfMenu = new Menu(Language.Get("G_Self"), spellMenu.Name + "Self");
-                spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "ColorQ", Language.Get("G_Color") + " Q").SetValue(Color.Purple));
-                spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "ColorW", Language.Get("G_Color") + " W").SetValue(Color.Purple));
-                spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "ColorE", Language.Get("G_Color") + " E").SetValue(Color.Purple));
-                spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "ColorR", Language.Get("G_Color") + " R").SetValue(Color.Purple));
+                var spellSelfMenu = new Menu(Global.Lang.Get("G_Self"), spellMenu.Name + "Self");
+                spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "ColorQ", Global.Lang.Get("G_Color") + " Q").SetValue(Color.Purple));
+                spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "ColorW", Global.Lang.Get("G_Color") + " W").SetValue(Color.Purple));
+                spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "ColorE", Global.Lang.Get("G_Color") + " E").SetValue(Color.Purple));
+                spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "ColorR", Global.Lang.Get("G_Color") + " R").SetValue(Color.Purple));
                 spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "Q", "Q").SetValue(false));
                 spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "W", "W").SetValue(false));
                 spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "E", "E").SetValue(false));
@@ -295,11 +296,11 @@ namespace SFXUtility.Features.Drawings
 
                 spellMenu.AddSubMenu(spellSelfMenu);
 
-                var spellAllyMenu = new Menu(Language.Get("G_Ally"), spellMenu.Name + "Ally");
-                spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "ColorQ", Language.Get("G_Color") + " Q").SetValue(Color.Green));
-                spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "ColorW", Language.Get("G_Color") + " W").SetValue(Color.Green));
-                spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "ColorE", Language.Get("G_Color") + " E").SetValue(Color.Green));
-                spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "ColorR", Language.Get("G_Color") + " R").SetValue(Color.Green));
+                var spellAllyMenu = new Menu(Global.Lang.Get("G_Ally"), spellMenu.Name + "Ally");
+                spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "ColorQ", Global.Lang.Get("G_Color") + " Q").SetValue(Color.Green));
+                spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "ColorW", Global.Lang.Get("G_Color") + " W").SetValue(Color.Green));
+                spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "ColorE", Global.Lang.Get("G_Color") + " E").SetValue(Color.Green));
+                spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "ColorR", Global.Lang.Get("G_Color") + " R").SetValue(Color.Green));
                 spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "Q", "Q").SetValue(false));
                 spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "W", "W").SetValue(false));
                 spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "E", "E").SetValue(false));
@@ -307,11 +308,11 @@ namespace SFXUtility.Features.Drawings
 
                 spellMenu.AddSubMenu(spellAllyMenu);
 
-                var spellEnemyMenu = new Menu(Language.Get("G_Enemy"), spellMenu.Name + "Enemy");
-                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "ColorQ", Language.Get("G_Color") + " Q").SetValue(Color.Red));
-                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "ColorW", Language.Get("G_Color") + " W").SetValue(Color.Red));
-                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "ColorE", Language.Get("G_Color") + " E").SetValue(Color.Red));
-                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "ColorR", Language.Get("G_Color") + " R").SetValue(Color.Red));
+                var spellEnemyMenu = new Menu(Global.Lang.Get("G_Enemy"), spellMenu.Name + "Enemy");
+                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "ColorQ", Global.Lang.Get("G_Color") + " Q").SetValue(Color.Red));
+                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "ColorW", Global.Lang.Get("G_Color") + " W").SetValue(Color.Red));
+                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "ColorE", Global.Lang.Get("G_Color") + " E").SetValue(Color.Red));
+                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "ColorR", Global.Lang.Get("G_Color") + " R").SetValue(Color.Red));
                 spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "Q", "Q").SetValue(false));
                 spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "W", "W").SetValue(false));
                 spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "E", "E").SetValue(false));
@@ -325,7 +326,7 @@ namespace SFXUtility.Features.Drawings
                 Menu.AddSubMenu(turretMenu);
                 Menu.AddSubMenu(spellMenu);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 

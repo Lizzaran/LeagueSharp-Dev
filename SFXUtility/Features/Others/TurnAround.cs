@@ -30,7 +30,6 @@ namespace SFXUtility.Features.Others
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Logger;
     using SharpDX;
@@ -42,11 +41,11 @@ namespace SFXUtility.Features.Others
         private readonly List<SpellInfoStruct> _spellInfos = new List<SpellInfoStruct>
         {
             new SpellInfoStruct("Cassiopeia", "CassiopeiaPetrifyingGaze", 750f, false, true),
-            new SpellInfoStruct("Shaco", "TwoShivPoison", 625f, true, false),
             new SpellInfoStruct("Tryndamere", "MockingShout", 850f, false, false)
         };
 
         private float _blockMovementTime;
+        private Vector2 _lastWaypoint = Vector2.Zero;
         private Others _parent;
 
         public override bool Enabled
@@ -56,7 +55,7 @@ namespace SFXUtility.Features.Others
 
         public override string Name
         {
-            get { return Language.Get("F_TurnAround"); }
+            get { return Global.Lang.Get("F_TurnAround"); }
         }
 
         protected override void OnEnable()
@@ -75,6 +74,12 @@ namespace SFXUtility.Features.Others
                     if (_blockMovementTime > Game.Time)
                     {
                         args.Process = false;
+                    }
+                    else if (_lastWaypoint != Vector2.Zero && _lastWaypoint.IsValid())
+                    {
+                        ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, _lastWaypoint.To3D());
+                        _lastWaypoint = Vector2.Zero;
+                        ;
                     }
                 }
             }
@@ -96,23 +101,18 @@ namespace SFXUtility.Features.Others
             {
                 if (sender == null || sender.Team == ObjectManager.Player.Team || ObjectManager.Player.IsDead || !ObjectManager.Player.IsTargetable)
                     return;
-
                 var spellInfo = _spellInfos.FirstOrDefault(i => args.SData.Name.Contains(i.Name, StringComparison.OrdinalIgnoreCase));
 
                 if (!spellInfo.Equals(default(SpellInfoStruct)))
                 {
-                    if (spellInfo.Target && args.Target == ObjectManager.Player ||
+                    if ((spellInfo.Target && args.Target == ObjectManager.Player) ||
                         ObjectManager.Player.ServerPosition.Distance(sender.ServerPosition) <= spellInfo.Range)
                     {
-                        _blockMovementTime = Game.Time + args.SData.SpellCastTime;
+                        _lastWaypoint = ObjectManager.Player.GetWaypoints().Last();
                         ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo,
-                            new Vector2(
-                                ObjectManager.Player.ServerPosition.X +
-                                (sender.ServerPosition.X - ObjectManager.Player.ServerPosition.X)*(spellInfo.TurnOpposite ? 100 : -100)/
-                                ObjectManager.Player.ServerPosition.Distance(sender.ServerPosition),
-                                ObjectManager.Player.ServerPosition.Y +
-                                (sender.ServerPosition.Y - ObjectManager.Player.ServerPosition.Y)*(spellInfo.TurnOpposite ? 100 : -100)/
-                                ObjectManager.Player.ServerPosition.Distance(sender.ServerPosition)).To3D());
+                            sender.ServerPosition.Extend(ObjectManager.Player.ServerPosition,
+                                ObjectManager.Player.ServerPosition.Distance(sender.ServerPosition) + (spellInfo.TurnOpposite ? 100 : -100)));
+                        _blockMovementTime = Game.Time + args.SData.SpellCastTime;
                     }
                 }
             }
@@ -150,7 +150,7 @@ namespace SFXUtility.Features.Others
 
                 Menu = new Menu(Name, Name);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 

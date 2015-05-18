@@ -31,7 +31,6 @@ namespace SFXUtility.Features.Drawings
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Logger;
 
@@ -56,7 +55,7 @@ namespace SFXUtility.Features.Drawings
 
         public override string Name
         {
-            get { return Language.Get("F_DamageIndicator"); }
+            get { return Global.Lang.Get("F_DamageIndicator"); }
         }
 
         private void OnDrawingDraw(EventArgs args)
@@ -129,17 +128,18 @@ namespace SFXUtility.Features.Drawings
 
                 Menu = new Menu(Name, Name);
 
-                var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
+                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "LineColor", Language.Get("G_Line") + " " + Language.Get("G_Color")).SetValue(
+                    new MenuItem(drawingMenu.Name + "LineColor", Global.Lang.Get("G_Line") + " " + Global.Lang.Get("G_Color")).SetValue(
                         Color.DarkRed.ToArgb(90)));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "FillColor", Language.Get("G_Fill") + " " + Language.Get("G_Color")).SetValue(Color.Red.ToArgb(90)));
+                    new MenuItem(drawingMenu.Name + "FillColor", Global.Lang.Get("G_Fill") + " " + Global.Lang.Get("G_Color")).SetValue(
+                        Color.Red.ToArgb(90)));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "AutoAttacks", Language.Get("DamageIndicator_AutoAttacks")).SetValue(new Slider(2, 0, 5)));
-                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "AutoAttacks", Global.Lang.Get("DamageIndicator_AutoAttacks")).SetValue(new Slider(2, 0, 5)));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 

@@ -30,7 +30,6 @@ namespace SFXUtility.Features.Drawings
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Logger;
     using SharpDX;
@@ -50,7 +49,7 @@ namespace SFXUtility.Features.Drawings
 
         public override string Name
         {
-            get { return Language.Get("F_LasthitMarker"); }
+            get { return Global.Lang.Get("F_LasthitMarker"); }
         }
 
         private void OnDrawingDraw(EventArgs args)
@@ -104,33 +103,33 @@ namespace SFXUtility.Features.Drawings
 
                 Menu = new Menu(Name, Name);
 
-                var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
+                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
 
-                var drawingHpBarMenu = new Menu(Language.Get("LasthitMarker_HpBar"), drawingMenu.Name + "HpBar");
+                var drawingHpBarMenu = new Menu(Global.Lang.Get("LasthitMarker_HpBar"), drawingMenu.Name + "HpBar");
                 drawingHpBarMenu.AddItem(
-                    new MenuItem(drawingHpBarMenu.Name + "KillableColor", Language.Get("LasthitMarker_Killable") + " " + Language.Get("G_Color"))
+                    new MenuItem(drawingHpBarMenu.Name + "KillableColor", Global.Lang.Get("LasthitMarker_Killable") + " " + Global.Lang.Get("G_Color"))
                         .SetValue(Color.Green));
                 drawingHpBarMenu.AddItem(
-                    new MenuItem(drawingHpBarMenu.Name + "UnkillableColor", Language.Get("LasthitMarker_Unkillable") + " " + Language.Get("G_Color"))
-                        .SetValue(Color.White));
+                    new MenuItem(drawingHpBarMenu.Name + "UnkillableColor",
+                        Global.Lang.Get("LasthitMarker_Unkillable") + " " + Global.Lang.Get("G_Color")).SetValue(Color.White));
                 drawingHpBarMenu.AddItem(
-                    new MenuItem(drawingHpBarMenu.Name + "LineThickness", Language.Get("G_Line") + " " + Language.Get("G_Thickness")).SetValue(
+                    new MenuItem(drawingHpBarMenu.Name + "LineThickness", Global.Lang.Get("G_Line") + " " + Global.Lang.Get("G_Thickness")).SetValue(
                         new Slider(1, 1, 10)));
-                drawingHpBarMenu.AddItem(new MenuItem(drawingHpBarMenu.Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                drawingHpBarMenu.AddItem(new MenuItem(drawingHpBarMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                var drawingCirclesMenu = new Menu(Language.Get("G_Circle"), drawingMenu.Name + "Circle");
-                drawingCirclesMenu.AddItem(new MenuItem(drawingCirclesMenu.Name + "Color", Language.Get("G_Color")).SetValue(Color.Fuchsia));
-                drawingCirclesMenu.AddItem(new MenuItem(drawingCirclesMenu.Name + "Radius", Language.Get("G_Radius")).SetValue(new Slider(30)));
+                var drawingCirclesMenu = new Menu(Global.Lang.Get("G_Circle"), drawingMenu.Name + "Circle");
+                drawingCirclesMenu.AddItem(new MenuItem(drawingCirclesMenu.Name + "Color", Global.Lang.Get("G_Color")).SetValue(Color.Fuchsia));
+                drawingCirclesMenu.AddItem(new MenuItem(drawingCirclesMenu.Name + "Radius", Global.Lang.Get("G_Radius")).SetValue(new Slider(30)));
                 drawingCirclesMenu.AddItem(
-                    new MenuItem(drawingCirclesMenu.Name + "Thickness", Language.Get("G_Thickness")).SetValue(new Slider(2, 1, 10)));
-                drawingCirclesMenu.AddItem(new MenuItem(drawingCirclesMenu.Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                    new MenuItem(drawingCirclesMenu.Name + "Thickness", Global.Lang.Get("G_Thickness")).SetValue(new Slider(2, 1, 10)));
+                drawingCirclesMenu.AddItem(new MenuItem(drawingCirclesMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 drawingMenu.AddSubMenu(drawingHpBarMenu);
                 drawingMenu.AddSubMenu(drawingCirclesMenu);
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 

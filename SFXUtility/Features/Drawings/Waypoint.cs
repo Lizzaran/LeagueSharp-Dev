@@ -52,7 +52,7 @@ namespace SFXUtility.Features.Drawings
 
         public override string Name
         {
-            get { return Language.Get("F_Waypoint"); }
+            get { return Global.Lang.Get("F_Waypoint"); }
         }
 
         protected override void OnEnable()
@@ -157,17 +157,18 @@ namespace SFXUtility.Features.Drawings
 
                 Menu = new Menu(Name, Name);
 
-                var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
+                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "CrossColor", Language.Get("G_Cross") + " " + Language.Get("G_Color")).SetValue(Color.DarkRed));
+                    new MenuItem(drawingMenu.Name + "CrossColor", Global.Lang.Get("G_Cross") + " " + Global.Lang.Get("G_Color")).SetValue(
+                        Color.DarkRed));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "LineColor", Language.Get("G_Line") + " " + Language.Get("G_Color")).SetValue(Color.White));
+                    new MenuItem(drawingMenu.Name + "LineColor", Global.Lang.Get("G_Line") + " " + Global.Lang.Get("G_Color")).SetValue(Color.White));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "DrawAlly", Language.Get("G_Ally")).SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "DrawEnemy", Language.Get("G_Enemy")).SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "DrawAlly", Global.Lang.Get("G_Ally")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "DrawEnemy", Global.Lang.Get("G_Enemy")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Menu.Item(Name + "DrawAlly").ValueChanged += delegate
                 {

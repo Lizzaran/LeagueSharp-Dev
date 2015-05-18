@@ -26,6 +26,7 @@ namespace SFXUtility
 
     using System;
     using System.IO;
+    using SFXLibrary;
     using SFXLibrary.IoCContainer;
     using SFXLibrary.Logger;
 
@@ -35,6 +36,7 @@ namespace SFXUtility
     {
         public static ILogger Logger;
         public static Container IoC = new Container();
+        public static Language Lang = new Language();
         public static string DefaultFont = "Calibri";
 
         static Global()

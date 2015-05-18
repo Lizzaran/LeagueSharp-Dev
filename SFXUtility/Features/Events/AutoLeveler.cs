@@ -30,7 +30,6 @@ namespace SFXUtility.Features.Events
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary;
     using SFXLibrary.Logger;
     using Utils = SFXLibrary.Utils;
 
@@ -49,7 +48,7 @@ namespace SFXUtility.Features.Events
 
         public override string Name
         {
-            get { return Language.Get("F_AutoLeveler"); }
+            get { return Global.Lang.Get("F_AutoLeveler"); }
         }
 
         protected override void OnEnable()
@@ -116,19 +115,19 @@ namespace SFXUtility.Features.Events
 
                 var championMenu = new Menu(ObjectManager.Player.ChampionName, Name + ObjectManager.Player.ChampionName);
                 championMenu.AddItem(
-                    new MenuItem(championMenu.Name + "PatternEarly", Language.Get("AutoLeveler_PatternEarly")).SetValue(
+                    new MenuItem(championMenu.Name + "PatternEarly", Global.Lang.Get("AutoLeveler_PatternEarly")).SetValue(
                         new StringList(new[] {"Q W", "Q E", "Q W E", "Q E W", "W Q", "W E", "W Q E", "W E Q", "E Q", "E W", "E Q W", "E W Q"})));
                 championMenu.AddItem(new MenuItem(championMenu.Name + "PatternQ", "Q").SetValue(new Slider(3, 3, 1)));
                 championMenu.AddItem(new MenuItem(championMenu.Name + "PatternW", "W").SetValue(new Slider(1, 3, 1)));
                 championMenu.AddItem(new MenuItem(championMenu.Name + "PatternE", "E").SetValue(new Slider(2, 3, 1)));
                 championMenu.AddItem(
-                    new MenuItem(championMenu.Name + "Priority3LvL", Language.Get("AutoLeveler_Priority3LvL")).SetValue(new Slider(4, 0, 13)));
-                championMenu.AddItem(new MenuItem(championMenu.Name + "OnlyR", Language.Get("AutoLeveler_OnlyR")).SetValue(false));
-                championMenu.AddItem(new MenuItem(championMenu.Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                    new MenuItem(championMenu.Name + "Priority3LvL", Global.Lang.Get("AutoLeveler_Priority3LvL")).SetValue(new Slider(4, 0, 13)));
+                championMenu.AddItem(new MenuItem(championMenu.Name + "OnlyR", Global.Lang.Get("AutoLeveler_OnlyR")).SetValue(false));
+                championMenu.AddItem(new MenuItem(championMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Menu.AddSubMenu(championMenu);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 

@@ -38,7 +38,6 @@ namespace SFXUtility
     using Features.Others;
     using Features.Timers;
     using Features.Trackers;
-    using SFXLibrary;
     using SFXLibrary.Logger;
     using Object = Features.Timers.Object;
 
@@ -58,7 +57,7 @@ namespace SFXUtility
                     Global.Logger.AddItem(new LogItem(ex));
             };
 
-            Language.Default = "en";
+            Global.Lang.Default = "en";
 
             var currentAsm = Assembly.GetExecutingAssembly();
             foreach (var resName in currentAsm.GetManifestResourceNames())
@@ -76,22 +75,22 @@ namespace SFXUtility
                         while (en.MoveNext())
                         {
                             if (en.Key.ToString().StartsWith("language_"))
-                                Language.Parse(en.Value.ToString());
+                                Global.Lang.Parse(en.Value.ToString());
                         }
                     }
                 }
             }
 
             var lang =
-                Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, @"sfxutility.language.*", SearchOption.TopDirectoryOnly)
+                Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, @"sfxutility.Global.Lang.*", SearchOption.TopDirectoryOnly)
                     .Select(Path.GetExtension)
                     .FirstOrDefault();
-            if (lang != null && Language.Languages.Any(l => l.Equals(lang.Substring(1))))
-                Language.Current = lang.Substring(1);
+            if (lang != null && Global.Lang.Languages.Any(l => l.Equals(lang.Substring(1))))
+                Global.Lang.Current = lang.Substring(1);
             else
-                Language.Current = CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
+                Global.Lang.Current = CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
 
-            Global.IoC.Register(typeof (SFXUtility), () => new SFXUtility(), true, true);
+            Global.IoC.Register(() => new SFXUtility(), true, true);
 
             Global.IoC.Register(() => new Activators(), true, true);
             Global.IoC.Register(() => new BushRevealer(), true, true);
@@ -129,6 +128,7 @@ namespace SFXUtility
             Global.IoC.Register(() => new AutoLantern(), true, true);
             Global.IoC.Register(() => new ExtendFlash(), true, true);
             Global.IoC.Register(() => new Humanize(), true, true);
+            Global.IoC.Register(() => new Ping(), true, true);
             Global.IoC.Register(() => new SkinChanger(), true, true);
             Global.IoC.Register(() => new SummonerInfo(), true, true);
             Global.IoC.Register(() => new TurnAround(), true, true);

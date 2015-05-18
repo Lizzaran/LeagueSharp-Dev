@@ -33,14 +33,12 @@ namespace SFXLibrary
 
     public class Language
     {
-        private static readonly Dictionary<string, Dictionary<string, string>> LanguagesDictionary =
-            new Dictionary<string, Dictionary<string, string>>();
+        private readonly Dictionary<string, Dictionary<string, string>> _languagesDictionary = new Dictionary<string, Dictionary<string, string>>();
+        public List<string> Languages = new List<string>();
+        public string Default { get; set; }
+        public string Current { get; set; }
 
-        public static List<string> Languages = new List<string>();
-        public static string Default { get; set; }
-        public static string Current { get; set; }
-
-        public static void Parse(string xml)
+        public void Parse(string xml)
         {
             try
             {
@@ -57,7 +55,7 @@ namespace SFXLibrary
                     {
                         entries[entry.Attribute("key").Value] = entry.Value;
                     }
-                    LanguagesDictionary[lang] = entries;
+                    _languagesDictionary[lang] = entries;
                 }
             }
             catch (Exception ex)
@@ -66,11 +64,11 @@ namespace SFXLibrary
             }
         }
 
-        public static string Get(string key, string overrideLanguage = null)
+        public string Get(string key, string overrideLanguage = null)
         {
             Dictionary<string, string> entries;
             var language = string.IsNullOrEmpty(overrideLanguage) ? Current : overrideLanguage;
-            if (LanguagesDictionary.TryGetValue(language, out entries))
+            if (_languagesDictionary.TryGetValue(language, out entries))
             {
                 string value;
                 if (entries.TryGetValue(key, out value))
@@ -85,7 +83,7 @@ namespace SFXLibrary
             return string.Format("[{0}]", key);
         }
 
-        public static string[] GetList(string key, char seperator = '|', string overrideLanguage = null)
+        public string[] GetList(string key, char seperator = '|', string overrideLanguage = null)
         {
             return Get(key, overrideLanguage).Split(seperator).ToArray();
         }

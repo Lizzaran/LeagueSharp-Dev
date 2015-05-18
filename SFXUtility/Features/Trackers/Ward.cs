@@ -31,7 +31,6 @@ namespace SFXUtility.Features.Trackers
     using LeagueSharp;
     using LeagueSharp.Common;
     using Properties;
-    using SFXLibrary;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.Logger;
@@ -79,7 +78,7 @@ namespace SFXUtility.Features.Trackers
 
         public override string Name
         {
-            get { return Language.Get("F_Ward"); }
+            get { return Global.Lang.Get("F_Ward"); }
         }
 
         protected override void OnEnable()
@@ -156,33 +155,35 @@ namespace SFXUtility.Features.Trackers
 
                 Menu = new Menu(Name, Name);
 
-                var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
+                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "TimeFormat", Language.Get("G_TimeFormat")).SetValue(new StringList(new[] {"mm:ss", "ss"})));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", Language.Get("G_FontSize")).SetValue(new Slider(13, 3, 30)));
+                    new MenuItem(drawingMenu.Name + "TimeFormat", Global.Lang.Get("G_TimeFormat")).SetValue(new StringList(new[] {"mm:ss", "ss"})));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(new Slider(13, 3, 30)));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "CircleRadius", Language.Get("G_Circle") + " " + Language.Get("G_Radius")).SetValue(new Slider(
-                        150, 25, 300)));
+                    new MenuItem(drawingMenu.Name + "CircleRadius", Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Radius")).SetValue(
+                        new Slider(150, 25, 300)));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "CircleThickness", Language.Get("G_Circle") + " " + Language.Get("G_Thickness")).SetValue(
+                    new MenuItem(drawingMenu.Name + "CircleThickness", Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Thickness")).SetValue(
                         new Slider(2, 1, 10)));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "GreenCircle", Language.Get("Ward_Green") + " " + Language.Get("G_Circle")).SetValue(true));
+                    new MenuItem(drawingMenu.Name + "GreenCircle", Global.Lang.Get("Ward_Green") + " " + Global.Lang.Get("G_Circle")).SetValue(true));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "GreenColor", Language.Get("Ward_Green") + " " + Language.Get("G_Color")).SetValue(Color.Lime));
+                    new MenuItem(drawingMenu.Name + "GreenColor", Global.Lang.Get("Ward_Green") + " " + Global.Lang.Get("G_Color")).SetValue(
+                        Color.Lime));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "PinkColor", Language.Get("Ward_Pink") + " " + Language.Get("G_Color")).SetValue(Color.Magenta));
+                    new MenuItem(drawingMenu.Name + "PinkColor", Global.Lang.Get("Ward_Pink") + " " + Global.Lang.Get("G_Color")).SetValue(
+                        Color.Magenta));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "TrapColor", Language.Get("Ward_Trap") + " " + Language.Get("G_Color")).SetValue(Color.Red));
+                    new MenuItem(drawingMenu.Name + "TrapColor", Global.Lang.Get("Ward_Trap") + " " + Global.Lang.Get("G_Color")).SetValue(Color.Red));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "VisionRange", Language.Get("Ward_Vision") + " " + Language.Get("G_Range")).SetValue(true));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Minimap", Language.Get("G_Minimap")).SetValue(true));
+                    new MenuItem(drawingMenu.Name + "VisionRange", Global.Lang.Get("Ward_Vision") + " " + Global.Lang.Get("G_Range")).SetValue(true));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Minimap", Global.Lang.Get("G_Minimap")).SetValue(true));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "FilterWards", Language.Get("Ward_FilterWards")).SetValue(new Slider(250, 0, 600)));
-                Menu.AddItem(new MenuItem(Name + "Hotkey", Language.Get("G_Hotkey")).SetValue(new KeyBind(16, KeyBindType.Press)));
-                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "FilterWards", Global.Lang.Get("Ward_FilterWards")).SetValue(new Slider(250, 0, 600)));
+                Menu.AddItem(new MenuItem(Name + "Hotkey", Global.Lang.Get("G_Hotkey")).SetValue(new KeyBind(16, KeyBindType.Press)));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 
@@ -247,7 +248,7 @@ namespace SFXUtility.Features.Trackers
                     {
                         if (greenCircle || ward.Data.Type != WardType.Green)
                         {
-                            if (ward.Object == null || !ward.Object.IsVisible)
+                            if (ward.Object == null || (ward.Object != null && !ward.Object.IsVisible))
                             {
                                 Render.Circle.DrawCircle(ward.Position, circleRadius, color, circleThickness);
                             }
@@ -424,7 +425,7 @@ namespace SFXUtility.Features.Trackers
                         }
                         if (obj.IsFromMissile && !obj.Corrected)
                         {
-                            var newPoint = obj.StartPosition.Extend(obj.EndPosition, -(range * 1.5f));
+                            var newPoint = obj.StartPosition.Extend(obj.EndPosition, -(range*1.5f));
                             if (wObj.Position.Distance(newPoint) < range)
                             {
                                 _wardObjects.Remove(obj);
@@ -435,10 +436,9 @@ namespace SFXUtility.Features.Trackers
                 }
                 else
                 {
-                    foreach (
-                        var obj in
-                            _wardObjects.Where(w => w.Data.Duration != int.MaxValue && w.IsFromMissile && w.Position.Distance(wObj.Position) < 100)
-                                .ToList())
+                    foreach (var obj in
+                        _wardObjects.Where(w => w.Data.Duration != int.MaxValue && w.IsFromMissile && w.Position.Distance(wObj.Position) < 100)
+                            .ToList())
                     {
                         _wardObjects.Remove(obj);
                         return;

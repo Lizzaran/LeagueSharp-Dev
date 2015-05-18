@@ -57,7 +57,7 @@ namespace SFXUtility.Features.Detectors
 
         public override string Name
         {
-            get { return Language.Get("F_Teleport"); }
+            get { return Global.Lang.Get("F_Teleport"); }
         }
 
         public event EventHandler<TeleportEventArgs> OnStart;
@@ -174,20 +174,20 @@ namespace SFXUtility.Features.Detectors
 
                 Menu = new Menu(Name, Name);
 
-                var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
+                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
 
-                var drawingTextMenu = new Menu(Language.Get("G_Text"), drawingMenu.Name + "Text");
-                drawingTextMenu.AddItem(new MenuItem(drawingTextMenu.Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                var drawingTextMenu = new Menu(Global.Lang.Get("G_Text"), drawingMenu.Name + "Text");
+                drawingTextMenu.AddItem(new MenuItem(drawingTextMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                var drawingBarMenu = new Menu(Language.Get("G_Bar"), drawingMenu.Name + "Bar");
-                drawingBarMenu.AddItem(new MenuItem(drawingBarMenu.Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                var drawingBarMenu = new Menu(Global.Lang.Get("G_Bar"), drawingMenu.Name + "Bar");
+                drawingBarMenu.AddItem(new MenuItem(drawingBarMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 drawingMenu.AddSubMenu(drawingTextMenu);
                 drawingMenu.AddSubMenu(drawingBarMenu);
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 
@@ -308,15 +308,15 @@ namespace SFXUtility.Features.Detectors
                         switch (LastStatus)
                         {
                             case Packet.S2C.Teleport.Status.Start:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Recalling"), Hero.ChampionName,
+                                return string.Format("{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Recalling"), Hero.ChampionName,
                                     (int) Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Finish:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Recalled"), Hero.ChampionName,
+                                return string.Format("{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Recalled"), Hero.ChampionName,
                                     (int) Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Abort:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Aborted"), Hero.ChampionName,
+                                return string.Format("{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Aborted"), Hero.ChampionName,
                                     (int) Hero.HealthPercent, time);
                         }
                         break;
@@ -325,15 +325,15 @@ namespace SFXUtility.Features.Detectors
                         switch (LastStatus)
                         {
                             case Packet.S2C.Teleport.Status.Start:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Teleporting"), Hero.ChampionName,
+                                return string.Format("{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Teleporting"), Hero.ChampionName,
                                     (int) Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Finish:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Teleported"), Hero.ChampionName,
+                                return string.Format("{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Teleported"), Hero.ChampionName,
                                     (int) Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Abort:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Aborted"), Hero.ChampionName,
+                                return string.Format("{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Aborted"), Hero.ChampionName,
                                     (int) Hero.HealthPercent, time);
                         }
                         break;
@@ -343,15 +343,15 @@ namespace SFXUtility.Features.Detectors
                         switch (LastStatus)
                         {
                             case Packet.S2C.Teleport.Status.Start:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Transporting"), Hero.ChampionName,
+                                return string.Format("{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Transporting"), Hero.ChampionName,
                                     (int) Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Finish:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Transported"), Hero.ChampionName,
+                                return string.Format("{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Transported"), Hero.ChampionName,
                                     (int) Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Abort:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Language.Get("Teleport_Aborted"), Hero.ChampionName,
+                                return string.Format("{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Aborted"), Hero.ChampionName,
                                     (int) Hero.HealthPercent, time);
                         }
                         break;

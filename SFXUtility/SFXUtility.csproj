@@ -70,8 +70,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\Blowfish.cs" />
+    <Compile Include="Data\Items.cs" />
     <Compile Include="Data\Jungle.cs" />
     <Compile Include="Classes\Spectator.cs" />
+    <Compile Include="Data\Summoners.cs" />
     <Compile Include="Features\Activators\Activators.cs" />
     <Compile Include="Features\Activators\BushRevealer.cs" />
     <Compile Include="Features\Activators\KillSteal.cs" />
@@ -97,6 +99,7 @@
     <Compile Include="Features\Others\AutoLantern.cs" />
     <Compile Include="Features\Others\Others.cs" />
     <Compile Include="Features\Drawings\PerfectWard.cs" />
+    <Compile Include="Features\Others\Ping.cs" />
     <Compile Include="Features\Others\SkinChanger.cs" />
     <Compile Include="Features\Others\SummonerInfo.cs" />
     <Compile Include="Features\Others\TurnAround.cs" />

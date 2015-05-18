@@ -33,7 +33,6 @@ namespace SFXUtility.Features.Trackers
     using LeagueSharp;
     using LeagueSharp.Common;
     using Properties;
-    using SFXLibrary;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.Logger;
@@ -61,7 +60,7 @@ namespace SFXUtility.Features.Trackers
 
         public override string Name
         {
-            get { return Language.Get("F_LastPosition"); }
+            get { return Global.Lang.Get("F_LastPosition"); }
         }
 
         protected override void OnGameLoad(EventArgs args)
@@ -220,18 +219,18 @@ namespace SFXUtility.Features.Trackers
 
                 Menu = new Menu(Name, Name);
 
-                var drawingMenu = new Menu(Language.Get("G_Drawing"), Name + "Drawing");
+                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "TimeFormat", Language.Get("G_TimeFormat")).SetValue(new StringList(new[] {"mm:ss", "ss"})));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", Language.Get("G_FontSize")).SetValue(new Slider(13, 3, 30)));
+                    new MenuItem(drawingMenu.Name + "TimeFormat", Global.Lang.Get("G_TimeFormat")).SetValue(new StringList(new[] {"mm:ss", "ss"})));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(new Slider(13, 3, 30)));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "SSTimerOffset", Language.Get("LastPosition_SSTimer") + " " + Language.Get("G_Offset")).SetValue(
-                        new Slider(5, 0, 20)));
+                    new MenuItem(drawingMenu.Name + "SSTimerOffset", Global.Lang.Get("LastPosition_SSTimer") + " " + Global.Lang.Get("G_Offset"))
+                        .SetValue(new Slider(5, 0, 20)));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "SSTimer", Language.Get("LastPosition_SSTimer")).SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "SSTimer", Global.Lang.Get("LastPosition_SSTimer")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 

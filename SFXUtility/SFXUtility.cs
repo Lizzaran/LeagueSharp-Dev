@@ -29,7 +29,6 @@ namespace SFXUtility
     using System.Linq;
     using System.Reflection;
     using LeagueSharp.Common;
-    using SFXLibrary;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Logger;
     using Version = System.Version;
@@ -47,27 +46,27 @@ namespace SFXUtility
                 Menu = new Menu(Name, Name, true);
 
                 Menu.AddItem(
-                    new MenuItem(Name + "Font", Language.Get("SFXUtility_Font")).SetValue(
+                    new MenuItem(Name + "Font", Global.Lang.Get("SFXUtility_Font")).SetValue(
                         new StringList(new[] {"Calibri", "Arial", "Tahoma", "Verdana", "Times New Roman", "Lucida Console", "Comic Sans MS"})));
                 Menu.AddItem(
-                    new MenuItem(Name + "Language", Language.Get("SFXUtility_Language")).SetValue(
-                        new StringList(new[] {"auto"}.Concat(Language.Languages.ToArray()).ToArray())));
+                    new MenuItem(Name + "Language", Global.Lang.Get("SFXUtility_Language")).SetValue(
+                        new StringList(new[] {"auto"}.Concat(Global.Lang.Languages.ToArray()).ToArray())));
 
                 Global.DefaultFont = Menu.Item(Name + "Font").GetValue<StringList>().SelectedValue;
 
-                var infoMenu = new Menu(Language.Get("SFXUtility_Info"), Name + "Info");
+                var infoMenu = new Menu(Global.Lang.Get("SFXUtility_Info"), Name + "Info");
 
-                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Version", string.Format("{0}: {1}", Language.Get("SFXUtility_Version"), Version)));
-                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Forum", Language.Get("SFXUtility_Forum") + ": Lizzaran"));
-                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Github", Language.Get("SFXUtility_GitHub") + ": Lizzaran"));
-                infoMenu.AddItem(new MenuItem(infoMenu.Name + "IRC", Language.Get("SFXUtility_IRC") + ": Appril"));
-                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Exception", string.Format("{0}: {1}", Language.Get("SFX_Exception"), 0)));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Version", string.Format("{0}: {1}", Global.Lang.Get("SFXUtility_Version"), Version)));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Forum", Global.Lang.Get("SFXUtility_Forum") + ": Lizzaran"));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Github", Global.Lang.Get("SFXUtility_GitHub") + ": Lizzaran"));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "IRC", Global.Lang.Get("SFXUtility_IRC") + ": Appril"));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Exception", string.Format("{0}: {1}", Global.Lang.Get("SFX_Exception"), 0)));
 
                 Menu.AddSubMenu(infoMenu);
 
                 Menu.Item(Name + "Language").ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
                 {
-                    const string preName = "sfxutility.language.";
+                    const string preName = "sfxutility.Global.Lang.";
                     var files = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, preName + "*", SearchOption.TopDirectoryOnly);
                     foreach (var file in files)
                     {
@@ -98,7 +97,7 @@ namespace SFXUtility
 
         public string Name
         {
-            get { return Language.Get("F_SFXUtility"); }
+            get { return Global.Lang.Get("F_SFXUtility"); }
         }
 
         public Version Version
@@ -136,7 +135,7 @@ namespace SFXUtility
             {
                 Menu.AddToMainMenu();
 
-                var errorText = Language.Get("SFX_Exception");
+                var errorText = Global.Lang.Get("SFX_Exception");
                 Global.Logger.OnItemAdded += delegate
                 {
                     try

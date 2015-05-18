@@ -35,6 +35,7 @@
 	<entry key="G_Maximum">Max</entry>
 	<entry key="G_Range">Range</entry>
 	<entry key="G_Distance">Distance</entry>
+	<entry key="G_Outline">Outline</entry>
 	<entry key="G_Health">Health</entry>
 	<entry key="G_Mana">Mana</entry>
 	<entry key="G_Turret">Turret</entry>
@@ -208,6 +209,10 @@
 	<entry key="F_Humanize">Humanize</entry>
 	<!-- END: Humanize -->
 
+	<!-- START: Ping -->
+	<entry key="F_Ping">Ping</entry>
+	<!-- END: Ping -->
+
 	<!-- START: SkinChanger -->
 	<entry key="F_SkinChanger">Skin Changer</entry>
 	<!-- END: SkinChanger -->
@@ -215,6 +220,14 @@
 	<!-- START: TurnAround -->
 	<entry key="F_TurnAround">Turn Around</entry>
 	<!-- END: TurnAround -->
+
+	<!-- START: Ability -->
+	<entry key="F_Ability">Ability</entry>
+	<entry key="Ability_Passive">Ability</entry>
+	<entry key="Ability_Revive">Revive</entry>
+	<entry key="Ability_Zhonyas">Zhonyas</entry>
+	<entry key="Ability_Guardian">Guardian</entry>
+	<!-- END: Ability -->
 
 	<!-- START: Cooldown -->
 	<entry key="F_Cooldown">Cooldown</entry>

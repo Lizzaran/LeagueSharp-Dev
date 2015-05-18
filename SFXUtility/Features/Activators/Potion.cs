@@ -54,7 +54,7 @@ namespace SFXUtility.Features.Activators
 
         public override string Name
         {
-            get { return Language.Get("F_Potion"); }
+            get { return Global.Lang.Get("F_Potion"); }
         }
 
         protected override void OnEnable()
@@ -78,25 +78,25 @@ namespace SFXUtility.Features.Activators
 
                 _potions = _potions.OrderBy(x => x.Priority).ToList();
                 Menu = new Menu(Name, Name);
-                var healthMenu = new Menu(Language.Get("G_Health"), Name + "Health");
+                var healthMenu = new Menu(Global.Lang.Get("G_Health"), Name + "Health");
                 healthMenu.AddItem(
-                    new MenuItem(healthMenu.Name + "Percent", Language.Get("G_Health") + " " + Language.Get("G_Percent")).SetValue(new Slider(60)));
-                healthMenu.AddItem(new MenuItem(healthMenu.Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                    new MenuItem(healthMenu.Name + "Percent", Global.Lang.Get("G_Health") + " " + Global.Lang.Get("G_Percent")).SetValue(new Slider(60)));
+                healthMenu.AddItem(new MenuItem(healthMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                var manaMenu = new Menu(Language.Get("G_Mana"), Name + "Mana");
+                var manaMenu = new Menu(Global.Lang.Get("G_Mana"), Name + "Mana");
                 manaMenu.AddItem(
-                    new MenuItem(manaMenu.Name + "Percent", Language.Get("G_Mana") + " " + Language.Get("G_Percent")).SetValue(new Slider(60)));
-                manaMenu.AddItem(new MenuItem(manaMenu.Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                    new MenuItem(manaMenu.Name + "Percent", Global.Lang.Get("G_Mana") + " " + Global.Lang.Get("G_Percent")).SetValue(new Slider(60)));
+                manaMenu.AddItem(new MenuItem(manaMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Menu.AddSubMenu(healthMenu);
                 Menu.AddSubMenu(manaMenu);
 
                 Menu.AddItem(
                     new MenuItem(Name + "MinEnemyDistance",
-                        Language.Get("G_Minimum") + " " + Language.Get("G_Enemy") + " " + Language.Get("G_Distance")).SetValue(new Slider(1000, 0,
-                            1500)));
+                        Global.Lang.Get("G_Minimum") + " " + Global.Lang.Get("G_Enemy") + " " + Global.Lang.Get("G_Distance")).SetValue(
+                            new Slider(1000, 0, 1500)));
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 

@@ -30,7 +30,6 @@ namespace SFXUtility.Features.Events
     using Classes;
     using LeagueSharp;
     using LeagueSharp.Common;
-    using SFXLibrary;
     using SFXLibrary.Extensions.LeagueSharp;
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Logger;
@@ -50,7 +49,7 @@ namespace SFXUtility.Features.Events
 
         public override string Name
         {
-            get { return Language.Get("F_Trinket"); }
+            get { return Global.Lang.Get("F_Trinket"); }
         }
 
         protected override void OnEnable()
@@ -93,30 +92,32 @@ namespace SFXUtility.Features.Events
 
                 Menu = new Menu(Name, Name);
 
-                var timersMenu = new Menu(Language.Get("Trinket_Timers"), Name + "Timers");
-                timersMenu.AddItem(new MenuItem(timersMenu.Name + "WardingTotem", Language.Get("Trinket_WardingTotem")).SetValue(new Slider(0, 0, 60)));
-                timersMenu.AddItem(new MenuItem(timersMenu.Name + "SweepingLens", Language.Get("Trinket_SweepingLens")).SetValue(new Slider(20, 0, 60)));
-                timersMenu.AddItem(new MenuItem(timersMenu.Name + "ScryingOrb", Language.Get("Trinket_ScryingOrb")).SetValue(new Slider(45, 0, 60)));
-                timersMenu.AddItem(new MenuItem(timersMenu.Name + "WardingTotemBuy", Language.Get("Trinket_WardingTotemBuy")).SetValue(false));
-                timersMenu.AddItem(new MenuItem(timersMenu.Name + "SweepingLensBuy", Language.Get("Trinket_SweepingLensBuy")).SetValue(false));
-                timersMenu.AddItem(new MenuItem(timersMenu.Name + "ScryingOrbBuy", Language.Get("Trinket_ScryingOrbBuy")).SetValue(false));
-                timersMenu.AddItem(new MenuItem(timersMenu.Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                var timersMenu = new Menu(Global.Lang.Get("Trinket_Timers"), Name + "Timers");
+                timersMenu.AddItem(
+                    new MenuItem(timersMenu.Name + "WardingTotem", Global.Lang.Get("Trinket_WardingTotem")).SetValue(new Slider(0, 0, 60)));
+                timersMenu.AddItem(
+                    new MenuItem(timersMenu.Name + "SweepingLens", Global.Lang.Get("Trinket_SweepingLens")).SetValue(new Slider(20, 0, 60)));
+                timersMenu.AddItem(new MenuItem(timersMenu.Name + "ScryingOrb", Global.Lang.Get("Trinket_ScryingOrb")).SetValue(new Slider(45, 0, 60)));
+                timersMenu.AddItem(new MenuItem(timersMenu.Name + "WardingTotemBuy", Global.Lang.Get("Trinket_WardingTotemBuy")).SetValue(false));
+                timersMenu.AddItem(new MenuItem(timersMenu.Name + "SweepingLensBuy", Global.Lang.Get("Trinket_SweepingLensBuy")).SetValue(false));
+                timersMenu.AddItem(new MenuItem(timersMenu.Name + "ScryingOrbBuy", Global.Lang.Get("Trinket_ScryingOrbBuy")).SetValue(false));
+                timersMenu.AddItem(new MenuItem(timersMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                var eventsMenu = new Menu(Language.Get("Trinket_Events"), Name + "Events");
-                eventsMenu.AddItem(new MenuItem(eventsMenu.Name + "Sightstone", Language.Get("Trinket_Sightstone")).SetValue(false));
-                eventsMenu.AddItem(new MenuItem(eventsMenu.Name + "RubySightstone", Language.Get("Trinket_RubySightstone")).SetValue(false));
-                eventsMenu.AddItem(new MenuItem(eventsMenu.Name + "WrigglesLantern", Language.Get("Trinket_WrigglesLantern")).SetValue(false));
+                var eventsMenu = new Menu(Global.Lang.Get("Trinket_Events"), Name + "Events");
+                eventsMenu.AddItem(new MenuItem(eventsMenu.Name + "Sightstone", Global.Lang.Get("Trinket_Sightstone")).SetValue(false));
+                eventsMenu.AddItem(new MenuItem(eventsMenu.Name + "RubySightstone", Global.Lang.Get("Trinket_RubySightstone")).SetValue(false));
+                eventsMenu.AddItem(new MenuItem(eventsMenu.Name + "WrigglesLantern", Global.Lang.Get("Trinket_WrigglesLantern")).SetValue(false));
 
                 eventsMenu.AddItem(
-                    new MenuItem(eventsMenu.Name + "BuyTrinket", Language.Get("Trinket_BuyTrinket")).SetValue(
-                        new StringList(new[] {Language.Get("G_Yellow"), Language.Get("G_Red"), Language.Get("G_Blue")})));
-                eventsMenu.AddItem(new MenuItem(eventsMenu.Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                    new MenuItem(eventsMenu.Name + "BuyTrinket", Global.Lang.Get("Trinket_BuyTrinket")).SetValue(
+                        new StringList(new[] {Global.Lang.Get("G_Yellow"), Global.Lang.Get("G_Red"), Global.Lang.Get("G_Blue")})));
+                eventsMenu.AddItem(new MenuItem(eventsMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Menu.AddSubMenu(timersMenu);
                 Menu.AddSubMenu(eventsMenu);
 
-                Menu.AddItem(new MenuItem(Name + "SellUpgraded", Language.Get("Trinket_SellUpgraded")).SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "Enabled", Language.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "SellUpgraded", Global.Lang.Get("Trinket_SellUpgraded")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 

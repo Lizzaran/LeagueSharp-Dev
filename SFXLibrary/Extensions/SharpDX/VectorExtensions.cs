@@ -26,6 +26,7 @@ using Drawing = LeagueSharp.Drawing;
 using Geometry = LeagueSharp.Common.Geometry;
 using ObjectManager = LeagueSharp.ObjectManager;
 using Obj_AI_Minion = LeagueSharp.Obj_AI_Minion;
+using Utility = LeagueSharp.Common.Utility;
 using Vector2 = SharpDX.Vector2;
 using Vector3 = SharpDX.Vector3;
 
@@ -78,8 +79,8 @@ namespace SFXLibrary.Extensions.SharpDX
             var dy = end.Y - start.Y;
 
             var a = dx*dx + dy*dy;
-            var b = 2 * (dx * (start.X - circlePos.X) + dy * (start.Y - circlePos.Y));
-            var c = (start.X - circlePos.X) * (start.X - circlePos.X) + (start.Y - circlePos.Y) * (start.Y - circlePos.Y) - radius * radius;
+            var b = 2*(dx*(start.X - circlePos.X) + dy*(start.Y - circlePos.Y));
+            var c = (start.X - circlePos.X)*(start.X - circlePos.X) + (start.Y - circlePos.Y)*(start.Y - circlePos.Y) - radius*radius;
 
             var det = b*b - 4*a*c;
             if ((a <= 0.0000001) || (det < 0))
@@ -89,13 +90,13 @@ namespace SFXLibrary.Extensions.SharpDX
             if (det == 0)
             {
                 t = -b/(2*a);
-                return new Vector2(start.X + t * dx, start.Y + t * dy);
+                return new Vector2(start.X + t*dx, start.Y + t*dy);
             }
 
             t = (float) ((-b + Math.Sqrt(det))/(2*a));
-            var intersection1 = new Vector2(start.X + t * dx, start.Y + t * dy);
+            var intersection1 = new Vector2(start.X + t*dx, start.Y + t*dy);
             t = (float) ((-b - Math.Sqrt(det))/(2*a));
-            var intersection2 = new Vector2(start.X + t * dx, start.Y + t * dy);
+            var intersection2 = new Vector2(start.X + t*dx, start.Y + t*dy);
 
             return Vector2.Distance(intersection1, Geometry.To2D(ObjectManager.Player.Position)) >
                    Vector2.Distance(intersection2, Geometry.To2D(ObjectManager.Player.Position))
@@ -132,6 +133,11 @@ namespace SFXLibrary.Extensions.SharpDX
                 }
             }
             return sMinion;
+        }
+
+        public static Obj_AI_Minion GetMinionFastByNames(this Vector3 position, float range, string[] names)
+        {
+            return ObjectManager.Get<Obj_AI_Minion>().FirstOrDefault(m => names.Any(n => m.Name.Equals(n)) && Utility.IsValidTarget(m, range));
         }
 
         public static Obj_AI_Minion GetNearestMinionByNames(this Vector2 position, string[] names)
