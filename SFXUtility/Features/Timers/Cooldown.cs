@@ -51,6 +51,7 @@ namespace SFXUtility.Features.Timers
         private readonly Dictionary<string, Texture> _summonerTextures = new Dictionary<string, Texture>();
         private readonly Dictionary<int, float> _teleports = new Dictionary<int, float>();
         private List<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
+        private Texture _hudSelfTexture;
         private Texture _hudTexture;
         private Line _line;
         private Timers _parent;
@@ -95,7 +96,7 @@ namespace SFXUtility.Features.Timers
         private void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
             var hero = sender as Obj_AI_Hero;
-            if (hero != null && !hero.IsMe)
+            if (hero != null)
             {
                 var data = hero.IsAlly
                     ? _manualAllySpells.FirstOrDefault(m => m.Spell.Equals(args.SData.Name, StringComparison.OrdinalIgnoreCase))
@@ -160,6 +161,7 @@ namespace SFXUtility.Features.Timers
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(new Slider(13, 3, 30)));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Enemy", Global.Lang.Get("G_Enemy")).SetValue(false));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Ally", Global.Lang.Get("G_Ally")).SetValue(false));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Self", Global.Lang.Get("G_Self")).SetValue(false));
 
                 Menu.AddSubMenu(drawingMenu);
 
@@ -172,6 +174,17 @@ namespace SFXUtility.Features.Timers
                     _heroes = ally && enemy
                         ? HeroManager.AllHeroes
                         : (ally ? HeroManager.Allies : (enemy ? HeroManager.Enemies : new List<Obj_AI_Hero>()));
+                    if (Menu.Item(Name + "DrawingSelf").GetValue<bool>())
+                    {
+                        if (_heroes.All(h => h.NetworkId != ObjectManager.Player.NetworkId))
+                        {
+                            _heroes.Add(ObjectManager.Player);
+                        }
+                    }
+                    else
+                    {
+                        _heroes.RemoveAll(h => h.NetworkId == ObjectManager.Player.NetworkId);
+                    }
                 };
 
                 Menu.Item(Name + "DrawingAlly").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
@@ -181,6 +194,41 @@ namespace SFXUtility.Features.Timers
                     _heroes = ally && enemy
                         ? HeroManager.AllHeroes
                         : (ally ? HeroManager.Allies : (enemy ? HeroManager.Enemies : new List<Obj_AI_Hero>()));
+                    if (Menu.Item(Name + "DrawingSelf").GetValue<bool>() && _heroes.All(h => h.NetworkId != ObjectManager.Player.NetworkId))
+                    {
+                        _heroes.Add(ObjectManager.Player);
+                    }
+                    if (Menu.Item(Name + "DrawingSelf").GetValue<bool>())
+                    {
+                        if (_heroes.All(h => h.NetworkId != ObjectManager.Player.NetworkId))
+                        {
+                            _heroes.Add(ObjectManager.Player);
+                        }
+                    }
+                    else
+                    {
+                        _heroes.RemoveAll(h => h.NetworkId == ObjectManager.Player.NetworkId);
+                    }
+                };
+
+                Menu.Item(Name + "DrawingSelf").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
+                {
+                    var ally = Menu.Item(Name + "DrawingAlly").GetValue<bool>();
+                    var enemy = Menu.Item(Name + "DrawingEnemy").GetValue<bool>();
+                    _heroes = ally && enemy
+                        ? HeroManager.AllHeroes
+                        : (ally ? HeroManager.Allies : (enemy ? HeroManager.Enemies : new List<Obj_AI_Hero>()));
+                    if (args.GetNewValue<bool>())
+                    {
+                        if (_heroes.All(h => h.NetworkId != ObjectManager.Player.NetworkId))
+                        {
+                            _heroes.Add(ObjectManager.Player);
+                        }
+                    }
+                    else
+                    {
+                        _heroes.RemoveAll(h => h.NetworkId == ObjectManager.Player.NetworkId);
+                    }
                 };
 
                 _parent.Menu.AddSubMenu(Menu);
@@ -192,11 +240,10 @@ namespace SFXUtility.Features.Timers
                 }
 
                 foreach (var sName in
-                    HeroManager.AllHeroes.Where(h => !h.IsMe)
-                        .SelectMany(
-                            h =>
-                                _summonerSlots.Select(summoner => h.Spellbook.GetSpell(summoner).Name.ToLower())
-                                    .Where(sName => !_summonerTextures.ContainsKey(FixSummonerName(sName)))))
+                    HeroManager.AllHeroes.SelectMany(
+                        h =>
+                            _summonerSlots.Select(summoner => h.Spellbook.GetSpell(summoner).Name.ToLower())
+                                .Where(sName => !_summonerTextures.ContainsKey(FixSummonerName(sName)))))
                 {
                     _summonerTextures[FixSummonerName(sName)] =
                         ((Bitmap) Resources.ResourceManager.GetObject(string.Format("CD_{0}", FixSummonerName(sName))) ?? Resources.CD_summonerbarrier)
@@ -205,6 +252,7 @@ namespace SFXUtility.Features.Timers
 
                 _sprite = new Sprite(Drawing.Direct3DDevice);
                 _hudTexture = Resources.CD_Hud.ToTexture();
+                _hudSelfTexture = Resources.CD_HudSelf.ToTexture();
                 _line = new Line(Drawing.Direct3DDevice) {Width = 4};
                 _text = new Font(Drawing.Direct3DDevice,
                     new FontDescription
@@ -251,15 +299,15 @@ namespace SFXUtility.Features.Timers
 
                 var totalSeconds = Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1;
                 foreach (var hero in
-                    _heroes.Where(hero => hero != null && hero.IsValid && !hero.IsMe && hero.IsHPBarRendered && hero.Position.IsOnScreen()))
+                    _heroes.Where(hero => hero != null && hero.IsValid && hero.IsHPBarRendered && hero.Position.IsOnScreen()))
                 {
                     try
                     {
                         if (!hero.Position.IsValid() || !hero.HPBarPosition.IsValid())
                             return;
 
-                        var x = (int) hero.HPBarPosition.X - 8;
-                        var y = (int) hero.HPBarPosition.Y + (hero.IsEnemy ? 17 : 14);
+                        var x = (int) hero.HPBarPosition.X - (hero.IsMe ? -10 : 8);
+                        var y = (int) hero.HPBarPosition.Y + (hero.IsEnemy ? 17 : (hero.IsMe ? 6 : 14));
 
                         _sprite.Begin(SpriteFlags.AlphaBlend);
 
@@ -279,21 +327,22 @@ namespace SFXUtility.Features.Timers
                                 var n = (t > 0) ? (int) (19*(1f - percent)) : 19;
                                 if (t > 0)
                                 {
-                                    _text.DrawTextCentered(t.FormatTime(totalSeconds), x - 13, y + 7 + 13*i, new ColorBGRA(255, 255, 255, 255));
+                                    _text.DrawTextCentered(t.FormatTime(totalSeconds), x - (hero.IsMe ? -160 : 13), y + 7 + 13*i,
+                                        new ColorBGRA(255, 255, 255, 255));
                                 }
                                 if (_summonerTextures.ContainsKey(FixSummonerName(spell.Name)))
                                 {
                                     _sprite.Draw(_summonerTextures[FixSummonerName(spell.Name)], new ColorBGRA(255, 255, 255, 255),
-                                        new Rectangle(0, 12*n, 12, 12), new Vector3(-x - 3, -y - 1 - 13*i, 0));
+                                        new Rectangle(0, 12*n, 12, 12), new Vector3(-x - (hero.IsMe ? 132 : 3), -y - 1 - 13*i, 0));
                                 }
                             }
                         }
 
-                        _sprite.Draw(_hudTexture, new ColorBGRA(255, 255, 255, 255), null, new Vector3(-x, -y, 0));
+                        _sprite.Draw(hero.IsMe ? _hudSelfTexture : _hudTexture, new ColorBGRA(255, 255, 255, 255), null, new Vector3(-x, -y, 0));
 
                         _sprite.End();
 
-                        var x2 = x + 19;
+                        var x2 = x + (hero.IsMe ? 24 : 19);
                         var y2 = y + 21;
 
                         _line.Begin();

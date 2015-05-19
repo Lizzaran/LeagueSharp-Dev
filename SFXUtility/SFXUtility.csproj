@@ -141,6 +141,7 @@
   <ItemGroup>
     <Content Include="icon.ico" />
     <Content Include="Resources\CD\CD_Hud.png" />
+    <Content Include="Resources\CD\CD_HudSelf.png" />
     <Content Include="Resources\CD\CD_summonerbarrier.png" />
     <Content Include="Resources\CD\CD_summonerboost.png" />
     <Content Include="Resources\CD\CD_summonerclairvoyance.png" />

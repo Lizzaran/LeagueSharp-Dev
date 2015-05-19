@@ -73,6 +73,16 @@ namespace SFXUtility.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap CD_HudSelf {
+            get {
+                object obj = ResourceManager.GetObject("CD_HudSelf", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap CD_summonerbarrier {
             get {
                 object obj = ResourceManager.GetObject("CD_summonerbarrier", resourceCulture);
