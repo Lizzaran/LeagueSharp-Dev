@@ -42,7 +42,7 @@ namespace SFXUtility.Features.Timers
         // ReSharper disable StringLiteralTypo
         private readonly Dictionary<string, AbilityItem> _abilities = new Dictionary<string, AbilityItem>
         {
-                        {"absolutezero2_green_cas.troy", new AbilityItem("nunu", "R " + Global.Lang.Get("G_Ally"), 3f, true)},
+            {"absolutezero2_green_cas.troy", new AbilityItem("nunu", "R " + Global.Lang.Get("G_Ally"), 3f, true)},
             {"absolutezero2_red_cas.troy", new AbilityItem("nunu", "R " + Global.Lang.Get("G_Enemy"), 3f, true)},
             {"akali_base_smoke_bomb_tar_team_green.troy", new AbilityItem("akali", "W " + Global.Lang.Get("G_Ally"), 8f, true)},
             {"akali_base_smoke_bomb_tar_team_red.troy", new AbilityItem("akali", "W " + Global.Lang.Get("G_Enemy"), 8f, true)},
@@ -228,7 +228,7 @@ namespace SFXUtility.Features.Timers
                 var offsetTop = Menu.Item(Menu.Name + "DrawingOffsetTop").GetValue<Slider>().Value;
                 var offsetLeft = Menu.Item(Menu.Name + "DrawingOffsetLeft").GetValue<Slider>().Value;
 
-                foreach (var ability in _drawings.Where(d => d.Position.IsOnScreen() && d.End <= Game.Time))
+                foreach (var ability in _drawings.Where(d => d.Position.IsOnScreen() && d.End > Game.Time))
                 {
                     var position = Drawing.WorldToScreen(ability.Position);
                     var time = (ability.End - Game.Time).ToString("0.0");
