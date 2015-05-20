@@ -140,6 +140,7 @@ namespace SFXChallenger.Champions
 
         private void OnCorePostUpdate(EventArgs args)
         {
+            Console.WriteLine(GetEDelay(HeroManager.Enemies.First()));
             if (Menu.Item(Menu.Name + ".auto.enabled").GetValue<bool>())
             {
                 RLogic(Menu.Item(Menu.Name + ".auto.r-min").GetValue<Slider>().Value,
@@ -437,7 +438,7 @@ namespace SFXChallenger.Champions
 
         private float GetEDelay(Obj_AI_Base target)
         {
-            return (E.Delay + (E.Delay > 0 ? ((ObjectManager.Player.ServerPosition.Distance(target.ServerPosition)/(E.Speed/1000))) : 0)) + 0.05f;
+            return (E.Delay + (E.Delay > 0 ? (ObjectManager.Player.ServerPosition.Distance(target.ServerPosition)/E.Speed) : 0)) + 0.05f;
         }
 
         protected override void LaneClear()
