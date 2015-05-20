@@ -12,6 +12,7 @@
 	<entry key="Cassio_QMultiple">Multiple Q Targets</entry>
 	<entry key="Cassio_QMultiple">Multiple Q Targets</entry>
 	<entry key="Cassio_QMultiple">Multiple Q Targets</entry>
+	<entry key="Cassio_R1v1">R 1v1</entry>
 	<!-- END: Cassiopeia -->
 
 	<!-- START: GLOBAL -->
@@ -28,7 +29,6 @@
 	<entry key="G_ImportantSpell">Important Spell</entry>
 	<entry key="G_Lasthit">Lasthit</entry>
 	<entry key="G_Hotkey">Hotkey</entry>
-	<entry key="G_Stunned">Stunned</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: CHAMPION -->
@@ -43,6 +43,8 @@
 	<entry key="C_UseR">Use R</entry>
 	<entry key="C_Flash">Flash</entry>
 	<entry key="C_Auto">Auto</entry>
+	<entry key="C_Killsteal">Killsteal</entry>
+	<entry key="C_Stunned">Stunned</entry>
 	<!-- END: CHAMPION -->
 
 	<!-- START: Language -->

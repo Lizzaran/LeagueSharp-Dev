@@ -41,8 +41,10 @@ namespace SFXChallenger.Champions
 
     internal class Cassiopeia : Champion
     {
-        private Obj_AI_Base _lastPoison;
-        private float _nextPoison;
+        private float _lastQPoisonDelay;
+        private Obj_AI_Base _lastQPoisonT;
+        private float _lastWPoisonDelay;
+        private Obj_AI_Base _lastWPoisonT;
 
         protected override ItemFlags ItemFlags
         {
@@ -83,6 +85,7 @@ namespace SFXChallenger.Champions
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r", Global.Lang.Get("C_UseR")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r-min-facing", Global.Lang.Get("Cassio_RMinFacing")).SetValue(new Slider(1, 1, 5)));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r-min", Global.Lang.Get("Cassio_RMin")).SetValue(new Slider(3, 1, 5)));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r-1v1", Global.Lang.Get("Cassio_R1v1")).SetValue(true));
 
             var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_Harass"), Menu.Name + ".harass"));
             ManaManager.AddToMenu(harassMenu, "harass");
@@ -117,7 +120,9 @@ namespace SFXChallenger.Champions
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r-gapcloser", "R " + Global.Lang.Get("G_Gapcloser")).SetValue(false));
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r-important", "R " + Global.Lang.Get("G_ImportantSpell")).SetValue(false));
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".e-lasthit", "E " + Global.Lang.Get("G_Lasthit")).SetValue(false));
-            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-stunned", "W " + Global.Lang.Get("G_Stunned")).SetValue(false));
+            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-stunned", "W " + Global.Lang.Get("C_Stunned")).SetValue(false));
+            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".e-killsteal", "E " + Global.Lang.Get("C_Killsteal")).SetValue(false));
+            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r-killsteal", "R " + Global.Lang.Get("C_Killsteal")).SetValue(new Slider(3, 1, 5)));
         }
 
         protected override void SetupSpells()
@@ -183,8 +188,7 @@ namespace SFXChallenger.Champions
                         Casting.BasicSkillShot(target.Hero, W, HitchanceManager.Get("w"));
                     }
                 }
-                if (Menu.Item(Menu.Name + ".miscellaneous.e-lasthit").GetValue<bool>() &&
-                    (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit || Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear) &&
+                if (Menu.Item(Menu.Name + ".miscellaneous.e-lasthit").GetValue<bool>() && (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit) &&
                     E.IsReady())
                 {
                     var minion =
@@ -238,7 +242,7 @@ namespace SFXChallenger.Champions
         {
             if (source == null || target == null)
                 return false;
-            return source.Direction.To2D().Perpendicular().AngleBetween((target.Position - source.Position).To2D()) < 80.0;
+            return source.Direction.To2D().Perpendicular().AngleBetween((target.Position - source.Position).To2D()) < 90.0;
         }
 
         private void OnInterruptableTarget(Obj_AI_Hero sender, Interrupter2.InterruptableTargetEventArgs args)
@@ -283,21 +287,65 @@ namespace SFXChallenger.Champions
             {
                 ELogic();
             }
-
-            var cDmg = CalculateComboDamage(target, q, w, e, r);
-            if (cDmg >= target.Health - 20)
+            if (r)
             {
-                if (r)
+                RLogic(Menu.Item(Menu.Name + ".combo.r-min").GetValue<Slider>().Value,
+                    Menu.Item(Menu.Name + ".combo.r-min-facing").GetValue<Slider>().Value);
+            }
+
+            var t2 = TargetSelector.GetTarget(R);
+            if (t2 != null)
+            {
+                var cDmg = CalcComboDamage(t2, q, w, e, r);
+                if (Menu.Item(Menu.Name + ".combo.r-1v1").GetValue<bool>() && cDmg >= t2.Health - 20)
                 {
-                    RLogic(Menu.Item(Menu.Name + ".combo.r-min").GetValue<Slider>().Value,
-                        Menu.Item(Menu.Name + ".combo.r-min-facing").GetValue<Slider>().Value);
+                    if (HeroManager.Enemies.Count(em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) == 1)
+                    {
+                        Casting.BasicSkillShot(t2, R, HitchanceManager.Get("r"));
+                    }
+                }
+                if (cDmg*1.5 > t2.Health)
+                {
+                    ItemManager.UseComboItems(t2);
+                    SummonerManager.UseComboSummoners(t2);
                 }
             }
-            if (cDmg*1.5 > target.Health)
+        }
+
+        private bool IsNearTurret(Obj_AI_Base target)
+        {
+            return ObjectManager.Get<Obj_AI_Turret>().Any(turret => turret.IsValidTarget(1300f, true, target.Position));
+        }
+
+        private float CalcComboDamage(Obj_AI_Base target, bool q, bool w, bool e, bool r)
+        {
+            var manaCost = w && W.IsReady() ? Player.GetSpell(W.Slot).ManaCost : (q ? Player.GetSpell(Q.Slot).ManaCost : 0);
+            var damage = w && W.IsReady() ? W.GetDamage(target) : (q ? Q.GetDamage(target) : 0);
+
+            if (e)
             {
-                ItemManager.UseComboItems(target);
-                SummonerManager.UseComboSummoners(target);
+                var eMana = Player.GetSpell(E.Slot).ManaCost;
+                var eDamage = E.GetDamage(target);
+                var count = IsNearTurret(target) ? 3 : 6;
+                for (var i = 0; i < count; i++)
+                {
+                    if (manaCost + eMana > Player.Mana)
+                    {
+                        break;
+                    }
+                    manaCost += eMana;
+                    damage += eDamage;
+                }
             }
+            if (r)
+            {
+                if (manaCost + Player.GetSpell(R.Slot).ManaCost - 10 > Player.Mana)
+                {
+                    return damage;
+                }
+                return damage + (R.IsReady() ? R.GetDamage(target) : 0);
+            }
+            return damage;
         }
 
         private void RLogic(int min, int minFacing)
@@ -318,45 +366,41 @@ namespace SFXChallenger.Champions
 
         private void QLogic()
         {
-            var ts = TargetSelector.GetTargets(Q.Range, Q.DamageType).FirstOrDefault(t => GetPoisonBuffEndTime(t.Hero) < Q.Delay*1.2);
-            if (ts != null && ts.Hero != null)
+            var tsAll = TargetSelector.GetTargets(W.Range, W.DamageType).Where(t => GetPoisonBuffEndTime(t.Hero) < Q.Delay*1.2f).ToList();
+            foreach (var ts in tsAll)
             {
-                if (_nextPoison < Game.Time || _lastPoison.NetworkId != ts.Hero.NetworkId)
+                if (_lastWPoisonDelay < Game.Time || _lastWPoisonT.NetworkId != ts.Hero.NetworkId)
                 {
-                    _nextPoison = Game.Time + Q.Delay*1.2f;
-                    _lastPoison = ts.Hero;
+                    _lastQPoisonDelay = Game.Time + Q.Delay*1.2f;
+                    _lastQPoisonT = ts.Hero;
                     Casting.BasicSkillShot(ts.Hero, Q, HitchanceManager.Get("q"));
+                    return;
                 }
             }
         }
 
         private void WLogic()
         {
-            var ts =
-                TargetSelector.GetTargets(W.Range, W.DamageType)
-                    .FirstOrDefault(
-                        t =>
-                            GetPoisonBuffEndTime(t.Hero) < W.Delay*1.2 ||
-                            !IsFacing(t.Hero, Player) && t.Hero.Position.Distance(Player.Position) > W.Range*0.7);
-            if (ts != null && ts.Hero != null)
+            var tsAll = TargetSelector.GetTargets(W.Range, W.DamageType).ToList();
+            foreach (var ts in tsAll)
             {
-                if (_nextPoison < Game.Time || _lastPoison.NetworkId != ts.Hero.NetworkId)
+                if ((!IsFacing(ts.Hero, Player) && ts.Hero.Position.Distance(Player.Position) > W.Range*0.7f) || tsAll.Count() == 1 ||
+                    (_lastQPoisonDelay < Game.Time && GetPoisonBuffEndTime(ts.Hero) < W.Delay*1.2) || _lastQPoisonT.NetworkId != ts.Hero.NetworkId)
                 {
-                    _nextPoison = Game.Time + Q.Delay*1.2f;
-                    _lastPoison = ts.Hero;
+                    _lastWPoisonDelay = Game.Time + W.Delay*1.2f;
+                    _lastWPoisonT = ts.Hero;
                     Casting.BasicSkillShot(ts.Hero, W, HitchanceManager.Get("w"));
+                    return;
                 }
             }
         }
 
         private void ELogic()
         {
-            var ts =
-                TargetSelector.GetTargets(W.Range, W.DamageType)
-                    .FirstOrDefault(t => GetPoisonBuffEndTime(t.Hero) > GetEDelay(t.Hero) || E.GetDamage(t.Hero) - 10 > t.Hero.Health);
+            var ts = TargetSelector.GetTargets(E.Range, E.DamageType).FirstOrDefault(t => GetPoisonBuffEndTime(t.Hero) > GetEDelay(t.Hero));
             if (ts != null && ts.Hero != null)
             {
-                Casting.BasicTargetSkill(E, HitchanceManager.Get("e"), true);
+                E.Cast(ts.Hero, true);
             }
         }
 
@@ -398,7 +442,7 @@ namespace SFXChallenger.Champions
         private float GetEDelay(Obj_AI_Base target)
         {
             return (E.Delay + (E.Delay > 0 ? ((ObjectManager.Player.ServerPosition.Distance(target.ServerPosition)/(E.Speed/1000))) : 0) +
-                    Game.Ping/2f) + 0.1f;
+                    Game.Ping/2f)*1.2f + 0.1f;
         }
 
         protected override void LaneClear()
@@ -456,6 +500,25 @@ namespace SFXChallenger.Champions
 
         protected override void Killsteal()
         {
+            if (Menu.Item(Menu.Name + ".miscellaneous.e-killsteal").GetValue<bool>() && E.IsReady())
+            {
+                var enemy = HeroManager.Enemies.FirstOrDefault(e => e.IsValidTarget(E.Range) && e.Health < E.GetDamage(e) - 10);
+                if (enemy != null)
+                {
+                    E.Cast(enemy, true);
+                }
+            }
+            if (R.IsReady())
+            {
+                var target = TargetSelector.GetTarget(R);
+                var pred = R.GetPrediction(target, true);
+                var rHits = HeroManager.Enemies.Where(x => R.WillHit(x.Position, pred.CastPosition)).ToList();
+                if (rHits.Count >= Menu.Item(Menu.Name + ".miscellaneous.r-killsteal").GetValue<Slider>().Value &&
+                    rHits.Any(r => R.GetDamage(r) - 10 > r.Health))
+                {
+                    R.Cast(pred.CastPosition, true);
+                }
+            }
             KillstealManager.Killsteal();
         }
 
