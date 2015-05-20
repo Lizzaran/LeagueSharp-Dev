@@ -48,11 +48,14 @@ namespace SFXChallenger.Wrappers
         private const float MinionGold = 22.34f;
         private const float KillGold = 300.00f;
         private const float AssistGold = 95.00f;
+        private const float CheckInterval = 300f;
         private static float _averageWeight;
         private static Menu _menu;
         private static Obj_AI_Hero _selectedTarget;
         private static readonly List<WeightedItem> WeightedItems;
         private static readonly Dictionary<Obj_AI_Hero, TargetItem> AggroItems = new Dictionary<Obj_AI_Hero, TargetItem>();
+        private static Obj_AI_Base _bestTarget;
+        private static float _lastCheck = Environment.TickCount;
 
         static TargetSelector()
         {
@@ -166,6 +169,12 @@ namespace SFXChallenger.Wrappers
                             _menu.Item(_menu.Name + ".drawing.assassin-color").GetValue<Circle>().Color,
                             _menu.Item(_menu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value, true);
                     }
+                }
+                if (_menu.Item(_menu.Name + ".drawing.best-color").GetValue<Circle>().Active && _bestTarget.IsValidTarget())
+                {
+                    Render.Circle.DrawCircle(_bestTarget.Position, _bestTarget.BoundingRadius + SelectClickBuffer/2,
+                        _menu.Item(_menu.Name + ".drawing.best-color").GetValue<Circle>().Color,
+                        _menu.Item(_menu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value, true);
                 }
                 if (_menu.Item(_menu.Name + ".drawing.debug").GetValue<bool>())
                 {
@@ -322,7 +331,19 @@ namespace SFXChallenger.Wrappers
                     item.CurrentMax = targets.Select(item.GetValue).DefaultIfEmpty().Max();
                 }
 
-                return TargetWeights(targets);
+                var targetsWeight = TargetWeights(targets);
+                if (_menu != null && _menu.Item(_menu.Name + ".drawing.best-color").GetValue<Circle>().Active)
+                {
+                    if (targetsWeight.Count > 0)
+                    {
+                        var first = targetsWeight.FirstOrDefault();
+                        if (first != null && first.Hero.IsValidTarget())
+                        {
+                            _bestTarget = first.Hero;
+                        }
+                    }
+                }
+                return targetsWeight;
             }
             catch (Exception ex)
             {
@@ -373,6 +394,19 @@ namespace SFXChallenger.Wrappers
                     new MenuItem(drawingMenu.Name + ".assassin-color", Global.Lang.Get("TS_AssassinTargetColor")).SetValue(new Circle(true,
                         Color.GreenYellow)));
                 drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + ".best-color", Global.Lang.Get("TS_BestTargetColor")).SetValue(new Circle(false, Color.Orchid)))
+                    .ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        if (args.GetNewValue<Circle>().Active)
+                        {
+                            Game.OnUpdate += OnGameUpdate;
+                        }
+                        else
+                        {
+                            Game.OnUpdate -= OnGameUpdate;
+                        }
+                    };
+                drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + ".circle-thickness", Global.Lang.Get("G_CircleThickness")).SetValue(new Slider(2, 1, 10)));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".debug", Global.Lang.Get("G_Debug")).SetValue(false));
 
@@ -419,6 +453,28 @@ namespace SFXChallenger.Wrappers
 
                 _menu.AddItem(new MenuItem(menu.Name + ".focus-selected", Global.Lang.Get("TS_FocusSelectedTarget")).SetValue(true));
                 _menu.AddItem(new MenuItem(menu.Name + ".force-focus-selected", Global.Lang.Get("TS_OnlyAttackSelectedTarget")).SetValue(false));
+
+                if (_menu.Item(_menu.Name + ".drawing.best-color").GetValue<Circle>().Active)
+                {
+                    Game.OnUpdate += OnGameUpdate;
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private static void OnGameUpdate(EventArgs args)
+        {
+            try
+            {
+                if (_lastCheck + CheckInterval > Environment.TickCount)
+                    return;
+
+                _lastCheck = Environment.TickCount;
+
+                _bestTarget = GetTarget(Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)*1.3f);
             }
             catch (Exception ex)
             {
