@@ -43,8 +43,6 @@ namespace SFXChallenger.Champions
     {
         private float _lastQPoisonDelay;
         private Obj_AI_Base _lastQPoisonT;
-        private float _lastWPoisonDelay;
-        private Obj_AI_Base _lastWPoisonT;
 
         protected override ItemFlags ItemFlags
         {
@@ -208,7 +206,7 @@ namespace SFXChallenger.Champions
             if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
             {
                 var t = args.Target as Obj_AI_Hero;
-                if (t != null && (Q.CanCast(t) || W.CanCast(t) || E.CanCast(t)) && GetPoisonBuffEndTime(t) > 0.4f)
+                if (t != null && (Player.Mana < 30 || (Q.CanCast(t) || W.CanCast(t) || E.CanCast(t)) && GetPoisonBuffEndTime(t) > 0.4f))
                 {
                     args.Process = false;
                 }
@@ -369,13 +367,10 @@ namespace SFXChallenger.Champions
             var tsAll = TargetSelector.GetTargets(W.Range, W.DamageType).Where(t => GetPoisonBuffEndTime(t.Hero) < Q.Delay*1.2f).ToList();
             foreach (var ts in tsAll)
             {
-                if (_lastWPoisonDelay < Game.Time || _lastWPoisonT.NetworkId != ts.Hero.NetworkId)
-                {
-                    _lastQPoisonDelay = Game.Time + Q.Delay*1.2f;
-                    _lastQPoisonT = ts.Hero;
-                    Casting.BasicSkillShot(ts.Hero, Q, HitchanceManager.Get("q"));
-                    return;
-                }
+                _lastQPoisonDelay = Game.Time + Q.Delay;
+                _lastQPoisonT = ts.Hero;
+                Casting.BasicSkillShot(ts.Hero, Q, HitchanceManager.Get("q"));
+                return;
             }
         }
 
@@ -387,8 +382,6 @@ namespace SFXChallenger.Champions
                 if ((!IsFacing(ts.Hero, Player) && ts.Hero.Position.Distance(Player.Position) > W.Range*0.7f) || tsAll.Count() == 1 ||
                     (_lastQPoisonDelay < Game.Time && GetPoisonBuffEndTime(ts.Hero) < W.Delay*1.2) || _lastQPoisonT.NetworkId != ts.Hero.NetworkId)
                 {
-                    _lastWPoisonDelay = Game.Time + W.Delay*1.2f;
-                    _lastWPoisonT = ts.Hero;
                     Casting.BasicSkillShot(ts.Hero, W, HitchanceManager.Get("w"));
                     return;
                 }
@@ -441,8 +434,7 @@ namespace SFXChallenger.Champions
 
         private float GetEDelay(Obj_AI_Base target)
         {
-            return (E.Delay + (E.Delay > 0 ? ((ObjectManager.Player.ServerPosition.Distance(target.ServerPosition)/(E.Speed/1000))) : 0) +
-                    Game.Ping/2f)*1.2f + 0.1f;
+            return (E.Delay + (E.Delay > 0 ? ((ObjectManager.Player.ServerPosition.Distance(target.ServerPosition)/(E.Speed/1000))) : 0)) + 0.1f;
         }
 
         protected override void LaneClear()
