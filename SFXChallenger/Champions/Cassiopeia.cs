@@ -350,14 +350,17 @@ namespace SFXChallenger.Champions
         {
             var target = TargetSelector.GetTarget(R);
             var pred = R.GetPrediction(target, true);
-            var rHits = HeroManager.Enemies.Where(x => R.WillHit(x.Position, pred.CastPosition)).ToList();
-            var inRange = rHits.Count(enemy => enemy.Position.Distance(Player.Position) < R.Range);
-            var isFacing = rHits.Count(enemy => IsFacing(enemy, Player));
-            if (isFacing >= minFacing || inRange >= min)
+            if (pred.Hitchance >= HitchanceManager.Get("r"))
             {
-                if (minFacing == 1 && (!target.CanMove || target.IsImmovable || target.IsWindingUp) || minFacing > 1)
+                var rHits = HeroManager.Enemies.Where(x => R.WillHit(x.Position, pred.CastPosition)).ToList();
+                var inRange = rHits.Count(enemy => enemy.Position.Distance(Player.Position) < R.Range);
+                var isFacing = rHits.Count(enemy => IsFacing(enemy, Player));
+                if (isFacing >= minFacing || inRange >= min)
                 {
-                    R.Cast(pred.CastPosition, true);
+                    if (minFacing == 1 && (!target.CanMove || target.IsImmovable || target.IsWindingUp) || minFacing > 1)
+                    {
+                        R.Cast(pred.CastPosition, true);
+                    }
                 }
             }
         }
@@ -434,7 +437,7 @@ namespace SFXChallenger.Champions
 
         private float GetEDelay(Obj_AI_Base target)
         {
-            return (E.Delay + (E.Delay > 0 ? ((ObjectManager.Player.ServerPosition.Distance(target.ServerPosition)/(E.Speed/1000))) : 0)) + 0.1f;
+            return (E.Delay + (E.Delay > 0 ? ((ObjectManager.Player.ServerPosition.Distance(target.ServerPosition)/(E.Speed/1000))) : 0)) + 0.05f;
         }
 
         protected override void LaneClear()
@@ -504,11 +507,14 @@ namespace SFXChallenger.Champions
             {
                 var target = TargetSelector.GetTarget(R);
                 var pred = R.GetPrediction(target, true);
-                var rHits = HeroManager.Enemies.Where(x => R.WillHit(x.Position, pred.CastPosition)).ToList();
-                if (rHits.Count >= Menu.Item(Menu.Name + ".miscellaneous.r-killsteal").GetValue<Slider>().Value &&
-                    rHits.Any(r => R.GetDamage(r) - 10 > r.Health))
+                if (pred.Hitchance >= HitchanceManager.Get("r"))
                 {
-                    R.Cast(pred.CastPosition, true);
+                    var rHits = HeroManager.Enemies.Where(x => R.WillHit(x.Position, pred.CastPosition)).ToList();
+                    if (rHits.Count >= Menu.Item(Menu.Name + ".miscellaneous.r-killsteal").GetValue<Slider>().Value &&
+                        rHits.Any(r => R.GetDamage(r) - 10 > r.Health))
+                    {
+                        R.Cast(pred.CastPosition, true);
+                    }
                 }
             }
             KillstealManager.Killsteal();
