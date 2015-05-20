@@ -148,28 +148,48 @@ namespace SFXChallenger.Champions
             if (Menu.Item(Menu.Name + ".flash.r-hotkey").GetValue<KeyBind>().Active && R.IsReady() && SummonerManager.Flash.IsReady())
             {
                 Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
-                var target =
-                    HeroManager.Enemies.FirstOrDefault(
-                        x =>
-                            x.IsValidTarget(R.Range + 400) &&
-                            Prediction.GetPrediction(x, R.Delay + 0.3f).UnitPosition.Distance(Player.Position) <= (R.Range*0.9) + 400 &&
-                            Prediction.GetPrediction(x, R.Delay + 0.3f).UnitPosition.Distance(Player.Position) > R.Range);
-                if (target != null)
+                var targets =
+                    TargetSelector.GetTargets((R.Range*0.9f) + SummonerManager.Flash.Range)
+                        .Where(
+                            t =>
+                                t.Hero != null &&
+                                Prediction.GetPrediction(t.Hero, R.Delay + 0.3f).UnitPosition.Distance(Player.Position) > R.Range*1.1);
+                foreach (var target in targets)
                 {
+                    var flashPos = Player.Position.Extend(target.Hero.Position, SummonerManager.Flash.Range);
                     var minFacing = Menu.Item(Menu.Name + ".flash.r-min-facing").GetValue<Slider>().Value;
-                    var pred = R.GetPrediction(target, true);
-                    var rHits = HeroManager.Enemies.Where(x => R.WillHit(x.Position, pred.CastPosition)).ToList();
-                    var inRange = rHits.Count(enemy => enemy.Position.Distance(Player.Position) < R.Range + 400);
-                    var isFacing = rHits.Count(enemy => IsFacing(enemy, Player));
-                    var killable = rHits.Count(enemy => enemy.Health < R.GetDamage(enemy) - 20);
-                    if (isFacing >= minFacing || inRange >= Menu.Item(Menu.Name + ".flash.r-min").GetValue<Slider>().Value ||
-                        killable >= Menu.Item(Menu.Name + ".flash.r-min-killable").GetValue<Slider>().Value)
-                    {
-                        if (minFacing == 1 && (!target.CanMove || target.IsImmovable || target.IsWindingUp) || minFacing > 1)
+                    var pred =
+                        Prediction.GetPrediction(new PredictionInput
                         {
-                            var pos = Player.Position.Extend(pred.CastPosition, -(Player.Position.Distance(pred.CastPosition)*2));
-                            R.Cast(pos, true);
-                            Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(pred.CastPosition));
+                            Aoe = true,
+                            Collision = false,
+                            CollisionObjects = new[] {CollisionableObjects.YasuoWall},
+                            From = flashPos,
+                            RangeCheckFrom = flashPos,
+                            Delay = R.Delay + 0.3f,
+                            Range = R.Range*0.9f,
+                            Speed = R.Speed,
+                            Radius = R.Width,
+                            Type = SkillshotType.SkillshotCone,
+                            Unit = target.Hero
+                        });
+                    if (pred.Hitchance >= HitChance.Medium)
+                    {
+                        var rHits =
+                            HeroManager.Enemies.Where(
+                                x => R.WillHit(Player.Position.Extend(x.Position, -SummonerManager.Flash.Range), pred.CastPosition)).ToList();
+                        var inRange = rHits.Count;
+                        var isFacing = rHits.Count(enemy => IsFacing(enemy, Player));
+                        var killable = rHits.Count(enemy => enemy.Health < R.GetDamage(enemy) - 20);
+                        if (isFacing >= minFacing || inRange >= Menu.Item(Menu.Name + ".flash.r-min").GetValue<Slider>().Value ||
+                            killable >= Menu.Item(Menu.Name + ".flash.r-min-killable").GetValue<Slider>().Value)
+                        {
+                            if (minFacing == 1 && (!target.Hero.CanMove || target.Hero.IsImmovable || target.Hero.IsWindingUp) || minFacing > 1)
+                            {
+                                var pos = Player.Position.Extend(pred.CastPosition, -(Player.Position.Distance(pred.CastPosition)*2));
+                                R.Cast(pos, true);
+                                Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(pred.CastPosition));
+                            }
                         }
                     }
                 }
@@ -240,7 +260,7 @@ namespace SFXChallenger.Champions
         {
             if (source == null || target == null)
                 return false;
-            return source.Direction.To2D().Perpendicular().AngleBetween((target.Position - source.Position).To2D()) < 90.0;
+            return source.Direction.To2D().Perpendicular().AngleBetween((target.Position - source.Position).To2D()) < 80.0;
         }
 
         private void OnInterruptableTarget(Obj_AI_Hero sender, Interrupter2.InterruptableTargetEventArgs args)
@@ -544,6 +564,8 @@ namespace SFXChallenger.Champions
             {
                 Render.Circle.DrawCircle(Player.Position, R.Range, r.Color, circleThickness);
             }
+
+            Render.Circle.DrawCircle(Player.Position, (int) ((R.Range*0.9) + SummonerManager.Flash.Range), r.Color, circleThickness);
         }
     }
 }
