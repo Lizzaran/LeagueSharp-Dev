@@ -140,7 +140,6 @@ namespace SFXChallenger.Champions
 
         private void OnCorePostUpdate(EventArgs args)
         {
-            Console.WriteLine(GetEDelay(HeroManager.Enemies.First()));
             if (Menu.Item(Menu.Name + ".auto.enabled").GetValue<bool>())
             {
                 RLogic(Menu.Item(Menu.Name + ".auto.r-min").GetValue<Slider>().Value,
