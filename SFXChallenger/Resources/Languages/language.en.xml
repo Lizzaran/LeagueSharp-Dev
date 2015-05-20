@@ -1,0 +1,145 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!-- ReSharper disable MarkupTextTypo -->
+<language lang="en">
+
+	<!-- START: Cassiopeia -->
+	<entry key="Cassio_RMin">R Min</entry>
+	<entry key="Cassio_RMinFacing">R Min Facing</entry>
+	<entry key="Cassio_RMinKillable">R Min Killable</entry>
+	<entry key="Cassio_QMultiple">Multiple Q Targets</entry>
+	<entry key="Cassio_QMultiple">Multiple Q Targets</entry>
+	<entry key="Cassio_QMultiple">Multiple Q Targets</entry>
+	<entry key="Cassio_QMultiple">Multiple Q Targets</entry>
+	<entry key="Cassio_QMultiple">Multiple Q Targets</entry>
+	<!-- END: Cassiopeia -->
+
+	<!-- START: GLOBAL -->
+	<entry key="G_UpdateAvailable">Update available</entry>
+	<entry key="G_Enabled">Enabled</entry>
+	<entry key="G_Drawing">Drawing</entry>
+	<entry key="G_CircleThickness">Circle Thickness</entry>
+	<entry key="G_Debug">Debug</entry>
+	<entry key="G_Range">Range</entry>
+	<entry key="G_Hero">Hero</entry>
+	<entry key="G_Heroes">Heroes</entry>
+	<entry key="G_Miscellaneous">Miscellaneous</entry>
+	<entry key="G_Gapcloser">Gapcloser</entry>
+	<entry key="G_ImportantSpell">Important Spell</entry>
+	<entry key="G_Lasthit">Lasthit</entry>
+	<entry key="G_Hotkey">Hotkey</entry>
+	<entry key="G_Stunned">Stunned</entry>
+	<!-- END: GLOBAL -->
+
+	<!-- START: CHAMPION -->
+	<entry key="C_Combo">Combo</entry>
+	<entry key="C_Harass">Harass</entry>
+	<entry key="C_LaneClear">Lane Clear</entry>
+	<entry key="C_Flee">Flee</entry>
+	<entry key="C_AntiGapcloser">Anti Gapcloser</entry>
+	<entry key="C_UseQ">Use Q</entry>
+	<entry key="C_UseW">Use W</entry>
+	<entry key="C_UseE">Use E</entry>
+	<entry key="C_UseR">Use R</entry>
+	<entry key="C_Flash">Flash</entry>
+	<entry key="C_Auto">Auto</entry>
+	<!-- END: CHAMPION -->
+
+	<!-- START: Language -->
+	<entry key="F_Language">Language</entry>
+	<entry key="Language_Auto">auto</entry>
+	<!-- END: Language -->
+
+	<!-- START: Tick -->
+	<entry key="F_Tick">Tick</entry>
+	<!-- END: Tick -->
+
+	<!-- START: Info -->
+	<entry key="F_Info">Info</entry>
+	<entry key="Info_Version">Version</entry>
+	<entry key="Info_Forum">Forum</entry>
+	<entry key="Info_GitHub">GitHub</entry>
+	<entry key="Info_IRC">IRC</entry>
+	<entry key="Info_Exception">Exception</entry>
+	<!-- END: Info -->
+
+	<!-- START: Hitchance -->
+	<entry key="F_MH">Hitchance</entry>
+	<entry key="MH_Medium">Medium</entry>
+	<entry key="MH_High">High</entry>
+	<entry key="MH_VeryHigh">Very High</entry>
+	<!-- END: Hitchance -->
+
+	<!-- START: SummonerManager -->
+	<entry key="F_MS">Summoners</entry>
+	<entry key="MS_UseIgnite">Use Ignite</entry>
+	<entry key="MS_UseSmite">Use Smite</entry>
+	<!-- END: SummonerManager -->
+
+	<!-- START: ManaManager -->
+	<entry key="F_MM">Mana Manager</entry>
+	<entry key="MM_MinMana">Min. Mana %</entry>
+	<!-- END: ManaManager -->
+
+	<!-- START: KillstealManager -->
+	<entry key="F_MK">Killsteal</entry>
+	<entry key="MK_UseItems">Use Items</entry>
+	<entry key="MK_UseSummoners">Use Summoners</entry>
+	<!-- END: KillstealManager -->
+
+	<!-- START: ItemManager -->
+	<entry key="F_MI">Items</entry>
+	<entry key="MI_MinEnemiesRange">Min. Enemies in Range</entry>
+	<entry key="MI_UseFlee">Use Flee</entry>
+	<entry key="MI_UseCombo">Use Combo</entry>
+
+	<entry key="MI_YoumuusGhostblade">Youmuu's Ghostblade</entry>
+	<entry key="MI_Tiamat">Tiamat</entry>
+	<entry key="MI_Hydra">Hydra</entry>
+	<entry key="MI_BilgewaterCutlass">Bilgewater Cutlass</entry>
+	<entry key="MI_BladeRuinedKing">Blade of the Ruined King</entry>
+	<entry key="MI_HextechGunblade">Hextech Gunblade</entry>
+	<entry key="MI_MikaelsCrucible">Mikael's Crucible</entry>
+	<entry key="MI_LocketIronSolari">Locket of the Iron Solari</entry>
+	<entry key="MI_Sightstone">Sightstone</entry>
+	<entry key="MI_RubySightstone">Ruby Sightstone</entry>
+	<!-- END: ItemManager -->
+
+	<!-- START: Orbwalker -->
+	<entry key="F_Orbwalker">Orbwalker</entry>
+	<entry key="Orbwalker_AttackRange">Attack Range</entry>
+	<entry key="Orbwalker_EnemyAttackRange">Enemy Attack Range</entry>
+	<entry key="Orbwalker_HoldZone">Hold Zone</entry>
+	<entry key="Orbwalker_ExtraWindupTime">Extra Windup Time</entry>
+	<entry key="Orbwalker_HoldPositionRadius">Hold Position Radius</entry>
+	<entry key="Orbwalker_PrioritizeLastHit">Prioritize Lasthit</entry>
+	<entry key="Orbwalker_Flee">Flee</entry>
+	<entry key="Orbwalker_LastHit">Lasthit</entry>
+	<entry key="Orbwalker_LaneClear">Lane Clear</entry>
+	<entry key="Orbwalker_Harass">Harass</entry>
+	<entry key="Orbwalker_Mixed">Mixed</entry>
+	<entry key="Orbwalker_Combo">Combo</entry>
+	<!-- END: Orbwalker -->
+
+	<!-- START: TargetSelector -->
+	<entry key="F_TargetSelector">Target Selector</entry>
+	<entry key="TS_SelectedTargetColor">Selected Target Color</entry>
+	<entry key="TS_AssassinTargetColor">Assasin Target Color</entry>
+	<entry key="TS_AssassinMode">Assassin Mode</entry>
+	<entry key="TS_EnemyList">Enemy List</entry>
+	<entry key="TS_Weights">Weigths</entry>
+	<entry key="TS_WeightMultiplicator">Weight Multiplicator</entry>
+	<entry key="TS_FocusSelectedTarget">Focus Selected Target</entry>
+	<entry key="TS_OnlyAttackSelectedTarget">Only Attack Selected Target</entry>
+	<entry key="TS_AAKillable">AA Killable</entry>
+	<entry key="TS_AttackDamage">Attack Damage</entry>
+	<entry key="TS_AbilityPower">Ability Power</entry>
+	<entry key="TS_LowResists">Low Resists</entry>
+	<entry key="TS_LowHealth">Low Health</entry>
+	<entry key="TS_ShortDistance">Short Distance</entry>
+	<entry key="TS_TeamFocus">Team Focus</entry>
+	<entry key="TS_Gold">Gold</entry>
+	<!-- END: TargetSelector -->
+
+</language>
+<!-- ReSharper restore MarkupTextTypo -->
