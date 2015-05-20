@@ -38,14 +38,14 @@ namespace SFXUtility.Features.Others
 
     internal class TurnAround : Base
     {
-        private readonly List<SpellInfoStruct> _spellInfos = new List<SpellInfoStruct>
+        private readonly List<SpellInfo> _spellInfos = new List<SpellInfo>
         {
-            new SpellInfoStruct("Cassiopeia", "CassiopeiaPetrifyingGaze", 750f, false, true),
-            new SpellInfoStruct("Tryndamere", "MockingShout", 850f, false, false)
+            new SpellInfo("Cassiopeia", "CassiopeiaPetrifyingGaze", 1000f, false, true, 0.65f),
+            new SpellInfo("Tryndamere", "MockingShout", 900f, false, false, 0.65f)
         };
 
         private float _blockMovementTime;
-        private Vector2 _lastWaypoint = Vector2.Zero;
+        private Vector3 _lastMove;
         private Others _parent;
 
         public override bool Enabled
@@ -65,21 +65,23 @@ namespace SFXUtility.Features.Others
             base.OnEnable();
         }
 
+        protected override void OnDisable()
+        {
+            Obj_AI_Base.OnProcessSpellCast -= OnObjAiBaseProcessSpellCast;
+            Obj_AI_Base.OnIssueOrder -= OnObjAiBaseIssueOrder;
+            base.OnDisable();
+        }
+
         private void OnObjAiBaseIssueOrder(Obj_AI_Base sender, GameObjectIssueOrderEventArgs args)
         {
             try
             {
-                if (sender.IsMe && args.Order == GameObjectOrder.MoveTo)
+                if (sender.IsMe && args.Order == GameObjectOrder.MoveTo || args.Order == GameObjectOrder.AttackTo)
                 {
+                    _lastMove = args.TargetPosition;
                     if (_blockMovementTime > Game.Time)
                     {
                         args.Process = false;
-                    }
-                    else if (_lastWaypoint != Vector2.Zero && _lastWaypoint.IsValid())
-                    {
-                        ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, _lastWaypoint.To3D());
-                        _lastWaypoint = Vector2.Zero;
-                        ;
                     }
                 }
             }
@@ -89,30 +91,27 @@ namespace SFXUtility.Features.Others
             }
         }
 
-        protected override void OnDisable()
-        {
-            Obj_AI_Base.OnProcessSpellCast -= OnObjAiBaseProcessSpellCast;
-            base.OnDisable();
-        }
-
         private void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
             try
             {
-                if (sender == null || sender.Team == ObjectManager.Player.Team || ObjectManager.Player.IsDead || !ObjectManager.Player.IsTargetable)
+                if (sender == null || !sender.IsValid || sender.Team == ObjectManager.Player.Team || ObjectManager.Player.IsDead ||
+                    !ObjectManager.Player.IsTargetable)
                     return;
                 var spellInfo = _spellInfos.FirstOrDefault(i => args.SData.Name.Contains(i.Name, StringComparison.OrdinalIgnoreCase));
-
-                if (!spellInfo.Equals(default(SpellInfoStruct)))
+                if (spellInfo != null)
                 {
                     if ((spellInfo.Target && args.Target == ObjectManager.Player) ||
-                        ObjectManager.Player.ServerPosition.Distance(sender.ServerPosition) <= spellInfo.Range)
+                        (ObjectManager.Player.Distance(sender.ServerPosition) + ObjectManager.Player.BoundingRadius) <= spellInfo.Range)
                     {
-                        _lastWaypoint = ObjectManager.Player.GetWaypoints().Last();
+                        var moveTo = _lastMove;
                         ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo,
                             sender.ServerPosition.Extend(ObjectManager.Player.ServerPosition,
                                 ObjectManager.Player.ServerPosition.Distance(sender.ServerPosition) + (spellInfo.TurnOpposite ? 100 : -100)));
-                        _blockMovementTime = Game.Time + args.SData.SpellCastTime;
+                        Utility.DelayAction.Add(250, () => Game.SendEmote(Emote.Laugh));
+                        _blockMovementTime = Game.Time + spellInfo.CastTime;
+                        Utility.DelayAction.Add((int) ((spellInfo.CastTime + 0.1)*1000),
+                            () => ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, moveTo));
                     }
                 }
             }
@@ -166,22 +165,24 @@ namespace SFXUtility.Features.Others
             }
         }
 
-        private struct SpellInfoStruct
+        private class SpellInfo
         {
-            public readonly string Name;
-            public readonly string Owner;
-            public readonly float Range;
-            public readonly bool Target;
-            public readonly bool TurnOpposite;
-
-            public SpellInfoStruct(string owner, string name, float range, bool target, bool turnOpposite)
+            public SpellInfo(string owner, string name, float range, bool target, bool turnOpposite, float castTime)
             {
                 Owner = owner;
                 Name = name;
                 Range = range;
                 Target = target;
                 TurnOpposite = turnOpposite;
+                CastTime = castTime;
             }
+
+            public string Name { get; private set; }
+            public string Owner { get; private set; }
+            public float Range { get; private set; }
+            public bool Target { get; private set; }
+            public bool TurnOpposite { get; private set; }
+            public float CastTime { get; private set; }
         }
     }
 }

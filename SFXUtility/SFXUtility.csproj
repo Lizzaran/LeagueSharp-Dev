@@ -73,6 +73,7 @@
     <Compile Include="Data\Items.cs" />
     <Compile Include="Data\Jungle.cs" />
     <Compile Include="Classes\Spectator.cs" />
+    <Compile Include="Data\Models.cs" />
     <Compile Include="Data\Summoners.cs" />
     <Compile Include="Features\Activators\Activators.cs" />
     <Compile Include="Features\Activators\BushRevealer.cs" />
