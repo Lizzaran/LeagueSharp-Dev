@@ -26,16 +26,18 @@ namespace SFXChallenger.Champions
 
     using System;
     using System.Collections.Generic;
-    using System.Drawing;
     using System.Linq;
     using Abstracts;
     using Enumerations;
     using LeagueSharp;
     using LeagueSharp.Common;
     using Managers;
+    using SFXLibrary.Extensions.NET;
     using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.Logger;
+    using SharpDX;
     using Wrappers;
+    using Color = System.Drawing.Color;
     using Orbwalking = Wrappers.Orbwalking;
     using TargetSelector = Wrappers.TargetSelector;
 
@@ -43,6 +45,8 @@ namespace SFXChallenger.Champions
 
     internal class Cassiopeia : Champion
     {
+        private float _lastPoisonClearDelay;
+        private Vector2 _lastPoisonClearPosition;
         private float _lastQPoisonDelay;
         private Obj_AI_Base _lastQPoisonT;
         private List<Obj_AI_Hero> _targets = new List<Obj_AI_Hero>();
@@ -150,6 +154,17 @@ namespace SFXChallenger.Champions
             {
                 _targets = TargetSelector.GetTargets(850f, LeagueSharp.Common.TargetSelector.DamageType.Magical).Select(t => t.Hero).ToList();
             }
+            if ((Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit && Menu.Item(Menu.Name + ".miscellaneous.e-lasthit").GetValue<bool>() &&
+                 ManaManager.Check("misc")) && E.IsReady())
+            {
+                var m =
+                    MinionManager.GetMinions(ObjectManager.Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly)
+                        .FirstOrDefault(e => e.Health < E.GetDamage(e) - 5);
+                if (m != null)
+                {
+                    E.Cast(m, true);
+                }
+            }
         }
 
         private void OnCorePostUpdate(EventArgs args)
@@ -224,12 +239,12 @@ namespace SFXChallenger.Champions
         private void OnOrbwalkingBeforeAttack(Orbwalking.BeforeAttackEventArgs args)
         {
             var t = args.Target as Obj_AI_Hero;
-            if (t != null && (Q.CanCast(t) || W.CanCast(t) || (E.CanCast(t) && GetPoisonBuffEndTime(t) > GetEDelay(t))))
+            if (t != null && (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo || Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Harass))
             {
                 args.Process = false;
             }
-            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit && Menu.Item(Menu.Name + ".miscellaneous.e-lasthit").GetValue<bool>() &&
-                ManaManager.Check("misc") && E.IsReady())
+            if ((Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit && Menu.Item(Menu.Name + ".miscellaneous.e-lasthit").GetValue<bool>() &&
+                 ManaManager.Check("misc")))
             {
                 var m = args.Target as Obj_AI_Minion;
                 if (m != null && E.CanCast(m))
@@ -237,7 +252,6 @@ namespace SFXChallenger.Champions
                     if (Player.GetSpell(E.Slot).ManaCost < Player.Mana)
                     {
                         args.Process = false;
-                        E.Cast(m, true);
                     }
                 }
             }
@@ -252,7 +266,8 @@ namespace SFXChallenger.Champions
 
         private void OnInterruptableTarget(Obj_AI_Hero sender, Interrupter2.InterruptableTargetEventArgs args)
         {
-            if (sender.IsAlly || args.DangerLevel != Interrupter2.DangerLevel.High || !ManaManager.Check("misc"))
+            if (sender.IsAlly || args.DangerLevel != Interrupter2.DangerLevel.High || args.EndTime <= Game.Time + R.Delay ||
+                !ManaManager.Check("misc"))
                 return;
 
             if (Menu.Item(Menu.Name + ".miscellaneous.r-important").GetValue<bool>())
@@ -305,6 +320,11 @@ namespace SFXChallenger.Champions
                         if (HeroManager.Enemies.Count(em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) == 1)
                         {
                             Casting.BasicSkillShot(t2, R, HitchanceManager.Get("r"));
+                            var pred = R.GetPrediction(t2, true);
+                            if (pred.Hitchance >= HitchanceManager.Get("r"))
+                            {
+                                R.Cast(pred.CastPosition, true);
+                            }
                         }
                     }
                 }
@@ -430,10 +450,7 @@ namespace SFXChallenger.Champions
             {
                 var buffEndTime = target == null || !target.IsValid
                     ? 0
-                    : (target.Buffs.Where(buff => buff.Type == BuffType.Poison)
-                        .Select(buff => buff.EndTime)
-                        .DefaultIfEmpty()
-                        .Max(end => end - Game.Time));
+                    : (target.Buffs.Where(b => b.Type == BuffType.Poison).Select(b => b.EndTime).DefaultIfEmpty().Max(end => end - Game.Time));
                 return buffEndTime;
             }
             catch (Exception ex)
@@ -454,28 +471,71 @@ namespace SFXChallenger.Champions
             var w = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>();
             if (q || w)
             {
-                var minion =
-                    MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range, MinionTypes.All, MinionTeam.NotAlly)
-                        .Where(e => GetPoisonBuffEndTime(e) < Q.Delay*1.1 && !e.IsMoving)
+                var minions =
+                    MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range + Q.Width)
+                        .Where(e => GetPoisonBuffEndTime(e) < Q.Delay*1.1)
+                        .OrderByDescending(m => m.BaseSkinName.Contains("MinionSiege", StringComparison.OrdinalIgnoreCase))
                         .ToList();
-                if (q)
+                if (minions.Any())
                 {
-                    var prediction = Q.GetCircularFarmLocation(minion, Q.Width + 30);
-                    if (prediction.MinionsHit > 1)
-                        Q.Cast(prediction.Position);
+                    if (q)
+                    {
+                        var prediction = Q.GetCircularFarmLocation(minions, Q.Width + 30);
+                        if (prediction.MinionsHit > 1 && _lastPoisonClearDelay < Game.Time)
+                        {
+                            _lastPoisonClearDelay = Game.Time + Q.Delay;
+                            _lastPoisonClearPosition = prediction.Position;
+                            Q.Cast(prediction.Position);
+                        }
+                    }
+                    if (w)
+                    {
+                        var prediction = W.GetCircularFarmLocation(minions, W.Width + 40);
+                        if (prediction.MinionsHit > 2 && _lastPoisonClearDelay < Game.Time)
+                        {
+                            _lastPoisonClearDelay = Game.Time + W.Delay;
+                            _lastPoisonClearPosition = prediction.Position;
+                            W.Cast(prediction.Position);
+                        }
+                    }
                 }
-                if (w)
+                else
                 {
-                    var prediction = W.GetCircularFarmLocation(minion, W.Width + 40);
-                    if (prediction.MinionsHit > 2)
-                        W.Cast(prediction.Position);
+                    var creeps =
+                        MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range + Q.Width, MinionTypes.All, MinionTeam.Neutral)
+                            .Where(e => GetPoisonBuffEndTime(e) < Q.Delay*1.1 && !e.IsMoving)
+                            .ToList();
+                    if (creeps.Any())
+                    {
+                        if (q)
+                        {
+                            var pred = Q.GetCircularFarmLocation(creeps, Q.Width + 30);
+                            if (_lastPoisonClearDelay < Game.Time)
+                            {
+                                _lastPoisonClearDelay = Game.Time + Q.Delay;
+                                _lastPoisonClearPosition = pred.Position;
+                                Q.Cast(pred.Position);
+                            }
+                        }
+                        var prediction = W.GetCircularFarmLocation(creeps, W.Width + 40);
+                        if (w && prediction.MinionsHit > 1 && _lastPoisonClearDelay < Game.Time)
+                        {
+                            _lastPoisonClearDelay = Game.Time + W.Delay;
+                            _lastPoisonClearPosition = prediction.Position;
+                            W.Cast(prediction.Position);
+                        }
+                    }
                 }
             }
             if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>())
             {
                 var minion =
                     MinionManager.GetMinions(ObjectManager.Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly)
-                        .Where(e => GetPoisonBuffEndTime(e) > GetEDelay(e) && (e.Health > E.GetDamage(e)*2 || e.Health < E.GetDamage(e) - 5))
+                        .Where(
+                            e =>
+                                GetPoisonBuffEndTime(e) > GetEDelay(e) &&
+                                (e.Team == GameObjectTeam.Neutral || (e.Health > E.GetDamage(e)*2 || e.Health < E.GetDamage(e) - 5)))
+                        .OrderByDescending(m => m.BaseSkinName.Contains("MinionSiege", StringComparison.OrdinalIgnoreCase))
                         .ToList();
                 if (minion.Any())
                 {
