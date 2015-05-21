@@ -262,6 +262,14 @@ namespace SFXChallenger.Champions
             if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
             {
                 args.Process = Menu.Item(Menu.Name + ".lane-clear.aa").GetValue<bool>();
+                if (args.Process == false)
+                {
+                    var m = args.Target as Obj_AI_Minion;
+                    if (m != null)
+                    {
+                        args.Process = !E.CanCast(m) || GetPoisonBuffEndTime(m) < GetEDelay(m) || Player.GetSpell(E.Slot).ManaCost > Player.Mana;
+                    }
+                }
             }
             if ((Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit && Menu.Item(Menu.Name + ".miscellaneous.e-lasthit").GetValue<bool>() &&
                  ManaManager.Check("misc")))
