@@ -218,18 +218,6 @@ namespace SFXChallenger.Champions
                         Casting.BasicSkillShot(target, W, HitchanceManager.Get("w"));
                     }
                 }
-                if (Menu.Item(Menu.Name + ".miscellaneous.e-lasthit").GetValue<bool>() && Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit &&
-                    E.IsReady())
-                {
-                    var minion =
-                        MinionManager.GetMinions(E.Range, MinionTypes.All, MinionTeam.NotAlly)
-                            .OrderByDescending(GetPoisonBuffEndTime)
-                            .FirstOrDefault(m => m.Health < E.GetDamage(m) - 5);
-                    if (minion != null)
-                    {
-                        E.Cast(minion, true);
-                    }
-                }
             }
         }
 
@@ -239,6 +227,19 @@ namespace SFXChallenger.Champions
             if (t != null && (Q.CanCast(t) || W.CanCast(t) || (E.CanCast(t) && GetPoisonBuffEndTime(t) > GetEDelay(t))))
             {
                 args.Process = false;
+            }
+            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit && Menu.Item(Menu.Name + ".miscellaneous.e-lasthit").GetValue<bool>() &&
+                ManaManager.Check("misc") && E.IsReady())
+            {
+                var m = args.Target as Obj_AI_Minion;
+                if (m != null && E.CanCast(m))
+                {
+                    if (Player.GetSpell(E.Slot).ManaCost < Player.Mana)
+                    {
+                        args.Process = false;
+                        E.Cast(m, true);
+                    }
+                }
             }
         }
 
@@ -474,7 +475,7 @@ namespace SFXChallenger.Champions
             {
                 var minion =
                     MinionManager.GetMinions(ObjectManager.Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly)
-                        .Where(e => GetPoisonBuffEndTime(e) > GetEDelay(e) && (e.Health > E.GetDamage(e) * 2 || e.Health < E.GetDamage(e) - 5))
+                        .Where(e => GetPoisonBuffEndTime(e) > GetEDelay(e) && (e.Health > E.GetDamage(e)*2 || e.Health < E.GetDamage(e) - 5))
                         .ToList();
                 if (minion.Any())
                 {
