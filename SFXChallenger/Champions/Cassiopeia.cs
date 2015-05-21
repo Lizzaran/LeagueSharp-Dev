@@ -524,7 +524,11 @@ namespace SFXChallenger.Champions
 
         private void QLogic()
         {
-            var ts = _targets.FirstOrDefault(t => Q.CanCast(t) && GetPoisonBuffEndTime(t) < Q.Delay*1.2f);
+            var ts =
+                _targets.FirstOrDefault(
+                    t =>
+                        Q.CanCast(t) &&
+                        (GetPoisonBuffEndTime(t) < Q.Delay*1.2f || !IsFacing(t, Player) && t.Position.Distance(Player.Position) > Q.Range*0.85f));
             if (ts != null)
             {
                 _lastQPoisonDelay = Game.Time + Q.Delay;
@@ -538,7 +542,7 @@ namespace SFXChallenger.Champions
             var tsAll = _targets.Where(t => W.CanCast(t)).ToList();
             foreach (var ts in tsAll)
             {
-                if ((!IsFacing(ts, Player) && ts.Position.Distance(Player.Position) > W.Range*0.7f) || tsAll.Count() == 1 ||
+                if ((!IsFacing(ts, Player) && ts.Position.Distance(Player.Position) > W.Range*0.85f) ||
                     (_lastQPoisonDelay < Game.Time && GetPoisonBuffEndTime(ts) < W.Delay*1.2 || _lastQPoisonT.NetworkId != ts.NetworkId))
                 {
                     Casting.BasicSkillShot(ts, W, HitchanceManager.Get("w"));
