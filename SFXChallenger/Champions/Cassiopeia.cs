@@ -152,194 +152,244 @@ namespace SFXChallenger.Champions
 
         private void OnCorePreUpdate(EventArgs args)
         {
-            if (Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.LaneClear && Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.LastHit &&
-                Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.None)
+            try
             {
-                _targets = TargetSelector.GetTargets(850f, LeagueSharp.Common.TargetSelector.DamageType.Magical).Select(t => t.Hero).ToList();
-            }
-            if ((Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit && Menu.Item(Menu.Name + ".miscellaneous.e-lasthit").GetValue<bool>() &&
-                 ManaManager.Check("misc")) && E.IsReady())
-            {
-                var m =
-                    MinionManager.GetMinions(ObjectManager.Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly)
-                        .FirstOrDefault(e => e.Health < E.GetDamage(e) - 5);
-                if (m != null)
+                if (Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.LaneClear && Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.LastHit &&
+                    Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.None)
                 {
-                    E.Cast(m, true);
+                    _targets = TargetSelector.GetTargets(850f, LeagueSharp.Common.TargetSelector.DamageType.Magical).Select(t => t.Hero).ToList();
                 }
+                if ((Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit && Menu.Item(Menu.Name + ".miscellaneous.e-lasthit").GetValue<bool>() &&
+                     ManaManager.Check("misc")) && E.IsReady())
+                {
+                    var m =
+                        MinionManager.GetMinions(ObjectManager.Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly)
+                            .FirstOrDefault(e => e.Health < E.GetDamage(e) - 5);
+                    if (m != null)
+                    {
+                        E.Cast(m, true);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
         private void OnCorePostUpdate(EventArgs args)
         {
-            if (Menu.Item(Menu.Name + ".auto.enabled").GetValue<bool>())
+            try
             {
-                RLogic(Menu.Item(Menu.Name + ".auto.r-min").GetValue<Slider>().Value,
-                    Menu.Item(Menu.Name + ".auto.r-min-facing").GetValue<Slider>().Value);
-            }
-            if (Menu.Item(Menu.Name + ".flash.r-hotkey").GetValue<KeyBind>().Active && R.IsReady() && SummonerManager.Flash.IsReady())
-            {
-                Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
-                var targets =
-                    TargetSelector.GetTargets((R.Range*0.9f) + SummonerManager.Flash.Range)
-                        .Where(
-                            t =>
-                                t.Hero != null &&
-                                Prediction.GetPrediction(t.Hero, R.Delay + 0.3f).UnitPosition.Distance(Player.Position) > R.Range*1.1);
-                foreach (var target in targets)
+                if (Menu.Item(Menu.Name + ".auto.enabled").GetValue<bool>())
                 {
-                    var flashPos = Player.Position.Extend(target.Hero.Position, SummonerManager.Flash.Range);
-                    var minFacing = Menu.Item(Menu.Name + ".flash.r-min-facing").GetValue<Slider>().Value;
-                    var pred =
-                        Prediction.GetPrediction(new PredictionInput
-                        {
-                            Aoe = true,
-                            Collision = false,
-                            CollisionObjects = new[] {CollisionableObjects.YasuoWall},
-                            From = flashPos,
-                            RangeCheckFrom = flashPos,
-                            Delay = R.Delay + 0.3f,
-                            Range = R.Range*0.9f,
-                            Speed = R.Speed,
-                            Radius = R.Width,
-                            Type = SkillshotType.SkillshotCone,
-                            Unit = target.Hero
-                        });
-                    if (pred.Hitchance >= HitChance.Medium)
+                    RLogic(Menu.Item(Menu.Name + ".auto.r-min").GetValue<Slider>().Value,
+                        Menu.Item(Menu.Name + ".auto.r-min-facing").GetValue<Slider>().Value);
+                }
+                if (Menu.Item(Menu.Name + ".flash.r-hotkey").GetValue<KeyBind>().Active && R.IsReady() && SummonerManager.Flash.IsReady())
+                {
+                    Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
+                    var targets =
+                        TargetSelector.GetTargets((R.Range*0.9f) + SummonerManager.Flash.Range)
+                            .Where(
+                                t =>
+                                    t.Hero != null &&
+                                    Prediction.GetPrediction(t.Hero, R.Delay + 0.3f).UnitPosition.Distance(Player.Position) > R.Range*1.1);
+                    foreach (var target in targets)
                     {
-                        if (Menu.Item(Menu.Name + ".flash.r-killable").GetValue<bool>())
-                        {
-                            var cDmg = CalcComboDamage(target.Hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
-                                Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
-                                Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true);
-                            if (IsFacing(Player, target.Hero) && cDmg - 20 >= target.Hero.Health)
+                        var flashPos = Player.Position.Extend(target.Hero.Position, SummonerManager.Flash.Range);
+                        var minFacing = Menu.Item(Menu.Name + ".flash.r-min-facing").GetValue<Slider>().Value;
+                        var pred =
+                            Prediction.GetPrediction(new PredictionInput
                             {
-                                var prediction = R.GetPrediction(target.Hero, true);
-                                if (pred.Hitchance >= HitchanceManager.Get("r"))
+                                Aoe = true,
+                                Collision = false,
+                                CollisionObjects = new[] {CollisionableObjects.YasuoWall},
+                                From = flashPos,
+                                RangeCheckFrom = flashPos,
+                                Delay = R.Delay + 0.3f,
+                                Range = R.Range*0.9f,
+                                Speed = R.Speed,
+                                Radius = R.Width,
+                                Type = SkillshotType.SkillshotCone,
+                                Unit = target.Hero
+                            });
+                        if (pred.Hitchance >= HitChance.Medium)
+                        {
+                            if (Menu.Item(Menu.Name + ".flash.r-killable").GetValue<bool>())
+                            {
+                                var cDmg = CalcComboDamage(target.Hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
+                                    Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
+                                    Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true);
+                                if (IsFacing(Player, target.Hero) && cDmg - 20 >= target.Hero.Health)
                                 {
-                                    R.Cast(prediction.CastPosition, true);
-                                    return;
+                                    var prediction = R.GetPrediction(target.Hero, true);
+                                    if (pred.Hitchance >= HitchanceManager.Get("r"))
+                                    {
+                                        R.Cast(prediction.CastPosition, true);
+                                        return;
+                                    }
+                                }
+                            }
+                            var rHits = HeroManager.Enemies.Where(x => R.WillHit(flashPos, pred.CastPosition)).ToList();
+                            var inRange = rHits.Count;
+                            var isFacing = rHits.Count(enemy => IsFacing(enemy, Player));
+                            if (isFacing >= minFacing || inRange >= Menu.Item(Menu.Name + ".flash.r-min").GetValue<Slider>().Value)
+                            {
+                                if (minFacing == 1 && (!target.Hero.CanMove || target.Hero.IsImmovable || target.Hero.IsWindingUp) || minFacing > 1)
+                                {
+                                    var pos = Player.Position.Extend(pred.CastPosition, -(Player.Position.Distance(pred.CastPosition)*2));
+                                    R.Cast(pos, true);
+                                    Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(pred.CastPosition));
                                 }
                             }
                         }
-                        var rHits = HeroManager.Enemies.Where(x => R.WillHit(flashPos, pred.CastPosition)).ToList();
-                        var inRange = rHits.Count;
-                        var isFacing = rHits.Count(enemy => IsFacing(enemy, Player));
-                        if (isFacing >= minFacing || inRange >= Menu.Item(Menu.Name + ".flash.r-min").GetValue<Slider>().Value)
+                    }
+                }
+                if (ManaManager.Check("misc"))
+                {
+                    if (Menu.Item(Menu.Name + ".miscellaneous.w-stunned").GetValue<bool>() && W.IsReady())
+                    {
+                        var target =
+                            _targets.Where(t => t.Distance(Player) <= W.Range)
+                                .FirstOrDefault(t => t.IsValidTarget(W.Range) && t.IsStunned || t.IsCharmed || t.IsRooted);
+                        if (target != null)
                         {
-                            if (minFacing == 1 && (!target.Hero.CanMove || target.Hero.IsImmovable || target.Hero.IsWindingUp) || minFacing > 1)
-                            {
-                                var pos = Player.Position.Extend(pred.CastPosition, -(Player.Position.Distance(pred.CastPosition)*2));
-                                R.Cast(pos, true);
-                                Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(pred.CastPosition));
-                            }
+                            Casting.BasicSkillShot(target, W, HitchanceManager.Get("w"));
                         }
                     }
                 }
             }
-            if (ManaManager.Check("misc"))
+            catch (Exception ex)
             {
-                if (Menu.Item(Menu.Name + ".miscellaneous.w-stunned").GetValue<bool>() && W.IsReady())
-                {
-                    var target =
-                        _targets.Where(t => t.Distance(Player) <= W.Range)
-                            .FirstOrDefault(t => t.IsValidTarget(W.Range) && t.IsStunned || t.IsCharmed || t.IsRooted);
-                    if (target != null)
-                    {
-                        Casting.BasicSkillShot(target, W, HitchanceManager.Get("w"));
-                    }
-                }
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
         private void OnOrbwalkingBeforeAttack(Orbwalking.BeforeAttackEventArgs args)
         {
-            var t = args.Target as Obj_AI_Hero;
-            if (t != null && (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo || Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Harass))
+            try
             {
-                args.Process = false;
-            }
-            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
-            {
-                args.Process = Menu.Item(Menu.Name + ".lane-clear.aa").GetValue<bool>();
-                if (args.Process == false)
+                var t = args.Target as Obj_AI_Hero;
+                if (t != null && (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo || Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Harass))
+                {
+                    args.Process = false;
+                }
+                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
+                {
+                    args.Process = Menu.Item(Menu.Name + ".lane-clear.aa").GetValue<bool>();
+                    if (args.Process == false)
+                    {
+                        var m = args.Target as Obj_AI_Minion;
+                        if (m != null)
+                        {
+                            args.Process = !E.CanCast(m) || GetPoisonBuffEndTime(m) < GetEDelay(m) || Player.GetSpell(E.Slot).ManaCost > Player.Mana;
+                        }
+                    }
+                }
+                if ((Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit && Menu.Item(Menu.Name + ".miscellaneous.e-lasthit").GetValue<bool>() &&
+                     ManaManager.Check("misc")))
                 {
                     var m = args.Target as Obj_AI_Minion;
-                    if (m != null)
+                    if (m != null && E.CanCast(m))
                     {
-                        args.Process = !E.CanCast(m) || GetPoisonBuffEndTime(m) < GetEDelay(m) || Player.GetSpell(E.Slot).ManaCost > Player.Mana;
+                        if (Player.GetSpell(E.Slot).ManaCost < Player.Mana)
+                        {
+                            args.Process = false;
+                        }
                     }
                 }
             }
-            if ((Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit && Menu.Item(Menu.Name + ".miscellaneous.e-lasthit").GetValue<bool>() &&
-                 ManaManager.Check("misc")))
+            catch (Exception ex)
             {
-                var m = args.Target as Obj_AI_Minion;
-                if (m != null && E.CanCast(m))
-                {
-                    if (Player.GetSpell(E.Slot).ManaCost < Player.Mana)
-                    {
-                        args.Process = false;
-                    }
-                }
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
         private bool IsFacing(Obj_AI_Base source, Obj_AI_Base target)
         {
-            if (source == null || target == null)
-                return false;
-            return source.Direction.To2D().Perpendicular().AngleBetween((target.Position - source.Position).To2D()) < 80.0;
+            try
+            {
+                if (source == null || target == null)
+                    return false;
+                return source.Direction.To2D().Perpendicular().AngleBetween((target.Position - source.Position).To2D()) < 80.0;
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return false;
         }
 
         private void OnUnitDash(Obj_AI_Base sender, Dash.DashItem args)
         {
-            if (!sender.IsEnemy || !ManaManager.Check("misc"))
-                return;
-
-            if (Menu.Item(Menu.Name + ".miscellaneous.q-dash").GetValue<bool>() && Player.Distance(args.EndPos) <= Q.Range)
+            try
             {
-                var delay = (int) (args.EndTick - Game.Time - Q.Delay);
-                if (delay > 0)
+                if (!sender.IsEnemy || !ManaManager.Check("misc"))
+                    return;
+
+                if (Menu.Item(Menu.Name + ".miscellaneous.q-dash").GetValue<bool>() && Player.Distance(args.EndPos) <= Q.Range)
                 {
-                    Utility.DelayAction.Add(delay*1000, () => Q.Cast(args.EndPos));
+                    var delay = (int) (args.EndTick - Game.Time - Q.Delay);
+                    if (delay > 0)
+                    {
+                        Utility.DelayAction.Add(delay*1000, () => Q.Cast(args.EndPos));
+                    }
+                    else
+                    {
+                        Q.Cast(args.EndPos);
+                    }
                 }
-                else
+                if (Menu.Item(Menu.Name + ".miscellaneous.w-dash").GetValue<bool>() && Player.Distance(args.EndPos) <= W.Range)
                 {
-                    Q.Cast(args.EndPos);
+                    var delay = (int) (args.EndTick - Game.Time - W.Delay);
+                    if (delay > 0)
+                    {
+                        Utility.DelayAction.Add(delay*1000, () => W.Cast(args.EndPos));
+                    }
+                    else
+                    {
+                        W.Cast(args.EndPos);
+                    }
                 }
             }
-            if (Menu.Item(Menu.Name + ".miscellaneous.w-dash").GetValue<bool>() && Player.Distance(args.EndPos) <= W.Range)
+            catch (Exception ex)
             {
-                var delay = (int) (args.EndTick - Game.Time - W.Delay);
-                if (delay > 0)
-                {
-                    Utility.DelayAction.Add(delay*1000, () => W.Cast(args.EndPos));
-                }
-                else
-                {
-                    W.Cast(args.EndPos);
-                }
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
         private void OnInterruptableTarget(Obj_AI_Hero sender, Interrupter2.InterruptableTargetEventArgs args)
         {
-            if (!sender.IsEnemy || args.DangerLevel != Interrupter2.DangerLevel.High || args.EndTime <= Game.Time + R.Delay ||
-                !ManaManager.Check("misc"))
-                return;
-
-            if (Menu.Item(Menu.Name + ".miscellaneous.r-important").GetValue<bool>())
+            try
             {
-                Casting.BasicSkillShot(sender, R, HitchanceManager.Get("r"));
+                if (!sender.IsEnemy || args.DangerLevel != Interrupter2.DangerLevel.High || args.EndTime <= Game.Time + R.Delay ||
+                    !ManaManager.Check("misc"))
+                    return;
+
+                if (Menu.Item(Menu.Name + ".miscellaneous.r-important").GetValue<bool>())
+                {
+                    Casting.BasicSkillShot(sender, R, HitchanceManager.Get("r"));
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
         private void OnEnemyGapcloser(ActiveGapcloser gapcloser)
         {
-            if (Menu.Item(Menu.Name + ".miscellaneous.r-gapcloser").GetValue<bool>() || !ManaManager.Check("misc"))
+            try
             {
-                Casting.BasicSkillShot(gapcloser.Sender, R, HitchanceManager.Get("r"));
+                if (Menu.Item(Menu.Name + ".miscellaneous.r-gapcloser").GetValue<bool>() || !ManaManager.Check("misc"))
+                {
+                    Casting.BasicSkillShot(gapcloser.Sender, R, HitchanceManager.Get("r"));
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -396,38 +446,55 @@ namespace SFXChallenger.Champions
 
         private bool IsNearTurret(Obj_AI_Base target)
         {
-            return ObjectManager.Get<Obj_AI_Turret>().Any(turret => turret.IsValidTarget(1300f, true, target.Position));
+            try
+            {
+                return ObjectManager.Get<Obj_AI_Turret>().Any(turret => turret.IsValidTarget(1300f, true, target.Position));
+            }
+
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return false;
         }
 
         private float CalcComboDamage(Obj_AI_Base target, bool q, bool w, bool e, bool r)
         {
-            var manaCost = w && W.IsReady() ? Player.GetSpell(W.Slot).ManaCost : (q ? Player.GetSpell(Q.Slot).ManaCost : 0);
-            var damage = w && W.IsReady() ? W.GetDamage(target) : (q ? Q.GetDamage(target) : 0);
+            try
+            {
+                var manaCost = w && W.IsReady() ? Player.GetSpell(W.Slot).ManaCost : (q ? Player.GetSpell(Q.Slot).ManaCost : 0);
+                var damage = w && W.IsReady() ? W.GetDamage(target) : (q ? Q.GetDamage(target) : 0);
 
-            if (e)
-            {
-                var eMana = Player.GetSpell(E.Slot).ManaCost;
-                var eDamage = E.GetDamage(target);
-                var count = IsNearTurret(target) || !R.IsReady() || !IsFacing(Player, target) ? 3 : 6;
-                for (var i = 0; i < count; i++)
+                if (e)
                 {
-                    if (manaCost + eMana > Player.Mana)
+                    var eMana = Player.GetSpell(E.Slot).ManaCost;
+                    var eDamage = E.GetDamage(target);
+                    var count = IsNearTurret(target) || !R.IsReady() || !IsFacing(Player, target) ? 3 : 6;
+                    for (var i = 0; i < count; i++)
                     {
-                        break;
+                        if (manaCost + eMana > Player.Mana)
+                        {
+                            break;
+                        }
+                        manaCost += eMana;
+                        damage += eDamage;
                     }
-                    manaCost += eMana;
-                    damage += eDamage;
                 }
-            }
-            if (r)
-            {
-                if (manaCost + Player.GetSpell(R.Slot).ManaCost - 10 > Player.Mana)
+                if (r)
                 {
-                    return damage;
+                    if (manaCost + Player.GetSpell(R.Slot).ManaCost - 10 > Player.Mana)
+                    {
+                        return damage;
+                    }
+                    return damage + (R.IsReady() ? R.GetDamage(target) : 0);
                 }
-                return damage + (R.IsReady() ? R.GetDamage(target) : 0);
+                return damage;
             }
-            return damage;
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return 0;
         }
 
         private void RLogic(int min, int minFacing)
@@ -506,9 +573,11 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                var buffEndTime = target == null || !target.IsValid
-                    ? 0
-                    : (target.Buffs.Where(b => b.Type == BuffType.Poison).Select(b => b.EndTime).DefaultIfEmpty().Max(end => end - Game.Time));
+                var buffEndTime =
+                    target.Buffs.OrderByDescending(buff => buff.EndTime - Game.Time)
+                        .Where(buff => buff.Type == BuffType.Poison)
+                        .Select(buff => buff.EndTime)
+                        .FirstOrDefault();
                 return buffEndTime;
             }
             catch (Exception ex)
@@ -520,7 +589,15 @@ namespace SFXChallenger.Champions
 
         private float GetEDelay(Obj_AI_Base target)
         {
-            return (E.Delay + (E.Delay > 0 ? (ObjectManager.Player.ServerPosition.Distance(target.ServerPosition)/E.Speed) : 0)) + 0.1f;
+            try
+            {
+                return (E.Delay + (E.Delay > 0 ? (ObjectManager.Player.ServerPosition.Distance(target.ServerPosition)/E.Speed) : 0)) + 0.1f;
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return 0;
         }
 
         protected override void LaneClear()
