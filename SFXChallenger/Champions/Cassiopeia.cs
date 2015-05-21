@@ -33,6 +33,7 @@ namespace SFXChallenger.Champions
     using LeagueSharp;
     using LeagueSharp.Common;
     using Managers;
+    using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.Logger;
     using Wrappers;
     using Orbwalking = Wrappers.Orbwalking;
@@ -234,24 +235,10 @@ namespace SFXChallenger.Champions
 
         private void OnOrbwalkingBeforeAttack(Orbwalking.BeforeAttackEventArgs args)
         {
-            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
+            var t = args.Target as Obj_AI_Hero;
+            if (t != null && (Q.CanCast(t) || W.CanCast(t) || (E.CanCast(t) && GetPoisonBuffEndTime(t) > GetEDelay(t))))
             {
-                var t = args.Target as Obj_AI_Hero;
-                if (t != null && (Q.CanCast(t) || W.CanCast(t) || E.CanCast(t)))
-                {
-                    args.Process = false;
-                }
-            }
-            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Harass || Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
-            {
-                var t = args.Target as Obj_AI_Hero;
-                if (t != null &&
-                    (Q.CanCast(t) && Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() ||
-                     W.CanCast(t) && Menu.Item(Menu.Name + ".harass.w").GetValue<bool>() ||
-                     E.CanCast(t) && Menu.Item(Menu.Name + ".harass.e").GetValue<bool>()) && GetPoisonBuffEndTime(t) > 0.4f)
-                {
-                    args.Process = false;
-                }
+                args.Process = false;
             }
         }
 
@@ -442,7 +429,10 @@ namespace SFXChallenger.Champions
             {
                 var buffEndTime = target == null || !target.IsValid
                     ? 0
-                    : (target.Buffs.Where(buff => buff.Type == BuffType.Poison).Select(buff => buff.EndTime).Max(end => end - Game.Time));
+                    : (target.Buffs.Where(buff => buff.Type == BuffType.Poison)
+                        .Select(buff => buff.EndTime)
+                        .DefaultIfEmpty()
+                        .Max(end => end - Game.Time));
                 return buffEndTime;
             }
             catch (Exception ex)
@@ -454,7 +444,7 @@ namespace SFXChallenger.Champions
 
         private float GetEDelay(Obj_AI_Base target)
         {
-            return (E.Delay + (E.Delay > 0 ? (ObjectManager.Player.ServerPosition.Distance(target.ServerPosition)/E.Speed) : 0)) + 0.05f;
+            return (E.Delay + (E.Delay > 0 ? (ObjectManager.Player.ServerPosition.Distance(target.ServerPosition)/E.Speed) : 0)) + 0.1f;
         }
 
         protected override void LaneClear()
@@ -469,14 +459,14 @@ namespace SFXChallenger.Champions
                         .ToList();
                 if (q)
                 {
-                    var prediction = Q.GetCircularFarmLocation(minion, Q.Width + 20);
-                    if (prediction.MinionsHit >= 2)
+                    var prediction = Q.GetCircularFarmLocation(minion, Q.Width + 30);
+                    if (prediction.MinionsHit > 1)
                         Q.Cast(prediction.Position);
                 }
                 if (w)
                 {
-                    var prediction = W.GetCircularFarmLocation(minion, W.Width + 30);
-                    if (prediction.MinionsHit >= 2)
+                    var prediction = W.GetCircularFarmLocation(minion, W.Width + 40);
+                    if (prediction.MinionsHit > 2)
                         W.Cast(prediction.Position);
                 }
             }
@@ -484,7 +474,7 @@ namespace SFXChallenger.Champions
             {
                 var minion =
                     MinionManager.GetMinions(ObjectManager.Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly)
-                        .Where(e => GetPoisonBuffEndTime(e) > GetEDelay(e) && e.Health > E.GetDamage(e)*2 || e.Health < E.GetDamage(e) - 5)
+                        .Where(e => GetPoisonBuffEndTime(e) > GetEDelay(e) && (e.Health > E.GetDamage(e) * 2 || e.Health < E.GetDamage(e) - 5))
                         .ToList();
                 if (minion.Any())
                 {
@@ -548,19 +538,19 @@ namespace SFXChallenger.Champions
             var r = Menu.Item(Menu.Name + ".drawing.r").GetValue<Circle>();
             var circleThickness = Menu.Item(Menu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value;
 
-            if (q.Active)
+            if (q.Active && Player.Position.IsOnScreen(Q.Range))
             {
                 Render.Circle.DrawCircle(Player.Position, Q.Range, q.Color, circleThickness);
             }
-            if (w.Active)
+            if (w.Active && Player.Position.IsOnScreen(W.Range))
             {
                 Render.Circle.DrawCircle(Player.Position, W.Range, w.Color, circleThickness);
             }
-            if (e.Active)
+            if (e.Active && Player.Position.IsOnScreen(E.Range))
             {
                 Render.Circle.DrawCircle(Player.Position, E.Range, e.Color, circleThickness);
             }
-            if (r.Active)
+            if (r.Active && Player.Position.IsOnScreen(R.Range))
             {
                 Render.Circle.DrawCircle(Player.Position, R.Range, r.Color, circleThickness);
             }
