@@ -6,7 +6,6 @@
 	<!-- START: Cassiopeia -->
 	<entry key="Cassio_RMin">R Min</entry>
 	<entry key="Cassio_RMinFacing">R Min Facing</entry>
-	<entry key="Cassio_RMinKillable">R Min Killable</entry>
 	<entry key="Cassio_QMultiple">Multiple Q Targets</entry>
 	<entry key="Cassio_QMultiple">Multiple Q Targets</entry>
 	<entry key="Cassio_QMultiple">Multiple Q Targets</entry>
@@ -45,6 +44,7 @@
 	<entry key="C_Auto">Auto</entry>
 	<entry key="C_Killsteal">Killsteal</entry>
 	<entry key="C_Stunned">Stunned</entry>
+	<entry key="C_Killable">Killable</entry>
 	<!-- END: CHAMPION -->
 
 	<!-- START: Language -->

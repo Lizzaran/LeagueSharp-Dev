@@ -26,6 +26,7 @@ namespace SFXChallenger.Champions
 
     using System;
     using System.Collections.Generic;
+    using System.Drawing;
     using System.Linq;
     using Abstracts;
     using Enumerations;
@@ -35,9 +36,7 @@ namespace SFXChallenger.Champions
     using SFXLibrary.Extensions.NET;
     using SFXLibrary.Extensions.SharpDX;
     using SFXLibrary.Logger;
-    using SharpDX;
     using Wrappers;
-    using Color = System.Drawing.Color;
     using Orbwalking = Wrappers.Orbwalking;
     using TargetSelector = Wrappers.TargetSelector;
 
@@ -46,7 +45,6 @@ namespace SFXChallenger.Champions
     internal class Cassiopeia : Champion
     {
         private float _lastPoisonClearDelay;
-        private Vector2 _lastPoisonClearPosition;
         private float _lastQPoisonDelay;
         private Obj_AI_Base _lastQPoisonT;
         private List<Obj_AI_Hero> _targets = new List<Obj_AI_Hero>();
@@ -113,8 +111,8 @@ namespace SFXChallenger.Champions
 
             var flashMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_Flash"), Menu.Name + ".flash"));
             flashMenu.AddItem(new MenuItem(flashMenu.Name + ".r-min-facing", Global.Lang.Get("Cassio_RMinFacing")).SetValue(new Slider(3, 1, 5)));
-            flashMenu.AddItem(new MenuItem(flashMenu.Name + ".r-min-killable", Global.Lang.Get("Cassio_RMinKillable")).SetValue(new Slider(2, 1, 5)));
             flashMenu.AddItem(new MenuItem(flashMenu.Name + ".r-min", Global.Lang.Get("Cassio_RMin")).SetValue(new Slider(4, 1, 5)));
+            flashMenu.AddItem(new MenuItem(flashMenu.Name + ".r-killable", Global.Lang.Get("C_Killable")).SetValue(true));
             flashMenu.AddItem(
                 new MenuItem(flashMenu.Name + ".r-hotkey", "R " + Global.Lang.Get("G_Hotkey")).SetValue(new KeyBind('U', KeyBindType.Press)));
 
@@ -204,12 +202,25 @@ namespace SFXChallenger.Champions
                         });
                     if (pred.Hitchance >= HitChance.Medium)
                     {
+                        if (Menu.Item(Menu.Name + ".flash.r-killable").GetValue<bool>())
+                        {
+                            var cDmg = CalcComboDamage(target.Hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
+                                Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
+                                Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true);
+                            if (IsFacing(Player, target.Hero) && cDmg - 20 >= target.Hero.Health)
+                            {
+                                var prediction = R.GetPrediction(target.Hero, true);
+                                if (pred.Hitchance >= HitchanceManager.Get("r"))
+                                {
+                                    R.Cast(prediction.CastPosition, true);
+                                    return;
+                                }
+                            }
+                        }
                         var rHits = HeroManager.Enemies.Where(x => R.WillHit(flashPos, pred.CastPosition)).ToList();
                         var inRange = rHits.Count;
                         var isFacing = rHits.Count(enemy => IsFacing(enemy, Player));
-                        var killable = rHits.Count(enemy => enemy.Health < R.GetDamage(enemy) - 20);
-                        if (isFacing >= minFacing || inRange >= Menu.Item(Menu.Name + ".flash.r-min").GetValue<Slider>().Value ||
-                            killable >= Menu.Item(Menu.Name + ".flash.r-min-killable").GetValue<Slider>().Value)
+                        if (isFacing >= minFacing || inRange >= Menu.Item(Menu.Name + ".flash.r-min").GetValue<Slider>().Value)
                         {
                             if (minFacing == 1 && (!target.Hero.CanMove || target.Hero.IsImmovable || target.Hero.IsWindingUp) || minFacing > 1)
                             {
@@ -313,13 +324,12 @@ namespace SFXChallenger.Champions
             if (t2 != null)
             {
                 var cDmg = CalcComboDamage(t2, q, w, e, r);
-                if (r)
+                if (r && IsFacing(Player, t2))
                 {
-                    if (Menu.Item(Menu.Name + ".combo.r-1v1").GetValue<bool>() && cDmg >= t2.Health - 20)
+                    if (Menu.Item(Menu.Name + ".combo.r-1v1").GetValue<bool>() && cDmg - 20 >= t2.Health)
                     {
                         if (HeroManager.Enemies.Count(em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) == 1)
                         {
-                            Casting.BasicSkillShot(t2, R, HitchanceManager.Get("r"));
                             var pred = R.GetPrediction(t2, true);
                             if (pred.Hitchance >= HitchanceManager.Get("r"))
                             {
@@ -350,7 +360,7 @@ namespace SFXChallenger.Champions
             {
                 var eMana = Player.GetSpell(E.Slot).ManaCost;
                 var eDamage = E.GetDamage(target);
-                var count = IsNearTurret(target) || !R.CanCast(target) ? 3 : 6;
+                var count = IsNearTurret(target) || !R.IsReady() || !IsFacing(Player, target) ? 3 : 6;
                 for (var i = 0; i < count; i++)
                 {
                     if (manaCost + eMana > Player.Mana)
@@ -484,7 +494,6 @@ namespace SFXChallenger.Champions
                         if (prediction.MinionsHit > 1 && _lastPoisonClearDelay < Game.Time)
                         {
                             _lastPoisonClearDelay = Game.Time + Q.Delay;
-                            _lastPoisonClearPosition = prediction.Position;
                             Q.Cast(prediction.Position);
                         }
                     }
@@ -494,7 +503,6 @@ namespace SFXChallenger.Champions
                         if (prediction.MinionsHit > 2 && _lastPoisonClearDelay < Game.Time)
                         {
                             _lastPoisonClearDelay = Game.Time + W.Delay;
-                            _lastPoisonClearPosition = prediction.Position;
                             W.Cast(prediction.Position);
                         }
                     }
@@ -513,7 +521,6 @@ namespace SFXChallenger.Champions
                             if (_lastPoisonClearDelay < Game.Time)
                             {
                                 _lastPoisonClearDelay = Game.Time + Q.Delay;
-                                _lastPoisonClearPosition = pred.Position;
                                 Q.Cast(pred.Position);
                             }
                         }
@@ -521,7 +528,6 @@ namespace SFXChallenger.Champions
                         if (w && prediction.MinionsHit > 1 && _lastPoisonClearDelay < Game.Time)
                         {
                             _lastPoisonClearDelay = Game.Time + W.Delay;
-                            _lastPoisonClearPosition = prediction.Position;
                             W.Cast(prediction.Position);
                         }
                     }
