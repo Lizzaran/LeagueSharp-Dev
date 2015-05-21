@@ -448,7 +448,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                return ObjectManager.Get<Obj_AI_Turret>().Any(turret => turret.IsValidTarget(1300f, true, target.Position));
+                return ObjectManager.Get<Obj_AI_Turret>().Any(turret => turret.IsValidTarget(1100f, true, target.Position));
             }
 
             catch (Exception ex)
@@ -462,14 +462,17 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                var manaCost = w && W.IsReady() ? Player.GetSpell(W.Slot).ManaCost : (q ? Player.GetSpell(Q.Slot).ManaCost : 0);
-                var damage = w && W.IsReady() ? W.GetDamage(target) : (q ? Q.GetDamage(target) : 0);
+                var manaCost = (w && W.IsReady() ? Player.GetSpell(W.Slot).ManaCost : (q ? Player.GetSpell(Q.Slot).ManaCost : 0))*2;
+                var damage = (w && W.IsReady() ? W.GetDamage(target) : (q ? Q.GetDamage(target) : 0))*2;
 
                 if (e)
                 {
                     var eMana = Player.GetSpell(E.Slot).ManaCost;
                     var eDamage = E.GetDamage(target);
-                    var count = IsNearTurret(target) || !R.IsReady() || !IsFacing(Player, target) ? 3 : 6;
+                    var count = IsNearTurret(target) && !IsFacing(Player, target) || IsNearTurret(target) && Player.HealthPercent <= 35 ||
+                                !R.IsReady()
+                        ? 3
+                        : 7;
                     for (var i = 0; i < count; i++)
                     {
                         if (manaCost + eMana > Player.Mana)
@@ -521,7 +524,7 @@ namespace SFXChallenger.Champions
 
         private void QLogic()
         {
-            var ts = _targets.FirstOrDefault(t => t.Distance(Player) <= Q.Range && GetPoisonBuffEndTime(t) < Q.Delay*1.2f);
+            var ts = _targets.FirstOrDefault(t => Q.CanCast(t) && GetPoisonBuffEndTime(t) < Q.Delay*1.2f);
             if (ts != null)
             {
                 _lastQPoisonDelay = Game.Time + Q.Delay;
@@ -532,11 +535,11 @@ namespace SFXChallenger.Champions
 
         private void WLogic()
         {
-            var tsAll = _targets.Where(t => t.Distance(Player) <= W.Range).ToList();
+            var tsAll = _targets.Where(t => W.CanCast(t)).ToList();
             foreach (var ts in tsAll)
             {
                 if ((!IsFacing(ts, Player) && ts.Position.Distance(Player.Position) > W.Range*0.7f) || tsAll.Count() == 1 ||
-                    (_lastQPoisonDelay < Game.Time && GetPoisonBuffEndTime(ts) < W.Delay*1.2) || _lastQPoisonT.NetworkId != ts.NetworkId)
+                    (_lastQPoisonDelay < Game.Time && GetPoisonBuffEndTime(ts) < W.Delay*1.2 || _lastQPoisonT.NetworkId != ts.NetworkId))
                 {
                     Casting.BasicSkillShot(ts, W, HitchanceManager.Get("w"));
                     return;
@@ -546,7 +549,7 @@ namespace SFXChallenger.Champions
 
         private void ELogic()
         {
-            var ts = _targets.FirstOrDefault(t => t.Distance(Player) <= E.Range && GetPoisonBuffEndTime(t) > GetEDelay(t));
+            var ts = _targets.FirstOrDefault(t => E.CanCast(t) && GetPoisonBuffEndTime(t) > GetEDelay(t));
             if (ts != null)
             {
                 E.Cast(ts, true);
