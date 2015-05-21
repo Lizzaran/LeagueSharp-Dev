@@ -36,6 +36,7 @@
 	<entry key="C_LaneClear">Lane Clear</entry>
 	<entry key="C_Flee">Flee</entry>
 	<entry key="C_AntiGapcloser">Anti Gapcloser</entry>
+	<entry key="C_UseAutoAttacks">Use AutoAttacks</entry>
 	<entry key="C_UseQ">Use Q</entry>
 	<entry key="C_UseW">Use W</entry>
 	<entry key="C_UseE">Use E</entry>
@@ -44,6 +45,7 @@
 	<entry key="C_Auto">Auto</entry>
 	<entry key="C_Killsteal">Killsteal</entry>
 	<entry key="C_Stunned">Stunned</entry>
+	<entry key="C_Dash">Dash</entry>
 	<entry key="C_Killable">Killable</entry>
 	<!-- END: CHAMPION -->
 

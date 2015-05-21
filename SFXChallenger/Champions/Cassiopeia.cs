@@ -61,6 +61,7 @@ namespace SFXChallenger.Champions
             Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
             AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
             Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
+            CustomEvents.Unit.OnDash += OnUnitDash;
         }
 
         protected override void OnUnload()
@@ -70,6 +71,7 @@ namespace SFXChallenger.Champions
             Orbwalking.BeforeAttack -= OnOrbwalkingBeforeAttack;
             AntiGapcloser.OnEnemyGapcloser -= OnEnemyGapcloser;
             Interrupter2.OnInterruptableTarget -= OnInterruptableTarget;
+            CustomEvents.Unit.OnDash -= OnUnitDash;
         }
 
         protected override void AddToMenu()
@@ -100,6 +102,7 @@ namespace SFXChallenger.Champions
 
             var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_LaneClear"), Menu.Name + ".lane-clear"));
             ManaManager.AddToMenu(laneclearMenu, "lane-clear");
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".aa", Global.Lang.Get("C_UseAutoAttacks")).SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("C_UseQ")).SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", Global.Lang.Get("C_UseW")).SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", Global.Lang.Get("C_UseE")).SetValue(true));
@@ -122,11 +125,13 @@ namespace SFXChallenger.Champions
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
             ManaManager.AddToMenu(miscMenu, "misc", 15);
+            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".q-dash", "Q " + Global.Lang.Get("C_Dash")).SetValue(false));
+            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-stunned", "W " + Global.Lang.Get("C_Stunned")).SetValue(false));
+            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-dash", "W " + Global.Lang.Get("C_Dash")).SetValue(false));
+            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".e-lasthit", "E " + Global.Lang.Get("G_Lasthit")).SetValue(false));
+            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".e-killsteal", "E " + Global.Lang.Get("C_Killsteal")).SetValue(false));
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r-gapcloser", "R " + Global.Lang.Get("G_Gapcloser")).SetValue(false));
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r-important", "R " + Global.Lang.Get("G_ImportantSpell")).SetValue(false));
-            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".e-lasthit", "E " + Global.Lang.Get("G_Lasthit")).SetValue(false));
-            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-stunned", "W " + Global.Lang.Get("C_Stunned")).SetValue(false));
-            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".e-killsteal", "E " + Global.Lang.Get("C_Killsteal")).SetValue(false));
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r-killsteal", "R " + Global.Lang.Get("C_Killsteal")).SetValue(new Slider(3, 1, 5)));
         }
 
@@ -254,6 +259,10 @@ namespace SFXChallenger.Champions
             {
                 args.Process = false;
             }
+            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
+            {
+                args.Process = Menu.Item(Menu.Name + ".lane-clear.aa").GetValue<bool>();
+            }
             if ((Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit && Menu.Item(Menu.Name + ".miscellaneous.e-lasthit").GetValue<bool>() &&
                  ManaManager.Check("misc")))
             {
@@ -275,9 +284,40 @@ namespace SFXChallenger.Champions
             return source.Direction.To2D().Perpendicular().AngleBetween((target.Position - source.Position).To2D()) < 80.0;
         }
 
+        private void OnUnitDash(Obj_AI_Base sender, Dash.DashItem args)
+        {
+            if (!sender.IsEnemy || !ManaManager.Check("misc"))
+                return;
+
+            if (Menu.Item(Menu.Name + ".miscellaneous.q-dash").GetValue<bool>() && Player.Distance(args.EndPos) <= Q.Range)
+            {
+                var delay = (int) (args.EndTick - Game.Time - Q.Delay);
+                if (delay > 0)
+                {
+                    Utility.DelayAction.Add(delay*1000, () => Q.Cast(args.EndPos));
+                }
+                else
+                {
+                    Q.Cast(args.EndPos);
+                }
+            }
+            if (Menu.Item(Menu.Name + ".miscellaneous.w-dash").GetValue<bool>() && Player.Distance(args.EndPos) <= W.Range)
+            {
+                var delay = (int) (args.EndTick - Game.Time - W.Delay);
+                if (delay > 0)
+                {
+                    Utility.DelayAction.Add(delay*1000, () => W.Cast(args.EndPos));
+                }
+                else
+                {
+                    W.Cast(args.EndPos);
+                }
+            }
+        }
+
         private void OnInterruptableTarget(Obj_AI_Hero sender, Interrupter2.InterruptableTargetEventArgs args)
         {
-            if (sender.IsAlly || args.DangerLevel != Interrupter2.DangerLevel.High || args.EndTime <= Game.Time + R.Delay ||
+            if (!sender.IsEnemy || args.DangerLevel != Interrupter2.DangerLevel.High || args.EndTime <= Game.Time + R.Delay ||
                 !ManaManager.Check("misc"))
                 return;
 
