@@ -418,7 +418,7 @@ namespace SFXChallenger.Champions
                     Menu.Item(Menu.Name + ".combo.r-min-facing").GetValue<Slider>().Value);
             }
 
-            var t2 = _targets.FirstOrDefault(t => t.Distance(Player) <= R.Range);
+            var t2 = _targets.FirstOrDefault(t => R.CanCast(t));
             if (t2 != null)
             {
                 var cDmg = CalcComboDamage(t2, q, w, e, r);
@@ -436,7 +436,7 @@ namespace SFXChallenger.Champions
                         }
                     }
                 }
-                if (cDmg*1.5 > t2.Health)
+                if (cDmg*1.3 > t2.Health)
                 {
                     ItemManager.UseComboItems(t2);
                     SummonerManager.UseComboSummoners(t2);
@@ -499,7 +499,7 @@ namespace SFXChallenger.Champions
 
         private void RLogic(int min, int minFacing)
         {
-            var target = _targets.FirstOrDefault(t => t.Distance(Player) <= R.Range);
+            var target = _targets.FirstOrDefault(t => R.CanCast(t));
             if (target != null)
             {
                 var pred = R.GetPrediction(target, true);
@@ -704,7 +704,7 @@ namespace SFXChallenger.Champions
             }
             if (R.IsReady())
             {
-                var target = _targets.FirstOrDefault(t => t.Distance(Player) <= R.Range);
+                var target = _targets.FirstOrDefault(t => R.CanCast(t));
                 if (target != null)
                 {
                     var pred = R.GetPrediction(target, true);
