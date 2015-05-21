@@ -195,7 +195,7 @@ namespace SFXChallenger.Champions
                             .Where(
                                 t =>
                                     t.Hero != null &&
-                                    Prediction.GetPrediction(t.Hero, R.Delay + 0.3f).UnitPosition.Distance(Player.Position) > R.Range*1.1);
+                                    Prediction.GetPrediction(t.Hero, R.Delay + 0.3f).UnitPosition.Distance(Player.Position) > R.Range*1.05);
                     foreach (var target in targets)
                     {
                         var flashPos = Player.Position.Extend(target.Hero.Position, SummonerManager.Flash.Range);
@@ -227,7 +227,9 @@ namespace SFXChallenger.Champions
                                     var prediction = R.GetPrediction(target.Hero, true);
                                     if (pred.Hitchance >= HitchanceManager.Get("r"))
                                     {
-                                        R.Cast(prediction.CastPosition, true);
+                                        var pos = Player.Position.Extend(prediction.CastPosition, -(Player.Position.Distance(prediction.CastPosition) * 2));
+                                        R.Cast(pos, true);
+                                        Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(prediction.CastPosition));
                                         return;
                                     }
                                 }
