@@ -564,8 +564,6 @@ namespace SFXChallenger.Champions
             {
                 Render.Circle.DrawCircle(Player.Position, R.Range, r.Color, circleThickness);
             }
-
-            Render.Circle.DrawCircle(Player.Position, (int) ((R.Range*0.9) + SummonerManager.Flash.Range), r.Color, circleThickness);
         }
     }
 }
