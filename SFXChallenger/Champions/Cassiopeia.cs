@@ -226,25 +226,13 @@ namespace SFXChallenger.Champions
             if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
             {
                 var t = args.Target as Obj_AI_Hero;
-                if (t != null && (Player.Mana < 30 || (Q.CanCast(t) || W.CanCast(t) || E.CanCast(t)) && GetPoisonBuffEndTime(t) > 0.4f))
+                if (t != null && (Q.CanCast(t) || W.CanCast(t) || E.CanCast(t)))
                 {
                     args.Process = false;
                 }
             }
             if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Harass || Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
             {
-                if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>())
-                {
-                    QLogic();
-                }
-                if (Menu.Item(Menu.Name + ".harass.w").GetValue<bool>())
-                {
-                    WLogic();
-                }
-                if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>())
-                {
-                    ELogic();
-                }
                 var t = args.Target as Obj_AI_Hero;
                 if (t != null &&
                     (Q.CanCast(t) && Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() ||
@@ -284,10 +272,10 @@ namespace SFXChallenger.Champions
 
         protected override void Combo()
         {
-            var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>();
-            var w = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>();
-            var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>();
-            var r = Menu.Item(Menu.Name + ".combo.r").GetValue<bool>();
+            var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady();
+            var w = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady();
+            var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
+            var r = Menu.Item(Menu.Name + ".combo.r").GetValue<bool>() && R.IsReady();
             var target = TargetSelector.GetTarget(Q.Range);
 
             if (target == null)
@@ -315,11 +303,14 @@ namespace SFXChallenger.Champions
             if (t2 != null)
             {
                 var cDmg = CalcComboDamage(t2, q, w, e, r);
-                if (Menu.Item(Menu.Name + ".combo.r-1v1").GetValue<bool>() && cDmg >= t2.Health - 20)
+                if (r)
                 {
-                    if (HeroManager.Enemies.Count(em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) == 1)
+                    if (Menu.Item(Menu.Name + ".combo.r-1v1").GetValue<bool>() && cDmg >= t2.Health - 20)
                     {
-                        Casting.BasicSkillShot(t2, R, HitchanceManager.Get("r"));
+                        if (HeroManager.Enemies.Count(em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) == 1)
+                        {
+                            Casting.BasicSkillShot(t2, R, HitchanceManager.Get("r"));
+                        }
                     }
                 }
                 if (cDmg*1.5 > t2.Health)
@@ -387,13 +378,12 @@ namespace SFXChallenger.Champions
 
         private void QLogic()
         {
-            var tsAll = TargetSelector.GetTargets(W.Range, W.DamageType).Where(t => GetPoisonBuffEndTime(t.Hero) < Q.Delay*1.2f).ToList();
-            foreach (var ts in tsAll)
+            var ts = TargetSelector.GetTargets(W.Range, W.DamageType).FirstOrDefault(t => GetPoisonBuffEndTime(t.Hero) < Q.Delay*1.2f);
+            if (ts != null)
             {
                 _lastQPoisonDelay = Game.Time + Q.Delay;
                 _lastQPoisonT = ts.Hero;
                 Casting.BasicSkillShot(ts.Hero, Q, HitchanceManager.Get("q"));
-                return;
             }
         }
 
@@ -443,9 +433,8 @@ namespace SFXChallenger.Champions
                 var buffEndTime = target == null || !target.IsValid
                     ? 0
                     : (target.Buffs.Where(buff => buff.Type == BuffType.Poison)
-                        .OrderByDescending(buff => buff.EndTime - Game.Time)
                         .Select(buff => buff.EndTime)
-                        .FirstOrDefault());
+                        .Max(end => end - Game.Time));
                 return buffEndTime;
             }
             catch (Exception ex)
