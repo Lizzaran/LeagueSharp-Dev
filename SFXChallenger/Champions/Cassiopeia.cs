@@ -25,6 +25,7 @@ namespace SFXChallenger.Champions
     #region
 
     using System;
+    using System.Collections.Generic;
     using System.Drawing;
     using System.Linq;
     using Abstracts;
@@ -43,6 +44,7 @@ namespace SFXChallenger.Champions
     {
         private float _lastQPoisonDelay;
         private Obj_AI_Base _lastQPoisonT;
+        private List<Obj_AI_Hero> _targets = new List<Obj_AI_Hero>();
 
         protected override ItemFlags ItemFlags
         {
@@ -51,6 +53,7 @@ namespace SFXChallenger.Champions
 
         protected override void OnLoad()
         {
+            Core.OnPreUpdate += OnCorePreUpdate;
             Core.OnPostUpdate += OnCorePostUpdate;
             Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
             AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
@@ -59,6 +62,7 @@ namespace SFXChallenger.Champions
 
         protected override void OnUnload()
         {
+            Core.OnPreUpdate -= OnCorePreUpdate;
             Core.OnPostUpdate -= OnCorePostUpdate;
             Orbwalking.BeforeAttack -= OnOrbwalkingBeforeAttack;
             AntiGapcloser.OnEnemyGapcloser -= OnEnemyGapcloser;
@@ -138,6 +142,15 @@ namespace SFXChallenger.Champions
             R.SetSkillshot(0.7f, (float) (80*Math.PI/180), float.MaxValue, false, SkillshotType.SkillshotCone);
         }
 
+        private void OnCorePreUpdate(EventArgs args)
+        {
+            if (Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.LaneClear && Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.LastHit &&
+                Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.None)
+            {
+                _targets = TargetSelector.GetTargets(850f, LeagueSharp.Common.TargetSelector.DamageType.Magical).Select(t => t.Hero).ToList();
+            }
+        }
+
         private void OnCorePostUpdate(EventArgs args)
         {
             if (Menu.Item(Menu.Name + ".auto.enabled").GetValue<bool>())
@@ -175,9 +188,7 @@ namespace SFXChallenger.Champions
                         });
                     if (pred.Hitchance >= HitChance.Medium)
                     {
-                        var rHits =
-                            HeroManager.Enemies.Where(
-                                x => R.WillHit(Player.Position.Extend(x.Position, -SummonerManager.Flash.Range), pred.CastPosition)).ToList();
+                        var rHits = HeroManager.Enemies.Where(x => R.WillHit(flashPos, pred.CastPosition)).ToList();
                         var inRange = rHits.Count;
                         var isFacing = rHits.Count(enemy => IsFacing(enemy, Player));
                         var killable = rHits.Count(enemy => enemy.Health < R.GetDamage(enemy) - 20);
@@ -199,14 +210,14 @@ namespace SFXChallenger.Champions
                 if (Menu.Item(Menu.Name + ".miscellaneous.w-stunned").GetValue<bool>() && W.IsReady())
                 {
                     var target =
-                        TargetSelector.GetTargets(W.Range)
-                            .FirstOrDefault(t => t.Hero.IsValidTarget(W.Range) && t.Hero.IsStunned || t.Hero.IsCharmed || t.Hero.IsRooted);
+                        _targets.Where(t => t.Distance(Player) <= W.Range)
+                            .FirstOrDefault(t => t.IsValidTarget(W.Range) && t.IsStunned || t.IsCharmed || t.IsRooted);
                     if (target != null)
                     {
-                        Casting.BasicSkillShot(target.Hero, W, HitchanceManager.Get("w"));
+                        Casting.BasicSkillShot(target, W, HitchanceManager.Get("w"));
                     }
                 }
-                if (Menu.Item(Menu.Name + ".miscellaneous.e-lasthit").GetValue<bool>() && (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit) &&
+                if (Menu.Item(Menu.Name + ".miscellaneous.e-lasthit").GetValue<bool>() && Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit &&
                     E.IsReady())
                 {
                     var minion =
@@ -276,10 +287,6 @@ namespace SFXChallenger.Champions
             var w = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady();
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
             var r = Menu.Item(Menu.Name + ".combo.r").GetValue<bool>() && R.IsReady();
-            var target = TargetSelector.GetTarget(Q.Range);
-
-            if (target == null)
-                return;
 
             if (q)
             {
@@ -299,7 +306,7 @@ namespace SFXChallenger.Champions
                     Menu.Item(Menu.Name + ".combo.r-min-facing").GetValue<Slider>().Value);
             }
 
-            var t2 = TargetSelector.GetTarget(R);
+            var t2 = _targets.FirstOrDefault(t => t.Distance(Player) <= R.Range);
             if (t2 != null)
             {
                 var cDmg = CalcComboDamage(t2, q, w, e, r);
@@ -335,7 +342,7 @@ namespace SFXChallenger.Champions
             {
                 var eMana = Player.GetSpell(E.Slot).ManaCost;
                 var eDamage = E.GetDamage(target);
-                var count = IsNearTurret(target) ? 3 : 6;
+                var count = IsNearTurret(target) || !R.CanCast(target) ? 3 : 6;
                 for (var i = 0; i < count; i++)
                 {
                     if (manaCost + eMana > Player.Mana)
@@ -359,18 +366,21 @@ namespace SFXChallenger.Champions
 
         private void RLogic(int min, int minFacing)
         {
-            var target = TargetSelector.GetTarget(R);
-            var pred = R.GetPrediction(target, true);
-            if (pred.Hitchance >= HitchanceManager.Get("r"))
+            var target = _targets.FirstOrDefault(t => t.Distance(Player) <= R.Range);
+            if (target != null)
             {
-                var rHits = HeroManager.Enemies.Where(x => R.WillHit(x.Position, pred.CastPosition)).ToList();
-                var inRange = rHits.Count(enemy => enemy.Position.Distance(Player.Position) < R.Range);
-                var isFacing = rHits.Count(enemy => IsFacing(enemy, Player));
-                if (isFacing >= minFacing || inRange >= min)
+                var pred = R.GetPrediction(target, true);
+                if (pred.Hitchance >= HitchanceManager.Get("r"))
                 {
-                    if (minFacing == 1 && (!target.CanMove || target.IsImmovable || target.IsWindingUp) || minFacing > 1)
+                    var rHits = HeroManager.Enemies.Where(x => R.WillHit(x.Position, pred.CastPosition)).ToList();
+                    var inRange = rHits.Count(enemy => enemy.Position.Distance(Player.Position) < R.Range);
+                    var isFacing = rHits.Count(enemy => IsFacing(enemy, Player));
+                    if (isFacing >= minFacing || inRange >= min)
                     {
-                        R.Cast(pred.CastPosition, true);
+                        if (minFacing == 1 && (!target.CanMove || target.IsImmovable || target.IsWindingUp) || minFacing > 1)
+                        {
+                            R.Cast(pred.CastPosition, true);
+                        }
                     }
                 }
             }
@@ -378,24 +388,24 @@ namespace SFXChallenger.Champions
 
         private void QLogic()
         {
-            var ts = TargetSelector.GetTargets(W.Range, W.DamageType).FirstOrDefault(t => GetPoisonBuffEndTime(t.Hero) < Q.Delay*1.2f);
+            var ts = _targets.FirstOrDefault(t => t.Distance(Player) <= Q.Range && GetPoisonBuffEndTime(t) < Q.Delay*1.2f);
             if (ts != null)
             {
                 _lastQPoisonDelay = Game.Time + Q.Delay;
-                _lastQPoisonT = ts.Hero;
-                Casting.BasicSkillShot(ts.Hero, Q, HitchanceManager.Get("q"));
+                _lastQPoisonT = ts;
+                Casting.BasicSkillShot(ts, Q, HitchanceManager.Get("q"));
             }
         }
 
         private void WLogic()
         {
-            var tsAll = TargetSelector.GetTargets(W.Range, W.DamageType).ToList();
+            var tsAll = _targets.Where(t => t.Distance(Player) <= W.Range).ToList();
             foreach (var ts in tsAll)
             {
-                if ((!IsFacing(ts.Hero, Player) && ts.Hero.Position.Distance(Player.Position) > W.Range*0.7f) || tsAll.Count() == 1 ||
-                    (_lastQPoisonDelay < Game.Time && GetPoisonBuffEndTime(ts.Hero) < W.Delay*1.2) || _lastQPoisonT.NetworkId != ts.Hero.NetworkId)
+                if ((!IsFacing(ts, Player) && ts.Position.Distance(Player.Position) > W.Range*0.7f) || tsAll.Count() == 1 ||
+                    (_lastQPoisonDelay < Game.Time && GetPoisonBuffEndTime(ts) < W.Delay*1.2) || _lastQPoisonT.NetworkId != ts.NetworkId)
                 {
-                    Casting.BasicSkillShot(ts.Hero, W, HitchanceManager.Get("w"));
+                    Casting.BasicSkillShot(ts, W, HitchanceManager.Get("w"));
                     return;
                 }
             }
@@ -403,10 +413,10 @@ namespace SFXChallenger.Champions
 
         private void ELogic()
         {
-            var ts = TargetSelector.GetTargets(E.Range, E.DamageType).FirstOrDefault(t => GetPoisonBuffEndTime(t.Hero) > GetEDelay(t.Hero));
-            if (ts != null && ts.Hero != null)
+            var ts = _targets.FirstOrDefault(t => t.Distance(Player) <= E.Range && GetPoisonBuffEndTime(t) > GetEDelay(t));
+            if (ts != null)
             {
-                E.Cast(ts.Hero, true);
+                E.Cast(ts, true);
             }
         }
 
@@ -432,9 +442,7 @@ namespace SFXChallenger.Champions
             {
                 var buffEndTime = target == null || !target.IsValid
                     ? 0
-                    : (target.Buffs.Where(buff => buff.Type == BuffType.Poison)
-                        .Select(buff => buff.EndTime)
-                        .Max(end => end - Game.Time));
+                    : (target.Buffs.Where(buff => buff.Type == BuffType.Poison).Select(buff => buff.EndTime).Max(end => end - Game.Time));
                 return buffEndTime;
             }
             catch (Exception ex)
@@ -514,15 +522,18 @@ namespace SFXChallenger.Champions
             }
             if (R.IsReady())
             {
-                var target = TargetSelector.GetTarget(R);
-                var pred = R.GetPrediction(target, true);
-                if (pred.Hitchance >= HitchanceManager.Get("r"))
+                var target = _targets.FirstOrDefault(t => t.Distance(Player) <= R.Range);
+                if (target != null)
                 {
-                    var rHits = HeroManager.Enemies.Where(x => R.WillHit(x.Position, pred.CastPosition)).ToList();
-                    if (rHits.Count >= Menu.Item(Menu.Name + ".miscellaneous.r-killsteal").GetValue<Slider>().Value &&
-                        rHits.Any(r => R.GetDamage(r) - 10 > r.Health))
+                    var pred = R.GetPrediction(target, true);
+                    if (pred.Hitchance >= HitchanceManager.Get("r"))
                     {
-                        R.Cast(pred.CastPosition, true);
+                        var rHits = HeroManager.Enemies.Where(x => R.WillHit(x.Position, pred.CastPosition)).ToList();
+                        if (rHits.Count >= Menu.Item(Menu.Name + ".miscellaneous.r-killsteal").GetValue<Slider>().Value &&
+                            rHits.Any(r => R.GetDamage(r) - 10 > r.Health))
+                        {
+                            R.Cast(pred.CastPosition, true);
+                        }
                     }
                 }
             }
