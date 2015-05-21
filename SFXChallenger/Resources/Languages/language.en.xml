@@ -46,6 +46,7 @@
 	<entry key="C_Killsteal">Killsteal</entry>
 	<entry key="C_Stunned">Stunned</entry>
 	<entry key="C_Dash">Dash</entry>
+	<entry key="C_Fleeing">Fleeing</entry>
 	<entry key="C_Killable">Killable</entry>
 	<!-- END: CHAMPION -->
 

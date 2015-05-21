@@ -126,6 +126,7 @@ namespace SFXChallenger.Champions
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
             ManaManager.AddToMenu(miscMenu, "misc", 15);
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".q-dash", "Q " + Global.Lang.Get("C_Dash")).SetValue(false));
+            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".q-fleeing", "Q " + Global.Lang.Get("C_Fleeing")).SetValue(false));
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-stunned", "W " + Global.Lang.Get("C_Stunned")).SetValue(false));
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-dash", "W " + Global.Lang.Get("C_Dash")).SetValue(false));
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".e-lasthit", "E " + Global.Lang.Get("G_Lasthit")).SetValue(false));
@@ -528,7 +529,9 @@ namespace SFXChallenger.Champions
                 _targets.FirstOrDefault(
                     t =>
                         Q.CanCast(t) &&
-                        (GetPoisonBuffEndTime(t) < Q.Delay*1.2f || !IsFacing(t, Player) && t.Position.Distance(Player.Position) > Q.Range*0.85f));
+                        (GetPoisonBuffEndTime(t) < Q.Delay*1.2f ||
+                         (Menu.Item(Menu.Name + ".miscellaneous.q-fleeing").GetValue<bool>() && !IsFacing(t, Player) &&
+                          t.Position.Distance(Player.Position) > Q.Range*0.85f)));
             if (ts != null)
             {
                 _lastQPoisonDelay = Game.Time + Q.Delay;
