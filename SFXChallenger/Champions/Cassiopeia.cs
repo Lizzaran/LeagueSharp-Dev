@@ -139,15 +139,15 @@ namespace SFXChallenger.Champions
         protected override void SetupSpells()
         {
             Q = new Spell(SpellSlot.Q, 850f);
-            Q.SetSkillshot(0.6f, 40f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            Q.SetSkillshot(0.6f, 60f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
             W = new Spell(SpellSlot.W, 850f);
-            W.SetSkillshot(0.5f, 90f, 2500f, false, SkillshotType.SkillshotCircle);
+            W.SetSkillshot(0.5f, 125f, 2500f, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E, 700f);
             E.SetTargetted(0.2f, 1900f);
 
-            R = new Spell(SpellSlot.R, 800f);
+            R = new Spell(SpellSlot.R, 700f);
             R.SetSkillshot(0.7f, (float) (80*Math.PI/180), float.MaxValue, false, SkillshotType.SkillshotCone);
         }
 
@@ -191,11 +191,11 @@ namespace SFXChallenger.Champions
                 {
                     Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
                     var targets =
-                        TargetSelector.GetTargets((R.Range*0.9f) + SummonerManager.Flash.Range)
+                        TargetSelector.GetTargets((R.Range*1.1f) + SummonerManager.Flash.Range)
                             .Where(
                                 t =>
                                     t.Hero != null &&
-                                    Prediction.GetPrediction(t.Hero, R.Delay + 0.3f).UnitPosition.Distance(Player.Position) > R.Range*1.05);
+                                    Prediction.GetPrediction(t.Hero, R.Delay + 0.3f).UnitPosition.Distance(Player.Position) > R.Range*1.1);
                     foreach (var target in targets)
                     {
                         var flashPos = Player.Position.Extend(target.Hero.Position, SummonerManager.Flash.Range);
@@ -209,7 +209,7 @@ namespace SFXChallenger.Champions
                                 From = flashPos,
                                 RangeCheckFrom = flashPos,
                                 Delay = R.Delay + 0.3f,
-                                Range = R.Range*0.9f,
+                                Range = R.Range*1.1f,
                                 Speed = R.Speed,
                                 Radius = R.Width,
                                 Type = SkillshotType.SkillshotCone,
@@ -451,7 +451,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                return ObjectManager.Get<Obj_AI_Turret>().Any(turret => turret.IsValidTarget(1100f, true, target.Position));
+                return ObjectManager.Get<Obj_AI_Turret>().Any(turret => turret.IsValidTarget(1200f, true, target.Position));
             }
 
             catch (Exception ex)
@@ -636,7 +636,7 @@ namespace SFXChallenger.Champions
                     }
                     if (w)
                     {
-                        var prediction = W.GetCircularFarmLocation(minions, W.Width + 40);
+                        var prediction = W.GetCircularFarmLocation(minions, W.Width + 50);
                         if (prediction.MinionsHit > 2 && _lastPoisonClearDelay < Game.Time)
                         {
                             _lastPoisonClearDelay = Game.Time + W.Delay;
@@ -661,9 +661,9 @@ namespace SFXChallenger.Champions
                                 Q.Cast(pred.Position);
                             }
                         }
-                        var prediction = W.GetCircularFarmLocation(creeps, W.Width + 40);
-                        if (w && prediction.MinionsHit > 1 && _lastPoisonClearDelay < Game.Time)
+                        if (w)
                         {
+                            var prediction = W.GetCircularFarmLocation(creeps, W.Width + 40);
                             _lastPoisonClearDelay = Game.Time + W.Delay;
                             W.Cast(prediction.Position);
                         }
