@@ -120,7 +120,9 @@ namespace SFXUtility.Features.Activators
 
         private bool IsBuffActive(PotionType type)
         {
-            return _potions.Where(potion => potion.TypeList.Contains(type)).Any(potion => ObjectManager.Player.HasBuff(potion.BuffName, true));
+            return
+                _potions.Where(potion => potion.TypeList.Contains(type))
+                    .Any(potion => ObjectManager.Player.Buffs.Any(b => b.Name.Equals(potion.BuffName, StringComparison.OrdinalIgnoreCase)));
         }
 
         protected override void OnGameLoad(EventArgs args)
