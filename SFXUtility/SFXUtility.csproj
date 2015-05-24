@@ -66,10 +66,10 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes\Blowfish.cs" />
     <Compile Include="Data\Items.cs" />
     <Compile Include="Data\Jungle.cs" />
     <Compile Include="Classes\Spectator.cs" />

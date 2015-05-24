@@ -84,7 +84,7 @@ namespace SFXChallenger.Champions
             drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".w", "W").SetValue(new Circle(false, Color.White)));
             drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".e", "E").SetValue(new Circle(false, Color.White)));
             drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".r", "R").SetValue(new Circle(false, Color.White)));
-            drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".r-flash", "R Flash").SetValue(new Circle(false, Color.White)));
+            drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".r-flash", "R " + Global.Lang.Get("G_Flash")).SetValue(new Circle(false, Color.White)));
 
             var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), Menu.Name + ".combo"));
             ManaManager.AddToMenu(comboMenu, "combo", 0);
@@ -114,7 +114,7 @@ namespace SFXChallenger.Champions
 
             var uComboMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), ultimateMenu.Name + ".combo"));
             uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".min", Global.Lang.Get("Cassio_RMin")).SetValue(new Slider(3, 1, 5)));
-            uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".1v1", Global.Lang.Get("Cassio_R1v1")).SetValue(true));
+            uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".1v1", "R 1v1").SetValue(true));
             uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
 
             var uAutoMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Auto"), ultimateMenu.Name + ".auto"));
@@ -133,19 +133,19 @@ namespace SFXChallenger.Champions
                 autoInterruptMenu.AddItem(new MenuItem(autoInterruptMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(true));
             }
 
-            uAutoMenu.AddItem(new MenuItem(uComboMenu.Name + "min", Global.Lang.Get("Cassio_RMin")).SetValue(new Slider(3, 1, 5)));
+            uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".min", Global.Lang.Get("Cassio_RMin")).SetValue(new Slider(3, 1, 5)));
             uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
 
             var uFlashMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Flash"), ultimateMenu.Name + ".flash"));
             uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".min", Global.Lang.Get("Cassio_RMin")).SetValue(new Slider(3, 1, 5)));
-            uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".1v1", Global.Lang.Get("Cassio_R1v1")).SetValue(true));
+            uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".1v1", "R 1v1").SetValue(true));
             uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".hotkey", Global.Lang.Get("G_Hotkey")).SetValue(new KeyBind('U', KeyBindType.Press)));
             uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".move-cursor", Global.Lang.Get("G_MoveCursor")).SetValue(true));
             uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
 
             var uAssistedMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Assisted"), ultimateMenu.Name + ".assisted"));
             uAssistedMenu.AddItem(new MenuItem(uAssistedMenu.Name + ".min", Global.Lang.Get("Cassio_RMin")).SetValue(new Slider(3, 1, 5)));
-            uAssistedMenu.AddItem(new MenuItem(uAssistedMenu.Name + ".1v1", Global.Lang.Get("Cassio_R1v1")).SetValue(true));
+            uAssistedMenu.AddItem(new MenuItem(uAssistedMenu.Name + ".1v1", "R 1v1").SetValue(true));
             uAssistedMenu.AddItem(
                 new MenuItem(uAssistedMenu.Name + ".hotkey", Global.Lang.Get("G_Hotkey")).SetValue(new KeyBind('R', KeyBindType.Press)));
             uAssistedMenu.AddItem(new MenuItem(uAssistedMenu.Name + ".move-cursor", Global.Lang.Get("G_MoveCursor")).SetValue(true));
@@ -178,7 +178,7 @@ namespace SFXChallenger.Champions
             Q.SetSkillshot(0.6f, 60f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
             W = new Spell(SpellSlot.W, 850f);
-            W.SetSkillshot(0.5f, 125f, 2500f, false, SkillshotType.SkillshotCircle);
+            W.SetSkillshot(0.8f, 125f, 2500f, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E, 700f);
             E.SetTargetted(0.2f, 1900f);
@@ -222,11 +222,6 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (Menu.Item(Menu.Name + ".auto.enabled").GetValue<bool>())
-                {
-                    RLogic(Menu.Item(Menu.Name + ".auto.r-min").GetValue<Slider>().Value);
-                }
-
                 if (Menu.Item(Menu.Name + ".ultimate.flash.enabled").GetValue<bool>() &&
                     Menu.Item(Menu.Name + ".ultimate.flash.hotkey").GetValue<KeyBind>().Active && R.IsReady() && SummonerManager.Flash.IsReady())
                 {
@@ -235,11 +230,11 @@ namespace SFXChallenger.Champions
                         Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
                     }
                     var targets =
-                        TargetSelector.GetTargets((R.Range*1.1f) + SummonerManager.Flash.Range)
+                        TargetSelector.GetTargets(R.Range + SummonerManager.Flash.Range)
                             .Where(
                                 t =>
                                     t.Hero != null &&
-                                    Prediction.GetPrediction(t.Hero, R.Delay + 0.3f).UnitPosition.Distance(Player.Position) > R.Range*1.1);
+                                    Prediction.GetPrediction(t.Hero, R.Delay + 0.3f).UnitPosition.Distance(Player.Position) > R.Range*1.05);
                     foreach (var target in targets)
                     {
                         var min = Menu.Item(Menu.Name + ".ultimate.flash.min").GetValue<Slider>().Value;
@@ -266,8 +261,7 @@ namespace SFXChallenger.Champions
                                 var cDmg = CalcComboDamage(target.Hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                                     Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
                                     Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true);
-                                if (cDmg - 20 >= target.Hero.Health &&
-                                    (min == 1 && (!target.Hero.CanMove || target.Hero.IsImmovable || target.Hero.IsWindingUp)) || min > 1)
+                                if (cDmg - 20 >= target.Hero.Health)
                                 {
                                     R.Cast(Player.Position.Extend(pred.CastPosition, -(Player.Position.Distance(pred.CastPosition)*2)), true);
                                     Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(pred.CastPosition));
@@ -309,8 +303,11 @@ namespace SFXChallenger.Champions
                     if (Menu.Item(Menu.Name + ".miscellaneous.w-stunned").GetValue<bool>() && W.IsReady())
                     {
                         var target =
-                            _targets.Where(t => t.Distance(Player) <= W.Range)
-                                .FirstOrDefault(t => t.IsValidTarget(W.Range) && (t.IsStunned || t.IsCharmed || t.IsRooted));
+                            _targets.FirstOrDefault(
+                                t =>
+                                    t.IsValidTarget(W.Range) &&
+                                    (t.HasBuffOfType(BuffType.Charm) || t.HasBuffOfType(BuffType.Knockup) || t.HasBuffOfType(BuffType.Polymorph) ||
+                                     t.HasBuffOfType(BuffType.Fear) || t.HasBuffOfType(BuffType.Stun)));
                         if (target != null)
                         {
                             Casting.BasicSkillShot(target, W, HitchanceManager.Get("w"));
@@ -387,6 +384,11 @@ namespace SFXChallenger.Champions
                 }
                 if (Menu.Item(Menu.Name + ".miscellaneous.w-dash").GetValue<bool>() && Player.Distance(args.EndPos) <= W.Range)
                 {
+                    if (sender.BaseSkinName.Equals("LeBlanc", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        W.Cast(args.StartPos.Distance(Player) < W.Range ? args.StartPos : args.EndPos);
+                        return;
+                    }
                     var delay = (int) (args.EndTick - Game.Time - W.Delay - 0.1f);
                     if (delay > 0)
                     {
@@ -444,13 +446,13 @@ namespace SFXChallenger.Champions
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
             var r = Menu.Item(Menu.Name + ".ultimate.combo.enabled").GetValue<bool>() && R.IsReady();
 
-            if (w)
-            {
-                WLogic();
-            }
             if (q)
             {
                 QLogic();
+            }
+            if (w)
+            {
+                WLogic();
             }
             if (e)
             {
@@ -469,22 +471,6 @@ namespace SFXChallenger.Champions
             {
                 ItemManager.UseComboItems(target);
                 SummonerManager.UseComboSummoners(target);
-            }
-        }
-
-        private void RLogic1V1(bool q, bool w, bool e)
-        {
-            var t2 = _targets.FirstOrDefault(t => R.CanCast(t));
-            if (t2 != null)
-            {
-                var cDmg = CalcComboDamage(t2, q, w, e, true);
-                if (cDmg - 20 >= t2.Health)
-                {
-                    if (HeroManager.Enemies.Count(em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) == 1)
-                    {
-                        Casting.BasicTargetSkill(t2, R);
-                    }
-                }
             }
         }
 
@@ -543,21 +529,32 @@ namespace SFXChallenger.Champions
             return 0;
         }
 
-        private void RLogic(int min, bool moveCheck = false)
+        private void RLogic1V1(bool q, bool w, bool e)
         {
-            var target = _targets.FirstOrDefault(t => R.CanCast(t));
-            if (target != null)
+            foreach (var target in _targets.Where(t => R.CanCast(t)))
+            {
+                var cDmg = CalcComboDamage(target, q, w, e, true);
+                if (cDmg - 20 >= target.Health)
+                {
+                    if (HeroManager.Enemies.Count(em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) == 1)
+                    {
+                        Casting.BasicSkillShot(target, R, HitchanceManager.Get("r"));
+                    }
+                }
+            }
+        }
+
+        private void RLogic(int min)
+        {
+            foreach (var target in _targets.Where(t => R.CanCast(t)))
             {
                 var pred = R.GetPrediction(target, true);
                 if (pred.Hitchance >= HitchanceManager.Get("r"))
                 {
-                    var hits = HeroManager.Enemies.Count(x => R.WillHit(x.Position, pred.CastPosition));
+                    var hits = HeroManager.Enemies.Count(x => R.WillHit(x, pred.CastPosition));
                     if (hits >= min)
                     {
-                        if (!moveCheck || (hits == 1 && (!target.CanMove || target.IsImmovable || target.IsWindingUp || target.Distance(Player) <= R.Range/2) || hits > 1))
-                        {
-                            R.Cast(pred.CastPosition, true);
-                        }
+                        R.Cast(pred.CastPosition, true);
                     }
                 }
             }
@@ -606,13 +603,13 @@ namespace SFXChallenger.Champions
 
         protected override void Harass()
         {
-            if (Menu.Item(Menu.Name + ".harass.w").GetValue<bool>())
-            {
-                WLogic();
-            }
             if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>())
             {
                 QLogic();
+            }
+            if (Menu.Item(Menu.Name + ".harass.w").GetValue<bool>())
+            {
+                WLogic();
             }
             if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>())
             {

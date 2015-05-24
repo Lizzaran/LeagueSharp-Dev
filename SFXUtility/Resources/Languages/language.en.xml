@@ -107,6 +107,13 @@
 	<entry key="Smite_SkillshotTypeList">Line|Circle|Cone</entry>
 	<!-- END: Smite -->
 
+	<!-- START: Replay -->
+	<entry key="F_Replay">Replay op.gg</entry>
+	<entry key="Replay_DoRecord">Do Record</entry>
+	<entry key="Replay_NotifyRecord">Notify Record</entry>
+	<entry key="Replay_CheckInterval">Check Interval</entry>
+	<!-- END: Replay -->
+	
 	<!-- START: Teleport -->
 	<entry key="F_Teleport">Teleport</entry>
 	<entry key="Teleport_Aborted">Aborted</entry>

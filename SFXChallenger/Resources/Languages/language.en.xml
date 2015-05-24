@@ -11,7 +11,7 @@
 	<entry key="Cassio_QMultiple">Multiple Q Targets</entry>
 	<entry key="Cassio_QMultiple">Multiple Q Targets</entry>
 	<entry key="Cassio_QMultiple">Multiple Q Targets</entry>
-	<entry key="Cassio_R1v1">R 1v1</entry>
+	<entry key="Cassio_UseEPoison">Use E Poison</entry>
 	<!-- END: Cassiopeia -->
 
 	<!-- START: GLOBAL -->
@@ -45,6 +45,11 @@
 	<entry key="G_Dash">Dash</entry>
 	<entry key="G_Fleeing">Fleeing</entry>
 	<entry key="G_Killable">Killable</entry>
+	<entry key="G_LastHit">Lasthit</entry>
+	<entry key="G_Ultimate">Ultimate</entry>
+	<entry key="G_Assisted">Assisted</entry>
+	<entry key="G_InterruptSpell">Interrupt Spell</entry>
+	<entry key="G_MoveCursor">Move to Cursor</entry>
 	<!-- END: GLOBAL -->
 	
 	<!-- START: Language -->
