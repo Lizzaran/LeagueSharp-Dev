@@ -25,7 +25,6 @@ namespace SFXChallenger
     #region
 
     using System;
-    using CustomEventArgs;
     using Interfaces;
     using LeagueSharp;
     using LeagueSharp.Common;
@@ -43,7 +42,6 @@ namespace SFXChallenger
         private static int _lastTick;
         private static bool _started;
         private static bool _init;
-        private static Orbwalking.OrbwalkingMode _lastMode;
 
         public static void Init(IChampion champion, int interval)
         {
@@ -58,7 +56,6 @@ namespace SFXChallenger
         public static event EventHandler OnPostUpdate;
         public static event EventHandler OnShutdown;
         public static event EventHandler OnBoot;
-        public static event EventHandler<ModeSwitchArgs> OnModeSwitch;
 
         private static void OnGameUpdate(EventArgs args)
         {
@@ -75,33 +72,30 @@ namespace SFXChallenger
 
                     RaiseEvent(OnPreUpdate, args);
 
-                    var mode = _champion.Orbwalker.ActiveMode;
-                    if (mode != _lastMode)
+                    try
                     {
-                        if (OnModeSwitch != null)
+                        _champion.Killsteal();
+
+                        switch (_champion.Orbwalker.ActiveMode)
                         {
-                            OnModeSwitch(null, new ModeSwitchArgs(_lastMode, mode));
+                            case Orbwalking.OrbwalkingMode.Combo:
+                                _champion.Combo();
+                                break;
+                            case Orbwalking.OrbwalkingMode.Harass:
+                            case Orbwalking.OrbwalkingMode.Mixed:
+                                _champion.Harass();
+                                break;
+                            case Orbwalking.OrbwalkingMode.LaneClear:
+                                _champion.LaneClear();
+                                break;
+                            case Orbwalking.OrbwalkingMode.Flee:
+                                _champion.Flee();
+                                break;
                         }
                     }
-                    _lastMode = mode;
-
-                    _champion.Killsteal();
-
-                    switch (mode)
+                    catch (Exception ex)
                     {
-                        case Orbwalking.OrbwalkingMode.Combo:
-                            _champion.Combo();
-                            break;
-                        case Orbwalking.OrbwalkingMode.Harass:
-                        case Orbwalking.OrbwalkingMode.Mixed:
-                            _champion.Harass();
-                            break;
-                        case Orbwalking.OrbwalkingMode.LaneClear:
-                            _champion.LaneClear();
-                            break;
-                        case Orbwalking.OrbwalkingMode.Flee:
-                            _champion.Flee();
-                            break;
+                        Global.Logger.AddItem(new LogItem(ex));
                     }
 
                     RaiseEvent(OnPostUpdate, args);

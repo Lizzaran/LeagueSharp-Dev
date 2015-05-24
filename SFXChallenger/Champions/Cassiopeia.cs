@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Cassiopeia.cs is part of SFXChallenger.
+ cassiopeia.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -134,6 +134,7 @@ namespace SFXChallenger.Champions
             }
 
             uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".min", Global.Lang.Get("Cassio_RMin")).SetValue(new Slider(3, 1, 5)));
+            uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".1v1", "R 1v1").SetValue(true));
             uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
 
             var uFlashMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Flash"), ultimateMenu.Name + ".flash"));
@@ -178,7 +179,7 @@ namespace SFXChallenger.Champions
             Q.SetSkillshot(0.6f, 60f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
             W = new Spell(SpellSlot.W, 850f);
-            W.SetSkillshot(0.8f, 125f, 2500f, false, SkillshotType.SkillshotCircle);
+            W.SetSkillshot(0.7f, 125f, 2500f, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E, 700f);
             E.SetTargetted(0.2f, 1900f);
@@ -191,11 +192,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.LaneClear && Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.LastHit &&
-                    Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.None)
-                {
-                    _targets = TargetSelector.GetTargets(850f, LeagueSharp.Common.TargetSelector.DamageType.Magical).Select(t => t.Hero).ToList();
-                }
+                _targets = TargetSelector.GetTargets(850f, LeagueSharp.Common.TargetSelector.DamageType.Magical).Select(t => t.Hero).ToList();
                 if ((Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit && ManaManager.Check("lasthit")) && E.IsReady())
                 {
                     var ePoison = Menu.Item(Menu.Name + ".lasthit.e-poison").GetValue<bool>();
@@ -256,7 +253,7 @@ namespace SFXChallenger.Champions
                             });
                         if (pred.Hitchance >= HitchanceManager.Get("r") - 1)
                         {
-                            if (Menu.Item(Menu.Name + ".ultimate.flash.1v1").GetValue<bool>())
+                            if (Menu.Item(Menu.Name + ".ultimate.flash.1v1").GetValue<bool>() && target.Hero.IsFacing(Player))
                             {
                                 var cDmg = CalcComboDamage(target.Hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                                     Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
@@ -295,6 +292,12 @@ namespace SFXChallenger.Champions
 
                 if (Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() && R.IsReady())
                 {
+                    if (Menu.Item(Menu.Name + ".ultimate.auto.1v1").GetValue<bool>())
+                    {
+                        RLogic1V1(Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
+                            Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
+                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
+                    }
                     RLogic(Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value);
                 }
 
@@ -430,7 +433,10 @@ namespace SFXChallenger.Champions
                 if (Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
                     Menu.Item(Menu.Name + ".ultimate.auto.gapcloser." + args.Sender.ChampionName).GetValue<bool>() && ManaManager.Check("misc"))
                 {
-                    Casting.BasicSkillShot(args.Sender, R, HitchanceManager.Get("r"));
+                    if (args.End.Distance(Player.Position) < R.Range)
+                    {
+                        R.Cast(args.End);
+                    }
                 }
             }
             catch (Exception ex)
@@ -500,8 +506,8 @@ namespace SFXChallenger.Champions
                     var eMana = Player.GetSpell(E.Slot).ManaCost;
                     var eDamage = E.GetDamage(target);
                     var count = IsNearTurret(target) && !target.IsFacing(Player) || IsNearTurret(target) && Player.HealthPercent <= 35 || !R.IsReady()
-                        ? 3
-                        : 7;
+                        ? 5
+                        : 10;
                     for (var i = 0; i < count; i++)
                     {
                         if (manaCost + eMana > Player.Mana)
@@ -531,7 +537,7 @@ namespace SFXChallenger.Champions
 
         private void RLogic1V1(bool q, bool w, bool e)
         {
-            foreach (var target in _targets.Where(t => R.CanCast(t)))
+            foreach (var target in _targets.Where(t => t.IsFacing(Player) && t.HealthPercent > 25 && R.CanCast(t)))
             {
                 var cDmg = CalcComboDamage(target, q, w, e, true);
                 if (cDmg - 20 >= target.Health)
@@ -567,8 +573,7 @@ namespace SFXChallenger.Champions
                     t =>
                         Q.CanCast(t) &&
                         (GetPoisonBuffEndTime(t) < Q.Delay*1.2f ||
-                         (Menu.Item(Menu.Name + ".miscellaneous.q-fleeing").GetValue<bool>() && !t.IsFacing(Player) &&
-                          t.Position.Distance(Player.Position) > Q.Range*0.75f)));
+                         (Menu.Item(Menu.Name + ".miscellaneous.q-fleeing").GetValue<bool>() && !t.IsFacing(Player) && t.IsMoving && t.Distance(Player) > 150)));
             if (ts != null)
             {
                 _lastQPoisonDelay = Game.Time + Q.Delay;
@@ -584,8 +589,7 @@ namespace SFXChallenger.Champions
                     t =>
                         W.CanCast(t) &&
                         ((_lastQPoisonDelay < Game.Time && GetPoisonBuffEndTime(t) < W.Delay*1.2 || _lastQPoisonT.NetworkId != t.NetworkId) ||
-                         (Menu.Item(Menu.Name + ".miscellaneous.w-fleeing").GetValue<bool>() && !t.IsFacing(Player) &&
-                          t.Position.Distance(Player.Position) > W.Range*0.75f)));
+                         (Menu.Item(Menu.Name + ".miscellaneous.w-fleeing").GetValue<bool>() && !t.IsFacing(Player) && t.IsMoving && t.Distance(Player) > 150)));
             if (ts != null)
             {
                 Casting.BasicSkillShot(ts, W, HitchanceManager.Get("w"));
@@ -650,10 +654,10 @@ namespace SFXChallenger.Champions
 
         protected override void LaneClear()
         {
-            var q = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>();
-            var w = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>();
+            var q = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
+            var w = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>() && W.IsReady();
 
-            if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>())
+            if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady())
             {
                 var minion =
                     MinionManager.GetMinions(ObjectManager.Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly)
@@ -700,26 +704,18 @@ namespace SFXChallenger.Champions
                 }
                 else
                 {
-                    var creeps =
-                        MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range + Q.Width, MinionTypes.All, MinionTeam.Neutral)
-                            .Where(e => GetPoisonBuffEndTime(e) < Q.Delay*1.1 && !e.IsMoving)
-                            .ToList();
-                    if (creeps.Any())
+                    var creep =
+                        MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range + Q.Width, MinionTypes.All, MinionTeam.Neutral,
+                            MinionOrderTypes.MaxHealth).FirstOrDefault(e => GetPoisonBuffEndTime(e) < Q.Delay*1.1);
+                    if (creep != null)
                     {
-                        if (w)
-                        {
-                            var prediction = W.GetCircularFarmLocation(creeps, W.Width + 40);
-                            _lastPoisonClearDelay = Game.Time + W.Delay;
-                            W.Cast(prediction.Position);
-                        }
                         if (q)
                         {
-                            var pred = Q.GetCircularFarmLocation(creeps, Q.Width + 30);
-                            if (_lastPoisonClearDelay < Game.Time)
-                            {
-                                _lastPoisonClearDelay = Game.Time + Q.Delay;
-                                Q.Cast(pred.Position);
-                            }
+                            Q.Cast(creep);
+                        }
+                        if (w)
+                        {
+                            W.Cast(creep);
                         }
                     }
                 }

@@ -78,7 +78,6 @@
     <Compile Include="Enumerations\CastType.cs" />
     <Compile Include="Enumerations\CombatFlags.cs" />
     <Compile Include="Enumerations\EffectFlags.cs" />
-    <Compile Include="CustomEventArgs\ModeSwitchArgs.cs" />
     <Compile Include="Global.cs" />
     <Compile Include="Helpers\DynamicInitializer.cs" />
     <Compile Include="Managers\HitchanceManager.cs" />
