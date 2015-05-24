@@ -412,7 +412,6 @@ namespace SFXChallenger.Champions
                 var objs = Utils.GetDashObjects();
                 Orbwalking.Orbwalk(objs.Count > 0 ? objs.First() : null, Game.CursorPos);
             }
-            ItemManager.UseFleeItems();
         }
 
         protected override void Killsteal()
@@ -424,7 +423,6 @@ namespace SFXChallenger.Champions
                     E.Cast();
                 }
             }
-            KillstealManager.Killsteal();
         }
 
         protected override void OnDraw()

@@ -269,6 +269,11 @@ namespace SFXUtility.Features.Timers
                         ? HeroManager.Allies
                         : (Menu.Item(Name + "DrawingEnemy").GetValue<bool>() ? HeroManager.Enemies : new List<Obj_AI_Hero>()));
 
+                if (!Menu.Item(Name + "DrawingSelf").GetValue<bool>())
+                {
+                    _heroes.RemoveAll(h => h.NetworkId == ObjectManager.Player.NetworkId);
+                }
+
                 HandleEvents(_parent);
                 RaiseOnInitialized();
             }

@@ -53,12 +53,12 @@ namespace SFXChallenger.Wrappers
             }
         }
 
-        public static void BasicTargetSkill(Spell spell, HitChance hitChance, bool packet = false, bool towerCheck = false)
+        public static void BasicTargetSkill(Spell spell, bool packet = false, bool towerCheck = false)
         {
-            BasicTargetSkill(TargetSelector.GetTarget(spell.Range, spell.DamageType), spell, hitChance, packet, towerCheck);
+            BasicTargetSkill(TargetSelector.GetTarget(spell.Range, spell.DamageType), spell, packet, towerCheck);
         }
 
-        public static void BasicTargetSkill(Obj_AI_Base target, Spell spell, HitChance hitChance, bool packet = false, bool towerCheck = false)
+        public static void BasicTargetSkill(Obj_AI_Base target, Spell spell, bool packet = false, bool towerCheck = false)
         {
             if (!spell.IsReady())
                 return;

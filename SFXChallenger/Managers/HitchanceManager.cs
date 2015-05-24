@@ -25,6 +25,7 @@ namespace SFXChallenger.Managers
     #region
 
     using System;
+    using System.Collections.Generic;
     using LeagueSharp.Common;
     using SFXLibrary.Logger;
 
@@ -34,24 +35,18 @@ namespace SFXChallenger.Managers
     {
         private static Menu _menu;
 
-        public static void AddToMenu(Menu menu)
+        public static void AddToMenu(Menu menu, Dictionary<string, int> hitChances)
         {
             try
             {
                 _menu = menu;
 
-                _menu.AddItem(
-                    new MenuItem(_menu.Name + ".q", "Q").SetValue(
-                        new StringList(new[] {Global.Lang.Get("MH_Medium"), Global.Lang.Get("MH_High"), Global.Lang.Get("MH_VeryHigh")}, 1)));
-                _menu.AddItem(
-                    new MenuItem(_menu.Name + ".w", "W").SetValue(
-                        new StringList(new[] {Global.Lang.Get("MH_Medium"), Global.Lang.Get("MH_High"), Global.Lang.Get("MH_VeryHigh")}, 1)));
-                _menu.AddItem(
-                    new MenuItem(_menu.Name + ".e", "E").SetValue(
-                        new StringList(new[] {Global.Lang.Get("MH_Medium"), Global.Lang.Get("MH_High"), Global.Lang.Get("MH_VeryHigh")}, 1)));
-                _menu.AddItem(
-                    new MenuItem(_menu.Name + ".r", "R").SetValue(
-                        new StringList(new[] {Global.Lang.Get("MH_Medium"), Global.Lang.Get("MH_High"), Global.Lang.Get("MH_VeryHigh")}, 1)));
+                foreach (var hit in hitChances)
+                {
+                    _menu.AddItem(
+                        new MenuItem(_menu.Name + "." + hit.Key.ToLower(), hit.Key.ToUpper()).SetValue(
+                            new StringList(new[] {Global.Lang.Get("MH_Medium"), Global.Lang.Get("MH_High"), Global.Lang.Get("MH_VeryHigh")}, hit.Value)));
+                }
             }
             catch (Exception ex)
             {
@@ -65,7 +60,7 @@ namespace SFXChallenger.Managers
                 return HitChance.High;
             try
             {
-                switch (_menu.Item(_menu.Name + "." + slot).GetValue<StringList>().SelectedIndex)
+                switch (_menu.Item(_menu.Name + "." + slot.ToLower()).GetValue<StringList>().SelectedIndex)
                 {
                     case 0:
                         return HitChance.Medium;

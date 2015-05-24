@@ -81,7 +81,6 @@
     <Compile Include="CustomEventArgs\ModeSwitchArgs.cs" />
     <Compile Include="Global.cs" />
     <Compile Include="Helpers\DynamicInitializer.cs" />
-    <Compile Include="Managers\AutoAttackManager.cs" />
     <Compile Include="Managers\HitchanceManager.cs" />
     <Compile Include="Managers\KillstealManager.cs" />
     <Compile Include="Menus\InfoMenu.cs" />

@@ -44,6 +44,7 @@ namespace SFXChallenger.Champions
 
     internal class Cassiopeia : Champion
     {
+        private float _lastEEndTime;
         private float _lastPoisonClearDelay;
         private float _lastQPoisonDelay;
         private Obj_AI_Base _lastQPoisonT;
@@ -83,57 +84,92 @@ namespace SFXChallenger.Champions
             drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".w", "W").SetValue(new Circle(false, Color.White)));
             drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".e", "E").SetValue(new Circle(false, Color.White)));
             drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".r", "R").SetValue(new Circle(false, Color.White)));
+            drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".r-flash", "R Flash").SetValue(new Circle(false, Color.White)));
 
-            var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_Combo"), Menu.Name + ".combo"));
+            var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), Menu.Name + ".combo"));
             ManaManager.AddToMenu(comboMenu, "combo", 0);
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("C_UseQ")).SetValue(true));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", Global.Lang.Get("C_UseW")).SetValue(true));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("C_UseE")).SetValue(true));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r", Global.Lang.Get("C_UseR")).SetValue(true));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r-min-facing", Global.Lang.Get("Cassio_RMinFacing")).SetValue(new Slider(1, 1, 5)));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r-min", Global.Lang.Get("Cassio_RMin")).SetValue(new Slider(3, 1, 5)));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r-1v1", Global.Lang.Get("Cassio_R1v1")).SetValue(true));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
-            var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_Harass"), Menu.Name + ".harass"));
+            var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Harass"), Menu.Name + ".harass"));
             ManaManager.AddToMenu(harassMenu, "harass");
-            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("C_UseQ")).SetValue(true));
-            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", Global.Lang.Get("C_UseW")).SetValue(true));
-            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", Global.Lang.Get("C_UseE")).SetValue(true));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
-            var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_LaneClear"), Menu.Name + ".lane-clear"));
+            var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LaneClear"), Menu.Name + ".lane-clear"));
             ManaManager.AddToMenu(laneclearMenu, "lane-clear");
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".aa", Global.Lang.Get("C_UseAutoAttacks")).SetValue(true));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("C_UseQ")).SetValue(true));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", Global.Lang.Get("C_UseW")).SetValue(true));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", Global.Lang.Get("C_UseE")).SetValue(true));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".aa", Global.Lang.Get("G_UseAutoAttacks")).SetValue(true));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
-            var autoMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_Auto"), Menu.Name + ".auto"));
-            autoMenu.AddItem(new MenuItem(autoMenu.Name + ".r-min-facing", Global.Lang.Get("Cassio_RMinFacing")).SetValue(new Slider(3, 1, 5)));
-            autoMenu.AddItem(new MenuItem(autoMenu.Name + ".r-min", Global.Lang.Get("Cassio_RMin")).SetValue(new Slider(4, 1, 5)));
-            autoMenu.AddItem(new MenuItem(autoMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
+            var lasthitMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LastHit"), Menu.Name + ".lasthit"));
+            ManaManager.AddToMenu(lasthitMenu, "lasthit");
+            lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
+            lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".e-poison", Global.Lang.Get("Cassio_UseEPoison")).SetValue(true));
 
-            var flashMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_Flash"), Menu.Name + ".flash"));
-            flashMenu.AddItem(new MenuItem(flashMenu.Name + ".r-min-facing", Global.Lang.Get("Cassio_RMinFacing")).SetValue(new Slider(3, 1, 5)));
-            flashMenu.AddItem(new MenuItem(flashMenu.Name + ".r-min", Global.Lang.Get("Cassio_RMin")).SetValue(new Slider(4, 1, 5)));
-            flashMenu.AddItem(new MenuItem(flashMenu.Name + ".r-killable", Global.Lang.Get("C_Killable")).SetValue(true));
-            flashMenu.AddItem(
-                new MenuItem(flashMenu.Name + ".r-hotkey", "R " + Global.Lang.Get("G_Hotkey")).SetValue(new KeyBind('U', KeyBindType.Press)));
+            var ultimateMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Ultimate"), Menu.Name + ".ultimate"));
 
-            var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_Flee"), Menu.Name + ".flee"));
+            var uComboMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), ultimateMenu.Name + ".combo"));
+            uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".min", Global.Lang.Get("Cassio_RMin")).SetValue(new Slider(3, 1, 5)));
+            uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".1v1", Global.Lang.Get("Cassio_R1v1")).SetValue(true));
+            uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
+
+            var uAutoMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Auto"), ultimateMenu.Name + ".auto"));
+
+            var autoGapMenu = uAutoMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Gapcloser"), uAutoMenu.Name + ".gapcloser"));
+            foreach (var enemy in
+                HeroManager.Enemies.Where(
+                    e => AntiGapcloser.Spells.Any(s => s.ChampionName.Equals(e.ChampionName, StringComparison.OrdinalIgnoreCase))))
+            {
+                autoGapMenu.AddItem(new MenuItem(autoGapMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(true));
+            }
+
+            var autoInterruptMenu = uAutoMenu.AddSubMenu(new Menu(Global.Lang.Get("G_InterruptSpell"), uAutoMenu.Name + ".interrupt"));
+            foreach (var enemy in HeroManager.Enemies)
+            {
+                autoInterruptMenu.AddItem(new MenuItem(autoInterruptMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(true));
+            }
+
+            uAutoMenu.AddItem(new MenuItem(uComboMenu.Name + "min", Global.Lang.Get("Cassio_RMin")).SetValue(new Slider(3, 1, 5)));
+            uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
+
+            var uFlashMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Flash"), ultimateMenu.Name + ".flash"));
+            uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".min", Global.Lang.Get("Cassio_RMin")).SetValue(new Slider(3, 1, 5)));
+            uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".1v1", Global.Lang.Get("Cassio_R1v1")).SetValue(true));
+            uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".hotkey", Global.Lang.Get("G_Hotkey")).SetValue(new KeyBind('U', KeyBindType.Press)));
+            uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".move-cursor", Global.Lang.Get("G_MoveCursor")).SetValue(true));
+            uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
+
+            var uAssistedMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Assisted"), ultimateMenu.Name + ".assisted"));
+            uAssistedMenu.AddItem(new MenuItem(uAssistedMenu.Name + ".min", Global.Lang.Get("Cassio_RMin")).SetValue(new Slider(3, 1, 5)));
+            uAssistedMenu.AddItem(new MenuItem(uAssistedMenu.Name + ".1v1", Global.Lang.Get("Cassio_R1v1")).SetValue(true));
+            uAssistedMenu.AddItem(
+                new MenuItem(uAssistedMenu.Name + ".hotkey", Global.Lang.Get("G_Hotkey")).SetValue(new KeyBind('R', KeyBindType.Press)));
+            uAssistedMenu.AddItem(new MenuItem(uAssistedMenu.Name + ".move-cursor", Global.Lang.Get("G_MoveCursor")).SetValue(true));
+            uAssistedMenu.AddItem(new MenuItem(uAssistedMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
+
+            var killstealMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Killsteal"), Menu.Name + ".killsteal"));
+            ManaManager.AddToMenu(killstealMenu, "killsteal", 15);
+            killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
+            killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".e-poison", Global.Lang.Get("Cassio_UseEPoison")).SetValue(true));
+
+            var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Flee"), Menu.Name + ".flee"));
             ManaManager.AddToMenu(fleeMenu, "flee", 15);
-            fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".w", Global.Lang.Get("C_UseW")).SetValue(true));
+            fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
             ManaManager.AddToMenu(miscMenu, "misc", 15);
-            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".q-dash", "Q " + Global.Lang.Get("C_Dash")).SetValue(false));
-            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".q-fleeing", "Q " + Global.Lang.Get("C_Fleeing")).SetValue(false));
-            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-stunned", "W " + Global.Lang.Get("C_Stunned")).SetValue(false));
-            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-dash", "W " + Global.Lang.Get("C_Dash")).SetValue(false));
-            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".e-lasthit", "E " + Global.Lang.Get("G_Lasthit")).SetValue(false));
-            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".e-killsteal", "E " + Global.Lang.Get("C_Killsteal")).SetValue(false));
-            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r-gapcloser", "R " + Global.Lang.Get("G_Gapcloser")).SetValue(false));
-            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r-important", "R " + Global.Lang.Get("G_ImportantSpell")).SetValue(false));
-            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r-killsteal", "R " + Global.Lang.Get("C_Killsteal")).SetValue(new Slider(3, 1, 5)));
+            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".q-dash", "Q " + Global.Lang.Get("G_Dash")).SetValue(false));
+            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".q-fleeing", "Q " + Global.Lang.Get("G_Fleeing")).SetValue(false));
+            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-stunned", "W " + Global.Lang.Get("G_Stunned")).SetValue(false));
+            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-dash", "W " + Global.Lang.Get("G_Dash")).SetValue(false));
+            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-fleeing", "W " + Global.Lang.Get("G_Fleeing")).SetValue(false));
+
+            HitchanceManager.AddToMenu(Menu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), Menu.Name + ".hitchance")),
+                new Dictionary<string, int> {{"Q", 2}, {"W", 1}, {"R", 2}});
         }
 
         protected override void SetupSpells()
@@ -147,7 +183,7 @@ namespace SFXChallenger.Champions
             E = new Spell(SpellSlot.E, 700f);
             E.SetTargetted(0.2f, 1900f);
 
-            R = new Spell(SpellSlot.R, 700f);
+            R = new Spell(SpellSlot.R, 750f);
             R.SetSkillshot(0.7f, (float) (80*Math.PI/180), float.MaxValue, false, SkillshotType.SkillshotCone);
         }
 
@@ -160,15 +196,19 @@ namespace SFXChallenger.Champions
                 {
                     _targets = TargetSelector.GetTargets(850f, LeagueSharp.Common.TargetSelector.DamageType.Magical).Select(t => t.Hero).ToList();
                 }
-                if ((Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit && Menu.Item(Menu.Name + ".miscellaneous.e-lasthit").GetValue<bool>() &&
-                     ManaManager.Check("misc")) && E.IsReady())
+                if ((Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit && ManaManager.Check("lasthit")) && E.IsReady())
                 {
-                    var m =
-                        MinionManager.GetMinions(ObjectManager.Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly)
-                            .FirstOrDefault(e => e.Health < E.GetDamage(e) - 5);
-                    if (m != null)
+                    var ePoison = Menu.Item(Menu.Name + ".lasthit.e-poison").GetValue<bool>();
+                    var eHit = Menu.Item(Menu.Name + ".lasthit.e").GetValue<bool>();
+                    if (eHit || ePoison)
                     {
-                        E.Cast(m, true);
+                        var m =
+                            MinionManager.GetMinions(ObjectManager.Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly)
+                                .FirstOrDefault(e => e.Health < E.GetDamage(e) - 5 && (ePoison && GetPoisonBuffEndTime(e) > GetEDelay(e) || eHit));
+                        if (m != null)
+                        {
+                            Casting.BasicTargetSkill(m, E);
+                        }
                     }
                 }
             }
@@ -184,12 +224,16 @@ namespace SFXChallenger.Champions
             {
                 if (Menu.Item(Menu.Name + ".auto.enabled").GetValue<bool>())
                 {
-                    RLogic(Menu.Item(Menu.Name + ".auto.r-min").GetValue<Slider>().Value,
-                        Menu.Item(Menu.Name + ".auto.r-min-facing").GetValue<Slider>().Value);
+                    RLogic(Menu.Item(Menu.Name + ".auto.r-min").GetValue<Slider>().Value);
                 }
-                if (Menu.Item(Menu.Name + ".flash.r-hotkey").GetValue<KeyBind>().Active && R.IsReady() && SummonerManager.Flash.IsReady())
+
+                if (Menu.Item(Menu.Name + ".ultimate.flash.enabled").GetValue<bool>() &&
+                    Menu.Item(Menu.Name + ".ultimate.flash.hotkey").GetValue<KeyBind>().Active && R.IsReady() && SummonerManager.Flash.IsReady())
                 {
-                    Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
+                    if (Menu.Item(Menu.Name + ".ultimate.flash.move-cursor").GetValue<bool>())
+                    {
+                        Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
+                    }
                     var targets =
                         TargetSelector.GetTargets((R.Range*1.1f) + SummonerManager.Flash.Range)
                             .Where(
@@ -198,8 +242,8 @@ namespace SFXChallenger.Champions
                                     Prediction.GetPrediction(t.Hero, R.Delay + 0.3f).UnitPosition.Distance(Player.Position) > R.Range*1.1);
                     foreach (var target in targets)
                     {
+                        var min = Menu.Item(Menu.Name + ".ultimate.flash.min").GetValue<Slider>().Value;
                         var flashPos = Player.Position.Extend(target.Hero.Position, SummonerManager.Flash.Range);
-                        var minFacing = Menu.Item(Menu.Name + ".flash.r-min-facing").GetValue<Slider>().Value;
                         var pred =
                             Prediction.GetPrediction(new PredictionInput
                             {
@@ -215,47 +259,58 @@ namespace SFXChallenger.Champions
                                 Type = SkillshotType.SkillshotCone,
                                 Unit = target.Hero
                             });
-                        if (pred.Hitchance >= HitChance.Medium)
+                        if (pred.Hitchance >= HitchanceManager.Get("r") - 1)
                         {
-                            if (Menu.Item(Menu.Name + ".flash.r-killable").GetValue<bool>())
+                            if (Menu.Item(Menu.Name + ".ultimate.flash.1v1").GetValue<bool>())
                             {
                                 var cDmg = CalcComboDamage(target.Hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                                     Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
                                     Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true);
-                                if (IsFacing(Player, target.Hero) && cDmg - 20 >= target.Hero.Health)
+                                if (cDmg - 20 >= target.Hero.Health &&
+                                    (min == 1 && (!target.Hero.CanMove || target.Hero.IsImmovable || target.Hero.IsWindingUp)) || min > 1)
                                 {
-                                    var prediction = R.GetPrediction(target.Hero, true);
-                                    if (pred.Hitchance >= HitchanceManager.Get("r"))
-                                    {
-                                        var pos = Player.Position.Extend(prediction.CastPosition, -(Player.Position.Distance(prediction.CastPosition) * 2));
-                                        R.Cast(pos, true);
-                                        Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(prediction.CastPosition));
-                                        return;
-                                    }
+                                    R.Cast(Player.Position.Extend(pred.CastPosition, -(Player.Position.Distance(pred.CastPosition)*2)), true);
+                                    Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(pred.CastPosition));
+                                    return;
                                 }
                             }
-                            var rHits = HeroManager.Enemies.Where(x => R.WillHit(flashPos, pred.CastPosition)).ToList();
-                            var inRange = rHits.Count;
-                            var isFacing = rHits.Count(enemy => IsFacing(enemy, Player));
-                            if (isFacing >= minFacing || inRange >= Menu.Item(Menu.Name + ".flash.r-min").GetValue<Slider>().Value)
+                            if (HeroManager.Enemies.Count(x => R.WillHit(flashPos, pred.CastPosition)) >= min)
                             {
-                                if (minFacing == 1 && (!target.Hero.CanMove || target.Hero.IsImmovable || target.Hero.IsWindingUp) || minFacing > 1)
-                                {
-                                    var pos = Player.Position.Extend(pred.CastPosition, -(Player.Position.Distance(pred.CastPosition)*2));
-                                    R.Cast(pos, true);
-                                    Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(pred.CastPosition));
-                                }
+                                R.Cast(Player.Position.Extend(pred.CastPosition, -(Player.Position.Distance(pred.CastPosition)*2)), true);
+                                Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(pred.CastPosition));
                             }
                         }
                     }
                 }
+
+                if (Menu.Item(Menu.Name + ".ultimate.assisted.enabled").GetValue<bool>() &&
+                    Menu.Item(Menu.Name + ".ultimate.assisted.hotkey").GetValue<KeyBind>().Active && R.IsReady())
+                {
+                    if (Menu.Item(Menu.Name + ".ultimate.assisted.move-cursor").GetValue<bool>())
+                    {
+                        Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
+                    }
+                    if (Menu.Item(Menu.Name + ".ultimate.assisted.1v1").GetValue<bool>())
+                    {
+                        RLogic1V1(Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
+                            Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
+                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
+                    }
+                    RLogic(Menu.Item(Menu.Name + ".ultimate.assisted.min").GetValue<Slider>().Value);
+                }
+
+                if (Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() && R.IsReady())
+                {
+                    RLogic(Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value);
+                }
+
                 if (ManaManager.Check("misc"))
                 {
                     if (Menu.Item(Menu.Name + ".miscellaneous.w-stunned").GetValue<bool>() && W.IsReady())
                     {
                         var target =
                             _targets.Where(t => t.Distance(Player) <= W.Range)
-                                .FirstOrDefault(t => t.IsValidTarget(W.Range) && t.IsStunned || t.IsCharmed || t.IsRooted);
+                                .FirstOrDefault(t => t.IsValidTarget(W.Range) && (t.IsStunned || t.IsCharmed || t.IsRooted));
                         if (target != null)
                         {
                             Casting.BasicSkillShot(target, W, HitchanceManager.Get("w"));
@@ -284,21 +339,23 @@ namespace SFXChallenger.Champions
                     if (args.Process == false)
                     {
                         var m = args.Target as Obj_AI_Minion;
-                        if (m != null)
+                        if (m != null && (_lastEEndTime < Game.Time || E.IsReady()) &&
+                            (GetPoisonBuffEndTime(m) < GetEDelay(m) || Player.GetSpell(E.Slot).ManaCost > Player.Mana))
                         {
-                            args.Process = !E.CanCast(m) || GetPoisonBuffEndTime(m) < GetEDelay(m) || Player.GetSpell(E.Slot).ManaCost > Player.Mana;
+                            args.Process = true;
                         }
                     }
                 }
-                if ((Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit && Menu.Item(Menu.Name + ".miscellaneous.e-lasthit").GetValue<bool>() &&
-                     ManaManager.Check("misc")))
+
+                if ((Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit && ManaManager.Check("misc")))
                 {
                     var m = args.Target as Obj_AI_Minion;
                     if (m != null && E.CanCast(m))
                     {
                         if (Player.GetSpell(E.Slot).ManaCost < Player.Mana)
                         {
-                            args.Process = false;
+                            args.Process = Menu.Item(Menu.Name + ".lasthit.e").GetValue<bool>() ||
+                                           (Menu.Item(Menu.Name + ".lasthit.e-poison").GetValue<bool>() && GetPoisonBuffEndTime(m) > GetEDelay(m));
                         }
                     }
                 }
@@ -307,21 +364,6 @@ namespace SFXChallenger.Champions
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
-        }
-
-        private bool IsFacing(Obj_AI_Base source, Obj_AI_Base target)
-        {
-            try
-            {
-                if (source == null || target == null)
-                    return false;
-                return source.Direction.To2D().Perpendicular().AngleBetween((target.Position - source.Position).To2D()) < 80.0;
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return false;
         }
 
         private void OnUnitDash(Obj_AI_Base sender, Dash.DashItem args)
@@ -333,7 +375,7 @@ namespace SFXChallenger.Champions
 
                 if (Menu.Item(Menu.Name + ".miscellaneous.q-dash").GetValue<bool>() && Player.Distance(args.EndPos) <= Q.Range)
                 {
-                    var delay = (int) (args.EndTick - Game.Time - Q.Delay);
+                    var delay = (int) (args.EndTick - Game.Time - Q.Delay - 0.1f);
                     if (delay > 0)
                     {
                         Utility.DelayAction.Add(delay*1000, () => Q.Cast(args.EndPos));
@@ -345,7 +387,7 @@ namespace SFXChallenger.Champions
                 }
                 if (Menu.Item(Menu.Name + ".miscellaneous.w-dash").GetValue<bool>() && Player.Distance(args.EndPos) <= W.Range)
                 {
-                    var delay = (int) (args.EndTick - Game.Time - W.Delay);
+                    var delay = (int) (args.EndTick - Game.Time - W.Delay - 0.1f);
                     if (delay > 0)
                     {
                         Utility.DelayAction.Add(delay*1000, () => W.Cast(args.EndPos));
@@ -366,11 +408,9 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (!sender.IsEnemy || args.DangerLevel != Interrupter2.DangerLevel.High || args.EndTime <= Game.Time + R.Delay ||
-                    !ManaManager.Check("misc"))
-                    return;
-
-                if (Menu.Item(Menu.Name + ".miscellaneous.r-important").GetValue<bool>())
+                if (sender.IsEnemy && args.DangerLevel == Interrupter2.DangerLevel.High && args.EndTime > Game.Time + R.Delay + 0.1f &&
+                    Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
+                    Menu.Item(Menu.Name + ".ultimate.auto.interrupt." + sender.ChampionName).GetValue<bool>() && ManaManager.Check("misc"))
                 {
                     Casting.BasicSkillShot(sender, R, HitchanceManager.Get("r"));
                 }
@@ -381,13 +421,14 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private void OnEnemyGapcloser(ActiveGapcloser gapcloser)
+        private void OnEnemyGapcloser(ActiveGapcloser args)
         {
             try
             {
-                if (Menu.Item(Menu.Name + ".miscellaneous.r-gapcloser").GetValue<bool>() || !ManaManager.Check("misc"))
+                if (Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
+                    Menu.Item(Menu.Name + ".ultimate.auto.gapcloser." + args.Sender.ChampionName).GetValue<bool>() && ManaManager.Check("misc"))
                 {
-                    Casting.BasicSkillShot(gapcloser.Sender, R, HitchanceManager.Get("r"));
+                    Casting.BasicSkillShot(args.Sender, R, HitchanceManager.Get("r"));
                 }
             }
             catch (Exception ex)
@@ -401,15 +442,15 @@ namespace SFXChallenger.Champions
             var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady();
             var w = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady();
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
-            var r = Menu.Item(Menu.Name + ".combo.r").GetValue<bool>() && R.IsReady();
+            var r = Menu.Item(Menu.Name + ".ultimate.combo.enabled").GetValue<bool>() && R.IsReady();
 
-            if (q)
-            {
-                QLogic();
-            }
             if (w)
             {
                 WLogic();
+            }
+            if (q)
+            {
+                QLogic();
             }
             if (e)
             {
@@ -417,32 +458,32 @@ namespace SFXChallenger.Champions
             }
             if (r)
             {
-                RLogic(Menu.Item(Menu.Name + ".combo.r-min").GetValue<Slider>().Value,
-                    Menu.Item(Menu.Name + ".combo.r-min-facing").GetValue<Slider>().Value);
+                if (Menu.Item(Menu.Name + ".ultimate.combo.1v1").GetValue<bool>())
+                {
+                    RLogic1V1(q, w, e);
+                }
+                RLogic(Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value);
             }
+            var target = _targets.FirstOrDefault(t => t.IsValidTarget(R.Range));
+            if (target != null && CalcComboDamage(target, q, w, e, r)*1.3 > target.Health)
+            {
+                ItemManager.UseComboItems(target);
+                SummonerManager.UseComboSummoners(target);
+            }
+        }
 
+        private void RLogic1V1(bool q, bool w, bool e)
+        {
             var t2 = _targets.FirstOrDefault(t => R.CanCast(t));
             if (t2 != null)
             {
-                var cDmg = CalcComboDamage(t2, q, w, e, r);
-                if (r && IsFacing(Player, t2))
+                var cDmg = CalcComboDamage(t2, q, w, e, true);
+                if (cDmg - 20 >= t2.Health)
                 {
-                    if (Menu.Item(Menu.Name + ".combo.r-1v1").GetValue<bool>() && cDmg - 20 >= t2.Health)
+                    if (HeroManager.Enemies.Count(em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) == 1)
                     {
-                        if (HeroManager.Enemies.Count(em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) == 1)
-                        {
-                            var pred = R.GetPrediction(t2, true);
-                            if (pred.Hitchance >= HitchanceManager.Get("r"))
-                            {
-                                R.Cast(pred.CastPosition, true);
-                            }
-                        }
+                        Casting.BasicTargetSkill(t2, R);
                     }
-                }
-                if (cDmg*1.3 > t2.Health)
-                {
-                    ItemManager.UseComboItems(t2);
-                    SummonerManager.UseComboSummoners(t2);
                 }
             }
         }
@@ -472,8 +513,7 @@ namespace SFXChallenger.Champions
                 {
                     var eMana = Player.GetSpell(E.Slot).ManaCost;
                     var eDamage = E.GetDamage(target);
-                    var count = IsNearTurret(target) && !IsFacing(Player, target) || IsNearTurret(target) && Player.HealthPercent <= 35 ||
-                                !R.IsReady()
+                    var count = IsNearTurret(target) && !target.IsFacing(Player) || IsNearTurret(target) && Player.HealthPercent <= 35 || !R.IsReady()
                         ? 3
                         : 7;
                     for (var i = 0; i < count; i++)
@@ -503,7 +543,7 @@ namespace SFXChallenger.Champions
             return 0;
         }
 
-        private void RLogic(int min, int minFacing)
+        private void RLogic(int min, bool moveCheck = false)
         {
             var target = _targets.FirstOrDefault(t => R.CanCast(t));
             if (target != null)
@@ -511,12 +551,10 @@ namespace SFXChallenger.Champions
                 var pred = R.GetPrediction(target, true);
                 if (pred.Hitchance >= HitchanceManager.Get("r"))
                 {
-                    var rHits = HeroManager.Enemies.Where(x => R.WillHit(x.Position, pred.CastPosition)).ToList();
-                    var inRange = rHits.Count(enemy => enemy.Position.Distance(Player.Position) < R.Range);
-                    var isFacing = rHits.Count(enemy => IsFacing(enemy, Player));
-                    if (isFacing >= minFacing || inRange >= min)
+                    var hits = HeroManager.Enemies.Count(x => R.WillHit(x.Position, pred.CastPosition));
+                    if (hits >= min)
                     {
-                        if (minFacing == 1 && (!target.CanMove || target.IsImmovable || target.IsWindingUp) || minFacing > 1)
+                        if (!moveCheck || (hits == 1 && (!target.CanMove || target.IsImmovable || target.IsWindingUp || target.Distance(Player) <= R.Range/2) || hits > 1))
                         {
                             R.Cast(pred.CastPosition, true);
                         }
@@ -532,8 +570,8 @@ namespace SFXChallenger.Champions
                     t =>
                         Q.CanCast(t) &&
                         (GetPoisonBuffEndTime(t) < Q.Delay*1.2f ||
-                         (Menu.Item(Menu.Name + ".miscellaneous.q-fleeing").GetValue<bool>() && !IsFacing(t, Player) &&
-                          t.Position.Distance(Player.Position) > Q.Range*0.85f)));
+                         (Menu.Item(Menu.Name + ".miscellaneous.q-fleeing").GetValue<bool>() && !t.IsFacing(Player) &&
+                          t.Position.Distance(Player.Position) > Q.Range*0.75f)));
             if (ts != null)
             {
                 _lastQPoisonDelay = Game.Time + Q.Delay;
@@ -544,15 +582,16 @@ namespace SFXChallenger.Champions
 
         private void WLogic()
         {
-            var tsAll = _targets.Where(t => W.CanCast(t)).ToList();
-            foreach (var ts in tsAll)
+            var ts =
+                _targets.FirstOrDefault(
+                    t =>
+                        W.CanCast(t) &&
+                        ((_lastQPoisonDelay < Game.Time && GetPoisonBuffEndTime(t) < W.Delay*1.2 || _lastQPoisonT.NetworkId != t.NetworkId) ||
+                         (Menu.Item(Menu.Name + ".miscellaneous.w-fleeing").GetValue<bool>() && !t.IsFacing(Player) &&
+                          t.Position.Distance(Player.Position) > W.Range*0.75f)));
+            if (ts != null)
             {
-                if ((!IsFacing(ts, Player) && ts.Position.Distance(Player.Position) > W.Range*0.85f) ||
-                    (_lastQPoisonDelay < Game.Time && GetPoisonBuffEndTime(ts) < W.Delay*1.2 || _lastQPoisonT.NetworkId != ts.NetworkId))
-                {
-                    Casting.BasicSkillShot(ts, W, HitchanceManager.Get("w"));
-                    return;
-                }
+                Casting.BasicSkillShot(ts, W, HitchanceManager.Get("w"));
             }
         }
 
@@ -567,13 +606,13 @@ namespace SFXChallenger.Champions
 
         protected override void Harass()
         {
-            if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>())
-            {
-                QLogic();
-            }
             if (Menu.Item(Menu.Name + ".harass.w").GetValue<bool>())
             {
                 WLogic();
+            }
+            if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>())
+            {
+                QLogic();
             }
             if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>())
             {
@@ -603,7 +642,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                return (E.Delay + (E.Delay > 0 ? (ObjectManager.Player.ServerPosition.Distance(target.ServerPosition)/E.Speed) : 0)) + 0.1f;
+                return E.Delay + (ObjectManager.Player.ServerPosition.Distance(target.ServerPosition)/E.Speed) + (Game.Ping/2000f) + 0.1f;
             }
             catch (Exception ex)
             {
@@ -616,6 +655,24 @@ namespace SFXChallenger.Champions
         {
             var q = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>();
             var w = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>();
+
+            if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>())
+            {
+                var minion =
+                    MinionManager.GetMinions(ObjectManager.Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly)
+                        .Where(
+                            e =>
+                                GetPoisonBuffEndTime(e) > GetEDelay(e) &&
+                                (e.Team == GameObjectTeam.Neutral || (e.Health > E.GetDamage(e)*2 || e.Health < E.GetDamage(e) - 5)))
+                        .OrderByDescending(m => m.BaseSkinName.Contains("MinionSiege", StringComparison.OrdinalIgnoreCase))
+                        .FirstOrDefault();
+                if (minion != null)
+                {
+                    _lastEEndTime = Game.Time + GetEDelay(minion);
+                    Casting.BasicTargetSkill(minion, E);
+                }
+            }
+
             if (q || w)
             {
                 var minions =
@@ -652,6 +709,12 @@ namespace SFXChallenger.Champions
                             .ToList();
                     if (creeps.Any())
                     {
+                        if (w)
+                        {
+                            var prediction = W.GetCircularFarmLocation(creeps, W.Width + 40);
+                            _lastPoisonClearDelay = Game.Time + W.Delay;
+                            W.Cast(prediction.Position);
+                        }
                         if (q)
                         {
                             var pred = Q.GetCircularFarmLocation(creeps, Q.Width + 30);
@@ -661,28 +724,7 @@ namespace SFXChallenger.Champions
                                 Q.Cast(pred.Position);
                             }
                         }
-                        if (w)
-                        {
-                            var prediction = W.GetCircularFarmLocation(creeps, W.Width + 40);
-                            _lastPoisonClearDelay = Game.Time + W.Delay;
-                            W.Cast(prediction.Position);
-                        }
                     }
-                }
-            }
-            if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>())
-            {
-                var minion =
-                    MinionManager.GetMinions(ObjectManager.Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly)
-                        .Where(
-                            e =>
-                                GetPoisonBuffEndTime(e) > GetEDelay(e) &&
-                                (e.Team == GameObjectTeam.Neutral || (e.Health > E.GetDamage(e)*2 || e.Health < E.GetDamage(e) - 5)))
-                        .OrderByDescending(m => m.BaseSkinName.Contains("MinionSiege", StringComparison.OrdinalIgnoreCase))
-                        .ToList();
-                if (minion.Any())
-                {
-                    Casting.BasicTargetSkill(minion.First(), E, HitchanceManager.Get("e"), true);
                 }
             }
         }
@@ -697,41 +739,26 @@ namespace SFXChallenger.Champions
                     var pred = W.GetPrediction(near, true);
                     if (pred.Hitchance >= HitchanceManager.Get("w"))
                     {
-                        W.Cast(pred.CastPosition);
+                        W.Cast(Player.Position.Extend(pred.CastPosition, Player.Position.Distance(pred.CastPosition)*0.8f));
                     }
                 }
             }
-            ItemManager.UseFleeItems();
         }
 
         protected override void Killsteal()
         {
-            if (Menu.Item(Menu.Name + ".miscellaneous.e-killsteal").GetValue<bool>() && E.IsReady())
+            var ePoison = Menu.Item(Menu.Name + ".killsteal.e-poison").GetValue<bool>();
+            var eHit = Menu.Item(Menu.Name + ".killsteal.e").GetValue<bool>();
+            if (ePoison || eHit && E.IsReady())
             {
-                var enemy = HeroManager.Enemies.FirstOrDefault(e => e.IsValidTarget(E.Range) && e.Health < E.GetDamage(e) - 10);
-                if (enemy != null)
+                var m =
+                    HeroManager.Enemies.FirstOrDefault(
+                        e => E.CanCast(e) && e.Health < E.GetDamage(e) - 5 && (ePoison && GetPoisonBuffEndTime(e) > GetEDelay(e) || eHit));
+                if (m != null)
                 {
-                    E.Cast(enemy, true);
+                    Casting.BasicTargetSkill(m, E);
                 }
             }
-            if (R.IsReady())
-            {
-                var target = _targets.FirstOrDefault(t => R.CanCast(t));
-                if (target != null)
-                {
-                    var pred = R.GetPrediction(target, true);
-                    if (pred.Hitchance >= HitchanceManager.Get("r"))
-                    {
-                        var rHits = HeroManager.Enemies.Where(x => R.WillHit(x.Position, pred.CastPosition)).ToList();
-                        if (rHits.Count >= Menu.Item(Menu.Name + ".miscellaneous.r-killsteal").GetValue<Slider>().Value &&
-                            rHits.Any(r => R.GetDamage(r) - 10 > r.Health))
-                        {
-                            R.Cast(pred.CastPosition, true);
-                        }
-                    }
-                }
-            }
-            KillstealManager.Killsteal();
         }
 
         protected override void OnDraw()
@@ -740,6 +767,7 @@ namespace SFXChallenger.Champions
             var w = Menu.Item(Menu.Name + ".drawing.w").GetValue<Circle>();
             var e = Menu.Item(Menu.Name + ".drawing.e").GetValue<Circle>();
             var r = Menu.Item(Menu.Name + ".drawing.r").GetValue<Circle>();
+            var rFlash = Menu.Item(Menu.Name + ".drawing.r-flash").GetValue<Circle>();
             var circleThickness = Menu.Item(Menu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value;
 
             if (q.Active && Player.Position.IsOnScreen(Q.Range))
@@ -757,6 +785,10 @@ namespace SFXChallenger.Champions
             if (r.Active && Player.Position.IsOnScreen(R.Range))
             {
                 Render.Circle.DrawCircle(Player.Position, R.Range, r.Color, circleThickness);
+            }
+            if (rFlash.Active && Player.Position.IsOnScreen(R.Range + SummonerManager.Flash.Range))
+            {
+                Render.Circle.DrawCircle(Player.Position, R.Range + SummonerManager.Flash.Range, rFlash.Color, circleThickness);
             }
         }
     }

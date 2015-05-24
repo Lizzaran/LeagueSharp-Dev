@@ -28,28 +28,25 @@
 	<entry key="G_ImportantSpell">Important Spell</entry>
 	<entry key="G_Lasthit">Lasthit</entry>
 	<entry key="G_Hotkey">Hotkey</entry>
+	<entry key="G_Combo">Combo</entry>
+	<entry key="G_Harass">Harass</entry>
+	<entry key="G_LaneClear">Lane Clear</entry>
+	<entry key="G_Flee">Flee</entry>
+	<entry key="G_AntiGapcloser">Anti Gapcloser</entry>
+	<entry key="G_UseAutoAttacks">Use AutoAttacks</entry>
+	<entry key="G_UseQ">Use Q</entry>
+	<entry key="G_UseW">Use W</entry>
+	<entry key="G_UseE">Use E</entry>
+	<entry key="G_UseR">Use R</entry>
+	<entry key="G_Flash">Flash</entry>
+	<entry key="G_Auto">Auto</entry>
+	<entry key="G_Killsteal">Killsteal</entry>
+	<entry key="G_Stunned">Stunned</entry>
+	<entry key="G_Dash">Dash</entry>
+	<entry key="G_Fleeing">Fleeing</entry>
+	<entry key="G_Killable">Killable</entry>
 	<!-- END: GLOBAL -->
-
-	<!-- START: CHAMPION -->
-	<entry key="C_Combo">Combo</entry>
-	<entry key="C_Harass">Harass</entry>
-	<entry key="C_LaneClear">Lane Clear</entry>
-	<entry key="C_Flee">Flee</entry>
-	<entry key="C_AntiGapcloser">Anti Gapcloser</entry>
-	<entry key="C_UseAutoAttacks">Use AutoAttacks</entry>
-	<entry key="C_UseQ">Use Q</entry>
-	<entry key="C_UseW">Use W</entry>
-	<entry key="C_UseE">Use E</entry>
-	<entry key="C_UseR">Use R</entry>
-	<entry key="C_Flash">Flash</entry>
-	<entry key="C_Auto">Auto</entry>
-	<entry key="C_Killsteal">Killsteal</entry>
-	<entry key="C_Stunned">Stunned</entry>
-	<entry key="C_Dash">Dash</entry>
-	<entry key="C_Fleeing">Fleeing</entry>
-	<entry key="C_Killable">Killable</entry>
-	<!-- END: CHAMPION -->
-
+	
 	<!-- START: Language -->
 	<entry key="F_Language">Language</entry>
 	<entry key="Language_Auto">auto</entry>

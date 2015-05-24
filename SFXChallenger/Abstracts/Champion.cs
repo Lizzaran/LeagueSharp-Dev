@@ -61,7 +61,9 @@ namespace SFXChallenger.Abstracts
             get { return _spells ?? (_spells = new List<Spell> {Q, W, E, R}); }
         }
 
+        public Menu SFXMenu { get; private set; }
         public Menu Menu { get; private set; }
+
         public Orbwalking.Orbwalker Orbwalker { get; private set; }
 
         void IChampion.Combo()
@@ -121,6 +123,7 @@ namespace SFXChallenger.Abstracts
                     if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Flee)
                     {
                         Flee();
+                        ItemManager.UseFleeItems();
                     }
                 });
             }
@@ -135,6 +138,7 @@ namespace SFXChallenger.Abstracts
             try
             {
                 Killsteal();
+                KillstealManager.Killsteal();
             }
             catch (Exception ex)
             {
@@ -203,19 +207,23 @@ namespace SFXChallenger.Abstracts
         {
             try
             {
-                Menu = new Menu(Global.Name, "sfx", true);
-                TickMenu.AddToMenu(Menu);
-                LanguageMenu.AddToMenu(Menu);
-                InfoMenu.AddToMenu(Menu.AddSubMenu(new Menu(Global.Lang.Get("F_Info"), Menu.Name + ".info")));
-                TargetSelector.AddToMenu(Menu.AddSubMenu(new Menu(Global.Lang.Get("F_TargetSelector"), Menu.Name + ".ts")));
-                Orbwalker = new Orbwalking.Orbwalker(Menu.AddSubMenu(new Menu(Global.Lang.Get("F_Orbwalker"), Menu.Name + ".orb")));
+                SFXMenu = new Menu(Global.Name, "sfx", true);
 
+                InfoMenu.AddToMenu(SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_Info"), SFXMenu.Name + ".info")));
+                TargetSelector.AddToMenu(SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_TargetSelector"), SFXMenu.Name + ".ts." + Player.ChampionName)));
+                Orbwalker = new Orbwalking.Orbwalker(SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_Orbwalker"), SFXMenu.Name + ".orb")));
+                KillstealManager.AddToMenu(SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MK"), SFXMenu.Name + ".killsteal")));
+                ItemManager.AddToMenu(SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MI"), SFXMenu.Name + ".items")), ItemFlags);
+                SummonerManager.AddToMenu(SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MS"), SFXMenu.Name + ".summoners")));
+
+                TickMenu.AddToMenu(SFXMenu);
+                LanguageMenu.AddToMenu(SFXMenu);
+
+                SFXMenu.AddToMainMenu();
+
+                Menu = new Menu(Player.ChampionName, Player.ChampionName, true);
+                
                 AddToMenu();
-
-                HitchanceManager.AddToMenu(Menu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), Menu.Name + ".hitchance")));
-                KillstealManager.AddToMenu(Menu.AddSubMenu(new Menu(Global.Lang.Get("F_MK"), Menu.Name + ".killsteal")));
-                ItemManager.AddToMenu(Menu.AddSubMenu(new Menu(Global.Lang.Get("F_MI"), Menu.Name + ".items")), ItemFlags);
-                SummonerManager.AddToMenu(Menu.AddSubMenu(new Menu(Global.Lang.Get("F_MS"), Menu.Name + ".summoners")));
 
                 Menu.AddToMainMenu();
             }

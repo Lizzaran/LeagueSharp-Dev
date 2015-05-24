@@ -96,10 +96,10 @@ namespace SFXUtility.Features.Others
 
                 Menu = new Menu(Name, Name);
 
-                foreach (var hero in ObjectManager.Get<Obj_AI_Hero>())
+                foreach (var hero in HeroManager.AllHeroes)
                 {
                     var localHero = hero;
-                    var champMenu = new Menu(hero.ChampionName, hero.ChampionName);
+                    var champMenu = new Menu(hero.IsAlly ? "A: " : "E: " + hero.ChampionName, hero.IsAlly ? "a" : "e" + hero.ChampionName);
                     var modelUnit = new ModelUnit(hero);
 
                     _playerList.Add(modelUnit);
