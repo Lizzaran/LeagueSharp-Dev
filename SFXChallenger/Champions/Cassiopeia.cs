@@ -386,7 +386,10 @@ namespace SFXChallenger.Champions
                     (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
                      Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Harass))
                 {
-                    args.Process = false;
+                    args.Process = Player.GetSpell(SpellSlot.Q).ManaCost > Player.Mana &&
+                                   Player.GetSpell(SpellSlot.W).ManaCost > Player.Mana &&
+                                   (Player.GetSpell(SpellSlot.E).ManaCost > Player.Mana ||
+                                    GetPoisonBuffEndTime(t) < GetEDelay(t));
                 }
                 if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
                 {
@@ -734,7 +737,8 @@ namespace SFXChallenger.Champions
             {
                 var minion =
                     MinionManager.GetMinions(
-                        ObjectManager.Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly)
+                        ObjectManager.Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly,
+                        MinionOrderTypes.MaxHealth)
                         .Where(
                             e =>
                                 GetPoisonBuffEndTime(e) > GetEDelay(e) &&
