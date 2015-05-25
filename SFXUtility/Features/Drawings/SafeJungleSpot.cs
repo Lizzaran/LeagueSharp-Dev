@@ -20,19 +20,25 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+using SharpDX;
+using Color = System.Drawing.Color;
+
+#endregion
+
 namespace SFXUtility.Features.Drawings
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using Classes;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary.Logger;
-    using SharpDX;
-    using Color = System.Drawing.Color;
+    
 
     #endregion
 
@@ -58,7 +64,11 @@ namespace SFXUtility.Features.Drawings
 
         public override bool Enabled
         {
-            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get
+            {
+                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
+            }
         }
 
         public override string Name
@@ -105,9 +115,13 @@ namespace SFXUtility.Features.Drawings
                 {
                     _parent = Global.IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
+                    {
                         OnParentInitialized(null, null);
+                    }
                     else
+                    {
                         _parent.OnInitialized += OnParentInitialized;
+                    }
                 }
             }
             catch (Exception ex)
@@ -121,16 +135,23 @@ namespace SFXUtility.Features.Drawings
             try
             {
                 if (_parent.Menu == null)
+                {
                     return;
+                }
 
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Color", Global.Lang.Get("G_Color")).SetValue(Color.Fuchsia));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Radius", Global.Lang.Get("G_Radius")).SetValue(new Slider(50, 5, 250)));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "CircleThickness", Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Thickness")).SetValue(
-                        new Slider(2, 1, 10)));
+                    new MenuItem(drawingMenu.Name + "Color", Global.Lang.Get("G_Color")).SetValue(Color.Fuchsia));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "Radius", Global.Lang.Get("G_Radius")).SetValue(
+                        new Slider(50, 5, 250)));
+                drawingMenu.AddItem(
+                    new MenuItem(
+                        drawingMenu.Name + "CircleThickness",
+                        Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Thickness")).SetValue(
+                            new Slider(2, 1, 10)));
 
                 Menu.AddSubMenu(drawingMenu);
 
@@ -139,7 +160,9 @@ namespace SFXUtility.Features.Drawings
                 _parent.Menu.AddSubMenu(Menu);
 
                 if (Utility.Map.GetMap().Type != Utility.Map.MapType.SummonersRift)
+                {
                     return;
+                }
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();

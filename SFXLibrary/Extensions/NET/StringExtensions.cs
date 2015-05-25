@@ -20,20 +20,26 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Xml;
+using System.Xml.Serialization;
+
+#endregion
+
 namespace SFXLibrary.Extensions.NET
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Security.Cryptography;
-    using System.Text;
-    using System.Text.RegularExpressions;
-    using System.Xml;
-    using System.Xml.Serialization;
+    
 
     #endregion
 
@@ -41,7 +47,7 @@ namespace SFXLibrary.Extensions.NET
     {
         public static string XmlSerialize<T>(this T objectToSerialise) where T : class
         {
-            var serialiser = new XmlSerializer(typeof (T));
+            var serialiser = new XmlSerializer(typeof(T));
             string xml;
             using (var memStream = new MemoryStream())
             {
@@ -73,7 +79,7 @@ namespace SFXLibrary.Extensions.NET
 
         public static T XmlDeserialize<T>(this string xml) where T : class
         {
-            var serialiser = new XmlSerializer(typeof (T));
+            var serialiser = new XmlSerializer(typeof(T));
             T newObject = null;
 
             using (var stringReader = new StringReader(xml))
@@ -96,13 +102,15 @@ namespace SFXLibrary.Extensions.NET
         public static bool? ToBoolean(this string value)
         {
             if (string.IsNullOrWhiteSpace(value))
+            {
                 return null;
+            }
 
-            if (String.Compare("T", value, StringComparison.OrdinalIgnoreCase) == 0)
+            if (string.Compare("T", value, StringComparison.OrdinalIgnoreCase) == 0)
             {
                 return true;
             }
-            if (String.Compare("F", value, StringComparison.OrdinalIgnoreCase) == 0)
+            if (string.Compare("F", value, StringComparison.OrdinalIgnoreCase) == 0)
             {
                 return false;
             }
@@ -117,7 +125,9 @@ namespace SFXLibrary.Extensions.NET
         public static string Truncate(this string value, int maxLength, string suffix = "...")
         {
             if (string.IsNullOrEmpty(value) || maxLength <= 0 || value.Length <= maxLength)
+            {
                 return string.Empty;
+            }
 
             var truncatedString = value;
             var strLength = maxLength - suffix.Length;
@@ -150,7 +160,9 @@ namespace SFXLibrary.Extensions.NET
         public static string ToMd5Hash(this string value, bool toLower = true)
         {
             if (string.IsNullOrWhiteSpace(value))
+            {
                 return string.Empty;
+            }
 
             using (MD5 md5 = new MD5CryptoServiceProvider())
             {
@@ -163,27 +175,36 @@ namespace SFXLibrary.Extensions.NET
 
         public static string ToBase64(this string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
+            return string.IsNullOrWhiteSpace(value)
+                ? string.Empty
+                : Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
         }
 
         public static string FromBase64(this string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? string.Empty : Encoding.UTF8.GetString(Convert.FromBase64String(value));
+            return string.IsNullOrWhiteSpace(value)
+                ? string.Empty
+                : Encoding.UTF8.GetString(Convert.FromBase64String(value));
         }
 
         public static bool Contains(this string source, string toCheck, StringComparison comp = StringComparison.Ordinal)
         {
-            return !string.IsNullOrEmpty(source) && !string.IsNullOrEmpty(toCheck) && source.IndexOf(toCheck, 0, comp) != -1;
+            return !string.IsNullOrEmpty(source) && !string.IsNullOrEmpty(toCheck) &&
+                   source.IndexOf(toCheck, 0, comp) != -1;
         }
 
         /// <exception cref="OverflowException">
         ///     The array is multidimensional and contains more than
         ///     <see cref="F:System.Int32.MaxValue" /> elements.
         /// </exception>
-        public static bool Contains(this string[] source, string toCheck, StringComparison comp = StringComparison.Ordinal)
+        public static bool Contains(this string[] source,
+            string toCheck,
+            StringComparison comp = StringComparison.Ordinal)
         {
             if (source == null || source.Length > 0 || string.IsNullOrEmpty(toCheck))
+            {
                 return false;
+            }
 
             for (int i = 0, l = source.Length; l > i; i++)
             {
@@ -208,28 +229,40 @@ namespace SFXLibrary.Extensions.NET
             return value == null || value.Length > 0;
         }
 
-        public static string Between(this string value, string a, string b, StringComparison comp = StringComparison.Ordinal)
+        public static string Between(this string value,
+            string a,
+            string b,
+            StringComparison comp = StringComparison.Ordinal)
         {
             var posA = value.IndexOf(a, comp);
             var posB = value.IndexOf(b, comp);
             if (posA == -1 || posB == -1)
+            {
                 return null;
+            }
             var adjPos = posA + a.Length;
             return adjPos >= posB ? null : value.Substring(adjPos, posB - adjPos);
         }
 
-        public static List<string> BetweenList(this string value, string start, string end, StringComparison comp = StringComparison.Ordinal)
+        public static List<string> BetweenList(this string value,
+            string start,
+            string end,
+            StringComparison comp = StringComparison.Ordinal)
         {
-            return
-                (from Match match in new Regex(Regex.Escape(start) + "(.*?)" + Regex.Escape(end)).Matches(value) select match.Groups[1].Value).ToList();
+            return (from Match match in new Regex(Regex.Escape(start) + "(.*?)" + Regex.Escape(end)).Matches(value)
+                select match.Groups[1].Value).ToList();
         }
 
         public static string FirstCharToUpper(this string value)
         {
             if (value == null)
+            {
                 return null;
+            }
             if (value.Length > 1)
+            {
                 return char.ToUpper(value[0]) + value.Substring(1);
+            }
             return value.ToUpper();
         }
     }

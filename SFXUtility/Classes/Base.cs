@@ -20,14 +20,20 @@
 
 #endregion License
 
+#region
+
+using System;
+using LeagueSharp.Common;
+using SFXLibrary.Extensions.NET;
+using SFXLibrary.Logger;
+
+#endregion
+
 namespace SFXUtility.Classes
 {
     #region
 
-    using System;
-    using LeagueSharp.Common;
-    using SFXLibrary.Extensions.NET;
-    using SFXLibrary.Logger;
+    
 
     #endregion
 
@@ -80,7 +86,9 @@ namespace SFXUtility.Classes
         {
             OnDisable();
             if (args != null && args.Final)
+            {
                 Unloaded = true;
+            }
         }
 
         protected virtual void RaiseOnInitialized()
@@ -100,20 +108,21 @@ namespace SFXUtility.Classes
         {
             try
             {
-                parent.Menu.Item(parent.Name + "Enabled").ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
-                {
-                    if (!Unloaded && args.GetNewValue<bool>())
+                parent.Menu.Item(parent.Name + "Enabled").ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
                     {
-                        if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
+                        if (!Unloaded && args.GetNewValue<bool>())
                         {
-                            OnEnable();
+                            if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
+                            {
+                                OnEnable();
+                            }
                         }
-                    }
-                    else
-                    {
-                        OnDisable();
-                    }
-                };
+                        else
+                        {
+                            OnDisable();
+                        }
+                    };
                 Menu.Item(Name + "Enabled").ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
                 {
                     if (!Unloaded && args.GetNewValue<bool>())

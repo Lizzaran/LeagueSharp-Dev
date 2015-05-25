@@ -20,12 +20,18 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.ComponentModel;
+
+#endregion
+
 namespace SFXLibrary.Logger
 {
     #region
 
-    using System;
-    using System.ComponentModel;
+    
 
     #endregion
 

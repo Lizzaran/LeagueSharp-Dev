@@ -20,16 +20,22 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.IO;
+using System.Reflection;
+using System.Xml;
+using System.Xml.Schema;
+using LeagueSharp;
+
+#endregion
+
 namespace SFXLibrary
 {
     #region
 
-    using System;
-    using System.IO;
-    using System.Reflection;
-    using System.Xml;
-    using System.Xml.Schema;
-    using LeagueSharp;
+    
 
     #endregion
 
@@ -58,7 +64,7 @@ namespace SFXLibrary
 
         public static string GetEnumName(SpellSlot slot)
         {
-            return Enum.GetName(typeof (SpellSlot), slot);
+            return Enum.GetName(typeof(SpellSlot), slot);
         }
 
         public static bool IsXmlValid(string schemaFile, string xmlFile)
@@ -68,7 +74,7 @@ namespace SFXLibrary
                 var valid = true;
                 var sc = new XmlSchemaSet();
                 sc.Add(string.Empty, schemaFile);
-                var settings = new XmlReaderSettings {ValidationType = ValidationType.Schema, Schemas = sc};
+                var settings = new XmlReaderSettings { ValidationType = ValidationType.Schema, Schemas = sc };
                 settings.ValidationEventHandler += delegate { valid = false; };
                 settings.ValidationFlags = XmlSchemaValidationFlags.ReportValidationWarnings;
                 settings.IgnoreWhitespace = true;
@@ -76,9 +82,7 @@ namespace SFXLibrary
 
                 try
                 {
-                    while (reader.Read())
-                    {
-                    }
+                    while (reader.Read()) {}
                 }
                 catch (XmlException xmlException)
                 {
@@ -107,9 +111,7 @@ namespace SFXLibrary
                     }
                 }
             }
-            catch
-            {
-            }
+            catch {}
             return string.Empty;
         }
     }

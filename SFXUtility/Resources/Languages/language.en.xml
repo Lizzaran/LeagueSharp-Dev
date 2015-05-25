@@ -113,7 +113,7 @@
 	<entry key="Replay_NotifyRecord">Notify Record</entry>
 	<entry key="Replay_CheckInterval">Check Interval</entry>
 	<!-- END: Replay -->
-	
+
 	<!-- START: Teleport -->
 	<entry key="F_Teleport">Teleport</entry>
 	<entry key="Teleport_Aborted">Aborted</entry>

@@ -20,22 +20,28 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXChallenger.Enumerations;
+using SFXChallenger.Interfaces;
+using SFXChallenger.Managers;
+using SFXChallenger.Menus;
+using SFXLibrary.Logger;
+using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
+
+#endregion
+
 namespace SFXChallenger.Abstracts
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using Enumerations;
-    using Interfaces;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using Managers;
-    using Menus;
-    using SFXLibrary.Logger;
-    using Orbwalking = Wrappers.Orbwalking;
-    using TargetSelector = Wrappers.TargetSelector;
+    
 
     #endregion
 
@@ -58,21 +64,17 @@ namespace SFXChallenger.Abstracts
 
         protected List<Spell> Spells
         {
-            get { return _spells ?? (_spells = new List<Spell> {Q, W, E, R}); }
+            get { return _spells ?? (_spells = new List<Spell> { Q, W, E, R }); }
         }
 
         public Menu SFXMenu { get; private set; }
         public Menu Menu { get; private set; }
-
         public Orbwalking.Orbwalker Orbwalker { get; private set; }
 
         void IChampion.Combo()
         {
             try
             {
-                if (!ManaManager.Check("combo"))
-                    return;
-
                 Combo();
             }
             catch (Exception ex)
@@ -85,9 +87,6 @@ namespace SFXChallenger.Abstracts
         {
             try
             {
-                if (!ManaManager.Check("harass"))
-                    return;
-
                 Harass();
             }
             catch (Exception ex)
@@ -100,9 +99,6 @@ namespace SFXChallenger.Abstracts
         {
             try
             {
-                if (!ManaManager.Check("lane-clear"))
-                    return;
-
                 LaneClear();
             }
             catch (Exception ex)
@@ -115,17 +111,15 @@ namespace SFXChallenger.Abstracts
         {
             try
             {
-                if (!ManaManager.Check("flee"))
-                    return;
-
-                Utility.DelayAction.Add(1000, delegate
-                {
-                    if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Flee)
+                Utility.DelayAction.Add(
+                    1000, delegate
                     {
-                        Flee();
-                        ItemManager.UseFleeItems();
-                    }
-                });
+                        if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Flee)
+                        {
+                            Flee();
+                            ItemManager.UseFleeItems();
+                        }
+                    });
             }
             catch (Exception ex)
             {
@@ -210,11 +204,18 @@ namespace SFXChallenger.Abstracts
                 SFXMenu = new Menu(Global.Name, "sfx", true);
 
                 InfoMenu.AddToMenu(SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_Info"), SFXMenu.Name + ".info")));
-                TargetSelector.AddToMenu(SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_TargetSelector"), SFXMenu.Name + ".ts." + Player.ChampionName)));
-                Orbwalker = new Orbwalking.Orbwalker(SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_Orbwalker"), SFXMenu.Name + ".orb")));
-                KillstealManager.AddToMenu(SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MK"), SFXMenu.Name + ".killsteal")));
-                ItemManager.AddToMenu(SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MI"), SFXMenu.Name + ".items")), ItemFlags);
-                SummonerManager.AddToMenu(SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MS"), SFXMenu.Name + ".summoners")));
+                TargetSelector.AddToMenu(
+                    SFXMenu.AddSubMenu(
+                        new Menu(Global.Lang.Get("F_TargetSelector"), SFXMenu.Name + ".ts." + Player.ChampionName)));
+                Orbwalker =
+                    new Orbwalking.Orbwalker(
+                        SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_Orbwalker"), SFXMenu.Name + ".orb")));
+                KillstealManager.AddToMenu(
+                    SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MK"), SFXMenu.Name + ".killsteal")));
+                ItemManager.AddToMenu(
+                    SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MI"), SFXMenu.Name + ".items")), ItemFlags);
+                SummonerManager.AddToMenu(
+                    SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MS"), SFXMenu.Name + ".summoners")));
 
                 TickMenu.AddToMenu(SFXMenu);
                 LanguageMenu.AddToMenu(SFXMenu);
@@ -222,7 +223,7 @@ namespace SFXChallenger.Abstracts
                 SFXMenu.AddToMainMenu();
 
                 Menu = new Menu(Player.ChampionName, Player.ChampionName, true);
-                
+
                 AddToMenu();
 
                 Menu.AddToMainMenu();
@@ -237,12 +238,14 @@ namespace SFXChallenger.Abstracts
         {
             try
             {
-                var damage = Spells.Where(spell => spell.CanCast(target)).Aggregate(0d, (current, spell) => current + spell.GetDamage(target));
+                var damage = Spells.Where(spell => spell.CanCast(target))
+                    .Aggregate(0d, (current, spell) => current + spell.GetDamage(target));
                 if (autoAttacks > 0 && Orbwalker.InAutoAttackRange(target))
                 {
-                    damage += (Player.GetAutoAttackDamage(target)*autoAttacks);
+                    damage += (Player.GetAutoAttackDamage(target) * autoAttacks);
                 }
-                return (float) damage + ItemManager.CalculateComboDamage(target) + SummonerManager.CalculateComboDamage(target);
+                return (float) damage + ItemManager.CalculateComboDamage(target) +
+                       SummonerManager.CalculateComboDamage(target);
             }
             catch (Exception ex)
             {
@@ -251,27 +254,41 @@ namespace SFXChallenger.Abstracts
             return 0f;
         }
 
-        protected float CalculateComboDamage(Obj_AI_Hero target, bool q = true, bool w = true, bool e = true, bool r = true, int autoAttacks = 0)
+        protected float CalculateComboDamage(Obj_AI_Hero target,
+            bool q = true,
+            bool w = true,
+            bool e = true,
+            bool r = true,
+            int autoAttacks = 0)
         {
             try
             {
                 var damage = 0d;
 
                 if (q && Q.CanCast(target))
+                {
                     damage += Q.GetDamage(target);
+                }
                 if (w && W.CanCast(target))
+                {
                     damage += W.GetDamage(target);
+                }
                 if (e && E.CanCast(target))
+                {
                     damage += E.GetDamage(target);
+                }
                 if (r && R.CanCast(target))
+                {
                     damage += R.GetDamage(target);
+                }
 
                 if (autoAttacks > 0 && Orbwalker.InAutoAttackRange(target))
                 {
-                    damage += (Player.GetAutoAttackDamage(target)*autoAttacks);
+                    damage += (Player.GetAutoAttackDamage(target) * autoAttacks);
                 }
 
-                return (float) damage + ItemManager.CalculateComboDamage(target) + SummonerManager.CalculateComboDamage(target);
+                return (float) damage + ItemManager.CalculateComboDamage(target) +
+                       SummonerManager.CalculateComboDamage(target);
             }
             catch (Exception ex)
             {

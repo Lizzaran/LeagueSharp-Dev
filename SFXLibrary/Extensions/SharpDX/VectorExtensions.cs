@@ -22,13 +22,12 @@
 
 #region
 
-using Drawing = LeagueSharp.Drawing;
-using Geometry = LeagueSharp.Common.Geometry;
-using ObjectManager = LeagueSharp.ObjectManager;
-using Obj_AI_Minion = LeagueSharp.Obj_AI_Minion;
-using Utility = LeagueSharp.Common.Utility;
-using Vector2 = SharpDX.Vector2;
-using Vector3 = SharpDX.Vector3;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SharpDX;
 
 #endregion
 
@@ -36,9 +35,7 @@ namespace SFXLibrary.Extensions.SharpDX
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
+    
 
     #endregion
 
@@ -47,7 +44,8 @@ namespace SFXLibrary.Extensions.SharpDX
         public static bool IsOnScreen(this Vector3 position, float radius)
         {
             var pos = Drawing.WorldToScreen(position);
-            return !(pos.X + radius < 0) && !(pos.X - radius > Drawing.Width) && !(pos.Y + radius < 0) && !(pos.Y - radius > Drawing.Height);
+            return !(pos.X + radius < 0) && !(pos.X - radius > Drawing.Width) && !(pos.Y + radius < 0) &&
+                   !(pos.Y - radius > Drawing.Height);
         }
 
         public static bool IsOnScreen(this Vector2 position, float radius)
@@ -57,8 +55,8 @@ namespace SFXLibrary.Extensions.SharpDX
 
         public static bool IsOnScreen(this Vector2 start, Vector2 end)
         {
-            if (start.X > 0 && start.X < Drawing.Width && start.Y > 0 && start.Y < Drawing.Height && end.X > 0 && end.X < Drawing.Width && end.Y > 0 &&
-                end.Y < Drawing.Height)
+            if (start.X > 0 && start.X < Drawing.Width && start.Y > 0 && start.Y < Drawing.Height && end.X > 0 &&
+                end.X < Drawing.Width && end.Y > 0 && end.Y < Drawing.Height)
             {
                 return true;
             }
@@ -66,37 +64,44 @@ namespace SFXLibrary.Extensions.SharpDX
                 new List<Geometry.IntersectionResult>
                 {
                     Geometry.Intersection(new Vector2(0, 0), new Vector2(0, Drawing.Width), start, end),
-                    Geometry.Intersection(new Vector2(0, Drawing.Width), new Vector2(Drawing.Height, Drawing.Width), start, end),
-                    Geometry.Intersection(new Vector2(Drawing.Height, Drawing.Width), new Vector2(Drawing.Height, 0), start, end),
+                    Geometry.Intersection(
+                        new Vector2(0, Drawing.Width), new Vector2(Drawing.Height, Drawing.Width), start, end),
+                    Geometry.Intersection(
+                        new Vector2(Drawing.Height, Drawing.Width), new Vector2(Drawing.Height, 0), start, end),
                     Geometry.Intersection(new Vector2(Drawing.Height, 0), new Vector2(0, 0), start, end)
-                }.Any(intersection => intersection.Intersects);
+                }.Any(
+                    intersection => intersection.Intersects);
         }
 
-        public static Vector2 FindNearestLineCircleIntersections(this Vector2 start, Vector2 end, Vector2 circlePos, float radius)
+        public static Vector2 FindNearestLineCircleIntersections(this Vector2 start,
+            Vector2 end,
+            Vector2 circlePos,
+            float radius)
         {
             float t;
             var dx = end.X - start.X;
             var dy = end.Y - start.Y;
 
-            var a = dx*dx + dy*dy;
-            var b = 2*(dx*(start.X - circlePos.X) + dy*(start.Y - circlePos.Y));
-            var c = (start.X - circlePos.X)*(start.X - circlePos.X) + (start.Y - circlePos.Y)*(start.Y - circlePos.Y) - radius*radius;
+            var a = dx * dx + dy * dy;
+            var b = 2 * (dx * (start.X - circlePos.X) + dy * (start.Y - circlePos.Y));
+            var c = (start.X - circlePos.X) * (start.X - circlePos.X) +
+                    (start.Y - circlePos.Y) * (start.Y - circlePos.Y) - radius * radius;
 
-            var det = b*b - 4*a*c;
+            var det = b * b - 4 * a * c;
             if ((a <= 0.0000001) || (det < 0))
             {
                 return Vector2.Zero;
             }
             if (det == 0)
             {
-                t = -b/(2*a);
-                return new Vector2(start.X + t*dx, start.Y + t*dy);
+                t = -b / (2 * a);
+                return new Vector2(start.X + t * dx, start.Y + t * dy);
             }
 
-            t = (float) ((-b + Math.Sqrt(det))/(2*a));
-            var intersection1 = new Vector2(start.X + t*dx, start.Y + t*dy);
-            t = (float) ((-b - Math.Sqrt(det))/(2*a));
-            var intersection2 = new Vector2(start.X + t*dx, start.Y + t*dy);
+            t = (float) ((-b + Math.Sqrt(det)) / (2 * a));
+            var intersection1 = new Vector2(start.X + t * dx, start.Y + t * dy);
+            t = (float) ((-b - Math.Sqrt(det)) / (2 * a));
+            var intersection2 = new Vector2(start.X + t * dx, start.Y + t * dy);
 
             return Vector2.Distance(intersection1, Geometry.To2D(ObjectManager.Player.Position)) >
                    Vector2.Distance(intersection2, Geometry.To2D(ObjectManager.Player.Position))
@@ -122,8 +127,8 @@ namespace SFXLibrary.Extensions.SharpDX
                 ObjectManager.Get<Obj_AI_Minion>()
                     .Where(
                         minion =>
-                            minion != null && minion.IsValid && names.Any(name => minion.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase)))
-                )
+                            minion != null && minion.IsValid &&
+                            names.Any(name => minion.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase))))
             {
                 var distance = Vector3.Distance(position, minion.ServerPosition);
                 if (nearest > distance || nearest == float.MaxValue)
@@ -137,7 +142,9 @@ namespace SFXLibrary.Extensions.SharpDX
 
         public static Obj_AI_Minion GetMinionFastByNames(this Vector3 position, float range, string[] names)
         {
-            return ObjectManager.Get<Obj_AI_Minion>().FirstOrDefault(m => names.Any(n => m.Name.Equals(n)) && Utility.IsValidTarget(m, range));
+            return
+                ObjectManager.Get<Obj_AI_Minion>()
+                    .FirstOrDefault(m => names.Any(n => m.Name.Equals(n)) && Utility.IsValidTarget(m, range));
         }
 
         public static Obj_AI_Minion GetNearestMinionByNames(this Vector2 position, string[] names)

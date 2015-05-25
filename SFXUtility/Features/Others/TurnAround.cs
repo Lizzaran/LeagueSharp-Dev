@@ -20,19 +20,25 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary.Extensions.NET;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+using SharpDX;
+
+#endregion
+
 namespace SFXUtility.Features.Others
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using Classes;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary.Extensions.NET;
-    using SFXLibrary.Logger;
-    using SharpDX;
+    
 
     #endregion
 
@@ -50,7 +56,11 @@ namespace SFXUtility.Features.Others
 
         public override bool Enabled
         {
-            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get
+            {
+                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
+            }
         }
 
         public override string Name
@@ -95,22 +105,31 @@ namespace SFXUtility.Features.Others
         {
             try
             {
-                if (sender == null || !sender.IsValid || sender.Team == ObjectManager.Player.Team || ObjectManager.Player.IsDead ||
-                    !ObjectManager.Player.IsTargetable)
+                if (sender == null || !sender.IsValid || sender.Team == ObjectManager.Player.Team ||
+                    ObjectManager.Player.IsDead || !ObjectManager.Player.IsTargetable)
+                {
                     return;
-                var spellInfo = _spellInfos.FirstOrDefault(i => args.SData.Name.Contains(i.Name, StringComparison.OrdinalIgnoreCase));
+                }
+                var spellInfo =
+                    _spellInfos.FirstOrDefault(
+                        i => args.SData.Name.Contains(i.Name, StringComparison.OrdinalIgnoreCase));
                 if (spellInfo != null)
                 {
                     if ((spellInfo.Target && args.Target == ObjectManager.Player) ||
-                        (ObjectManager.Player.Distance(sender.ServerPosition) + ObjectManager.Player.BoundingRadius) <= spellInfo.Range)
+                        (ObjectManager.Player.Distance(sender.ServerPosition) + ObjectManager.Player.BoundingRadius) <=
+                        spellInfo.Range)
                     {
                         var moveTo = _lastMove;
-                        ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo,
-                            sender.ServerPosition.Extend(ObjectManager.Player.ServerPosition,
-                                ObjectManager.Player.ServerPosition.Distance(sender.ServerPosition) + (spellInfo.TurnOpposite ? 100 : -100)));
+                        ObjectManager.Player.IssueOrder(
+                            GameObjectOrder.MoveTo,
+                            sender.ServerPosition.Extend(
+                                ObjectManager.Player.ServerPosition,
+                                ObjectManager.Player.ServerPosition.Distance(sender.ServerPosition) +
+                                (spellInfo.TurnOpposite ? 100 : -100)));
                         Utility.DelayAction.Add(250, () => Game.SendEmote(Emote.Laugh));
                         _blockMovementTime = Game.Time + spellInfo.CastTime;
-                        Utility.DelayAction.Add((int) ((spellInfo.CastTime + 0.1)*1000),
+                        Utility.DelayAction.Add(
+                            (int) ((spellInfo.CastTime + 0.1) * 1000),
                             () => ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, moveTo));
                     }
                 }
@@ -129,9 +148,13 @@ namespace SFXUtility.Features.Others
                 {
                     _parent = Global.IoC.Resolve<Others>();
                     if (_parent.Initialized)
+                    {
                         OnParentInitialized(null, null);
+                    }
                     else
+                    {
                         _parent.OnInitialized += OnParentInitialized;
+                    }
                 }
             }
             catch (Exception ex)
@@ -145,7 +168,9 @@ namespace SFXUtility.Features.Others
             try
             {
                 if (_parent.Menu == null)
+                {
                     return;
+                }
 
                 Menu = new Menu(Name, Name);
 
@@ -154,7 +179,9 @@ namespace SFXUtility.Features.Others
                 _parent.Menu.AddSubMenu(Menu);
 
                 if (!HeroManager.Enemies.Any(h => _spellInfos.Any(i => i.Owner == h.ChampionName)))
+                {
                     return;
+                }
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();

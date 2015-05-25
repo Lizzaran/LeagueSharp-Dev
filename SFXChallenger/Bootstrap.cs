@@ -20,22 +20,28 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Resources;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXChallenger.Abstracts;
+using SFXChallenger.Helpers;
+using SFXChallenger.Interfaces;
+using SFXLibrary.Logger;
+
+#endregion
+
 namespace SFXChallenger
 {
     #region
 
-    using System;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Reflection;
-    using System.Resources;
-    using Abstracts;
-    using Helpers;
-    using Interfaces;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary.Logger;
+    
 
     #endregion
 
@@ -79,23 +85,29 @@ namespace SFXChallenger
         private static IChampion LoadChampion()
         {
             var type =
-                Assembly.GetAssembly(typeof (IChampion))
+                Assembly.GetAssembly(typeof(IChampion))
                     .GetTypes()
-                    .Where(t => t.IsClass && !t.IsAbstract && typeof (IChampion).IsAssignableFrom(t))
-                    .FirstOrDefault(t => t.Name.Equals(ObjectManager.Player.ChampionName, StringComparison.OrdinalIgnoreCase));
+                    .Where(t => t.IsClass && !t.IsAbstract && typeof(IChampion).IsAssignableFrom(t))
+                    .FirstOrDefault(
+                        t => t.Name.Equals(ObjectManager.Player.ChampionName, StringComparison.OrdinalIgnoreCase));
 
             return type != null ? (Champion) DynamicInitializer.NewInstance(type) : null;
         }
 
         private static void SetupLogger()
         {
-            Global.Logger = new FileLogger(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Global.Name + " - Logs")) {LogLevel = LogLevel.High};
+            Global.Logger = new FileLogger(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Global.Name + " - Logs"))
+            {
+                LogLevel = LogLevel.High
+            };
 
             AppDomain.CurrentDomain.UnhandledException += delegate(object sender, UnhandledExceptionEventArgs eventArgs)
             {
                 var ex = sender as Exception;
                 if (ex != null)
+                {
                     Global.Logger.AddItem(new LogItem(ex));
+                }
             };
         }
 
@@ -110,7 +122,9 @@ namespace SFXChallenger
                 using (var stream = currentAsm.GetManifestResourceStream(resName))
                 {
                     if (stream != null)
+                    {
                         resReader = new ResourceReader(stream);
+                    }
 
                     if (resReader != null)
                     {
@@ -119,19 +133,26 @@ namespace SFXChallenger
                         while (en.MoveNext())
                         {
                             if (en.Key.ToString().StartsWith("language_"))
+                            {
                                 Global.Lang.Parse(en.Value.ToString());
+                            }
                         }
                     }
                 }
             }
 
             var lang =
-                Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, string.Format(@"{0}.Global.Lang.*", Global.Name),
+                Directory.GetFiles(
+                    AppDomain.CurrentDomain.BaseDirectory, string.Format(@"{0}.Global.Lang.*", Global.Name),
                     SearchOption.TopDirectoryOnly).Select(Path.GetExtension).FirstOrDefault();
             if (lang != null && Global.Lang.Languages.Any(l => l.Equals(lang.Substring(1))))
+            {
                 Global.Lang.Current = lang.Substring(1);
+            }
             else
+            {
                 Global.Lang.Current = CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
+            }
         }
     }
 }

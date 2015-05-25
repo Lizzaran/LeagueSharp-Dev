@@ -22,12 +22,17 @@
 
 #region
 
-using Drawing = LeagueSharp.Drawing;
-using Filter = SharpDX.Direct3D9.Filter;
-using Format = SharpDX.Direct3D9.Format;
-using Pool = SharpDX.Direct3D9.Pool;
-using Texture = SharpDX.Direct3D9.Texture;
-using Usage = SharpDX.Direct3D9.Usage;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading.Tasks;
+using LeagueSharp;
+using SharpDX.Direct3D9;
 
 #endregion
 
@@ -35,15 +40,7 @@ namespace SFXLibrary.Extensions.NET
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Drawing;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Runtime.Serialization;
-    using System.Runtime.Serialization.Formatters.Binary;
-    using System.Threading.Tasks;
+    
 
     #endregion
 
@@ -56,13 +53,15 @@ namespace SFXLibrary.Extensions.NET
 
         public static bool IsNumber(this object value)
         {
-            return value is sbyte || value is byte || value is short || value is ushort || value is int || value is uint || value is long ||
-                   value is ulong || value is float || value is double || value is decimal;
+            return value is sbyte || value is byte || value is short || value is ushort || value is int || value is uint ||
+                   value is long || value is ulong || value is float || value is double || value is decimal;
         }
 
         public static string ToDebugString<TKey, TValue>(this IDictionary<TKey, TValue> dictionary)
         {
-            return dictionary == null ? string.Empty : string.Join("," + Environment.NewLine, dictionary.Select(kv => kv.Key + " = " + kv.Value));
+            return dictionary == null
+                ? string.Empty
+                : string.Join("," + Environment.NewLine, dictionary.Select(kv => kv.Key + " = " + kv.Value));
         }
 
         public static Task<List<T>> ToListAsync<T>(this IQueryable<T> list)
@@ -98,25 +97,30 @@ namespace SFXLibrary.Extensions.NET
         public static void RaiseEvent(this EventHandler @event, object sender, EventArgs e)
         {
             if (@event != null)
+            {
                 @event(sender, e);
+            }
         }
 
         /// <exception cref="Exception">A delegate callback throws an exception. </exception>
         public static void RaiseEvent<T>(this EventHandler<T> @event, object sender, T e) where T : EventArgs
         {
             if (@event != null)
+            {
                 @event(sender, e);
+            }
         }
 
         public static Texture ToTexture(this Bitmap bitmap)
         {
-            return Texture.FromMemory(Drawing.Direct3DDevice, (byte[])new ImageConverter().ConvertTo(bitmap, typeof(byte[])), bitmap.Width,
+            return Texture.FromMemory(
+                Drawing.Direct3DDevice, (byte[]) new ImageConverter().ConvertTo(bitmap, typeof(byte[])), bitmap.Width,
                 bitmap.Height, 0, Usage.None, Format.A1, Pool.Managed, Filter.Default, Filter.Default, 0);
         }
 
         public static Bitmap Scale(this Bitmap bitmap, float scale)
         {
-            return new Bitmap(bitmap, new Size((int)(bitmap.Width * scale), (int)(bitmap.Height * scale)));
+            return new Bitmap(bitmap, new Size((int) (bitmap.Width * scale), (int) (bitmap.Height * scale)));
         }
     }
 }

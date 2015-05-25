@@ -20,6 +20,24 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary;
+using SFXLibrary.Extensions.NET;
+using SFXLibrary.Extensions.SharpDX;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+using SharpDX;
+using SharpDX.Direct3D9;
+using Color = System.Drawing.Color;
+using Font = SharpDX.Direct3D9.Font;
+
+#endregion
 
 #pragma warning disable 618
 
@@ -27,20 +45,7 @@ namespace SFXUtility.Features.Detectors
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using Classes;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary;
-    using SFXLibrary.Extensions.NET;
-    using SFXLibrary.Extensions.SharpDX;
-    using SFXLibrary.Logger;
-    using SharpDX;
-    using SharpDX.Direct3D9;
-    using Color = System.Drawing.Color;
-    using Font = SharpDX.Direct3D9.Font;
+    
 
     #endregion
 
@@ -52,7 +57,11 @@ namespace SFXUtility.Features.Detectors
 
         public override bool Enabled
         {
-            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get
+            {
+                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
+            }
         }
 
         public override string Name
@@ -83,16 +92,17 @@ namespace SFXUtility.Features.Detectors
             {
                 if (Menu.Item(Name + "DrawingTextEnabled").GetValue<bool>())
                 {
-                    var posX = Drawing.Width*0.68f;
-                    var posY = Drawing.Height*0.75f;
+                    var posX = Drawing.Width * 0.68f;
+                    var posY = Drawing.Height * 0.75f;
                     var count = 0;
                     foreach (var teleport in
-                        _teleportObjects.Where(t => t.Hero.IsEnemy && t.LastStatus != Packet.S2C.Teleport.Status.Unknown && t.Update()))
+                        _teleportObjects.Where(
+                            t => t.Hero.IsEnemy && t.LastStatus != Packet.S2C.Teleport.Status.Unknown && t.Update()))
                     {
                         var text = teleport.ToString();
                         if (!string.IsNullOrWhiteSpace(text))
                         {
-                            Drawing.DrawText(posX, posY + 15*count++, teleport.ToColor(true), text);
+                            Drawing.DrawText(posX, posY + 15 * count++, teleport.ToColor(true), text);
                         }
                     }
                 }
@@ -100,35 +110,46 @@ namespace SFXUtility.Features.Detectors
                 if (Menu.Item(Name + "DrawingBarEnabled").GetValue<bool>())
                 {
                     const int barHeight = 10;
-                    const int seperatorHeight = barHeight/2;
+                    const int seperatorHeight = barHeight / 2;
                     var top = true;
-                    var posX = Drawing.Width*0.425f;
-                    var posY = Drawing.Height*0.75f;
-                    var barWidth = (int) (Drawing.Width - 2*posX);
-                    var scale = (float) barWidth/8;
-                    var teleports = _teleportObjects.Where(t => t.Hero.IsEnemy && t.Countdown > 0).OrderBy(t => t.Countdown);
+                    var posX = Drawing.Width * 0.425f;
+                    var posY = Drawing.Height * 0.75f;
+                    var barWidth = (int) (Drawing.Width - 2 * posX);
+                    var scale = (float) barWidth / 8;
+                    var teleports =
+                        _teleportObjects.Where(t => t.Hero.IsEnemy && t.Countdown > 0).OrderBy(t => t.Countdown);
 
                     foreach (var teleport in teleports)
                     {
-                        var hPercent = ((int) ((teleport.Hero.Health/teleport.Hero.MaxHealth)*100)).ToString();
+                        var hPercent = ((int) ((teleport.Hero.Health / teleport.Hero.MaxHealth) * 100)).ToString();
                         var color = teleport.ToColor();
-                        var width = (int) (scale*teleport.Countdown);
+                        var width = (int) (scale * teleport.Countdown);
                         width = width > barWidth ? barWidth : width;
                         Draw.RectangleFilled(new Vector2(posX, posY), width, barHeight, color.ToArgb(100));
-                        Draw.Line(new Vector2(posX + width, (top ? posY - seperatorHeight - barHeight/2f : posY + barHeight/2f + 2)), 1,
+                        Draw.Line(
+                            new Vector2(
+                                posX + width,
+                                (top ? posY - seperatorHeight - barHeight / 2f : posY + barHeight / 2f + 2)), 1,
                             seperatorHeight, Color.White);
-                        _text.DrawTextCentered(teleport.Hero.ChampionName, (int) (posX + width),
-                            (top ? (int) (posY - barHeight - seperatorHeight - 2) : (int) (posY + barHeight + seperatorHeight + 2)),
+                        _text.DrawTextCentered(
+                            teleport.Hero.ChampionName, (int) (posX + width),
+                            (top
+                                ? (int) (posY - barHeight - seperatorHeight - 2)
+                                : (int) (posY + barHeight + seperatorHeight + 2)),
                             new ColorBGRA(color.R, color.G, color.B, color.A));
-                        _text.DrawTextCentered(hPercent, (int) (posX + width - 1),
+                        _text.DrawTextCentered(
+                            hPercent, (int) (posX + width - 1),
                             (top
                                 ? (int) (posY - barHeight - 3 - seperatorHeight - _text.Description.Height + 5)
-                                : (int) (posY + barHeight + 3 + _text.Description.Height + 5)), new ColorBGRA(color.R, color.G, color.B, color.A));
+                                : (int) (posY + barHeight + 3 + _text.Description.Height + 5)),
+                            new ColorBGRA(color.R, color.G, color.B, color.A));
                         top = !top;
                     }
 
                     if (teleports.Any())
+                    {
                         Draw.Rectangle(new Vector2(posX, posY), barWidth, barHeight, 1, Color.White);
+                    }
                 }
             }
             catch (Exception ex)
@@ -145,9 +166,13 @@ namespace SFXUtility.Features.Detectors
                 {
                     _parent = Global.IoC.Resolve<Detectors>();
                     if (_parent.Initialized)
+                    {
                         OnParentInitialized(null, null);
+                    }
                     else
+                    {
                         _parent.OnInitialized += OnParentInitialized;
+                    }
                 }
             }
             catch (Exception ex)
@@ -161,9 +186,12 @@ namespace SFXUtility.Features.Detectors
             try
             {
                 if (_parent.Menu == null)
+                {
                     return;
+                }
 
-                _text = new Font(Drawing.Direct3DDevice,
+                _text = new Font(
+                    Drawing.Direct3DDevice,
                     new FontDescription
                     {
                         FaceName = Global.DefaultFont,
@@ -177,10 +205,12 @@ namespace SFXUtility.Features.Detectors
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
 
                 var drawingTextMenu = new Menu(Global.Lang.Get("G_Text"), drawingMenu.Name + "Text");
-                drawingTextMenu.AddItem(new MenuItem(drawingTextMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                drawingTextMenu.AddItem(
+                    new MenuItem(drawingTextMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 var drawingBarMenu = new Menu(Global.Lang.Get("G_Bar"), drawingMenu.Name + "Bar");
-                drawingBarMenu.AddItem(new MenuItem(drawingBarMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                drawingBarMenu.AddItem(
+                    new MenuItem(drawingBarMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 drawingMenu.AddSubMenu(drawingTextMenu);
                 drawingMenu.AddSubMenu(drawingBarMenu);
@@ -260,7 +290,7 @@ namespace SFXUtility.Features.Detectors
             public int Duration
             {
                 private get { return _duration; }
-                set { _duration = value/1000; }
+                set { _duration = value / 1000; }
             }
 
             public Packet.S2C.Teleport.Status LastStatus
@@ -308,15 +338,18 @@ namespace SFXUtility.Features.Detectors
                         switch (LastStatus)
                         {
                             case Packet.S2C.Teleport.Status.Start:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Recalling"), Hero.ChampionName,
+                                return string.Format(
+                                    "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Recalling"), Hero.ChampionName,
                                     (int) Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Finish:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Recalled"), Hero.ChampionName,
+                                return string.Format(
+                                    "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Recalled"), Hero.ChampionName,
                                     (int) Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Abort:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Aborted"), Hero.ChampionName,
+                                return string.Format(
+                                    "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Aborted"), Hero.ChampionName,
                                     (int) Hero.HealthPercent, time);
                         }
                         break;
@@ -325,15 +358,18 @@ namespace SFXUtility.Features.Detectors
                         switch (LastStatus)
                         {
                             case Packet.S2C.Teleport.Status.Start:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Teleporting"), Hero.ChampionName,
-                                    (int) Hero.HealthPercent, time);
+                                return string.Format(
+                                    "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Teleporting"),
+                                    Hero.ChampionName, (int) Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Finish:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Teleported"), Hero.ChampionName,
-                                    (int) Hero.HealthPercent, time);
+                                return string.Format(
+                                    "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Teleported"),
+                                    Hero.ChampionName, (int) Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Abort:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Aborted"), Hero.ChampionName,
+                                return string.Format(
+                                    "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Aborted"), Hero.ChampionName,
                                     (int) Hero.HealthPercent, time);
                         }
                         break;
@@ -343,15 +379,18 @@ namespace SFXUtility.Features.Detectors
                         switch (LastStatus)
                         {
                             case Packet.S2C.Teleport.Status.Start:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Transporting"), Hero.ChampionName,
-                                    (int) Hero.HealthPercent, time);
+                                return string.Format(
+                                    "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Transporting"),
+                                    Hero.ChampionName, (int) Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Finish:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Transported"), Hero.ChampionName,
-                                    (int) Hero.HealthPercent, time);
+                                return string.Format(
+                                    "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Transported"),
+                                    Hero.ChampionName, (int) Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Abort:
-                                return string.Format("{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Aborted"), Hero.ChampionName,
+                                return string.Format(
+                                    "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Aborted"), Hero.ChampionName,
                                     (int) Hero.HealthPercent, time);
                         }
                         break;

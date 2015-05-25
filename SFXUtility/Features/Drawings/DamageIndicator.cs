@@ -20,19 +20,25 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary.Extensions.NET;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+
+#endregion
+
 namespace SFXUtility.Features.Drawings
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Drawing;
-    using System.Linq;
-    using Classes;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary.Extensions.NET;
-    using SFXLibrary.Logger;
+    
 
     #endregion
 
@@ -50,7 +56,11 @@ namespace SFXUtility.Features.Drawings
 
         public override bool Enabled
         {
-            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get
+            {
+                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
+            }
         }
 
         public override string Name
@@ -65,17 +75,20 @@ namespace SFXUtility.Features.Drawings
                 var lineColor = Menu.Item(Name + "DrawingLineColor").GetValue<Color>();
                 var fillColor = Menu.Item(Name + "DrawingFillColor").GetValue<Color>();
 
-                foreach (var enemy in HeroManager.Enemies.Where(e => e.IsValid && !e.IsDead && e.IsHPBarRendered && e.Position.IsOnScreen()))
+                foreach (
+                    var enemy in
+                        HeroManager.Enemies.Where(
+                            e => e.IsValid && !e.IsDead && e.IsHPBarRendered && e.Position.IsOnScreen()))
                 {
                     var barPos = enemy.HPBarPosition;
                     var damage = (float) CalculateComboDamage(enemy);
                     if (damage > 1)
                     {
-                        var percentHealthAfterDamage = Math.Max(0, enemy.Health - damage)/enemy.MaxHealth;
+                        var percentHealthAfterDamage = Math.Max(0, enemy.Health - damage) / enemy.MaxHealth;
                         var yPos = barPos.Y + 20;
-                        var xPosDamage = barPos.X + 10 + 103*percentHealthAfterDamage;
-                        var xPosCurrentHp = barPos.X + 10 + 103*enemy.Health/enemy.MaxHealth;
-                        var posX = barPos.X + 9 + (107*percentHealthAfterDamage);
+                        var xPosDamage = barPos.X + 10 + 103 * percentHealthAfterDamage;
+                        var xPosCurrentHp = barPos.X + 10 + 103 * enemy.Health / enemy.MaxHealth;
+                        var posX = barPos.X + 9 + (107 * percentHealthAfterDamage);
 
                         Drawing.DrawLine(xPosDamage, yPos, xPosDamage, yPos + 8, 2, lineColor);
                         Drawing.DrawLine(posX, yPos, posX + (xPosCurrentHp - xPosDamage), yPos, 8, fillColor);
@@ -108,9 +121,13 @@ namespace SFXUtility.Features.Drawings
                 {
                     _parent = Global.IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
+                    {
                         OnParentInitialized(null, null);
+                    }
                     else
+                    {
                         _parent.OnInitialized += OnParentInitialized;
+                    }
                 }
             }
             catch (Exception ex)
@@ -124,21 +141,27 @@ namespace SFXUtility.Features.Drawings
             try
             {
                 if (_parent.Menu == null)
+                {
                     return;
+                }
 
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "LineColor", Global.Lang.Get("G_Line") + " " + Global.Lang.Get("G_Color")).SetValue(
-                        Color.DarkRed.ToArgb(90)));
+                    new MenuItem(
+                        drawingMenu.Name + "LineColor", Global.Lang.Get("G_Line") + " " + Global.Lang.Get("G_Color"))
+                        .SetValue(Color.DarkRed.ToArgb(90)));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "FillColor", Global.Lang.Get("G_Fill") + " " + Global.Lang.Get("G_Color")).SetValue(
-                        Color.Red.ToArgb(90)));
+                    new MenuItem(
+                        drawingMenu.Name + "FillColor", Global.Lang.Get("G_Fill") + " " + Global.Lang.Get("G_Color"))
+                        .SetValue(Color.Red.ToArgb(90)));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "AutoAttacks", Global.Lang.Get("DamageIndicator_AutoAttacks")).SetValue(new Slider(2, 0, 5)));
+                Menu.AddItem(
+                    new MenuItem(Name + "AutoAttacks", Global.Lang.Get("DamageIndicator_AutoAttacks")).SetValue(
+                        new Slider(2, 0, 5)));
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
@@ -161,21 +184,26 @@ namespace SFXUtility.Features.Drawings
                 switch (spell.DamageType)
                 {
                     case TargetSelector.DamageType.Physical:
-                        damage += ObjectManager.Player.CalcDamage(enemy, Damage.DamageType.Physical,
-                            ObjectManager.Player.GetSpellDamage(enemy, spell.Slot)*ObjectManager.Player.PercentArmorPenetrationMod);
+                        damage += ObjectManager.Player.CalcDamage(
+                            enemy, Damage.DamageType.Physical,
+                            ObjectManager.Player.GetSpellDamage(enemy, spell.Slot) *
+                            ObjectManager.Player.PercentArmorPenetrationMod);
                         break;
                     case TargetSelector.DamageType.Magical:
-                        damage += ObjectManager.Player.CalcDamage(enemy, Damage.DamageType.Magical,
-                            ObjectManager.Player.GetSpellDamage(enemy, spell.Slot)*ObjectManager.Player.PercentMagicPenetrationMod);
+                        damage += ObjectManager.Player.CalcDamage(
+                            enemy, Damage.DamageType.Magical,
+                            ObjectManager.Player.GetSpellDamage(enemy, spell.Slot) *
+                            ObjectManager.Player.PercentMagicPenetrationMod);
                         break;
                     case TargetSelector.DamageType.True:
-                        damage += ObjectManager.Player.CalcDamage(enemy, Damage.DamageType.True,
-                            ObjectManager.Player.GetSpellDamage(enemy, spell.Slot));
+                        damage += ObjectManager.Player.CalcDamage(
+                            enemy, Damage.DamageType.True, ObjectManager.Player.GetSpellDamage(enemy, spell.Slot));
                         break;
                 }
             }
 
-            damage += ObjectManager.Player.GetAutoAttackDamage(enemy)*Menu.Item(Name + "AutoAttacks").GetValue<Slider>().Value;
+            damage += ObjectManager.Player.GetAutoAttackDamage(enemy) *
+                      Menu.Item(Name + "AutoAttacks").GetValue<Slider>().Value;
 
             return damage;
         }

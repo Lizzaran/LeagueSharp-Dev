@@ -20,16 +20,22 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+#endregion
+
 namespace SFXLibrary
 {
     #region
 
-    using System;
-    using System.Collections.Concurrent;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading;
-    using System.Threading.Tasks;
+    
 
     #endregion
 
@@ -38,7 +44,10 @@ namespace SFXLibrary
         private readonly int _checkInterval;
         private readonly int _maxConsumers;
         private readonly int _minConsumers;
-        private readonly Dictionary<CancellationTokenSource, Task> _pool = new Dictionary<CancellationTokenSource, Task>();
+
+        private readonly Dictionary<CancellationTokenSource, Task> _pool =
+            new Dictionary<CancellationTokenSource, Task>();
+
         private readonly int _producersPerConsumer;
         private readonly BlockingCollection<T> _queue = new BlockingCollection<T>();
         private int _lastCheck;
@@ -46,7 +55,10 @@ namespace SFXLibrary
         private int _requestedStopping;
         private int _started;
 
-        protected ProducerConsumer(int minConsumers = 1, int maxConsumers = 10, int producersPerConsumer = 5, int checkInterval = 10000)
+        protected ProducerConsumer(int minConsumers = 1,
+            int maxConsumers = 10,
+            int producersPerConsumer = 5,
+            int checkInterval = 10000)
         {
             _minConsumers = minConsumers;
             _maxConsumers = maxConsumers;
@@ -82,9 +94,7 @@ namespace SFXLibrary
                                 consumer.Key.Dispose();
                             }
                         }
-                        catch
-                        {
-                        }
+                        catch {}
                     }
                 }
                 _queue.Dispose();
@@ -125,7 +135,9 @@ namespace SFXLibrary
             foreach (var consumer in _pool)
             {
                 if (i >= count)
+                {
                     break;
+                }
                 consumer.Key.Cancel();
                 i++;
             }
@@ -134,7 +146,9 @@ namespace SFXLibrary
         private void ManageConsumers()
         {
             if (_queue.IsAddingCompleted && _pool.Count == 0)
+            {
                 return;
+            }
 
             var consumers = _started + _requestedStarting - _requestedStopping;
 
@@ -150,7 +164,7 @@ namespace SFXLibrary
                 }
                 else if (_maxConsumers < consumers)
                 {
-                    var consumersToRun = Convert.ToInt32(Math.Ceiling((double) _queue.Count/_producersPerConsumer));
+                    var consumersToRun = Convert.ToInt32(Math.Ceiling((double) _queue.Count / _producersPerConsumer));
                     consumersToRun = consumersToRun < _minConsumers
                         ? _minConsumers
                         : (consumersToRun > _maxConsumers ? _maxConsumers : consumersToRun);

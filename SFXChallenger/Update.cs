@@ -20,18 +20,24 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Net;
+using System.Reflection;
+using System.Text.RegularExpressions;
+using System.Threading;
+using LeagueSharp.Common;
+using SFXLibrary.Logger;
+using Version = System.Version;
+
+#endregion
+
 namespace SFXChallenger
 {
     #region
 
-    using System;
-    using System.Net;
-    using System.Reflection;
-    using System.Text.RegularExpressions;
-    using System.Threading;
-    using LeagueSharp.Common;
-    using SFXLibrary.Logger;
-    using Version = System.Version;
+    
 
     #endregion
 
@@ -41,34 +47,40 @@ namespace SFXChallenger
         {
             try
             {
-                new Thread(async () =>
-                {
-                    try
+                new Thread(
+                    async () =>
                     {
-                        using (var client = new WebClient())
+                        try
                         {
-                            var data =
-                                await
-                                    client.DownloadStringTaskAsync(string.Format("https://raw.githubusercontent.com/{0}/Properties/AssemblyInfo.cs",
-                                        path));
-
-                            var version =
-                                Version.Parse(new Regex("AssemblyFileVersion\\((\"(.+?)\")\\)").Match(data).Groups[1].Value.Replace("\"", ""));
-
-                            var assemblyName = Assembly.GetExecutingAssembly().GetName();
-                            if (version > assemblyName.Version)
+                            using (var client = new WebClient())
                             {
-                                Notifications.AddNotification(
-                                    string.Format("[{0}] {1}: {2} => {3}!", assemblyName.Name, Global.Lang.Get("G_UpdateAvailable"),
-                                        assemblyName.Version, version), displayTime);
+                                var data =
+                                    await
+                                        client.DownloadStringTaskAsync(
+                                            string.Format(
+                                                "https://raw.githubusercontent.com/{0}/Properties/AssemblyInfo.cs", path));
+
+                                var version =
+                                    Version.Parse(
+                                        new Regex("AssemblyFileVersion\\((\"(.+?)\")\\)").Match(data).Groups[1].Value
+                                            .Replace("\"", ""));
+
+                                var assemblyName = Assembly.GetExecutingAssembly().GetName();
+                                if (version > assemblyName.Version)
+                                {
+                                    Notifications.AddNotification(
+                                        string.Format(
+                                            "[{0}] {1}: {2} => {3}!", assemblyName.Name,
+                                            Global.Lang.Get("G_UpdateAvailable"), assemblyName.Version, version),
+                                        displayTime);
+                                }
                             }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        Global.Logger.AddItem(new LogItem(ex));
-                    }
-                }).Start();
+                        catch (Exception ex)
+                        {
+                            Global.Logger.AddItem(new LogItem(ex));
+                        }
+                    }).Start();
             }
             catch (Exception ex)
             {

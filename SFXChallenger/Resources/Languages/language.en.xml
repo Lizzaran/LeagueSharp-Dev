@@ -51,7 +51,7 @@
 	<entry key="G_InterruptSpell">Interrupt Spell</entry>
 	<entry key="G_MoveCursor">Move to Cursor</entry>
 	<!-- END: GLOBAL -->
-	
+
 	<!-- START: Language -->
 	<entry key="F_Language">Language</entry>
 	<entry key="Language_Auto">auto</entry>
@@ -85,7 +85,8 @@
 
 	<!-- START: ManaManager -->
 	<entry key="F_MM">Mana Manager</entry>
-	<entry key="MM_MinMana">Min. Mana %</entry>
+	<entry key="MM_MinMana">Min. Mana</entry>
+	<entry key="MM_MaxMana">Max. Mana</entry>
 	<!-- END: ManaManager -->
 
 	<!-- START: KillstealManager -->

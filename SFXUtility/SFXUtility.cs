@@ -20,18 +20,24 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using LeagueSharp.Common;
+using SFXLibrary.Extensions.NET;
+using SFXLibrary.Logger;
+using Version = System.Version;
+
+#endregion
+
 namespace SFXUtility
 {
     #region
 
-    using System;
-    using System.IO;
-    using System.Linq;
-    using System.Reflection;
-    using LeagueSharp.Common;
-    using SFXLibrary.Extensions.NET;
-    using SFXLibrary.Logger;
-    using Version = System.Version;
+    
 
     #endregion
 
@@ -47,26 +53,42 @@ namespace SFXUtility
 
                 Menu.AddItem(
                     new MenuItem(Name + "Font", Global.Lang.Get("SFXUtility_Font")).SetValue(
-                        new StringList(new[] {"Calibri", "Arial", "Tahoma", "Verdana", "Times New Roman", "Lucida Console", "Comic Sans MS"})));
+                        new StringList(
+                            new[]
+                            {
+                                "Calibri", "Arial", "Tahoma", "Verdana", "Times New Roman", "Lucida Console",
+                                "Comic Sans MS"
+                            })));
                 Menu.AddItem(
                     new MenuItem(Name + "Language", Global.Lang.Get("SFXUtility_Language")).SetValue(
-                        new StringList(new[] { Global.Lang.Get("Language_Auto") }.Concat(Global.Lang.Languages.ToArray()).ToArray())));
+                        new StringList(
+                            new[] { Global.Lang.Get("Language_Auto") }.Concat(Global.Lang.Languages.ToArray()).ToArray())));
 
                 Global.DefaultFont = Menu.Item(Name + "Font").GetValue<StringList>().SelectedValue;
 
                 var infoMenu = new Menu(Global.Lang.Get("SFXUtility_Info"), Name + "Info");
 
-                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Version", string.Format("{0}: {1}", Global.Lang.Get("SFXUtility_Version"), Version)));
-                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Forum", Global.Lang.Get("SFXUtility_Forum") + ": Lizzaran"));
-                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Github", Global.Lang.Get("SFXUtility_GitHub") + ": Lizzaran"));
+                infoMenu.AddItem(
+                    new MenuItem(
+                        infoMenu.Name + "Version",
+                        string.Format("{0}: {1}", Global.Lang.Get("SFXUtility_Version"), Version)));
+                infoMenu.AddItem(
+                    new MenuItem(infoMenu.Name + "Forum", Global.Lang.Get("SFXUtility_Forum") + ": Lizzaran"));
+                infoMenu.AddItem(
+                    new MenuItem(infoMenu.Name + "Github", Global.Lang.Get("SFXUtility_GitHub") + ": Lizzaran"));
                 infoMenu.AddItem(new MenuItem(infoMenu.Name + "IRC", Global.Lang.Get("SFXUtility_IRC") + ": Appril"));
-                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Exception", string.Format("{0}: {1}", Global.Lang.Get("SFX_Exception"), 0)));
+                infoMenu.AddItem(
+                    new MenuItem(
+                        infoMenu.Name + "Exception", string.Format("{0}: {1}", Global.Lang.Get("SFX_Exception"), 0)));
 
                 Menu.AddSubMenu(infoMenu);
 
                 try
                 {
-                    var file = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "sfxutility.language.*", SearchOption.TopDirectoryOnly).FirstOrDefault();
+                    var file =
+                        Directory.GetFiles(
+                            AppDomain.CurrentDomain.BaseDirectory, "sfxutility.language.*",
+                            SearchOption.TopDirectoryOnly).FirstOrDefault();
                     if (!string.IsNullOrEmpty(file))
                     {
                         var ext = Path.GetExtension(file);
@@ -77,7 +99,10 @@ namespace SFXUtility
                                 .SetValue(
                                     new StringList(
                                         new[] { ext }.Concat(
-                                            Menu.Item(Menu.Name + "Language").GetValue<StringList>().SList.Where(val => val != ext).ToArray()).ToArray()));
+                                            Menu.Item(Menu.Name + "Language")
+                                                .GetValue<StringList>()
+                                                .SList.Where(val => val != ext)
+                                                .ToArray()).ToArray()));
                         }
                     }
                 }
@@ -118,12 +143,13 @@ namespace SFXUtility
                 if (!_unloadTriggered)
                 {
                     _unloadTriggered = true;
-                    
+
                     try
                     {
                         var preName = "sfxutility.language.";
                         var autoName = Global.Lang.Get("Language_Auto");
-                        var files = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, preName + "*", SearchOption.TopDirectoryOnly);
+                        var files = Directory.GetFiles(
+                            AppDomain.CurrentDomain.BaseDirectory, preName + "*", SearchOption.TopDirectoryOnly);
                         var selectedLanguage = Menu.Item(Menu.Name + "Language").GetValue<StringList>().SelectedValue;
                         foreach (var file in files)
                         {
@@ -131,9 +157,7 @@ namespace SFXUtility
                             {
                                 File.Delete(file);
                             }
-                            catch
-                            {
-                            }
+                            catch {}
                         }
                         if (!selectedLanguage.Equals(autoName, StringComparison.OrdinalIgnoreCase))
                         {
@@ -175,7 +199,8 @@ namespace SFXUtility
                         int count;
                         if (int.TryParse(text, out count))
                         {
-                            Menu.Item(Name + "InfoException").DisplayName = string.Format("{0}: {1}", errorText, count + 1);
+                            Menu.Item(Name + "InfoException").DisplayName = string.Format(
+                                "{0}: {1}", errorText, count + 1);
                         }
                     }
                     catch (Exception ex)

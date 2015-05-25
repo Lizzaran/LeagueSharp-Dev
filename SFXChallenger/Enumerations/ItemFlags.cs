@@ -20,11 +20,17 @@
 
 #endregion License
 
+#region
+
+using System;
+
+#endregion
+
 namespace SFXChallenger.Enumerations
 {
     #region
 
-    using System;
+    
 
     #endregion
 

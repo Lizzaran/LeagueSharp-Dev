@@ -20,18 +20,24 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Text;
+using SFXLibrary.Extensions.NET;
+
+#endregion
+
 namespace SFXLibrary.Logger
 {
     #region
 
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.IO.Compression;
-    using System.Linq;
-    using System.Text;
-    using Extensions.NET;
+    
 
     #endregion
 
@@ -40,7 +46,11 @@ namespace SFXLibrary.Logger
         private readonly string _fileName;
         private readonly HashSet<string> _unique = new HashSet<string>();
 
-        public FileLogger(string logDir, string fileName = "{0}_{1}_{2}.txt", int minConsumers = 1, int maxConsumers = 3, int producersPerConsumer = 5,
+        public FileLogger(string logDir,
+            string fileName = "{0}_{1}_{2}.txt",
+            int minConsumers = 1,
+            int maxConsumers = 3,
+            int producersPerConsumer = 5,
             int checkInterval = 10000) : base(minConsumers, maxConsumers, producersPerConsumer, checkInterval)
         {
             LogDir = logDir;
@@ -49,9 +59,7 @@ namespace SFXLibrary.Logger
             {
                 Directory.CreateDirectory(LogDir);
             }
-            catch
-            {
-            }
+            catch {}
         }
 
         public Dictionary<string, string> AdditionalData { get; set; }
@@ -63,7 +71,9 @@ namespace SFXLibrary.Logger
         public new void AddItem(LogItem item)
         {
             if (LogLevel == LogLevel.None || item == null || string.IsNullOrWhiteSpace(item.Exception.ToString()))
+            {
                 return;
+            }
 
             try
             {
@@ -86,16 +96,22 @@ namespace SFXLibrary.Logger
         protected override void ProcessItem(LogItem item)
         {
             if (item == null || string.IsNullOrWhiteSpace(item.Exception.ToString()))
+            {
                 return;
+            }
 
             try
             {
-                var file = Path.Combine(LogDir,
-                    string.Format(_fileName, DateTime.Now.ToString("yyyy_MM_dd"), LogLevel.ToString().ToLower(),
+                var file = Path.Combine(
+                    LogDir,
+                    string.Format(
+                        _fileName, DateTime.Now.ToString("yyyy_MM_dd"), LogLevel.ToString().ToLower(),
                         (item.Exception + AdditionalData.ToDebugString()).ToMd5Hash()));
 
                 if (File.Exists(file))
+                {
                     return;
+                }
 
                 if (OutputConsole)
                 {
@@ -104,19 +120,30 @@ namespace SFXLibrary.Logger
                     Console.ResetColor();
                 }
 
-                using (var fileStream = new FileStream(file, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, true))
-                using (Stream gzStream = new GZipStream(fileStream, CompressionMode.Compress, false))
+                using (
+                    var fileStream = new FileStream(
+                        file, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, true))
                 {
-                    var text = item.Exception.ToString();
-                    text = item.Exception.Data.Cast<DictionaryEntry>()
-                        .Aggregate(text, (current, entry) => current + string.Format("{0}{1}: {2}", Environment.NewLine, entry.Key, entry.Value));
+                    using (Stream gzStream = new GZipStream(fileStream, CompressionMode.Compress, false))
+                    {
+                        var text = item.Exception.ToString();
+                        text = item.Exception.Data.Cast<DictionaryEntry>()
+                            .Aggregate(
+                                text,
+                                (current, entry) =>
+                                    current + string.Format("{0}{1}: {2}", Environment.NewLine, entry.Key, entry.Value));
 
-                    var logByte = new UTF8Encoding(true).GetBytes(text);
+                        var logByte = new UTF8Encoding(true).GetBytes(text);
 
-                    if (Compression)
-                        gzStream.Write(logByte, 0, logByte.Length);
-                    else
-                        fileStream.Write(logByte, 0, logByte.Length);
+                        if (Compression)
+                        {
+                            gzStream.Write(logByte, 0, logByte.Length);
+                        }
+                        else
+                        {
+                            fileStream.Write(logByte, 0, logByte.Length);
+                        }
+                    }
                 }
             }
             catch (Exception ex)

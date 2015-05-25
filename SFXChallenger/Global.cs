@@ -20,12 +20,18 @@
 
 #endregion License
 
+#region
+
+using SFXLibrary;
+using SFXLibrary.Logger;
+
+#endregion
+
 namespace SFXChallenger
 {
     #region
 
-    using SFXLibrary;
-    using SFXLibrary.Logger;
+    
 
     #endregion
 

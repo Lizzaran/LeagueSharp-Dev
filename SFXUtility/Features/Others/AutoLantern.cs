@@ -20,16 +20,22 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+
+#endregion
+
 namespace SFXUtility.Features.Others
 {
     #region
 
-    using System;
-    using System.Linq;
-    using Classes;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary.Logger;
+    
 
     #endregion
 
@@ -39,7 +45,11 @@ namespace SFXUtility.Features.Others
 
         public override bool Enabled
         {
-            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get
+            {
+                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
+            }
         }
 
         public override string Name
@@ -67,9 +77,13 @@ namespace SFXUtility.Features.Others
                 {
                     _parent = Global.IoC.Resolve<Others>();
                     if (_parent.Initialized)
+                    {
                         OnParentInitialized(null, null);
+                    }
                     else
+                    {
                         _parent.OnInitialized += OnParentInitialized;
+                    }
                 }
             }
             catch (Exception ex)
@@ -83,20 +97,29 @@ namespace SFXUtility.Features.Others
             try
             {
                 if (_parent.Menu == null)
+                {
                     return;
+                }
 
                 Menu = new Menu(Name, Name);
 
                 Menu.AddItem(
-                    new MenuItem(Name + "Percent", Global.Lang.Get("G_Health") + " " + Global.Lang.Get("G_Percent")).SetValue(new Slider(20, 0, 50)));
-                Menu.AddItem(new MenuItem(Name + "Hotkey", Global.Lang.Get("G_Hotkey")).SetValue(new KeyBind('U', KeyBindType.Press)));
+                    new MenuItem(Name + "Percent", Global.Lang.Get("G_Health") + " " + Global.Lang.Get("G_Percent"))
+                        .SetValue(new Slider(20, 0, 50)));
+                Menu.AddItem(
+                    new MenuItem(Name + "Hotkey", Global.Lang.Get("G_Hotkey")).SetValue(
+                        new KeyBind('U', KeyBindType.Press)));
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                if (HeroManager.Allies.Any(a => !a.IsMe && a.ChampionName.Equals("Thresh", StringComparison.OrdinalIgnoreCase)))
+                if (
+                    HeroManager.Allies.Any(
+                        a => !a.IsMe && a.ChampionName.Equals("Thresh", StringComparison.OrdinalIgnoreCase)))
+                {
                     return;
+                }
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();
@@ -112,14 +135,19 @@ namespace SFXUtility.Features.Others
             try
             {
                 if (ObjectManager.Player.IsDead)
+                {
                     return;
+                }
 
                 if (ObjectManager.Player.HealthPercent <= Menu.Item(Name + "Percent").GetValue<Slider>().Value ||
                     Menu.Item(Name + "Hotkey").IsActive())
                 {
                     var lantern =
                         ObjectManager.Get<Obj_AI_Base>()
-                            .FirstOrDefault(obj => obj.IsValid && obj.IsAlly && obj.Name.Equals("ThreshLantern", StringComparison.OrdinalIgnoreCase));
+                            .FirstOrDefault(
+                                obj =>
+                                    obj.IsValid && obj.IsAlly &&
+                                    obj.Name.Equals("ThreshLantern", StringComparison.OrdinalIgnoreCase));
                     if (lantern != null && lantern.IsValidTarget(500, false, ObjectManager.Player.ServerPosition))
                     {
                         ObjectManager.Player.Spellbook.CastSpell((SpellSlot) 62, lantern);

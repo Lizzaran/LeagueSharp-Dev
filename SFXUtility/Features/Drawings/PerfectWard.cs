@@ -20,20 +20,26 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using LeagueSharp.Common.Data;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+using SharpDX;
+using Color = System.Drawing.Color;
+
+#endregion
+
 namespace SFXUtility.Features.Drawings
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using Classes;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using LeagueSharp.Common.Data;
-    using SFXLibrary.Logger;
-    using SharpDX;
-    using Color = System.Drawing.Color;
+    
 
     #endregion
 
@@ -50,7 +56,12 @@ namespace SFXUtility.Features.Drawings
             ItemData.Explorers_Ward.Id
         };
 
-        private readonly List<int> _pinkWards = new List<int> {ItemData.Stealth_Ward.Id, ItemData.Greater_Stealth_Totem_Trinket.Id};
+        private readonly List<int> _pinkWards = new List<int>
+        {
+            ItemData.Stealth_Ward.Id,
+            ItemData.Greater_Stealth_Totem_Trinket.Id
+        };
+
         // Credits: DrunkenNinja
 
         #region Ward Spots
@@ -118,71 +129,88 @@ namespace SFXUtility.Features.Drawings
             new WardSpot(new Vector3(8598.335f, 4729.91f, 51.93f)), // Red Buff/River Bush
             new WardSpot(new Vector3(8417.12f, 6521.46f, -71.24f)), // Mid/Top River Bush
             // Dragon -> Tri Bush
-            new WardSpot(new Vector3(10072.0f, 3908.0f, -71.24f), new Vector3(10297.93f, 3358.59f, 49.03f), new Vector3(10273.9f, 3257.76f, 49.03f),
-                new Vector3(10072.0f, 3908.0f, -71.24f), true),
+            new WardSpot(
+                new Vector3(10072.0f, 3908.0f, -71.24f), new Vector3(10297.93f, 3358.59f, 49.03f),
+                new Vector3(10273.9f, 3257.76f, 49.03f), new Vector3(10072.0f, 3908.0f, -71.24f), true),
             // Nashor -> Tri Bush
-            new WardSpot(new Vector3(4724.0f, 10856.0f, -71.24f), new Vector3(4627.26f, 11311.69f, -71.24f), new Vector3(4473.9f, 11457.76f, 51.4f),
-                new Vector3(4724.0f, 10856.0f, -71.24f), true),
+            new WardSpot(
+                new Vector3(4724.0f, 10856.0f, -71.24f), new Vector3(4627.26f, 11311.69f, -71.24f),
+                new Vector3(4473.9f, 11457.76f, 51.4f), new Vector3(4724.0f, 10856.0f, -71.24f), true),
 
             // Blue Top -> Solo Bush
-            new WardSpot(new Vector3(2824.0f, 10356.0f, 54.33f), new Vector3(3078.62f, 10868.39f, 54.33f), new Vector3(3078.62f, 10868.39f, -67.95f),
-                new Vector3(2824.0f, 10356.0f, 54.33f), true),
+            new WardSpot(
+                new Vector3(2824.0f, 10356.0f, 54.33f), new Vector3(3078.62f, 10868.39f, 54.33f),
+                new Vector3(3078.62f, 10868.39f, -67.95f), new Vector3(2824.0f, 10356.0f, 54.33f), true),
 
             // Blue Mid -> round Bush // Inconsistent Placement
-            new WardSpot(new Vector3(5474.0f, 7906.0f, 51.67f), new Vector3(5132.65f, 8373.2f, 51.67f), new Vector3(5123.9f, 8457.76f, -21.23f),
-                new Vector3(5474.0f, 7906.0f, 51.67f), true),
+            new WardSpot(
+                new Vector3(5474.0f, 7906.0f, 51.67f), new Vector3(5132.65f, 8373.2f, 51.67f),
+                new Vector3(5123.9f, 8457.76f, -21.23f), new Vector3(5474.0f, 7906.0f, 51.67f), true),
 
             // Blue Mid -> River Lane Bush
-            new WardSpot(new Vector3(5874.0f, 7656.0f, 51.65f), new Vector3(6202.24f, 8132.12f, 51.65f), new Vector3(6202.24f, 8132.12f, -67.39f),
-                new Vector3(5874.0f, 7656.0f, 51.65f), true),
+            new WardSpot(
+                new Vector3(5874.0f, 7656.0f, 51.65f), new Vector3(6202.24f, 8132.12f, 51.65f),
+                new Vector3(6202.24f, 8132.12f, -67.39f), new Vector3(5874.0f, 7656.0f, 51.65f), true),
 
             // Blue Lizard -> Dragon Pass Bush
-            new WardSpot(new Vector3(8022.0f, 4258.0f, 53.72f), new Vector3(8400.68f, 4657.41f, 53.72f), new Vector3(8523.9f, 4707.76f, 51.24f),
-                new Vector3(8022.0f, 4258.0f, 53.72f), true),
+            new WardSpot(
+                new Vector3(8022.0f, 4258.0f, 53.72f), new Vector3(8400.68f, 4657.41f, 53.72f),
+                new Vector3(8523.9f, 4707.76f, 51.24f), new Vector3(8022.0f, 4258.0f, 53.72f), true),
 
             // Purple Mid -> Round Bush // Inconsistent Placement
-            new WardSpot(new Vector3(9372.0f, 7008.0f, 52.63f), new Vector3(9703.5f, 6589.9f, 52.63f), new Vector3(9823.9f, 6507.76f, 23.47f),
-                new Vector3(9372.0f, 7008.0f, 52.63f), true),
+            new WardSpot(
+                new Vector3(9372.0f, 7008.0f, 52.63f), new Vector3(9703.5f, 6589.9f, 52.63f),
+                new Vector3(9823.9f, 6507.76f, 23.47f), new Vector3(9372.0f, 7008.0f, 52.63f), true),
 
             // Purple Mid -> River Round Bush
-            new WardSpot(new Vector3(9072.0f, 7158.0f, 53.04f), new Vector3(8705.95f, 6819.1f, 53.04f), new Vector3(8718.88f, 6764.86f, 95.75f),
-                new Vector3(9072.0f, 7158.0f, 53.04f), true),
+            new WardSpot(
+                new Vector3(9072.0f, 7158.0f, 53.04f), new Vector3(8705.95f, 6819.1f, 53.04f),
+                new Vector3(8718.88f, 6764.86f, 95.75f), new Vector3(9072.0f, 7158.0f, 53.04f), true),
 
             // Purple Bottom -> Solo Bush
-            new WardSpot(new Vector3(12422.0f, 4508.0f, 51.73f), new Vector3(12353.94f, 4031.58f, 51.73f), new Vector3(12023.9f, 3757.76f, -66.25f),
-                new Vector3(12422.0f, 4508.0f, 51.73f), true),
+            new WardSpot(
+                new Vector3(12422.0f, 4508.0f, 51.73f), new Vector3(12353.94f, 4031.58f, 51.73f),
+                new Vector3(12023.9f, 3757.76f, -66.25f), new Vector3(12422.0f, 4508.0f, 51.73f), true),
 
             // Purple Lizard -> Nashor Pass Bush
-            new WardSpot(new Vector3(6824.0f, 10656.0f, 56.0f), new Vector3(6370.69f, 10359.92f, 56.0f), new Vector3(6273.9f, 10307.76f, 53.67f),
-                new Vector3(6824.0f, 10656.0f, 56.0f), true),
+            new WardSpot(
+                new Vector3(6824.0f, 10656.0f, 56.0f), new Vector3(6370.69f, 10359.92f, 56.0f),
+                new Vector3(6273.9f, 10307.76f, 53.67f), new Vector3(6824.0f, 10656.0f, 56.0f), true),
 
             // Blue Golem -> Blue Lizard
-            new WardSpot(new Vector3(8272.0f, 2908.0f, 51.13f), new Vector3(8163.7056f, 3436.0476f, 51.13f), new Vector3(8163.71f, 3436.05f, 51.6628f),
-                new Vector3(8272.0f, 2908.0f, 51.13f), true),
+            new WardSpot(
+                new Vector3(8272.0f, 2908.0f, 51.13f), new Vector3(8163.7056f, 3436.0476f, 51.13f),
+                new Vector3(8163.71f, 3436.05f, 51.6628f), new Vector3(8272.0f, 2908.0f, 51.13f), true),
 
             // Red Golem -> Red Lizard
-            new WardSpot(new Vector3(6574.0f, 12006.0f, 56.48f), new Vector3(6678.08f, 11477.83f, 56.48f), new Vector3(6678.08f, 11477.83f, 53.85f),
-                new Vector3(6574.0f, 12006.0f, 56.48f), true),
+            new WardSpot(
+                new Vector3(6574.0f, 12006.0f, 56.48f), new Vector3(6678.08f, 11477.83f, 56.48f),
+                new Vector3(6678.08f, 11477.83f, 53.85f), new Vector3(6574.0f, 12006.0f, 56.48f), true),
 
             // Blue Top Side Brush
-            new WardSpot(new Vector3(1774.0f, 10756.0f, 52.84f), new Vector3(2302.36f, 10874.22f, 52.84f), new Vector3(2773.9f, 11307.76f, -71.24f),
-                new Vector3(1774.0f, 10756.0f, 52.84f), true),
+            new WardSpot(
+                new Vector3(1774.0f, 10756.0f, 52.84f), new Vector3(2302.36f, 10874.22f, 52.84f),
+                new Vector3(2773.9f, 11307.76f, -71.24f), new Vector3(1774.0f, 10756.0f, 52.84f), true),
 
             // Mid Lane Death Brush
-            new WardSpot(new Vector3(5874.0f, 8306.0f, -70.12f), new Vector3(5332.9f, 8275.21f, -70.12f), new Vector3(5123.9f, 8457.76f, -21.23f),
-                new Vector3(5874.0f, 8306.0f, -70.12f), true),
+            new WardSpot(
+                new Vector3(5874.0f, 8306.0f, -70.12f), new Vector3(5332.9f, 8275.21f, -70.12f),
+                new Vector3(5123.9f, 8457.76f, -21.23f), new Vector3(5874.0f, 8306.0f, -70.12f), true),
 
             // Mid Lane Death Brush Right Side
-            new WardSpot(new Vector3(9022.0f, 6558.0f, 71.24f), new Vector3(9540.43f, 6657.68f, 71.24f), new Vector3(9773.9f, 6457.76f, 9.56f),
-                new Vector3(9022.0f, 6558.0f, 71.24f), true),
+            new WardSpot(
+                new Vector3(9022.0f, 6558.0f, 71.24f), new Vector3(9540.43f, 6657.68f, 71.24f),
+                new Vector3(9773.9f, 6457.76f, 9.56f), new Vector3(9022.0f, 6558.0f, 71.24f), true),
 
             // Blue Inner Turret Jungle
-            new WardSpot(new Vector3(6874.0f, 1708.0f, 50.52f), new Vector3(6849.11f, 2252.01f, 50.52f), new Vector3(6723.9f, 2507.76f, 52.17f),
-                new Vector3(6874.0f, 1708.0f, 50.52f), true),
+            new WardSpot(
+                new Vector3(6874.0f, 1708.0f, 50.52f), new Vector3(6849.11f, 2252.01f, 50.52f),
+                new Vector3(6723.9f, 2507.76f, 52.17f), new Vector3(6874.0f, 1708.0f, 50.52f), true),
 
             // Purple Inner Turret Jungle
-            new WardSpot(new Vector3(8122.0f, 13206.0f, 52.84f), new Vector3(8128.53f, 12658.41f, 52.84f), new Vector3(8323.9f, 12457.76f, 56.48f),
-                new Vector3(8122.0f, 13206.0f, 52.84f), true)
+            new WardSpot(
+                new Vector3(8122.0f, 13206.0f, 52.84f), new Vector3(8128.53f, 12658.41f, 52.84f),
+                new Vector3(8323.9f, 12457.76f, 56.48f), new Vector3(8122.0f, 13206.0f, 52.84f), true)
         };
 
         #endregion Ward Spots
@@ -194,7 +222,11 @@ namespace SFXUtility.Features.Drawings
 
         public override bool Enabled
         {
-            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get
+            {
+                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
+            }
         }
 
         public override string Name
@@ -228,9 +260,13 @@ namespace SFXUtility.Features.Drawings
                 {
                     _parent = Global.IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
+                    {
                         OnParentInitialized(null, null);
+                    }
                     else
+                    {
                         _parent.OnInitialized += OnParentInitialized;
+                    }
                 }
             }
             catch (Exception ex)
@@ -244,19 +280,28 @@ namespace SFXUtility.Features.Drawings
             try
             {
                 if (_parent.Menu == null)
+                {
                     return;
+                }
 
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Color", Global.Lang.Get("G_Color")).SetValue(Color.GreenYellow));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Radius", Global.Lang.Get("G_Radius")).SetValue(new Slider(60, 10, 200)));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "CircleThickness", Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Thickness")).SetValue(
-                        new Slider(2, 1, 10)));
+                    new MenuItem(drawingMenu.Name + "Color", Global.Lang.Get("G_Color")).SetValue(Color.GreenYellow));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "Radius", Global.Lang.Get("G_Radius")).SetValue(
+                        new Slider(60, 10, 200)));
+                drawingMenu.AddItem(
+                    new MenuItem(
+                        drawingMenu.Name + "CircleThickness",
+                        Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Thickness")).SetValue(
+                            new Slider(2, 1, 10)));
 
 
-                Menu.AddItem(new MenuItem(Name + "Hotkey", Global.Lang.Get("G_Hotkey")).SetValue(new KeyBind('Z', KeyBindType.Press)));
+                Menu.AddItem(
+                    new MenuItem(Name + "Hotkey", Global.Lang.Get("G_Hotkey")).SetValue(
+                        new KeyBind('Z', KeyBindType.Press)));
 
                 Menu.AddSubMenu(drawingMenu);
 
@@ -278,7 +323,9 @@ namespace SFXUtility.Features.Drawings
             try
             {
                 if (!Menu.Item(Name + "Hotkey").IsActive())
+                {
                     return;
+                }
 
                 var radius = Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value;
                 var color = Menu.Item(Name + "DrawingColor").GetValue<Color>();
@@ -292,7 +339,9 @@ namespace SFXUtility.Features.Drawings
                         if (spot.SafeSpot)
                         {
                             Render.Circle.DrawCircle(spot.MagneticPosition, radius, Color.White, thickness);
-                            Drawing.DrawLine(Drawing.WorldToScreen(spot.MagneticPosition), Drawing.WorldToScreen(spot.WardPosition), 2f, color);
+                            Drawing.DrawLine(
+                                Drawing.WorldToScreen(spot.MagneticPosition), Drawing.WorldToScreen(spot.WardPosition),
+                                2f, color);
                         }
                     }
                 }
@@ -307,16 +356,22 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                if (sender == null || args == null || !sender.Owner.IsMe || !Menu.Item(Name + "Hotkey").IsActive() || !IsWardSlot(args.Slot))
+                if (sender == null || args == null || !sender.Owner.IsMe || !Menu.Item(Name + "Hotkey").IsActive() ||
+                    !IsWardSlot(args.Slot))
+                {
                     return;
+                }
 
                 var spot = GetNearestWardSpot(Game.CursorPos);
                 if (spot.Equals(default(WardSpot)) || spot.ClickPosition.Equals(args.EndPosition))
+                {
                     return;
+                }
 
                 if (spot.SafeSpot)
                 {
-                    if (Game.CursorPos.Distance(spot.MagneticPosition) <= Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value)
+                    if (Game.CursorPos.Distance(spot.MagneticPosition) <=
+                        Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value)
                     {
                         args.Process = false;
                         if (_lastWardSpot.Equals(default(WardSpot)))
@@ -329,7 +384,8 @@ namespace SFXUtility.Features.Drawings
                 }
                 else
                 {
-                    if (Game.CursorPos.Distance(spot.MagneticPosition) <= Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value)
+                    if (Game.CursorPos.Distance(spot.MagneticPosition) <=
+                        Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value)
                     {
                         args.Process = false;
                         sender.CastSpell(args.Slot, spot.ClickPosition);
@@ -345,16 +401,21 @@ namespace SFXUtility.Features.Drawings
         private void OnObjAiBaseNewPath(Obj_AI_Base sender, GameObjectNewPathEventArgs args)
         {
             if (!sender.IsMe || _lastWardSpot.Equals(default(WardSpot)))
+            {
                 return;
+            }
 
             if (!args.Path.Last().Equals(_lastWardSpot.MovePosition))
+            {
                 _lastWardSpot = default(WardSpot);
+            }
         }
 
         private bool IsWardSlot(SpellSlot slot)
         {
             var iSlot = ObjectManager.Player.InventoryItems.FirstOrDefault(i => i.SpellSlot == slot);
-            return _greenWards.Any(v => iSlot != null && (ItemId) v == iSlot.Id) || _pinkWards.Any(v => iSlot != null && (ItemId) v == iSlot.Id);
+            return _greenWards.Any(v => iSlot != null && (ItemId) v == iSlot.Id) ||
+                   _pinkWards.Any(v => iSlot != null && (ItemId) v == iSlot.Id);
         }
 
         private WardSpot GetNearestWardSpot(Vector3 pos)
@@ -378,11 +439,15 @@ namespace SFXUtility.Features.Drawings
             try
             {
                 if (_lastCheck + CheckInterval > Environment.TickCount)
+                {
                     return;
+                }
                 _lastCheck = Environment.TickCount;
 
                 if (ObjectManager.Player.IsDead || _lastWardSpot.Equals(default(WardSpot)))
+                {
                     return;
+                }
 
                 if (ObjectManager.Player.Position.Distance(_lastWardSpot.MovePosition) <= 3f)
                 {
@@ -404,7 +469,11 @@ namespace SFXUtility.Features.Drawings
             public readonly bool SafeSpot;
             public readonly Vector3 WardPosition;
 
-            public WardSpot(Vector3 magneticPosition, Vector3 clickPosition, Vector3 wardPosition, Vector3 movePosition, bool safeSpot)
+            public WardSpot(Vector3 magneticPosition,
+                Vector3 clickPosition,
+                Vector3 wardPosition,
+                Vector3 movePosition,
+                bool safeSpot)
             {
                 MagneticPosition = magneticPosition;
                 ClickPosition = clickPosition;

@@ -20,31 +20,55 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXChallenger.Enumerations;
+using SFXLibrary.Logger;
+
+#endregion
+
 namespace SFXChallenger.Managers
 {
-    #region
 
-    using System;
-    using System.Collections.Generic;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary.Logger;
+    #region
 
     #endregion
 
     internal class ManaManager
     {
         private static readonly Dictionary<string, Menu> Menues = new Dictionary<string, Menu>();
+        private static ManaCheckType _checkType;
+        private static ManaValueType _valueType;
 
-        public static void AddToMenu(Menu menu, string uniqueId, int value = 30, int minValue = 0, int maxValue = 100)
+        public static void AddToMenu(Menu menu,
+            string uniqueId,
+            ManaCheckType checkType,
+            ManaValueType valueType,
+            int value = 30,
+            int minValue = 0,
+            int maxValue = 100)
         {
             try
             {
+                _checkType = checkType;
+                _valueType = valueType;
                 if (Menues.ContainsKey(uniqueId))
+                {
                     throw new ArgumentException(string.Format("ManaManager: UniqueID \"{0}\" already exist.", uniqueId));
+                }
 
                 menu.AddItem(
-                    new MenuItem(menu.Name + ".min-mana-" + uniqueId, Global.Lang.Get("MM_MinMana")).SetValue(new Slider(value, minValue, maxValue)));
+                    new MenuItem(
+                        menu.Name + ".mana-" + uniqueId,
+                        (_checkType == ManaCheckType.Minimum
+                            ? Global.Lang.Get("MM_MinMana")
+                            : Global.Lang.Get("MM_MaxMana")) +
+                        (_valueType == ManaValueType.Percent ? " %" : string.Empty)).SetValue(
+                            new Slider(value, minValue, maxValue)));
 
                 Menues[uniqueId] = menu;
             }
@@ -61,7 +85,16 @@ namespace SFXChallenger.Managers
                 Menu menu;
                 if (Menues.TryGetValue(uniqueId, out menu))
                 {
-                    return !(ObjectManager.Player.ManaPercent < menu.Item(menu.Name + ".min-mana-" + uniqueId).GetValue<Slider>().Value);
+                    var value = menu.Item(menu.Name + ".mana-" + uniqueId).GetValue<Slider>().Value;
+                    if (_checkType == ManaCheckType.Maximum)
+                    {
+                        return _valueType == ManaValueType.Percent
+                            ? ObjectManager.Player.Mana <= value
+                            : ObjectManager.Player.ManaPercent <= value;
+                    }
+                    return _valueType == ManaValueType.Percent
+                        ? ObjectManager.Player.Mana >= value
+                        : ObjectManager.Player.ManaPercent >= value;
                 }
                 throw new KeyNotFoundException(string.Format("ManaManager: UniqueID \"{0}\" not found.", uniqueId));
             }

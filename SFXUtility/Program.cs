@@ -20,26 +20,32 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Resources;
+using SFXLibrary.Logger;
+using SFXUtility.Feature;
+using SFXUtility.Features.Activators;
+using SFXUtility.Features.Detectors;
+using SFXUtility.Features.Drawings;
+using SFXUtility.Features.Events;
+using SFXUtility.Features.Others;
+using SFXUtility.Features.Timers;
+using SFXUtility.Features.Trackers;
+using Object = SFXUtility.Features.Timers.Object;
+
+#endregion
+
 namespace SFXUtility
 {
     #region
 
-    using System;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Reflection;
-    using System.Resources;
-    using Feature;
-    using Features.Activators;
-    using Features.Detectors;
-    using Features.Drawings;
-    using Features.Events;
-    using Features.Others;
-    using Features.Timers;
-    using Features.Trackers;
-    using SFXLibrary.Logger;
-    using Object = Features.Timers.Object;
+    
 
     #endregion
 
@@ -52,12 +58,15 @@ namespace SFXUtility
             {
                 Global.Logger.LogLevel = LogLevel.High;
 
-                AppDomain.CurrentDomain.UnhandledException += delegate(object sender, UnhandledExceptionEventArgs eventArgs)
-                {
-                    var ex = sender as Exception;
-                    if (ex != null)
-                        Global.Logger.AddItem(new LogItem(ex));
-                };
+                AppDomain.CurrentDomain.UnhandledException +=
+                    delegate(object sender, UnhandledExceptionEventArgs eventArgs)
+                    {
+                        var ex = sender as Exception;
+                        if (ex != null)
+                        {
+                            Global.Logger.AddItem(new LogItem(ex));
+                        }
+                    };
 
                 Global.Lang.Default = "en";
 
@@ -68,7 +77,9 @@ namespace SFXUtility
                     using (var stream = currentAsm.GetManifestResourceStream(resName))
                     {
                         if (stream != null)
+                        {
                             resReader = new ResourceReader(stream);
+                        }
 
                         if (resReader != null)
                         {
@@ -77,20 +88,27 @@ namespace SFXUtility
                             while (en.MoveNext())
                             {
                                 if (en.Key.ToString().StartsWith("language_"))
+                                {
                                     Global.Lang.Parse(en.Value.ToString());
+                                }
                             }
                         }
                     }
                 }
 
                 var lang =
-                    Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, @"sfxutility.language.*", SearchOption.TopDirectoryOnly)
+                    Directory.GetFiles(
+                        AppDomain.CurrentDomain.BaseDirectory, @"sfxutility.language.*", SearchOption.TopDirectoryOnly)
                         .Select(Path.GetExtension)
                         .FirstOrDefault();
                 if (lang != null && Global.Lang.Languages.Any(l => l.Equals(lang.Substring(1))))
+                {
                     Global.Lang.Current = lang.Substring(1);
+                }
                 else
+                {
                     Global.Lang.Current = CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
+                }
             }
             catch (Exception ex)
             {

@@ -22,7 +22,5 @@
 
 namespace SFXUtility.Features.Activators
 {
-    internal class InvisibilityRevealer
-    {
-    }
+    internal class InvisibilityRevealer {}
 }

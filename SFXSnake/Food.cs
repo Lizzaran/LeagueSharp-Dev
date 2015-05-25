@@ -20,15 +20,21 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using LeagueSharp;
+
+#endregion
+
 namespace SFXSnake
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Drawing;
-    using System.Linq;
-    using LeagueSharp;
+    
 
     #endregion
 
@@ -54,7 +60,9 @@ namespace SFXSnake
             {
                 _snake.Add();
                 if (OnEat != null)
+                {
                     OnEat(null, null);
+                }
                 Generate();
             }
         }
@@ -72,7 +80,8 @@ namespace SFXSnake
         public void Draw()
         {
             var position = _map.Tile2Positon(Position);
-            Drawing.DrawLine(position.X, position.Y, position.X + _map.TileSize, position.Y, _map.TileSize, Color.Yellow);
+            Drawing.DrawLine(
+                position.X, position.Y, position.X + _map.TileSize, position.Y, _map.TileSize, Color.Yellow);
         }
 
         private IEnumerable<Tile> GetFreeTiles()

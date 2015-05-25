@@ -20,16 +20,22 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Drawing;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+
+#endregion
+
 namespace SFXUtility.Features.Drawings
 {
     #region
 
-    using System;
-    using System.Drawing;
-    using Classes;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary.Logger;
+    
 
     #endregion
 
@@ -39,7 +45,11 @@ namespace SFXUtility.Features.Drawings
 
         public override bool Enabled
         {
-            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get
+            {
+                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
+            }
         }
 
         public override string Name
@@ -51,9 +61,10 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                Drawing.DrawText(Drawing.Width - Menu.Item(Name + "DrawingOffsetRight").GetValue<Slider>().Value,
-                    Menu.Item(Name + "DrawingOffsetTop").GetValue<Slider>().Value, Menu.Item(Name + "DrawingColor").GetValue<Color>(),
-                    DateTime.Now.ToShortTimeString());
+                Drawing.DrawText(
+                    Drawing.Width - Menu.Item(Name + "DrawingOffsetRight").GetValue<Slider>().Value,
+                    Menu.Item(Name + "DrawingOffsetTop").GetValue<Slider>().Value,
+                    Menu.Item(Name + "DrawingColor").GetValue<Color>(), DateTime.Now.ToShortTimeString());
             }
             catch (Exception ex)
             {
@@ -81,9 +92,13 @@ namespace SFXUtility.Features.Drawings
                 {
                     _parent = Global.IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
+                    {
                         OnParentInitialized(null, null);
+                    }
                     else
+                    {
                         _parent.OnInitialized += OnParentInitialized;
+                    }
                 }
             }
             catch (Exception ex)
@@ -97,18 +112,23 @@ namespace SFXUtility.Features.Drawings
             try
             {
                 if (_parent.Menu == null)
+                {
                     return;
+                }
 
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "OffsetTop", Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Top")).SetValue(new Slider(
-                        75, 0, 500)));
+                    new MenuItem(
+                        drawingMenu.Name + "OffsetTop", Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Top"))
+                        .SetValue(new Slider(75, 0, 500)));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "OffsetRight", Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Right")).SetValue(
-                        new Slider(100, 0, 500)));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Color", Global.Lang.Get("G_Color")).SetValue(Color.Gold));
+                    new MenuItem(
+                        drawingMenu.Name + "OffsetRight", Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Right"))
+                        .SetValue(new Slider(100, 0, 500)));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "Color", Global.Lang.Get("G_Color")).SetValue(Color.Gold));
 
                 Menu.AddSubMenu(drawingMenu);
 

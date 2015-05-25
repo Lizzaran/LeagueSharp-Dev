@@ -20,216 +20,216 @@
 
 #endregion License
 
-namespace SFXChallenger.Champions
-{
-    #region
+//namespace SFXChallenger.Champions
+//{
+//    #region
 
-    using System;
-    using System.Drawing;
-    using Abstracts;
-    using Enumerations;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using Managers;
-    using SFXLibrary.Logger;
-    using Wrappers;
-    using TargetSelector = Wrappers.TargetSelector;
+//    using System;
+//    using System.Drawing;
+//    using Abstracts;
+//    using Enumerations;
+//    using LeagueSharp;
+//    using LeagueSharp.Common;
+//    using Managers;
+//    using SFXLibrary.Logger;
+//    using Wrappers;
+//    using TargetSelector = Wrappers.TargetSelector;
 
-    #endregion
+//    #endregion
 
-    internal class Ezreal : Champion
-    {
-        protected override ItemFlags ItemFlags
-        {
-            get { return ItemFlags.Offensive | ItemFlags.Defensive | ItemFlags.Flee; }
-        }
+//    internal class Ezreal : Champion
+//    {
+//        protected override ItemFlags ItemFlags
+//        {
+//            get { return ItemFlags.Offensive | ItemFlags.Defensive | ItemFlags.Flee; }
+//        }
 
-        protected override void OnLoad()
-        {
-            AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
-        }
+//        protected override void OnLoad()
+//        {
+//            AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
+//        }
 
-        protected override void OnUnload()
-        {
-            AntiGapcloser.OnEnemyGapcloser -= OnEnemyGapcloser;
-        }
+//        protected override void OnUnload()
+//        {
+//            AntiGapcloser.OnEnemyGapcloser -= OnEnemyGapcloser;
+//        }
 
-        protected override void AddToMenu()
-        {
-            var drawingMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Drawing"), Menu.Name + ".drawing"));
-            drawingMenu.AddItem(
-                new MenuItem(drawingMenu.Name + ".circle-thickness", Global.Lang.Get("G_CircleThickness")).SetValue(new Slider(2, 0, 10)));
-            drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".q", "Q").SetValue(new Circle(false, Color.White)));
-            drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".w", "W").SetValue(new Circle(false, Color.White)));
-            drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".e", "E").SetValue(new Circle(false, Color.White)));
+//        protected override void AddToMenu()
+//        {
+//            var drawingMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Drawing"), Menu.Name + ".drawing"));
+//            drawingMenu.AddItem(
+//                new MenuItem(drawingMenu.Name + ".circle-thickness", Global.Lang.Get("G_CircleThickness")).SetValue(new Slider(2, 0, 10)));
+//            drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".q", "Q").SetValue(new Circle(false, Color.White)));
+//            drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".w", "W").SetValue(new Circle(false, Color.White)));
+//            drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".e", "E").SetValue(new Circle(false, Color.White)));
 
-            var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_Combo"), Menu.Name + ".combo"));
-            ManaManager.AddToMenu(comboMenu, "combo", 0);
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("C_UseQ")).SetValue(true));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", Global.Lang.Get("C_UseW")).SetValue(true));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("C_UseE")).SetValue(true));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r", Global.Lang.Get("C_UseR")).SetValue(true));
+//            var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_Combo"), Menu.Name + ".combo"));
+//            ManaManager.AddToMenu(comboMenu, "combo", 0);
+//            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("C_UseQ")).SetValue(true));
+//            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", Global.Lang.Get("C_UseW")).SetValue(true));
+//            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("C_UseE")).SetValue(true));
+//            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r", Global.Lang.Get("C_UseR")).SetValue(true));
 
-            var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_Harass"), Menu.Name + ".harass"));
-            ManaManager.AddToMenu(harassMenu, "harass");
-            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("C_UseQ")).SetValue(true));
-            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", Global.Lang.Get("C_UseW")).SetValue(true));
+//            var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_Harass"), Menu.Name + ".harass"));
+//            ManaManager.AddToMenu(harassMenu, "harass");
+//            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("C_UseQ")).SetValue(true));
+//            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", Global.Lang.Get("C_UseW")).SetValue(true));
 
-            var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_LaneClear"), Menu.Name + ".lane-clear"));
-            ManaManager.AddToMenu(laneclearMenu, "lane-clear");
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("C_UseQ")).SetValue(true));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", Global.Lang.Get("C_UseW")).SetValue(false));
+//            var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_LaneClear"), Menu.Name + ".lane-clear"));
+//            ManaManager.AddToMenu(laneclearMenu, "lane-clear");
+//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("C_UseQ")).SetValue(true));
+//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", Global.Lang.Get("C_UseW")).SetValue(false));
 
-            var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_Flee"), Menu.Name + ".flee"));
-            ManaManager.AddToMenu(fleeMenu, "flee", 15);
-            fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".e", Global.Lang.Get("C_UseE")).SetValue(true));
+//            var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_Flee"), Menu.Name + ".flee"));
+//            ManaManager.AddToMenu(fleeMenu, "flee", 15);
+//            fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".e", Global.Lang.Get("C_UseE")).SetValue(true));
 
-            var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
-            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".anti-gapcloser", Global.Lang.Get("C_AntiGapcloser")).SetValue(true));
-        }
+//            var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
+//            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".anti-gapcloser", Global.Lang.Get("C_AntiGapcloser")).SetValue(true));
+//        }
 
-        protected override void SetupSpells()
-        {
-            Q = new Spell(SpellSlot.Q, 1200f);
-            Q.SetSkillshot(0.25f, 50f, 2000f, true, SkillshotType.SkillshotLine);
+//        protected override void SetupSpells()
+//        {
+//            Q = new Spell(SpellSlot.Q, 1200f);
+//            Q.SetSkillshot(0.25f, 50f, 2000f, true, SkillshotType.SkillshotLine);
 
-            W = new Spell(SpellSlot.W, 1000f);
-            W.SetSkillshot(0.25f, 80f, 1600f, false, SkillshotType.SkillshotLine);
+//            W = new Spell(SpellSlot.W, 1000f);
+//            W.SetSkillshot(0.25f, 80f, 1600f, false, SkillshotType.SkillshotLine);
 
-            E = new Spell(SpellSlot.E, 475f);
-            E.SetSkillshot(0.25f, 80f, 1600f, false, SkillshotType.SkillshotCircle);
+//            E = new Spell(SpellSlot.E, 475f);
+//            E.SetSkillshot(0.25f, 80f, 1600f, false, SkillshotType.SkillshotCircle);
 
-            R = new Spell(SpellSlot.R, 2500f);
-            R.SetSkillshot(1.2f, 160f, 2000f, false, SkillshotType.SkillshotLine);
-        }
+//            R = new Spell(SpellSlot.R, 2500f);
+//            R.SetSkillshot(1.2f, 160f, 2000f, false, SkillshotType.SkillshotLine);
+//        }
 
-        protected override void Combo()
-        {
-            var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>();
-            var w = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>();
-            var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>();
-            var r = Menu.Item(Menu.Name + ".combo.r").GetValue<bool>() && !Player.UnderTurret(true);
+//        protected override void Combo()
+//        {
+//            var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>();
+//            var w = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>();
+//            var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>();
+//            var r = Menu.Item(Menu.Name + ".combo.r").GetValue<bool>() && !Player.UnderTurret(true);
 
-            if (q)
-            {
-                Casting.BasicSkillShot(Q, HitchanceManager.Get("q"));
-            }
-            if (w)
-            {
-                Casting.BasicSkillShot(W, HitchanceManager.Get("w"));
-            }
+//            if (q)
+//            {
+//                Casting.BasicSkillShot(Q, HitchanceManager.Get("q"));
+//            }
+//            if (w)
+//            {
+//                Casting.BasicSkillShot(W, HitchanceManager.Get("w"));
+//            }
 
-            var target = TargetSelector.GetTarget(-1);
+//            var target = TargetSelector.GetTarget(-1);
 
-            if (target == null)
-                return;
+//            if (target == null)
+//                return;
 
-            var cDmg = CalculateComboDamage(target, q, w, false, false, 1) + (r ? CalculateRDamage(target) : 0);
-            if (cDmg >= target.Health - 20)
-            {
-                if (e)
-                {
-                    Casting.BasicSkillShot(E, HitchanceManager.Get("e"), true);
-                }
-                if (r)
-                {
-                    Casting.BasicSkillShot(R, HitchanceManager.Get("r"));
-                }
-            }
-            if (cDmg*1.5 > target.Health)
-            {
-                ItemManager.UseComboItems(target);
-                SummonerManager.UseComboSummoners(target);
-            }
-        }
+//            var cDmg = CalculateComboDamage(target, q, w, false, false, 1) + (r ? CalculateRDamage(target) : 0);
+//            if (cDmg >= target.Health - 20)
+//            {
+//                if (e)
+//                {
+//                    Casting.BasicSkillShot(E, HitchanceManager.Get("e"), true);
+//                }
+//                if (r)
+//                {
+//                    Casting.BasicSkillShot(R, HitchanceManager.Get("r"));
+//                }
+//            }
+//            if (cDmg*1.5 > target.Health)
+//            {
+//                ItemManager.UseComboItems(target);
+//                SummonerManager.UseComboSummoners(target);
+//            }
+//        }
 
-        private float CalculateRDamage(Obj_AI_Hero target)
-        {
-            var dmg = Player.GetSpellDamage(target, SpellSlot.R);
+//        private float CalculateRDamage(Obj_AI_Hero target)
+//        {
+//            var dmg = Player.GetSpellDamage(target, SpellSlot.R);
 
-            var prediction = R.GetPrediction(target);
-            var collisionCount = prediction.CollisionObjects.Count;
+//            var prediction = R.GetPrediction(target);
+//            var collisionCount = prediction.CollisionObjects.Count;
 
-            if (collisionCount >= 7)
-                dmg = dmg*.3;
-            else if (collisionCount != 0)
-                dmg = dmg*((10d - collisionCount)/10);
+//            if (collisionCount >= 7)
+//                dmg = dmg*.3;
+//            else if (collisionCount != 0)
+//                dmg = dmg*((10d - collisionCount)/10);
 
-            return (float) dmg;
-        }
+//            return (float) dmg;
+//        }
 
-        protected override void Harass()
-        {
-            if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>())
-            {
-                Casting.BasicSkillShot(Q, HitchanceManager.Get("q"));
-            }
-            if (Menu.Item(Menu.Name + ".harass.w").GetValue<bool>())
-            {
-                Casting.BasicSkillShot(W, HitchanceManager.Get("w"));
-            }
-        }
+//        protected override void Harass()
+//        {
+//            if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>())
+//            {
+//                Casting.BasicSkillShot(Q, HitchanceManager.Get("q"));
+//            }
+//            if (Menu.Item(Menu.Name + ".harass.w").GetValue<bool>())
+//            {
+//                Casting.BasicSkillShot(W, HitchanceManager.Get("w"));
+//            }
+//        }
 
-        protected override void LaneClear()
-        {
-            if (Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>())
-            {
-                Casting.BasicFarm(Q);
-            }
-            if (Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>())
-            {
-                Casting.BasicFarm(W);
-            }
-        }
+//        protected override void LaneClear()
+//        {
+//            if (Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>())
+//            {
+//                Casting.BasicFarm(Q);
+//            }
+//            if (Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>())
+//            {
+//                Casting.BasicFarm(W);
+//            }
+//        }
 
-        protected override void Flee()
-        {
-            ItemManager.UseFleeItems();
-            if (Menu.Item(Menu.Name + ".flee.e").GetValue<bool>() && E.IsReady())
-            {
-                E.Cast(ObjectManager.Player.Position.Extend(Game.CursorPos, E.Range));
-            }
-        }
+//        protected override void Flee()
+//        {
+//            ItemManager.UseFleeItems();
+//            if (Menu.Item(Menu.Name + ".flee.e").GetValue<bool>() && E.IsReady())
+//            {
+//                E.Cast(ObjectManager.Player.Position.Extend(Game.CursorPos, E.Range));
+//            }
+//        }
 
-        protected override void Killsteal()
-        {
-            KillstealManager.Killsteal();
-        }
+//        protected override void Killsteal()
+//        {
+//            KillstealManager.Killsteal();
+//        }
 
-        private void OnEnemyGapcloser(ActiveGapcloser gapcloser)
-        {
-            try
-            {
-                if (Menu.Item(Menu.Name + ".miscellaneous.anti-gapcloser").GetValue<bool>() && E.IsReady())
-                {
-                    E.Cast(ObjectManager.Player.Position.Extend(Game.CursorPos, E.Range));
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
+//        private void OnEnemyGapcloser(ActiveGapcloser gapcloser)
+//        {
+//            try
+//            {
+//                if (Menu.Item(Menu.Name + ".miscellaneous.anti-gapcloser").GetValue<bool>() && E.IsReady())
+//                {
+//                    E.Cast(ObjectManager.Player.Position.Extend(Game.CursorPos, E.Range));
+//                }
+//            }
+//            catch (Exception ex)
+//            {
+//                Global.Logger.AddItem(new LogItem(ex));
+//            }
+//        }
 
-        protected override void OnDraw()
-        {
-            var q = Menu.Item(Menu.Name + ".drawing.q").GetValue<Circle>();
-            var w = Menu.Item(Menu.Name + ".drawing.w").GetValue<Circle>();
-            var e = Menu.Item(Menu.Name + ".drawing.e").GetValue<Circle>();
-            var circleThickness = Menu.Item(Menu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value;
+//        protected override void OnDraw()
+//        {
+//            var q = Menu.Item(Menu.Name + ".drawing.q").GetValue<Circle>();
+//            var w = Menu.Item(Menu.Name + ".drawing.w").GetValue<Circle>();
+//            var e = Menu.Item(Menu.Name + ".drawing.e").GetValue<Circle>();
+//            var circleThickness = Menu.Item(Menu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value;
 
-            if (q.Active)
-            {
-                Render.Circle.DrawCircle(Player.Position, Q.Range, q.Color, circleThickness);
-            }
-            if (w.Active)
-            {
-                Render.Circle.DrawCircle(Player.Position, W.Range, w.Color, circleThickness);
-            }
-            if (e.Active)
-            {
-                Render.Circle.DrawCircle(Player.Position, E.Range, e.Color, circleThickness);
-            }
-        }
-    }
-}
+//            if (q.Active)
+//            {
+//                Render.Circle.DrawCircle(Player.Position, Q.Range, q.Color, circleThickness);
+//            }
+//            if (w.Active)
+//            {
+//                Render.Circle.DrawCircle(Player.Position, W.Range, w.Color, circleThickness);
+//            }
+//            if (e.Active)
+//            {
+//                Render.Circle.DrawCircle(Player.Position, E.Range, e.Color, circleThickness);
+//            }
+//        }
+//    }
+//}

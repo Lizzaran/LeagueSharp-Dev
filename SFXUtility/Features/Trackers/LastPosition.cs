@@ -20,26 +20,32 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary.Extensions.NET;
+using SFXLibrary.Extensions.SharpDX;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+using SFXUtility.Features.Detectors;
+using SFXUtility.Properties;
+using SharpDX;
+using SharpDX.Direct3D9;
+using Color = SharpDX.Color;
+using Font = SharpDX.Direct3D9.Font;
+
+#endregion
+
 namespace SFXUtility.Features.Trackers
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Drawing;
-    using System.Linq;
-    using Classes;
-    using Detectors;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using Properties;
-    using SFXLibrary.Extensions.NET;
-    using SFXLibrary.Extensions.SharpDX;
-    using SFXLibrary.Logger;
-    using SharpDX;
-    using SharpDX.Direct3D9;
-    using Color = SharpDX.Color;
-    using Font = SharpDX.Direct3D9.Font;
+    
 
     #endregion
 
@@ -55,7 +61,11 @@ namespace SFXUtility.Features.Trackers
 
         public override bool Enabled
         {
-            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get
+            {
+                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
+            }
         }
 
         public override string Name
@@ -71,9 +81,13 @@ namespace SFXUtility.Features.Trackers
                 {
                     _parent = Global.IoC.Resolve<Trackers>();
                     if (_parent.Initialized)
+                    {
                         OnParentInitialized(null, null);
+                    }
                     else
+                    {
                         _parent.OnInitialized += OnParentInitialized;
+                    }
                 }
             }
             catch (Exception ex)
@@ -133,7 +147,9 @@ namespace SFXUtility.Features.Trackers
         protected override void OnUnload(object sender, UnloadEventArgs args)
         {
             if (args != null && args.Final)
+            {
                 base.OnUnload(sender, args);
+            }
 
             if (Initialized)
             {
@@ -147,7 +163,9 @@ namespace SFXUtility.Features.Trackers
             try
             {
                 if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
+                {
                     return;
+                }
 
                 var totalSeconds = Menu.Item(Name + "DrawingTimeFormat").GetValue<StringList>().SelectedIndex == 1;
                 var timerOffset = Menu.Item(Name + "DrawingSSTimerOffset").GetValue<Slider>().Value;
@@ -159,7 +177,9 @@ namespace SFXUtility.Features.Trackers
                     {
                         lp.Teleported = false;
                         if (!lp.Hero.IsDead)
+                        {
                             lp.LastSeen = Game.Time;
+                        }
                     }
                     if (!lp.Hero.IsVisible && !lp.Hero.IsDead)
                     {
@@ -167,12 +187,15 @@ namespace SFXUtility.Features.Trackers
 
                         _sprite.DrawCentered(_heroTextures[lp.Hero.NetworkId], pos);
                         if (lp.IsTeleporting)
+                        {
                             _sprite.DrawCentered(_teleportTexture, pos);
+                        }
 
                         if (timer && lp.LastSeen != 0f && (Game.Time - lp.LastSeen) > 3f)
                         {
-                            _text.DrawTextCentered((Game.Time - lp.LastSeen).FormatTime(totalSeconds), new Vector2(pos.X, pos.Y + 15 + timerOffset),
-                                Color.White);
+                            _text.DrawTextCentered(
+                                (Game.Time - lp.LastSeen).FormatTime(totalSeconds),
+                                new Vector2(pos.X, pos.Y + 15 + timerOffset), Color.White);
                         }
                     }
                 }
@@ -215,17 +238,24 @@ namespace SFXUtility.Features.Trackers
             try
             {
                 if (_parent.Menu == null)
+                {
                     return;
+                }
 
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "TimeFormat", Global.Lang.Get("G_TimeFormat")).SetValue(new StringList(new[] {"mm:ss", "ss"})));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(new Slider(13, 3, 30)));
+                    new MenuItem(drawingMenu.Name + "TimeFormat", Global.Lang.Get("G_TimeFormat")).SetValue(
+                        new StringList(new[] { "mm:ss", "ss" })));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "SSTimerOffset", Global.Lang.Get("LastPosition_SSTimer") + " " + Global.Lang.Get("G_Offset"))
-                        .SetValue(new Slider(5, 0, 20)));
+                    new MenuItem(drawingMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(
+                        new Slider(13, 3, 30)));
+                drawingMenu.AddItem(
+                    new MenuItem(
+                        drawingMenu.Name + "SSTimerOffset",
+                        Global.Lang.Get("LastPosition_SSTimer") + " " + Global.Lang.Get("G_Offset")).SetValue(
+                            new Slider(5, 0, 20)));
 
                 Menu.AddSubMenu(drawingMenu);
 
@@ -249,13 +279,15 @@ namespace SFXUtility.Features.Trackers
                 foreach (var enemy in HeroManager.Enemies)
                 {
                     _heroTextures[enemy.NetworkId] =
-                        ((Bitmap) Resources.ResourceManager.GetObject(string.Format("LP_{0}", enemy.ChampionName)) ?? Resources.LP_Aatrox).ToTexture();
+                        ((Bitmap) Resources.ResourceManager.GetObject(string.Format("LP_{0}", enemy.ChampionName)) ??
+                         Resources.LP_Aatrox).ToTexture();
                     _lastPositions.Add(new LastPositionStruct(enemy));
                 }
 
                 _sprite = new Sprite(Drawing.Direct3DDevice);
                 _teleportTexture = Resources.LP_Teleport.ToTexture();
-                _text = new Font(Drawing.Direct3DDevice,
+                _text = new Font(
+                    Drawing.Direct3DDevice,
                     new FontDescription
                     {
                         FaceName = Global.DefaultFont,

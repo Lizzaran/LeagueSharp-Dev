@@ -20,15 +20,21 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.IO;
+using SFXLibrary;
+using SFXLibrary.IoCContainer;
+using SFXLibrary.Logger;
+
+#endregion
+
 namespace SFXUtility
 {
     #region
 
-    using System;
-    using System.IO;
-    using SFXLibrary;
-    using SFXLibrary.IoCContainer;
-    using SFXLibrary.Logger;
+    
 
     #endregion
 

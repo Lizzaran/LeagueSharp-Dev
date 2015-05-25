@@ -20,17 +20,23 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using LeagueSharp.Common.Data;
+using SFXLibrary.Logger;
+
+#endregion
+
 namespace SFXUtility.Data
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using LeagueSharp.Common.Data;
-    using SFXLibrary.Logger;
+    
 
     #endregion
 
@@ -103,7 +109,7 @@ namespace SFXUtility.Data
                 Range = ItemData.Hextech_Gunblade.GetItem().Range
             };
 
-            CustomItems = new List<CustomItem> {Tiamat, Hydra, BilgewaterCutlass, BladeRuinedKing, HextechGunblade};
+            CustomItems = new List<CustomItem> { Tiamat, Hydra, BilgewaterCutlass, BladeRuinedKing, HextechGunblade };
         }
 
         public static float CalculateComboDamage(Obj_AI_Hero target)
@@ -112,7 +118,10 @@ namespace SFXUtility.Data
             {
                 return
                     (float)
-                        CustomItems.Where(i => i.Item.IsOwned() && i.Item.IsReady() && target.Distance(ObjectManager.Player.Position) <= i.Range)
+                        CustomItems.Where(
+                            i =>
+                                i.Item.IsOwned() && i.Item.IsReady() &&
+                                target.Distance(ObjectManager.Player.Position) <= i.Range)
                             .Sum(item => ObjectManager.Player.GetItemDamage(target, item.Damage));
             }
             catch (Exception ex)
@@ -127,7 +136,10 @@ namespace SFXUtility.Data
             try
             {
                 foreach (var item in
-                    CustomItems.Where(i => i.Item.IsOwned() && i.Item.IsReady() && target.Distance(ObjectManager.Player.Position) <= i.Range))
+                    CustomItems.Where(
+                        i =>
+                            i.Item.IsOwned() && i.Item.IsReady() &&
+                            target.Distance(ObjectManager.Player.Position) <= i.Range))
                 {
                     if (item.Target)
                     {

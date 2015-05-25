@@ -20,19 +20,25 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary.Extensions.SharpDX;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+using SharpDX;
+using SharpDX.Direct3D9;
+
+#endregion
+
 namespace SFXUtility.Features.Others
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using Classes;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary.Extensions.SharpDX;
-    using SFXLibrary.Logger;
-    using SharpDX;
-    using SharpDX.Direct3D9;
+    
 
     #endregion
 
@@ -44,7 +50,11 @@ namespace SFXUtility.Features.Others
 
         public override bool Enabled
         {
-            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get
+            {
+                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
+            }
         }
 
         public override string Name
@@ -77,7 +87,9 @@ namespace SFXUtility.Features.Others
             try
             {
                 if (args != null && args.Final)
+                {
                     base.OnUnload(sender, args);
+                }
 
                 if (Initialized)
                 {
@@ -99,9 +111,13 @@ namespace SFXUtility.Features.Others
                 {
                     _parent = Global.IoC.Resolve<Others>();
                     if (_parent.Initialized)
+                    {
                         OnParentInitialized(null, null);
+                    }
                     else
+                    {
                         _parent.OnInitialized += OnParentInitialized;
+                    }
                 }
             }
             catch (Exception ex)
@@ -115,12 +131,16 @@ namespace SFXUtility.Features.Others
             try
             {
                 if (_parent.Menu == null)
+                {
                     return;
+                }
 
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(new Slider(25, 10, 30)));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(
+                        new Slider(25, 10, 30)));
 
                 Menu.AddSubMenu(drawingMenu);
 
@@ -128,7 +148,8 @@ namespace SFXUtility.Features.Others
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _text = new Font(Drawing.Direct3DDevice,
+                _text = new Font(
+                    Drawing.Direct3DDevice,
                     new FontDescription
                     {
                         FaceName = Global.DefaultFont,
@@ -151,8 +172,10 @@ namespace SFXUtility.Features.Others
             var hero = args.Source as Obj_AI_Hero;
             if (hero != null && hero.IsValid && args.PingType != PingCategory.OnMyWay)
             {
-                _pingItems.Add(new PingItem(hero.ChampionName, Game.Time + (args.PingType == PingCategory.Danger ? 1f : 1.8f), args.Position,
-                    args.Target));
+                _pingItems.Add(
+                    new PingItem(
+                        hero.ChampionName, Game.Time + (args.PingType == PingCategory.Danger ? 1f : 1.8f), args.Position,
+                        args.Target));
             }
         }
 
@@ -161,7 +184,9 @@ namespace SFXUtility.Features.Others
             try
             {
                 if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
+                {
                     return;
+                }
 
                 _pingItems.RemoveAll(p => p.EndTime < Game.Time);
                 foreach (var ping in _pingItems)

@@ -22,12 +22,8 @@
 
 #region
 
-using ColorBGRA = SharpDX.ColorBGRA;
-using Rectangle = SharpDX.Rectangle;
-using Sprite = SharpDX.Direct3D9.Sprite;
-using Texture = SharpDX.Direct3D9.Texture;
-using Vector2 = SharpDX.Vector2;
-using Vector3 = SharpDX.Vector3;
+using SharpDX;
+using SharpDX.Direct3D9;
 
 #endregion
 
@@ -35,11 +31,15 @@ namespace SFXLibrary.Extensions.SharpDX
 {
     public static class SpriteExtension
     {
-        public static void DrawCentered(this Sprite sprite, Texture texture, Vector2 position, Rectangle? rectangle = null)
+        public static void DrawCentered(this Sprite sprite,
+            Texture texture,
+            Vector2 position,
+            Rectangle? rectangle = null)
         {
             var desc = texture.GetLevelDescription(0);
-            sprite.Draw(texture, new ColorBGRA(255, 255, 255, 255), rectangle,
-                new Vector3(-(position.X - desc.Width/2f), -(position.Y - desc.Height/2f), 0));
+            sprite.Draw(
+                texture, new ColorBGRA(255, 255, 255, 255), rectangle,
+                new Vector3(-(position.X - desc.Width / 2f), -(position.Y - desc.Height / 2f), 0));
         }
 
         public static void DrawCentered(this Sprite sprite, Texture texture, int x, int y, Rectangle? rectangle = null)

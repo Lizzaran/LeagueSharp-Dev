@@ -20,15 +20,21 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Linq;
+using LeagueSharp.Common;
+using SFXChallenger.Wrappers;
+using SFXLibrary.Logger;
+
+#endregion
+
 namespace SFXChallenger.Managers
 {
     #region
 
-    using System;
-    using System.Linq;
-    using LeagueSharp.Common;
-    using SFXLibrary.Logger;
-    using Wrappers;
+    
 
     #endregion
 
@@ -53,14 +59,18 @@ namespace SFXChallenger.Managers
         public static void Killsteal()
         {
             if (_menu == null)
+            {
                 return;
+            }
             try
             {
                 var items = _menu.Item(_menu.Name + ".items").GetValue<bool>();
                 var summoners = _menu.Item(_menu.Name + ".summoners").GetValue<bool>();
 
                 if (!items && !summoners)
+                {
                     return;
+                }
 
                 foreach (var enemy in HeroManager.Enemies.Where(e => !Invulnerable.HasBuff(e)))
                 {
@@ -70,11 +80,11 @@ namespace SFXChallenger.Managers
                     {
                         ItemManager.UseComboItems(enemy);
                     }
-                    else if (summoners && summonerDamage > (enemy.Health + enemy.HPRegenRate*3))
+                    else if (summoners && summonerDamage > (enemy.Health + enemy.HPRegenRate * 3))
                     {
                         SummonerManager.UseComboSummoners(enemy);
                     }
-                    else if (items && summoners && (summonerDamage + itemDamage) > (enemy.Health + enemy.HPRegenRate*3))
+                    else if (items && summoners && (summonerDamage + itemDamage) > (enemy.Health + enemy.HPRegenRate * 3))
                     {
                         ItemManager.UseComboItems(enemy);
                         SummonerManager.UseComboSummoners(enemy);

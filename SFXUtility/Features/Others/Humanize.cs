@@ -20,16 +20,22 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+
+#endregion
+
 namespace SFXUtility.Features.Others
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using Classes;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary.Logger;
+    
 
     #endregion
 
@@ -41,7 +47,11 @@ namespace SFXUtility.Features.Others
 
         public override bool Enabled
         {
-            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get
+            {
+                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
+            }
         }
 
         public override string Name
@@ -71,9 +81,13 @@ namespace SFXUtility.Features.Others
                 {
                     _parent = Global.IoC.Resolve<Others>();
                     if (_parent.Initialized)
+                    {
                         OnParentInitialized(null, null);
+                    }
                     else
+                    {
                         _parent.OnInitialized += OnParentInitialized;
+                    }
                 }
             }
             catch (Exception ex)
@@ -87,13 +101,18 @@ namespace SFXUtility.Features.Others
             try
             {
                 if (_parent.Menu == null)
+                {
                     return;
+                }
 
                 Menu = new Menu(Name, Name);
 
                 var delayMenu = new Menu(Global.Lang.Get("G_Delay"), Name + "Delay");
-                delayMenu.AddItem(new MenuItem(delayMenu.Name + "Spell", Global.Lang.Get("G_Spell")).SetValue(new Slider(50, 0, 250)));
-                delayMenu.AddItem(new MenuItem(delayMenu.Name + "Movement", Global.Lang.Get("G_Movement")).SetValue(new Slider(50, 0, 250)));
+                delayMenu.AddItem(
+                    new MenuItem(delayMenu.Name + "Spell", Global.Lang.Get("G_Spell")).SetValue(new Slider(50, 0, 250)));
+                delayMenu.AddItem(
+                    new MenuItem(delayMenu.Name + "Movement", Global.Lang.Get("G_Movement")).SetValue(
+                        new Slider(50, 0, 250)));
 
                 Menu.AddSubMenu(delayMenu);
 
@@ -115,7 +134,8 @@ namespace SFXUtility.Features.Others
             try
             {
                 if (sender == null || !sender.Owner.IsMe ||
-                    !(args.Slot == SpellSlot.Q || args.Slot == SpellSlot.W || args.Slot == SpellSlot.E || args.Slot == SpellSlot.R))
+                    !(args.Slot == SpellSlot.Q || args.Slot == SpellSlot.W || args.Slot == SpellSlot.E ||
+                      args.Slot == SpellSlot.R))
                 {
                     return;
                 }

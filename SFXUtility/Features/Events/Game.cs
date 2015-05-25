@@ -20,16 +20,22 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+
+#endregion
+
 namespace SFXUtility.Features.Events
 {
     #region
 
-    using System;
-    using System.Linq;
-    using Classes;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary.Logger;
+    
 
     #endregion
 
@@ -46,7 +52,11 @@ namespace SFXUtility.Features.Events
 
         public override bool Enabled
         {
-            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get
+            {
+                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
+            }
         }
 
         public override string Name
@@ -74,9 +84,13 @@ namespace SFXUtility.Features.Events
                 {
                     _parent = Global.IoC.Resolve<Events>();
                     if (_parent.Initialized)
+                    {
                         OnParentInitialized(null, null);
+                    }
                     else
+                    {
                         _parent.OnInitialized += OnParentInitialized;
+                    }
                 }
             }
             catch (Exception ex)
@@ -90,24 +104,31 @@ namespace SFXUtility.Features.Events
             try
             {
                 if (_parent.Menu == null)
+                {
                     return;
+                }
 
                 Menu = new Menu(Name, Name);
 
                 var startMenu = new Menu(Global.Lang.Get("Game_OnStart"), Name + "OnStart");
-                startMenu.AddItem(new MenuItem(startMenu.Name + "Delay", Global.Lang.Get("G_Delay")).SetValue(new Slider(20, 0, 75)));
+                startMenu.AddItem(
+                    new MenuItem(startMenu.Name + "Delay", Global.Lang.Get("G_Delay")).SetValue(new Slider(20, 0, 75)));
                 startMenu.AddItem(
                     new MenuItem(startMenu.Name + "Greeting", Global.Lang.Get("Game_Greeting")).SetValue(
                         new StringList(Global.Lang.GetList("Game_GreetingList"))));
                 startMenu.AddItem(
-                    new MenuItem(startMenu.Name + "SayGreeting", Global.Lang.Get("G_Say") + " " + Global.Lang.Get("Game_Greeting")).SetValue(false));
+                    new MenuItem(
+                        startMenu.Name + "SayGreeting",
+                        Global.Lang.Get("G_Say") + " " + Global.Lang.Get("Game_Greeting")).SetValue(false));
 
                 var endMenu = new Menu(Global.Lang.Get("Game_OnEnd"), Name + "OnEnd");
                 endMenu.AddItem(
                     new MenuItem(endMenu.Name + "Ending", Global.Lang.Get("Game_Ending")).SetValue(
                         new StringList(Global.Lang.GetList("Game_EndingList"))));
                 endMenu.AddItem(
-                    new MenuItem(endMenu.Name + "SayEnding", Global.Lang.Get("G_Say") + " " + Global.Lang.Get("Game_Ending")).SetValue(false));
+                    new MenuItem(
+                        endMenu.Name + "SayEnding", Global.Lang.Get("G_Say") + " " + Global.Lang.Get("Game_Ending"))
+                        .SetValue(false));
 
                 Menu.AddSubMenu(startMenu);
                 Menu.AddSubMenu(endMenu);
@@ -122,10 +143,16 @@ namespace SFXUtility.Features.Events
 
                 if (_onStartTriggerd)
                 {
-                    if (Menu.Item(Name + "OnStartSayGreeting").GetValue<bool>() && !HeroManager.AllHeroes.Any(h => h.Level >= 2))
+                    if (Menu.Item(Name + "OnStartSayGreeting").GetValue<bool>() &&
+                        !HeroManager.AllHeroes.Any(h => h.Level >= 2))
                     {
-                        Utility.DelayAction.Add(Menu.Item(Name + "OnStartDelay").GetValue<Slider>().Value*1000,
-                            delegate { LeagueSharp.Game.Say("/all " + Menu.Item(Name + "OnStartGreeting").GetValue<StringList>().SelectedValue); });
+                        Utility.DelayAction.Add(
+                            Menu.Item(Name + "OnStartDelay").GetValue<Slider>().Value * 1000,
+                            delegate
+                            {
+                                LeagueSharp.Game.Say(
+                                    "/all " + Menu.Item(Name + "OnStartGreeting").GetValue<StringList>().SelectedValue);
+                            });
                     }
                 }
             }
@@ -138,14 +165,19 @@ namespace SFXUtility.Features.Events
         private void OnGameNotify(GameNotifyEventArgs args)
         {
             if (_onEndTriggerd ||
-                (args.EventId != GameEventId.OnEndGame && args.EventId != GameEventId.OnHQDie && args.EventId != GameEventId.OnHQKill))
+                (args.EventId != GameEventId.OnEndGame && args.EventId != GameEventId.OnHQDie &&
+                 args.EventId != GameEventId.OnHQKill))
+            {
                 return;
+            }
 
             _onEndTriggerd = true;
             try
             {
                 if (Menu.Item(Name + "OnEndSayEnding").GetValue<bool>())
+                {
                     LeagueSharp.Game.Say("/all " + Menu.Item(Name + "OnEndEnding").GetValue<StringList>().SelectedValue);
+                }
             }
             catch (Exception ex)
             {

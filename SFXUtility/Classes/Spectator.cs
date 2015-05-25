@@ -20,27 +20,37 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Linq;
+using System.Net;
+using System.Web;
+using LeagueSharp;
+using SFXLibrary.Extensions.NET;
+
+#endregion
+
 namespace SFXUtility.Classes
 {
     #region
 
-    using System;
-    using System.Linq;
-    using System.Net;
-    using System.Web;
-    using LeagueSharp;
-    using SFXLibrary.Extensions.NET;
+    
 
     #endregion
 
     public class Spectator
     {
-        private static readonly string DoRecordUrl = "http://{region}op.gg/summoner/ajax/requestRecording.json/gameId={game_id}";
+        private static readonly string DoRecordUrl =
+            "http://{region}op.gg/summoner/ajax/requestRecording.json/gameId={game_id}";
+
         private static readonly string IsRecordingUrl = "http://{region}op.gg/summoner/ajax/spectator/";
 
         static Spectator()
         {
-            Region = PlatformId.Last().IsNumeric() ? PlatformId.Remove(PlatformId.Length - 1).ToLower() : PlatformId.ToLower();
+            Region = PlatformId.Last().IsNumeric()
+                ? PlatformId.Remove(PlatformId.Length - 1).ToLower()
+                : PlatformId.ToLower();
             Region = Region.Contains("kr", StringComparison.OrdinalIgnoreCase) ? string.Empty : Region + ".";
             DoRecordUrl = DoRecordUrl.Replace("{region}", Region).Replace("{game_id}", GameId.ToString());
             IsRecordingUrl = IsRecordingUrl.Replace("{region}", Region);
@@ -67,7 +77,9 @@ namespace SFXUtility.Classes
             {
                 try
                 {
-                    return !client.DownloadString(new Uri(DoRecordUrl)).Contains("error", StringComparison.OrdinalIgnoreCase);
+                    return
+                        !client.DownloadString(new Uri(DoRecordUrl))
+                            .Contains("error", StringComparison.OrdinalIgnoreCase);
                 }
                 catch
                 {
@@ -83,7 +95,9 @@ namespace SFXUtility.Classes
                 try
                 {
                     return
-                        client.UploadString(IsRecordingUrl, "userName=" + HttpUtility.UrlEncode(ObjectManager.Player.ChampionName) + "&force=false")
+                        client.UploadString(
+                            IsRecordingUrl,
+                            "userName=" + HttpUtility.UrlEncode(ObjectManager.Player.ChampionName) + "&force=false")
                             .Contains("NowRecording", StringComparison.OrdinalIgnoreCase);
                 }
                 catch

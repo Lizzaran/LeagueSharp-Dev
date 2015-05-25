@@ -22,7 +22,5 @@
 
 namespace SFXUtility.Features.Activators
 {
-    internal class BushRevealer
-    {
-    }
+    internal class BushRevealer {}
 }

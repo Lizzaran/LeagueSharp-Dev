@@ -20,16 +20,22 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.IO;
+using System.Linq;
+using LeagueSharp.Common;
+using SFXLibrary.Extensions.NET;
+using SFXLibrary.Logger;
+
+#endregion
+
 namespace SFXChallenger.Menus
 {
     #region
 
-    using System;
-    using System.IO;
-    using System.Linq;
-    using LeagueSharp.Common;
-    using SFXLibrary.Extensions.NET;
-    using SFXLibrary.Logger;
+    
 
     #endregion
 
@@ -39,12 +45,14 @@ namespace SFXChallenger.Menus
         {
             menu.AddItem(
                 new MenuItem(menu.Name + ".language", Global.Lang.Get("F_Language")).SetValue(
-                    new StringList(new[] {Global.Lang.Get("Language_Auto")}.Concat(Global.Lang.Languages.ToArray()).ToArray())));
+                    new StringList(
+                        new[] { Global.Lang.Get("Language_Auto") }.Concat(Global.Lang.Languages.ToArray()).ToArray())));
 
             try
             {
                 var file =
-                    Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, string.Format("{0}.language.", Global.Name) + "*",
+                    Directory.GetFiles(
+                        AppDomain.CurrentDomain.BaseDirectory, string.Format("{0}.language.", Global.Name) + "*",
                         SearchOption.TopDirectoryOnly).FirstOrDefault();
                 if (!string.IsNullOrEmpty(file))
                 {
@@ -55,8 +63,11 @@ namespace SFXChallenger.Menus
                         menu.Item(menu.Name + ".language")
                             .SetValue(
                                 new StringList(
-                                    new[] {ext}.Concat(
-                                        menu.Item(menu.Name + ".language").GetValue<StringList>().SList.Where(val => val != ext).ToArray()).ToArray()));
+                                    new[] { ext }.Concat(
+                                        menu.Item(menu.Name + ".language")
+                                            .GetValue<StringList>()
+                                            .SList.Where(val => val != ext)
+                                            .ToArray()).ToArray()));
                     }
                 }
             }
@@ -71,7 +82,8 @@ namespace SFXChallenger.Menus
                 {
                     var preName = string.Format("{0}.language.", Global.Name);
                     var autoName = Global.Lang.Get("Language_Auto");
-                    var files = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, preName + "*", SearchOption.TopDirectoryOnly);
+                    var files = Directory.GetFiles(
+                        AppDomain.CurrentDomain.BaseDirectory, preName + "*", SearchOption.TopDirectoryOnly);
                     var selectedLanguage = menu.Item(menu.Name + ".language").GetValue<StringList>().SelectedValue;
                     foreach (var file in files)
                     {
@@ -79,9 +91,7 @@ namespace SFXChallenger.Menus
                         {
                             File.Delete(file);
                         }
-                        catch
-                        {
-                        }
+                        catch {}
                     }
                     if (!selectedLanguage.Equals(autoName, StringComparison.OrdinalIgnoreCase))
                     {

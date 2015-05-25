@@ -20,12 +20,18 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Reflection;
+
+#endregion
+
 namespace SFXLibrary
 {
     #region
 
-    using System;
-    using System.Reflection;
+    
 
     #endregion
 
@@ -49,11 +55,13 @@ namespace SFXLibrary
         public Action<object> CreateAction()
         {
             if (!IsAlive)
+            {
                 return null;
+            }
 
             try
             {
-                return Delegate.CreateDelegate(typeof (Action<object>), Target, _method.Name) as Action<object>;
+                return Delegate.CreateDelegate(typeof(Action<object>), Target, _method.Name) as Action<object>;
             }
             catch
             {

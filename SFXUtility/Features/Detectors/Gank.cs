@@ -22,7 +22,5 @@
 
 namespace SFXUtility.Features.Detectors
 {
-    internal class Gank
-    {
-    }
+    internal class Gank {}
 }

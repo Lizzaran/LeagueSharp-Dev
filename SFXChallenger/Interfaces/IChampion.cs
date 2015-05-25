@@ -20,12 +20,18 @@
 
 #endregion License
 
+#region
+
+using LeagueSharp.Common;
+using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+
+#endregion
+
 namespace SFXChallenger.Interfaces
 {
     #region
 
-    using LeagueSharp.Common;
-    using Orbwalking = Wrappers.Orbwalking;
+    
 
     #endregion
 

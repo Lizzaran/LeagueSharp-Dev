@@ -20,13 +20,19 @@
 
 #endregion License
 
+#region
+
+using LeagueSharp;
+using SharpDX;
+using Color = System.Drawing.Color;
+
+#endregion
+
 namespace SFXLibrary
 {
     #region
 
-    using LeagueSharp;
-    using SharpDX;
-    using Color = System.Drawing.Color;
+    
 
     #endregion
 
@@ -41,12 +47,12 @@ namespace SFXLibrary
         public static void TextCentered(Vector2 pos, Color color, string content)
         {
             var rec = Drawing.GetTextExtent(content);
-            Drawing.DrawText(pos.X - rec.Width/2f, pos.Y - rec.Height/2f, color, content);
+            Drawing.DrawText(pos.X - rec.Width / 2f, pos.Y - rec.Height / 2f, color, content);
         }
 
         public static void Rectangle(Vector2 pos, int width, int height, float thickness, Color color)
         {
-            pos.Y = pos.Y - (height/2f);
+            pos.Y = pos.Y - (height / 2f);
             Drawing.DrawLine(pos.X, pos.Y - 1, pos.X + width, pos.Y - 1, thickness, color);
             Drawing.DrawLine(pos.X, pos.Y + height, pos.X + width, pos.Y + height, thickness, color);
 
@@ -56,7 +62,7 @@ namespace SFXLibrary
 
         public static void RectangleFilled(Vector2 pos, int width, int height, Color color)
         {
-            pos.Y = pos.Y - (height/2f);
+            pos.Y = pos.Y - (height / 2f);
             Drawing.DrawLine(pos.X, pos.Y, pos.X + width, pos.Y, height, color);
         }
 

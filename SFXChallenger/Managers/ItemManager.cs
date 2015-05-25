@@ -20,20 +20,26 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using LeagueSharp.Common.Data;
+using SFXChallenger.Enumerations;
+using SFXChallenger.Wrappers;
+using SFXLibrary.Logger;
+using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+
+#endregion
+
 namespace SFXChallenger.Managers
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using Enumerations;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using LeagueSharp.Common.Data;
-    using SFXLibrary.Logger;
-    using Wrappers;
-    using Orbwalking = Wrappers.Orbwalking;
+    
 
     #endregion
 
@@ -81,7 +87,10 @@ namespace SFXChallenger.Managers
                 CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
                 EffectFlags = EffectFlags.AttackSpeed | EffectFlags.MovementSpeed,
                 CastType = CastType.Self,
-                Range = ObjectManager.Player.IsMeele ? ObjectManager.Player.AttackRange*3 : Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)
+                Range =
+                    ObjectManager.Player.IsMeele
+                        ? ObjectManager.Player.AttackRange * 3
+                        : Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)
             };
 
             // AOE damage, only melee
@@ -236,15 +245,18 @@ namespace SFXChallenger.Managers
                         var itemMenu = _menu.AddSubMenu(new Menu(item.DisplayName, _menu.Name + "." + item.Name));
 
                         itemMenu.AddItem(
-                            new MenuItem(itemMenu.Name + ".min-enemies-range", Global.Lang.Get("MI_MinEnemiesRange")).SetValue(new Slider(1, 0, 5)));
+                            new MenuItem(itemMenu.Name + ".min-enemies-range", Global.Lang.Get("MI_MinEnemiesRange"))
+                                .SetValue(new Slider(1, 0, 5)));
 
                         if (item.Flags.HasFlag(ItemFlags.Flee))
                         {
-                            itemMenu.AddItem(new MenuItem(itemMenu.Name + ".flee", Global.Lang.Get("MI_UseFlee")).SetValue(true));
+                            itemMenu.AddItem(
+                                new MenuItem(itemMenu.Name + ".flee", Global.Lang.Get("MI_UseFlee")).SetValue(true));
                         }
                         if (item.Flags.HasFlag(ItemFlags.Offensive))
                         {
-                            itemMenu.AddItem(new MenuItem(itemMenu.Name + ".combo", Global.Lang.Get("MI_UseCombo")).SetValue(true));
+                            itemMenu.AddItem(
+                                new MenuItem(itemMenu.Name + ".combo", Global.Lang.Get("MI_UseCombo")).SetValue(true));
                         }
                     }
                 }
@@ -258,7 +270,9 @@ namespace SFXChallenger.Managers
         public static float CalculateComboDamage(Obj_AI_Hero target)
         {
             if (_menu == null)
+            {
                 return 0f;
+            }
             try
             {
                 return
@@ -266,8 +280,8 @@ namespace SFXChallenger.Managers
                         Items.Where(
                             i =>
                                 ((i.Flags & (_itemFlags)) != 0) && i.EffectFlags.HasFlag(EffectFlags.Damage) &&
-                                _menu.Item(_menu.Name + "." + i.Name + ".combo").GetValue<bool>() && i.Item.IsOwned() && i.Item.IsReady() &&
-                                target.Distance(ObjectManager.Player.Position) <= i.Range &&
+                                _menu.Item(_menu.Name + "." + i.Name + ".combo").GetValue<bool>() && i.Item.IsOwned() &&
+                                i.Item.IsReady() && target.Distance(ObjectManager.Player.Position) <= i.Range &&
                                 ObjectManager.Player.CountEnemiesInRange(i.Range) >=
                                 _menu.Item(_menu.Name + "." + i.Name + ".min-enemies-range").GetValue<Slider>().Value)
                             .Sum(item => ObjectManager.Player.GetItemDamage(target, item.Damage));
@@ -282,13 +296,16 @@ namespace SFXChallenger.Managers
         public static void UseComboItems(Obj_AI_Hero target)
         {
             if (_menu == null)
+            {
                 return;
+            }
             try
             {
                 foreach (var item in
                     Items.Where(
                         i =>
-                            ((i.Flags & (_itemFlags)) != 0) && _menu.Item(_menu.Name + "." + i.Name + ".combo").GetValue<bool>() && i.Item.IsOwned() &&
+                            ((i.Flags & (_itemFlags)) != 0) &&
+                            _menu.Item(_menu.Name + "." + i.Name + ".combo").GetValue<bool>() && i.Item.IsOwned() &&
                             i.Item.IsReady() && target.Distance(ObjectManager.Player.Position) <= i.Range &&
                             ObjectManager.Player.CountEnemiesInRange(i.Range) >=
                             _menu.Item(_menu.Name + "." + i.Name + ".min-enemies-range").GetValue<Slider>().Value))
@@ -320,13 +337,16 @@ namespace SFXChallenger.Managers
         public static void UseFleeItems()
         {
             if (_menu == null)
+            {
                 return;
+            }
             try
             {
                 foreach (var item in
                     Items.Where(
                         i =>
-                            i.Flags.HasFlag(ItemFlags.Flee) && _menu.Item(_menu.Name + "." + i.Name + ".flee").GetValue<bool>() && i.Item.IsOwned() &&
+                            i.Flags.HasFlag(ItemFlags.Flee) &&
+                            _menu.Item(_menu.Name + "." + i.Name + ".flee").GetValue<bool>() && i.Item.IsOwned() &&
                             i.Item.IsReady() && i.Item.IsOwned() && i.Item.IsReady() &&
                             ObjectManager.Player.CountEnemiesInRange(i.Range) >=
                             _menu.Item(_menu.Name + "." + i.Name + ".min-enemies-range").GetValue<Slider>().Value))
@@ -336,10 +356,13 @@ namespace SFXChallenger.Managers
                         var localItem = item;
                         foreach (var enemy in
                             HeroManager.Enemies.OrderByDescending(
-                                e => !Invulnerable.HasBuff(e) && e.Position.Distance(ObjectManager.Player.Position) < localItem.Range))
+                                e =>
+                                    !Invulnerable.HasBuff(e) &&
+                                    e.Position.Distance(ObjectManager.Player.Position) < localItem.Range))
                         {
-                            if (!enemy.HasBuffOfType(BuffType.Slow) && !enemy.HasBuffOfType(BuffType.Stun) && !enemy.HasBuffOfType(BuffType.Fear) &&
-                                !enemy.HasBuffOfType(BuffType.Flee) && !enemy.HasBuffOfType(BuffType.Charm) && !enemy.HasBuffOfType(BuffType.Snare) &&
+                            if (!enemy.HasBuffOfType(BuffType.Slow) && !enemy.HasBuffOfType(BuffType.Stun) &&
+                                !enemy.HasBuffOfType(BuffType.Fear) && !enemy.HasBuffOfType(BuffType.Flee) &&
+                                !enemy.HasBuffOfType(BuffType.Charm) && !enemy.HasBuffOfType(BuffType.Snare) &&
                                 !enemy.HasBuffOfType(BuffType.Invulnerability) && !enemy.HasBuffOfType(BuffType.Knockup) &&
                                 !enemy.HasBuffOfType(BuffType.Polymorph) && !enemy.HasBuffOfType(BuffType.Sleep) &&
                                 !enemy.HasBuffOfType(BuffType.Taunt))
@@ -350,7 +373,8 @@ namespace SFXChallenger.Managers
                                         localItem.Item.Cast(enemy);
                                         break;
                                     case CastType.Position:
-                                        var prediction = Prediction.GetPrediction(enemy, localItem.Delay, localItem.Radius, localItem.Speed);
+                                        var prediction = Prediction.GetPrediction(
+                                            enemy, localItem.Delay, localItem.Radius, localItem.Speed);
                                         if (prediction.Hitchance >= HitChance.Medium)
                                         {
                                             localItem.Item.Cast(prediction.CastPosition);

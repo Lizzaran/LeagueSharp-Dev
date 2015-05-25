@@ -20,14 +20,20 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections;
+using System.Linq;
+using SFXLibrary.Extensions.NET;
+
+#endregion
+
 namespace SFXLibrary.Logger
 {
     #region
 
-    using System;
-    using System.Collections;
-    using System.Linq;
-    using Extensions.NET;
+    
 
     #endregion
 
@@ -38,7 +44,9 @@ namespace SFXLibrary.Logger
         public void AddItem(LogItem item)
         {
             if (LogLevel == LogLevel.None || item == null || string.IsNullOrWhiteSpace(item.Exception.ToString()))
+            {
                 return;
+            }
 
             try
             {
@@ -46,7 +54,10 @@ namespace SFXLibrary.Logger
 
                 var text = item.Exception.ToString();
                 text = item.Exception.Data.Cast<DictionaryEntry>()
-                    .Aggregate(text, (current, entry) => current + string.Format("{0}{1}: {2}", Environment.NewLine, entry.Key, entry.Value));
+                    .Aggregate(
+                        text,
+                        (current, entry) =>
+                            current + string.Format("{0}{1}: {2}", Environment.NewLine, entry.Key, entry.Value));
 
 
                 Console.ForegroundColor = ConsoleColor.Yellow;

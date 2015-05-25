@@ -20,19 +20,25 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary;
+using SFXLibrary.Extensions.NET;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+
+#endregion
+
 namespace SFXUtility.Features.Activators
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using Classes;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary;
-    using SFXLibrary.Extensions.NET;
-    using SFXLibrary.Logger;
+    
 
     #endregion
 
@@ -42,14 +48,19 @@ namespace SFXUtility.Features.Activators
 
         private List<PotionStruct> _potions = new List<PotionStruct>
         {
-            new PotionStruct("ItemCrystalFlask", ItemId.Crystalline_Flask, 1, 1, new[] {PotionType.Health, PotionType.Mana}),
-            new PotionStruct("RegenerationPotion", ItemId.Health_Potion, 0, 2, new[] {PotionType.Health}),
-            new PotionStruct("FlaskOfCrystalWater", ItemId.Mana_Potion, 0, 3, new[] {PotionType.Mana})
+            new PotionStruct(
+                "ItemCrystalFlask", ItemId.Crystalline_Flask, 1, 1, new[] { PotionType.Health, PotionType.Mana }),
+            new PotionStruct("RegenerationPotion", ItemId.Health_Potion, 0, 2, new[] { PotionType.Health }),
+            new PotionStruct("FlaskOfCrystalWater", ItemId.Mana_Potion, 0, 3, new[] { PotionType.Mana })
         };
 
         public override bool Enabled
         {
-            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get
+            {
+                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
+            }
         }
 
         public override string Name
@@ -74,27 +85,35 @@ namespace SFXUtility.Features.Activators
             try
             {
                 if (_parent.Menu == null)
+                {
                     return;
+                }
 
                 _potions = _potions.OrderBy(x => x.Priority).ToList();
                 Menu = new Menu(Name, Name);
                 var healthMenu = new Menu(Global.Lang.Get("G_Health"), Name + "Health");
                 healthMenu.AddItem(
-                    new MenuItem(healthMenu.Name + "Percent", Global.Lang.Get("G_Health") + " " + Global.Lang.Get("G_Percent")).SetValue(new Slider(60)));
-                healthMenu.AddItem(new MenuItem(healthMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                    new MenuItem(
+                        healthMenu.Name + "Percent", Global.Lang.Get("G_Health") + " " + Global.Lang.Get("G_Percent"))
+                        .SetValue(new Slider(60)));
+                healthMenu.AddItem(
+                    new MenuItem(healthMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 var manaMenu = new Menu(Global.Lang.Get("G_Mana"), Name + "Mana");
                 manaMenu.AddItem(
-                    new MenuItem(manaMenu.Name + "Percent", Global.Lang.Get("G_Mana") + " " + Global.Lang.Get("G_Percent")).SetValue(new Slider(60)));
+                    new MenuItem(
+                        manaMenu.Name + "Percent", Global.Lang.Get("G_Mana") + " " + Global.Lang.Get("G_Percent"))
+                        .SetValue(new Slider(60)));
                 manaMenu.AddItem(new MenuItem(manaMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Menu.AddSubMenu(healthMenu);
                 Menu.AddSubMenu(manaMenu);
 
                 Menu.AddItem(
-                    new MenuItem(Name + "MinEnemyDistance",
-                        Global.Lang.Get("G_Minimum") + " " + Global.Lang.Get("G_Enemy") + " " + Global.Lang.Get("G_Distance")).SetValue(
-                            new Slider(1000, 0, 1500)));
+                    new MenuItem(
+                        Name + "MinEnemyDistance",
+                        Global.Lang.Get("G_Minimum") + " " + Global.Lang.Get("G_Enemy") + " " +
+                        Global.Lang.Get("G_Distance")).SetValue(new Slider(1000, 0, 1500)));
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
@@ -122,7 +141,10 @@ namespace SFXUtility.Features.Activators
         {
             return
                 _potions.Where(potion => potion.TypeList.Contains(type))
-                    .Any(potion => ObjectManager.Player.Buffs.Any(b => b.Name.Equals(potion.BuffName, StringComparison.OrdinalIgnoreCase)));
+                    .Any(
+                        potion =>
+                            ObjectManager.Player.Buffs.Any(
+                                b => b.Name.Equals(potion.BuffName, StringComparison.OrdinalIgnoreCase)));
         }
 
         protected override void OnGameLoad(EventArgs args)
@@ -133,13 +155,18 @@ namespace SFXUtility.Features.Activators
                 {
                     _parent = Global.IoC.Resolve<Activators>();
                     if (_parent.Initialized)
+                    {
                         OnParentInitialized(null, null);
+                    }
                     else
+                    {
                         _parent.OnInitialized += OnParentInitialized;
+                    }
                 }
                 else if (Global.IoC.IsRegistered<Mediator>())
                 {
-                    Global.IoC.Resolve<Mediator>().Register(_parent.Name, delegate(object o) { OnParentInitialized(o, new EventArgs()); });
+                    Global.IoC.Resolve<Mediator>()
+                        .Register(_parent.Name, delegate(object o) { OnParentInitialized(o, new EventArgs()); });
                 }
             }
             catch (Exception ex)
@@ -157,11 +184,16 @@ namespace SFXUtility.Features.Activators
                         b =>
                             b.Name.Contains("Recall", StringComparison.OrdinalIgnoreCase) ||
                             b.Name.Contains("Teleport", StringComparison.OrdinalIgnoreCase)))
+                {
                     return;
+                }
 
                 var enemyDist = Menu.Item(Name + "MinEnemyDistance").GetValue<Slider>().Value;
-                if (enemyDist != 0 && !HeroManager.Enemies.Any(e => e.Position.Distance(ObjectManager.Player.Position) <= enemyDist))
+                if (enemyDist != 0 &&
+                    !HeroManager.Enemies.Any(e => e.Position.Distance(ObjectManager.Player.Position) <= enemyDist))
+                {
                     return;
+                }
 
                 if (Menu.Item(Name + "HealthEnabled").GetValue<bool>())
                 {
@@ -169,7 +201,9 @@ namespace SFXUtility.Features.Activators
                     {
                         var healthSlot = GetPotionSlot(PotionType.Health);
                         if (healthSlot != null && !IsBuffActive(PotionType.Health))
+                        {
                             ObjectManager.Player.Spellbook.CastSpell(healthSlot.SpellSlot);
+                        }
                     }
                 }
 
@@ -179,7 +213,9 @@ namespace SFXUtility.Features.Activators
                     {
                         var manaSlot = GetPotionSlot(PotionType.Mana);
                         if (manaSlot != null && !IsBuffActive(PotionType.Mana))
+                        {
                             ObjectManager.Player.Spellbook.CastSpell(manaSlot.SpellSlot);
+                        }
                     }
                 }
             }

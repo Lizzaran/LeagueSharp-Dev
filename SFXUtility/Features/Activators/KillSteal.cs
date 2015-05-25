@@ -20,19 +20,25 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+using SFXUtility.Data;
+using Items = SFXUtility.Data.Items;
+
+#endregion
+
 namespace SFXUtility.Features.Activators
 {
     #region
 
-    using System;
-    using System.Linq;
-    using Classes;
-    using Data;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary;
-    using SFXLibrary.Logger;
-    using Items = Data.Items;
+    
 
     #endregion
 
@@ -42,7 +48,11 @@ namespace SFXUtility.Features.Activators
 
         public override bool Enabled
         {
-            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get
+            {
+                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
+            }
         }
 
         public override string Name
@@ -67,7 +77,9 @@ namespace SFXUtility.Features.Activators
             try
             {
                 if (_parent.Menu == null)
+                {
                     return;
+                }
 
                 Menu = new Menu(Name, Name);
 
@@ -95,13 +107,18 @@ namespace SFXUtility.Features.Activators
                 {
                     _parent = Global.IoC.Resolve<Activators>();
                     if (_parent.Initialized)
+                    {
                         OnParentInitialized(null, null);
+                    }
                     else
+                    {
                         _parent.OnInitialized += OnParentInitialized;
+                    }
                 }
                 else if (Global.IoC.IsRegistered<Mediator>())
                 {
-                    Global.IoC.Resolve<Mediator>().Register(_parent.Name, delegate(object o) { OnParentInitialized(o, new EventArgs()); });
+                    Global.IoC.Resolve<Mediator>()
+                        .Register(_parent.Name, delegate(object o) { OnParentInitialized(o, new EventArgs()); });
                 }
             }
             catch (Exception ex)
@@ -115,7 +132,9 @@ namespace SFXUtility.Features.Activators
             try
             {
                 if (ObjectManager.Player.IsDead)
+                {
                     return;
+                }
 
                 try
                 {
@@ -123,7 +142,9 @@ namespace SFXUtility.Features.Activators
                     var summoners = Menu.Item(Name + "Summoners").GetValue<bool>();
 
                     if (!items && !summoners)
+                    {
                         return;
+                    }
 
                     foreach (var enemy in HeroManager.Enemies.Where(e => e.IsVisible && !e.IsDead))
                     {
@@ -133,11 +154,12 @@ namespace SFXUtility.Features.Activators
                         {
                             Items.UseComboItems(enemy);
                         }
-                        else if (summoners && summonerDamage > (enemy.Health + enemy.HPRegenRate*3))
+                        else if (summoners && summonerDamage > (enemy.Health + enemy.HPRegenRate * 3))
                         {
                             Summoners.UseComboSummoners(enemy, true, true);
                         }
-                        else if (items && summoners && (summonerDamage + itemDamage) > (enemy.Health + enemy.HPRegenRate*3))
+                        else if (items && summoners &&
+                                 (summonerDamage + itemDamage) > (enemy.Health + enemy.HPRegenRate * 3))
                         {
                             Items.UseComboItems(enemy);
                             Summoners.UseComboSummoners(enemy, true, true);

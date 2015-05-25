@@ -20,33 +20,49 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using LeagueSharp.Common;
+using SFXLibrary.Logger;
+
+#endregion
+
 namespace SFXChallenger.Managers
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using LeagueSharp.Common;
-    using SFXLibrary.Logger;
+    
 
     #endregion
 
     internal class HitchanceManager
     {
-        private static Menu _menu;
+        private static readonly Dictionary<string, Menu> Menues = new Dictionary<string, Menu>();
 
-        public static void AddToMenu(Menu menu, Dictionary<string, int> hitChances)
+        public static void AddToMenu(Menu menu, string uniqueId, Dictionary<string, int> hitChances)
         {
             try
             {
-                _menu = menu;
+                if (Menues.ContainsKey(uniqueId))
+                {
+                    throw new ArgumentException(string.Format("ManaManager: UniqueID \"{0}\" already exist.", uniqueId));
+                }
 
                 foreach (var hit in hitChances)
                 {
-                    _menu.AddItem(
-                        new MenuItem(_menu.Name + "." + hit.Key.ToLower(), hit.Key.ToUpper()).SetValue(
-                            new StringList(new[] {Global.Lang.Get("MH_Medium"), Global.Lang.Get("MH_High"), Global.Lang.Get("MH_VeryHigh")}, hit.Value)));
+                    menu.AddItem(
+                        new MenuItem(menu.Name + "." + hit.Key.ToLower(), hit.Key.ToUpper()).SetValue(
+                            new StringList(
+                                new[]
+                                {
+                                    Global.Lang.Get("MH_Medium"), Global.Lang.Get("MH_High"),
+                                    Global.Lang.Get("MH_VeryHigh")
+                                }, hit.Value)));
                 }
+
+                Menues[uniqueId] = menu;
             }
             catch (Exception ex)
             {
@@ -54,21 +70,24 @@ namespace SFXChallenger.Managers
             }
         }
 
-        public static HitChance Get(string slot)
+        public static HitChance Get(string uniqueId, string slot)
         {
-            if (_menu == null)
-                return HitChance.High;
             try
             {
-                switch (_menu.Item(_menu.Name + "." + slot.ToLower()).GetValue<StringList>().SelectedIndex)
+                Menu menu;
+                if (Menues.TryGetValue(uniqueId, out menu))
                 {
-                    case 0:
-                        return HitChance.Medium;
-                    case 1:
-                        return HitChance.High;
-                    case 2:
-                        return HitChance.VeryHigh;
+                    switch (menu.Item(menu.Name + "." + slot.ToLower()).GetValue<StringList>().SelectedIndex)
+                    {
+                        case 0:
+                            return HitChance.Medium;
+                        case 1:
+                            return HitChance.High;
+                        case 2:
+                            return HitChance.VeryHigh;
+                    }
                 }
+                throw new KeyNotFoundException(string.Format("HitchanceManager: UniqueID \"{0}\" not found.", uniqueId));
             }
             catch (Exception ex)
             {

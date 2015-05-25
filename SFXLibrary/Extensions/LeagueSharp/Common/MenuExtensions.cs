@@ -22,8 +22,8 @@
 
 #region
 
-using Menu = LeagueSharp.Common.Menu;
-using MenuItem = LeagueSharp.Common.MenuItem;
+using System.Collections.Generic;
+using LeagueSharp.Common;
 
 #endregion
 
@@ -31,7 +31,7 @@ namespace SFXLibrary.Extensions.LeagueSharp.Common
 {
     #region
 
-    using System.Collections.Generic;
+    
 
     #endregion
 

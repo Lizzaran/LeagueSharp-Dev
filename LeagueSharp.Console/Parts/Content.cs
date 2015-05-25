@@ -20,21 +20,25 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Text;
+using System.Windows;
+using System.Windows.Media;
+using SharpDX;
+using SharpDX.Direct3D9;
+using Color = SharpDX.Color;
+
+#endregion
+
 namespace LeagueSharp.Console.Parts
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Text;
-    using System.Windows;
-    using System.Windows.Media;
-    using SharpDX;
-    using SharpDX.Direct3D9;
-    using Color = SharpDX.Color;
-    using Console = LeagueSharp.Console.Console;
-    using Drawing = LeagueSharp.Drawing;
+    
 
     #endregion
 
@@ -50,8 +54,15 @@ namespace LeagueSharp.Console.Parts
         static Content()
         {
             Line = new Line(Drawing.Direct3DDevice);
-            _font = new Font(Drawing.Direct3DDevice,
-                new FontDescription {FaceName = "Calibri", Height = 18, OutputPrecision = FontPrecision.Default, Quality = FontQuality.Default});
+            _font = new Font(
+                Drawing.Direct3DDevice,
+                new FontDescription
+                {
+                    FaceName = "Calibri",
+                    Height = 18,
+                    OutputPrecision = FontPrecision.Default,
+                    Quality = FontQuality.Default
+                });
 
             Console.OnWrite += OnEvent;
             Console.OnChange += OnEvent;
@@ -86,8 +97,15 @@ namespace LeagueSharp.Console.Parts
             set
             {
                 var height = value > 30 ? 30 : (value < 10 ? 10 : value);
-                _font = new Font(Drawing.Direct3DDevice,
-                    new FontDescription {FaceName = FontName, Height = height, OutputPrecision = FontPrecision.Default, Quality = FontQuality.Default});
+                _font = new Font(
+                    Drawing.Direct3DDevice,
+                    new FontDescription
+                    {
+                        FaceName = FontName,
+                        Height = height,
+                        OutputPrecision = FontPrecision.Default,
+                        Quality = FontQuality.Default
+                    });
                 _text = GetText();
             }
         }
@@ -97,7 +115,8 @@ namespace LeagueSharp.Console.Parts
             get { return _font.Description.FaceName; }
             set
             {
-                _font = new Font(Drawing.Direct3DDevice,
+                _font = new Font(
+                    Drawing.Direct3DDevice,
                     new FontDescription
                     {
                         FaceName = value,
@@ -131,9 +150,12 @@ namespace LeagueSharp.Console.Parts
             get
             {
                 return
-                    _font.MeasureText(null, Console.Output,
-                        new Rectangle((int) (Offset.X - Width/2f) + Padding, (int) Offset.Y + Padding, Width - Scrollbar.Width - Padding*2,
-                            int.MaxValue), FontDrawFlags.Left | FontDrawFlags.WordBreak).Height;
+                    _font.MeasureText(
+                        null, Console.Output,
+                        new Rectangle(
+                            (int) (Offset.X - Width / 2f) + Padding, (int) Offset.Y + Padding,
+                            Width - Scrollbar.Width - Padding * 2, int.MaxValue),
+                        FontDrawFlags.Left | FontDrawFlags.WordBreak).Height;
             }
         }
 
@@ -157,36 +179,43 @@ namespace LeagueSharp.Console.Parts
         public static void EndScene()
         {
             if (Line.IsDisposed || _font.IsDisposed)
+            {
                 return;
+            }
 
             Line.Width = Width;
 
             Line.Begin();
 
-            Line.Draw(new[] {new Vector2(Offset.X, Offset.Y), new Vector2(Offset.X, Offset.Y + Height)}, BackgroundColor);
+            Line.Draw(
+                new[] { new Vector2(Offset.X, Offset.Y), new Vector2(Offset.X, Offset.Y + Height) }, BackgroundColor);
 
             Line.End();
 
             if (!Console.IsMoving)
             {
-                _font.DrawText(null, _text,
-                    new Rectangle((int) (Offset.X - Width/2f) + Padding, (int) Offset.Y + Padding, Width - Scrollbar.Width - Padding*2,
-                        Height - Padding*2), FontDrawFlags.Left, ForegroundColor);
+                _font.DrawText(
+                    null, _text,
+                    new Rectangle(
+                        (int) (Offset.X - Width / 2f) + Padding, (int) Offset.Y + Padding,
+                        Width - Scrollbar.Width - Padding * 2, Height - Padding * 2), FontDrawFlags.Left,
+                    ForegroundColor);
             }
         }
 
         private static string GetText()
         {
-            var wrapped = WrapText(Console.Output, Width - Scrollbar.Width - Padding*2, FontName, FontHeight);
-            var lines = (Height - Padding*2)/FontHeight;
-            var offset = (int) ((Scrollbar.DragTop*Scrollbar.Multiplicator/FontHeight));
-            return string.Join(Environment.NewLine,
+            var wrapped = WrapText(Console.Output, Width - Scrollbar.Width - Padding * 2, FontName, FontHeight);
+            var lines = (Height - Padding * 2) / FontHeight;
+            var offset = (int) ((Scrollbar.DragTop * Scrollbar.Multiplicator / FontHeight));
+            return string.Join(
+                Environment.NewLine,
                 wrapped.GetRange(offset, offset + lines > wrapped.Count ? wrapped.Count - offset : lines).ToArray());
         }
 
         private static List<string> WrapText(string text, int width, string fontName, float fontHeight)
         {
-            var originalLines = text.Split(new[] {Environment.NewLine}, StringSplitOptions.None);
+            var originalLines = text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
             var wrappedLines = new List<string>();
 
             double actualWidth = 0;
@@ -194,14 +223,15 @@ namespace LeagueSharp.Console.Parts
 
             foreach (var line in originalLines)
             {
-                var words = line.Split(new[] {" "}, StringSplitOptions.None);
+                var words = line.Split(new[] { " " }, StringSplitOptions.None);
 
                 foreach (var item in words)
                 {
                     sb.Append(item + " ");
                     actualWidth +=
-                        new FormattedText(item, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, new Typeface(fontName), fontHeight,
-                            Brushes.Black).Width;
+                        new FormattedText(
+                            item, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, new Typeface(fontName),
+                            fontHeight, Brushes.Black).Width;
 
                     if (actualWidth > width)
                     {

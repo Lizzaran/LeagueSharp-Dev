@@ -20,12 +20,18 @@
 
 #endregion License
 
+#region
+
+using System.IO;
+using System.Xml.Serialization;
+
+#endregion
+
 namespace SFXLibrary.Extensions.NET
 {
     #region
 
-    using System.IO;
-    using System.Xml.Serialization;
+    
 
     #endregion
 
@@ -43,7 +49,7 @@ namespace SFXLibrary.Extensions.NET
 
         public static T FromXml<T>(this string data)
         {
-            var s = new XmlSerializer(typeof (T));
+            var s = new XmlSerializer(typeof(T));
             using (var reader = new StringReader(data))
             {
                 var obj = s.Deserialize(reader);

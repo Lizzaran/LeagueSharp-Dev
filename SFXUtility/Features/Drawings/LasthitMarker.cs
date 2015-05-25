@@ -20,20 +20,26 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary.Extensions.NET;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+using SharpDX;
+using Color = System.Drawing.Color;
+
+#endregion
+
 namespace SFXUtility.Features.Drawings
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using Classes;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary.Extensions.NET;
-    using SFXLibrary.Logger;
-    using SharpDX;
-    using Color = System.Drawing.Color;
+    
 
     #endregion
 
@@ -44,7 +50,11 @@ namespace SFXUtility.Features.Drawings
 
         public override bool Enabled
         {
-            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get
+            {
+                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
+            }
         }
 
         public override string Name
@@ -57,7 +67,9 @@ namespace SFXUtility.Features.Drawings
             try
             {
                 if (!_minions.Any())
+                {
                     return;
+                }
 
                 var circleColor = Menu.Item(Name + "DrawingCircleColor").GetValue<Color>();
                 var hpKillableColor = Menu.Item(Name + "DrawingHpBarKillableColor").GetValue<Color>();
@@ -76,15 +88,21 @@ namespace SFXUtility.Features.Drawings
                     if (hpBar)
                     {
                         var barPos = minion.HPBarPosition;
-                        var barWidth = minion.Buffs.Any(b => b.Name.Equals("turretshield", StringComparison.OrdinalIgnoreCase)) ? 88 : 63;
-                        var offset = (float) (barWidth/(minion.MaxHealth/aaDamage));
+                        var barWidth =
+                            minion.Buffs.Any(b => b.Name.Equals("turretshield", StringComparison.OrdinalIgnoreCase))
+                                ? 88
+                                : 63;
+                        var offset = (float) (barWidth / (minion.MaxHealth / aaDamage));
                         offset = offset < barWidth ? offset : barWidth;
-                        Drawing.DrawLine(new Vector2(barPos.X + 45 + offset, barPos.Y + 17), new Vector2(barPos.X + 45 + offset, barPos.Y + 24),
-                            hpLinesThickness, killable ? hpKillableColor : hpUnkillableColor);
+                        Drawing.DrawLine(
+                            new Vector2(barPos.X + 45 + offset, barPos.Y + 17),
+                            new Vector2(barPos.X + 45 + offset, barPos.Y + 24), hpLinesThickness,
+                            killable ? hpKillableColor : hpUnkillableColor);
                     }
                     if (circle && killable)
                     {
-                        Render.Circle.DrawCircle(minion.Position, minion.BoundingRadius + radius, circleColor, thickness);
+                        Render.Circle.DrawCircle(
+                            minion.Position, minion.BoundingRadius + radius, circleColor, thickness);
                     }
                 }
             }
@@ -99,7 +117,9 @@ namespace SFXUtility.Features.Drawings
             try
             {
                 if (_parent.Menu == null)
+                {
                     return;
+                }
 
                 Menu = new Menu(Name, Name);
 
@@ -107,22 +127,33 @@ namespace SFXUtility.Features.Drawings
 
                 var drawingHpBarMenu = new Menu(Global.Lang.Get("LasthitMarker_HpBar"), drawingMenu.Name + "HpBar");
                 drawingHpBarMenu.AddItem(
-                    new MenuItem(drawingHpBarMenu.Name + "KillableColor", Global.Lang.Get("LasthitMarker_Killable") + " " + Global.Lang.Get("G_Color"))
-                        .SetValue(Color.Green));
+                    new MenuItem(
+                        drawingHpBarMenu.Name + "KillableColor",
+                        Global.Lang.Get("LasthitMarker_Killable") + " " + Global.Lang.Get("G_Color")).SetValue(
+                            Color.Green));
                 drawingHpBarMenu.AddItem(
-                    new MenuItem(drawingHpBarMenu.Name + "UnkillableColor",
-                        Global.Lang.Get("LasthitMarker_Unkillable") + " " + Global.Lang.Get("G_Color")).SetValue(Color.White));
+                    new MenuItem(
+                        drawingHpBarMenu.Name + "UnkillableColor",
+                        Global.Lang.Get("LasthitMarker_Unkillable") + " " + Global.Lang.Get("G_Color")).SetValue(
+                            Color.White));
                 drawingHpBarMenu.AddItem(
-                    new MenuItem(drawingHpBarMenu.Name + "LineThickness", Global.Lang.Get("G_Line") + " " + Global.Lang.Get("G_Thickness")).SetValue(
-                        new Slider(1, 1, 10)));
-                drawingHpBarMenu.AddItem(new MenuItem(drawingHpBarMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                    new MenuItem(
+                        drawingHpBarMenu.Name + "LineThickness",
+                        Global.Lang.Get("G_Line") + " " + Global.Lang.Get("G_Thickness")).SetValue(new Slider(1, 1, 10)));
+                drawingHpBarMenu.AddItem(
+                    new MenuItem(drawingHpBarMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 var drawingCirclesMenu = new Menu(Global.Lang.Get("G_Circle"), drawingMenu.Name + "Circle");
-                drawingCirclesMenu.AddItem(new MenuItem(drawingCirclesMenu.Name + "Color", Global.Lang.Get("G_Color")).SetValue(Color.Fuchsia));
-                drawingCirclesMenu.AddItem(new MenuItem(drawingCirclesMenu.Name + "Radius", Global.Lang.Get("G_Radius")).SetValue(new Slider(30)));
                 drawingCirclesMenu.AddItem(
-                    new MenuItem(drawingCirclesMenu.Name + "Thickness", Global.Lang.Get("G_Thickness")).SetValue(new Slider(2, 1, 10)));
-                drawingCirclesMenu.AddItem(new MenuItem(drawingCirclesMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                    new MenuItem(drawingCirclesMenu.Name + "Color", Global.Lang.Get("G_Color")).SetValue(Color.Fuchsia));
+                drawingCirclesMenu.AddItem(
+                    new MenuItem(drawingCirclesMenu.Name + "Radius", Global.Lang.Get("G_Radius")).SetValue(
+                        new Slider(30)));
+                drawingCirclesMenu.AddItem(
+                    new MenuItem(drawingCirclesMenu.Name + "Thickness", Global.Lang.Get("G_Thickness")).SetValue(
+                        new Slider(2, 1, 10)));
+                drawingCirclesMenu.AddItem(
+                    new MenuItem(drawingCirclesMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 drawingMenu.AddSubMenu(drawingHpBarMenu);
                 drawingMenu.AddSubMenu(drawingCirclesMenu);
@@ -164,9 +195,13 @@ namespace SFXUtility.Features.Drawings
                 {
                     _parent = Global.IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
+                    {
                         OnParentInitialized(null, null);
+                    }
                     else
+                    {
                         _parent.OnInitialized += OnParentInitialized;
+                    }
                 }
             }
             catch (Exception ex)
@@ -183,10 +218,13 @@ namespace SFXUtility.Features.Drawings
                     ObjectManager.Get<Obj_AI_Minion>()
                         .Where(
                             minion =>
-                                minion != null && minion.IsValid && !minion.IsDead && minion.IsTargetable && minion.IsHPBarRendered &&
-                                minion.Health > 0.1f && minion.BaseSkinName.Contains("Minion", StringComparison.OrdinalIgnoreCase) &&
-                                minion.Team == (ObjectManager.Player.Team == GameObjectTeam.Order ? GameObjectTeam.Chaos : GameObjectTeam.Order) &&
-                                minion.Position.IsOnScreen());
+                                minion != null && minion.IsValid && !minion.IsDead && minion.IsTargetable &&
+                                minion.IsHPBarRendered && minion.Health > 0.1f &&
+                                minion.BaseSkinName.Contains("Minion", StringComparison.OrdinalIgnoreCase) &&
+                                minion.Team ==
+                                (ObjectManager.Player.Team == GameObjectTeam.Order
+                                    ? GameObjectTeam.Chaos
+                                    : GameObjectTeam.Order) && minion.Position.IsOnScreen());
             }
             catch (Exception ex)
             {

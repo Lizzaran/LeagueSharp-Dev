@@ -20,20 +20,28 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Xml.Linq;
+
+#endregion
+
 namespace SFXLibrary
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Xml.Linq;
+    
 
     #endregion
 
     public class Language
     {
-        private readonly Dictionary<string, Dictionary<string, string>> _languagesDictionary = new Dictionary<string, Dictionary<string, string>>();
+        private readonly Dictionary<string, Dictionary<string, string>> _languagesDictionary =
+            new Dictionary<string, Dictionary<string, string>>();
+
         public List<string> Languages = new List<string>();
         public string Default { get; set; }
         public string Current { get; set; }

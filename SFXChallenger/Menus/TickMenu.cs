@@ -20,11 +20,17 @@
 
 #endregion License
 
+#region
+
+using LeagueSharp.Common;
+
+#endregion
+
 namespace SFXChallenger.Menus
 {
     #region
 
-    using LeagueSharp.Common;
+    
 
     #endregion
 
@@ -32,8 +38,12 @@ namespace SFXChallenger.Menus
     {
         public static void AddToMenu(Menu menu)
         {
-            menu.AddItem(new MenuItem(menu.Name + ".tick", Global.Lang.Get("F_Tick")).SetValue(new Slider(50, 1, 250))).ValueChanged +=
-                delegate(object sender, OnValueChangeEventArgs args) { Core.SetInterval(args.GetNewValue<Slider>().Value); };
+            menu.AddItem(new MenuItem(menu.Name + ".tick", Global.Lang.Get("F_Tick")).SetValue(new Slider(50, 1, 250)))
+                .ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args)
+                {
+                    Core.SetInterval(args.GetNewValue<Slider>().Value);
+                };
             Core.SetInterval(menu.Item(menu.Name + ".tick").GetValue<Slider>().Value);
         }
     }

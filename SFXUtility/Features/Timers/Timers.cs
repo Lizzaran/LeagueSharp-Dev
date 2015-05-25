@@ -20,14 +20,20 @@
 
 #endregion License
 
+#region
+
+using System;
+using LeagueSharp.Common;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+
+#endregion
+
 namespace SFXUtility.Features.Timers
 {
     #region
 
-    using System;
-    using Classes;
-    using LeagueSharp.Common;
-    using SFXLibrary.Logger;
+    
 
     #endregion
 

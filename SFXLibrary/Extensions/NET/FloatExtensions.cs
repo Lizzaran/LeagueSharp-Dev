@@ -20,11 +20,17 @@
 
 #endregion License
 
+#region
+
+using System;
+
+#endregion
+
 namespace SFXLibrary.Extensions.NET
 {
     #region
 
-    using System;
+    
 
     #endregion
 

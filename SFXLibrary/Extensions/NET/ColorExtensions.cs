@@ -20,11 +20,17 @@
 
 #endregion License
 
+#region
+
+using System.Drawing;
+
+#endregion
+
 namespace SFXLibrary.Extensions.NET
 {
     #region
 
-    using System.Drawing;
+    
 
     #endregion
 

@@ -20,20 +20,25 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using LeagueSharp.Common.Data;
+using SFXLibrary.Extensions.LeagueSharp;
+using SFXLibrary.Logger;
+using SharpDX;
+using Color = System.Drawing.Color;
+
+#endregion
+
 namespace SFXChallenger.Wrappers
 {
-    #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using LeagueSharp.Common.Data;
-    using SFXLibrary.Extensions.LeagueSharp;
-    using SFXLibrary.Logger;
-    using SharpDX;
-    using Color = System.Drawing.Color;
+    #region
 
     #endregion
 
@@ -52,44 +57,60 @@ namespace SFXChallenger.Wrappers
         private static Menu _menu;
         private static Obj_AI_Hero _selectedTarget;
         private static readonly List<WeightedItem> WeightedItems;
-        private static readonly Dictionary<Obj_AI_Hero, TargetItem> AggroItems = new Dictionary<Obj_AI_Hero, TargetItem>();
+
+        private static readonly Dictionary<Obj_AI_Hero, TargetItem> AggroItems =
+            new Dictionary<Obj_AI_Hero, TargetItem>();
 
         static TargetSelector()
         {
             WeightedItems = new List<WeightedItem>
             {
-                new WeightedItem("killable", Global.Lang.Get("TS_AAKillable"), 20, false, delegate(Obj_AI_Hero t)
-                {
-                    var time = (int) (ObjectManager.Player.AttackCastDelay*1000) - 100 + Game.Ping/2 +
-                               1000*(int) ObjectManager.Player.Distance(t)/(int) Orbwalking.GetMyProjectileSpeed();
-                    return HealthPrediction.GetHealthPrediction(t, time, 0) + t.HPRegenRate*time <= ObjectManager.Player.GetAutoAttackDamage(t, true)
-                        ? 1
-                        : 0;
-                }),
-                new WeightedItem("attack-damage", Global.Lang.Get("TS_AttackDamage"), 10, false, delegate(Obj_AI_Hero t)
-                {
-                    var ad = (t.BaseAttackDamage + t.FlatPhysicalDamageMod);
-                    ad += ad/100*(t.Crit*100)*(t.HasItem(ItemData.Infinity_Edge.Id) ? 2.5f : 2f);
-                    var averageArmor = HeroManager.Allies.Average(a => a.Armor)*ObjectManager.Player.PercentArmorPenetrationMod -
-                                       t.FlatArmorPenetrationMod;
-                    return (ad*(100/(100 + (averageArmor > 0 ? averageArmor : 0))))*t.AttackSpeedMod;
-                }),
-                new WeightedItem("ability-power", Global.Lang.Get("TS_AbilityPower"), 10, false, delegate(Obj_AI_Hero t)
-                {
-                    var averageMr = HeroManager.Allies.Average(a => a.SpellBlock)*ObjectManager.Player.PercentMagicPenetrationMod -
-                                    t.FlatMagicPenetrationMod;
-                    return (t.BaseAbilityDamage + t.FlatMagicDamageMod)*(100/(100 + (averageMr > 0 ? averageMr : 0)));
-                }),
-                new WeightedItem("low-resists", Global.Lang.Get("TS_LowResists"), 6, true,
-                    t => ObjectManager.Player.FlatPhysicalDamageMod >= ObjectManager.Player.FlatMagicDamageMod ? t.Armor : t.SpellBlock),
+                new WeightedItem(
+                    "killable", Global.Lang.Get("TS_AAKillable"), 20, false, delegate(Obj_AI_Hero t)
+                    {
+                        var time = (int) (ObjectManager.Player.AttackCastDelay * 1000) - 100 + Game.Ping / 2 +
+                                   1000 * (int) ObjectManager.Player.Distance(t) /
+                                   (int) Orbwalking.GetMyProjectileSpeed();
+                        return HealthPrediction.GetHealthPrediction(t, time, 0) + t.HPRegenRate * time <=
+                               ObjectManager.Player.GetAutoAttackDamage(t, true)
+                            ? 1
+                            : 0;
+                    }),
+                new WeightedItem(
+                    "attack-damage", Global.Lang.Get("TS_AttackDamage"), 10, false, delegate(Obj_AI_Hero t)
+                    {
+                        var ad = (t.BaseAttackDamage + t.FlatPhysicalDamageMod);
+                        ad += ad / 100 * (t.Crit * 100) * (t.HasItem(ItemData.Infinity_Edge.Id) ? 2.5f : 2f);
+                        var averageArmor = HeroManager.Allies.Average(a => a.Armor) *
+                                           ObjectManager.Player.PercentArmorPenetrationMod - t.FlatArmorPenetrationMod;
+                        return (ad * (100 / (100 + (averageArmor > 0 ? averageArmor : 0)))) * t.AttackSpeedMod;
+                    }),
+                new WeightedItem(
+                    "ability-power", Global.Lang.Get("TS_AbilityPower"), 10, false, delegate(Obj_AI_Hero t)
+                    {
+                        var averageMr = HeroManager.Allies.Average(a => a.SpellBlock) *
+                                        ObjectManager.Player.PercentMagicPenetrationMod - t.FlatMagicPenetrationMod;
+                        return (t.BaseAbilityDamage + t.FlatMagicDamageMod) *
+                               (100 / (100 + (averageMr > 0 ? averageMr : 0)));
+                    }),
+                new WeightedItem(
+                    "low-resists", Global.Lang.Get("TS_LowResists"), 6, true,
+                    t =>
+                        ObjectManager.Player.FlatPhysicalDamageMod >= ObjectManager.Player.FlatMagicDamageMod
+                            ? t.Armor
+                            : t.SpellBlock),
                 new WeightedItem("low-health", Global.Lang.Get("TS_LowHealth"), 8, true, t => t.Health),
-                new WeightedItem("short-distance", Global.Lang.Get("TS_ShortDistance"), 7, true, t => t.Distance(ObjectManager.Player)),
-                new WeightedItem("team-focus", Global.Lang.Get("TS_TeamFocus"), 5, false,
+                new WeightedItem(
+                    "short-distance", Global.Lang.Get("TS_ShortDistance"), 7, true,
+                    t => t.Distance(ObjectManager.Player)),
+                new WeightedItem(
+                    "team-focus", Global.Lang.Get("TS_TeamFocus"), 5, false,
                     t =>
                         AggroItems.Where(a => a.Key.IsAlly && a.Value.Target.NetworkId == t.NetworkId)
                             .Count(aggro => (Game.Time - aggro.Value.Timestamp) <= AggroFadeTime)),
-                new WeightedItem("gold", Global.Lang.Get("TS_Gold"), 7, false,
-                    t => t.MinionsKilled*MinionGold + t.ChampionsKilled*KillGold + t.Assists*AssistGold)
+                new WeightedItem(
+                    "gold", Global.Lang.Get("TS_Gold"), 7, false,
+                    t => t.MinionsKilled * MinionGold + t.ChampionsKilled * KillGold + t.Assists * AssistGold)
             };
 
             Game.OnWndProc += OnGameWndProc;
@@ -99,7 +120,12 @@ namespace SFXChallenger.Wrappers
 
         public static Obj_AI_Hero SelectedTarget
         {
-            get { return (_menu != null && _menu.Item(_menu.Name + ".focus-selected").GetValue<bool>() ? _selectedTarget : null); }
+            get
+            {
+                return (_menu != null && _menu.Item(_menu.Name + ".focus-selected").GetValue<bool>()
+                    ? _selectedTarget
+                    : null);
+            }
         }
 
         ~TargetSelector()
@@ -142,17 +168,23 @@ namespace SFXChallenger.Wrappers
             try
             {
                 if (_menu == null || ObjectManager.Player.IsDead)
+                {
                     return;
+                }
 
-                if (_selectedTarget != null && _selectedTarget.IsValidTarget() && _menu.Item(_menu.Name + ".focus-selected").GetValue<bool>() &&
+                if (_selectedTarget != null && _selectedTarget.IsValidTarget() &&
+                    _menu.Item(_menu.Name + ".focus-selected").GetValue<bool>() &&
                     _menu.Item(_menu.Name + ".drawing.selected-color").GetValue<Circle>().Active)
                 {
-                    Render.Circle.DrawCircle(_selectedTarget.Position, _selectedTarget.BoundingRadius + SelectClickBuffer,
+                    Render.Circle.DrawCircle(
+                        _selectedTarget.Position, _selectedTarget.BoundingRadius + SelectClickBuffer,
                         _menu.Item(_menu.Name + ".drawing.selected-color").GetValue<Circle>().Color,
                         _menu.Item(_menu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value, true);
                 }
 
-                if (_menu.Item(_menu.Name + ".assassin-mode.enabled-" + ObjectManager.Player.ChampionName).GetValue<bool>() &&
+                if (
+                    _menu.Item(_menu.Name + ".assassin-mode.enabled-" + ObjectManager.Player.ChampionName)
+                        .GetValue<bool>() &&
                     _menu.Item(_menu.Name + ".drawing.assassin-color").GetValue<Circle>().Active)
                 {
                     foreach (var target in
@@ -160,9 +192,12 @@ namespace SFXChallenger.Wrappers
                             h =>
                                 _menu.Item(_menu.Name + ".assassin-mode.enemy-list." + h.ChampionName).GetValue<bool>() &&
                                 h.Position.Distance(ObjectManager.Player.Position) <=
-                                _menu.Item(_menu.Name + ".assassin-mode.range-" + ObjectManager.Player.ChampionName).GetValue<Slider>().Value))
+                                _menu.Item(_menu.Name + ".assassin-mode.range-" + ObjectManager.Player.ChampionName)
+                                    .GetValue<Slider>()
+                                    .Value))
                     {
-                        Render.Circle.DrawCircle(target.Position, target.BoundingRadius + SelectClickBuffer,
+                        Render.Circle.DrawCircle(
+                            target.Position, target.BoundingRadius + SelectClickBuffer,
                             _menu.Item(_menu.Name + ".drawing.assassin-color").GetValue<Circle>().Color,
                             _menu.Item(_menu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value, true);
                     }
@@ -171,10 +206,12 @@ namespace SFXChallenger.Wrappers
                 {
                     if (_menu.Item(_menu.Name + ".weights.enabled").GetValue<bool>())
                     {
-                        foreach (var target in HeroManager.Enemies.Where(h => h.IsVisible && !h.IsDead && h.Position.IsOnScreen()))
+                        foreach (var target in
+                            HeroManager.Enemies.Where(h => h.IsVisible && !h.IsDead && h.Position.IsOnScreen()))
                         {
-                            var champWeight = (((_menu.Item(_menu.Name + ".heroes." + target.ChampionName).GetValue<Slider>().Value*
-                                                 (_averageWeight - MinWeight))/5) + MinWeight) + 1;
+                            var champWeight =
+                                (((_menu.Item(_menu.Name + ".heroes." + target.ChampionName).GetValue<Slider>().Value *
+                                   (_averageWeight - MinWeight)) / 5) + MinWeight) + 1;
                             var position = Drawing.WorldToScreen(target.Position);
                             var offset = 0;
                             var totalWeight = 0f;
@@ -183,13 +220,19 @@ namespace SFXChallenger.Wrappers
                                 weight.CurrentMin = HeroManager.Enemies.Select(weight.GetValue).DefaultIfEmpty().Min();
                                 weight.CurrentMax = HeroManager.Enemies.Select(weight.GetValue).DefaultIfEmpty().Max();
                                 var tmpWeight = weight.CalculatedWeight(target);
-                                tmpWeight += champWeight*_menu.Item(_menu.Name + ".heroes.weight-multiplicator").GetValue<Slider>().Value;
+                                tmpWeight += champWeight *
+                                             _menu.Item(_menu.Name + ".heroes.weight-multiplicator")
+                                                 .GetValue<Slider>()
+                                                 .Value;
                                 totalWeight += tmpWeight;
-                                Drawing.DrawText(position.X + target.BoundingRadius, position.Y - 100 + offset, Color.White,
+                                Drawing.DrawText(
+                                    position.X + target.BoundingRadius, position.Y - 100 + offset, Color.White,
                                     string.Format("{0} - {1}", tmpWeight.ToString("00.00"), weight.DisplayName));
                                 offset += 17;
                             }
-                            Drawing.DrawText(target.HPBarPosition.X + 51, target.HPBarPosition.Y - 20, Color.White, totalWeight.ToString("0.00"));
+                            Drawing.DrawText(
+                                target.HPBarPosition.X + 51, target.HPBarPosition.Y - 20, Color.White,
+                                totalWeight.ToString("0.00"));
                         }
                     }
                 }
@@ -203,10 +246,13 @@ namespace SFXChallenger.Wrappers
         private static void OnGameWndProc(WndEventArgs args)
         {
             if (args.Msg != (ulong) WindowsMessages.WM_LBUTTONDOWN)
+            {
                 return;
+            }
 
             _selectedTarget =
-                HeroManager.Enemies.Where(h => h.IsValidTarget() && h.Distance(Game.CursorPos) < h.BoundingRadius + SelectClickBuffer)
+                HeroManager.Enemies.Where(
+                    h => h.IsValidTarget() && h.Distance(Game.CursorPos) < h.BoundingRadius + SelectClickBuffer)
                     .OrderBy(h => h.Distance(Game.CursorPos))
                     .FirstOrDefault();
         }
@@ -224,14 +270,19 @@ namespace SFXChallenger.Wrappers
             return _selectedTarget;
         }
 
-        public static Obj_AI_Hero GetTarget(Spell spell, bool ignoreShields = true, Vector3 from = new Vector3(),
+        public static Obj_AI_Hero GetTarget(Spell spell,
+            bool ignoreShields = true,
+            Vector3 from = new Vector3(),
             IEnumerable<Obj_AI_Hero> ignoredChampions = null)
         {
             return GetTarget(spell.Range, spell.DamageType, ignoreShields, from, ignoredChampions);
         }
 
-        private static bool IsValidTarget(Obj_AI_Base target, float range, LeagueSharp.Common.TargetSelector.DamageType damageType,
-            bool ignoreShields = true, Vector3 from = default(Vector3))
+        private static bool IsValidTarget(Obj_AI_Base target,
+            float range,
+            LeagueSharp.Common.TargetSelector.DamageType damageType,
+            bool ignoreShields = true,
+            Vector3 from = default(Vector3))
         {
             return target.IsValidTarget() &&
                    target.Distance((from.Equals(default(Vector3)) ? ObjectManager.Player.ServerPosition : from), true) <
@@ -240,33 +291,42 @@ namespace SFXChallenger.Wrappers
         }
 
         public static Obj_AI_Hero GetTarget(float range,
-            LeagueSharp.Common.TargetSelector.DamageType damageType = LeagueSharp.Common.TargetSelector.DamageType.True, bool ignoreShields = true,
-            Vector3 from = default(Vector3), IEnumerable<Obj_AI_Hero> ignoredChampions = null)
+            LeagueSharp.Common.TargetSelector.DamageType damageType = LeagueSharp.Common.TargetSelector.DamageType.True,
+            bool ignoreShields = true,
+            Vector3 from = default(Vector3),
+            IEnumerable<Obj_AI_Hero> ignoredChampions = null)
         {
             try
             {
                 var assassin = _menu != null &&
-                               _menu.Item(_menu.Name + ".assassin-mode.enabled-" + ObjectManager.Player.ChampionName).GetValue<bool>();
+                               _menu.Item(_menu.Name + ".assassin-mode.enabled-" + ObjectManager.Player.ChampionName)
+                                   .GetValue<bool>();
 
                 var aRange = assassin
-                    ? _menu.Item(_menu.Name + ".assassin-mode.range-" + ObjectManager.Player.ChampionName).GetValue<Slider>().Value
+                    ? _menu.Item(_menu.Name + ".assassin-mode.range-" + ObjectManager.Player.ChampionName)
+                        .GetValue<Slider>()
+                        .Value
                     : range;
 
                 if (_menu != null && SelectedTarget != null &&
-                    SelectedTarget.IsValidTarget(_menu.Item(_menu.Name + ".force-focus-selected").GetValue<bool>() ? float.MaxValue : aRange, true,
-                        from))
+                    SelectedTarget.IsValidTarget(
+                        _menu.Item(_menu.Name + ".force-focus-selected").GetValue<bool>() ? float.MaxValue : aRange,
+                        true, from))
                 {
                     return SelectedTarget;
                 }
 
                 var targets =
-                    HeroManager.Enemies.Where(h => ignoredChampions == null || ignoredChampions.All(i => i.NetworkId != h.NetworkId))
+                    HeroManager.Enemies.Where(
+                        h => ignoredChampions == null || ignoredChampions.All(i => i.NetworkId != h.NetworkId))
                         .Where(h => IsValidTarget(h, aRange, damageType, ignoreShields, from))
                         .ToList();
 
                 if (assassin)
                 {
-                    var assassinTargets = targets.Where(h => _menu.Item(_menu.Name + ".assassin-mode." + h.ChampionName).GetValue<bool>()).ToList();
+                    var assassinTargets =
+                        targets.Where(h => _menu.Item(_menu.Name + ".assassin-mode." + h.ChampionName).GetValue<bool>())
+                            .ToList();
                     if (assassinTargets.Any())
                     {
                         targets = assassinTargets;
@@ -290,26 +350,34 @@ namespace SFXChallenger.Wrappers
         }
 
         public static List<Target> GetTargets(float range,
-            LeagueSharp.Common.TargetSelector.DamageType damageType = LeagueSharp.Common.TargetSelector.DamageType.True, bool ignoreShields = true,
-            Vector3 from = default(Vector3), IEnumerable<Obj_AI_Hero> ignoredChampions = null)
+            LeagueSharp.Common.TargetSelector.DamageType damageType = LeagueSharp.Common.TargetSelector.DamageType.True,
+            bool ignoreShields = true,
+            Vector3 from = default(Vector3),
+            IEnumerable<Obj_AI_Hero> ignoredChampions = null)
         {
             try
             {
                 var assassin = _menu != null &&
-                               _menu.Item(_menu.Name + ".assassin-mode.enabled-" + ObjectManager.Player.ChampionName).GetValue<bool>();
+                               _menu.Item(_menu.Name + ".assassin-mode.enabled-" + ObjectManager.Player.ChampionName)
+                                   .GetValue<bool>();
 
                 var aRange = assassin
-                    ? _menu.Item(_menu.Name + ".assassin-mode.range-" + ObjectManager.Player.ChampionName).GetValue<Slider>().Value
+                    ? _menu.Item(_menu.Name + ".assassin-mode.range-" + ObjectManager.Player.ChampionName)
+                        .GetValue<Slider>()
+                        .Value
                     : range;
 
                 var targets =
-                    HeroManager.Enemies.Where(h => ignoredChampions == null || ignoredChampions.All(i => i.NetworkId != h.NetworkId))
+                    HeroManager.Enemies.Where(
+                        h => ignoredChampions == null || ignoredChampions.All(i => i.NetworkId != h.NetworkId))
                         .Where(h => IsValidTarget(h, aRange, damageType, ignoreShields, from))
                         .ToList();
 
                 if (assassin)
                 {
-                    var assassinTargets = targets.Where(h => _menu.Item(_menu.Name + ".assassin-mode." + h.ChampionName).GetValue<bool>()).ToList();
+                    var assassinTargets =
+                        targets.Where(h => _menu.Item(_menu.Name + ".assassin-mode." + h.ChampionName).GetValue<bool>())
+                            .ToList();
                     if (assassinTargets.Any())
                     {
                         targets = assassinTargets;
@@ -325,8 +393,9 @@ namespace SFXChallenger.Wrappers
                 var targetsWeight = TargetWeights(targets);
 
                 if (_menu != null && SelectedTarget != null &&
-                    SelectedTarget.IsValidTarget(_menu.Item(_menu.Name + ".force-focus-selected").GetValue<bool>() ? float.MaxValue : aRange, true,
-                        from))
+                    SelectedTarget.IsValidTarget(
+                        _menu.Item(_menu.Name + ".force-focus-selected").GetValue<bool>() ? float.MaxValue : aRange,
+                        true, from))
                 {
                     var id = targetsWeight.FindIndex(x => x.Hero.NetworkId == SelectedTarget.NetworkId);
                     var item = targetsWeight[id];
@@ -356,9 +425,11 @@ namespace SFXChallenger.Wrappers
                         : 0;
                     if (_menu != null)
                     {
-                        var champWeight = (((_menu.Item(_menu.Name + ".heroes." + target.ChampionName).GetValue<Slider>().Value*
-                                             (_averageWeight - MinWeight))/5) + MinWeight) + 1;
-                        tmpWeight += champWeight*_menu.Item(_menu.Name + ".heroes.weight-multiplicator").GetValue<Slider>().Value;
+                        var champWeight =
+                            (((_menu.Item(_menu.Name + ".heroes." + target.ChampionName).GetValue<Slider>().Value *
+                               (_averageWeight - MinWeight)) / 5) + MinWeight) + 1;
+                        tmpWeight += champWeight *
+                                     _menu.Item(_menu.Name + ".heroes.weight-multiplicator").GetValue<Slider>().Value;
                     }
 
                     targetsList.Add(new Target(target, tmpWeight));
@@ -380,25 +451,35 @@ namespace SFXChallenger.Wrappers
 
                 var drawingMenu = _menu.AddSubMenu(new Menu(Global.Lang.Get("G_Drawing"), menu.Name + ".drawing"));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + ".selected-color", Global.Lang.Get("TS_SelectedTargetColor")).SetValue(new Circle(true, Color.Red)));
+                    new MenuItem(drawingMenu.Name + ".selected-color", Global.Lang.Get("TS_SelectedTargetColor"))
+                        .SetValue(new Circle(true, Color.Red)));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + ".assassin-color", Global.Lang.Get("TS_AssassinTargetColor")).SetValue(new Circle(true,
-                        Color.GreenYellow)));
+                    new MenuItem(drawingMenu.Name + ".assassin-color", Global.Lang.Get("TS_AssassinTargetColor"))
+                        .SetValue(new Circle(true, Color.GreenYellow)));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + ".circle-thickness", Global.Lang.Get("G_CircleThickness")).SetValue(new Slider(2, 1, 10)));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".debug", Global.Lang.Get("G_Debug")).SetValue(false));
+                    new MenuItem(drawingMenu.Name + ".circle-thickness", Global.Lang.Get("G_CircleThickness")).SetValue(
+                        new Slider(2, 1, 10)));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + ".debug", Global.Lang.Get("G_Debug")).SetValue(false));
 
-                var assassinManager = _menu.AddSubMenu(new Menu(Global.Lang.Get("TS_AssassinMode"), menu.Name + ".assassin-mode"));
-                var enemyListMenu = assassinManager.AddSubMenu(new Menu(Global.Lang.Get("TS_EnemyList"), assassinManager.Name + ".enemy-list"));
+                var assassinManager =
+                    _menu.AddSubMenu(new Menu(Global.Lang.Get("TS_AssassinMode"), menu.Name + ".assassin-mode"));
+                var enemyListMenu =
+                    assassinManager.AddSubMenu(
+                        new Menu(Global.Lang.Get("TS_EnemyList"), assassinManager.Name + ".enemy-list"));
                 foreach (var enemy in HeroManager.Enemies)
                 {
-                    enemyListMenu.AddItem(new MenuItem(enemyListMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(false));
+                    enemyListMenu.AddItem(
+                        new MenuItem(enemyListMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(false));
                 }
                 assassinManager.AddItem(
-                    new MenuItem(assassinManager.Name + ".range-" + ObjectManager.Player.ChampionName, Global.Lang.Get("G_Range")).SetValue(
-                        new Slider(1000, 500, 2000)));
+                    new MenuItem(
+                        assassinManager.Name + ".range-" + ObjectManager.Player.ChampionName, Global.Lang.Get("G_Range"))
+                        .SetValue(new Slider(1000, 500, 2000)));
                 assassinManager.AddItem(
-                    new MenuItem(assassinManager.Name + ".enabled-" + ObjectManager.Player.ChampionName, Global.Lang.Get("G_Enabled")).SetValue(false));
+                    new MenuItem(
+                        assassinManager.Name + ".enabled-" + ObjectManager.Player.ChampionName,
+                        Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 var weightsMenu = _menu.AddSubMenu(new Menu(Global.Lang.Get("TS_Weights"), menu.Name + ".weights"));
 
@@ -406,31 +487,39 @@ namespace SFXChallenger.Wrappers
                 {
                     var localItem = item;
                     weightsMenu.AddItem(
-                        new MenuItem(weightsMenu.Name + "." + item.Name, item.DisplayName).SetValue(new Slider(localItem.Weight, MinWeight, MaxWeight)));
-                    weightsMenu.Item(weightsMenu.Name + "." + item.Name).ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        localItem.Weight = args.GetNewValue<Slider>().Value;
-                        _averageWeight = (float) WeightedItems.Average(w => w.Weight);
-                    };
+                        new MenuItem(weightsMenu.Name + "." + item.Name, item.DisplayName).SetValue(
+                            new Slider(localItem.Weight, MinWeight, MaxWeight)));
+                    weightsMenu.Item(weightsMenu.Name + "." + item.Name).ValueChanged +=
+                        delegate(object sender, OnValueChangeEventArgs args)
+                        {
+                            localItem.Weight = args.GetNewValue<Slider>().Value;
+                            _averageWeight = (float) WeightedItems.Average(w => w.Weight);
+                        };
                 }
 
-                weightsMenu.AddItem(new MenuItem(weightsMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
+                weightsMenu.AddItem(
+                    new MenuItem(weightsMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
 
                 var heroesMenu = _menu.AddSubMenu(new Menu(Global.Lang.Get("G_Heroes"), menu.Name + ".heroes"));
 
                 heroesMenu.AddItem(
-                    new MenuItem(heroesMenu.Name + ".weight-multiplicator", Global.Lang.Get("TS_WeightMultiplicator")).SetValue(new Slider(1,
-                        MinMultiplicator, MaxMultiplicator)));
+                    new MenuItem(heroesMenu.Name + ".weight-multiplicator", Global.Lang.Get("TS_WeightMultiplicator"))
+                        .SetValue(new Slider(1, MinMultiplicator, MaxMultiplicator)));
 
                 foreach (var enemy in HeroManager.Enemies)
                 {
                     heroesMenu.AddItem(
-                        new MenuItem(heroesMenu.Name + "." + enemy.ChampionName, Global.Lang.Get("TS_Weights") + ": " + enemy.ChampionName).SetValue(
-                            new Slider(1, 1, 5)));
+                        new MenuItem(
+                            heroesMenu.Name + "." + enemy.ChampionName,
+                            Global.Lang.Get("TS_Weights") + ": " + enemy.ChampionName).SetValue(new Slider(1, 1, 5)));
                 }
 
-                _menu.AddItem(new MenuItem(menu.Name + ".focus-selected", Global.Lang.Get("TS_FocusSelectedTarget")).SetValue(true));
-                _menu.AddItem(new MenuItem(menu.Name + ".force-focus-selected", Global.Lang.Get("TS_OnlyAttackSelectedTarget")).SetValue(false));
+                _menu.AddItem(
+                    new MenuItem(menu.Name + ".focus-selected", Global.Lang.Get("TS_FocusSelectedTarget")).SetValue(
+                        true));
+                _menu.AddItem(
+                    new MenuItem(menu.Name + ".force-focus-selected", Global.Lang.Get("TS_OnlyAttackSelectedTarget"))
+                        .SetValue(false));
             }
             catch (Exception ex)
             {
@@ -480,7 +569,11 @@ namespace SFXChallenger.Wrappers
         private readonly Func<Obj_AI_Hero, float> _getValue;
         private float _currentMax;
 
-        public WeightedItem(string name, string displayName, int weight, bool inverted, Func<Obj_AI_Hero, float> getValue)
+        public WeightedItem(string name,
+            string displayName,
+            int weight,
+            bool inverted,
+            Func<Obj_AI_Hero, float> getValue)
         {
             _getValue = getValue;
             Name = name;
@@ -513,13 +606,14 @@ namespace SFXChallenger.Wrappers
 
         public float CalculatedWeight(Obj_AI_Hero target)
         {
-            return CalculatedWeight(GetValue(target), CurrentMin, CurrentMax, Inverted ? Weight : TargetSelector.MinWeight,
+            return CalculatedWeight(
+                GetValue(target), CurrentMin, CurrentMax, Inverted ? Weight : TargetSelector.MinWeight,
                 Inverted ? TargetSelector.MinWeight : Weight);
         }
 
         public float CalculatedWeight(float currentValue, float currentMin, float currentMax, float newMin, float newMax)
         {
-            var weight = (((currentValue - currentMin)*(newMax - newMin))/(currentMax - currentMin)) + newMin;
+            var weight = (((currentValue - currentMin) * (newMax - newMin)) / (currentMax - currentMin)) + newMin;
             return !float.IsNaN(weight) && !float.IsInfinity(weight) ? weight : 0;
         }
 

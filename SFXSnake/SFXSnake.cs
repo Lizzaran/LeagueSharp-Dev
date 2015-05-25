@@ -20,14 +20,20 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Timers;
+using LeagueSharp;
+using LeagueSharp.Common;
+
+#endregion
+
 namespace SFXSnake
 {
     #region
 
-    using System;
-    using System.Timers;
-    using LeagueSharp;
-    using LeagueSharp.Common;
+    
 
     #endregion
 
@@ -61,7 +67,9 @@ namespace SFXSnake
             _menu.Item(_menu.Name + "Speed").ValueChanged += delegate(object sender, OnValueChangeEventArgs eventArgs)
             {
                 if (_onTickTimer != null)
+                {
                     _onTickTimer.Interval = eventArgs.GetNewValue<Slider>().Value;
+                }
             };
 
             _menu.AddToMainMenu();
@@ -125,7 +133,9 @@ namespace SFXSnake
             try
             {
                 if (!_menu.Item(_menu.Name + "Hotkey").GetValue<KeyBind>().Active || _pauseWait)
+                {
                     return;
+                }
 
                 if (!_snake.DoMove(_direction) || _snake.Win())
                 {

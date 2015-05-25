@@ -20,19 +20,25 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+using SharpDX;
+using Color = System.Drawing.Color;
+
+#endregion
+
 namespace SFXUtility.Features.Trackers
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using Classes;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary.Logger;
-    using SharpDX;
-    using Color = System.Drawing.Color;
+    
 
     #endregion
 
@@ -45,7 +51,11 @@ namespace SFXUtility.Features.Trackers
 
         public override bool Enabled
         {
-            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get
+            {
+                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
+            }
         }
 
         public override string Name
@@ -79,9 +89,13 @@ namespace SFXUtility.Features.Trackers
                 {
                     _parent = Global.IoC.Resolve<Trackers>();
                     if (_parent.Initialized)
+                    {
                         OnParentInitialized(null, null);
+                    }
                     else
+                    {
                         _parent.OnInitialized += OnParentInitialized;
+                    }
                 }
             }
             catch (Exception ex)
@@ -95,18 +109,24 @@ namespace SFXUtility.Features.Trackers
             try
             {
                 if (_parent.Menu == null)
+                {
                     return;
+                }
 
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Color", Global.Lang.Get("G_Color")).SetValue(Color.YellowGreen));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "CircleRadius", Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Radius")).SetValue(
-                        new Slider(30)));
+                    new MenuItem(drawingMenu.Name + "Color", Global.Lang.Get("G_Color")).SetValue(Color.YellowGreen));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "CircleThickness", Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Thickness")).SetValue(
-                        new Slider(2, 1, 10)));
+                    new MenuItem(
+                        drawingMenu.Name + "CircleRadius",
+                        Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Radius")).SetValue(new Slider(30)));
+                drawingMenu.AddItem(
+                    new MenuItem(
+                        drawingMenu.Name + "CircleThickness",
+                        Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Thickness")).SetValue(
+                            new Slider(2, 1, 10)));
 
                 Menu.AddSubMenu(drawingMenu);
 
@@ -117,7 +137,9 @@ namespace SFXUtility.Features.Trackers
                 SetupDestinations();
 
                 if (_destinations.Count == 0)
+                {
                     return;
+                }
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();
@@ -132,7 +154,10 @@ namespace SFXUtility.Features.Trackers
         {
             foreach (var hero in HeroManager.Enemies)
             {
-                foreach (var spell in hero.Spellbook.Spells.Where(spell => spell.Name.Equals("SummonerFlash", StringComparison.OrdinalIgnoreCase)))
+                foreach (
+                    var spell in
+                        hero.Spellbook.Spells.Where(
+                            spell => spell.Name.Equals("SummonerFlash", StringComparison.OrdinalIgnoreCase)))
                 {
                     _destinations.Add(new DestinationObject(hero, spell));
                 }
@@ -140,54 +165,96 @@ namespace SFXUtility.Features.Trackers
                 switch (hero.ChampionName)
                 {
                     case "Ezreal":
-                        _destinations.Add(new DestinationObject(hero,
-                            hero.Spellbook.Spells.FirstOrDefault(s => s.SData.Name.Equals("EzrealArcaneShift", StringComparison.OrdinalIgnoreCase))));
+                        _destinations.Add(
+                            new DestinationObject(
+                                hero,
+                                hero.Spellbook.Spells.FirstOrDefault(
+                                    s => s.SData.Name.Equals("EzrealArcaneShift", StringComparison.OrdinalIgnoreCase))));
                         break;
                     case "Fiora":
-                        _destinations.Add(new DestinationObject(hero,
-                            hero.Spellbook.Spells.FirstOrDefault(s => s.SData.Name.Equals("FioraDance", StringComparison.OrdinalIgnoreCase))));
+                        _destinations.Add(
+                            new DestinationObject(
+                                hero,
+                                hero.Spellbook.Spells.FirstOrDefault(
+                                    s => s.SData.Name.Equals("FioraDance", StringComparison.OrdinalIgnoreCase))));
                         break;
                     case "Kassadin":
-                        _destinations.Add(new DestinationObject(hero,
-                            hero.Spellbook.Spells.FirstOrDefault(s => s.SData.Name.Equals("RiftWalk", StringComparison.OrdinalIgnoreCase))));
+                        _destinations.Add(
+                            new DestinationObject(
+                                hero,
+                                hero.Spellbook.Spells.FirstOrDefault(
+                                    s => s.SData.Name.Equals("RiftWalk", StringComparison.OrdinalIgnoreCase))));
                         break;
                     case "Katarina":
-                        _destinations.Add(new DestinationObject(hero,
-                            hero.Spellbook.Spells.FirstOrDefault(s => s.SData.Name.Equals("KatarinaE", StringComparison.OrdinalIgnoreCase))));
+                        _destinations.Add(
+                            new DestinationObject(
+                                hero,
+                                hero.Spellbook.Spells.FirstOrDefault(
+                                    s => s.SData.Name.Equals("KatarinaE", StringComparison.OrdinalIgnoreCase))));
                         break;
                     case "Leblanc":
-                        _destinations.Add(new DestinationObject(hero,
-                            hero.Spellbook.Spells.FirstOrDefault(s => s.SData.Name.Equals("LeblancSlide", StringComparison.OrdinalIgnoreCase))));
-                        _destinations.Add(new DestinationObject(hero,
-                            hero.Spellbook.Spells.FirstOrDefault(s => s.SData.Name.Equals("LeblancSlideReturn", StringComparison.OrdinalIgnoreCase))));
-                        _destinations.Add(new DestinationObject(hero,
-                            hero.Spellbook.Spells.FirstOrDefault(s => s.SData.Name.Equals("LeblancSlideM", StringComparison.OrdinalIgnoreCase))));
-                        _destinations.Add(new DestinationObject(hero,
-                            hero.Spellbook.Spells.FirstOrDefault(s => s.SData.Name.Equals("LeblancSlideReturnM", StringComparison.OrdinalIgnoreCase))));
+                        _destinations.Add(
+                            new DestinationObject(
+                                hero,
+                                hero.Spellbook.Spells.FirstOrDefault(
+                                    s => s.SData.Name.Equals("LeblancSlide", StringComparison.OrdinalIgnoreCase))));
+                        _destinations.Add(
+                            new DestinationObject(
+                                hero,
+                                hero.Spellbook.Spells.FirstOrDefault(
+                                    s => s.SData.Name.Equals("LeblancSlideReturn", StringComparison.OrdinalIgnoreCase))));
+                        _destinations.Add(
+                            new DestinationObject(
+                                hero,
+                                hero.Spellbook.Spells.FirstOrDefault(
+                                    s => s.SData.Name.Equals("LeblancSlideM", StringComparison.OrdinalIgnoreCase))));
+                        _destinations.Add(
+                            new DestinationObject(
+                                hero,
+                                hero.Spellbook.Spells.FirstOrDefault(
+                                    s => s.SData.Name.Equals("LeblancSlideReturnM", StringComparison.OrdinalIgnoreCase))));
                         break;
                     case "Lissandra":
-                        _destinations.Add(new DestinationObject(hero,
-                            hero.Spellbook.Spells.FirstOrDefault(s => s.SData.Name.Equals("LissandraE", StringComparison.OrdinalIgnoreCase))));
+                        _destinations.Add(
+                            new DestinationObject(
+                                hero,
+                                hero.Spellbook.Spells.FirstOrDefault(
+                                    s => s.SData.Name.Equals("LissandraE", StringComparison.OrdinalIgnoreCase))));
                         break;
                     case "MasterYi":
-                        _destinations.Add(new DestinationObject(hero,
-                            hero.Spellbook.Spells.FirstOrDefault(s => s.SData.Name.Equals("AlphaStrike", StringComparison.OrdinalIgnoreCase))));
+                        _destinations.Add(
+                            new DestinationObject(
+                                hero,
+                                hero.Spellbook.Spells.FirstOrDefault(
+                                    s => s.SData.Name.Equals("AlphaStrike", StringComparison.OrdinalIgnoreCase))));
                         break;
                     case "Shaco":
-                        _destinations.Add(new DestinationObject(hero,
-                            hero.Spellbook.Spells.FirstOrDefault(s => s.SData.Name.Equals("Deceive", StringComparison.OrdinalIgnoreCase))));
+                        _destinations.Add(
+                            new DestinationObject(
+                                hero,
+                                hero.Spellbook.Spells.FirstOrDefault(
+                                    s => s.SData.Name.Equals("Deceive", StringComparison.OrdinalIgnoreCase))));
                         break;
                     case "Talon":
-                        _destinations.Add(new DestinationObject(hero,
-                            hero.Spellbook.Spells.FirstOrDefault(s => s.SData.Name.Equals("TalonCutthroat", StringComparison.OrdinalIgnoreCase))));
+                        _destinations.Add(
+                            new DestinationObject(
+                                hero,
+                                hero.Spellbook.Spells.FirstOrDefault(
+                                    s => s.SData.Name.Equals("TalonCutthroat", StringComparison.OrdinalIgnoreCase))));
                         break;
                     case "Vayne":
-                        _destinations.Add(new DestinationObject(hero,
-                            hero.Spellbook.Spells.FirstOrDefault(s => s.SData.Name.Equals("VayneTumble", StringComparison.OrdinalIgnoreCase))));
+                        _destinations.Add(
+                            new DestinationObject(
+                                hero,
+                                hero.Spellbook.Spells.FirstOrDefault(
+                                    s => s.SData.Name.Equals("VayneTumble", StringComparison.OrdinalIgnoreCase))));
                         break;
                     case "Zed":
-                        _destinations.Add(new DestinationObject(hero,
-                            hero.Spellbook.Spells.FirstOrDefault(s => s.SData.Name.Equals("ZedShadowDash", StringComparison.OrdinalIgnoreCase))));
+                        _destinations.Add(
+                            new DestinationObject(
+                                hero,
+                                hero.Spellbook.Spells.FirstOrDefault(
+                                    s => s.SData.Name.Equals("ZedShadowDash", StringComparison.OrdinalIgnoreCase))));
                         break;
                 }
             }
@@ -211,7 +278,9 @@ namespace SFXUtility.Features.Trackers
                 else
                 {
                     Render.Circle.DrawCircle(destination.EndPos, radius, color, thickness);
-                    Drawing.DrawLine(Drawing.WorldToScreen(destination.StartPos), Drawing.WorldToScreen(destination.EndPos), 2f, color);
+                    Drawing.DrawLine(
+                        Drawing.WorldToScreen(destination.StartPos), Drawing.WorldToScreen(destination.EndPos), 2f,
+                        color);
                 }
             }
         }
@@ -220,20 +289,25 @@ namespace SFXUtility.Features.Trackers
         {
             var hero = sender as Obj_AI_Hero;
             if (hero == null || !hero.IsValid || !hero.IsEnemy)
+            {
                 return;
+            }
 
             var index = 0;
-            foreach (var destination in _destinations.Where(destination => destination.Hero.NetworkId == hero.NetworkId))
+            foreach (var destination in _destinations.Where(destination => destination.Hero.NetworkId == hero.NetworkId)
+                )
             {
                 var target = args.Target as Obj_AI_Hero;
                 if (target != null && target.IsValid)
+                {
                     destination.Target = target;
+                }
 
                 if (args.SData.Name.Equals("VayneInquisition", StringComparison.OrdinalIgnoreCase))
                 {
                     if (destination.ExtraTicks > 0)
                     {
-                        destination.ExtraTicks = (int) Game.Time + 6 + 2*args.Level;
+                        destination.ExtraTicks = (int) Game.Time + 6 + 2 * args.Level;
                         return;
                     }
                 }
@@ -243,7 +317,9 @@ namespace SFXUtility.Features.Trackers
                     {
                         case "vaynetumble":
                             if (Game.Time >= destination.ExtraTicks)
+                            {
                                 return;
+                            }
                             destination.StartPos = args.Start;
                             destination.EndPos = CalculateEndPos(destination, args);
                             break;
@@ -309,7 +385,7 @@ namespace SFXUtility.Features.Trackers
             {
                 var norm = args.Start - args.End;
                 norm.Normalize();
-                var endPos = args.Start - norm*destination.Range;
+                var endPos = args.Start - norm * destination.Range;
                 destination.EndPos = endPos;
             }
             return destination.EndPos;
@@ -321,7 +397,8 @@ namespace SFXUtility.Features.Trackers
             {
                 if (destination.Hero.ChampionName.Equals("Shaco", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (sender.Type != GameObjectType.obj_LampBulb && sender.Name.Equals("JackInTheBoxPoof2.troy", StringComparison.OrdinalIgnoreCase) &&
+                    if (sender.Type != GameObjectType.obj_LampBulb &&
+                        sender.Name.Equals("JackInTheBoxPoof2.troy", StringComparison.OrdinalIgnoreCase) &&
                         !destination.Casted)
                     {
                         destination.StartPos = sender.Position;
@@ -339,11 +416,13 @@ namespace SFXUtility.Features.Trackers
             foreach (var destination in _destinations.Where(destination => destination.Casted))
             {
                 if (destination.SpellName.Equals("FioraDance", StringComparison.OrdinalIgnoreCase) ||
-                    destination.SpellName.Equals("AlphaStrike", StringComparison.OrdinalIgnoreCase) && destination.Target != null &&
-                    !destination.Target.IsDead)
+                    destination.SpellName.Equals("AlphaStrike", StringComparison.OrdinalIgnoreCase) &&
+                    destination.Target != null && !destination.Target.IsDead)
                 {
                     if (Game.Time > (destination.TimeCasted + destination.Delay + 0.2f))
+                    {
                         destination.Casted = false;
+                    }
                 }
                 else if (destination.Target != null && destination.Target.IsDead)
                 {
@@ -351,12 +430,14 @@ namespace SFXUtility.Features.Trackers
                     destination.EndPos = destination.StartPos;
                     destination.StartPos = temp;
                 }
-                else if (destination.Hero.IsDead || (!destination.Hero.IsValid && Game.Time > (destination.TimeCasted + 2)) ||
+                else if (destination.Hero.IsDead ||
+                         (!destination.Hero.IsValid && Game.Time > (destination.TimeCasted + 2)) ||
                          Game.Time > (destination.TimeCasted + 5 + destination.Delay))
                 {
                     destination.Casted = false;
                 }
-                else if (!destination.OutOfBush && destination.Hero.IsVisible && Game.Time > (destination.TimeCasted + destination.Delay))
+                else if (!destination.OutOfBush && destination.Hero.IsVisible &&
+                         Game.Time > (destination.TimeCasted + destination.Delay))
                 {
                     destination.EndPos = destination.Hero.Position;
                 }

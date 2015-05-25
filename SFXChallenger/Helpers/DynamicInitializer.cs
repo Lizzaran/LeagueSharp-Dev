@@ -20,13 +20,19 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Reflection.Emit;
+using SFXLibrary.Logger;
+
+#endregion
+
 namespace SFXChallenger.Helpers
 {
     #region
 
-    using System;
-    using System.Reflection.Emit;
-    using SFXLibrary.Logger;
+    
 
     #endregion
 
@@ -34,7 +40,7 @@ namespace SFXChallenger.Helpers
     {
         public static TV NewInstance<TV>() where TV : class
         {
-            return ObjectGenerator(typeof (TV)) as TV;
+            return ObjectGenerator(typeof(TV)) as TV;
         }
 
         public static object NewInstance(Type type)
@@ -59,7 +65,7 @@ namespace SFXChallenger.Helpers
                         il.Emit(OpCodes.Ldloc_0);
                         il.Emit(OpCodes.Ret);
 
-                        var method = (Func<object>) dynamic.CreateDelegate(typeof (Func<object>));
+                        var method = (Func<object>) dynamic.CreateDelegate(typeof(Func<object>));
                         return method();
                     }
                 }

@@ -20,13 +20,19 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Reflection;
+using LeagueSharp.Common;
+
+#endregion
+
 namespace SFXChallenger.Menus
 {
     #region
 
-    using System;
-    using System.Reflection;
-    using LeagueSharp.Common;
+    
 
     #endregion
 
@@ -34,12 +40,16 @@ namespace SFXChallenger.Menus
     {
         public static void AddToMenu(Menu menu)
         {
-            menu.AddItem(new MenuItem(menu.Name + ".version",
-                string.Format("{0}: {1}", Global.Lang.Get("Info_Version"), Assembly.GetEntryAssembly().GetName().Version)));
+            menu.AddItem(
+                new MenuItem(
+                    menu.Name + ".version",
+                    string.Format(
+                        "{0}: {1}", Global.Lang.Get("Info_Version"), Assembly.GetEntryAssembly().GetName().Version)));
             menu.AddItem(new MenuItem(menu.Name + ".forum", Global.Lang.Get("Info_Forum") + ": Lizzaran"));
             menu.AddItem(new MenuItem(menu.Name + ".github", Global.Lang.Get("Info_GitHub") + ": Lizzaran"));
             menu.AddItem(new MenuItem(menu.Name + ".irc", Global.Lang.Get("Info_IRC") + ": Appril"));
-            menu.AddItem(new MenuItem(menu.Name + ".exception", string.Format("{0}: {1}", Global.Lang.Get("Info_Exception"), 0)));
+            menu.AddItem(
+                new MenuItem(menu.Name + ".exception", string.Format("{0}: {1}", Global.Lang.Get("Info_Exception"), 0)));
 
             var errorText = Global.Lang.Get("Info_Exception");
             Global.Logger.OnItemAdded += delegate
@@ -50,7 +60,8 @@ namespace SFXChallenger.Menus
                     int count;
                     if (int.TryParse(text, out count))
                     {
-                        menu.Item(menu.Name + ".exception").DisplayName = string.Format("{0}: {1}", errorText, count + 1);
+                        menu.Item(menu.Name + ".exception").DisplayName = string.Format(
+                            "{0}: {1}", errorText, count + 1);
                     }
                 }
                 catch (Exception ex)
@@ -59,7 +70,11 @@ namespace SFXChallenger.Menus
                 }
             };
 
-            Core.OnShutdown += delegate { Notifications.AddNotification(new Notification(menu.Item(menu + ".exception").DisplayName)); };
+            Core.OnShutdown +=
+                delegate
+                {
+                    Notifications.AddNotification(new Notification(menu.Item(menu + ".exception").DisplayName));
+                };
         }
     }
 }

@@ -20,21 +20,27 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary.Extensions.NET;
+using SFXLibrary.Extensions.SharpDX;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+using SharpDX;
+using SharpDX.Direct3D9;
+
+#endregion
+
 namespace SFXUtility.Features.Drawings
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using Classes;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary.Extensions.NET;
-    using SFXLibrary.Extensions.SharpDX;
-    using SFXLibrary.Logger;
-    using SharpDX;
-    using SharpDX.Direct3D9;
+    
 
     #endregion
 
@@ -47,7 +53,11 @@ namespace SFXUtility.Features.Drawings
 
         public override bool Enabled
         {
-            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get
+            {
+                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
+            }
         }
 
         public override string Name
@@ -78,7 +88,9 @@ namespace SFXUtility.Features.Drawings
         protected override void OnUnload(object sender, UnloadEventArgs args)
         {
             if (args != null && args.Final)
+            {
                 base.OnUnload(sender, args);
+            }
 
             if (Initialized)
             {
@@ -92,22 +104,30 @@ namespace SFXUtility.Features.Drawings
             try
             {
                 if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
+                {
                     return;
+                }
 
                 var percent = Menu.Item(Name + "DrawingPercent").GetValue<bool>();
                 if (Menu.Item(Name + "Turret").GetValue<bool>())
                 {
-                    foreach (var turret in _turrets.Where(t => t != null && t.IsValid && !t.IsDead && t.HealthPercent <= 75))
+                    foreach (
+                        var turret in _turrets.Where(t => t != null && t.IsValid && !t.IsDead && t.HealthPercent <= 75))
                     {
-                        _text.DrawTextCentered(((int) (percent ? (int) turret.HealthPercent : turret.Health)).ToStringLookUp(),
+                        _text.DrawTextCentered(
+                            ((int) (percent ? (int) turret.HealthPercent : turret.Health)).ToStringLookUp(),
                             Drawing.WorldToMinimap(turret.Position), Color.White);
                     }
                 }
                 if (Menu.Item(Name + "Inhibitor").GetValue<bool>())
                 {
-                    foreach (var inhib in _inhibs.Where(i => i != null && i.IsValid && !i.IsDead && i.Health > 1f && i.HealthPercent <= 75))
+                    foreach (
+                        var inhib in
+                            _inhibs.Where(
+                                i => i != null && i.IsValid && !i.IsDead && i.Health > 1f && i.HealthPercent <= 75))
                     {
-                        _text.DrawTextCentered(((int) (percent ? (int) inhib.HealthPercent : inhib.Health)).ToStringLookUp(),
+                        _text.DrawTextCentered(
+                            ((int) (percent ? (int) inhib.HealthPercent : inhib.Health)).ToStringLookUp(),
                             Drawing.WorldToMinimap(inhib.Position), Color.White);
                     }
                 }
@@ -147,13 +167,18 @@ namespace SFXUtility.Features.Drawings
             try
             {
                 if (_parent.Menu == null)
+                {
                     return;
+                }
 
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Percent", Global.Lang.Get("G_Percent")).SetValue(false));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(new Slider(13, 3, 30)));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "Percent", Global.Lang.Get("G_Percent")).SetValue(false));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(
+                        new Slider(13, 3, 30)));
 
                 Menu.AddSubMenu(drawingMenu);
 
@@ -164,13 +189,18 @@ namespace SFXUtility.Features.Drawings
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _turrets.AddRange(ObjectManager.Get<Obj_AI_Turret>().Where(t => t.IsValid && !t.IsDead && t.Health > 1f && t.Health < 9999f));
+                _turrets.AddRange(
+                    ObjectManager.Get<Obj_AI_Turret>()
+                        .Where(t => t.IsValid && !t.IsDead && t.Health > 1f && t.Health < 9999f));
                 _inhibs.AddRange(ObjectManager.Get<Obj_BarracksDampener>().Where(i => i.IsValid));
 
                 if (!_turrets.Any() || !_inhibs.Any())
+                {
                     return;
+                }
 
-                _text = new Font(Drawing.Direct3DDevice,
+                _text = new Font(
+                    Drawing.Direct3DDevice,
                     new FontDescription
                     {
                         FaceName = Global.DefaultFont,
@@ -196,9 +226,13 @@ namespace SFXUtility.Features.Drawings
                 {
                     _parent = Global.IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
+                    {
                         OnParentInitialized(null, null);
+                    }
                     else
+                    {
                         _parent.OnInitialized += OnParentInitialized;
+                    }
                 }
             }
             catch (Exception ex)

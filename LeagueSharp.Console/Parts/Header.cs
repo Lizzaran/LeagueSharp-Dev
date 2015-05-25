@@ -20,13 +20,19 @@
 
 #endregion License
 
+#region
+
+using LeagueSharp.Common;
+using SharpDX;
+using SharpDX.Direct3D9;
+
+#endregion
+
 namespace LeagueSharp.Console.Parts
 {
     #region
 
-    using Common;
-    using SharpDX;
-    using SharpDX.Direct3D9;
+    
 
     #endregion
 
@@ -43,8 +49,15 @@ namespace LeagueSharp.Console.Parts
         static Header()
         {
             Line = new Line(Drawing.Direct3DDevice);
-            _font = new Font(Drawing.Direct3DDevice,
-                new FontDescription {FaceName = "Calibri", Height = 18, OutputPrecision = FontPrecision.Default, Quality = FontQuality.Default});
+            _font = new Font(
+                Drawing.Direct3DDevice,
+                new FontDescription
+                {
+                    FaceName = "Calibri",
+                    Height = 18,
+                    OutputPrecision = FontPrecision.Default,
+                    Quality = FontQuality.Default
+                });
 
             Game.OnWndProc += OnGameWndProc;
         }
@@ -80,8 +93,15 @@ namespace LeagueSharp.Console.Parts
             get { return _font.Description.Height; }
             set
             {
-                _font = new Font(Drawing.Direct3DDevice,
-                    new FontDescription {FaceName = FontName, Height = value, OutputPrecision = FontPrecision.Default, Quality = FontQuality.Default});
+                _font = new Font(
+                    Drawing.Direct3DDevice,
+                    new FontDescription
+                    {
+                        FaceName = FontName,
+                        Height = value,
+                        OutputPrecision = FontPrecision.Default,
+                        Quality = FontQuality.Default
+                    });
             }
         }
 
@@ -92,7 +112,8 @@ namespace LeagueSharp.Console.Parts
             get { return _font.Description.FaceName; }
             set
             {
-                _font = new Font(Drawing.Direct3DDevice,
+                _font = new Font(
+                    Drawing.Direct3DDevice,
                     new FontDescription
                     {
                         FaceName = value,
@@ -106,12 +127,14 @@ namespace LeagueSharp.Console.Parts
         private static void OnGameWndProc(WndEventArgs args)
         {
             if (Console.Hidden || Console.Minimized)
+            {
                 return;
+            }
 
             if (args.Msg == (ulong) WindowsMessages.WM_LBUTTONDOWN)
             {
                 var p = Drawing.WorldToScreen(Game.CursorPos);
-                if (Utils.IsUnderRectangle(p, Offset.X - Width/2f, Offset.Y, Width, Height))
+                if (Utils.IsUnderRectangle(p, Offset.X - Width / 2f, Offset.Y, Width, Height))
                 {
                     _dragPosition = p;
                     _dragOffset = Console.Offset;
@@ -152,18 +175,23 @@ namespace LeagueSharp.Console.Parts
         public static void EndScene()
         {
             if (Line.IsDisposed || _font.IsDisposed)
+            {
                 return;
+            }
 
             Line.Width = Width;
 
             Line.Begin();
 
-            Line.Draw(new[] {new Vector2(Offset.X, Offset.Y), new Vector2(Offset.X, Offset.Y + Height)}, BackgroundColor);
+            Line.Draw(
+                new[] { new Vector2(Offset.X, Offset.Y), new Vector2(Offset.X, Offset.Y + Height) }, BackgroundColor);
 
             Line.End();
 
-            _font.DrawText(null, Content, (int) Offset.X - Width/2 + 10,
-                (int) Offset.Y + Height/2 - (_font.MeasureText(null, Content, FontDrawFlags.Center).Height/2), ForegroundColor);
+            _font.DrawText(
+                null, Content, (int) Offset.X - Width / 2 + 10,
+                (int) Offset.Y + Height / 2 - (_font.MeasureText(null, Content, FontDrawFlags.Center).Height / 2),
+                ForegroundColor);
         }
     }
 }

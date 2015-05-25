@@ -20,30 +20,40 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+
+#endregion
+
 namespace SFXUtility.Features.Drawings
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Drawing;
-    using System.Linq;
-    using Classes;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary.Logger;
+    
 
     #endregion
 
     internal class Clone : Base
     {
-        private readonly List<string> _cloneHeroes = new List<string> {"shaco", "leblanc", "monkeyking", "yorick"};
+        private readonly List<string> _cloneHeroes = new List<string> { "shaco", "leblanc", "monkeyking", "yorick" };
         private readonly List<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
         private Drawings _parent;
 
         public override bool Enabled
         {
-            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get
+            {
+                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
+            }
         }
 
         public override string Name
@@ -91,9 +101,13 @@ namespace SFXUtility.Features.Drawings
                 {
                     _parent = Global.IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
+                    {
                         OnParentInitialized(null, null);
+                    }
                     else
+                    {
                         _parent.OnInitialized += OnParentInitialized;
+                    }
                 }
             }
             catch (Exception ex)
@@ -107,20 +121,26 @@ namespace SFXUtility.Features.Drawings
             try
             {
                 if (_parent.Menu == null)
+                {
                     return;
+                }
 
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "CircleColor", Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Color")).SetValue(
-                        Color.YellowGreen));
+                    new MenuItem(
+                        drawingMenu.Name + "CircleColor", Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Color"))
+                        .SetValue(Color.YellowGreen));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "CircleRadius", Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Radius")).SetValue(
-                        new Slider(30)));
+                    new MenuItem(
+                        drawingMenu.Name + "CircleRadius",
+                        Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Radius")).SetValue(new Slider(30)));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "CircleThickness", Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Thickness")).SetValue(
-                        new Slider(2, 1, 10)));
+                    new MenuItem(
+                        drawingMenu.Name + "CircleThickness",
+                        Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Thickness")).SetValue(
+                            new Slider(2, 1, 10)));
 
                 Menu.AddSubMenu(drawingMenu);
 
@@ -131,7 +151,9 @@ namespace SFXUtility.Features.Drawings
                 _heroes.AddRange(HeroManager.Enemies.Where(hero => _cloneHeroes.Contains(hero.ChampionName.ToLower())));
 
                 if (!_heroes.Any())
+                {
                     return;
+                }
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();

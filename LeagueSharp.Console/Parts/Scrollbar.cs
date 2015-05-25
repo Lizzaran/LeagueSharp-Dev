@@ -20,15 +20,20 @@
 
 #endregion License
 
+#region
+
+using System;
+using LeagueSharp.Common;
+using SharpDX;
+using SharpDX.Direct3D9;
+
+#endregion
+
 namespace LeagueSharp.Console.Parts
 {
     #region
 
-    using System;
-    using Common;
-    using SharpDX;
-    using SharpDX.Direct3D9;
-    using Console = LeagueSharp.Console.Console;
+    
 
     #endregion
 
@@ -68,8 +73,8 @@ namespace LeagueSharp.Console.Parts
         {
             get
             {
-                var percent = ((float) Content.Height/Content.RealHeight)*100f;
-                return (int) ((Content.Height*(percent > 100 ? 100 : percent))/100);
+                var percent = ((float) Content.Height / Content.RealHeight) * 100f;
+                return (int) ((Content.Height * (percent > 100 ? 100 : percent)) / 100);
             }
         }
 
@@ -77,8 +82,8 @@ namespace LeagueSharp.Console.Parts
         {
             get
             {
-                var percent = ((float) Content.Height/Content.RealHeight)*100f;
-                return (int) Math.Ceiling(100/(percent > 100 ? 100 : percent));
+                var percent = ((float) Content.Height / Content.RealHeight) * 100f;
+                return (int) Math.Ceiling(100 / (percent > 100 ? 100 : percent));
             }
         }
 
@@ -87,7 +92,7 @@ namespace LeagueSharp.Console.Parts
 
         public static Vector2 Offset
         {
-            get { return new Vector2(Content.Offset.X + (Content.Width - Width)/2f, Content.Offset.Y); }
+            get { return new Vector2(Content.Offset.X + (Content.Width - Width) / 2f, Content.Offset.Y); }
         }
 
         public static int DragTop
@@ -116,21 +121,23 @@ namespace LeagueSharp.Console.Parts
             try
             {
                 if (evt != null)
+                {
                     evt(null, null);
+                }
             }
-            catch
-            {
-            }
+            catch {}
         }
 
         private static void OnGameWndProc(WndEventArgs args)
         {
             if (Console.Hidden || Console.Minimized)
+            {
                 return;
+            }
 
             if (args.Msg == 0x020A)
             {
-                DragTop -= Interval*(unchecked((short) ((long) args.WParam >> 16))/120)*2;
+                DragTop -= Interval * (unchecked((short) ((long) args.WParam >> 16)) / 120) * 2;
             }
             if (args.Msg == (ulong) WindowsMessages.WM_KEYDOWN)
             {
@@ -146,7 +153,7 @@ namespace LeagueSharp.Console.Parts
             if (args.Msg == (ulong) WindowsMessages.WM_LBUTTONDOWN)
             {
                 var p = Drawing.WorldToScreen(Game.CursorPos);
-                if (Utils.IsUnderRectangle(p, Offset.X - Width/2f, Offset.Y + DragTop, Width, Height))
+                if (Utils.IsUnderRectangle(p, Offset.X - Width / 2f, Offset.Y + DragTop, Width, Height))
                 {
                     _dragPosition = p;
                     _dragOffset = new Vector2(Offset.X, DragTop);
@@ -180,13 +187,17 @@ namespace LeagueSharp.Console.Parts
         public static void EndScene()
         {
             if (Line.IsDisposed)
+            {
                 return;
+            }
 
             Line.Width = Width;
 
             Line.Begin();
 
-            Line.Draw(new[] {new Vector2(Offset.X, Offset.Y + DragTop), new Vector2(Offset.X, Offset.Y + DragTop + Height)}, BackgroundColor);
+            Line.Draw(
+                new[] { new Vector2(Offset.X, Offset.Y + DragTop), new Vector2(Offset.X, Offset.Y + DragTop + Height) },
+                BackgroundColor);
 
             Line.End();
         }

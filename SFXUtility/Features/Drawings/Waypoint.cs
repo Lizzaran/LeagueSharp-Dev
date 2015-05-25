@@ -20,21 +20,27 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary;
+using SFXLibrary.Extensions.SharpDX;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+using SharpDX;
+using Color = System.Drawing.Color;
+
+#endregion
+
 namespace SFXUtility.Features.Drawings
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using Classes;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary;
-    using SFXLibrary.Extensions.SharpDX;
-    using SFXLibrary.Logger;
-    using SharpDX;
-    using Color = System.Drawing.Color;
+    
 
     #endregion
 
@@ -47,7 +53,11 @@ namespace SFXUtility.Features.Drawings
 
         public override bool Enabled
         {
-            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get
+            {
+                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
+            }
         }
 
         public override string Name
@@ -74,7 +84,9 @@ namespace SFXUtility.Features.Drawings
             try
             {
                 if (_lastCheck + CheckInterval > Environment.TickCount)
+                {
                     return;
+                }
                 _lastCheck = Environment.TickCount;
 
                 foreach (var hero in
@@ -105,19 +117,23 @@ namespace SFXUtility.Features.Drawings
                     for (int i = 0, l = waypoints.Count - 1; i < l; i++)
                     {
                         if (!waypoints[i].IsValid() || !waypoints[i + 1].IsValid())
+                        {
                             continue;
+                        }
 
                         var current = Drawing.WorldToScreen(waypoints[i].To3D());
                         var next = Drawing.WorldToScreen(waypoints[i + 1].To3D());
 
-                        arrivalTime += (Vector3.Distance(waypoints[i].To3D(), waypoints[i + 1].To3D())/(ObjectManager.Player.MoveSpeed/1000))/1000;
+                        arrivalTime += (Vector3.Distance(waypoints[i].To3D(), waypoints[i + 1].To3D()) /
+                                        (ObjectManager.Player.MoveSpeed / 1000)) / 1000;
                         if (current.IsOnScreen(next))
                         {
                             Drawing.DrawLine(current.X, current.Y, next.X, next.Y, 1, lineColor);
                             if (i == l - 1 && arrivalTime > 0.1f)
                             {
                                 Draw.Cross(next, 10f, 2f, crossColor);
-                                Draw.TextCentered(new Vector2(next.X - 5, next.Y + 15), crossColor, arrivalTime.ToString("0.0"));
+                                Draw.TextCentered(
+                                    new Vector2(next.X - 5, next.Y + 15), crossColor, arrivalTime.ToString("0.0"));
                             }
                         }
                     }
@@ -137,9 +153,13 @@ namespace SFXUtility.Features.Drawings
                 {
                     _parent = Global.IoC.Resolve<Drawings>();
                     if (_parent.Initialized)
+                    {
                         OnParentInitialized(null, null);
+                    }
                     else
+                    {
                         _parent.OnInitialized += OnParentInitialized;
+                    }
                 }
             }
             catch (Exception ex)
@@ -153,16 +173,21 @@ namespace SFXUtility.Features.Drawings
             try
             {
                 if (_parent.Menu == null)
+                {
                     return;
+                }
 
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "CrossColor", Global.Lang.Get("G_Cross") + " " + Global.Lang.Get("G_Color")).SetValue(
-                        Color.DarkRed));
+                    new MenuItem(
+                        drawingMenu.Name + "CrossColor", Global.Lang.Get("G_Cross") + " " + Global.Lang.Get("G_Color"))
+                        .SetValue(Color.DarkRed));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "LineColor", Global.Lang.Get("G_Line") + " " + Global.Lang.Get("G_Color")).SetValue(Color.White));
+                    new MenuItem(
+                        drawingMenu.Name + "LineColor", Global.Lang.Get("G_Line") + " " + Global.Lang.Get("G_Color"))
+                        .SetValue(Color.White));
 
                 Menu.AddSubMenu(drawingMenu);
 

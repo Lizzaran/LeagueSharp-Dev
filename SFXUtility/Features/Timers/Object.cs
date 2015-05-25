@@ -22,7 +22,5 @@
 
 namespace SFXUtility.Features.Timers
 {
-    internal class Object
-    {
-    }
+    internal class Object {}
 }

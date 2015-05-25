@@ -20,13 +20,19 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Drawing;
+using LeagueSharp;
+
+#endregion
+
 namespace SFXSnake
 {
     #region
 
-    using System;
-    using System.Drawing;
-    using LeagueSharp;
+    
 
     #endregion
 

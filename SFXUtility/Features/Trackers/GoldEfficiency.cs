@@ -22,20 +22,26 @@
 
 // Credits: TC-Crew
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary.Extensions.SharpDX;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+using SharpDX;
+using SharpDX.Direct3D9;
+
+#endregion
+
 namespace SFXUtility.Features.Trackers
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using Classes;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary.Extensions.SharpDX;
-    using SFXLibrary.Logger;
-    using SharpDX;
-    using SharpDX.Direct3D9;
+    
 
     #endregion
 
@@ -49,7 +55,11 @@ namespace SFXUtility.Features.Trackers
 
         public override bool Enabled
         {
-            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get
+            {
+                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
+            }
         }
 
         public override string Name
@@ -84,7 +94,9 @@ namespace SFXUtility.Features.Trackers
         protected override void OnUnload(object sender, UnloadEventArgs args)
         {
             if (args != null && args.Final)
+            {
                 base.OnUnload(sender, args);
+            }
 
             if (Initialized)
             {
@@ -101,9 +113,13 @@ namespace SFXUtility.Features.Trackers
                 {
                     _parent = Global.IoC.Resolve<Trackers>();
                     if (_parent.Initialized)
+                    {
                         OnParentInitialized(null, null);
+                    }
                     else
+                    {
                         _parent.OnInitialized += OnParentInitialized;
+                    }
                 }
             }
             catch (Exception ex)
@@ -117,12 +133,16 @@ namespace SFXUtility.Features.Trackers
             try
             {
                 if (_parent.Menu == null)
+                {
                     return;
+                }
 
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(new Slider(18, 3, 30)));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(
+                        new Slider(18, 3, 30)));
 
                 Menu.AddSubMenu(drawingMenu);
 
@@ -130,7 +150,8 @@ namespace SFXUtility.Features.Trackers
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _text = new Font(Drawing.Direct3DDevice,
+                _text = new Font(
+                    Drawing.Direct3DDevice,
                     new FontDescription
                     {
                         FaceName = Global.DefaultFont,
@@ -153,11 +174,17 @@ namespace SFXUtility.Features.Trackers
             try
             {
                 if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
-                    return;
-
-                foreach (var entry in _goldEfficiencies.Where(e => e.Key.IsValid && e.Key.IsVisible && !e.Key.IsDead && e.Key.IsHPBarRendered))
                 {
-                    _text.DrawTextLeft(entry.Value, (int) (entry.Key.HPBarPosition.X + 139),
+                    return;
+                }
+
+                foreach (
+                    var entry in
+                        _goldEfficiencies.Where(
+                            e => e.Key.IsValid && e.Key.IsVisible && !e.Key.IsDead && e.Key.IsHPBarRendered))
+                {
+                    _text.DrawTextLeft(
+                        entry.Value, (int) (entry.Key.HPBarPosition.X + 139),
                         (int) (entry.Key.HPBarPosition.Y + (entry.Key.IsMe ? 35 : 55)), Color.Gold);
                 }
             }
@@ -194,34 +221,39 @@ namespace SFXUtility.Features.Trackers
         private void OnGameUpdate(EventArgs args)
         {
             if (_lastCheck + CheckInterval > Environment.TickCount)
+            {
                 return;
+            }
             _lastCheck = Environment.TickCount;
 
             foreach (var hero in HeroManager.AllHeroes.Where(h => h.IsValid && h.IsVisible))
             {
-                var value = (hero.BaseAttackDamage + hero.FlatPhysicalDamageMod)*Data.AttackDamage;
-                value += (hero.BaseAbilityDamage + hero.FlatMagicDamageMod)*Data.AbilityPower;
-                value += hero.Armor*Data.Armor;
-                value += hero.SpellBlock*Data.MagicResistance;
-                value += hero.MaxHealth*Data.Health;
-                value += hero.MaxMana*Data.Mana;
-                value += hero.HPRegenRate + hero.FlatHPRegenMod*Data.HealthRegeneration;
-                value += hero.PARRegenRate*Data.ManaRegeneration;
-                value += hero.Crit*100*Data.CritChance;
-                value += hero.MoveSpeed*Data.MoveSpeed;
-                value += ((hero.FlatArmorPenetrationMod - 1) + ((1 - hero.PercentArmorPenetrationMod)*100))*Data.ArmorPenetration;
-                value += ObjectManager.Player.PercentCooldownMod*-1*100*Data.CooldownReduction;
-                value += hero.PercentLifeStealMod*100*Data.LifeSteal;
+                var value = (hero.BaseAttackDamage + hero.FlatPhysicalDamageMod) * Data.AttackDamage;
+                value += (hero.BaseAbilityDamage + hero.FlatMagicDamageMod) * Data.AbilityPower;
+                value += hero.Armor * Data.Armor;
+                value += hero.SpellBlock * Data.MagicResistance;
+                value += hero.MaxHealth * Data.Health;
+                value += hero.MaxMana * Data.Mana;
+                value += hero.HPRegenRate + hero.FlatHPRegenMod * Data.HealthRegeneration;
+                value += hero.PARRegenRate * Data.ManaRegeneration;
+                value += hero.Crit * 100 * Data.CritChance;
+                value += hero.MoveSpeed * Data.MoveSpeed;
+                value += ((hero.FlatArmorPenetrationMod - 1) + ((1 - hero.PercentArmorPenetrationMod) * 100)) *
+                         Data.ArmorPenetration;
+                value += ObjectManager.Player.PercentCooldownMod * -1 * 100 * Data.CooldownReduction;
+                value += hero.PercentLifeStealMod * 100 * Data.LifeSteal;
                 value += ((hero.FlatMagicPenetrationMod - 1) +
-                          ((hero.CombatType == GameObjectCombatType.Ranged ? 30 : 50) + 10/100f*((1 - hero.PercentMagicPenetrationMod)*100)))*
-                         Data.MagicPenetration;
-                value += hero.PercentSpellVampMod*100*Data.SpellVamp;
+                          ((hero.CombatType == GameObjectCombatType.Ranged ? 30 : 50) +
+                           10 / 100f * ((1 - hero.PercentMagicPenetrationMod) * 100))) * Data.MagicPenetration;
+                value += hero.PercentSpellVampMod * 100 * Data.SpellVamp;
 
-                var attackSpeed = (~(int) ((1/ObjectManager.Player.AttackSpeedMod*100) - (1/ObjectManager.Player.AttackDelay*100)) + 1)*
-                                  Data.AttackSpeed;
+                var attackSpeed =
+                    (~(int)
+                        ((1 / ObjectManager.Player.AttackSpeedMod * 100) - (1 / ObjectManager.Player.AttackDelay * 100)) +
+                     1) * Data.AttackSpeed;
                 value += attackSpeed > 0 ? attackSpeed : 0;
 
-                _goldEfficiencies[hero] = string.Format("{0:0.0}k", value/1000);
+                _goldEfficiencies[hero] = string.Format("{0:0.0}k", value / 1000);
             }
         }
     }

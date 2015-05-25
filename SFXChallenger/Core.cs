@@ -20,16 +20,22 @@
 
 #endregion License
 
+#region
+
+using System;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXChallenger.Interfaces;
+using SFXLibrary.Logger;
+using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+
+#endregion
+
 namespace SFXChallenger
 {
     #region
 
-    using System;
-    using Interfaces;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary.Logger;
-    using Orbwalking = Wrappers.Orbwalking;
+    
 
     #endregion
 
@@ -60,7 +66,9 @@ namespace SFXChallenger
         private static void OnGameUpdate(EventArgs args)
         {
             if (!_init)
+            {
                 return;
+            }
             try
             {
                 if (Environment.TickCount - _lastTick >= _interval)
@@ -68,7 +76,9 @@ namespace SFXChallenger
                     _lastTick = Environment.TickCount;
 
                     if (ObjectManager.Player.IsDead || ObjectManager.Player.HasBuff("Recall"))
+                    {
                         return;
+                    }
 
                     RaiseEvent(OnPreUpdate, args);
 

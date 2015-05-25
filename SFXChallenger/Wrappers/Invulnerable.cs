@@ -20,16 +20,22 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary.Logger;
+
+#endregion
+
 namespace SFXChallenger.Wrappers
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary.Logger;
+    
 
     #endregion
 
@@ -38,8 +44,11 @@ namespace SFXChallenger.Wrappers
         // ReSharper disable StringLiteralTypo
         private static readonly List<InvulnerableStruct> Invulnerables = new List<InvulnerableStruct>
         {
-            new InvulnerableStruct("FerociousHowl", null, false,
-                (target, type) => ObjectManager.Player.CountEnemiesInRange(Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)) > 1),
+            new InvulnerableStruct(
+                "FerociousHowl", null, false,
+                (target, type) =>
+                    ObjectManager.Player.CountEnemiesInRange(Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)) >
+                    1),
             new InvulnerableStruct("UndyingRage", null, false, (target, type) => target.HealthPercent < 5),
             new InvulnerableStruct("JudicatorIntervention", null, false),
             new InvulnerableStruct("BlackShield", LeagueSharp.Common.TargetSelector.DamageType.Magical, true),
@@ -50,7 +59,8 @@ namespace SFXChallenger.Wrappers
 
         // ReSharper restore StringLiteralTypo
         public static bool HasBuff(Obj_AI_Base target,
-            LeagueSharp.Common.TargetSelector.DamageType damageType = LeagueSharp.Common.TargetSelector.DamageType.True, bool ignoreShields = true)
+            LeagueSharp.Common.TargetSelector.DamageType damageType = LeagueSharp.Common.TargetSelector.DamageType.True,
+            bool ignoreShields = true)
         {
             try
             {
@@ -70,7 +80,9 @@ namespace SFXChallenger.Wrappers
 
     internal struct InvulnerableStruct
     {
-        public InvulnerableStruct(string buffName, LeagueSharp.Common.TargetSelector.DamageType? damageType, bool isShield,
+        public InvulnerableStruct(string buffName,
+            LeagueSharp.Common.TargetSelector.DamageType? damageType,
+            bool isShield,
             Func<Obj_AI_Base, LeagueSharp.Common.TargetSelector.DamageType, bool> customCheck = null) : this()
         {
             BuffName = buffName;

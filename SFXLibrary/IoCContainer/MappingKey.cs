@@ -20,11 +20,17 @@
 
 #endregion License
 
+#region
+
+using System;
+
+#endregion
+
 namespace SFXLibrary.IoCContainer
 {
     #region
 
-    using System;
+    
 
     #endregion
 
@@ -34,7 +40,9 @@ namespace SFXLibrary.IoCContainer
         public MappingKey(Type type, bool singleton, string instanceName)
         {
             if (type == null)
+            {
                 throw new ArgumentNullException("type");
+            }
 
             Type = type;
             Singleton = singleton;
@@ -49,17 +57,24 @@ namespace SFXLibrary.IoCContainer
         public override bool Equals(object obj)
         {
             if (obj == null)
+            {
                 return false;
+            }
 
             var compareTo = obj as MappingKey;
 
             if (ReferenceEquals(this, compareTo))
+            {
                 return true;
+            }
 
             if (compareTo == null)
+            {
                 return false;
+            }
 
-            return Type == compareTo.Type && string.Equals(InstanceName, compareTo.InstanceName, StringComparison.InvariantCultureIgnoreCase);
+            return Type == compareTo.Type &&
+                   string.Equals(InstanceName, compareTo.InstanceName, StringComparison.InvariantCultureIgnoreCase);
         }
 
         public override int GetHashCode()
@@ -69,8 +84,8 @@ namespace SFXLibrary.IoCContainer
                 const int multiplier = 31;
                 var hash = GetType().GetHashCode();
 
-                hash = hash*multiplier + Type.GetHashCode();
-                hash = hash*multiplier + (InstanceName == null ? 0 : InstanceName.GetHashCode());
+                hash = hash * multiplier + Type.GetHashCode();
+                hash = hash * multiplier + (InstanceName == null ? 0 : InstanceName.GetHashCode());
 
                 return hash;
             }

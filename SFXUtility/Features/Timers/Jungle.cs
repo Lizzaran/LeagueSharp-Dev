@@ -20,21 +20,27 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary.Extensions.NET;
+using SFXLibrary.Extensions.SharpDX;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+using SharpDX;
+using SharpDX.Direct3D9;
+
+#endregion
+
 namespace SFXUtility.Features.Timers
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using Classes;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary.Extensions.NET;
-    using SFXLibrary.Extensions.SharpDX;
-    using SFXLibrary.Logger;
-    using SharpDX;
-    using SharpDX.Direct3D9;
+    
 
     #endregion
 
@@ -50,7 +56,11 @@ namespace SFXUtility.Features.Timers
 
         public override bool Enabled
         {
-            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get
+            {
+                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
+            }
         }
 
         public override string Name
@@ -88,7 +98,9 @@ namespace SFXUtility.Features.Timers
         protected override void OnUnload(object sender, UnloadEventArgs args)
         {
             if (args != null && args.Final)
+            {
                 base.OnUnload(sender, args);
+            }
 
             if (Initialized)
             {
@@ -101,12 +113,16 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
-                if (!sender.IsValid || sender.Type != GameObjectType.obj_AI_Minion || sender.Team != GameObjectTeam.Neutral)
+                if (!sender.IsValid || sender.Type != GameObjectType.obj_AI_Minion ||
+                    sender.Team != GameObjectTeam.Neutral)
+                {
                     return;
+                }
 
                 foreach (var camp in _camps)
                 {
-                    var mob = camp.Mobs.FirstOrDefault(m => m.Name.Contains(sender.Name, StringComparison.OrdinalIgnoreCase));
+                    var mob =
+                        camp.Mobs.FirstOrDefault(m => m.Name.Contains(sender.Name, StringComparison.OrdinalIgnoreCase));
                     if (mob != null)
                     {
                         mob.Dead = true;
@@ -128,11 +144,14 @@ namespace SFXUtility.Features.Timers
         private void OnGameObjectCreate(GameObject sender, EventArgs args)
         {
             if (!sender.IsValid || sender.Type != GameObjectType.obj_AI_Minion || sender.Team != GameObjectTeam.Neutral)
+            {
                 return;
+            }
 
             foreach (var camp in _camps)
             {
-                var mob = camp.Mobs.FirstOrDefault(m => m.Name.Contains(sender.Name, StringComparison.OrdinalIgnoreCase));
+                var mob = camp.Mobs.FirstOrDefault(
+                    m => m.Name.Contains(sender.Name, StringComparison.OrdinalIgnoreCase));
                 if (mob != null)
                 {
                     mob.Dead = false;
@@ -144,7 +163,9 @@ namespace SFXUtility.Features.Timers
         private void OnGameUpdate(EventArgs args)
         {
             if (_lastCheck + CheckInterval > Environment.TickCount)
+            {
                 return;
+            }
 
             _lastCheck = Environment.TickCount;
 
@@ -152,7 +173,9 @@ namespace SFXUtility.Features.Timers
             var dragonStacks = 0;
             foreach (var enemy in HeroManager.Enemies)
             {
-                var buff = enemy.Buffs.FirstOrDefault(b => b.Name.Equals("s5test_dragonslayerbuff", StringComparison.OrdinalIgnoreCase));
+                var buff =
+                    enemy.Buffs.FirstOrDefault(
+                        b => b.Name.Equals("s5test_dragonslayerbuff", StringComparison.OrdinalIgnoreCase));
                 if (buff != null && buff.Count > dragonStacks)
                 {
                     dragonStacks = buff.Count;
@@ -175,7 +198,9 @@ namespace SFXUtility.Features.Timers
                 var heroes = HeroManager.Enemies.Where(e => e.IsVisible);
                 foreach (var hero in heroes)
                 {
-                    var buff = hero.Buffs.FirstOrDefault(b => b.Name.Equals("exaltedwithbaronnashor", StringComparison.OrdinalIgnoreCase));
+                    var buff =
+                        hero.Buffs.FirstOrDefault(
+                            b => b.Name.Equals("exaltedwithbaronnashor", StringComparison.OrdinalIgnoreCase));
                     if (buff != null)
                     {
                         bCamp.Dead = true;
@@ -190,30 +215,39 @@ namespace SFXUtility.Features.Timers
             try
             {
                 if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
+                {
                     return;
+                }
 
                 var mapTotalSeconds = Menu.Item(Name + "DrawingMapTimeFormat").GetValue<StringList>().SelectedIndex == 1;
-                var minimapTotalSeconds = Menu.Item(Name + "DrawingMinimapTimeFormat").GetValue<StringList>().SelectedIndex == 1;
+                var minimapTotalSeconds =
+                    Menu.Item(Name + "DrawingMinimapTimeFormat").GetValue<StringList>().SelectedIndex == 1;
                 var mapEnabled = Menu.Item(Name + "DrawingMapEnabled").GetValue<bool>();
                 var minimapEnabled = Menu.Item(Name + "DrawingMinimapEnabled").GetValue<bool>();
 
                 if (!mapEnabled && !minimapEnabled)
+                {
                     return;
+                }
 
                 foreach (var camp in _camps.Where(c => c.Dead))
                 {
                     if (camp.NextRespawnTime - Game.Time <= 0)
+                    {
                         camp.Dead = false;
+                    }
 
                     if (mapEnabled && camp.Position.IsOnScreen())
                     {
-                        _mapText.DrawTextCentered((camp.NextRespawnTime - (int) Game.Time).FormatTime(mapTotalSeconds),
+                        _mapText.DrawTextCentered(
+                            (camp.NextRespawnTime - (int) Game.Time).FormatTime(mapTotalSeconds),
                             Drawing.WorldToScreen(camp.Position), Color.White);
                     }
                     if (minimapEnabled)
                     {
-                        _minimapText.DrawTextCentered((camp.NextRespawnTime - (int) Game.Time).FormatTime(minimapTotalSeconds), camp.MinimapPosition,
-                            Color.White);
+                        _minimapText.DrawTextCentered(
+                            (camp.NextRespawnTime - (int) Game.Time).FormatTime(minimapTotalSeconds),
+                            camp.MinimapPosition, Color.White);
                     }
                 }
             }
@@ -257,9 +291,13 @@ namespace SFXUtility.Features.Timers
                 {
                     _parent = Global.IoC.Resolve<Timers>();
                     if (_parent.Initialized)
+                    {
                         OnParentInitialized(null, null);
+                    }
                     else
+                    {
                         _parent.OnInitialized += OnParentInitialized;
+                    }
                 }
             }
             catch (Exception ex)
@@ -273,7 +311,9 @@ namespace SFXUtility.Features.Timers
             try
             {
                 if (_parent.Menu == null)
+                {
                     return;
+                }
 
                 Menu = new Menu(Name, Name);
 
@@ -282,16 +322,22 @@ namespace SFXUtility.Features.Timers
                 var drawingMinimapMenu = new Menu(Global.Lang.Get("G_Minimap"), drawingMenu.Name + "Minimap");
 
                 drawingMapMenu.AddItem(
-                    new MenuItem(drawingMapMenu.Name + "TimeFormat", Global.Lang.Get("G_TimeFormat")).SetValue(new StringList(new[] {"mm:ss", "ss"})));
-                drawingMapMenu.AddItem(new MenuItem(drawingMapMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(new Slider(20, 3, 30)));
-                drawingMapMenu.AddItem(new MenuItem(drawingMapMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                    new MenuItem(drawingMapMenu.Name + "TimeFormat", Global.Lang.Get("G_TimeFormat")).SetValue(
+                        new StringList(new[] { "mm:ss", "ss" })));
+                drawingMapMenu.AddItem(
+                    new MenuItem(drawingMapMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(
+                        new Slider(20, 3, 30)));
+                drawingMapMenu.AddItem(
+                    new MenuItem(drawingMapMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 drawingMinimapMenu.AddItem(
                     new MenuItem(drawingMinimapMenu.Name + "TimeFormat", Global.Lang.Get("G_TimeFormat")).SetValue(
-                        new StringList(new[] {"mm:ss", "ss"})));
+                        new StringList(new[] { "mm:ss", "ss" })));
                 drawingMinimapMenu.AddItem(
-                    new MenuItem(drawingMinimapMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(new Slider(13, 3, 30)));
-                drawingMinimapMenu.AddItem(new MenuItem(drawingMinimapMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                    new MenuItem(drawingMinimapMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(
+                        new Slider(13, 3, 30)));
+                drawingMinimapMenu.AddItem(
+                    new MenuItem(drawingMinimapMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 drawingMenu.AddSubMenu(drawingMapMenu);
                 drawingMenu.AddSubMenu(drawingMinimapMenu);
@@ -304,12 +350,16 @@ namespace SFXUtility.Features.Timers
 
                 _camps.AddRange(
                     Data.Jungle.Camps.Where(c => c.MapType == Utility.Map.GetMap().Type)
-                        .Select(c => new Camp(c.SpawnTime, c.RespawnTime, c.Position, c.Mobs, c.IsBig, c.MapType, c.Team)));
+                        .Select(
+                            c => new Camp(c.SpawnTime, c.RespawnTime, c.Position, c.Mobs, c.IsBig, c.MapType, c.Team)));
 
                 if (!_camps.Any())
+                {
                     return;
+                }
 
-                _minimapText = new Font(Drawing.Direct3DDevice,
+                _minimapText = new Font(
+                    Drawing.Direct3DDevice,
                     new FontDescription
                     {
                         FaceName = Global.DefaultFont,
@@ -318,7 +368,8 @@ namespace SFXUtility.Features.Timers
                         Quality = FontQuality.Default
                     });
 
-                _mapText = new Font(Drawing.Direct3DDevice,
+                _mapText = new Font(
+                    Drawing.Direct3DDevice,
                     new FontDescription
                     {
                         FaceName = Global.DefaultFont,
@@ -338,8 +389,14 @@ namespace SFXUtility.Features.Timers
 
         private class Camp : Data.Jungle.Camp
         {
-            public Camp(float spawnTime, float respawnTime, Vector3 position, List<Data.Jungle.Mob> mobs, bool isBig, Utility.Map.MapType mapType,
-                GameObjectTeam team, bool dead = false) : base(spawnTime, respawnTime, position, mobs, isBig, mapType, team)
+            public Camp(float spawnTime,
+                float respawnTime,
+                Vector3 position,
+                List<Data.Jungle.Mob> mobs,
+                bool isBig,
+                Utility.Map.MapType mapType,
+                GameObjectTeam team,
+                bool dead = false) : base(spawnTime, respawnTime, position, mobs, isBig, mapType, team)
             {
                 Dead = dead;
                 Mobs = mobs.Select(mob => new Mob(mob.Name)).ToList();

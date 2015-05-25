@@ -20,17 +20,23 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary.Logger;
+using SharpDX;
+
+#endregion
+
 namespace SFXUtility.Data
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary.Logger;
-    using SharpDX;
+    
 
     #endregion
 
@@ -56,12 +62,12 @@ namespace SFXUtility.Data
         static Summoners()
         {
             // ReSharper disable once StringLiteralTypo
-            BlueSmite = new SummonerSpell {Name = "s5_summonersmiteplayerganker", Range = 750f};
-            RedSmite = new SummonerSpell {Name = "s5_summonersmiteduel", Range = 750f};
-            Ignite = new SummonerSpell {Name = "SummonerDot", Range = 600f};
-            Smite = new SummonerSpell {Name = "SummonerSmite", Range = 750f};
+            BlueSmite = new SummonerSpell { Name = "s5_summonersmiteplayerganker", Range = 750f };
+            RedSmite = new SummonerSpell { Name = "s5_summonersmiteduel", Range = 750f };
+            Ignite = new SummonerSpell { Name = "SummonerDot", Range = 600f };
+            Smite = new SummonerSpell { Name = "SummonerSmite", Range = 750f };
 
-            SummonerSpells = new List<SummonerSpell> {Ignite, Smite, BlueSmite, RedSmite};
+            SummonerSpells = new List<SummonerSpell> { Ignite, Smite, BlueSmite, RedSmite };
         }
 
         public static bool IsReady(this SummonerSpell spell)
@@ -96,12 +102,12 @@ namespace SFXUtility.Data
 
         public static float CalculateBlueSmiteDamage()
         {
-            return 20 + ObjectManager.Player.Level*8;
+            return 20 + ObjectManager.Player.Level * 8;
         }
 
         public static float CalculateRedSmiteDamage()
         {
-            return 54 + ObjectManager.Player.Level*6;
+            return 54 + ObjectManager.Player.Level * 6;
         }
 
         public static float CalculateComboDamage(Obj_AI_Hero target, bool ignite, bool smite)
@@ -109,17 +115,20 @@ namespace SFXUtility.Data
             try
             {
                 var damage = 0f;
-                if (ignite && Ignite.Exists() && Ignite.IsReady() && target.Position.Distance(ObjectManager.Player.Position) <= Ignite.Range)
+                if (ignite && Ignite.Exists() && Ignite.IsReady() &&
+                    target.Position.Distance(ObjectManager.Player.Position) <= Ignite.Range)
                 {
                     damage += (float) ObjectManager.Player.GetSummonerSpellDamage(target, Damage.SummonerSpell.Ignite);
                 }
                 if (smite)
                 {
-                    if (BlueSmite.Exists() && BlueSmite.IsReady() && target.Position.Distance(ObjectManager.Player.Position) <= BlueSmite.Range)
+                    if (BlueSmite.Exists() && BlueSmite.IsReady() &&
+                        target.Position.Distance(ObjectManager.Player.Position) <= BlueSmite.Range)
                     {
                         damage += CalculateBlueSmiteDamage();
                     }
-                    else if (RedSmite.Exists() && RedSmite.IsReady() && target.Position.Distance(ObjectManager.Player.Position) <= RedSmite.Range)
+                    else if (RedSmite.Exists() && RedSmite.IsReady() &&
+                             target.Position.Distance(ObjectManager.Player.Position) <= RedSmite.Range)
                     {
                         damage += CalculateRedSmiteDamage();
                     }
@@ -137,17 +146,20 @@ namespace SFXUtility.Data
         {
             try
             {
-                if (ignite && Ignite.Exists() && Ignite.IsReady() && target.Position.Distance(ObjectManager.Player.Position) <= Ignite.Range)
+                if (ignite && Ignite.Exists() && Ignite.IsReady() &&
+                    target.Position.Distance(ObjectManager.Player.Position) <= Ignite.Range)
                 {
                     Ignite.Cast(target);
                 }
                 if (smite)
                 {
-                    if (BlueSmite.Exists() && BlueSmite.IsReady() && target.Position.Distance(ObjectManager.Player.Position) <= BlueSmite.Range)
+                    if (BlueSmite.Exists() && BlueSmite.IsReady() &&
+                        target.Position.Distance(ObjectManager.Player.Position) <= BlueSmite.Range)
                     {
                         BlueSmite.Cast(target);
                     }
-                    else if (RedSmite.Exists() && RedSmite.IsReady() && target.Position.Distance(ObjectManager.Player.Position) <= RedSmite.Range)
+                    else if (RedSmite.Exists() && RedSmite.IsReady() &&
+                             target.Position.Distance(ObjectManager.Player.Position) <= RedSmite.Range)
                     {
                         RedSmite.Cast(target);
                     }

@@ -20,12 +20,18 @@
 
 #endregion License
 
+#region
+
+using LeagueSharp;
+using LeagueSharp.Common;
+
+#endregion
+
 namespace SFXChallenger.Wrappers
 {
     #region
 
-    using LeagueSharp;
-    using LeagueSharp.Common;
+    
 
     #endregion
 
@@ -39,10 +45,14 @@ namespace SFXChallenger.Wrappers
         public static void BasicSkillShot(Obj_AI_Base target, Spell spell, HitChance hitChance, bool towerCheck = false)
         {
             if (!spell.IsReady())
+            {
                 return;
+            }
 
             if (target == null || towerCheck && target.UnderTurret(true))
+            {
                 return;
+            }
 
             spell.UpdateSourcePosition();
 
@@ -58,13 +68,20 @@ namespace SFXChallenger.Wrappers
             BasicTargetSkill(TargetSelector.GetTarget(spell.Range, spell.DamageType), spell, packet, towerCheck);
         }
 
-        public static void BasicTargetSkill(Obj_AI_Base target, Spell spell, bool packet = false, bool towerCheck = false)
+        public static void BasicTargetSkill(Obj_AI_Base target,
+            Spell spell,
+            bool packet = false,
+            bool towerCheck = false)
         {
             if (!spell.IsReady())
+            {
                 return;
+            }
 
             if (target == null || towerCheck && target.UnderTurret(true))
+            {
                 return;
+            }
 
             spell.Cast(target, packet);
         }
@@ -72,12 +89,17 @@ namespace SFXChallenger.Wrappers
         public static void BasicFarm(Spell spell)
         {
             if (!spell.IsReady())
+            {
                 return;
+            }
 
-            var minion = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, spell.Range, MinionTypes.All, MinionTeam.NotAlly);
+            var minion = MinionManager.GetMinions(
+                ObjectManager.Player.ServerPosition, spell.Range, MinionTypes.All, MinionTeam.NotAlly);
 
             if (minion.Count == 0)
+            {
                 return;
+            }
 
             if (spell.Type == SkillshotType.SkillshotCircle)
             {
@@ -95,7 +117,9 @@ namespace SFXChallenger.Wrappers
 
                 var prediction = spell.GetLineFarmLocation(minion);
                 if (prediction.MinionsHit >= 2)
+                {
                     spell.Cast(prediction.Position);
+                }
             }
         }
     }

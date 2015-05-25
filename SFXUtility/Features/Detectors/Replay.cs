@@ -20,17 +20,23 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Timers;
+using LeagueSharp.Common;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+
+#endregion
+
 #pragma warning disable 618
 
 namespace SFXUtility.Features.Detectors
 {
     #region
 
-    using System;
-    using System.Timers;
-    using Classes;
-    using LeagueSharp.Common;
-    using SFXLibrary.Logger;
+    
 
     #endregion
 
@@ -42,7 +48,11 @@ namespace SFXUtility.Features.Detectors
 
         public override bool Enabled
         {
-            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get
+            {
+                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
+            }
         }
 
         public override string Name
@@ -75,9 +85,13 @@ namespace SFXUtility.Features.Detectors
                 {
                     _parent = Global.IoC.Resolve<Detectors>();
                     if (_parent.Initialized)
+                    {
                         OnParentInitialized(null, null);
+                    }
                     else
+                    {
                         _parent.OnInitialized += OnParentInitialized;
+                    }
                 }
             }
             catch (Exception ex)
@@ -91,26 +105,29 @@ namespace SFXUtility.Features.Detectors
             try
             {
                 if (_parent.Menu == null)
+                {
                     return;
+                }
 
                 Menu = new Menu(Name, Name);
 
                 Menu.AddItem(new MenuItem(Name + "DoRecord", Global.Lang.Get("Replay_DoRecord")).SetValue(false));
                 Menu.AddItem(new MenuItem(Name + "IsRecording", Global.Lang.Get("Replay_NotifyRecord")).SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "CheckInterval", Global.Lang.Get("Replay_CheckInterval")).SetValue(new Slider(3, 1, 10)))
-                    .ValueChanged += delegate(object o, OnValueChangeEventArgs args)
-                    {
-                        if (_timer != null)
+                Menu.AddItem(
+                    new MenuItem(Name + "CheckInterval", Global.Lang.Get("Replay_CheckInterval")).SetValue(
+                        new Slider(3, 1, 10))).ValueChanged += delegate(object o, OnValueChangeEventArgs args)
                         {
-                            _timer.Interval = args.GetNewValue<Slider>().Value*60*1000;
-                        }
-                    };
+                            if (_timer != null)
+                            {
+                                _timer.Interval = args.GetNewValue<Slider>().Value * 60 * 1000;
+                            }
+                        };
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _timer = new Timer(Menu.Item(Name + "CheckInterval").GetValue<Slider>().Value*60*1000);
+                _timer = new Timer(Menu.Item(Name + "CheckInterval").GetValue<Slider>().Value * 60 * 1000);
                 _timer.Elapsed += OnTimerElapsed;
 
                 HandleEvents(_parent);

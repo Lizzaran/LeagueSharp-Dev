@@ -20,12 +20,18 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+
+#endregion
+
 namespace SFXLibrary
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
+    
 
     #endregion
 
@@ -41,7 +47,9 @@ namespace SFXLibrary
         public void AddAction(object message, Action<object> callback)
         {
             if (!_map.ContainsKey(message))
+            {
                 _map[message] = new List<WeakAction>();
+            }
 
             _map[message].Add(new WeakAction(callback));
         }
@@ -49,7 +57,9 @@ namespace SFXLibrary
         public List<Action<object>> GetActions(object message)
         {
             if (!_map.ContainsKey(message))
+            {
                 return null;
+            }
 
             var weakActions = _map[message];
             var actions = new List<Action<object>>();
@@ -57,9 +67,13 @@ namespace SFXLibrary
             {
                 var weakAction = weakActions[i];
                 if (!weakAction.IsAlive)
+                {
                     weakActions.RemoveAt(i);
+                }
                 else
+                {
                     actions.Add(weakAction.CreateAction());
+                }
             }
 
             RemoveMessageIfNecessary(weakActions, message);
@@ -70,7 +84,9 @@ namespace SFXLibrary
         private void RemoveMessageIfNecessary(List<WeakAction> weakActions, object message)
         {
             if (weakActions.Count == 0)
+            {
                 _map.Remove(message);
+            }
         }
     }
 }

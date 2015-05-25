@@ -20,11 +20,17 @@
 
 #endregion License
 
+#region
+
+using System;
+
+#endregion
+
 namespace SFXLibrary
 {
     #region
 
-    using System;
+    
 
     #endregion
 
@@ -43,7 +49,9 @@ namespace SFXLibrary
             {
                 var actions = _messageToCallbacksMap.GetActions(from);
                 if (actions != null)
+                {
                     actions.ForEach(action => action(message));
+                }
             }
             catch (Exception ex)
             {

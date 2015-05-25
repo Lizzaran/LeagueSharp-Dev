@@ -22,7 +22,5 @@
 
 namespace SFXUtility.Feature
 {
-    internal class SummonerInfo
-    {
-    }
+    internal class SummonerInfo {}
 }

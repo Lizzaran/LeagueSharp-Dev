@@ -20,15 +20,21 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Net;
+using System.Web.Script.Serialization;
+
+#endregion
+
 namespace SFXUtility.Data
 {
     #region
 
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Net;
-    using System.Web.Script.Serialization;
+    
 
     #endregion
 
@@ -551,9 +557,10 @@ namespace SFXUtility.Data
             {
                 var versionJson = client.DownloadString(DataDragonBase + "realms/na.json");
                 GameVersion =
-                    (String)
-                        ((Dictionary<String, Object>) new JavaScriptSerializer().Deserialize<Dictionary<String, Object>>(versionJson)["n"])["champion"
-                            ];
+                    (string)
+                        ((Dictionary<string, object>)
+                            new JavaScriptSerializer().Deserialize<Dictionary<string, object>>(versionJson)["n"])[
+                                "champion"];
             }
         }
 
@@ -572,12 +579,15 @@ namespace SFXUtility.Data
         {
             using (var client = new WebClient())
             {
-                var champJson = client.DownloadString(DataDragonBase + "cdn/" + GameVersion + "/data/en_US/champion/" + model + ".json");
+                var champJson =
+                    client.DownloadString(
+                        DataDragonBase + "cdn/" + GameVersion + "/data/en_US/champion/" + model + ".json");
                 return
                     (ArrayList)
-                        ((Dictionary<String, Object>)
-                            ((Dictionary<String, Object>) new JavaScriptSerializer().Deserialize<Dictionary<String, Object>>(champJson)["data"])[model
-                                ])["skins"];
+                        ((Dictionary<string, object>)
+                            ((Dictionary<string, object>)
+                                new JavaScriptSerializer().Deserialize<Dictionary<string, object>>(champJson)["data"])[
+                                    model])["skins"];
             }
         }
     }

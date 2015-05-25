@@ -20,13 +20,19 @@
 
 #endregion License
 
+#region
+
+using LeagueSharp.Common;
+using SharpDX;
+using SharpDX.Direct3D9;
+
+#endregion
+
 namespace LeagueSharp.Console.Parts
 {
     #region
 
-    using Common;
-    using SharpDX;
-    using SharpDX.Direct3D9;
+    
 
     #endregion
 
@@ -69,12 +75,12 @@ namespace LeagueSharp.Console.Parts
 
         public static Vector2 Offset
         {
-            get { return new Vector2(Header.Offset.X + Header.Width/2f - Width/2f, Header.Offset.Y); }
+            get { return new Vector2(Header.Offset.X + Header.Width / 2f - Width / 2f, Header.Offset.Y); }
         }
 
         public static Vector2 MinimizedOffset
         {
-            get { return new Vector2((int) ((Drawing.Width - Width/2f)*0.98), (int) (Drawing.Height*0.08)); }
+            get { return new Vector2((int) ((Drawing.Width - Width / 2f) * 0.98), (int) (Drawing.Height * 0.08)); }
         }
 
         public static int Alpha { get; set; }
@@ -82,15 +88,18 @@ namespace LeagueSharp.Console.Parts
         private static void OnGameWndProc(WndEventArgs args)
         {
             if (Console.Hidden)
+            {
                 return;
+            }
 
             if (args.Msg == (ulong) WindowsMessages.WM_LBUTTONDOWN)
             {
                 var p = Drawing.WorldToScreen(Game.CursorPos);
                 var offset = Console.Minimized ? MinimizedOffset : Offset;
-                if (Utils.IsUnderRectangle(p, offset.X - Width/2f, offset.Y, Width, Height))
+                if (Utils.IsUnderRectangle(p, offset.X - Width / 2f, offset.Y, Width, Height))
                 {
-                    Console.Menu.Item(Console.Menu.Name + "Minimized").SetValue(!Console.Menu.Item(Console.Menu.Name + "Minimized").GetValue<bool>());
+                    Console.Menu.Item(Console.Menu.Name + "Minimized")
+                        .SetValue(!Console.Menu.Item(Console.Menu.Name + "Minimized").GetValue<bool>());
                 }
             }
         }
@@ -108,7 +117,9 @@ namespace LeagueSharp.Console.Parts
         public static void EndScene()
         {
             if (Line.IsDisposed)
+            {
                 return;
+            }
 
             var offset = Console.Minimized ? MinimizedOffset : Offset;
 
@@ -116,16 +127,21 @@ namespace LeagueSharp.Console.Parts
 
             Line.Begin();
 
-            Line.Draw(new[] {new Vector2(offset.X, offset.Y), new Vector2(offset.X, offset.Y + Height)}, BackgroundColor);
+            Line.Draw(
+                new[] { new Vector2(offset.X, offset.Y), new Vector2(offset.X, offset.Y + Height) }, BackgroundColor);
 
             Line.End();
 
-            Line.Width = Height/4f;
+            Line.Width = Height / 4f;
 
             Line.Begin();
 
-            Line.Draw(new[] {new Vector2(offset.X - Width/4f, offset.Y + Height/2f), new Vector2(offset.X + Width/4f, offset.Y + Height/2f)},
-                ForegroundColor);
+            Line.Draw(
+                new[]
+                {
+                    new Vector2(offset.X - Width / 4f, offset.Y + Height / 2f),
+                    new Vector2(offset.X + Width / 4f, offset.Y + Height / 2f)
+                }, ForegroundColor);
 
             Line.End();
         }

@@ -20,16 +20,22 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+
+#endregion
+
 namespace SFXUtility.Features.Others
 {
     #region
 
-    using System;
-    using System.Linq;
-    using Classes;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary.Logger;
+    
 
     #endregion
 
@@ -39,7 +45,11 @@ namespace SFXUtility.Features.Others
 
         public override bool Enabled
         {
-            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get
+            {
+                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
+            }
         }
 
         public override string Name
@@ -67,9 +77,13 @@ namespace SFXUtility.Features.Others
                 {
                     _parent = Global.IoC.Resolve<Others>();
                     if (_parent.Initialized)
+                    {
                         OnParentInitialized(null, null);
+                    }
                     else
+                    {
                         _parent.OnInitialized += OnParentInitialized;
+                    }
                 }
             }
             catch (Exception ex)
@@ -83,7 +97,9 @@ namespace SFXUtility.Features.Others
             try
             {
                 if (_parent.Menu == null)
+                {
                     return;
+                }
 
                 Menu = new Menu(Name, Name);
 
@@ -105,12 +121,15 @@ namespace SFXUtility.Features.Others
             if (sender == null || !sender.Owner.IsMe ||
                 !ObjectManager.Player.Spellbook.Spells.Any(
                     s => s.Slot == args.Slot && s.Name.Equals("SummonerFlash", StringComparison.OrdinalIgnoreCase)))
+            {
                 return;
+            }
 
             if (ObjectManager.Player.ServerPosition.To2D().Distance(args.StartPosition) < 390f)
             {
                 args.Process = false;
-                ObjectManager.Player.Spellbook.CastSpell(args.Slot, ObjectManager.Player.ServerPosition.Extend(args.StartPosition, 400f));
+                ObjectManager.Player.Spellbook.CastSpell(
+                    args.Slot, ObjectManager.Player.ServerPosition.Extend(args.StartPosition, 400f));
             }
         }
     }

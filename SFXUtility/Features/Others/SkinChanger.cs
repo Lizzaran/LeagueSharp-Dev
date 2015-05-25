@@ -20,18 +20,24 @@
 
 #endregion License
 
+#region
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary.Logger;
+using SFXUtility.Classes;
+using SFXUtility.Data;
+
+#endregion
+
 namespace SFXUtility.Features.Others
 {
     #region
 
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using Classes;
-    using Data;
-    using LeagueSharp;
-    using LeagueSharp.Common;
-    using SFXLibrary.Logger;
+    
 
     #endregion
 
@@ -46,7 +52,11 @@ namespace SFXUtility.Features.Others
 
         public override bool Enabled
         {
-            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+            get
+            {
+                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+                       Menu.Item(Name + "Enabled").GetValue<bool>();
+            }
         }
 
         public override string Name
@@ -76,9 +86,13 @@ namespace SFXUtility.Features.Others
                 {
                     _parent = Global.IoC.Resolve<Others>();
                     if (_parent.Initialized)
+                    {
                         OnParentInitialized(null, null);
+                    }
                     else
+                    {
                         _parent.OnInitialized += OnParentInitialized;
+                    }
                 }
             }
             catch (Exception ex)
@@ -92,14 +106,17 @@ namespace SFXUtility.Features.Others
             try
             {
                 if (_parent.Menu == null)
+                {
                     return;
+                }
 
                 Menu = new Menu(Name, Name);
 
                 foreach (var hero in HeroManager.AllHeroes)
                 {
                     var localHero = hero;
-                    var champMenu = new Menu((hero.IsAlly ? "A: " : "E: ") + hero.ChampionName, (hero.IsAlly ? "a" : "e") + hero.ChampionName);
+                    var champMenu = new Menu(
+                        (hero.IsAlly ? "A: " : "E: ") + hero.ChampionName, (hero.IsAlly ? "a" : "e") + hero.ChampionName);
                     var modelUnit = new ModelUnit(hero);
 
                     _playerList.Add(modelUnit);
@@ -112,7 +129,9 @@ namespace SFXUtility.Features.Others
                     foreach (Dictionary<string, object> skin in ModelManager.GetSkins(hero.ChampionName))
                     {
                         var localSkin = skin;
-                        var skinName = skin["name"].ToString().Equals("default") ? hero.ChampionName : skin["name"].ToString();
+                        var skinName = skin["name"].ToString().Equals("default")
+                            ? hero.ChampionName
+                            : skin["name"].ToString();
                         var changeSkin = champMenu.AddItem(new MenuItem(skinName, skinName).SetValue(false));
                         if (changeSkin.IsActive())
                         {
@@ -123,13 +142,14 @@ namespace SFXUtility.Features.Others
                         {
                             if (e.GetNewValue<bool>())
                             {
-                                champMenu.Items.ForEach(p =>
-                                {
-                                    if (p.GetValue<bool>() && p.Name != skinName)
+                                champMenu.Items.ForEach(
+                                    p =>
                                     {
-                                        p.SetValue(false);
-                                    }
-                                });
+                                        if (p.GetValue<bool>() && p.Name != skinName)
+                                        {
+                                            p.SetValue(false);
+                                        }
+                                    });
                                 modelUnit.SetModel(localHero.ChampionName, (int) localSkin["num"]);
                             }
                         };
@@ -178,7 +198,9 @@ namespace SFXUtility.Features.Others
         private void OnGameUpdate(EventArgs args)
         {
             if (_lastCheck + CheckInterval > Environment.TickCount)
+            {
                 return;
+            }
 
             _lastCheck = Environment.TickCount;
 
