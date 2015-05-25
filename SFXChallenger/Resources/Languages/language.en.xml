@@ -147,6 +147,7 @@
 	<entry key="TS_LowHealth">Low Health</entry>
 	<entry key="TS_ShortDistance">Short Distance</entry>
 	<entry key="TS_TeamFocus">Team Focus</entry>
+	<entry key="TS_DamageMe">Damage Me</entry>
 	<entry key="TS_Gold">Gold</entry>
 	<!-- END: TargetSelector -->
 

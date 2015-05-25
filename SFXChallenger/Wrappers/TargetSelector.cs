@@ -47,6 +47,7 @@ namespace SFXChallenger.Wrappers
         internal const int MinWeight = 0;
         internal const int MaxWeight = 20;
         private const int AggroFadeTime = 10;
+        private const int DamageFadeTime = 10;
         private const int MinMultiplicator = 0;
         private const int MaxMultiplicator = 10;
         private const float SelectClickBuffer = 100f;
@@ -57,9 +58,8 @@ namespace SFXChallenger.Wrappers
         private static Menu _menu;
         private static Obj_AI_Hero _selectedTarget;
         private static readonly List<WeightedItem> WeightedItems;
-
-        private static readonly Dictionary<Obj_AI_Hero, TargetItem> AggroItems =
-            new Dictionary<Obj_AI_Hero, TargetItem>();
+        private static readonly Dictionary<int, AggroItem> AggroItems = new Dictionary<int, AggroItem>();
+        private static readonly Dictionary<int, List<DamageItem>> DamageItems = new Dictionary<int, List<DamageItem>>();
 
         static TargetSelector()
         {
@@ -106,8 +106,24 @@ namespace SFXChallenger.Wrappers
                 new WeightedItem(
                     "team-focus", Global.Lang.Get("TS_TeamFocus"), 5, false,
                     t =>
-                        AggroItems.Where(a => a.Key.IsAlly && a.Value.Target.NetworkId == t.NetworkId)
-                            .Count(aggro => (Game.Time - aggro.Value.Timestamp) <= AggroFadeTime)),
+                        AggroItems.Count(
+                            a =>
+                                a.Value.Target.NetworkId == t.NetworkId &&
+                                (Game.Time - a.Value.Timestamp) <= AggroFadeTime)),
+                new WeightedItem(
+                    "damage-me", Global.Lang.Get("TS_DamageMe"), 7, false, delegate(Obj_AI_Hero t)
+                    {
+                        List<DamageItem> damageItems;
+                        if (DamageItems.TryGetValue(t.NetworkId, out damageItems))
+                        {
+                            return
+                                damageItems.Where(
+                                    d =>
+                                        d.Target.NetworkId == ObjectManager.Player.NetworkId &&
+                                        Game.Time - d.Timestamp <= DamageFadeTime).Sum(d => d.Damage);
+                        }
+                        return 0;
+                    }),
                 new WeightedItem(
                     "gold", Global.Lang.Get("TS_Gold"), 7, false,
                     t => t.MinionsKilled * MinionGold + t.ChampionsKilled * KillGold + t.Assists * AssistGold)
@@ -115,6 +131,7 @@ namespace SFXChallenger.Wrappers
 
             Game.OnWndProc += OnGameWndProc;
             Drawing.OnDraw += OnDrawingDraw;
+            AttackableUnit.OnDamage += OnAttackableUnitDamage;
             Obj_AI_Base.OnAggro += OnObjAiBaseAggro;
         }
 
@@ -132,7 +149,32 @@ namespace SFXChallenger.Wrappers
         {
             Game.OnWndProc -= OnGameWndProc;
             Drawing.OnDraw -= OnDrawingDraw;
+            AttackableUnit.OnDamage -= OnAttackableUnitDamage;
             Obj_AI_Base.OnAggro -= OnObjAiBaseAggro;
+        }
+
+        private static void OnAttackableUnitDamage(AttackableUnit sender, AttackableUnitDamageEventArgs args)
+        {
+            try
+            {
+                var source = HeroManager.Enemies.FirstOrDefault(h => h.NetworkId == args.SourceNetworkId);
+                if (source != null && ObjectManager.Player.NetworkId == args.TargetNetworkId)
+                {
+                    foreach (var item in DamageItems)
+                    {
+                        item.Value.RemoveAll(i => Game.Time - i.Timestamp > DamageFadeTime);
+                    }
+                    if (!DamageItems.ContainsKey(source.NetworkId))
+                    {
+                        DamageItems[source.NetworkId] = new List<DamageItem>();
+                    }
+                    DamageItems[source.NetworkId].Add(new DamageItem(ObjectManager.Player, args.Damage));
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private static void OnObjAiBaseAggro(Obj_AI_Base sender, GameObjectAggroEventArgs args)
@@ -140,20 +182,17 @@ namespace SFXChallenger.Wrappers
             try
             {
                 var hero = sender as Obj_AI_Hero;
-                if (hero != null)
+                var target = HeroManager.Enemies.FirstOrDefault(h => h.NetworkId == args.NetworkId);
+                if (hero != null && target != null)
                 {
-                    var target = HeroManager.Enemies.FirstOrDefault(h => h.NetworkId.Equals(args.NetworkId));
-                    if (target != null)
+                    AggroItem aggro;
+                    if (AggroItems.TryGetValue(hero.NetworkId, out aggro))
                     {
-                        TargetItem aggro;
-                        if (AggroItems.TryGetValue(hero, out aggro))
-                        {
-                            aggro.Target = target;
-                        }
-                        else
-                        {
-                            AggroItems[target] = new TargetItem(target);
-                        }
+                        aggro.Target = target;
+                    }
+                    else
+                    {
+                        AggroItems[target.NetworkId] = new AggroItem(target);
                     }
                 }
             }
@@ -540,27 +579,29 @@ namespace SFXChallenger.Wrappers
         public float Weight { get; private set; }
     }
 
-    internal class TargetItem
+    internal class DamageItem
     {
-        private Obj_AI_Hero _target;
-
-        public TargetItem(Obj_AI_Hero target, float damage = 0)
+        public DamageItem(Obj_AI_Hero target, float damage)
         {
             Target = target;
             Damage = damage;
+            Timestamp = Game.Time;
         }
 
-        public Obj_AI_Hero Target
+        public Obj_AI_Hero Target { get; set; }
+        public float Damage { get; private set; }
+        public float Timestamp { get; private set; }
+    }
+
+    internal class AggroItem
+    {
+        public AggroItem(Obj_AI_Hero target)
         {
-            get { return _target; }
-            set
-            {
-                _target = value;
-                Timestamp = Game.Time;
-            }
+            Target = target;
+            Timestamp = Game.Time;
         }
 
-        public float Damage { get; set; }
+        public Obj_AI_Hero Target { get; set; }
         public float Timestamp { get; private set; }
     }
 
