@@ -42,9 +42,8 @@ using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
 namespace SFXChallenger.Champions
 {
-    #region
 
-    
+    #region
 
     #endregion
 
@@ -395,16 +394,16 @@ namespace SFXChallenger.Champions
                     if (args.Process == false)
                     {
                         var m = args.Target as Obj_AI_Minion;
-                        if (m != null && (_lastEEndTime < Game.Time || E.IsReady()) &&
-                            (GetPoisonBuffEndTime(m) < GetEDelay(m) || Player.GetSpell(E.Slot).ManaCost > Player.Mana) &&
-                            ManaManager.Check("lane-clear"))
+                        if (m != null && (_lastEEndTime < Game.Time || E.IsReady()) ||
+                            (GetPoisonBuffEndTime(m) < GetEDelay(m) || Player.GetSpell(E.Slot).ManaCost > Player.Mana) ||
+                            !ManaManager.Check("lane-clear"))
                         {
                             args.Process = true;
                         }
                     }
                 }
 
-                if ((Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit && ManaManager.Check("lasthit")))
+                if ((Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit))
                 {
                     var m = args.Target as Obj_AI_Minion;
                     if (m != null && E.CanCast(m))
@@ -413,7 +412,7 @@ namespace SFXChallenger.Champions
                         {
                             args.Process = Menu.Item(Menu.Name + ".lasthit.e").GetValue<bool>() ||
                                            (Menu.Item(Menu.Name + ".lasthit.e-poison").GetValue<bool>() &&
-                                            GetPoisonBuffEndTime(m) > GetEDelay(m));
+                                            GetPoisonBuffEndTime(m) > GetEDelay(m)) && ManaManager.Check("lasthit");
                         }
                     }
                 }
@@ -673,7 +672,7 @@ namespace SFXChallenger.Champions
             var ts = _targets.FirstOrDefault(t => E.CanCast(t) && GetPoisonBuffEndTime(t) > GetEDelay(t));
             if (ts != null)
             {
-                E.Cast(ts, true);
+                E.Cast(ts);
             }
         }
 
@@ -746,7 +745,7 @@ namespace SFXChallenger.Champions
                         .FirstOrDefault();
                 if (minion != null)
                 {
-                    _lastEEndTime = Game.Time + GetEDelay(minion);
+                    _lastEEndTime = Game.Time + GetEDelay(minion) + 0.1f;
                     Casting.BasicTargetSkill(minion, E);
                 }
             }

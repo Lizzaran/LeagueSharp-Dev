@@ -40,9 +40,7 @@ namespace SFXChallenger.Managers
 
     internal class ManaManager
     {
-        private static readonly Dictionary<string, Menu> Menues = new Dictionary<string, Menu>();
-        private static ManaCheckType _checkType;
-        private static ManaValueType _valueType;
+        private static readonly Dictionary<string, Tuple<Menu, ManaCheckType, ManaValueType>> Menues = new Dictionary<string, Tuple<Menu, ManaCheckType, ManaValueType>>();
 
         public static void AddToMenu(Menu menu,
             string uniqueId,
@@ -54,8 +52,6 @@ namespace SFXChallenger.Managers
         {
             try
             {
-                _checkType = checkType;
-                _valueType = valueType;
                 if (Menues.ContainsKey(uniqueId))
                 {
                     throw new ArgumentException(string.Format("ManaManager: UniqueID \"{0}\" already exist.", uniqueId));
@@ -64,13 +60,13 @@ namespace SFXChallenger.Managers
                 menu.AddItem(
                     new MenuItem(
                         menu.Name + ".mana-" + uniqueId,
-                        (_checkType == ManaCheckType.Minimum
+                        (checkType == ManaCheckType.Minimum
                             ? Global.Lang.Get("MM_MinMana")
                             : Global.Lang.Get("MM_MaxMana")) +
-                        (_valueType == ManaValueType.Percent ? " %" : string.Empty)).SetValue(
+                        (valueType == ManaValueType.Percent ? " %" : string.Empty)).SetValue(
                             new Slider(value, minValue, maxValue)));
 
-                Menues[uniqueId] = menu;
+                Menues[uniqueId] = new Tuple<Menu, ManaCheckType, ManaValueType>(menu, checkType, valueType);
             }
             catch (Exception ex)
             {
@@ -82,19 +78,19 @@ namespace SFXChallenger.Managers
         {
             try
             {
-                Menu menu;
-                if (Menues.TryGetValue(uniqueId, out menu))
+                Tuple<Menu, ManaCheckType, ManaValueType> tuple;
+                if (Menues.TryGetValue(uniqueId, out tuple))
                 {
-                    var value = menu.Item(menu.Name + ".mana-" + uniqueId).GetValue<Slider>().Value;
-                    if (_checkType == ManaCheckType.Maximum)
+                    var value = tuple.Item1.Item(tuple.Item1.Name + ".mana-" + uniqueId).GetValue<Slider>().Value;
+                    if (tuple.Item2 == ManaCheckType.Maximum)
                     {
-                        return _valueType == ManaValueType.Percent
-                            ? ObjectManager.Player.Mana <= value
-                            : ObjectManager.Player.ManaPercent <= value;
+                        return (tuple.Item3 == ManaValueType.Percent
+                            ? ObjectManager.Player.ManaPercent <= value
+                            : ObjectManager.Player.Mana <= value);
                     }
-                    return _valueType == ManaValueType.Percent
-                        ? ObjectManager.Player.Mana >= value
-                        : ObjectManager.Player.ManaPercent >= value;
+                    return (tuple.Item3 == ManaValueType.Percent
+                        ? ObjectManager.Player.ManaPercent >= value
+                        : ObjectManager.Player.Mana >= value);
                 }
                 throw new KeyNotFoundException(string.Format("ManaManager: UniqueID \"{0}\" not found.", uniqueId));
             }
