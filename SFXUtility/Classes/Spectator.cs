@@ -78,7 +78,7 @@ namespace SFXUtility.Classes
                 try
                 {
                     return
-                        !client.DownloadString(new Uri(DoRecordUrl))
+                        !client.DownloadString(DoRecordUrl)
                             .Contains("error", StringComparison.OrdinalIgnoreCase);
                 }
                 catch

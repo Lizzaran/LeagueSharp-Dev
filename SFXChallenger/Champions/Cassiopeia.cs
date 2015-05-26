@@ -294,8 +294,17 @@ namespace SFXChallenger.Champions
                                 });
                         if (pred.Hitchance >= HitchanceManager.Get("combo", "r"))
                         {
-                            if (Menu.Item(Menu.Name + ".ultimate.flash.1v1").GetValue<bool>() &&
-                                target.Hero.IsFacing(Player))
+                            if (
+                                HeroManager.Enemies.Count(
+                                    x => R.WillHit(x, pred.CastPosition, 0, HitchanceManager.Get("combo", "r"))) >= min)
+                            {
+                                R.Cast(
+                                    Player.Position.Extend(
+                                        pred.CastPosition, -(Player.Position.Distance(pred.CastPosition) * 2)), true);
+                                Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(pred.CastPosition));
+                            }
+                            else if (Menu.Item(Menu.Name + ".ultimate.flash.1v1").GetValue<bool>() &&
+                                     target.Hero.IsFacing(Player))
                             {
                                 var cDmg = CalcComboDamage(
                                     target.Hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
@@ -305,17 +314,12 @@ namespace SFXChallenger.Champions
                                 {
                                     R.Cast(
                                         Player.Position.Extend(
-                                            pred.CastPosition, -(Player.Position.Distance(pred.CastPosition) * 2)), true);
-                                    Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(pred.CastPosition));
+                                            pred.CastPosition, -(Player.Position.Distance(pred.CastPosition) * 2)),
+                                        true);
+                                    Utility.DelayAction.Add(
+                                        300, () => SummonerManager.Flash.Cast(pred.CastPosition));
                                     return;
                                 }
-                            }
-                            if (HeroManager.Enemies.Count(x => R.WillHit(x, pred.CastPosition)) >= min)
-                            {
-                                R.Cast(
-                                    Player.Position.Extend(
-                                        pred.CastPosition, -(Player.Position.Distance(pred.CastPosition) * 2)), true);
-                                Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(pred.CastPosition));
                             }
                         }
                     }
@@ -328,32 +332,39 @@ namespace SFXChallenger.Champions
                     {
                         Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
                     }
-                    if (Menu.Item(Menu.Name + ".ultimate.assisted.1v1").GetValue<bool>())
-                    {
-                        RLogic1V1(
+
+                    if (
+                        !RLogic(
                             HitchanceManager.Get("combo", "r"),
-                            Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
-                            Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
-                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
+                            Menu.Item(Menu.Name + ".ultimate.assisted.min").GetValue<Slider>().Value))
+                    {
+                        if (Menu.Item(Menu.Name + ".ultimate.assisted.1v1").GetValue<bool>())
+                        {
+                            RLogic1V1(
+                                HitchanceManager.Get("combo", "r"),
+                                Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
+                                Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
+                                Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
+                        }
                     }
-                    RLogic(
-                        HitchanceManager.Get("combo", "r"),
-                        Menu.Item(Menu.Name + ".ultimate.assisted.min").GetValue<Slider>().Value);
                 }
 
                 if (Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() && R.IsReady())
                 {
-                    if (Menu.Item(Menu.Name + ".ultimate.auto.1v1").GetValue<bool>())
-                    {
-                        RLogic1V1(
+                    if (
+                        !RLogic(
                             HitchanceManager.Get("combo", "r"),
-                            Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
-                            Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
-                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
+                            Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value))
+                    {
+                        if (Menu.Item(Menu.Name + ".ultimate.auto.1v1").GetValue<bool>())
+                        {
+                            RLogic1V1(
+                                HitchanceManager.Get("combo", "r"),
+                                Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
+                                Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
+                                Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
+                        }
                     }
-                    RLogic(
-                        HitchanceManager.Get("combo", "r"),
-                        Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value);
                 }
 
                 if (Menu.Item(Menu.Name + ".miscellaneous.w-stunned").GetValue<bool>() && W.IsReady())
@@ -531,13 +542,16 @@ namespace SFXChallenger.Champions
             }
             if (r)
             {
-                if (Menu.Item(Menu.Name + ".ultimate.combo.1v1").GetValue<bool>())
+                if (
+                    !RLogic(
+                        HitchanceManager.Get("combo", "r"),
+                        Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value))
                 {
-                    RLogic1V1(HitchanceManager.Get("combo", "r"), q, w, e);
+                    if (Menu.Item(Menu.Name + ".ultimate.combo.1v1").GetValue<bool>())
+                    {
+                        RLogic1V1(HitchanceManager.Get("combo", "r"), q, w, e);
+                    }
                 }
-                RLogic(
-                    HitchanceManager.Get("combo", "r"),
-                    Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value);
             }
             var target = _targets.FirstOrDefault(t => t.IsValidTarget(R.Range));
             if (target != null && CalcComboDamage(target, q, w, e, r) * 1.3 > target.Health)
@@ -621,20 +635,25 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private void RLogic(HitChance hitChance, int min)
+        private bool RLogic(HitChance hitChance, int min)
         {
+            R.UpdateSourcePosition();
             foreach (var target in _targets.Where(t => R.CanCast(t)))
             {
                 var pred = R.GetPrediction(target, true);
                 if (pred.Hitchance >= hitChance)
                 {
-                    var hits = HeroManager.Enemies.Count(x => R.WillHit(x, pred.CastPosition));
+                    var hits =
+                        HeroManager.Enemies.Count(
+                            x => R.WillHit(x, pred.CastPosition, 0, HitchanceManager.Get("combo", "r")));
                     if (hits >= min)
                     {
-                        R.Cast(pred.CastPosition, true);
+                        R.Cast(pred.CastPosition);
+                        return true;
                     }
                 }
             }
+            return false;
         }
 
         private void QLogic(HitChance hitChance)
@@ -717,8 +736,15 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                return E.Delay + (ObjectManager.Player.ServerPosition.Distance(target.ServerPosition) / E.Speed) +
-                       (Game.Ping / 2000f) + 0.1f;
+                if (target is Obj_AI_Hero)
+                {
+                    var predTarget = Prediction.GetPrediction(target, E.Delay + (ObjectManager.Player.ServerPosition.Distance(target.ServerPosition) / (E.Speed - 200)) +
+                            (Game.Ping / 2000f) + 0.1f);
+                    return E.Delay + (ObjectManager.Player.ServerPosition.Distance(predTarget.UnitPosition) / (E.Speed - 150)) +
+                                (Game.Ping / 2000f) + 0.1f;
+                }
+                return E.Delay + (ObjectManager.Player.ServerPosition.Distance(target.ServerPosition) / (E.Speed - 150)) +
+                            (Game.Ping / 2000f) + 0.1f;
             }
             catch (Exception ex)
             {
