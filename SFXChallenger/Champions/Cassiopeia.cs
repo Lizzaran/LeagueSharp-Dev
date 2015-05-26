@@ -223,7 +223,7 @@ namespace SFXChallenger.Champions
             try
             {
                 _targets =
-                    TargetSelector.GetTargets(850f, LeagueSharp.Common.TargetSelector.DamageType.Magical)
+                    TargetSelector.GetTargets(1500f, LeagueSharp.Common.TargetSelector.DamageType.Magical)
                         .Select(t => t.Hero)
                         .ToList();
                 if ((Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit && ManaManager.Check("lasthit")) &&
@@ -663,9 +663,7 @@ namespace SFXChallenger.Champions
                 var pred = R.GetPrediction(target, true);
                 if (pred.Hitchance >= hitChance)
                 {
-                    var hits =
-                        HeroManager.Enemies.Count(
-                            x => R.WillHit(x, pred.CastPosition, 0, HitchanceManager.Get("combo", "r")));
+                    var hits = HeroManager.Enemies.Count(x => R.WillHit(x.Position, pred.CastPosition));
                     if (hits >= min)
                     {
                         R.Cast(pred.CastPosition);
