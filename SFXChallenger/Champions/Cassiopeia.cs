@@ -269,7 +269,7 @@ namespace SFXChallenger.Champions
                         TargetSelector.GetTargets(R.Range + SummonerManager.Flash.Range)
                             .Where(
                                 t =>
-                                    t.Hero != null &&
+                                    t.Hero != null && !t.Hero.IsDashing() &&
                                     (t.Hero.IsFacing(Player)
                                         ? (t.Hero.Distance(Player))
                                         : (Prediction.GetPrediction(t.Hero, R.Delay + 0.3f)
@@ -288,7 +288,7 @@ namespace SFXChallenger.Champions
                                     From = flashPos,
                                     RangeCheckFrom = flashPos,
                                     Delay = R.Delay + 0.3f,
-                                    Range = R.Range * 1.1f,
+                                    Range = R.Range * 1.05f,
                                     Speed = R.Speed,
                                     Radius = R.Width,
                                     Type = SkillshotType.SkillshotCone,
