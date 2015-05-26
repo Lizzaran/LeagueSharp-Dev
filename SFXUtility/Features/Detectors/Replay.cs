@@ -24,9 +24,15 @@
 
 using System;
 using System.Timers;
+using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary.Extensions.NET;
+using SFXLibrary.Extensions.SharpDX;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
+using SFXUtility.Properties;
+using SharpDX;
+using SharpDX.Direct3D9;
 
 #endregion
 
@@ -34,9 +40,8 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Detectors
 {
-    #region
 
-    
+    #region
 
     #endregion
 
@@ -44,6 +49,8 @@ namespace SFXUtility.Features.Detectors
     {
         private bool _isRecording;
         private Detectors _parent;
+        private Texture _recordTexture;
+        private Sprite _sprite;
         private Timer _timer;
 
         public override bool Enabled
@@ -62,19 +69,91 @@ namespace SFXUtility.Features.Detectors
 
         protected override void OnEnable()
         {
+            Drawing.OnPreReset += OnDrawingPreReset;
+            Drawing.OnPostReset += OnDrawingPostReset;
+            Drawing.OnEndScene += OnDrawingEndScene;
+
             if (!_isRecording)
             {
                 _timer.Enabled = true;
                 _timer.Start();
+                OnTimerElapsed(null, null);
             }
+
             base.OnEnable();
         }
 
         protected override void OnDisable()
         {
+            Drawing.OnPreReset -= OnDrawingPreReset;
+            Drawing.OnPostReset -= OnDrawingPostReset;
+            Drawing.OnEndScene -= OnDrawingEndScene;
+
             _timer.Enabled = false;
             _timer.Stop();
+
+            OnUnload(null, new UnloadEventArgs());
+
             base.OnDisable();
+        }
+
+        protected override void OnUnload(object sender, UnloadEventArgs args)
+        {
+            if (args != null && args.Final)
+            {
+                base.OnUnload(sender, args);
+            }
+
+            if (Initialized)
+            {
+                OnDrawingPreReset(null);
+                OnDrawingPostReset(null);
+            }
+        }
+
+        private void OnDrawingEndScene(EventArgs args)
+        {
+            try
+            {
+                if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
+                {
+                    return;
+                }
+
+                _sprite.Begin(SpriteFlags.AlphaBlend);
+
+                _sprite.DrawCentered(_recordTexture, new Vector2(Drawing.Width * 0.88f, 25f));
+
+                _sprite.End();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void OnDrawingPostReset(EventArgs args)
+        {
+            try
+            {
+                _sprite.OnResetDevice();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void OnDrawingPreReset(EventArgs args)
+        {
+            try
+            {
+                _sprite.OnLostDevice();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         protected override void OnGameLoad(EventArgs args)
@@ -130,6 +209,9 @@ namespace SFXUtility.Features.Detectors
                 _timer = new Timer(Menu.Item(Name + "CheckInterval").GetValue<Slider>().Value * 60 * 1000);
                 _timer.Elapsed += OnTimerElapsed;
 
+                _sprite = new Sprite(Drawing.Direct3DDevice);
+                _recordTexture = Resources.RC_Off.ToTexture();
+
                 HandleEvents(_parent);
                 RaiseOnInitialized();
             }
@@ -151,8 +233,8 @@ namespace SFXUtility.Features.Detectors
             }
             if (_isRecording)
             {
+                _recordTexture = Resources.RC_On.ToTexture();
                 OnDisable();
-                Notifications.AddNotification("Game is Recording.");
             }
         }
     }

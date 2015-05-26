@@ -166,6 +166,8 @@
     <Content Include="Resources\LP\LP_Kalista.png" />
     <Content Include="Resources\LP\LP_Teleport.png" />
     <Content Include="Resources\LP\LP_RekSai.png" />
+    <Content Include="Resources\RC\RC_Off.png" />
+    <Content Include="Resources\RC\RC_On.png" />
     <Content Include="Resources\SB\SB_Aatrox.jpg" />
     <Content Include="Resources\SB\SB_Ahri.jpg" />
     <Content Include="Resources\SB\SB_Akali.jpg" />

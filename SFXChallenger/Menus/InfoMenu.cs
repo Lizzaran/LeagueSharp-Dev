@@ -30,9 +30,8 @@ using LeagueSharp.Common;
 
 namespace SFXChallenger.Menus
 {
-    #region
 
-    
+    #region
 
     #endregion
 

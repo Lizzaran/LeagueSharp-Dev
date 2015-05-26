@@ -33,9 +33,8 @@ using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 
 namespace SFXChallenger
 {
-    #region
 
-    
+    #region
 
     #endregion
 

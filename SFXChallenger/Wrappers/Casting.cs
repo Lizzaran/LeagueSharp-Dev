@@ -29,9 +29,8 @@ using LeagueSharp.Common;
 
 namespace SFXChallenger.Wrappers
 {
-    #region
 
-    
+    #region
 
     #endregion
 

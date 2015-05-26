@@ -33,9 +33,8 @@ using SFXLibrary.Logger;
 
 namespace SFXChallenger.Wrappers
 {
-    #region
 
-    
+    #region
 
     #endregion
 
@@ -68,7 +67,7 @@ namespace SFXChallenger.Wrappers
                     where !ignoreShields || !i.IsShield
                     where target.HasBuff(i.BuffName)
                     where i.DamageType == null || i.DamageType == damageType
-                    select i.CustomCheck == null || i.CustomCheck(target, damageType)).FirstOrDefault();
+                    select i.CustomCheck == null || i.CustomCheck(target, damageType)).Any();
             }
             catch (Exception ex)
             {

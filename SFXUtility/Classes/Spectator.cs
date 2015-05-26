@@ -33,9 +33,8 @@ using SFXLibrary.Extensions.NET;
 
 namespace SFXUtility.Classes
 {
-    #region
 
-    
+    #region
 
     #endregion
 
@@ -68,18 +67,14 @@ namespace SFXUtility.Classes
             get { return Game.Id; }
         }
 
-        public static string SpectateUrl { get; private set; }
-        public static string EncryptionKey { get; private set; }
-
         public static bool DoRecord()
         {
             using (var client = new WebClient())
             {
                 try
                 {
-                    return
-                        !client.DownloadString(DoRecordUrl)
-                            .Contains("error", StringComparison.OrdinalIgnoreCase);
+                    var response = client.DownloadString(DoRecordUrl);
+                    return !response.Contains("error", StringComparison.OrdinalIgnoreCase);
                 }
                 catch
                 {
@@ -94,11 +89,10 @@ namespace SFXUtility.Classes
             {
                 try
                 {
-                    return
-                        client.UploadString(
-                            IsRecordingUrl,
-                            "userName=" + HttpUtility.UrlEncode(ObjectManager.Player.ChampionName) + "&force=false")
-                            .Contains("NowRecording", StringComparison.OrdinalIgnoreCase);
+                    client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
+                    var response = client.UploadString(
+                        IsRecordingUrl, "userName=" + HttpUtility.UrlEncode(ObjectManager.Player.Name) + "&force=false");
+                    return response.Contains("NowRecording", StringComparison.OrdinalIgnoreCase);
                 }
                 catch
                 {

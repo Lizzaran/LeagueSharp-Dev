@@ -32,9 +32,8 @@ using SFXLibrary.Logger;
 
 namespace SFXChallenger.Managers
 {
-    #region
 
-    
+    #region
 
     #endregion
 

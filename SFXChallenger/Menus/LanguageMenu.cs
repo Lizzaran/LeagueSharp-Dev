@@ -33,9 +33,8 @@ using SFXLibrary.Logger;
 
 namespace SFXChallenger.Menus
 {
-    #region
 
-    
+    #region
 
     #endregion
 

@@ -31,9 +31,8 @@ using SFXLibrary.Logger;
 
 namespace SFXUtility.Classes
 {
-    #region
 
-    
+    #region
 
     #endregion
 

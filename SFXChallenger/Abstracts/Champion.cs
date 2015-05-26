@@ -39,9 +39,8 @@ using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
 namespace SFXChallenger.Abstracts
 {
-    #region
 
-    
+    #region
 
     #endregion
 

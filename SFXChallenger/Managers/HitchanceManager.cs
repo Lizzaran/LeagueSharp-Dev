@@ -31,9 +31,8 @@ using SFXLibrary.Logger;
 
 namespace SFXChallenger.Managers
 {
-    #region
 
-    
+    #region
 
     #endregion
 
@@ -47,7 +46,8 @@ namespace SFXChallenger.Managers
             {
                 if (Menues.ContainsKey(uniqueId))
                 {
-                    throw new ArgumentException(string.Format("HitchanceManager: UniqueID \"{0}\" already exist.", uniqueId));
+                    throw new ArgumentException(
+                        string.Format("HitchanceManager: UniqueID \"{0}\" already exist.", uniqueId));
                 }
 
                 foreach (var hit in hitChances)

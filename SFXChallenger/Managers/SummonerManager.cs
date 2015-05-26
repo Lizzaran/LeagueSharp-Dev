@@ -35,9 +35,8 @@ using SharpDX;
 
 namespace SFXChallenger.Managers
 {
-    #region
 
-    
+    #region
 
     #endregion
 

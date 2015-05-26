@@ -40,7 +40,8 @@ namespace SFXChallenger.Managers
 
     internal class ManaManager
     {
-        private static readonly Dictionary<string, Tuple<Menu, ManaCheckType, ManaValueType>> Menues = new Dictionary<string, Tuple<Menu, ManaCheckType, ManaValueType>>();
+        private static readonly Dictionary<string, Tuple<Menu, ManaCheckType, ManaValueType>> Menues =
+            new Dictionary<string, Tuple<Menu, ManaCheckType, ManaValueType>>();
 
         public static void AddToMenu(Menu menu,
             string uniqueId,

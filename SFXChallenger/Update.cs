@@ -35,9 +35,8 @@ using Version = System.Version;
 
 namespace SFXChallenger
 {
-    #region
 
-    
+    #region
 
     #endregion
 

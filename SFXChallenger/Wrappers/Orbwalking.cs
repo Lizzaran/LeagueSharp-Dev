@@ -36,9 +36,8 @@ using Color = System.Drawing.Color;
 
 namespace SFXChallenger.Wrappers
 {
-    #region
 
-    
+    #region
 
     #endregion
 

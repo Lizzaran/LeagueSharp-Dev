@@ -738,13 +738,17 @@ namespace SFXChallenger.Champions
             {
                 if (target is Obj_AI_Hero)
                 {
-                    var predTarget = Prediction.GetPrediction(target, E.Delay + (ObjectManager.Player.ServerPosition.Distance(target.ServerPosition) / (E.Speed - 200)) +
-                            (Game.Ping / 2000f) + 0.1f);
-                    return E.Delay + (ObjectManager.Player.ServerPosition.Distance(predTarget.UnitPosition) / (E.Speed - 150)) +
-                                (Game.Ping / 2000f) + 0.1f;
+                    var predTarget = Prediction.GetPrediction(
+                        target,
+                        E.Delay +
+                        (ObjectManager.Player.ServerPosition.Distance(target.ServerPosition) / (E.Speed - 200)) +
+                        (Game.Ping / 2000f) + 0.1f);
+                    return E.Delay +
+                           (ObjectManager.Player.ServerPosition.Distance(predTarget.UnitPosition) / (E.Speed - 150)) +
+                           (Game.Ping / 2000f) + 0.1f;
                 }
                 return E.Delay + (ObjectManager.Player.ServerPosition.Distance(target.ServerPosition) / (E.Speed - 150)) +
-                            (Game.Ping / 2000f) + 0.1f;
+                       (Game.Ping / 2000f) + 0.1f;
             }
             catch (Exception ex)
             {

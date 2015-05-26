@@ -28,9 +28,8 @@ using System;
 
 namespace SFXChallenger.Enumerations
 {
-    #region
 
-    
+    #region
 
     #endregion
 
