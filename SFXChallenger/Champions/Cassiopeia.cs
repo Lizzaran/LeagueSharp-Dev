@@ -305,8 +305,7 @@ namespace SFXChallenger.Champions
                                         pred.CastPosition, -(Player.Position.Distance(pred.CastPosition) * 2)), true);
                                 Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(pred.CastPosition));
                             }
-                            else if (Menu.Item(Menu.Name + ".ultimate.flash.1v1").GetValue<bool>() &&
-                                     target.Hero.IsFacing(Player))
+                            else if (Menu.Item(Menu.Name + ".ultimate.flash.1v1").GetValue<bool>())
                             {
                                 var cDmg = CalcComboDamage(
                                     target.Hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
@@ -316,10 +315,8 @@ namespace SFXChallenger.Champions
                                 {
                                     R.Cast(
                                         Player.Position.Extend(
-                                            pred.CastPosition, -(Player.Position.Distance(pred.CastPosition) * 2)),
-                                        true);
-                                    Utility.DelayAction.Add(
-                                        300, () => SummonerManager.Flash.Cast(pred.CastPosition));
+                                            pred.CastPosition, -(Player.Position.Distance(pred.CastPosition) * 2)), true);
+                                    Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(pred.CastPosition));
                                     return;
                                 }
                             }
@@ -346,7 +343,7 @@ namespace SFXChallenger.Champions
                                 HitchanceManager.Get("combo", "r"),
                                 Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                                 Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
-                                Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
+                                Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), false);
                         }
                     }
                 }
@@ -622,9 +619,11 @@ namespace SFXChallenger.Champions
             return 0;
         }
 
-        private void RLogic1V1(HitChance hitChance, bool q, bool w, bool e)
+        private void RLogic1V1(HitChance hitChance, bool q, bool w, bool e, bool face = true)
         {
-            foreach (var target in _targets.Where(t => t.IsFacing(Player) && t.HealthPercent > 25 && R.CanCast(t)))
+            foreach (
+                var target in _targets.Where(t => (!face || t.IsFacing(Player)) && t.HealthPercent > 25 && R.CanCast(t))
+                )
             {
                 var cDmg = CalcComboDamage(target, q, w, e, true);
                 if (cDmg - 20 >= target.Health)
