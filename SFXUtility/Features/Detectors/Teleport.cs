@@ -43,14 +43,14 @@ using Font = SharpDX.Direct3D9.Font;
 
 namespace SFXUtility.Features.Detectors
 {
-    #region
 
-    
+    #region
 
     #endregion
 
     internal class Teleport : Base
     {
+        private Font _barText;
         private Detectors _parent;
         private List<TeleportObject> _teleportObjects = new List<TeleportObject>();
         private Font _text;
@@ -76,81 +76,156 @@ namespace SFXUtility.Features.Detectors
 
         protected override void OnEnable()
         {
-            Drawing.OnDraw += OnDrawingDraw;
+            Drawing.OnPreReset += OnDrawingPreReset;
+            Drawing.OnPostReset += OnDrawingPostReset;
+            Drawing.OnEndScene += OnDrawingEndScene;
+
             base.OnEnable();
         }
 
         protected override void OnDisable()
         {
-            Drawing.OnDraw -= OnDrawingDraw;
+            Drawing.OnPreReset -= OnDrawingPreReset;
+            Drawing.OnPostReset -= OnDrawingPostReset;
+            Drawing.OnEndScene -= OnDrawingEndScene;
+
+            OnUnload(null, new UnloadEventArgs());
+
             base.OnDisable();
         }
 
-        private void OnDrawingDraw(EventArgs args)
+        protected override void OnUnload(object sender, UnloadEventArgs args)
+        {
+            if (args != null && args.Final)
+            {
+                base.OnUnload(sender, args);
+            }
+
+            if (Initialized)
+            {
+                OnDrawingPreReset(null);
+                OnDrawingPostReset(null);
+            }
+        }
+
+        private void OnDrawingEndScene(EventArgs args)
         {
             try
             {
-                if (Menu.Item(Name + "DrawingTextEnabled").GetValue<bool>())
+                //if (!_teleportObjects.Any(t => t.Hero.IsEnemy && t.Countdown > 0))
+                //{
+                //    var to = _teleportObjects.FirstOrDefault(w => w.Hero.IsEnemy);
+                //    if (to != null)
+                //    {
+                //        to.LastStatus = Packet.S2C.Teleport.Status.Start;
+                //        to.LastType = Packet.S2C.Teleport.Type.Recall;
+                //        to.Duration = 8000;
+                //    }
+
+                //}
+                if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
                 {
-                    var posX = Drawing.Width * 0.68f;
-                    var posY = Drawing.Height * 0.75f;
-                    var count = 0;
-                    foreach (var teleport in
-                        _teleportObjects.Where(
-                            t => t.Hero.IsEnemy && t.LastStatus != Packet.S2C.Teleport.Status.Unknown && t.Update()))
+                    return;
+                }
+
+                try
+                {
+                    if (Menu.Item(Name + "DrawingTextEnabled").GetValue<bool>())
                     {
-                        var text = teleport.ToString();
-                        if (!string.IsNullOrWhiteSpace(text))
+                        var posX = Menu.Item(Name + "DrawingTextOffsetLeft").GetValue<Slider>().Value;
+                        var posY = Menu.Item(Name + "DrawingTextOffsetTop").GetValue<Slider>().Value;
+                        var count = 0;
+                        foreach (var teleport in
+                            _teleportObjects.Where(
+                                t => t.Hero.IsEnemy && t.LastStatus != Packet.S2C.Teleport.Status.Unknown && t.Update())
+                            )
                         {
-                            Drawing.DrawText(posX, posY + 15 * count++, teleport.ToColor(true), text);
+                            var text = teleport.ToString();
+                            if (!string.IsNullOrWhiteSpace(text))
+                            {
+                                var color = teleport.ToColor(true);
+                                _text.DrawTextCentered(
+                                    text, posX, posY + (_text.Description.Height + 1) * count++,
+                                    new SharpDX.Color(color.R, color.G, color.B));
+                            }
+                        }
+                    }
+
+                    if (Menu.Item(Name + "DrawingBarEnabled").GetValue<bool>())
+                    {
+                        var dScale = Menu.Item(Name + "DrawingBarScale").GetValue<Slider>().Value / 10d;
+                        var barHeight = (int) Math.Ceiling(10d * dScale);
+                        var seperatorHeight = (int) Math.Ceiling(barHeight / 2d);
+                        var top = true;
+                        var posX = Menu.Item(Name + "DrawingBarOffsetLeft").GetValue<Slider>().Value;
+                        var posY = Menu.Item(Name + "DrawingBarOffsetTop").GetValue<Slider>().Value;
+                        var barWidth =
+                            (int) Math.Ceiling(Menu.Item(Name + "DrawingBarWidth").GetValue<Slider>().Value * dScale);
+                        var scale = barWidth / 8;
+                        var teleports =
+                            _teleportObjects.Where(t => t.Hero.IsEnemy && t.Countdown > 0).OrderBy(t => t.Countdown);
+
+                        foreach (var teleport in teleports)
+                        {
+                            var hPercent = ((int) ((teleport.Hero.Health / teleport.Hero.MaxHealth) * 100)).ToString();
+                            var color = teleport.ToColor();
+                            var width = (int) (scale * teleport.Countdown);
+                            width = width > barWidth ? barWidth : width;
+                            Draw.RectangleFilled(new Vector2(posX, posY), width, barHeight, color.ToArgb(100));
+                            Draw.Line(
+                                new Vector2(
+                                    posX + width,
+                                    (top ? posY - seperatorHeight - barHeight / 2f : posY + barHeight / 2f + 2)), 1,
+                                seperatorHeight, Color.White);
+                            _barText.DrawTextCentered(
+                                teleport.Hero.ChampionName, posX + width,
+                                (top ? posY - barHeight - seperatorHeight - 2 : posY + barHeight + seperatorHeight + 2),
+                                new ColorBGRA(color.R, color.G, color.B, color.A));
+                            _barText.DrawTextCentered(
+                                hPercent, posX + width - 1,
+                                (top
+                                    ? posY - barHeight - 3 - seperatorHeight - _barText.Description.Height + 5
+                                    : posY + barHeight + 3 + _barText.Description.Height + 5),
+                                new ColorBGRA(color.R, color.G, color.B, color.A));
+                            top = !top;
+                        }
+
+                        if (teleports.Any())
+                        {
+                            Draw.Rectangle(new Vector2(posX, posY), barWidth, barHeight, 1, Color.White);
                         }
                     }
                 }
-
-                if (Menu.Item(Name + "DrawingBarEnabled").GetValue<bool>())
+                catch (Exception ex)
                 {
-                    const int barHeight = 10;
-                    const int seperatorHeight = barHeight / 2;
-                    var top = true;
-                    var posX = Drawing.Width * 0.425f;
-                    var posY = Drawing.Height * 0.75f;
-                    var barWidth = (int) (Drawing.Width - 2 * posX);
-                    var scale = (float) barWidth / 8;
-                    var teleports =
-                        _teleportObjects.Where(t => t.Hero.IsEnemy && t.Countdown > 0).OrderBy(t => t.Countdown);
-
-                    foreach (var teleport in teleports)
-                    {
-                        var hPercent = ((int) ((teleport.Hero.Health / teleport.Hero.MaxHealth) * 100)).ToString();
-                        var color = teleport.ToColor();
-                        var width = (int) (scale * teleport.Countdown);
-                        width = width > barWidth ? barWidth : width;
-                        Draw.RectangleFilled(new Vector2(posX, posY), width, barHeight, color.ToArgb(100));
-                        Draw.Line(
-                            new Vector2(
-                                posX + width,
-                                (top ? posY - seperatorHeight - barHeight / 2f : posY + barHeight / 2f + 2)), 1,
-                            seperatorHeight, Color.White);
-                        _text.DrawTextCentered(
-                            teleport.Hero.ChampionName, (int) (posX + width),
-                            (top
-                                ? (int) (posY - barHeight - seperatorHeight - 2)
-                                : (int) (posY + barHeight + seperatorHeight + 2)),
-                            new ColorBGRA(color.R, color.G, color.B, color.A));
-                        _text.DrawTextCentered(
-                            hPercent, (int) (posX + width - 1),
-                            (top
-                                ? (int) (posY - barHeight - 3 - seperatorHeight - _text.Description.Height + 5)
-                                : (int) (posY + barHeight + 3 + _text.Description.Height + 5)),
-                            new ColorBGRA(color.R, color.G, color.B, color.A));
-                        top = !top;
-                    }
-
-                    if (teleports.Any())
-                    {
-                        Draw.Rectangle(new Vector2(posX, posY), barWidth, barHeight, 1, Color.White);
-                    }
+                    Global.Logger.AddItem(new LogItem(ex));
                 }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void OnDrawingPostReset(EventArgs args)
+        {
+            try
+            {
+                _text.OnResetDevice();
+                _barText.OnResetDevice();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void OnDrawingPreReset(EventArgs args)
+        {
+            try
+            {
+                _text.OnLostDevice();
+                _barText.OnLostDevice();
             }
             catch (Exception ex)
             {
@@ -190,15 +265,6 @@ namespace SFXUtility.Features.Detectors
                     return;
                 }
 
-                _text = new Font(
-                    Drawing.Direct3DDevice,
-                    new FontDescription
-                    {
-                        FaceName = Global.DefaultFont,
-                        Height = 13,
-                        OutputPrecision = FontPrecision.Default,
-                        Quality = FontQuality.Default
-                    });
 
                 Menu = new Menu(Name, Name);
 
@@ -206,9 +272,36 @@ namespace SFXUtility.Features.Detectors
 
                 var drawingTextMenu = new Menu(Global.Lang.Get("G_Text"), drawingMenu.Name + "Text");
                 drawingTextMenu.AddItem(
+                    new MenuItem(
+                        drawingTextMenu.Name + "OffsetTop", Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Top"))
+                        .SetValue(new Slider((int) (Drawing.Height * 0.75d), 0, Drawing.Height)));
+                drawingTextMenu.AddItem(
+                    new MenuItem(
+                        drawingTextMenu.Name + "OffsetLeft",
+                        Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Left")).SetValue(
+                            new Slider((int) (Drawing.Width * 0.68d), 0, Drawing.Width)));
+                drawingTextMenu.AddItem(
+                    new MenuItem(drawingTextMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(
+                        new Slider(15, 3, 30)));
+                drawingTextMenu.AddItem(
                     new MenuItem(drawingTextMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 var drawingBarMenu = new Menu(Global.Lang.Get("G_Bar"), drawingMenu.Name + "Bar");
+                drawingBarMenu.AddItem(
+                    new MenuItem(drawingBarMenu.Name + "Scale", Global.Lang.Get("G_Scale")).SetValue(
+                        new Slider(10, 1, 20)));
+                drawingBarMenu.AddItem(
+                    new MenuItem(drawingBarMenu.Name + "Width", Global.Lang.Get("G_Width")).SetValue(
+                        new Slider(475, 0, (int) (Drawing.Width / 1.5d))));
+                drawingBarMenu.AddItem(
+                    new MenuItem(
+                        drawingBarMenu.Name + "OffsetTop", Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Top"))
+                        .SetValue(new Slider((int) (Drawing.Height * 0.75d), 0, Drawing.Height)));
+                drawingBarMenu.AddItem(
+                    new MenuItem(
+                        drawingBarMenu.Name + "OffsetLeft",
+                        Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Left")).SetValue(
+                            new Slider((int) (Drawing.Width * 0.425d), 0, Drawing.Width)));
                 drawingBarMenu.AddItem(
                     new MenuItem(drawingBarMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
@@ -224,6 +317,29 @@ namespace SFXUtility.Features.Detectors
                 _teleportObjects = HeroManager.AllHeroes.Select(hero => new TeleportObject(hero)).ToList();
 
                 Obj_AI_Base.OnTeleport += OnObjAiBaseTeleport;
+
+                _text = new Font(
+                    Drawing.Direct3DDevice,
+                    new FontDescription
+                    {
+                        FaceName = Global.DefaultFont,
+                        Height = Menu.Item(Menu.Name + "DrawingTextFontSize").GetValue<Slider>().Value,
+                        OutputPrecision = FontPrecision.Default,
+                        Quality = FontQuality.Default
+                    });
+
+                _barText = new Font(
+                    Drawing.Direct3DDevice,
+                    new FontDescription
+                    {
+                        FaceName = Global.DefaultFont,
+                        Height =
+                            (int)
+                                (Math.Ceiling(
+                                    13 * (Menu.Item(Menu.Name + "DrawingBarScale").GetValue<Slider>().Value / 10d))),
+                        OutputPrecision = FontPrecision.Default,
+                        Quality = FontQuality.Default
+                    });
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();
