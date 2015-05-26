@@ -440,12 +440,39 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (!sender.IsEnemy)
+                var hero = sender as Obj_AI_Hero;
+                if (!sender.IsEnemy || hero == null)
                 {
                     return;
                 }
 
-                if (Menu.Item(Menu.Name + ".miscellaneous.q-dash").GetValue<bool>() &&
+                var endPos = args.EndPos;
+                if (hero.ChampionName.Equals("Fizz", StringComparison.OrdinalIgnoreCase))
+                {
+                    endPos = args.StartPos.Extend(endPos, 550);
+                }
+                if (hero.ChampionName.Equals("LeBlanc", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    endPos = args.StartPos.Distance(Player) < W.Range ? args.StartPos : endPos;
+                }
+
+                var wCasted = false;
+                if (Menu.Item(Menu.Name + ".miscellaneous.w-dash").GetValue<bool>() &&
+                    Player.Distance(endPos) <= W.Range && W.IsReady())
+                {
+                    var delay = (int) (args.EndTick - Game.Time - W.Delay - 0.1f);
+                    if (delay > 0)
+                    {
+                        Utility.DelayAction.Add(delay * 1000, () => W.Cast(endPos));
+                    }
+                    else
+                    {
+                        W.Cast(endPos);
+                    }
+                    wCasted = true;
+                }
+
+                if (!wCasted && Menu.Item(Menu.Name + ".miscellaneous.q-dash").GetValue<bool>() &&
                     Player.Distance(args.EndPos) <= Q.Range)
                 {
                     var delay = (int) (args.EndTick - Game.Time - Q.Delay - 0.1f);
@@ -456,24 +483,6 @@ namespace SFXChallenger.Champions
                     else
                     {
                         Q.Cast(args.EndPos);
-                    }
-                }
-                if (Menu.Item(Menu.Name + ".miscellaneous.w-dash").GetValue<bool>() &&
-                    Player.Distance(args.EndPos) <= W.Range)
-                {
-                    if (sender.BaseSkinName.Equals("LeBlanc", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        W.Cast(args.StartPos.Distance(Player) < W.Range ? args.StartPos : args.EndPos);
-                        return;
-                    }
-                    var delay = (int) (args.EndTick - Game.Time - W.Delay - 0.1f);
-                    if (delay > 0)
-                    {
-                        Utility.DelayAction.Add(delay * 1000, () => W.Cast(args.EndPos));
-                    }
-                    else
-                    {
-                        W.Cast(args.EndPos);
                     }
                 }
             }
@@ -488,9 +497,9 @@ namespace SFXChallenger.Champions
             try
             {
                 if (sender.IsEnemy && args.DangerLevel == Interrupter2.DangerLevel.High &&
-                    args.EndTime > Game.Time + R.Delay + 0.1f &&
                     Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
-                    Menu.Item(Menu.Name + ".ultimate.auto.interrupt." + sender.ChampionName).GetValue<bool>())
+                    Menu.Item(Menu.Name + ".ultimate.auto.interrupt." + sender.ChampionName).GetValue<bool>() &&
+                    sender.IsFacing(Player))
                 {
                     Casting.BasicSkillShot(sender, R, HitchanceManager.Get("combo", "r"));
                 }
@@ -505,12 +514,23 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                if (!args.Sender.IsEnemy)
+                {
+                    return;
+                }
+
+                var endPos = args.End;
+                if (args.Sender.ChampionName.Equals("Fizz", StringComparison.OrdinalIgnoreCase))
+                {
+                    endPos = args.Start.Extend(endPos, 550);
+                }
+
                 if (Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
                     Menu.Item(Menu.Name + ".ultimate.auto.gapcloser." + args.Sender.ChampionName).GetValue<bool>())
                 {
-                    if (args.End.Distance(Player.Position) < R.Range)
+                    if (endPos.Distance(Player.Position) < R.Range)
                     {
-                        R.Cast(args.End);
+                        R.Cast(endPos);
                     }
                 }
             }
@@ -898,7 +918,7 @@ namespace SFXChallenger.Champions
             if (rFlash.Active && Player.Position.IsOnScreen(R.Range + SummonerManager.Flash.Range))
             {
                 Render.Circle.DrawCircle(
-                    Player.Position, R.Range + SummonerManager.Flash.Range, rFlash.Color, circleThickness);
+                    Player.Position, R.Range * 1.05f + SummonerManager.Flash.Range, rFlash.Color, circleThickness);
             }
         }
     }
