@@ -214,7 +214,7 @@ namespace SFXChallenger.Champions
             E = new Spell(SpellSlot.E, 700f);
             E.SetTargetted(0.2f, 1900f);
 
-            R = new Spell(SpellSlot.R, 750f);
+            R = new Spell(SpellSlot.R, 780f);
             R.SetSkillshot(0.7f, (float) (80 * Math.PI / 180), float.MaxValue, false, SkillshotType.SkillshotCone);
         }
 
@@ -270,8 +270,10 @@ namespace SFXChallenger.Champions
                             .Where(
                                 t =>
                                     t.Hero != null &&
-                                    Prediction.GetPrediction(t.Hero, R.Delay + 0.3f)
-                                        .UnitPosition.Distance(Player.Position) > R.Range * 1.05);
+                                    (t.Hero.IsFacing(Player)
+                                        ? (t.Hero.Distance(Player))
+                                        : (Prediction.GetPrediction(t.Hero, R.Delay + 0.3f)
+                                            .UnitPosition.Distance(Player.Position))) > R.Range * 1.025f);
                     foreach (var target in targets)
                     {
                         var min = Menu.Item(Menu.Name + ".ultimate.flash.min").GetValue<Slider>().Value;
@@ -637,8 +639,7 @@ namespace SFXChallenger.Champions
 
         private bool RLogic(HitChance hitChance, int min)
         {
-            R.UpdateSourcePosition();
-            foreach (var target in _targets.Where(t => R.CanCast(t)))
+            foreach (var target in _targets)
             {
                 var pred = R.GetPrediction(target, true);
                 if (pred.Hitchance >= hitChance)
