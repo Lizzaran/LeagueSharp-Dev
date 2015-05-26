@@ -23,6 +23,7 @@
 #region
 
 using System;
+using System.Threading;
 using System.Timers;
 using LeagueSharp;
 using LeagueSharp.Common;
@@ -31,27 +32,20 @@ using SFXLibrary.Extensions.SharpDX;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
 using SFXUtility.Properties;
-using SharpDX;
 using SharpDX.Direct3D9;
+using Timer = System.Timers.Timer;
 
 #endregion
 
-#pragma warning disable 618
-
 namespace SFXUtility.Features.Detectors
 {
-
-    #region
-
-    #endregion
-
     internal class Replay : Base
     {
+        private readonly Timer _timer = new Timer();
         private bool _isRecording;
         private Detectors _parent;
         private Texture _recordTexture;
         private Sprite _sprite;
-        private Timer _timer;
 
         public override bool Enabled
         {
@@ -75,9 +69,10 @@ namespace SFXUtility.Features.Detectors
 
             if (!_isRecording)
             {
+                OnTimerElapsed(null, null);
+
                 _timer.Enabled = true;
                 _timer.Start();
-                OnTimerElapsed(null, null);
             }
 
             base.OnEnable();
@@ -89,8 +84,11 @@ namespace SFXUtility.Features.Detectors
             Drawing.OnPostReset -= OnDrawingPostReset;
             Drawing.OnEndScene -= OnDrawingEndScene;
 
-            _timer.Enabled = false;
-            _timer.Stop();
+            if (_timer.Enabled)
+            {
+                _timer.Enabled = false;
+                _timer.Stop();
+            }
 
             OnUnload(null, new UnloadEventArgs());
 
@@ -115,14 +113,14 @@ namespace SFXUtility.Features.Detectors
         {
             try
             {
-                if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
+                if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed || !_isRecording)
                 {
                     return;
                 }
 
                 _sprite.Begin(SpriteFlags.AlphaBlend);
 
-                _sprite.DrawCentered(_recordTexture, new Vector2(Drawing.Width * 0.88f, 25f));
+                _sprite.DrawCentered(_recordTexture, 20, 20);
 
                 _sprite.End();
             }
@@ -206,11 +204,12 @@ namespace SFXUtility.Features.Detectors
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _timer = new Timer(Menu.Item(Name + "CheckInterval").GetValue<Slider>().Value * 60 * 1000);
-                _timer.Elapsed += OnTimerElapsed;
-
                 _sprite = new Sprite(Drawing.Direct3DDevice);
-                _recordTexture = Resources.RC_Off.ToTexture();
+                _recordTexture = Resources.RC_On.ToTexture();
+
+                _timer.Enabled = false;
+                _timer.Interval = Menu.Item(Name + "CheckInterval").GetValue<Slider>().Value * 60 * 1000;
+                _timer.Elapsed += OnTimerElapsed;
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();
@@ -223,18 +222,36 @@ namespace SFXUtility.Features.Detectors
 
         private void OnTimerElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
         {
-            if (!_isRecording && Menu.Item(Name + "DoRecord").GetValue<bool>())
+            try
             {
-                _isRecording = Spectator.DoRecord();
+                new Thread(
+                    async () =>
+                    {
+                        try
+                        {
+                            if (!_isRecording && Menu.Item(Name + "DoRecord").GetValue<bool>())
+                            {
+                                _isRecording = (await Spectator.DoRecord());
+                            }
+                            if (!_isRecording && Menu.Item(Name + "IsRecording").GetValue<bool>())
+                            {
+                                _isRecording = (await Spectator.IsRecoding());
+                            }
+                            if (_isRecording)
+                            {
+                                _timer.Enabled = false;
+                                _timer.Stop();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Global.Logger.AddItem(new LogItem(ex));
+                        }
+                    }).Start();
             }
-            if (!_isRecording && Menu.Item(Name + "IsRecording").GetValue<bool>())
+            catch (Exception ex)
             {
-                _isRecording = Spectator.IsRecoding();
-            }
-            if (_isRecording)
-            {
-                _recordTexture = Resources.RC_On.ToTexture();
-                OnDisable();
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
     }

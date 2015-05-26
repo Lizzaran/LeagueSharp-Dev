@@ -1559,16 +1559,6 @@ namespace SFXUtility.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap RC_Off {
-            get {
-                object obj = ResourceManager.GetObject("RC_Off", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
         internal static System.Drawing.Bitmap RC_On {
             get {
                 object obj = ResourceManager.GetObject("RC_On", resourceCulture);

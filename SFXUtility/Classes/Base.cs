@@ -31,11 +31,6 @@ using SFXLibrary.Logger;
 
 namespace SFXUtility.Classes
 {
-
-    #region
-
-    #endregion
-
     internal abstract class Base
     {
         protected Base()

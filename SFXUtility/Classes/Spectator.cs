@@ -25,6 +25,7 @@
 using System;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using System.Web;
 using LeagueSharp;
 using SFXLibrary.Extensions.NET;
@@ -67,13 +68,13 @@ namespace SFXUtility.Classes
             get { return Game.Id; }
         }
 
-        public static bool DoRecord()
+        public static async Task<bool> DoRecord()
         {
             using (var client = new WebClient())
             {
                 try
                 {
-                    var response = client.DownloadString(DoRecordUrl);
+                    var response = await client.DownloadStringTaskAsync(new Uri(DoRecordUrl));
                     return !response.Contains("error", StringComparison.OrdinalIgnoreCase);
                 }
                 catch
@@ -83,15 +84,18 @@ namespace SFXUtility.Classes
             }
         }
 
-        public static bool IsRecoding()
+        public static async Task<bool> IsRecoding()
         {
             using (var client = new WebClient())
             {
                 try
                 {
                     client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
-                    var response = client.UploadString(
-                        IsRecordingUrl, "userName=" + HttpUtility.UrlEncode(ObjectManager.Player.Name) + "&force=false");
+                    var response =
+                        await
+                            client.UploadStringTaskAsync(
+                                new Uri(IsRecordingUrl),
+                                "userName=" + HttpUtility.UrlEncode(ObjectManager.Player.Name) + "&force=false");
                     return response.Contains("NowRecording", StringComparison.OrdinalIgnoreCase);
                 }
                 catch
