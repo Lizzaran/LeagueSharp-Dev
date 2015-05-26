@@ -117,12 +117,12 @@ namespace SFXUtility
 
             Global.IoC.Register(() => new SFXUtility(), true, true);
 
-            //Global.IoC.Register(() => new Activators(), true, true);
-            //Global.IoC.Register(() => new BushRevealer(), true, true);
-            //Global.IoC.Register(() => new InvisibilityRevealer(), true, true);
-            //Global.IoC.Register(() => new KillSteal(), true, true);
-            //Global.IoC.Register(() => new Potion(), true, true);
-            //Global.IoC.Register(() => new Smite(), true, true);
+            Global.IoC.Register(() => new Activators(), true, true);
+            Global.IoC.Register(() => new BushRevealer(), true, true);
+            Global.IoC.Register(() => new InvisibilityRevealer(), true, true);
+            Global.IoC.Register(() => new KillSteal(), true, true);
+            Global.IoC.Register(() => new Potion(), true, true);
+            Global.IoC.Register(() => new Smite(), true, true);
 
             Global.IoC.Register(() => new Detectors(), true, true);
             Global.IoC.Register(() => new Gank(), true, true);
@@ -130,45 +130,45 @@ namespace SFXUtility
             Global.IoC.Register(() => new SharedExperience(), true, true);
             Global.IoC.Register(() => new Teleport(), true, true);
 
-            //Global.IoC.Register(() => new Drawings(), true, true);
-            //Global.IoC.Register(() => new Clock(), true, true);
-            //Global.IoC.Register(() => new Clone(), true, true);
-            //Global.IoC.Register(() => new DamageIndicator(), true, true);
-            //Global.IoC.Register(() => new Health(), true, true);
-            //Global.IoC.Register(() => new LasthitMarker(), true, true);
-            //Global.IoC.Register(() => new PerfectWard(), true, true);
-            //Global.IoC.Register(() => new Range(), true, true);
-            //Global.IoC.Register(() => new SafeJungleSpot(), true, true);
-            //Global.IoC.Register(() => new WallJumpSpot(), true, true);
-            //Global.IoC.Register(() => new Waypoint(), true, true);
+            Global.IoC.Register(() => new Drawings(), true, true);
+            Global.IoC.Register(() => new Clock(), true, true);
+            Global.IoC.Register(() => new Clone(), true, true);
+            Global.IoC.Register(() => new DamageIndicator(), true, true);
+            Global.IoC.Register(() => new Health(), true, true);
+            Global.IoC.Register(() => new LasthitMarker(), true, true);
+            Global.IoC.Register(() => new PerfectWard(), true, true);
+            Global.IoC.Register(() => new Range(), true, true);
+            Global.IoC.Register(() => new SafeJungleSpot(), true, true);
+            Global.IoC.Register(() => new WallJumpSpot(), true, true);
+            Global.IoC.Register(() => new Waypoint(), true, true);
 
-            //Global.IoC.Register(() => new Events(), true, true);
-            //Global.IoC.Register(() => new AutoLeveler(), true, true);
-            //Global.IoC.Register(() => new Game(), true, true);
-            //Global.IoC.Register(() => new Trinket(), true, true);
+            Global.IoC.Register(() => new Events(), true, true);
+            Global.IoC.Register(() => new AutoLeveler(), true, true);
+            Global.IoC.Register(() => new Game(), true, true);
+            Global.IoC.Register(() => new Trinket(), true, true);
 
-            //Global.IoC.Register(() => new Others(), true, true);
-            //Global.IoC.Register(() => new AntiTrap(), true, true);
-            //Global.IoC.Register(() => new AutoLantern(), true, true);
-            //Global.IoC.Register(() => new ExtendFlash(), true, true);
-            //Global.IoC.Register(() => new Humanize(), true, true);
-            //Global.IoC.Register(() => new Ping(), true, true);
-            //Global.IoC.Register(() => new SkinChanger(), true, true);
-            //Global.IoC.Register(() => new SummonerInfo(), true, true);
-            //Global.IoC.Register(() => new TurnAround(), true, true);
+            Global.IoC.Register(() => new Others(), true, true);
+            Global.IoC.Register(() => new AntiTrap(), true, true);
+            Global.IoC.Register(() => new AutoLantern(), true, true);
+            Global.IoC.Register(() => new ExtendFlash(), true, true);
+            Global.IoC.Register(() => new Humanize(), true, true);
+            Global.IoC.Register(() => new Ping(), true, true);
+            Global.IoC.Register(() => new SkinChanger(), true, true);
+            Global.IoC.Register(() => new SummonerInfo(), true, true);
+            Global.IoC.Register(() => new TurnAround(), true, true);
 
-            //Global.IoC.Register(() => new Timers(), true, true);
-            //Global.IoC.Register(() => new Ability(), true, true);
-            //Global.IoC.Register(() => new Cooldown(), true, true);
-            //Global.IoC.Register(() => new Jungle(), true, true);
-            //Global.IoC.Register(() => new Object(), true, true);
+            Global.IoC.Register(() => new Timers(), true, true);
+            Global.IoC.Register(() => new Ability(), true, true);
+            Global.IoC.Register(() => new Cooldown(), true, true);
+            Global.IoC.Register(() => new Jungle(), true, true);
+            Global.IoC.Register(() => new Object(), true, true);
 
-            //Global.IoC.Register(() => new Trackers(), true, true);
-            //Global.IoC.Register(() => new GoldEfficiency(), true, true);
-            //Global.IoC.Register(() => new Destination(), true, true);
-            //Global.IoC.Register(() => new LastPosition(), true, true);
-            //Global.IoC.Register(() => new Sidebar(), true, true);
-            //Global.IoC.Register(() => new Ward(), true, true);
+            Global.IoC.Register(() => new Trackers(), true, true);
+            Global.IoC.Register(() => new GoldEfficiency(), true, true);
+            Global.IoC.Register(() => new Destination(), true, true);
+            Global.IoC.Register(() => new LastPosition(), true, true);
+            Global.IoC.Register(() => new Sidebar(), true, true);
+            Global.IoC.Register(() => new Ward(), true, true);
         }
     }
 }
