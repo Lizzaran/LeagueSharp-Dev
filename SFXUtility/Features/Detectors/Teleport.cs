@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- teleport.cs is part of SFXUtility.
+ Teleport.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -126,7 +126,8 @@ namespace SFXUtility.Features.Detectors
                         var count = 0;
                         foreach (var teleport in
                             _teleportObjects.Where(
-                                t => t.Hero.IsEnemy && t.LastStatus != Packet.S2C.Teleport.Status.Unknown && t.Update()))
+                                t => t.Hero.IsEnemy && t.LastStatus != Packet.S2C.Teleport.Status.Unknown && t.Update())
+                            )
                         {
                             var text = teleport.ToString();
                             if (!string.IsNullOrWhiteSpace(text))
@@ -142,7 +143,8 @@ namespace SFXUtility.Features.Detectors
                     if (Menu.Item(Name + "DrawingBarEnabled").GetValue<bool>())
                     {
                         var dScale = Menu.Item(Name + "DrawingBarScale").GetValue<Slider>().Value / 10d;
-                        var barHeight = (int) Math.Ceiling(10d * dScale);
+                        var barHeight =
+                            (int) Math.Ceiling(Menu.Item(Name + "DrawingBarHeight").GetValue<Slider>().Value * dScale);
                         var seperatorHeight = (int) Math.Ceiling(barHeight / 2d);
                         var top = true;
                         var posX = Menu.Item(Name + "DrawingBarOffsetLeft").GetValue<Slider>().Value;
@@ -323,6 +325,9 @@ namespace SFXUtility.Features.Detectors
                 drawingBarMenu.AddItem(
                     new MenuItem(drawingBarMenu.Name + "Scale", Global.Lang.Get("G_Scale")).SetValue(
                         new Slider(10, 1, 20)));
+                drawingBarMenu.AddItem(
+                    new MenuItem(drawingBarMenu.Name + "Height", Global.Lang.Get("G_Height")).SetValue(
+                        new Slider(10, 3, 20)));
                 drawingBarMenu.AddItem(
                     new MenuItem(drawingBarMenu.Name + "Width", Global.Lang.Get("G_Width")).SetValue(
                         new Slider(475, 0, (int) (Drawing.Width / 1.5d))));

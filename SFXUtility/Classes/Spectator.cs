@@ -45,6 +45,9 @@ namespace SFXUtility.Classes
             "http://{region}op.gg/summoner/ajax/requestRecording.json/gameId={game_id}";
 
         private static readonly string IsRecordingUrl = "http://{region}op.gg/summoner/ajax/spectator/";
+        private static readonly string UpdateUrl = "http://{region}op.gg/summoner/ajax/update.json/";
+        private static readonly string MainUrl = "http://{region}op.gg/summoner/userName={name}";
+        private static bool _updated;
 
         static Spectator()
         {
@@ -54,6 +57,9 @@ namespace SFXUtility.Classes
             Region = Region.Contains("kr", StringComparison.OrdinalIgnoreCase) ? string.Empty : Region + ".";
             DoRecordUrl = DoRecordUrl.Replace("{region}", Region).Replace("{game_id}", GameId.ToString());
             IsRecordingUrl = IsRecordingUrl.Replace("{region}", Region);
+            UpdateUrl = UpdateUrl.Replace("{region}", Region);
+            MainUrl = MainUrl.Replace("{region}", Region)
+                .Replace("{name}", HttpUtility.UrlEncode(ObjectManager.Player.Name));
         }
 
         public static string PlatformId
@@ -68,14 +74,70 @@ namespace SFXUtility.Classes
             get { return Game.Id; }
         }
 
-        public static async Task<bool> DoRecord()
+        public static int SummonerId { get; private set; }
+
+        public static void UpdateSummonerId()
         {
             using (var client = new WebClient())
             {
                 try
                 {
+                    var response = client.DownloadString(new Uri(MainUrl));
+                    int id;
+                    if (
+                        int.TryParse(
+                            response.Between(
+                                "SummonerRefresh.RefreshUser(this, ", ")", StringComparison.OrdinalIgnoreCase), out id))
+                    {
+                        SummonerId = id;
+                        Console.WriteLine(id);
+                    }
+                }
+                catch {}
+            }
+        }
+
+        public static async Task<bool> DoRecord()
+        {
+            if (!_updated)
+            {
+                _updated = await DoUpdate();
+                if (!_updated)
+                {
+                    return false;
+                }
+            }
+            using (var client = new WebClient())
+            {
+                try
+                {
                     var response = await client.DownloadStringTaskAsync(new Uri(DoRecordUrl));
-                    return response.Contains("\"success\":true", StringComparison.OrdinalIgnoreCase);
+                    return response.Trim().Contains("\"success\":true", StringComparison.OrdinalIgnoreCase);
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+
+        public static async Task<bool> DoUpdate()
+        {
+            if (SummonerId == 0)
+            {
+                UpdateSummonerId();
+                if (SummonerId == 0)
+                {
+                    return false;
+                }
+            }
+            using (var client = new WebClient())
+            {
+                try
+                {
+                    client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
+                    await client.UploadStringTaskAsync(new Uri(IsRecordingUrl), "summonerId=" + SummonerId);
+                    return true;
                 }
                 catch
                 {
@@ -86,6 +148,14 @@ namespace SFXUtility.Classes
 
         public static async Task<bool> IsRecoding()
         {
+            if (!_updated)
+            {
+                _updated = await DoUpdate();
+                if (!_updated)
+                {
+                    return false;
+                }
+            }
             using (var client = new WebClient())
             {
                 try

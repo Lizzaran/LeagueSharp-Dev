@@ -123,6 +123,7 @@
 	<entry key="Teleport_Teleported">Teleported</entry>
 	<entry key="Teleport_Transporting">Transporting</entry>
 	<entry key="Teleport_Transported">Transported</entry>
+	<entry key="Teleport_AdditionalTime">Additional Time</entry>
 	<!-- END: Teleport -->
 
 	<!-- START: Clock -->

@@ -37,9 +37,8 @@ using System.Xml.Serialization;
 
 namespace SFXLibrary.Extensions.NET
 {
-    #region
 
-    
+    #region
 
     #endregion
 
@@ -235,11 +234,16 @@ namespace SFXLibrary.Extensions.NET
             StringComparison comp = StringComparison.Ordinal)
         {
             var posA = value.IndexOf(a, comp);
-            var posB = value.IndexOf(b, comp);
-            if (posA == -1 || posB == -1)
+            if (posA == -1)
             {
                 return null;
             }
+            var posB = value.Substring(posA).IndexOf(b, comp);
+            if (posB == -1)
+            {
+                return null;
+            }
+            posB = posA + posB;
             var adjPos = posA + a.Length;
             return adjPos >= posB ? null : value.Substring(adjPos, posB - adjPos);
         }

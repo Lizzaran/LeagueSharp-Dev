@@ -2,18 +2,7 @@
 
 <!-- ReSharper disable MarkupTextTypo -->
 <language lang="en">
-
-	<!-- START: Cassiopeia -->
-	<entry key="Cassio_RMin">R Min</entry>
-	<entry key="Cassio_RMinFacing">R Min Facing</entry>
-	<entry key="Cassio_QMultiple">Multiple Q Targets</entry>
-	<entry key="Cassio_QMultiple">Multiple Q Targets</entry>
-	<entry key="Cassio_QMultiple">Multiple Q Targets</entry>
-	<entry key="Cassio_QMultiple">Multiple Q Targets</entry>
-	<entry key="Cassio_QMultiple">Multiple Q Targets</entry>
-	<entry key="Cassio_UseEPoison">Use E Poison</entry>
-	<!-- END: Cassiopeia -->
-
+	
 	<!-- START: GLOBAL -->
 	<entry key="G_UpdateAvailable">Update available</entry>
 	<entry key="G_Enabled">Enabled</entry>
@@ -50,6 +39,10 @@
 	<entry key="G_Assisted">Assisted</entry>
 	<entry key="G_InterruptSpell">Interrupt Spell</entry>
 	<entry key="G_MoveCursor">Move to Cursor</entry>
+	<entry key="G_Min">Min</entry>
+	<entry key="G_Max">Max</entry>
+	<entry key="G_Facing">Facing</entry>
+	<entry key="G_Poison">Poison</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: Language -->

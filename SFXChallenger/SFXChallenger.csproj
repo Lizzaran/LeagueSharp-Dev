@@ -75,6 +75,7 @@
     <Compile Include="Champions\Cassiopeia.cs" />
     <Compile Include="Champions\Ezreal.cs" />
     <Compile Include="Champions\Kalista.cs" />
+    <Compile Include="Champions\Viktor.cs" />
     <Compile Include="Enumerations\CastType.cs" />
     <Compile Include="Enumerations\CombatFlags.cs" />
     <Compile Include="Enumerations\EffectFlags.cs" />

@@ -51,6 +51,7 @@ namespace SFXChallenger.Abstracts
         protected Spell E;
         protected Spell Q;
         protected Spell R;
+        public List<Obj_AI_Hero> Targets = new List<Obj_AI_Hero>();
         protected Spell W;
 
         protected Champion()
@@ -139,6 +140,18 @@ namespace SFXChallenger.Abstracts
             }
         }
 
+        private void OnCorePreUpdate(EventArgs args)
+        {
+            try
+            {
+                Targets = TargetSelector.GetTargets(float.MaxValue).Select(t => t.Hero).ToList();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
         protected abstract void SetupSpells();
         protected abstract void OnLoad();
         protected abstract void OnUnload();
@@ -175,6 +188,7 @@ namespace SFXChallenger.Abstracts
                 SetupMenu();
 
                 Drawing.OnDraw += DrawingOnDraw;
+                Core.OnPreUpdate += OnCorePreUpdate;
             }
             catch (Exception ex)
             {
@@ -189,6 +203,7 @@ namespace SFXChallenger.Abstracts
                 OnUnload();
 
                 Drawing.OnDraw -= DrawingOnDraw;
+                Core.OnPreUpdate -= OnCorePreUpdate;
             }
             catch (Exception ex)
             {
