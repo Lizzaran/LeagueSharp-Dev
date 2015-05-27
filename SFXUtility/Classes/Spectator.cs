@@ -75,7 +75,7 @@ namespace SFXUtility.Classes
                 try
                 {
                     var response = await client.DownloadStringTaskAsync(new Uri(DoRecordUrl));
-                    return !response.Contains("error", StringComparison.OrdinalIgnoreCase);
+                    return response.Contains("\"success\":true", StringComparison.OrdinalIgnoreCase);
                 }
                 catch
                 {
