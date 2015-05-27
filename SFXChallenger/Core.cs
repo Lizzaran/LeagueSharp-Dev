@@ -53,8 +53,6 @@ namespace SFXChallenger
             _champion = champion;
             _interval = interval;
             _init = true;
-
-            Notifications.AddNotification("SFX: ALPHA - Don't use it.", 30000);
         }
 
         public static event EventHandler OnPreUpdate;

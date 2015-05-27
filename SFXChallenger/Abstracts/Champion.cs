@@ -200,7 +200,7 @@ namespace SFXChallenger.Abstracts
         {
             try
             {
-                SFXMenu = new Menu(Global.Name, "sfx", true);
+                SFXMenu = new Menu(Global.Name + " - ALPHA", "sfx", true);
 
                 InfoMenu.AddToMenu(SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_Info"), SFXMenu.Name + ".info")));
                 TargetSelector.AddToMenu(
