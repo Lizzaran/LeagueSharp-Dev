@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Teleport.cs is part of SFXUtility.
+ teleport.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -27,7 +27,6 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Extensions.SharpDX;
 using SFXLibrary.Logger;
@@ -51,6 +50,7 @@ namespace SFXUtility.Features.Detectors
     internal class Teleport : Base
     {
         private Font _barText;
+        private Line _line;
         private Detectors _parent;
         private List<TeleportObject> _teleportObjects = new List<TeleportObject>();
         private Font _text;
@@ -112,17 +112,6 @@ namespace SFXUtility.Features.Detectors
         {
             try
             {
-                //if (!_teleportObjects.Any(t => t.Hero.IsEnemy && t.Countdown > 0))
-                //{
-                //    var to = _teleportObjects.FirstOrDefault(w => w.Hero.IsEnemy);
-                //    if (to != null)
-                //    {
-                //        to.LastStatus = Packet.S2C.Teleport.Status.Start;
-                //        to.LastType = Packet.S2C.Teleport.Type.Recall;
-                //        to.Duration = 8000;
-                //    }
-
-                //}
                 if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
                 {
                     return;
@@ -137,8 +126,7 @@ namespace SFXUtility.Features.Detectors
                         var count = 0;
                         foreach (var teleport in
                             _teleportObjects.Where(
-                                t => t.Hero.IsEnemy && t.LastStatus != Packet.S2C.Teleport.Status.Unknown && t.Update())
-                            )
+                                t => t.Hero.IsEnemy && t.LastStatus != Packet.S2C.Teleport.Status.Unknown && t.Update()))
                         {
                             var text = teleport.ToString();
                             if (!string.IsNullOrWhiteSpace(text))
@@ -164,23 +152,43 @@ namespace SFXUtility.Features.Detectors
                         var scale = barWidth / 8;
                         var teleports =
                             _teleportObjects.Where(t => t.Hero.IsEnemy && t.Countdown > 0).OrderBy(t => t.Countdown);
-
                         foreach (var teleport in teleports)
                         {
                             var hPercent = ((int) ((teleport.Hero.Health / teleport.Hero.MaxHealth) * 100)).ToString();
                             var color = teleport.ToColor();
                             var width = (int) (scale * teleport.Countdown);
                             width = width > barWidth ? barWidth : width;
-                            Draw.RectangleFilled(new Vector2(posX, posY), width, barHeight, color.ToArgb(100));
-                            Draw.Line(
-                                new Vector2(
-                                    posX + width,
-                                    (top ? posY - seperatorHeight - barHeight / 2f : posY + barHeight / 2f + 2)), 1,
-                                seperatorHeight, Color.White);
+
+                            _line.Width = barHeight;
+                            _line.Begin();
+
+                            _line.Draw(
+                                new[]
+                                {
+                                    new Vector2(posX, posY + barHeight / 2),
+                                    new Vector2(posX + width, posY + barHeight / 2)
+                                },
+                                new SharpDX.Color((int) color.R, color.G, color.B, 100));
+
+                            _line.End();
+
+                            _line.Width = 1;
+                            _line.Begin();
+
+                            _line.Draw(
+                                new[]
+                                {
+                                    new Vector2(posX + width, posY - seperatorHeight - barHeight / 2f),
+                                    new Vector2(posX + width, posY)
+                                }, SharpDX.Color.White);
+
+                            _line.End();
+
                             _barText.DrawTextCentered(
                                 teleport.Hero.ChampionName, posX + width,
                                 (top ? posY - barHeight - seperatorHeight - 2 : posY + barHeight + seperatorHeight + 2),
                                 new ColorBGRA(color.R, color.G, color.B, color.A));
+
                             _barText.DrawTextCentered(
                                 hPercent, posX + width - 1,
                                 (top
@@ -189,10 +197,27 @@ namespace SFXUtility.Features.Detectors
                                 new ColorBGRA(color.R, color.G, color.B, color.A));
                             top = !top;
                         }
-
                         if (teleports.Any())
                         {
-                            Draw.Rectangle(new Vector2(posX, posY), barWidth, barHeight, 1, Color.White);
+                            _line.Width = 1;
+                            _line.Begin();
+
+                            _line.Draw(
+                                new[] { new Vector2(posX, posY), new Vector2(posX + barWidth, posY) },
+                                SharpDX.Color.White);
+                            _line.Draw(
+                                new[]
+                                { new Vector2(posX + barWidth, posY), new Vector2(posX + barWidth, posY + barHeight) },
+                                SharpDX.Color.White);
+                            _line.Draw(
+                                new[]
+                                { new Vector2(posX, posY + barHeight), new Vector2(posX + barWidth, posY + barHeight) },
+                                SharpDX.Color.White);
+                            _line.Draw(
+                                new[] { new Vector2(posX, posY), new Vector2(posX, posY + barHeight) },
+                                SharpDX.Color.White);
+
+                            _line.End();
                         }
                     }
                 }
@@ -211,6 +236,7 @@ namespace SFXUtility.Features.Detectors
         {
             try
             {
+                _line.OnResetDevice();
                 _text.OnResetDevice();
                 _barText.OnResetDevice();
             }
@@ -224,6 +250,7 @@ namespace SFXUtility.Features.Detectors
         {
             try
             {
+                _line.OnLostDevice();
                 _text.OnLostDevice();
                 _barText.OnLostDevice();
             }
@@ -265,7 +292,6 @@ namespace SFXUtility.Features.Detectors
                     return;
                 }
 
-
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
@@ -283,6 +309,13 @@ namespace SFXUtility.Features.Detectors
                 drawingTextMenu.AddItem(
                     new MenuItem(drawingTextMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(
                         new Slider(15, 3, 30)));
+                drawingTextMenu.AddItem(
+                    new MenuItem(drawingTextMenu.Name + "AdditionalTime", Global.Lang.Get("Teleport_AdditionalTime"))
+                        .SetValue(new Slider(10, 0, 10))).ValueChanged +=
+                    delegate(object o, OnValueChangeEventArgs args)
+                    {
+                        _teleportObjects.ForEach(t => t.AdditionalTextTime = args.GetNewValue<Slider>().Value);
+                    };
                 drawingTextMenu.AddItem(
                     new MenuItem(drawingTextMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
@@ -303,6 +336,13 @@ namespace SFXUtility.Features.Detectors
                         Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Left")).SetValue(
                             new Slider((int) (Drawing.Width * 0.425d), 0, Drawing.Width)));
                 drawingBarMenu.AddItem(
+                    new MenuItem(drawingBarMenu.Name + "AdditionalTime", Global.Lang.Get("Teleport_AdditionalTime"))
+                        .SetValue(new Slider(5, 0, 10))).ValueChanged +=
+                    delegate(object o, OnValueChangeEventArgs args)
+                    {
+                        _teleportObjects.ForEach(t => t.AdditionalBarTime = args.GetNewValue<Slider>().Value);
+                    };
+                drawingBarMenu.AddItem(
                     new MenuItem(drawingBarMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 drawingMenu.AddSubMenu(drawingTextMenu);
@@ -314,7 +354,17 @@ namespace SFXUtility.Features.Detectors
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _teleportObjects = HeroManager.AllHeroes.Select(hero => new TeleportObject(hero)).ToList();
+                _teleportObjects =
+                    HeroManager.AllHeroes.Select(
+                        hero =>
+                            new TeleportObject(hero)
+                            {
+                                AdditionalTextTime =
+                                    Menu.Item(Menu.Name + "DrawingTextAdditionalTime").GetValue<Slider>().Value,
+                                AdditionalBarTime =
+                                    Menu.Item(Menu.Name + "DrawingBarAdditionalTime").GetValue<Slider>().Value
+                            })
+                        .ToList();
 
                 Obj_AI_Base.OnTeleport += OnObjAiBaseTeleport;
 
@@ -340,6 +390,8 @@ namespace SFXUtility.Features.Detectors
                         OutputPrecision = FontPrecision.Default,
                         Quality = FontQuality.Default
                     });
+
+                _line = new Line(Drawing.Direct3DDevice);
 
                 HandleEvents(_parent);
                 RaiseOnInitialized();
@@ -403,6 +455,9 @@ namespace SFXUtility.Features.Detectors
                 LastStatus = Packet.S2C.Teleport.Status.Unknown;
             }
 
+            public int AdditionalTextTime { private get; set; }
+            public int AdditionalBarTime { private get; set; }
+
             public int Duration
             {
                 private get { return _duration; }
@@ -433,9 +488,11 @@ namespace SFXUtility.Features.Detectors
                         case Packet.S2C.Teleport.Status.Start:
                             return Game.Time - _teleportStart;
                         case Packet.S2C.Teleport.Status.Finish:
-                            return Game.Time - _lastActionTime > 5f ? 0 : Game.Time - _preLastActionTime;
+                            return Game.Time - _lastActionTime > AdditionalBarTime ? 0 : Game.Time - _preLastActionTime;
                         case Packet.S2C.Teleport.Status.Abort:
-                            return Game.Time - _lastActionTime > 5f ? 0 : _lastActionTime - _preLastActionTime;
+                            return Game.Time - _lastActionTime > AdditionalBarTime
+                                ? 0
+                                : _lastActionTime - _preLastActionTime;
                     }
                     return 0;
                 }
@@ -534,7 +591,9 @@ namespace SFXUtility.Features.Detectors
 
             public bool Update()
             {
-                var additional = LastStatus == Packet.S2C.Teleport.Status.Start ? Duration + 10f : 10f;
+                var additional = LastStatus == Packet.S2C.Teleport.Status.Start
+                    ? Duration + AdditionalTextTime
+                    : AdditionalTextTime;
                 if (_lastActionTime + additional <= Game.Time)
                 {
                     _lastActionTime = 0f;

@@ -113,7 +113,8 @@ namespace SFXUtility.Features.Detectors
         {
             try
             {
-                if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed || !_isRecording)
+                if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed || !_isRecording ||
+                    !Menu.Item(Name + "IsRecording").GetValue<bool>())
                 {
                     return;
                 }
