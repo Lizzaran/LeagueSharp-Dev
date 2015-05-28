@@ -30,8 +30,8 @@ using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
+using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
-using SFXChallenger.Wrappers;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Extensions.SharpDX;
 using SFXLibrary.Logger;
@@ -42,11 +42,6 @@ using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
 namespace SFXChallenger.Champions
 {
-
-    #region
-
-    #endregion
-
     internal class Cassiopeia : Champion
     {
         private float _lastEEndTime;
@@ -215,7 +210,7 @@ namespace SFXChallenger.Champions
             W.SetSkillshot(0.7f, 125f, 2500f, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E, 700f);
-            E.SetTargetted(0.2f, 1900f);
+            E.SetTargetted(0.2f, 1700f);
 
             R = new Spell(SpellSlot.R, 780f);
             R.SetSkillshot(0.7f, (float) (80 * Math.PI / 180), float.MaxValue, false, SkillshotType.SkillshotCone);
@@ -234,11 +229,11 @@ namespace SFXChallenger.Champions
                     {
                         var m =
                             MinionManager.GetMinions(
-                                ObjectManager.Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly)
+                                Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly)
                                 .FirstOrDefault(
                                     e =>
                                         e.Health < E.GetDamage(e) - 5 &&
-                                        (ePoison && GetPoisonBuffEndTime(e) > GetEDelay(e) || eHit));
+                                        (ePoison && GetPoisonBuffEndTime(e) > E.GetSpellDelay(e) || eHit));
                         if (m != null)
                         {
                             Casting.BasicTargetSkill(m, E);
@@ -398,7 +393,7 @@ namespace SFXChallenger.Champions
                      Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Harass))
                 {
                     args.Process = Q.Instance.ManaCost > Player.Mana && W.Instance.ManaCost > Player.Mana &&
-                                   (E.Instance.ManaCost > Player.Mana || GetPoisonBuffEndTime(t) < GetEDelay(t));
+                                   (E.Instance.ManaCost > Player.Mana || GetPoisonBuffEndTime(t) < E.GetSpellDelay(t));
                 }
                 if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
                 {
@@ -407,7 +402,7 @@ namespace SFXChallenger.Champions
                     {
                         var m = args.Target as Obj_AI_Minion;
                         if (m != null && (_lastEEndTime < Game.Time || E.IsReady()) ||
-                            (GetPoisonBuffEndTime(m) < GetEDelay(m) || E.Instance.ManaCost > Player.Mana) ||
+                            (GetPoisonBuffEndTime(m) < E.GetSpellDelay(m) || E.Instance.ManaCost > Player.Mana) ||
                             !ManaManager.Check("lane-clear"))
                         {
                             args.Process = true;
@@ -424,7 +419,8 @@ namespace SFXChallenger.Champions
                         {
                             args.Process = Menu.Item(Menu.Name + ".lasthit.e").GetValue<bool>() ||
                                            (Menu.Item(Menu.Name + ".lasthit.e-poison").GetValue<bool>() &&
-                                            GetPoisonBuffEndTime(m) > GetEDelay(m)) && ManaManager.Check("lasthit");
+                                            GetPoisonBuffEndTime(m) > E.GetSpellDelay(m)) &&
+                                           ManaManager.Check("lasthit");
                         }
                     }
                 }
@@ -579,21 +575,6 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private bool IsNearTurret(Obj_AI_Base target)
-        {
-            try
-            {
-                return
-                    ObjectManager.Get<Obj_AI_Turret>().Any(turret => turret.IsValidTarget(1200f, true, target.Position));
-            }
-
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return false;
-        }
-
         private float CalcComboDamage(Obj_AI_Base target, bool q, bool w, bool e, bool r)
         {
             try
@@ -605,8 +586,8 @@ namespace SFXChallenger.Champions
                 {
                     var eMana = E.Instance.ManaCost;
                     var eDamage = E.GetDamage(target);
-                    var count = IsNearTurret(target) && !target.IsFacing(Player) ||
-                                IsNearTurret(target) && Player.HealthPercent <= 35 || !R.IsReady()
+                    var count = target.IsNearTurret() && !target.IsFacing(Player) ||
+                                target.IsNearTurret() && Player.HealthPercent <= 35 || !R.IsReady()
                         ? 5
                         : 10;
                     for (var i = 0; i < count; i++)
@@ -638,77 +619,113 @@ namespace SFXChallenger.Champions
 
         private void RLogic1V1(HitChance hitChance, bool q, bool w, bool e, bool face = true)
         {
-            foreach (
-                var target in Targets.Where(t => (!face || t.IsFacing(Player)) && t.HealthPercent > 25 && R.CanCast(t)))
+            try
             {
-                var cDmg = CalcComboDamage(target, q, w, e, true);
-                if (cDmg - 20 >= target.Health)
+                foreach (var target in
+                    Targets.Where(t => (!face || t.IsFacing(Player)) && t.HealthPercent > 25 && R.CanCast(t)))
                 {
-                    if (HeroManager.Enemies.Count(em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) == 1)
+                    var cDmg = CalcComboDamage(target, q, w, e, true);
+                    if (cDmg - 20 >= target.Health)
                     {
-                        Casting.BasicSkillShot(target, R, hitChance);
+                        if (HeroManager.Enemies.Count(em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) ==
+                            1)
+                        {
+                            Casting.BasicSkillShot(target, R, hitChance);
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
         private bool RLogic(HitChance hitChance, int min)
         {
-            foreach (var target in Targets.Where(t => R.CanCast(t)))
+            try
             {
-                var pred = R.GetPrediction(target, true);
-                if (pred.Hitchance >= hitChance)
+                foreach (var target in Targets.Where(t => R.CanCast(t)))
                 {
-                    var hits = HeroManager.Enemies.Count(x => R.WillHit(x.Position, pred.CastPosition));
-                    if (hits >= min)
+                    var pred = R.GetPrediction(target, true);
+                    if (pred.Hitchance >= hitChance)
                     {
-                        R.Cast(pred.CastPosition);
-                        return true;
+                        var hits = HeroManager.Enemies.Count(x => R.WillHit(x.Position, pred.CastPosition));
+                        if (hits >= min)
+                        {
+                            R.Cast(pred.CastPosition);
+                            return true;
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
             return false;
         }
 
         private void QLogic(HitChance hitChance)
         {
-            var ts =
-                Targets.FirstOrDefault(
-                    t =>
-                        Q.CanCast(t) &&
-                        (GetPoisonBuffEndTime(t) < Q.Delay * 1.2f ||
-                         (Menu.Item(Menu.Name + ".miscellaneous.q-fleeing").GetValue<bool>() && !t.IsFacing(Player) &&
-                          t.IsMoving && t.Distance(Player) > 150)));
-            if (ts != null)
+            try
             {
-                _lastQPoisonDelay = Game.Time + Q.Delay;
-                _lastQPoisonT = ts;
-                Casting.BasicSkillShot(ts, Q, hitChance);
+                var ts =
+                    Targets.FirstOrDefault(
+                        t =>
+                            Q.CanCast(t) &&
+                            (GetPoisonBuffEndTime(t) < Q.Delay * 1.2f ||
+                             (Menu.Item(Menu.Name + ".miscellaneous.q-fleeing").GetValue<bool>() && !t.IsFacing(Player) &&
+                              t.IsMoving && t.Distance(Player) > 150)));
+                if (ts != null)
+                {
+                    _lastQPoisonDelay = Game.Time + Q.Delay;
+                    _lastQPoisonT = ts;
+                    Casting.BasicSkillShot(ts, Q, hitChance);
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
         private void WLogic(HitChance hitChance)
         {
-            var ts =
-                Targets.FirstOrDefault(
-                    t =>
-                        W.CanCast(t) &&
-                        ((_lastQPoisonDelay < Game.Time && GetPoisonBuffEndTime(t) < W.Delay * 1.2 ||
-                          _lastQPoisonT.NetworkId != t.NetworkId) ||
-                         (Menu.Item(Menu.Name + ".miscellaneous.w-fleeing").GetValue<bool>() && !t.IsFacing(Player) &&
-                          t.IsMoving && t.Distance(Player) > 150)));
-            if (ts != null)
+            try
             {
-                Casting.BasicSkillShot(ts, W, hitChance);
+                var ts =
+                    Targets.FirstOrDefault(
+                        t =>
+                            W.CanCast(t) &&
+                            ((_lastQPoisonDelay < Game.Time && GetPoisonBuffEndTime(t) < W.Delay * 1.2 ||
+                              _lastQPoisonT.NetworkId != t.NetworkId) ||
+                             (Menu.Item(Menu.Name + ".miscellaneous.w-fleeing").GetValue<bool>() && !t.IsFacing(Player) &&
+                              t.IsMoving && t.Distance(Player) > 150)));
+                if (ts != null)
+                {
+                    Casting.BasicSkillShot(ts, W, hitChance);
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
         private void ELogic()
         {
-            var ts = Targets.FirstOrDefault(t => E.CanCast(t) && GetPoisonBuffEndTime(t) > GetEDelay(t));
-            if (ts != null)
+            try
             {
-                E.Cast(ts);
+                var ts = Targets.FirstOrDefault(t => E.CanCast(t) && GetPoisonBuffEndTime(t) > E.GetSpellDelay(t));
+                if (ts != null)
+                {
+                    E.Cast(ts);
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -746,31 +763,6 @@ namespace SFXChallenger.Champions
             return 0;
         }
 
-        private float GetEDelay(Obj_AI_Base target)
-        {
-            try
-            {
-                if (target is Obj_AI_Hero)
-                {
-                    var predTarget = Prediction.GetPrediction(
-                        target,
-                        E.Delay +
-                        (ObjectManager.Player.ServerPosition.Distance(target.ServerPosition) / (E.Speed - 200)) +
-                        (Game.Ping / 2000f) + 0.1f);
-                    return E.Delay +
-                           (ObjectManager.Player.ServerPosition.Distance(predTarget.UnitPosition) / (E.Speed - 150)) +
-                           (Game.Ping / 2000f) + 0.1f;
-                }
-                return E.Delay + (ObjectManager.Player.ServerPosition.Distance(target.ServerPosition) / (E.Speed - 150)) +
-                       (Game.Ping / 2000f) + 0.1f;
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return 0;
-        }
-
         protected override void LaneClear()
         {
             var q = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
@@ -781,11 +773,10 @@ namespace SFXChallenger.Champions
             {
                 var minion =
                     MinionManager.GetMinions(
-                        ObjectManager.Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly,
-                        MinionOrderTypes.MaxHealth)
+                        Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
                         .Where(
                             e =>
-                                GetPoisonBuffEndTime(e) > GetEDelay(e) &&
+                                GetPoisonBuffEndTime(e) > E.GetSpellDelay(e) &&
                                 (e.Team == GameObjectTeam.Neutral ||
                                  (e.Health > E.GetDamage(e) * 2 || e.Health < E.GetDamage(e) - 5)))
                         .OrderByDescending(
@@ -793,7 +784,7 @@ namespace SFXChallenger.Champions
                         .FirstOrDefault();
                 if (minion != null)
                 {
-                    _lastEEndTime = Game.Time + GetEDelay(minion) + 0.1f;
+                    _lastEEndTime = Game.Time + E.GetSpellDelay(minion) + 0.1f;
                     Casting.BasicTargetSkill(minion, E);
                 }
             }
@@ -801,7 +792,7 @@ namespace SFXChallenger.Champions
             if (q || w)
             {
                 var minions =
-                    MinionManager.GetMinions(ObjectManager.Player.ServerPosition, Q.Range + Q.Width)
+                    MinionManager.GetMinions(Player.ServerPosition, Q.Range + Q.Width)
                         .Where(e => GetPoisonBuffEndTime(e) < Q.Delay * 1.1)
                         .OrderByDescending(
                             m => m.BaseSkinName.Contains("MinionSiege", StringComparison.OrdinalIgnoreCase))
@@ -831,7 +822,7 @@ namespace SFXChallenger.Champions
                 {
                     var creep =
                         MinionManager.GetMinions(
-                            ObjectManager.Player.ServerPosition, Q.Range + Q.Width, MinionTypes.All, MinionTeam.Neutral,
+                            Player.ServerPosition, Q.Range + Q.Width, MinionTypes.All, MinionTeam.Neutral,
                             MinionOrderTypes.MaxHealth).FirstOrDefault(e => GetPoisonBuffEndTime(e) < Q.Delay * 1.1);
                     if (creep != null)
                     {
@@ -876,7 +867,7 @@ namespace SFXChallenger.Champions
                     HeroManager.Enemies.FirstOrDefault(
                         e =>
                             E.CanCast(e) && e.Health < E.GetDamage(e) - 5 &&
-                            (ePoison && GetPoisonBuffEndTime(e) > GetEDelay(e) || eHit));
+                            (ePoison && GetPoisonBuffEndTime(e) > E.GetSpellDelay(e) || eHit));
                 if (m != null)
                 {
                     Casting.BasicTargetSkill(m, E);

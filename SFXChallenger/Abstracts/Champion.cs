@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Champion.cs is part of SFXChallenger.
+ champion.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -144,7 +144,7 @@ namespace SFXChallenger.Abstracts
         {
             try
             {
-                Targets = TargetSelector.GetTargets(float.MaxValue).Select(t => t.Hero).ToList();
+                Targets = TargetSelector.GetTargets(3000f).Select(t => t.Hero).ToList();
             }
             catch (Exception ex)
             {
@@ -237,8 +237,14 @@ namespace SFXChallenger.Abstracts
                 SFXMenu.AddToMainMenu();
 
                 Menu = new Menu(Player.ChampionName, Player.ChampionName, true);
-
-                AddToMenu();
+                try
+                {
+                    AddToMenu();
+                }
+                catch (Exception ex)
+                {
+                    Global.Logger.AddItem(new LogItem(ex));
+                }
 
                 Menu.AddToMainMenu();
             }

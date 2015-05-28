@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Spectator.cs is part of SFXUtility.
+ spectator.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -90,7 +90,6 @@ namespace SFXUtility.Classes
                                 "SummonerRefresh.RefreshUser(this, ", ")", StringComparison.OrdinalIgnoreCase), out id))
                     {
                         SummonerId = id;
-                        Console.WriteLine(id);
                     }
                 }
                 catch {}

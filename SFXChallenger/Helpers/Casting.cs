@@ -24,10 +24,11 @@
 
 using LeagueSharp;
 using LeagueSharp.Common;
+using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
 #endregion
 
-namespace SFXChallenger.Wrappers
+namespace SFXChallenger.Helpers
 {
 
     #region

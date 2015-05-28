@@ -83,12 +83,13 @@
     <Compile Include="Enumerations\ManaValueType.cs" />
     <Compile Include="Global.cs" />
     <Compile Include="Helpers\DynamicInitializer.cs" />
+    <Compile Include="Helpers\Utils.cs" />
     <Compile Include="Managers\HitchanceManager.cs" />
     <Compile Include="Managers\KillstealManager.cs" />
     <Compile Include="Menus\InfoMenu.cs" />
     <Compile Include="Menus\LanguageMenu.cs" />
     <Compile Include="Menus\TickMenu.cs" />
-    <Compile Include="Wrappers\Casting.cs" />
+    <Compile Include="Helpers\Casting.cs" />
     <Compile Include="Wrappers\Orbwalking.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
