@@ -613,12 +613,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                var ts =
-                    Targets.FirstOrDefault(
-                        t =>
-                            Q.CanCast(t) &&
-                            (!Menu.Item(Menu.Name + ".miscellaneous.q-aa-range").GetValue<bool>() ||
-                             Orbwalker.InAutoAttackRange(t)));
+                var ts = Targets.FirstOrDefault(t => Q.CanCast(t));
                 if (ts != null)
                 {
                     Casting.BasicTargetSkill(ts, Q);
@@ -681,7 +676,10 @@ namespace SFXChallenger.Champions
             {
                 foreach (var target in Targets)
                 {
-                    SingleELogic(target, hitChance);
+                    if (SingleELogic(target, hitChance))
+                    {
+                        break;
+                    }
                 }
             }
             catch (Exception ex)
@@ -989,7 +987,10 @@ namespace SFXChallenger.Champions
                     var damage = E.GetDamage(target);
                     if (damage - 10 > target.Health)
                     {
-                        SingleELogic(target, HitchanceManager.Get("combo", "e"));
+                        if (SingleELogic(target, HitchanceManager.Get("combo", "e")))
+                        {
+                            break;
+                        }
                     }
                 }
             }
@@ -1005,6 +1006,7 @@ namespace SFXChallenger.Champions
                         {
                             Casting.BasicTargetSkill(target, Q);
                             Orbwalker.ForceTarget(target);
+                            break;
                         }
                     }
                 }

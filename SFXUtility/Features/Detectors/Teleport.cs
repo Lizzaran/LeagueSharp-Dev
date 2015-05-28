@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Teleport.cs is part of SFXUtility.
+ teleport.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -151,11 +151,14 @@ namespace SFXUtility.Features.Detectors
                         var posY = Menu.Item(Name + "DrawingBarOffsetTop").GetValue<Slider>().Value;
                         var barWidth =
                             (int) Math.Ceiling(Menu.Item(Name + "DrawingBarWidth").GetValue<Slider>().Value * dScale);
-                        var scale = barWidth / 8;
                         var teleports =
-                            _teleportObjects.Where(t => t.Hero.IsEnemy && t.Countdown > 0).OrderBy(t => t.Countdown);
+                            _teleportObjects.Where(
+                                t =>
+                                    t.Hero.IsEnemy && t.LastStatus != Packet.S2C.Teleport.Status.Unknown &&
+                                    t.Update(true)).OrderBy(t => t.Countdown);
                         foreach (var teleport in teleports)
                         {
+                            var scale = barWidth / teleport.Duration;
                             var hPercent = ((int) ((teleport.Hero.Health / teleport.Hero.MaxHealth) * 100)).ToString();
                             var color = teleport.ToColor();
                             var width = (int) (scale * teleport.Countdown);
@@ -415,7 +418,28 @@ namespace SFXUtility.Features.Detectors
                 var teleport = _teleportObjects.FirstOrDefault(r => r.Hero.NetworkId == packet.UnitNetworkId);
                 if (teleport != null)
                 {
-                    teleport.Duration = packet.Duration;
+                    var duration = packet.Duration;
+                    if (packet.Type == Packet.S2C.Teleport.Type.Recall)
+                    {
+                        duration = teleport.Hero.HasBuff("exaltedwithbaronnashor") ? 4000 : 8000;
+                        if (Utility.Map.GetMap().Type == Utility.Map.MapType.CrystalScar)
+                        {
+                            duration = 4500;
+                        }
+                    }
+                    if (packet.Type == Packet.S2C.Teleport.Type.Shen)
+                    {
+                        duration = 3000;
+                    }
+                    if (packet.Type == Packet.S2C.Teleport.Type.TwistedFate)
+                    {
+                        duration = 1500;
+                    }
+                    if (packet.Type == Packet.S2C.Teleport.Type.Teleport)
+                    {
+                        duration = 3500;
+                    }
+                    teleport.Duration = duration;
                     teleport.LastStatus = packet.Status;
                     teleport.LastType = packet.Type;
 
@@ -465,7 +489,7 @@ namespace SFXUtility.Features.Detectors
 
             public int Duration
             {
-                private get { return _duration; }
+                get { return _duration; }
                 set { _duration = value / 1000; }
             }
 
@@ -594,11 +618,11 @@ namespace SFXUtility.Features.Detectors
                 }
             }
 
-            public bool Update()
+            public bool Update(bool bar = false)
             {
                 var additional = LastStatus == Packet.S2C.Teleport.Status.Start
-                    ? Duration + AdditionalTextTime
-                    : AdditionalTextTime;
+                    ? Duration + (bar ? AdditionalBarTime : AdditionalTextTime)
+                    : (bar ? AdditionalBarTime : AdditionalTextTime);
                 if (_lastActionTime + additional <= Game.Time)
                 {
                     _lastActionTime = 0f;
