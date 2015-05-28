@@ -106,8 +106,9 @@ namespace SFXChallenger.Champions
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
             var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LaneClear"), Menu.Name + ".lane-clear"));
-            ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
+            ManaManager.AddToMenu(laneclearMenu, "lane-clear-q", ManaCheckType.Minimum, ManaValueType.Total, 200, 0, 750);
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
+            ManaManager.AddToMenu(laneclearMenu, "lane-clear-e", ManaCheckType.Minimum, ManaValueType.Percent);
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
             laneclearMenu.AddItem(
                 new MenuItem(laneclearMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(
@@ -175,7 +176,7 @@ namespace SFXChallenger.Champions
         protected override void SetupSpells()
         {
             Q = new Spell(SpellSlot.Q, 600f);
-            Q.SetTargetted(0.25f, 2000f);
+            Q.SetTargetted(0.4f, 1500f);
 
             W = new Spell(SpellSlot.W, 700f);
             W.SetSkillshot(1.6f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
@@ -827,34 +828,18 @@ namespace SFXChallenger.Champions
 
         protected override void LaneClear()
         {
-            if (!ManaManager.Check("lane-clear"))
-            {
-                return;
-            }
-
-            if (Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady())
-            {
-                var minion =
-                    MinionManager.GetMinions(Q.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
-                        .FirstOrDefault(m => m.Health < Q.GetDamage(m) || m.Health * 2 > Q.GetDamage(m));
-                if (minion != null)
-                {
-                    Casting.BasicTargetSkill(minion, Q);
-                }
-            }
-            if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady())
+            if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady() && ManaManager.Check("lane-clear-e"))
             {
                 var minHits = Menu.Item(Menu.Name + ".lane-clear.e-min").GetValue<Slider>().Value;
-                var endPos = Vector3.Zero;
-                var minions = MinionManager.GetMinions(
-                    MaxERange, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+                Vector3 startPos = Vector3.Zero;
+                Vector3 endPos = Vector3.Zero;
+                var minions = MinionManager.GetMinions(MaxERange, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+                var hits = 0;
                 foreach (var minion in minions)
                 {
-                    Vector3 startPos;
                     if (minion.Distance(Player.Position) < E.Range)
                     {
-                        startPos = minion.Position;
-                        var hits = 0;
+                        var sPos = minion.Position;
                         foreach (var t in minions)
                         {
                             var input = new PredictionInput
@@ -865,25 +850,22 @@ namespace SFXChallenger.Champions
                                 Speed = E.Speed,
                                 Type = E.Type,
                                 Unit = t,
-                                From = startPos,
-                                RangeCheckFrom = startPos
+                                From = sPos,
+                                RangeCheckFrom = sPos
                             };
                             var pred = Prediction.GetPrediction(input);
                             if (pred.Hitchance >= HitChance.High)
                             {
                                 var rect = new Geometry.Polygon.Rectangle(
-                                    startPos.To2D(), startPos.Extend(pred.CastPosition, ELength).To2D(), E.Width);
+                                    sPos.To2D(), sPos.Extend(pred.CastPosition, ELength).To2D(), E.Width);
                                 var count = minions.Count(m => rect.IsInside(m));
                                 if (count > hits)
                                 {
                                     hits = count;
-                                    endPos = startPos.Extend(pred.CastPosition, ELength);
+                                    startPos = sPos;
+                                    endPos = sPos.Extend(pred.CastPosition, ELength);
                                 }
                             }
-                        }
-                        if (!endPos.Equals(Vector3.Zero) && hits >= minHits)
-                        {
-                            E.Cast(startPos, endPos);
                         }
                     }
                     else
@@ -898,8 +880,7 @@ namespace SFXChallenger.Champions
                             Unit = minion
                         };
                         var castPos = Prediction.GetPrediction(input2).CastPosition;
-                        startPos = Player.Position.Extend(castPos, E.Range);
-                        var hits = 0;
+                        var sPos = Player.Position.Extend(castPos, E.Range);
                         foreach (var t in minions)
                         {
                             var input = new PredictionInput
@@ -910,27 +891,38 @@ namespace SFXChallenger.Champions
                                 Speed = E.Speed,
                                 Type = E.Type,
                                 Unit = t,
-                                From = startPos,
-                                RangeCheckFrom = startPos
+                                From = sPos,
+                                RangeCheckFrom = sPos
                             };
                             var pred = Prediction.GetPrediction(input);
                             if (pred.Hitchance >= HitChance.High)
                             {
                                 var rect = new Geometry.Polygon.Rectangle(
-                                    startPos.To2D(), startPos.Extend(pred.CastPosition, ELength).To2D(), E.Width);
+                                    sPos.To2D(), sPos.Extend(pred.CastPosition, ELength).To2D(), E.Width);
                                 var count = minions.Count(m => rect.IsInside(m));
                                 if (count > hits)
                                 {
                                     hits = count;
-                                    endPos = startPos.Extend(pred.CastPosition, ELength);
+                                    startPos = sPos;
+                                    endPos = sPos.Extend(pred.CastPosition, ELength);
                                 }
                             }
                         }
-                        if (!endPos.Equals(Vector3.Zero) && hits >= minHits)
-                        {
-                            E.Cast(startPos, endPos);
-                        }
                     }
+                }
+                if (!startPos.Equals(Vector3.Zero) && !endPos.Equals(Vector3.Zero) && hits >= minHits)
+                {
+                    E.Cast(startPos, endPos);
+                }
+            }
+            if (Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady() && ManaManager.Check("lane-clear-q"))
+            {
+                var minion =
+                    MinionManager.GetMinions(Q.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
+                        .FirstOrDefault(m => m.Health < Q.GetDamage(m) || m.Health * 2 > Q.GetDamage(m));
+                if (minion != null)
+                {
+                    Casting.BasicTargetSkill(minion, Q);
                 }
             }
         }
