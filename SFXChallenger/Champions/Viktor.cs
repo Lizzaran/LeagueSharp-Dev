@@ -43,7 +43,7 @@ namespace SFXChallenger.Champions
 {
     internal class Viktor : Champion
     {
-        private const float MaxERange = 1245f;
+        private const float MaxERange = 1235f;
         private const float ELength = 710f;
         private const float RMoveInterval = 125f;
         private float _lastRMoveCommand = Environment.TickCount;
@@ -60,7 +60,6 @@ namespace SFXChallenger.Champions
         {
             Core.OnPostUpdate += OnCorePostUpdate;
             Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
-            Orbwalking.OnNonKillableMinion += OnOrbwalkingNonKillableMinion;
             AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
             Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
             CustomEvents.Unit.OnDash += OnUnitDash;
@@ -71,7 +70,6 @@ namespace SFXChallenger.Champions
         {
             Core.OnPostUpdate -= OnCorePostUpdate;
             Orbwalking.BeforeAttack -= OnOrbwalkingBeforeAttack;
-            Orbwalking.OnNonKillableMinion -= OnOrbwalkingNonKillableMinion;
             AntiGapcloser.OnEnemyGapcloser -= OnEnemyGapcloser;
             Interrupter2.OnInterruptableTarget -= OnInterruptableTarget;
             CustomEvents.Unit.OnDash -= OnUnitDash;
@@ -106,7 +104,8 @@ namespace SFXChallenger.Champions
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
             var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LaneClear"), Menu.Name + ".lane-clear"));
-            ManaManager.AddToMenu(laneclearMenu, "lane-clear-q", ManaCheckType.Minimum, ManaValueType.Total, 200, 0, 750);
+            ManaManager.AddToMenu(
+                laneclearMenu, "lane-clear-q", ManaCheckType.Minimum, ManaValueType.Total, 200, 0, 750);
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             ManaManager.AddToMenu(laneclearMenu, "lane-clear-e", ManaCheckType.Minimum, ManaValueType.Percent);
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
@@ -165,18 +164,16 @@ namespace SFXChallenger.Champions
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
             miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".q-unkillable", "Q " + Global.Lang.Get("G_Unkillable")).SetValue(false));
-            miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".w-stunned", "W " + Global.Lang.Get("G_Stunned")).SetValue(true));
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-dash", "W " + Global.Lang.Get("G_Dash")).SetValue(true));
             miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".w-gapcloser", "W " + Global.Lang.Get("G_Dash")).SetValue(true));
+                new MenuItem(miscMenu.Name + ".w-gapcloser", "W " + Global.Lang.Get("G_Gapcloser")).SetValue(true));
         }
 
         protected override void SetupSpells()
         {
             Q = new Spell(SpellSlot.Q, 600f);
-            Q.SetTargetted(0.4f, 1500f);
+            Q.SetTargetted(3.5f, 2000f);
 
             W = new Spell(SpellSlot.W, 700f);
             W.SetSkillshot(1.6f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
@@ -294,25 +291,6 @@ namespace SFXChallenger.Champions
                     else if (sender.Name.Equals("Viktor_ChaosStorm_green.troy", StringComparison.OrdinalIgnoreCase))
                     {
                         _rObject = sender;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnOrbwalkingNonKillableMinion(AttackableUnit minion)
-        {
-            try
-            {
-                if (Menu.Item(Menu.Name + ".miscellaneous.q-unkillable").GetValue<bool>())
-                {
-                    var m = minion as Obj_AI_Minion;
-                    if (m != null)
-                    {
-                        QLastHitLogic(m);
                     }
                 }
             }
@@ -637,25 +615,6 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private void QLastHitLogic(Obj_AI_Minion minion)
-        {
-            try
-            {
-                if (minion.IsValid && Q.CanCast(minion))
-                {
-                    var health = HealthPrediction.GetHealthPrediction(minion, (int) (Q.GetSpellDelay(minion)), 0);
-                    if (health > 0 && Q.IsKillable(minion))
-                    {
-                        Casting.BasicTargetSkill(minion, Q);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
         private void WLogic(HitChance hitChance)
         {
             try
@@ -686,7 +645,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                foreach (var target in Targets)
+                foreach (var target in Targets.Where(t => t.Distance(Player) < MaxERange))
                 {
                     if (SingleELogic(target, hitChance))
                     {
@@ -704,7 +663,9 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                Vector3 startPos, endPos = Vector3.Zero;
+                var startPos = Vector3.Zero;
+                var endPos = Vector3.Zero;
+                var hits = 0;
                 var lTarget = target;
 
                 if (target.Distance(Player.Position) < E.Range)
@@ -716,7 +677,6 @@ namespace SFXChallenger.Champions
                     }
                     else
                     {
-                        var hits = 0;
                         foreach (var t in Targets.Where(t => t.NetworkId != lTarget.NetworkId))
                         {
                             var input = new PredictionInput
@@ -749,32 +709,59 @@ namespace SFXChallenger.Champions
                         startPos = Player.Position.Extend(startPos, Player.Distance(startPos) * 0.9f);
                         endPos = Player.Position.Extend(startPos, Player.Distance(startPos) + ELength);
                     }
-                    E.Cast(startPos, endPos);
-                    return true;
                 }
-                var input2 = new PredictionInput
+                else
                 {
-                    Range = MaxERange,
-                    Delay = E.Delay,
-                    Radius = E.Width,
-                    Speed = E.Speed,
-                    Type = E.Type,
-                    Unit = target
-                };
-                var castPos = Prediction.GetPrediction(input2).CastPosition;
-                startPos = Player.Position.Extend(castPos, E.Range);
-                input2.From = startPos;
-                input2.RangeCheckFrom = startPos;
-                input2.Range = ELength;
+                    var input2 = new PredictionInput
+                    {
+                        Range = MaxERange,
+                        Delay = E.Delay,
+                        Radius = E.Width,
+                        Speed = E.Speed,
+                        Type = E.Type,
+                        Unit = target
+                    };
+                    var fCastPos = Prediction.GetPrediction(input2).CastPosition;
+                    var circle =
+                        new Geometry.Polygon.Circle(Player.Position, E.Range, 100).Points.Where(
+                            p => p.Distance(fCastPos) < ELength);
+                    foreach (var point in circle)
+                    {
+                        var sPos = point.To3D();
+                        input2.From = sPos;
+                        input2.RangeCheckFrom = sPos;
+                        input2.Range = ELength;
 
-                var pred2 = Prediction.GetPrediction(input2);
-                if (pred2.Hitchance >= hitChance)
+                        var pred2 = Prediction.GetPrediction(input2);
+                        if (pred2.Hitchance >= hitChance)
+                        {
+                            var castPos = UseWObjectPosition(target, false) ? _wObject.Position : pred2.CastPosition;
+                            var rect = new Geometry.Polygon.Rectangle(
+                                sPos.To2D(), sPos.Extend(castPos, ELength).To2D(), E.Width);
+                            var count = 0;
+                            foreach (var c in
+                                Targets.Where(c => c.Distance(sPos) < ELength && c.NetworkId != target.NetworkId))
+                            {
+                                input2.Unit = c;
+                                var pred = Prediction.GetPrediction(input2);
+                                if (pred.Hitchance >= HitchanceManager.Get("combo", "e") - 1 &&
+                                    rect.IsInside(pred.CastPosition))
+                                {
+                                    count++;
+                                }
+                            }
+                            if (count > hits)
+                            {
+                                hits = count;
+                                startPos = sPos;
+                                endPos = sPos.Extend(castPos, ELength);
+                            }
+                        }
+                    }
+                }
+                if (!startPos.Equals(Vector3.Zero) && !endPos.Equals(Vector3.Zero))
                 {
-                    E.Cast(
-                        startPos,
-                        startPos.Extend(
-                            UseWObjectPosition(target, false) ? _wObject.Position : pred2.CastPosition, ELength));
-                    return true;
+                    E.Cast(startPos, endPos);
                 }
             }
             catch (Exception ex)
@@ -828,15 +815,18 @@ namespace SFXChallenger.Champions
 
         protected override void LaneClear()
         {
-            if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady() && ManaManager.Check("lane-clear-e"))
+            if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady() &&
+                ManaManager.Check("lane-clear-e"))
             {
                 var minHits = Menu.Item(Menu.Name + ".lane-clear.e-min").GetValue<Slider>().Value;
-                Vector3 startPos = Vector3.Zero;
-                Vector3 endPos = Vector3.Zero;
-                var minions = MinionManager.GetMinions(MaxERange, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+                var startPos = Vector3.Zero;
+                var endPos = Vector3.Zero;
+                var minions = MinionManager.GetMinions(
+                    MaxERange, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
                 var hits = 0;
                 foreach (var minion in minions)
                 {
+                    var lMinion = minion;
                     if (minion.Distance(Player.Position) < E.Range)
                     {
                         var sPos = minion.Position;
@@ -879,32 +869,39 @@ namespace SFXChallenger.Champions
                             Type = E.Type,
                             Unit = minion
                         };
-                        var castPos = Prediction.GetPrediction(input2).CastPosition;
-                        var sPos = Player.Position.Extend(castPos, E.Range);
-                        foreach (var t in minions)
+                        var fCastPos = Prediction.GetPrediction(input2).CastPosition;
+                        var circle =
+                            new Geometry.Polygon.Circle(Player.Position, E.Range, 100).Points.Where(
+                                p => p.Distance(fCastPos) < ELength);
+                        foreach (var point in circle)
                         {
-                            var input = new PredictionInput
+                            var sPos = point.To3D();
+                            input2.From = sPos;
+                            input2.RangeCheckFrom = sPos;
+                            input2.Range = ELength;
+
+                            var pred2 = Prediction.GetPrediction(input2);
+                            if (pred2.Hitchance >= HitChance.High)
                             {
-                                Range = ELength,
-                                Delay = E.Delay,
-                                Radius = E.Width,
-                                Speed = E.Speed,
-                                Type = E.Type,
-                                Unit = t,
-                                From = sPos,
-                                RangeCheckFrom = sPos
-                            };
-                            var pred = Prediction.GetPrediction(input);
-                            if (pred.Hitchance >= HitChance.High)
-                            {
+                                var castPos = pred2.CastPosition;
                                 var rect = new Geometry.Polygon.Rectangle(
-                                    sPos.To2D(), sPos.Extend(pred.CastPosition, ELength).To2D(), E.Width);
-                                var count = minions.Count(m => rect.IsInside(m));
+                                    sPos.To2D(), sPos.Extend(castPos, ELength).To2D(), E.Width);
+                                var count = 0;
+                                foreach (var c in
+                                    minions.Where(c => c.Distance(sPos) < ELength && c.NetworkId != lMinion.NetworkId))
+                                {
+                                    input2.Unit = c;
+                                    var pred = Prediction.GetPrediction(input2);
+                                    if (pred.Hitchance >= HitChance.High && rect.IsInside(pred.CastPosition))
+                                    {
+                                        count++;
+                                    }
+                                }
                                 if (count > hits)
                                 {
                                     hits = count;
                                     startPos = sPos;
-                                    endPos = sPos.Extend(pred.CastPosition, ELength);
+                                    endPos = sPos.Extend(castPos, ELength);
                                 }
                             }
                         }
@@ -915,7 +912,8 @@ namespace SFXChallenger.Champions
                     E.Cast(startPos, endPos);
                 }
             }
-            if (Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady() && ManaManager.Check("lane-clear-q"))
+            if (Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady() &&
+                ManaManager.Check("lane-clear-q"))
             {
                 var minion =
                     MinionManager.GetMinions(Q.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
@@ -969,7 +967,7 @@ namespace SFXChallenger.Champions
             }
             if (Menu.Item(Menu.Name + ".killsteal.e").GetValue<bool>() && E.IsReady())
             {
-                foreach (var target in Targets)
+                foreach (var target in Targets.Where(t => t.Distance(Player) < MaxERange))
                 {
                     var damage = E.GetDamage(target);
                     if (damage - 10 > target.Health)
