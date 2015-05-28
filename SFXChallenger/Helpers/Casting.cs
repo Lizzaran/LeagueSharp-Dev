@@ -37,12 +37,12 @@ namespace SFXChallenger.Helpers
 
     internal class Casting
     {
-        public static void BasicSkillShot(Spell spell, HitChance hitChance, bool towerCheck = false)
+        public static void BasicSkillShot(Spell spell, HitChance hitChance, bool aoe = false, bool towerCheck = false)
         {
-            BasicSkillShot(TargetSelector.GetTarget(spell.Range, spell.DamageType), spell, hitChance, towerCheck);
+            BasicSkillShot(TargetSelector.GetTarget(spell.Range, spell.DamageType), spell, hitChance, aoe, towerCheck);
         }
 
-        public static void BasicSkillShot(Obj_AI_Base target, Spell spell, HitChance hitChance, bool towerCheck = false)
+        public static void BasicSkillShot(Obj_AI_Base target, Spell spell, HitChance hitChance, bool aoe = false, bool towerCheck = false)
         {
             if (!spell.IsReady())
             {
@@ -56,7 +56,7 @@ namespace SFXChallenger.Helpers
 
             spell.UpdateSourcePosition();
 
-            var prediction = spell.GetPrediction(target);
+            var prediction = spell.GetPrediction(target, aoe);
             if (prediction.Hitchance >= hitChance)
             {
                 spell.Cast(prediction.CastPosition);

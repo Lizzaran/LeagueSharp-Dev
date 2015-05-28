@@ -563,7 +563,7 @@ namespace SFXChallenger.Champions
                         if (HeroManager.Enemies.Count(em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) ==
                             1)
                         {
-                            Casting.BasicSkillShot(target, R, hitChance);
+                            Casting.BasicSkillShot(target, R, hitChance, true);
                         }
                     }
                 }
@@ -762,6 +762,7 @@ namespace SFXChallenger.Champions
                 if (!startPos.Equals(Vector3.Zero) && !endPos.Equals(Vector3.Zero))
                 {
                     E.Cast(startPos, endPos);
+                    return true;
                 }
             }
             catch (Exception ex)
