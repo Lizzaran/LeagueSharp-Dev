@@ -31,12 +31,6 @@ using LeagueSharp.Common;
 
 namespace SFXSnake
 {
-    #region
-
-    
-
-    #endregion
-
     internal class SFXSnake
     {
         private Direction _direction = Direction.None;

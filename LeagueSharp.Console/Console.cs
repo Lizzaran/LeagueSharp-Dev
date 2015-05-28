@@ -33,12 +33,6 @@ using Color = System.Drawing.Color;
 
 namespace LeagueSharp.Console
 {
-    #region
-
-    
-
-    #endregion
-
     public static class Console
     {
         private static Vector2 _offset;

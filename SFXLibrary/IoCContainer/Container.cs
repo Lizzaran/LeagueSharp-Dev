@@ -30,12 +30,6 @@ using System.Linq;
 
 namespace SFXLibrary.IoCContainer
 {
-    #region
-
-    
-
-    #endregion
-
     public class Container : IContainer
     {
         public readonly Dictionary<MappingKey, Func<object>> Mappings;

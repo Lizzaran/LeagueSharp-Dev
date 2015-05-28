@@ -33,12 +33,6 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Events
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Game : Base
     {
         private bool _onEndTriggerd;

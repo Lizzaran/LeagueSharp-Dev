@@ -31,12 +31,6 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Detectors
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Detectors : Base
     {
         public override bool Enabled

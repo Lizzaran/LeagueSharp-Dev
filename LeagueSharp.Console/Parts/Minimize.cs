@@ -30,12 +30,6 @@ using SharpDX.Direct3D9;
 
 namespace LeagueSharp.Console.Parts
 {
-    #region
-
-    
-
-    #endregion
-
     public class Minimize
     {
         private static readonly Line Line;

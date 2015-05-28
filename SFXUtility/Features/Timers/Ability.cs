@@ -280,9 +280,8 @@ namespace SFXUtility.Features.Timers
                 var offsetTop = Menu.Item(Menu.Name + "DrawingOffsetTop").GetValue<Slider>().Value;
                 var offsetLeft = Menu.Item(Menu.Name + "DrawingOffsetLeft").GetValue<Slider>().Value;
 
-                foreach (
-                    var ability in
-                        _drawings.Where(d => d.Object.IsValid && d.Position.IsOnScreen() && d.End > Game.Time))
+                foreach (var ability in
+                    _drawings.Where(d => d.Object.IsValid && d.Position.IsOnScreen() && d.End > Game.Time))
                 {
                     var position = Drawing.WorldToScreen(ability.Position);
                     var time = (ability.End - Game.Time).ToString("0.0");

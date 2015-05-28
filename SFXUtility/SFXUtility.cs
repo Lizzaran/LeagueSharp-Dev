@@ -35,12 +35,6 @@ using Version = System.Version;
 
 namespace SFXUtility
 {
-    #region
-
-    
-
-    #endregion
-
     internal class SFXUtility
     {
         private bool _unloadTriggered;

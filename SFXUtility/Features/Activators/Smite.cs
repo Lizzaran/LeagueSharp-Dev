@@ -39,12 +39,6 @@ using Utils = SFXLibrary.Utils;
 
 namespace SFXUtility.Features.Activators
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Smite : Base
     {
         public const float SmiteRange = 570f;

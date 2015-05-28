@@ -36,12 +36,6 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Events
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Trinket : Base
     {
         private const float CheckInterval = 300f;

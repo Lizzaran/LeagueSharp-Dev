@@ -45,6 +45,8 @@ namespace SFXChallenger.Champions
     {
         private const float MaxERange = 1245f;
         private const float ELength = 710f;
+        private const float RMoveInterval = 125f;
+        private float _lastRMoveCommand = Environment.TickCount;
         private GameObject _rObject;
         private GameObject _wObject;
         private float _wObjectEndTime;
@@ -182,7 +184,7 @@ namespace SFXChallenger.Champions
             E.SetSkillshot(0.05f, 90f, 1000f, false, SkillshotType.SkillshotLine);
 
             R = new Spell(SpellSlot.R, 700f);
-            R.SetSkillshot(0.5f, 450f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            R.SetSkillshot(0.05f, 450f, float.MaxValue, false, SkillshotType.SkillshotCircle);
         }
 
         private void OnCorePostUpdate(EventArgs args)
@@ -505,6 +507,7 @@ namespace SFXChallenger.Champions
                 if (r && R.IsReady())
                 {
                     damage += R.GetDamage(target);
+                    damage += R.GetDamage(target, 1) * 10;
                 }
                 return damage;
             }
@@ -524,7 +527,8 @@ namespace SFXChallenger.Champions
                         target.CalcDamage(
                             target, Damage.DamageType.Magical,
                             (new[] { 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 80, 90, 110, 130, 150, 170, 190, 210 }[
-                                Player.Level - 1] + Player.TotalMagicalDamage * 0.5f + Player.TotalAttackDamage));
+                                Player.Level - 1] + Player.TotalMagicalDamage * 0.5f + Player.TotalAttackDamage)) *
+                    0.98f;
             }
             catch (Exception ex)
             {
@@ -537,6 +541,13 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                if (_lastRMoveCommand + RMoveInterval > Environment.TickCount)
+                {
+                    return;
+                }
+
+                _lastRMoveCommand = Environment.TickCount;
+
                 if (!R.Instance.Name.Equals("ViktorChaosStorm", StringComparison.OrdinalIgnoreCase) && _rObject != null &&
                     _rObject.IsValid)
                 {
@@ -721,14 +732,9 @@ namespace SFXChallenger.Champions
                             var pred = Prediction.GetPrediction(input);
                             if (pred.Hitchance >= hitChance)
                             {
-                                var steps = (int) (Math.Ceiling(ELength / (E.Width * 2f)));
-                                var stepLength = ELength / steps;
-                                var count = 0;
-                                for (var i = 0; i < steps; i++)
-                                {
-                                    var pos = startPos.Extend(pred.CastPosition, stepLength * i);
-                                    count += Targets.Count(c => c.Distance(pos) < E.Width);
-                                }
+                                var rect = new Geometry.Polygon.Rectangle(
+                                    startPos.To2D(), startPos.Extend(pred.CastPosition, ELength).To2D(), E.Width);
+                                var count = Targets.Count(c => rect.IsInside(c));
                                 if (count > hits)
                                 {
                                     hits = count;
@@ -844,13 +850,12 @@ namespace SFXChallenger.Champions
                     MaxERange, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
                 foreach (var minion in minions)
                 {
-                    var lMinion = minion;
                     Vector3 startPos;
                     if (minion.Distance(Player.Position) < E.Range)
                     {
                         startPos = minion.Position;
                         var hits = 0;
-                        foreach (var t in minions.Where(t => t.NetworkId != lMinion.NetworkId))
+                        foreach (var t in minions)
                         {
                             var input = new PredictionInput
                             {
@@ -866,14 +871,9 @@ namespace SFXChallenger.Champions
                             var pred = Prediction.GetPrediction(input);
                             if (pred.Hitchance >= HitChance.High)
                             {
-                                var steps = (int) (Math.Ceiling(ELength / (E.Width * 2f)));
-                                var stepLength = ELength / steps;
-                                var count = 0;
-                                for (var i = 0; i < steps; i++)
-                                {
-                                    var pos = startPos.Extend(pred.CastPosition, stepLength * i);
-                                    count += minions.Count(c => c.Distance(pos) < E.Width);
-                                }
+                                var rect = new Geometry.Polygon.Rectangle(
+                                    startPos.To2D(), startPos.Extend(pred.CastPosition, ELength).To2D(), E.Width);
+                                var count = minions.Count(m => rect.IsInside(m));
                                 if (count > hits)
                                 {
                                     hits = count;
@@ -900,7 +900,7 @@ namespace SFXChallenger.Champions
                         var castPos = Prediction.GetPrediction(input2).CastPosition;
                         startPos = Player.Position.Extend(castPos, E.Range);
                         var hits = 0;
-                        foreach (var t in minions.Where(t => t.NetworkId != lMinion.NetworkId))
+                        foreach (var t in minions)
                         {
                             var input = new PredictionInput
                             {
@@ -916,14 +916,9 @@ namespace SFXChallenger.Champions
                             var pred = Prediction.GetPrediction(input);
                             if (pred.Hitchance >= HitChance.High)
                             {
-                                var steps = (int) (Math.Ceiling(ELength / (E.Width * 2f)));
-                                var stepLength = ELength / steps;
-                                var count = 0;
-                                for (var i = 0; i < steps; i++)
-                                {
-                                    var pos = startPos.Extend(pred.CastPosition, stepLength * i);
-                                    count += minions.Count(c => c.Distance(pos) < E.Width);
-                                }
+                                var rect = new Geometry.Polygon.Rectangle(
+                                    startPos.To2D(), startPos.Extend(pred.CastPosition, ELength).To2D(), E.Width);
+                                var count = minions.Count(m => rect.IsInside(m));
                                 if (count > hits)
                                 {
                                     hits = count;

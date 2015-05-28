@@ -30,12 +30,6 @@ using Color = System.Drawing.Color;
 
 namespace SFXLibrary
 {
-    #region
-
-    
-
-    #endregion
-
     public class Draw
     {
         public static void Cross(Vector2 pos, float size, float thickness, Color color)

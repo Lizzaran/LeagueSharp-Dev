@@ -28,12 +28,6 @@ using System.Drawing;
 
 namespace SFXLibrary.Extensions.NET
 {
-    #region
-
-    
-
-    #endregion
-
     public static class ColorExtensions
     {
         public static Color ToArgb(this Color color, int opacity)

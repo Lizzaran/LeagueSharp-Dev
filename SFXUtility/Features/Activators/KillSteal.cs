@@ -36,12 +36,6 @@ using Items = SFXUtility.Data.Items;
 
 namespace SFXUtility.Features.Activators
 {
-    #region
-
-    
-
-    #endregion
-
     internal class KillSteal : Base
     {
         private Activators _parent;

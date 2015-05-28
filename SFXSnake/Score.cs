@@ -30,12 +30,6 @@ using LeagueSharp;
 
 namespace SFXSnake
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Score
     {
         private readonly Map _map;

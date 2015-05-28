@@ -28,12 +28,6 @@ using System;
 
 namespace SFXLibrary.IoCContainer
 {
-    #region
-
-    
-
-    #endregion
-
     public interface IContainer
     {
         void Deregister(Type type, string instanceName = null);

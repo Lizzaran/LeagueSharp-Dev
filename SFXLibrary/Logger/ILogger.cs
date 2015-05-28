@@ -29,12 +29,6 @@ using System.ComponentModel;
 
 namespace SFXLibrary.Logger
 {
-    #region
-
-    
-
-    #endregion
-
     public interface ILogger
     {
         LogLevel LogLevel { get; set; }

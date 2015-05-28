@@ -33,12 +33,6 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Drawings
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Clock : Base
     {
         private Drawings _parent;

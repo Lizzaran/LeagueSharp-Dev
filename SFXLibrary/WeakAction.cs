@@ -29,12 +29,6 @@ using System.Reflection;
 
 namespace SFXLibrary
 {
-    #region
-
-    
-
-    #endregion
-
     [Serializable]
     public class WeakAction : WeakReference
     {

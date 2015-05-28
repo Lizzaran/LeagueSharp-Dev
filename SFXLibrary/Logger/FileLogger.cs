@@ -35,12 +35,6 @@ using SFXLibrary.Extensions.NET;
 
 namespace SFXLibrary.Logger
 {
-    #region
-
-    
-
-    #endregion
-
     public class FileLogger : ProducerConsumer<LogItem>, ILogger
     {
         private readonly string _fileName;

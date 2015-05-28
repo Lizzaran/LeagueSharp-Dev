@@ -35,12 +35,6 @@ using SFXUtility.Data;
 
 namespace SFXUtility.Features.Others
 {
-    #region
-
-    
-
-    #endregion
-
     // Credits: Tree
     internal class SkinChanger : Base
     {

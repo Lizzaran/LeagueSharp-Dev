@@ -38,12 +38,6 @@ using SharpDX.Direct3D9;
 
 namespace SFXLibrary.Extensions.NET
 {
-    #region
-
-    
-
-    #endregion
-
     public static class OtherExtensions
     {
         public static bool Is24Hrs(this CultureInfo cultureInfo)

@@ -28,12 +28,6 @@ using System;
 
 namespace SFXLibrary
 {
-    #region
-
-    
-
-    #endregion
-
     public class Mediator
     {
         private readonly MessageToActionsMap _messageToCallbacksMap;

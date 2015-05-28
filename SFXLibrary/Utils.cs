@@ -33,12 +33,6 @@ using LeagueSharp;
 
 namespace SFXLibrary
 {
-    #region
-
-    
-
-    #endregion
-
     public class Utils
     {
         public static SpellSlot GetSpellSlotByChar(string c)

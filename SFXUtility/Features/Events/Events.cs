@@ -31,12 +31,6 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Events
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Events : Base
     {
         public override bool Enabled

@@ -31,12 +31,6 @@ using System.Xml.Linq;
 
 namespace SFXLibrary
 {
-    #region
-
-    
-
-    #endregion
-
     public class Language
     {
         private readonly Dictionary<string, Dictionary<string, string>> _languagesDictionary =

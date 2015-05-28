@@ -30,12 +30,6 @@ using Color = System.Drawing.Color;
 
 namespace SFXSnake
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Map
     {
         private const int Divider = 54;

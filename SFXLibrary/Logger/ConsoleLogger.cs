@@ -31,12 +31,6 @@ using SFXLibrary.Extensions.NET;
 
 namespace SFXLibrary.Logger
 {
-    #region
-
-    
-
-    #endregion
-
     public class ConsoleLogger : ILogger
     {
         public LogLevel LogLevel { get; set; }

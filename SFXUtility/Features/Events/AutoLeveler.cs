@@ -35,12 +35,6 @@ using Utils = SFXLibrary.Utils;
 
 namespace SFXUtility.Features.Events
 {
-    #region
-
-    
-
-    #endregion
-
     internal class AutoLeveler : Base
     {
         private const float CheckInterval = 300f;

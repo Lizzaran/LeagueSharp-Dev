@@ -31,12 +31,6 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Others
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Others : Base
     {
         public override bool Enabled

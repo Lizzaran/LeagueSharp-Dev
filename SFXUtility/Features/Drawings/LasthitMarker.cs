@@ -37,12 +37,6 @@ using Color = System.Drawing.Color;
 
 namespace SFXUtility.Features.Drawings
 {
-    #region
-
-    
-
-    #endregion
-
     internal class LasthitMarker : Base
     {
         private IEnumerable<Obj_AI_Minion> _minions = new List<Obj_AI_Minion>();

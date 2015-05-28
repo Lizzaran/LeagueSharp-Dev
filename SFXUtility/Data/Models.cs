@@ -32,12 +32,6 @@ using System.Web.Script.Serialization;
 
 namespace SFXUtility.Data
 {
-    #region
-
-    
-
-    #endregion
-
     // Credits: Tree
     internal static class ModelManager
     {

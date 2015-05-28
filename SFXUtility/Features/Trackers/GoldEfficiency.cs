@@ -39,12 +39,6 @@ using SharpDX.Direct3D9;
 
 namespace SFXUtility.Features.Trackers
 {
-    #region
-
-    
-
-    #endregion
-
     internal class GoldEfficiency : Base
     {
         private const float CheckInterval = 1000f;
@@ -178,10 +172,9 @@ namespace SFXUtility.Features.Trackers
                     return;
                 }
 
-                foreach (
-                    var entry in
-                        _goldEfficiencies.Where(
-                            e => e.Key.IsValid && e.Key.IsVisible && !e.Key.IsDead && e.Key.IsHPBarRendered))
+                foreach (var entry in
+                    _goldEfficiencies.Where(
+                        e => e.Key.IsValid && e.Key.IsVisible && !e.Key.IsDead && e.Key.IsHPBarRendered))
                 {
                     _text.DrawTextLeft(
                         entry.Value, (int) (entry.Key.HPBarPosition.X + 139),

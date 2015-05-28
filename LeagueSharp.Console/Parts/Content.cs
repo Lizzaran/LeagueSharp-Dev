@@ -36,12 +36,6 @@ using Color = SharpDX.Color;
 
 namespace LeagueSharp.Console.Parts
 {
-    #region
-
-    
-
-    #endregion
-
     public class Content
     {
         private static readonly Line Line;

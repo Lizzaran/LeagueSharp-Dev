@@ -42,12 +42,6 @@ using Color = SharpDX.Color;
 
 namespace SFXUtility.Features.Trackers
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Sidebar : Base
     {
         private readonly List<EnemyObject> _enemyObjects = new List<EnemyObject>();
@@ -176,10 +170,9 @@ namespace SFXUtility.Features.Trackers
             if (args.Msg == (uint) WindowsMessages.WM_LBUTTONUP)
             {
                 var pos = Utils.GetCursorPos();
-                foreach (
-                    var enemy in
-                        _enemyObjects.Where(
-                            e => Utils.IsUnderRectangle(pos, e.Position.X, e.Position.Y, e.Width, e.Height)))
+                foreach (var enemy in
+                    _enemyObjects.Where(e => Utils.IsUnderRectangle(pos, e.Position.X, e.Position.Y, e.Width, e.Height))
+                    )
                 {
                     if (ObjectManager.Player.Spellbook.ActiveSpellSlot != SpellSlot.Unknown)
                     {

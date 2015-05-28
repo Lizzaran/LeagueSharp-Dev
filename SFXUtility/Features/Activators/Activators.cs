@@ -31,12 +31,6 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Activators
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Activators : Base
     {
         public override bool Enabled

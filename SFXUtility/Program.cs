@@ -43,12 +43,6 @@ using Object = SFXUtility.Features.Timers.Object;
 
 namespace SFXUtility
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Program
     {
         // ReSharper disable once UnusedParameter.Local

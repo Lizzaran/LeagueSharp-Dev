@@ -37,12 +37,6 @@ using Color = System.Drawing.Color;
 
 namespace SFXUtility.Features.Drawings
 {
-    #region
-
-    
-
-    #endregion
-
     internal class PerfectWard : Base
     {
         private const float CheckInterval = 300f;

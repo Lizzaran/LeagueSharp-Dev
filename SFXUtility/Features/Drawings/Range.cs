@@ -35,12 +35,6 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Drawings
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Range : Base
     {
         private const float ExperienceRange = 1400f;

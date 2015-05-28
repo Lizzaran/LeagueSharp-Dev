@@ -33,12 +33,6 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Others
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Humanize : Base
     {
         private readonly Dictionary<SpellSlot, float> _lastSpell = new Dictionary<SpellSlot, float>();

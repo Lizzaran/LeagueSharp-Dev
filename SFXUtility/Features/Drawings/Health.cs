@@ -38,12 +38,6 @@ using SharpDX.Direct3D9;
 
 namespace SFXUtility.Features.Drawings
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Health : Base
     {
         private readonly List<Obj_BarracksDampener> _inhibs = new List<Obj_BarracksDampener>();
@@ -121,10 +115,9 @@ namespace SFXUtility.Features.Drawings
                 }
                 if (Menu.Item(Name + "Inhibitor").GetValue<bool>())
                 {
-                    foreach (
-                        var inhib in
-                            _inhibs.Where(
-                                i => i != null && i.IsValid && !i.IsDead && i.Health > 1f && i.HealthPercent <= 75))
+                    foreach (var inhib in
+                        _inhibs.Where(
+                            i => i != null && i.IsValid && !i.IsDead && i.Health > 1f && i.HealthPercent <= 75))
                     {
                         _text.DrawTextCentered(
                             ((int) (percent ? (int) inhib.HealthPercent : inhib.Health)).ToStringLookUp(),

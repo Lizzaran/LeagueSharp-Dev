@@ -28,12 +28,6 @@ using System;
 
 namespace SFXLibrary.IoCContainer
 {
-    #region
-
-    
-
-    #endregion
-
     public class MappingKey
     {
         /// <exception cref="ArgumentNullException">The value of 'type' cannot be null. </exception>

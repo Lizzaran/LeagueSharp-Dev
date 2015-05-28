@@ -33,12 +33,6 @@ using System.Threading.Tasks;
 
 namespace SFXLibrary
 {
-    #region
-
-    
-
-    #endregion
-
     public abstract class ProducerConsumer<T> : IDisposable
     {
         private readonly int _checkInterval;

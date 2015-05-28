@@ -33,12 +33,6 @@ using SharpDX;
 
 namespace SFXUtility.Data
 {
-    #region
-
-    
-
-    #endregion
-
     public class Jungle
     {
         public static List<Camp> Camps;

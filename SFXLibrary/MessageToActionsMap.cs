@@ -29,12 +29,6 @@ using System.Collections.Generic;
 
 namespace SFXLibrary
 {
-    #region
-
-    
-
-    #endregion
-
     public class MessageToActionsMap
     {
         private readonly Dictionary<object, List<WeakAction>> _map;

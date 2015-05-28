@@ -36,12 +36,6 @@ using SharpDX.Direct3D9;
 
 namespace SFXUtility.Features.Others
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Ping : Base
     {
         private readonly List<PingItem> _pingItems = new List<PingItem>();

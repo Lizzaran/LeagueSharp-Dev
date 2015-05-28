@@ -36,12 +36,6 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Activators
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Potion : Base
     {
         private Activators _parent;

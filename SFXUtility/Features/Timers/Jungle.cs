@@ -38,12 +38,6 @@ using SharpDX.Direct3D9;
 
 namespace SFXUtility.Features.Timers
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Jungle : Base
     {
         private const float CheckInterval = 800f;

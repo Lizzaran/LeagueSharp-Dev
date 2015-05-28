@@ -36,12 +36,6 @@ using SharpDX;
 
 namespace SFXUtility.Features.Others
 {
-    #region
-
-    
-
-    #endregion
-
     internal class TurnAround : Base
     {
         private readonly List<SpellInfo> _spellInfos = new List<SpellInfo>

@@ -40,12 +40,6 @@ using Color = System.Drawing.Color;
 
 namespace SFXUtility.Features.Trackers
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Ward : Base
     {
         private const float CheckInterval = 300f;

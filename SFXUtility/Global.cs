@@ -32,12 +32,6 @@ using SFXLibrary.Logger;
 
 namespace SFXUtility
 {
-    #region
-
-    
-
-    #endregion
-
     public class Global
     {
         public static ILogger Logger;

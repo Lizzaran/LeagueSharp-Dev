@@ -31,9 +31,9 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Drawings
 {
+
     #region
 
-    
     // TODO: Option for percentage
 
     #endregion

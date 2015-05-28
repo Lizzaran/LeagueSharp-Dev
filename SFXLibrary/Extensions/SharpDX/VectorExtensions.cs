@@ -33,12 +33,6 @@ using SharpDX;
 
 namespace SFXLibrary.Extensions.SharpDX
 {
-    #region
-
-    
-
-    #endregion
-
     public static class VectorExtensions
     {
         public static bool IsOnScreen(this Vector3 position, float radius)
@@ -50,7 +44,7 @@ namespace SFXLibrary.Extensions.SharpDX
 
         public static bool IsOnScreen(this Vector2 position, float radius)
         {
-            return Geometry.To3D(position).IsOnScreen(radius);
+            return position.To3D().IsOnScreen(radius);
         }
 
         public static bool IsOnScreen(this Vector2 start, Vector2 end)
@@ -63,12 +57,10 @@ namespace SFXLibrary.Extensions.SharpDX
             return
                 new List<Geometry.IntersectionResult>
                 {
-                    Geometry.Intersection(new Vector2(0, 0), new Vector2(0, Drawing.Width), start, end),
-                    Geometry.Intersection(
-                        new Vector2(0, Drawing.Width), new Vector2(Drawing.Height, Drawing.Width), start, end),
-                    Geometry.Intersection(
-                        new Vector2(Drawing.Height, Drawing.Width), new Vector2(Drawing.Height, 0), start, end),
-                    Geometry.Intersection(new Vector2(Drawing.Height, 0), new Vector2(0, 0), start, end)
+                    new Vector2(0, 0).Intersection(new Vector2(0, Drawing.Width), start, end),
+                    new Vector2(0, Drawing.Width).Intersection(new Vector2(Drawing.Height, Drawing.Width), start, end),
+                    new Vector2(Drawing.Height, Drawing.Width).Intersection(new Vector2(Drawing.Height, 0), start, end),
+                    new Vector2(Drawing.Height, 0).Intersection(new Vector2(0, 0), start, end)
                 }.Any(
                     intersection => intersection.Intersects);
         }
@@ -103,8 +95,8 @@ namespace SFXLibrary.Extensions.SharpDX
             t = (float) ((-b - Math.Sqrt(det)) / (2 * a));
             var intersection2 = new Vector2(start.X + t * dx, start.Y + t * dy);
 
-            return Vector2.Distance(intersection1, Geometry.To2D(ObjectManager.Player.Position)) >
-                   Vector2.Distance(intersection2, Geometry.To2D(ObjectManager.Player.Position))
+            return Vector2.Distance(intersection1, ObjectManager.Player.Position.To2D()) >
+                   Vector2.Distance(intersection2, ObjectManager.Player.Position.To2D())
                 ? intersection2
                 : intersection1;
         }
@@ -144,12 +136,12 @@ namespace SFXLibrary.Extensions.SharpDX
         {
             return
                 ObjectManager.Get<Obj_AI_Minion>()
-                    .FirstOrDefault(m => names.Any(n => m.Name.Equals(n)) && Utility.IsValidTarget(m, range));
+                    .FirstOrDefault(m => names.Any(n => m.Name.Equals(n)) && m.IsValidTarget(range));
         }
 
         public static Obj_AI_Minion GetNearestMinionByNames(this Vector2 position, string[] names)
         {
-            return GetNearestMinionByNames(Geometry.To3D(position), names);
+            return GetNearestMinionByNames(position.To3D(), names);
         }
     }
 }

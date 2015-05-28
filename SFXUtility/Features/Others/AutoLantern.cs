@@ -33,12 +33,6 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Others
 {
-    #region
-
-    
-
-    #endregion
-
     internal class AutoLantern : Base
     {
         private Others _parent;

@@ -31,12 +31,6 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Trackers
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Trackers : Base
     {
         public override bool Enabled

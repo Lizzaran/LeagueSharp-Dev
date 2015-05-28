@@ -36,12 +36,6 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Drawings
 {
-    #region
-
-    
-
-    #endregion
-
     internal class DamageIndicator : Base
     {
         private readonly List<Spell> _spells = new List<Spell>
@@ -75,10 +69,9 @@ namespace SFXUtility.Features.Drawings
                 var lineColor = Menu.Item(Name + "DrawingLineColor").GetValue<Color>();
                 var fillColor = Menu.Item(Name + "DrawingFillColor").GetValue<Color>();
 
-                foreach (
-                    var enemy in
-                        HeroManager.Enemies.Where(
-                            e => e.IsValid && !e.IsDead && e.IsHPBarRendered && e.Position.IsOnScreen()))
+                foreach (var enemy in
+                    HeroManager.Enemies.Where(
+                        e => e.IsValid && !e.IsDead && e.IsHPBarRendered && e.Position.IsOnScreen()))
                 {
                     var barPos = enemy.HPBarPosition;
                     var damage = (float) CalculateComboDamage(enemy);

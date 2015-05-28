@@ -43,12 +43,6 @@ using Font = SharpDX.Direct3D9.Font;
 
 namespace SFXUtility.Features.Trackers
 {
-    #region
-
-    
-
-    #endregion
-
     internal class LastPosition : Base
     {
         private readonly Dictionary<int, Texture> _heroTextures = new Dictionary<int, Texture>();

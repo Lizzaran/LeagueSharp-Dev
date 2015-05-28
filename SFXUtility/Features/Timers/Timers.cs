@@ -31,12 +31,6 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Timers
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Timers : Base
     {
         public override bool Enabled

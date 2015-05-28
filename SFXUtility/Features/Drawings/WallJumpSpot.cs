@@ -37,12 +37,6 @@ using Color = System.Drawing.Color;
 
 namespace SFXUtility.Features.Drawings
 {
-    #region
-
-    
-
-    #endregion
-
     internal class WallJumpSpot : Base
     {
         private readonly List<PositionStruct> _walljumpSpots = new List<PositionStruct>();

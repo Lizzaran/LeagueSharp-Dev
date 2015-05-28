@@ -29,12 +29,6 @@ using LeagueSharp.Common;
 
 namespace SFXLibrary.Extensions.LeagueSharp.Common
 {
-    #region
-
-    
-
-    #endregion
-
     public static class MenuExtensions
     {
         public static void AddItems(this Menu menu, List<MenuItem> items)

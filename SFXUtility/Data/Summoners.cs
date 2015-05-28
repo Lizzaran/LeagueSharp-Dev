@@ -34,12 +34,6 @@ using SharpDX;
 
 namespace SFXUtility.Data
 {
-    #region
-
-    
-
-    #endregion
-
     internal class SummonerSpell
     {
         public string Name { get; set; }

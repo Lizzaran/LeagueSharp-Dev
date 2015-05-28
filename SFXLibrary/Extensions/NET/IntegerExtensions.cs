@@ -28,12 +28,6 @@ using System;
 
 namespace SFXLibrary.Extensions.NET
 {
-    #region
-
-    
-
-    #endregion
-
     public static class IntegerExtensions
     {
         private static readonly string[] ToStringCache =

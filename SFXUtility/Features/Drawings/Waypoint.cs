@@ -38,12 +38,6 @@ using Color = System.Drawing.Color;
 
 namespace SFXUtility.Features.Drawings
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Waypoint : Base
     {
         private const float CheckInterval = 50f;

@@ -29,12 +29,6 @@ using System.Xml.Serialization;
 
 namespace SFXLibrary.Extensions.NET
 {
-    #region
-
-    
-
-    #endregion
-
     public static class ObjectExtensions
     {
         public static string ToXml(this object obj)

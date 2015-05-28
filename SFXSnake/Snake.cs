@@ -32,12 +32,6 @@ using LeagueSharp;
 
 namespace SFXSnake
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Snake
     {
         private readonly Map _map;

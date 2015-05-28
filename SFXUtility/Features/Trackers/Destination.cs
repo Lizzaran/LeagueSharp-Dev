@@ -36,12 +36,6 @@ using Color = System.Drawing.Color;
 
 namespace SFXUtility.Features.Trackers
 {
-    #region
-
-    
-
-    #endregion
-
     // Credits: Screeder
 
     internal class Destination : Base
@@ -154,10 +148,9 @@ namespace SFXUtility.Features.Trackers
         {
             foreach (var hero in HeroManager.Enemies)
             {
-                foreach (
-                    var spell in
-                        hero.Spellbook.Spells.Where(
-                            spell => spell.Name.Equals("SummonerFlash", StringComparison.OrdinalIgnoreCase)))
+                foreach (var spell in
+                    hero.Spellbook.Spells.Where(
+                        spell => spell.Name.Equals("SummonerFlash", StringComparison.OrdinalIgnoreCase)))
                 {
                     _destinations.Add(new DestinationObject(hero, spell));
                 }

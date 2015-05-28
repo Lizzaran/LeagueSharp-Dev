@@ -36,12 +36,6 @@ using Color = System.Drawing.Color;
 
 namespace SFXUtility.Features.Drawings
 {
-    #region
-
-    
-
-    #endregion
-
     internal class SafeJungleSpot : Base
     {
         // Credits: Screeder

@@ -34,12 +34,6 @@ using SFXLibrary.Logger;
 
 namespace SFXUtility.Data
 {
-    #region
-
-    
-
-    #endregion
-
     internal class CustomItem
     {
         public string Name { get; set; }

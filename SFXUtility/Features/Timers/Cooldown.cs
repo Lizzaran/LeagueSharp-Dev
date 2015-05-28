@@ -43,12 +43,6 @@ using Rectangle = SharpDX.Rectangle;
 
 namespace SFXUtility.Features.Timers
 {
-    #region
-
-    
-
-    #endregion
-
     internal class Cooldown : Base
     {
         private const int TeleportCd = 240;
