@@ -739,8 +739,7 @@ namespace SFXChallenger.Champions
                             var rect = new Geometry.Polygon.Rectangle(
                                 sPos.To2D(), sPos.Extend(castPos, ELength).To2D(), E.Width);
                             var count = 0;
-                            foreach (var c in
-                                Targets.Where(c => c.Distance(sPos) < ELength && c.NetworkId != target.NetworkId))
+                            foreach (var c in Targets.Where(c => c.Distance(sPos) < ELength))
                             {
                                 input2.Unit = c;
                                 var pred = Prediction.GetPrediction(input2);
@@ -888,7 +887,7 @@ namespace SFXChallenger.Champions
                                     sPos.To2D(), sPos.Extend(castPos, ELength).To2D(), E.Width);
                                 var count = 0;
                                 foreach (var c in
-                                    minions.Where(c => c.Distance(sPos) < ELength && c.NetworkId != lMinion.NetworkId))
+                                    minions.Where(c => c.Distance(sPos) < ELength))
                                 {
                                     input2.Unit = c;
                                     var pred = Prediction.GetPrediction(input2);
