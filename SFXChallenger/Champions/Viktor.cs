@@ -744,8 +744,7 @@ namespace SFXChallenger.Champions
                             {
                                 input2.Unit = c;
                                 var pred = Prediction.GetPrediction(input2);
-                                if (pred.Hitchance >= HitchanceManager.Get("combo", "e") - 1 &&
-                                    rect.IsInside(pred.CastPosition))
+                                if (pred.Hitchance >= HitchanceManager.Get("combo", "e") && rect.IsInside(pred.CastPosition))
                                 {
                                     count++;
                                 }
