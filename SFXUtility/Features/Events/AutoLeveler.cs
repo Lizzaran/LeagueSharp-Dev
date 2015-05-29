@@ -136,8 +136,15 @@ namespace SFXUtility.Features.Events
                             new StringList(
                                 new[]
                                 {
-                                    "Q W", "Q E", "Q W E", "Q E W", "W Q", "W E", "W Q E", "W E Q", "E Q", "E W", "E Q W",
-                                    "E W Q"
+                                    "Q W", "Q E", "W Q", "W E", "E Q", "E W", "Q W Q", "Q W W", "Q W E", "Q E Q", "Q E W",
+                                    "Q E E", "W Q Q", "W Q W", "W Q E", "W E Q", "W E W", "W E E", "E Q Q", "E Q W",
+                                    "E Q E", "E W Q", "E W W", "E W E", "Q W Q W", "Q W Q E", "Q W W Q", "Q W W E",
+                                    "Q W E Q", "Q W E W", "Q W E E", "Q E Q W", "Q E Q E", "Q E W Q", "Q E W W",
+                                    "Q E W E", "Q E E Q", "Q E E W", "W Q Q W", "W Q Q E", "W Q W Q", "W Q W E",
+                                    "W Q E Q", "W Q E W", "W Q E E", "W E Q Q", "W E Q W", "W E Q E", "W E W Q",
+                                    "W E W E", "W E E Q", "W E E W", "E Q Q W", "E Q Q E", "E Q W Q", "E Q W W",
+                                    "E Q W E", "E Q E Q", "E Q E W", "E W Q Q", "E W Q W", "E W Q E", "E W W Q",
+                                    "E W W E", "E W E Q", "E W E W"
                                 })));
                 championMenu.AddItem(new MenuItem(championMenu.Name + "PatternQ", "Q").SetValue(new Slider(3, 3, 1)));
                 championMenu.AddItem(new MenuItem(championMenu.Name + "PatternW", "W").SetValue(new Slider(1, 3, 1)));
