@@ -663,7 +663,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                var startPos = Vector3.Zero;
+                Vector3 startPos;
                 var endPos = Vector3.Zero;
                 var hits = 0;
                 var lTarget = target;
@@ -722,46 +722,20 @@ namespace SFXChallenger.Champions
                         Type = E.Type,
                         Unit = target
                     };
-                    var fCastPos = Prediction.GetPrediction(input2).CastPosition;
-                    var circle =
-                        new Geometry.Polygon.Circle(Player.Position, E.Range, 100).Points.Where(
-                            p => p.Distance(fCastPos) < ELength);
-                    foreach (var point in circle)
-                    {
-                        var sPos = point.To3D();
-                        input2.From = sPos;
-                        input2.RangeCheckFrom = sPos;
-                        input2.Range = ELength;
+                    var castPos = Prediction.GetPrediction(input2).CastPosition;
+                    startPos = Player.Position.Extend(castPos, E.Range);
+                    input2.From = startPos;
+                    input2.RangeCheckFrom = startPos;
+                    input2.Range = ELength;
 
-                        var pred2 = Prediction.GetPrediction(input2);
-                        if (pred2.Hitchance >= hitChance)
-                        {
-                            var castPos = UseWObjectPosition(target, false) ? _wObject.Position : pred2.CastPosition;
-                            var rect = new Geometry.Polygon.Rectangle(
-                                sPos.To2D(), sPos.Extend(castPos, ELength).To2D(), E.Width);
-                            var count = 0;
-                            foreach (var c in Targets.Where(c => c.Distance(sPos) < ELength))
-                            {
-                                input2.Unit = c;
-                                var pred = Prediction.GetPrediction(input2);
-                                if (pred.Hitchance >= HitchanceManager.Get("combo", "e") &&
-                                    rect.IsInside(pred.CastPosition))
-                                {
-                                    count++;
-                                }
-                            }
-                            if (count == hits && sPos.Distance(target.Position) < startPos.Distance(target.Position))
-                            {
-                                startPos = sPos;
-                                endPos = sPos.Extend(castPos, ELength);
-                            }
-                            else if (count > hits)
-                            {
-                                hits = count;
-                                startPos = sPos;
-                                endPos = sPos.Extend(castPos, ELength);
-                            }
-                        }
+                    var pred2 = Prediction.GetPrediction(input2);
+                    if (pred2.Hitchance >= hitChance)
+                    {
+                        E.Cast(
+                            startPos,
+                            startPos.Extend(
+                                UseWObjectPosition(target, false) ? _wObject.Position : pred2.CastPosition, ELength));
+                        return true;
                     }
                 }
                 if (!startPos.Equals(Vector3.Zero) && !endPos.Equals(Vector3.Zero))
@@ -876,33 +850,45 @@ namespace SFXChallenger.Champions
                             Type = E.Type,
                             Unit = minion
                         };
-                        var sPos = Prediction.GetPrediction(input2).CastPosition;
-                        input2.From = sPos;
-                        input2.RangeCheckFrom = sPos;
-                        input2.Range = ELength;
-
-                        var pred2 = Prediction.GetPrediction(input2);
-                        if (pred2.Hitchance >= HitChance.High)
+                        var fCastPos = Prediction.GetPrediction(input2).CastPosition;
+                        var circle =
+                            new Geometry.Polygon.Circle(Player.Position, E.Range, 100).Points.Where(
+                                p => p.Distance(fCastPos) < ELength);
+                        foreach (var point in circle)
                         {
-                            var castPos = pred2.CastPosition;
-                            var rect = new Geometry.Polygon.Rectangle(
-                                sPos.To2D(), sPos.Extend(castPos, ELength).To2D(), E.Width);
-                            var count = 0;
-                            var tList = minions.Concat(Targets).Where(c => c.Distance(sPos) < ELength);
-                            foreach (var c in tList)
+                            var sPos = point.To3D();
+                            input2.From = sPos;
+                            input2.RangeCheckFrom = sPos;
+                            input2.Range = ELength;
+
+                            var pred2 = Prediction.GetPrediction(input2);
+                            if (pred2.Hitchance >= HitChance.High)
                             {
-                                input2.Unit = c;
-                                var pred = Prediction.GetPrediction(input2);
-                                if (pred.Hitchance >= HitChance.High && rect.IsInside(pred.CastPosition))
+                                var castPos = pred2.CastPosition;
+                                var rect = new Geometry.Polygon.Rectangle(
+                                    sPos.To2D(), sPos.Extend(castPos, ELength).To2D(), E.Width);
+                                var count = 0;
+                                var tList = minions.Concat(Targets).Where(c => c.Distance(sPos) < ELength);
+                                foreach (var c in tList)
                                 {
-                                    count++;
+                                    input2.Unit = c;
+                                    var pred = Prediction.GetPrediction(input2);
+                                    if (pred.Hitchance >= HitChance.High && rect.IsInside(pred.CastPosition))
+                                    {
+                                        count++;
+                                    }
                                 }
-                            }
-                            if (count > hits)
-                            {
-                                hits = count;
-                                startPos = sPos;
-                                endPos = sPos.Extend(castPos, ELength);
+                                if (count == hits && sPos.Distance(minion.Position) < startPos.Distance(minion.Position))
+                                {
+                                    startPos = sPos;
+                                    endPos = sPos.Extend(castPos, ELength);
+                                }
+                                else if (count > hits)
+                                {
+                                    hits = count;
+                                    startPos = sPos;
+                                    endPos = sPos.Extend(castPos, ELength);
+                                }
                             }
                         }
                     }
