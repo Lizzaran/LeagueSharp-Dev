@@ -1151,14 +1151,6 @@ namespace SFXChallenger.Champions
             {
                 Render.Circle.DrawCircle(Player.Position, R.Range + (R.Width / 2f), r.Color, circleThickness);
             }
-
-            var t1 = Targets.FirstOrDefault();
-            var t2 = Targets[1];
-            if (t1 != null && t2 != null)
-            {
-                var asd = Drawing.WorldToScreen(t1.Position);
-                Drawing.DrawText(asd.X, asd.Y, Color.White, ((int) (t1.Distance(t2))).ToString());
-            }
         }
 
         private void BestRCastLocation(out Vector3 pos, out int hits, float overrideRange = -1)
