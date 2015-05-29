@@ -23,6 +23,7 @@
 #region
 
 using LeagueSharp;
+using LeagueSharp.Common;
 
 #endregion
 
