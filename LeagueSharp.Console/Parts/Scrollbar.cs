@@ -23,6 +23,7 @@
 #region
 
 using System;
+using LeagueSharp.Common;
 using SharpDX;
 using SharpDX.Direct3D9;
 

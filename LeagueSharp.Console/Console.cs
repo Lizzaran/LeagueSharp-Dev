@@ -24,6 +24,7 @@
 
 using System;
 using System.Globalization;
+using LeagueSharp.Common;
 using LeagueSharp.Console.Parts;
 using SharpDX;
 using Color = System.Drawing.Color;

@@ -25,6 +25,7 @@
 using System;
 using System.Timers;
 using LeagueSharp;
+using LeagueSharp.Common;
 
 #endregion
 

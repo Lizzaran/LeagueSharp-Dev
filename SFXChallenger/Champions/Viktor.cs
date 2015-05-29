@@ -573,19 +573,6 @@ namespace SFXChallenger.Champions
                 if (!R.Instance.Name.Equals("ViktorChaosStorm", StringComparison.OrdinalIgnoreCase) && _rObject != null &&
                     _rObject.IsValid)
                 {
-                    //var insideR = Targets.Where(t => t.Distance(_rObject.Position) < R.Width).ToList();
-                    //if (insideR.Any())
-                    //{
-                    //    R.Cast(insideR.First().Position);
-                    //}
-                    //else
-                    //{
-                    //    var near = Targets.OrderBy(t => t.Distance(_rObject.Position)).FirstOrDefault();
-                    //    if (near != null)
-                    //    {
-                    //        R.Cast(near.Position);
-                    //    }
-                    //}
                     var pos = BestRFollowLocation(_rObject.Position);
                     if (!pos.Equals(Vector3.Zero))
                     {
