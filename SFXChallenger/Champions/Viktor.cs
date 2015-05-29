@@ -855,6 +855,7 @@ namespace SFXChallenger.Champions
                                 var rect = new Geometry.Polygon.Rectangle(
                                     sPos.To2D(), sPos.Extend(pred.CastPosition, ELength).To2D(), E.Width);
                                 var count = minions.Count(m => rect.IsInside(m));
+                                count += Targets.Count(m => rect.IsInside(m));
                                 if (count > hits)
                                 {
                                     hits = count;
@@ -875,45 +876,33 @@ namespace SFXChallenger.Champions
                             Type = E.Type,
                             Unit = minion
                         };
-                        var fCastPos = Prediction.GetPrediction(input2).CastPosition;
-                        var circle =
-                            new Geometry.Polygon.Circle(Player.Position, E.Range, 100).Points.Where(
-                                p => p.Distance(fCastPos) < ELength);
-                        foreach (var point in circle)
-                        {
-                            var sPos = point.To3D();
-                            input2.From = sPos;
-                            input2.RangeCheckFrom = sPos;
-                            input2.Range = ELength;
+                        var sPos = Prediction.GetPrediction(input2).CastPosition;
+                        input2.From = sPos;
+                        input2.RangeCheckFrom = sPos;
+                        input2.Range = ELength;
 
-                            var pred2 = Prediction.GetPrediction(input2);
-                            if (pred2.Hitchance >= HitChance.High)
+                        var pred2 = Prediction.GetPrediction(input2);
+                        if (pred2.Hitchance >= HitChance.High)
+                        {
+                            var castPos = pred2.CastPosition;
+                            var rect = new Geometry.Polygon.Rectangle(
+                                sPos.To2D(), sPos.Extend(castPos, ELength).To2D(), E.Width);
+                            var count = 0;
+                            var tList = minions.Concat(Targets).Where(c => c.Distance(sPos) < ELength);
+                            foreach (var c in tList)
                             {
-                                var castPos = pred2.CastPosition;
-                                var rect = new Geometry.Polygon.Rectangle(
-                                    sPos.To2D(), sPos.Extend(castPos, ELength).To2D(), E.Width);
-                                var count = 0;
-                                foreach (var c in
-                                    minions.Where(c => c.Distance(sPos) < ELength))
+                                input2.Unit = c;
+                                var pred = Prediction.GetPrediction(input2);
+                                if (pred.Hitchance >= HitChance.High && rect.IsInside(pred.CastPosition))
                                 {
-                                    input2.Unit = c;
-                                    var pred = Prediction.GetPrediction(input2);
-                                    if (pred.Hitchance >= HitChance.High && rect.IsInside(pred.CastPosition))
-                                    {
-                                        count++;
-                                    }
+                                    count++;
                                 }
-                                if (count == hits && sPos.Distance(minion.Position) < startPos.Distance(minion.Position))
-                                {
-                                    startPos = sPos;
-                                    endPos = sPos.Extend(castPos, ELength);
-                                }
-                                else if (count > hits)
-                                {
-                                    hits = count;
-                                    startPos = sPos;
-                                    endPos = sPos.Extend(castPos, ELength);
-                                }
+                            }
+                            if (count > hits)
+                            {
+                                hits = count;
+                                startPos = sPos;
+                                endPos = sPos.Extend(castPos, ELength);
                             }
                         }
                     }
