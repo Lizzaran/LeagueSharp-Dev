@@ -182,7 +182,7 @@ namespace SFXChallenger.Champions
             W.SetSkillshot(1.6f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E, 525f);
-            E.SetSkillshot(0.05f, 90f, 900f, false, SkillshotType.SkillshotLine);
+            E.SetSkillshot(0.1f, 90f, 800f, false, SkillshotType.SkillshotLine);
 
             R = new Spell(SpellSlot.R, 700f);
             R.SetSkillshot(0f, 575f, float.MaxValue, false, SkillshotType.SkillshotCircle);
@@ -692,105 +692,202 @@ namespace SFXChallenger.Champions
             }
         }
 
+        //private void ELogic(HitChance hitChance)
+        //{
+        //    try
+        //    {
+        //        var startPos = Vector3.Zero;
+        //        var endPos = Vector3.Zero;
+        //        var hits = -1;
+        //        foreach (var target in Targets)
+        //        {
+        //            var lTarget = target;
+        //            if (target.Distance(Player.Position) < E.Range)
+        //            {
+        //                var cCastPos = target.Position;
+
+        //                foreach (var t in Targets.Where(t => t.NetworkId != lTarget.NetworkId))
+        //                {
+        //                    var cTarget = target;
+        //                    var input = new PredictionInput
+        //                    {
+        //                        Range = ELength,
+        //                        Delay = E.Delay,
+        //                        Radius = E.Width,
+        //                        Speed = E.Speed,
+        //                        Type = E.Type,
+        //                        Unit = t,
+        //                        From = cCastPos,
+        //                        RangeCheckFrom = cCastPos
+        //                    };
+        //                    var pred = Prediction.GetPrediction(input);
+        //                    if (pred.Hitchance >= (hitChance - 1))
+        //                    {
+        //                        var rect = new Geometry.Polygon.Rectangle(
+        //                            cCastPos.To2D(), cCastPos.Extend(pred.UnitPosition, ELength).To2D(), E.Width);
+        //                        var count = 2;
+        //                        foreach (
+        //                            var c in
+        //                                Targets.Where(
+        //                                    c => c.NetworkId != cTarget.NetworkId && c.NetworkId != lTarget.NetworkId))
+        //                        {
+        //                            input.Unit = c;
+        //                            var cPred = Prediction.GetPrediction(input);
+        //                            if (!rect.IsOutside(cPred.UnitPosition.To2D()))
+        //                            {
+        //                                count++;
+        //                            }
+        //                        }
+        //                        if (count > hits)
+        //                        {
+        //                            hits = count;
+        //                            startPos = target.Position;
+        //                            endPos = cCastPos.Extend(pred.UnitPosition, ELength);
+        //                        }
+        //                    }
+        //                }
+        //                if (endPos.Equals(Vector3.Zero))
+        //                {
+        //                    startPos = Player.Position.Extend(cCastPos, Player.Distance(cCastPos) * 0.9f);
+        //                    endPos = Player.Position.Extend(cCastPos, Player.Distance(cCastPos) + ELength);
+        //                }
+        //            }
+        //            else
+        //            {
+        //                var input2 = new PredictionInput
+        //                {
+        //                    Range = MaxERange,
+        //                    Delay = E.Delay,
+        //                    Radius = E.Width,
+        //                    Speed = E.Speed,
+        //                    Type = E.Type,
+        //                    Unit = target,
+        //                    UseBoundingRadius = false
+        //                };
+        //                var castPos = Prediction.GetPrediction(input2).CastPosition;
+        //                var sCastPos = Player.Position.Extend(castPos, E.Range);
+        //                input2.From = sCastPos;
+        //                input2.RangeCheckFrom = sCastPos;
+        //                input2.Range = ELength;
+
+        //                var pred2 = Prediction.GetPrediction(input2);
+        //                if (pred2.Hitchance >= hitChance)
+        //                {
+        //                    var rect = new Geometry.Polygon.Rectangle(
+        //                        sCastPos.To2D(), sCastPos.Extend(pred2.CastPosition, ELength).To2D(), E.Width);
+        //                    var count = 0;
+        //                    foreach (var c in Targets)
+        //                    {
+        //                        input2.Unit = c;
+        //                        var cPred = Prediction.GetPrediction(input2);
+        //                        if (!rect.IsOutside(cPred.CastPosition.To2D()))
+        //                        {
+        //                            count++;
+        //                        }
+        //                    }
+        //                    if (count > hits)
+        //                    {
+        //                        hits = count;
+        //                        startPos = sCastPos;
+        //                        endPos = startPos.Extend(pred2.CastPosition, ELength);
+        //                    }
+        //                }
+        //            }
+        //        }
+        //        if (!startPos.Equals(Vector3.Zero) && !endPos.Equals(Vector3.Zero))
+        //        {
+        //            E.Cast(startPos, endPos);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Global.Logger.AddItem(new LogItem(ex));
+        //    }
+        //}
+
+
+        private void ELogic2(HitChance hitChance)
+        {
+            foreach (var target in Targets)
+            {
+                if (target.Distance(Player) < E.Range)
+                {
+                    
+                }
+                else
+                {
+                    var lTarget = target;
+                    foreach (var target2 in Targets.Where(t => t.NetworkId != lTarget.NetworkId && t.Distance(lTarget) < ELength))
+                    {
+
+                    }
+
+                }
+            }
+        }
+
         private void ELogic(HitChance hitChance)
         {
             try
             {
+                var input = new PredictionInput
+                {
+                    Range = ELength,
+                    Delay = E.Delay,
+                    Radius = E.Width,
+                    Speed = E.Speed,
+                    Type = E.Type,
+                    Aoe = true,
+                    Collision = true,
+                    CollisionObjects = new[] { CollisionableObjects.YasuoWall }
+                };
+
                 var startPos = Vector3.Zero;
                 var endPos = Vector3.Zero;
-                var hits = -1;
-                foreach (var target in Targets)
+                var distance = float.MaxValue;
+                var hits = 0;
+                for (var i = 0; i <= E.Range; i = i + 20)
                 {
-                    var lTarget = target;
-                    if (target.Distance(Player.Position) < E.Range)
+                    var circle = new Geometry.Polygon.Circle(Player.Position, i, 50);
+                    foreach (var point in circle.Points)
                     {
-                        var cCastPos = target.Position;
-
-                        foreach (var t in Targets.Where(t => t.NetworkId != lTarget.NetworkId))
+                        var lPoint = point;
+                        var possibleTargets = Targets.Where(t => lPoint.Distance(t) < ELength).ToList();
+                        foreach (var target in possibleTargets)
                         {
-                            var input = new PredictionInput
-                            {
-                                Range = ELength,
-                                Delay = E.Delay,
-                                Radius = E.Width,
-                                Speed = E.Speed,
-                                Type = E.Type,
-                                Unit = t,
-                                From = cCastPos,
-                                RangeCheckFrom = cCastPos
-                            };
+                            var lTarget = target;
+                            var lStartPos = point.To3D();
+                            input.From = lStartPos;
+                            input.RangeCheckFrom = lStartPos;
+                            input.Unit = target;
+
                             var pred = Prediction.GetPrediction(input);
                             if (pred.Hitchance >= hitChance)
                             {
+                                var count = 1;
                                 var rect = new Geometry.Polygon.Rectangle(
-                                    cCastPos.To2D(), cCastPos.Extend(pred.CastPosition, ELength).To2D(), E.Width);
-                                var count = 0;
-                                foreach (var c in Targets)
+                                    lStartPos.To2D(), lStartPos.Extend(pred.CastPosition, ELength).To2D(), E.Width);
+                                foreach (var c in possibleTargets.Where(c => c.NetworkId != lTarget.NetworkId))
                                 {
                                     input.Unit = c;
                                     var cPred = Prediction.GetPrediction(input);
-                                    if (!rect.IsOutside(cPred.CastPosition.To2D()))
+                                    if (cPred.Hitchance >= (hitChance - 1) && !rect.IsOutside(cPred.CastPosition.To2D()))
                                     {
                                         count++;
                                     }
                                 }
-                                if (count > hits)
+                                if (count > hits || count == hits && distance > lStartPos.Distance(target.Position))
                                 {
                                     hits = count;
-                                    startPos = target.Position;
-                                    endPos = cCastPos.Extend(pred.CastPosition, ELength);
+                                    startPos = lStartPos;
+                                    endPos = lStartPos.Extend(pred.CastPosition, ELength);
+                                    distance = lStartPos.Distance(target.Position);
                                 }
-                            }
-                        }
-                        if (endPos.Equals(Vector3.Zero))
-                        {
-                            startPos = Player.Position.Extend(cCastPos, Player.Distance(cCastPos) * 0.9f);
-                            endPos = Player.Position.Extend(cCastPos, Player.Distance(cCastPos) + ELength);
-                        }
-                    }
-                    else
-                    {
-                        var input2 = new PredictionInput
-                        {
-                            Range = MaxERange,
-                            Delay = E.Delay,
-                            Radius = E.Width,
-                            Speed = E.Speed,
-                            Type = E.Type,
-                            Unit = target,
-                            UseBoundingRadius = false
-                        };
-                        var castPos = Prediction.GetPrediction(input2).CastPosition;
-                        var sCastPos = Player.Position.Extend(castPos, E.Range);
-                        input2.From = sCastPos;
-                        input2.RangeCheckFrom = sCastPos;
-                        input2.Range = ELength;
-
-                        var pred2 = Prediction.GetPrediction(input2);
-                        if (pred2.Hitchance >= hitChance)
-                        {
-                            var rect = new Geometry.Polygon.Rectangle(
-                                sCastPos.To2D(), sCastPos.Extend(pred2.CastPosition, ELength).To2D(), E.Width);
-                            var count = 0;
-                            foreach (var c in Targets)
-                            {
-                                input2.Unit = c;
-                                var cPred = Prediction.GetPrediction(input2);
-                                if (!rect.IsOutside(cPred.CastPosition.To2D()))
-                                {
-                                    count++;
-                                }
-                            }
-                            if (count > hits)
-                            {
-                                hits = count;
-                                startPos = sCastPos;
-                                endPos = startPos.Extend(pred2.CastPosition, ELength);
                             }
                         }
                     }
                 }
-                if (!startPos.Equals(Vector3.Zero) && !endPos.Equals(Vector3.Zero))
+                if (hits > 0 && !startPos.Equals(Vector3.Zero) && !endPos.Equals(Vector3.Zero))
                 {
                     E.Cast(startPos, endPos);
                 }
@@ -942,10 +1039,9 @@ namespace SFXChallenger.Champions
                     var hits = 0;
                     foreach (var minion in minions)
                     {
-                        var pPredPos = E.GetPrediction(minion).CastPosition;
-                        if (pPredPos.Distance(Player.Position) < E.Range)
+                        if (minion.Distance(Player.Position) < E.Range)
                         {
-                            var sPos = pPredPos;
+                            var sPos = E.GetPrediction(minion).CastPosition;
                             foreach (var t in minions)
                             {
                                 var input = new PredictionInput
