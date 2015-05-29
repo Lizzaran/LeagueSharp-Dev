@@ -878,11 +878,13 @@ namespace SFXChallenger.Champions
             if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady() &&
                 ManaManager.Check("lane-clear-e"))
             {
-                var minHits = Menu.Item(Menu.Name + ".lane-clear.e-min").GetValue<Slider>().Value;
                 var startPos = Vector3.Zero;
                 var endPos = Vector3.Zero;
                 var minions = MinionManager.GetMinions(
                     MaxERange, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+                var minHits = minions.Any(m => m.Team == GameObjectTeam.Neutral)
+                    ? 1
+                    : Menu.Item(Menu.Name + ".lane-clear.e-min").GetValue<Slider>().Value;
                 var hits = 0;
                 foreach (var minion in minions)
                 {
