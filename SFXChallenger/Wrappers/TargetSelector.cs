@@ -559,6 +559,8 @@ namespace SFXChallenger.Wrappers
                 _menu.AddItem(
                     new MenuItem(menu.Name + ".force-focus-selected", Global.Lang.Get("TS_OnlyAttackSelectedTarget"))
                         .SetValue(false));
+
+                _averageWeight = (float)WeightedItems.Average(w => w.Weight);
             }
             catch (Exception ex)
             {

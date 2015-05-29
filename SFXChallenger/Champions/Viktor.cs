@@ -645,12 +645,103 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                foreach (var target in Targets.Where(t => t.Distance(Player) < MaxERange))
+                var startPos = Vector3.Zero;
+                var endPos = Vector3.Zero;
+                var hits = -1;
+                foreach (var target in Targets)
                 {
-                    if (SingleELogic(target, hitChance))
+                    var lTarget = target;
+                    if (target.Distance(Player.Position) < E.Range)
                     {
-                        break;
+                        var cCastPos = target.Position;
+
+                        foreach (var t in Targets.Where(t => t.NetworkId != lTarget.NetworkId))
+                        {
+                            var input = new PredictionInput
+                            {
+                                Range = ELength,
+                                Delay = E.Delay,
+                                Radius = E.Width,
+                                Speed = E.Speed,
+                                Type = E.Type,
+                                Unit = t,
+                                From = cCastPos,
+                                RangeCheckFrom = cCastPos
+                            };
+                            var pred = Prediction.GetPrediction(input);
+                            if (pred.Hitchance >= hitChance)
+                            {
+                                var rect = new Geometry.Polygon.Rectangle(
+                                    cCastPos.To2D(), cCastPos.Extend(pred.CastPosition, ELength).To2D(), E.Width);
+                                var count = 0;
+                                foreach (var c in Targets)
+                                {
+                                    input.Unit = c;
+                                    var cPred = Prediction.GetPrediction(input);
+                                    if (!rect.IsOutside(cPred.CastPosition.To2D()))
+                                    {
+                                        count++;
+                                    }
+                                }
+                                if (count > hits)
+                                {
+                                    hits = count;
+                                    startPos = target.Position;
+                                    endPos = cCastPos.Extend(pred.CastPosition, ELength);
+                                }
+                            }
+                        }
+                        if (endPos.Equals(Vector3.Zero))
+                        {
+                            startPos = Player.Position.Extend(cCastPos, Player.Distance(cCastPos) * 0.9f);
+                            endPos = Player.Position.Extend(cCastPos, Player.Distance(cCastPos) + ELength);
+                        }
                     }
+                    else
+                    {
+                        var input2 = new PredictionInput
+                        {
+                            Range = MaxERange,
+                            Delay = E.Delay,
+                            Radius = E.Width,
+                            Speed = E.Speed,
+                            Type = E.Type,
+                            Unit = target,
+                            UseBoundingRadius = false
+                        };
+                        var castPos = Prediction.GetPrediction(input2).CastPosition;
+                        var sCastPos = Player.Position.Extend(castPos, E.Range);
+                        input2.From = sCastPos;
+                        input2.RangeCheckFrom = sCastPos;
+                        input2.Range = ELength;
+
+                        var pred2 = Prediction.GetPrediction(input2);
+                        if (pred2.Hitchance >= hitChance)
+                        {
+                            var rect = new Geometry.Polygon.Rectangle(
+                                sCastPos.To2D(), sCastPos.Extend(pred2.CastPosition, ELength).To2D(), E.Width);
+                            var count = 0;
+                            foreach (var c in Targets)
+                            {
+                                input2.Unit = c;
+                                var cPred = Prediction.GetPrediction(input2);
+                                if (!rect.IsOutside(cPred.CastPosition.To2D()))
+                                {
+                                    count++;
+                                }
+                            }
+                            if (count > hits)
+                            {
+                                hits = count;
+                                startPos = sCastPos;
+                                endPos = startPos.Extend(pred2.CastPosition, ELength);
+                            }
+                        }
+                    }
+                }
+                if (!startPos.Equals(Vector3.Zero) && !endPos.Equals(Vector3.Zero))
+                {
+                    E.Cast(startPos, endPos);
                 }
             }
             catch (Exception ex)
@@ -665,50 +756,38 @@ namespace SFXChallenger.Champions
             {
                 Vector3 startPos;
                 var endPos = Vector3.Zero;
-                var hits = 0;
-                var lTarget = target;
 
-                var pPredPos = E.GetPrediction(target).CastPosition;
-                if (pPredPos.Distance(Player.Position) < E.Range)
+                if (target.Distance(Player.Position) < E.Range)
                 {
-                    startPos = pPredPos;
-                    if (UseWObjectPosition(target, true))
+                    startPos = target.Position;
+                    var hits = 0;
+                    foreach (var t in
+                        Targets.Where(t => t.NetworkId != target.NetworkId && t.Distance(startPos) < ELength))
                     {
-                        endPos = startPos.Extend(_wObject.Position, ELength);
-                    }
-                    else
-                    {
-                        foreach (var t in Targets.Where(t => t.NetworkId != lTarget.NetworkId))
+                        var input = new PredictionInput
                         {
-                            var input = new PredictionInput
+                            Range = ELength,
+                            Delay = E.Delay,
+                            Radius = E.Width,
+                            Speed = E.Speed,
+                            Type = E.Type,
+                            Unit = t,
+                            From = startPos,
+                            RangeCheckFrom = startPos,
+                            Aoe = true
+                        };
+                        var pred = Prediction.GetPrediction(input);
+                        if (pred.Hitchance >= hitChance)
+                        {
+                            var rect = new Geometry.Polygon.Rectangle(
+                                startPos.To2D(), startPos.Extend(pred.CastPosition, ELength).To2D(), E.Width);
+                            var count = Targets.Count(c => !rect.IsOutside(c.Position.To2D()));
+                            if (count > hits)
                             {
-                                Range = ELength,
-                                Delay = E.Delay,
-                                Radius = E.Width,
-                                Speed = E.Speed,
-                                Type = E.Type,
-                                Unit = t,
-                                From = startPos,
-                                RangeCheckFrom = startPos
-                            };
-                            var pred = Prediction.GetPrediction(input);
-                            if (pred.Hitchance >= hitChance)
-                            {
-                                var rect = new Geometry.Polygon.Rectangle(
-                                    startPos.To2D(), startPos.Extend(pred.CastPosition, ELength).To2D(), E.Width);
-                                var count = Targets.Count(c => rect.IsInside(c));
-                                if (count > hits)
-                                {
-                                    hits = count;
-                                    endPos = startPos.Extend(pred.CastPosition, ELength);
-                                }
+                                hits = count;
+                                endPos = startPos.Extend(pred.CastPosition, ELength);
                             }
                         }
-                    }
-                    if (endPos.Equals(Vector3.Zero))
-                    {
-                        startPos = Player.Position.Extend(startPos, Player.Distance(startPos) * 0.9f);
-                        endPos = Player.Position.Extend(startPos, Player.Distance(startPos) + ELength);
                     }
                 }
                 else
@@ -720,7 +799,8 @@ namespace SFXChallenger.Champions
                         Radius = E.Width,
                         Speed = E.Speed,
                         Type = E.Type,
-                        Unit = target
+                        Unit = target,
+                        Aoe = true
                     };
                     var castPos = Prediction.GetPrediction(input2).CastPosition;
                     startPos = Player.Position.Extend(castPos, E.Range);
@@ -734,7 +814,7 @@ namespace SFXChallenger.Champions
                         E.Cast(
                             startPos,
                             startPos.Extend(
-                                UseWObjectPosition(target, false) ? _wObject.Position : pred2.CastPosition, ELength));
+                                UseWObjectPosition(target) ? _wObject.Position : pred2.CastPosition, ELength));
                         return true;
                     }
                 }
@@ -751,7 +831,7 @@ namespace SFXChallenger.Champions
             return false;
         }
 
-        private bool UseWObjectPosition(Obj_AI_Hero target, bool inRange)
+        private bool UseWObjectPosition(Obj_AI_Hero target)
         {
             try
             {
@@ -762,7 +842,7 @@ namespace SFXChallenger.Champions
                             b => b.Name.Equals("viktorgravitonfielddebuffslow", StringComparison.OrdinalIgnoreCase));
                     if (buff != null)
                     {
-                        if (buff.Count == 2 && (!inRange || _wObjectEndTime - Game.Time > 0.5f))
+                        if (buff.Count == 2 && _wObjectEndTime - Game.Time > 0.5f)
                         {
                             return true;
                         }
@@ -828,8 +908,8 @@ namespace SFXChallenger.Champions
                             {
                                 var rect = new Geometry.Polygon.Rectangle(
                                     sPos.To2D(), sPos.Extend(pred.CastPosition, ELength).To2D(), E.Width);
-                                var count = minions.Count(m => rect.IsInside(m));
-                                count += Targets.Count(m => rect.IsInside(m));
+                                var count = minions.Count(m => !rect.IsOutside(m.Position.To2D()));
+                                count += Targets.Count(m => !rect.IsOutside(m.Position.To2D()));
                                 if (count > hits)
                                 {
                                     hits = count;
@@ -873,7 +953,7 @@ namespace SFXChallenger.Champions
                                 {
                                     input2.Unit = c;
                                     var pred = Prediction.GetPrediction(input2);
-                                    if (pred.Hitchance >= HitChance.High && rect.IsInside(pred.CastPosition))
+                                    if (pred.Hitchance >= HitChance.High && !rect.IsOutside(pred.CastPosition.To2D()))
                                     {
                                         count++;
                                     }
