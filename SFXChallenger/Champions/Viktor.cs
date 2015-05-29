@@ -668,9 +668,10 @@ namespace SFXChallenger.Champions
                 var hits = 0;
                 var lTarget = target;
 
-                if (target.Distance(Player.Position) < E.Range)
+                var pPredPos = E.GetPrediction(target).CastPosition;
+                if (pPredPos.Distance(Player.Position) < E.Range)
                 {
-                    startPos = target.Position;
+                    startPos = pPredPos;
                     if (UseWObjectPosition(target, true))
                     {
                         endPos = startPos.Extend(_wObject.Position, ELength);
@@ -831,9 +832,10 @@ namespace SFXChallenger.Champions
                 var hits = 0;
                 foreach (var minion in minions)
                 {
-                    if (minion.Distance(Player.Position) < E.Range)
+                    var pPredPos = E.GetPrediction(minion).CastPosition;
+                    if (pPredPos.Distance(Player.Position) < E.Range)
                     {
-                        var sPos = minion.Position;
+                        var sPos = pPredPos;
                         foreach (var t in minions)
                         {
                             var input = new PredictionInput
