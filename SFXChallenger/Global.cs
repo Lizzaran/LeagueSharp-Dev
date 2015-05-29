@@ -29,11 +29,6 @@ using SFXLibrary.Logger;
 
 namespace SFXChallenger
 {
-
-    #region
-
-    #endregion
-
     internal class Global
     {
         public static string Name = "SFXChallenger";

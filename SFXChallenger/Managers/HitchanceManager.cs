@@ -31,11 +31,6 @@ using SFXLibrary.Logger;
 
 namespace SFXChallenger.Managers
 {
-
-    #region
-
-    #endregion
-
     internal class HitchanceManager
     {
         private static readonly Dictionary<string, Menu> Menues = new Dictionary<string, Menu>();

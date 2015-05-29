@@ -35,11 +35,6 @@ using SharpDX;
 
 namespace SFXChallenger.Managers
 {
-
-    #region
-
-    #endregion
-
     internal class SummonerSpell
     {
         public string Name { get; set; }

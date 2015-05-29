@@ -82,6 +82,7 @@
     <Compile Include="Enumerations\ManaCheckType.cs" />
     <Compile Include="Enumerations\ManaValueType.cs" />
     <Compile Include="Global.cs" />
+    <Compile Include="Helpers\ConvexHull.cs" />
     <Compile Include="Helpers\DynamicInitializer.cs" />
     <Compile Include="Helpers\Utils.cs" />
     <Compile Include="Managers\HitchanceManager.cs" />

@@ -33,11 +33,6 @@ using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 
 namespace SFXChallenger
 {
-
-    #region
-
-    #endregion
-
     internal class Core
     {
         public delegate void EventHandler(EventArgs args);

@@ -23,6 +23,7 @@
 #region
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
@@ -73,6 +74,24 @@ namespace SFXChallenger.Helpers
                 Global.Logger.AddItem(new LogItem(ex));
             }
             return 0;
+        }
+
+        private static IEnumerable<int> ConstructSetFromBits(int i)
+        {
+            for (int n = 0; i != 0; i /= 2, n++)
+            {
+                if ((i & 1) != 0)
+                    yield return n;
+            }
+        }
+
+        public static IEnumerable<List<T>> ProduceEnumeration<T>(List<T> list)
+        {
+            for (int i = 0; i < (1 << list.Count); i++)
+            {
+                yield return
+                    ConstructSetFromBits(i).Select(n => list[n]).ToList();
+            }
         }
     }
 }

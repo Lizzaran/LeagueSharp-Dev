@@ -37,11 +37,6 @@ using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 
 namespace SFXChallenger.Managers
 {
-
-    #region
-
-    #endregion
-
     internal class CustomItem
     {
         public string Name { get; set; }

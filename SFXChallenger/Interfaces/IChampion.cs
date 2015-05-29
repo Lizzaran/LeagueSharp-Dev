@@ -29,11 +29,6 @@ using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 
 namespace SFXChallenger.Interfaces
 {
-
-    #region
-
-    #endregion
-
     internal interface IChampion
     {
         Menu Menu { get; }

@@ -39,11 +39,6 @@ using SFXLibrary.Logger;
 
 namespace SFXChallenger
 {
-
-    #region
-
-    #endregion
-
     public class Bootstrap
     {
         private static IChampion _champion;

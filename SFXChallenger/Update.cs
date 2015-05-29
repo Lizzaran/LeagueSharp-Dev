@@ -35,11 +35,6 @@ using Version = System.Version;
 
 namespace SFXChallenger
 {
-
-    #region
-
-    #endregion
-
     internal class Update
     {
         public static void Init(string path, int displayTime)

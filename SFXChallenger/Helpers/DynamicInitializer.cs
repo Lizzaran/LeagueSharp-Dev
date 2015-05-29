@@ -30,11 +30,6 @@ using SFXLibrary.Logger;
 
 namespace SFXChallenger.Helpers
 {
-
-    #region
-
-    #endregion
-
     public class DynamicInitializer
     {
         public static TV NewInstance<TV>() where TV : class

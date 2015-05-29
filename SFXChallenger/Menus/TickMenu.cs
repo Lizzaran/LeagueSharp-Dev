@@ -28,11 +28,6 @@ using LeagueSharp.Common;
 
 namespace SFXChallenger.Menus
 {
-
-    #region
-
-    #endregion
-
     internal class TickMenu
     {
         public static void AddToMenu(Menu menu)

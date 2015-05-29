@@ -39,11 +39,6 @@ using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
 namespace SFXChallenger.Abstracts
 {
-
-    #region
-
-    #endregion
-
     internal abstract class Champion : IChampion
     {
         protected readonly Obj_AI_Hero Player = ObjectManager.Player;

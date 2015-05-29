@@ -34,11 +34,6 @@ using SFXLibrary.Extensions.NET;
 
 namespace SFXUtility.Classes
 {
-
-    #region
-
-    #endregion
-
     public class Spectator
     {
         private static readonly string DoRecordUrl =

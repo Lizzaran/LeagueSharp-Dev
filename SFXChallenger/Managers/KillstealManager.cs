@@ -32,11 +32,6 @@ using SFXLibrary.Logger;
 
 namespace SFXChallenger.Managers
 {
-
-    #region
-
-    #endregion
-
     internal class KillstealManager
     {
         private static Menu _menu;

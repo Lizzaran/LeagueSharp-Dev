@@ -36,11 +36,6 @@ using Color = System.Drawing.Color;
 
 namespace SFXChallenger.Wrappers
 {
-
-    #region
-
-    #endregion
-
     /// <summary>
     ///     This class offers everything related to auto-attacks and orbwalking.
     /// </summary>

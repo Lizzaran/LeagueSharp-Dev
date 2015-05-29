@@ -37,11 +37,6 @@ using SharpDX.Direct3D9;
 
 namespace SFXUtility.Features.Timers
 {
-
-    #region
-
-    #endregion
-
     internal class Ability : Base
     {
         // ReSharper disable StringLiteralTypo

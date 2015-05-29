@@ -42,11 +42,6 @@ using Font = SharpDX.Direct3D9.Font;
 
 namespace SFXUtility.Features.Detectors
 {
-
-    #region
-
-    #endregion
-
     internal class Teleport : Base
     {
         private Font _barText;

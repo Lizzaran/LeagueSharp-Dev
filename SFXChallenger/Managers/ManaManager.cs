@@ -33,11 +33,6 @@ using SFXLibrary.Logger;
 
 namespace SFXChallenger.Managers
 {
-
-    #region
-
-    #endregion
-
     internal class ManaManager
     {
         private static readonly Dictionary<string, Tuple<Menu, ManaCheckType, ManaValueType>> Menues =

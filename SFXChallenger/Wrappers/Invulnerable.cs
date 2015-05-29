@@ -33,11 +33,6 @@ using SFXLibrary.Logger;
 
 namespace SFXChallenger.Wrappers
 {
-
-    #region
-
-    #endregion
-
     internal static class Invulnerable
     {
         // ReSharper disable StringLiteralTypo

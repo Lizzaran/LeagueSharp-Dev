@@ -37,11 +37,6 @@ using Color = System.Drawing.Color;
 
 namespace SFXChallenger.Wrappers
 {
-
-    #region
-
-    #endregion
-
     internal class TargetSelector
     {
         internal const int MinWeight = 0;
@@ -560,7 +555,7 @@ namespace SFXChallenger.Wrappers
                     new MenuItem(menu.Name + ".force-focus-selected", Global.Lang.Get("TS_OnlyAttackSelectedTarget"))
                         .SetValue(false));
 
-                _averageWeight = (float)WeightedItems.Average(w => w.Weight);
+                _averageWeight = (float) WeightedItems.Average(w => w.Weight);
             }
             catch (Exception ex)
             {

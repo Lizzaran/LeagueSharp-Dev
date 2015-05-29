@@ -28,11 +28,6 @@ using System;
 
 namespace SFXChallenger.Enumerations
 {
-
-    #region
-
-    #endregion
-
     [Flags]
     public enum CombatFlags
     {

@@ -37,11 +37,6 @@ using System.Xml.Serialization;
 
 namespace SFXLibrary.Extensions.NET
 {
-
-    #region
-
-    #endregion
-
     public static class StringExtensions
     {
         public static string XmlSerialize<T>(this T objectToSerialise) where T : class

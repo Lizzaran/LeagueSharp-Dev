@@ -30,11 +30,6 @@ using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
 namespace SFXChallenger.Helpers
 {
-
-    #region
-
-    #endregion
-
     internal class Casting
     {
         public static void BasicSkillShot(Spell spell, HitChance hitChance, bool aoe = false, bool towerCheck = false)
@@ -42,7 +37,11 @@ namespace SFXChallenger.Helpers
             BasicSkillShot(TargetSelector.GetTarget(spell.Range, spell.DamageType), spell, hitChance, aoe, towerCheck);
         }
 
-        public static void BasicSkillShot(Obj_AI_Base target, Spell spell, HitChance hitChance, bool aoe = false, bool towerCheck = false)
+        public static void BasicSkillShot(Obj_AI_Base target,
+            Spell spell,
+            HitChance hitChance,
+            bool aoe = false,
+            bool towerCheck = false)
         {
             if (!spell.IsReady())
             {

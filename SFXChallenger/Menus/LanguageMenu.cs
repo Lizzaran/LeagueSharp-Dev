@@ -33,11 +33,6 @@ using SFXLibrary.Logger;
 
 namespace SFXChallenger.Menus
 {
-
-    #region
-
-    #endregion
-
     internal class LanguageMenu
     {
         public static void AddToMenu(Menu menu)
