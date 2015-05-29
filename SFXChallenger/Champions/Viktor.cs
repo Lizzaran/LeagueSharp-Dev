@@ -43,8 +43,8 @@ namespace SFXChallenger.Champions
 {
     internal class Viktor : Champion
     {
-        private const float MaxERange = 1235f;
-        private const float ELength = 710f;
+        private const float MaxERange = 1225f;
+        private const float ELength = 700f;
         private const float RMoveInterval = 125f;
         private float _lastRMoveCommand = Environment.TickCount;
         private GameObject _rObject;
@@ -179,7 +179,7 @@ namespace SFXChallenger.Champions
             W.SetSkillshot(1.6f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E, 525f);
-            E.SetSkillshot(0.05f, 90f, 1000f, false, SkillshotType.SkillshotLine);
+            E.SetSkillshot(0.05f, 90f, 900f, false, SkillshotType.SkillshotLine);
 
             R = new Spell(SpellSlot.R, 700f);
             R.SetSkillshot(0.05f, 450f, float.MaxValue, false, SkillshotType.SkillshotCircle);
@@ -743,12 +743,18 @@ namespace SFXChallenger.Champions
                             {
                                 input2.Unit = c;
                                 var pred = Prediction.GetPrediction(input2);
-                                if (pred.Hitchance >= HitchanceManager.Get("combo", "e") && rect.IsInside(pred.CastPosition))
+                                if (pred.Hitchance >= HitchanceManager.Get("combo", "e") &&
+                                    rect.IsInside(pred.CastPosition))
                                 {
                                     count++;
                                 }
                             }
-                            if (count > hits)
+                            if (count == hits && sPos.Distance(target.Position) < startPos.Distance(target.Position))
+                            {
+                                startPos = sPos;
+                                endPos = sPos.Extend(castPos, ELength);
+                            }
+                            else if (count > hits)
                             {
                                 hits = count;
                                 startPos = sPos;
@@ -825,7 +831,6 @@ namespace SFXChallenger.Champions
                 var hits = 0;
                 foreach (var minion in minions)
                 {
-                    var lMinion = minion;
                     if (minion.Distance(Player.Position) < E.Range)
                     {
                         var sPos = minion.Position;
@@ -896,7 +901,12 @@ namespace SFXChallenger.Champions
                                         count++;
                                     }
                                 }
-                                if (count > hits)
+                                if (count == hits && sPos.Distance(minion.Position) < startPos.Distance(minion.Position))
+                                {
+                                    startPos = sPos;
+                                    endPos = sPos.Extend(castPos, ELength);
+                                }
+                                else if (count > hits)
                                 {
                                     hits = count;
                                     startPos = sPos;
