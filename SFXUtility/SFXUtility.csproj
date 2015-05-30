@@ -163,6 +163,7 @@
     <Content Include="Resources\Languages\language.fr.xml" />
     <Content Include="Resources\Languages\language.vi.xml" />
     <Content Include="Resources\LP\LP_Bard.png" />
+    <Content Include="Resources\LP\LP_Ekko.png" />
     <Content Include="Resources\LP\LP_Kalista.png" />
     <Content Include="Resources\LP\LP_Teleport.png" />
     <Content Include="Resources\LP\LP_RekSai.png" />
@@ -188,6 +189,7 @@
     <Content Include="Resources\SB\SB_Diana.jpg" />
     <Content Include="Resources\SB\SB_Draven.jpg" />
     <Content Include="Resources\SB\SB_DrMundo.jpg" />
+    <Content Include="Resources\SB\SB_Ekko.jpg" />
     <Content Include="Resources\SB\SB_Elise.jpg" />
     <Content Include="Resources\SB\SB_Evelynn.jpg" />
     <Content Include="Resources\SB\SB_Ezreal.jpg" />

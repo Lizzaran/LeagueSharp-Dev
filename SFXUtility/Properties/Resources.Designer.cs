@@ -519,6 +519,16 @@ namespace SFXUtility.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap LP_Ekko {
+            get {
+                object obj = ResourceManager.GetObject("LP_Ekko", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap LP_Elise {
             get {
                 object obj = ResourceManager.GetObject("LP_Elise", resourceCulture);
@@ -1772,6 +1782,16 @@ namespace SFXUtility.Properties {
         internal static System.Drawing.Bitmap SB_DrMundo {
             get {
                 object obj = ResourceManager.GetObject("SB_DrMundo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap SB_Ekko {
+            get {
+                object obj = ResourceManager.GetObject("SB_Ekko", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
