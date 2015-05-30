@@ -35,12 +35,12 @@ namespace SFXChallenger.Helpers
 {
     public static class Utils
     {
-        public static bool IsNearTurret(this Obj_AI_Base target)
+        public static bool IsNearTurret(this Obj_AI_Base target, float extraRange = 300f)
         {
             try
             {
                 return
-                    ObjectManager.Get<Obj_AI_Turret>().Any(turret => turret.IsValidTarget(1200f, true, target.Position));
+                    ObjectManager.Get<Obj_AI_Turret>().Any(turret => turret.IsValidTarget(900f + extraRange, true, target.Position));
             }
 
             catch (Exception ex)

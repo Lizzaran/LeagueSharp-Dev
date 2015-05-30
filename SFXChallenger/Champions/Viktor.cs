@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- viktor.cs is part of SFXChallenger.
+ Viktor.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -473,16 +473,19 @@ namespace SFXChallenger.Champions
             try
             {
                 var damage = 0f;
+                if (Player.HasBuff("viktorpowertransferreturn") && Orbwalker.InAutoAttackRange(target))
+                {
+                    damage += CalcPassiveDamage(target);
+                }
                 if (q && Q.IsReady() && target.IsValidTarget(Q.Range))
                 {
-                    damage += Q.GetDamage(target) * 2;
+                    damage += Q.GetDamage(target);
                     if (Orbwalker.InAutoAttackRange(target))
                     {
                         damage += CalcPassiveDamage(target);
                     }
                 }
-                if (e && (E.IsReady() || (E.Instance.CooldownExpires - Game.Time < 1.5f)) &&
-                    target.IsValidTarget(MaxERange))
+                if (e && E.IsReady() && target.IsValidTarget(MaxERange))
                 {
                     damage += E.GetDamage(target);
                 }
@@ -490,46 +493,30 @@ namespace SFXChallenger.Champions
                 {
                     damage += R.GetDamage(target);
 
-                    var stacks = 6;
-
-                    var endTimes =
-                        target.Buffs.Where(
-                            t =>
-                                t.Type == BuffType.Charm || t.Type == BuffType.Snare || t.Type == BuffType.Knockup ||
-                                t.Type == BuffType.Polymorph || t.Type == BuffType.Fear || t.Type == BuffType.Taunt ||
-                                t.Type == BuffType.Stun).Select(t => t.EndTime).ToList();
-
-                    if (IsSpellUpgraded(R))
+                    int stacks;
+                    if (!IsSpellUpgraded(R))
                     {
-                        stacks = extended ? 8 : 10;
+                        stacks = target.IsNearTurret(500f) ? 3 : 10;
+                        var endTimes =
+                            target.Buffs.Where(
+                                t =>
+                                    t.Type == BuffType.Charm || t.Type == BuffType.Snare || t.Type == BuffType.Knockup ||
+                                    t.Type == BuffType.Polymorph || t.Type == BuffType.Fear || t.Type == BuffType.Taunt ||
+                                    t.Type == BuffType.Stun).Select(t => t.EndTime).ToList();
                         if (endTimes.Any())
                         {
                             var max = endTimes.Max();
                             if (max - Game.Time > 0.5f)
                             {
-                                stacks = 11;
+                                stacks = 14;
                             }
                         }
                     }
                     else
                     {
-                        if (!target.IsFacing(Player))
-                        {
-                            stacks = 4;
-                        }
-                        if (extended)
-                        {
-                            stacks = 3;
-                        }
-                        if (endTimes.Any())
-                        {
-                            var max = endTimes.Max();
-                            if (max - Game.Time > 0.5f)
-                            {
-                                stacks = 10;
-                            }
-                        }
+                        stacks = extended ? 12 : 14;
                     }
+
                     damage += (R.GetDamage(target, 1) * stacks);
                 }
                 return damage;
@@ -705,10 +692,28 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                var input = new PredictionInput
+                {
+                    Range = ELength,
+                    Delay = E.Delay,
+                    Radius = E.Width,
+                    Speed = E.Speed,
+                    Type = E.Type
+                };
+                var input2 = new PredictionInput
+                {
+                    Range = MaxERange,
+                    Delay = E.Delay,
+                    Radius = E.Width,
+                    Speed = E.Speed,
+                    Type = E.Type
+                };
                 var startPos = Vector3.Zero;
                 var endPos = Vector3.Zero;
                 var hits = 0;
-                var distance = float.MaxValue;
+                targets = targets.Where(t => t.Distance(Player) < MaxERange * 1.5f).ToList();
+                var targetCount = targets.Count;
+
                 foreach (var target in targets)
                 {
                     var lTarget = target;
@@ -719,17 +724,9 @@ namespace SFXChallenger.Champions
                         {
                             var count = 1;
                             var cTarget = target;
-                            var input = new PredictionInput
-                            {
-                                Range = ELength,
-                                Delay = E.Delay,
-                                Radius = E.Width,
-                                Speed = E.Speed,
-                                Type = E.Type,
-                                Unit = t,
-                                From = cCastPos,
-                                RangeCheckFrom = cCastPos
-                            };
+                            input.Unit = t;
+                            input.From = cCastPos;
+                            input.RangeCheckFrom = cCastPos;
                             var pred = Prediction.GetPrediction(input);
                             if (pred.Hitchance >= (hitChance - 1))
                             {
@@ -759,6 +756,10 @@ namespace SFXChallenger.Champions
                                     hits = count;
                                     startPos = cCastPos;
                                     endPos = cCastPos.Extend(pred.CastPosition, ELength);
+                                    if (hits == targetCount)
+                                    {
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -773,22 +774,14 @@ namespace SFXChallenger.Champions
                     }
                     else
                     {
-                        var input2 = new PredictionInput
-                        {
-                            Range = MaxERange,
-                            Delay = E.Delay,
-                            Radius = E.Width,
-                            Speed = E.Speed,
-                            Type = E.Type,
-                            Unit = target
-                        };
+                        input2.Unit = target;
                         var castPos = Prediction.GetPrediction(input2).CastPosition;
                         var sCastPos = Player.Position.Extend(castPos, E.Range);
 
                         var extDist = overrideExtendedDistance > 0 ? overrideExtendedDistance : (ELength / 4f);
                         var circle =
-                            new Geometry.Polygon.Circle(Player.Position, E.Range, 50).Points.Where(
-                                p => p.Distance(sCastPos) < extDist);
+                            new Geometry.Polygon.Circle(Player.Position, E.Range, 45).Points.Where(
+                                p => p.Distance(sCastPos) < extDist).OrderBy(p => p.Distance(sCastPos));
                         foreach (var point in circle)
                         {
                             input2.From = point.To3D();
@@ -801,7 +794,7 @@ namespace SFXChallenger.Champions
                                 var count = 1;
                                 var rect = new Geometry.Polygon.Rectangle(
                                     point, point.To3D().Extend(pred2.CastPosition, ELength).To2D(), E.Width);
-                                foreach (var c in targets)
+                                foreach (var c in targets.Where(t => t.NetworkId != lTarget.NetworkId))
                                 {
                                     input2.Unit = c;
                                     var cPredPos = c.Type == GameObjectType.obj_AI_Minion
@@ -817,15 +810,22 @@ namespace SFXChallenger.Champions
                                         count++;
                                     }
                                 }
-                                if (count > hits || count == hits && distance > point.Distance(target))
+                                if (count > hits)
                                 {
                                     hits = count;
                                     startPos = point.To3D();
                                     endPos = startPos.Extend(pred2.CastPosition, ELength);
-                                    distance = point.Distance(target);
+                                    if (hits == targetCount)
+                                    {
+                                        break;
+                                    }
                                 }
                             }
                         }
+                    }
+                    if (hits == targetCount)
+                    {
+                        break;
                     }
                 }
                 if (hits >= minHits && !startPos.Equals(Vector3.Zero) && !endPos.Equals(Vector3.Zero))
