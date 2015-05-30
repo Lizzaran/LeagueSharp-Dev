@@ -65,6 +65,7 @@
 	<entry key="G_Skillshot">Skillshot</entry>
 	<entry key="G_Collision">Collision</entry>
 	<entry key="G_Type">Type</entry>
+	<entry key="G_None">None</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: SFXUtility -->
@@ -178,8 +179,8 @@
 
 	<!-- START: AutoLeveler -->
 	<entry key="F_AutoLeveler">Auto Leveler</entry>
-	<entry key="AutoLeveler_PatternEarly">Early Pattern</entry>
-	<entry key="AutoLeveler_Priority3LvL">Priority 3 @ LvL</entry>
+	<entry key="AutoLeveler_Early">Early</entry>
+	<entry key="AutoLeveler_Priority">Priority</entry>
 	<entry key="AutoLeveler_OnlyR">Only R</entry>
 	<!-- END: AutoLeveler -->
 
