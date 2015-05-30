@@ -37,8 +37,6 @@ namespace SFXUtility.Features.Events
 {
     internal class AutoLeveler : Base
     {
-        private const float CheckInterval = 300f;
-        private float _lastCheck = Environment.TickCount;
         private Events _parent;
 
         public override bool Enabled
@@ -57,13 +55,13 @@ namespace SFXUtility.Features.Events
 
         protected override void OnEnable()
         {
-            LeagueSharp.Game.OnUpdate += OnGameUpdate;
+            Obj_AI_Base.OnLevelUp += OnObjAiBaseLevelUp;
             base.OnEnable();
         }
 
         protected override void OnDisable()
         {
-            LeagueSharp.Game.OnUpdate -= OnGameUpdate;
+            Obj_AI_Base.OnLevelUp -= OnObjAiBaseLevelUp;
             base.OnDisable();
         }
 
@@ -172,19 +170,16 @@ namespace SFXUtility.Features.Events
             }
         }
 
-        private void OnGameUpdate(EventArgs args)
+        private void OnObjAiBaseLevelUp(Obj_AI_Base sender, EventArgs args)
         {
-            if (_lastCheck + CheckInterval > Environment.TickCount)
-            {
+            if (!sender.IsMe)
                 return;
-            }
-            _lastCheck = Environment.TickCount;
 
             var availablePoints = ObjectManager.Player.Level -
-                                  (ObjectManager.Player.Spellbook.GetSpell(SpellSlot.Q).Level +
-                                   ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Level +
-                                   ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).Level +
-                                   ObjectManager.Player.Spellbook.GetSpell(SpellSlot.R).Level);
+                                   (ObjectManager.Player.Spellbook.GetSpell(SpellSlot.Q).Level +
+                                    ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Level +
+                                    ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).Level +
+                                    ObjectManager.Player.Spellbook.GetSpell(SpellSlot.R).Level);
 
             if (availablePoints > 0)
             {
