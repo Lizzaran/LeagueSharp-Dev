@@ -755,7 +755,8 @@ namespace SFXChallenger.Champions
                         if (endPos.Equals(Vector3.Zero))
                         {
                             startPos = Player.Position.Extend(cCastPos, Player.Distance(cCastPos) * 0.9f);
-                            endPos = Player.Position.Extend(cCastPos, Player.Distance(cCastPos) + ELength);
+                            endPos = Player.Position.Extend(cCastPos, ELength);
+                            hits = 1;
                         }
                     }
                     else
