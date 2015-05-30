@@ -731,10 +731,15 @@ namespace SFXChallenger.Champions
                                         c => c.NetworkId != cTarget.NetworkId && c.NetworkId != lTarget.NetworkId))
                                 {
                                     input.Unit = c;
-                                    var cPred = Prediction.GetPrediction(input);
+                                    var cPredPos = c.Type == GameObjectType.obj_AI_Minion
+                                        ? c.Position
+                                        : Prediction.GetPrediction(input).UnitPosition;
                                     if (
-                                        new Geometry.Polygon.Circle(cPred.CastPosition, c.BoundingRadius).Points.Any(
-                                            p => rect.IsInside(p)))
+                                        new Geometry.Polygon.Circle(
+                                            cPredPos,
+                                            c.Type == GameObjectType.obj_AI_Minion && c.IsMoving
+                                                ? (c.BoundingRadius / 2f)
+                                                : (c.BoundingRadius)).Points.Any(p => rect.IsInside(p)))
                                     {
                                         count++;
                                     }
@@ -786,10 +791,15 @@ namespace SFXChallenger.Champions
                                 foreach (var c in targets)
                                 {
                                     input2.Unit = c;
-                                    var cPred = Prediction.GetPrediction(input2);
+                                    var cPredPos = c.Type == GameObjectType.obj_AI_Minion
+                                        ? c.Position
+                                        : Prediction.GetPrediction(input2).UnitPosition;
                                     if (
-                                        new Geometry.Polygon.Circle(cPred.CastPosition, c.BoundingRadius).Points.Any(
-                                            p => rect.IsInside(p)))
+                                        new Geometry.Polygon.Circle(
+                                            cPredPos,
+                                            c.Type == GameObjectType.obj_AI_Minion && c.IsMoving
+                                                ? (c.BoundingRadius / 2f)
+                                                : (c.BoundingRadius)).Points.Any(p => rect.IsInside(p)))
                                     {
                                         count++;
                                     }
