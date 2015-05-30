@@ -491,18 +491,36 @@ namespace SFXChallenger.Champions
                     damage += R.GetDamage(target);
 
                     var stacks = 6;
-                    if (!IsSpellUpgraded(R))
+
+                    var endTimes =
+                        target.Buffs.Where(
+                            t =>
+                                t.Type == BuffType.Charm || t.Type == BuffType.Snare || t.Type == BuffType.Knockup ||
+                                t.Type == BuffType.Polymorph || t.Type == BuffType.Fear || t.Type == BuffType.Taunt ||
+                                t.Type == BuffType.Stun).Select(t => t.EndTime).ToList();
+
+                    if (IsSpellUpgraded(R))
+                    {
+                        stacks = extended ? 8 : 10;
+                        if (endTimes.Any())
+                        {
+                            var max = endTimes.Max();
+                            if (max - Game.Time > 0.5f)
+                            {
+                                stacks = 11;
+                            }
+                        }
+                    }
+                    else
                     {
                         if (!target.IsFacing(Player))
                         {
                             stacks = 4;
                         }
-                        var endTimes =
-                            target.Buffs.Where(
-                                t =>
-                                    t.Type == BuffType.Charm || t.Type == BuffType.Snare || t.Type == BuffType.Knockup ||
-                                    t.Type == BuffType.Polymorph || t.Type == BuffType.Fear || t.Type == BuffType.Taunt ||
-                                    t.Type == BuffType.Stun).Select(t => t.EndTime).ToList();
+                        if (extended)
+                        {
+                            stacks = 3;
+                        }
                         if (endTimes.Any())
                         {
                             var max = endTimes.Max();
@@ -511,14 +529,6 @@ namespace SFXChallenger.Champions
                                 stacks = 10;
                             }
                         }
-                        if (extended)
-                        {
-                            stacks = 3;
-                        }
-                    }
-                    else
-                    {
-                        stacks = extended ? 8 : 10;
                     }
                     damage += (R.GetDamage(target, 1) * stacks);
                 }
@@ -754,7 +764,9 @@ namespace SFXChallenger.Champions
                         }
                         if (endPos.Equals(Vector3.Zero))
                         {
-                            startPos = Player.Position.Extend(cCastPos, Player.Distance(cCastPos) * 0.9f);
+                            startPos = target.IsFacing(Player) && IsSpellUpgraded(E)
+                                ? Player.Position.Extend(cCastPos, Player.Distance(cCastPos) - (ELength / 10f))
+                                : cCastPos;
                             endPos = Player.Position.Extend(cCastPos, ELength);
                             hits = 1;
                         }
