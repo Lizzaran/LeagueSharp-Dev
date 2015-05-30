@@ -239,7 +239,7 @@ namespace SFXChallenger.Champions
                                  W.GetPrediction(t).Hitchance == HitChance.Immobile));
                     if (target != null)
                     {
-                        Casting.BasicSkillShot(target, W, HitchanceManager.Get("harass", "w"));
+                        Casting.BasicSkillShot(target, W, HitchanceManager.Get("combo", "w"));
                     }
                 }
 
@@ -252,7 +252,7 @@ namespace SFXChallenger.Champions
                                 t.Buffs.Any(b => b.Type == BuffType.Slow && b.EndTime - Game.Time > 0.5f));
                     if (target != null)
                     {
-                        Casting.BasicSkillShot(target, W, HitchanceManager.Get("harass", "w"));
+                        Casting.BasicSkillShot(target, W, HitchanceManager.Get("combo", "w"));
                     }
                 }
             }
@@ -705,9 +705,9 @@ namespace SFXChallenger.Champions
                     if (target.Distance(Player.Position) < E.Range)
                     {
                         var cCastPos = target.Position;
-
-                        foreach (var t in Targets.Where(t => t.NetworkId != lTarget.NetworkId))
+                        foreach (var t in targets.Where(t => t.NetworkId != lTarget.NetworkId))
                         {
+                            var count = 1;
                             var cTarget = target;
                             var input = new PredictionInput
                             {
@@ -723,11 +723,11 @@ namespace SFXChallenger.Champions
                             var pred = Prediction.GetPrediction(input);
                             if (pred.Hitchance >= (hitChance - 1))
                             {
+                                count++;
                                 var rect = new Geometry.Polygon.Rectangle(
                                     cCastPos.To2D(), cCastPos.Extend(pred.CastPosition, ELength).To2D(), E.Width);
-                                var count = 2;
                                 foreach (var c in
-                                    Targets.Where(
+                                    targets.Where(
                                         c => c.NetworkId != cTarget.NetworkId && c.NetworkId != lTarget.NetworkId))
                                 {
                                     input.Unit = c;
@@ -780,10 +780,10 @@ namespace SFXChallenger.Champions
                             var pred2 = Prediction.GetPrediction(input2);
                             if (pred2.Hitchance >= hitChance)
                             {
+                                var count = 1;
                                 var rect = new Geometry.Polygon.Rectangle(
                                     point, point.To3D().Extend(pred2.CastPosition, ELength).To2D(), E.Width);
-                                var count = 0;
-                                foreach (var c in Targets)
+                                foreach (var c in targets)
                                 {
                                     input2.Unit = c;
                                     var cPred = Prediction.GetPrediction(input2);
@@ -805,7 +805,7 @@ namespace SFXChallenger.Champions
                         }
                     }
                 }
-                if (minHits >= hits && !startPos.Equals(Vector3.Zero) && !endPos.Equals(Vector3.Zero))
+                if (hits >= minHits && !startPos.Equals(Vector3.Zero) && !endPos.Equals(Vector3.Zero))
                 {
                     E.Cast(startPos, endPos);
                     return true;
@@ -841,17 +841,17 @@ namespace SFXChallenger.Champions
                 ManaManager.Check("lane-clear-e"))
             {
                 var minions = MinionManager.GetMinions(
-                    MaxERange, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+                    MaxERange * 1.3f, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
                 var minHits = minions.Any(m => m.Team == GameObjectTeam.Neutral)
                     ? 1
                     : Menu.Item(Menu.Name + ".lane-clear.e-min").GetValue<Slider>().Value;
 
                 if (minions.Count >= minHits)
                 {
-                    var targets = minHits > 1
-                        ? minions.Concat(Targets.Select(t => t as Obj_AI_Base).Where(t => t != null)).ToList()
-                        : minions;
-                    ELogic(targets, HitChance.High, minHits, ELength * 0.8f);
+                    ELogic(
+                        minHits > 1
+                            ? minions.Concat(Targets.Select(t => t as Obj_AI_Base).Where(t => t != null)).ToList()
+                            : minions, HitChance.High, minHits);
                 }
             }
             if (Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady() &&

@@ -29,7 +29,6 @@ using LeagueSharp;
 using LeagueSharp.Common;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
-using Utils = SFXLibrary.Utils;
 
 #endregion
 
@@ -37,6 +36,8 @@ namespace SFXUtility.Features.Events
 {
     internal class AutoLeveler : Base
     {
+        private const float CheckInterval = 300f;
+        private float _lastCheck = Environment.TickCount;
         private Events _parent;
 
         public override bool Enabled
@@ -55,13 +56,13 @@ namespace SFXUtility.Features.Events
 
         protected override void OnEnable()
         {
-            Obj_AI_Base.OnLevelUp += OnObjAiBaseLevelUp;
+            LeagueSharp.Game.OnUpdate += OnGameUpdate;
             base.OnEnable();
         }
 
         protected override void OnDisable()
         {
-            Obj_AI_Base.OnLevelUp -= OnObjAiBaseLevelUp;
+            LeagueSharp.Game.OnUpdate -= OnGameUpdate;
             base.OnDisable();
         }
 
@@ -70,25 +71,17 @@ namespace SFXUtility.Features.Events
             return GetPriorityList().OrderByDescending(x => x.Value).ToList();
         }
 
-        private SpellInfoStruct GetSpellInfoByPriority(int priority)
-        {
-            return GetPriorityList().FirstOrDefault(x => x.Value == priority);
-        }
-
         private List<SpellInfoStruct> GetPriorityList()
         {
             return
                 new List<SpellInfoStruct>
                 {
                     new SpellInfoStruct(
-                        SpellSlot.Q,
-                        Menu.Item(Name + ObjectManager.Player.ChampionName + "PatternQ").GetValue<Slider>().Value),
+                        SpellSlot.Q, Menu.Item(Name + ObjectManager.Player.ChampionName + "Q").GetValue<Slider>().Value),
                     new SpellInfoStruct(
-                        SpellSlot.W,
-                        Menu.Item(Name + ObjectManager.Player.ChampionName + "PatternW").GetValue<Slider>().Value),
+                        SpellSlot.W, Menu.Item(Name + ObjectManager.Player.ChampionName + "W").GetValue<Slider>().Value),
                     new SpellInfoStruct(
-                        SpellSlot.E,
-                        Menu.Item(Name + ObjectManager.Player.ChampionName + "PatternE").GetValue<Slider>().Value),
+                        SpellSlot.E, Menu.Item(Name + ObjectManager.Player.ChampionName + "E").GetValue<Slider>().Value),
                     new SpellInfoStruct(SpellSlot.R, 4)
                 }.ToList();
         }
@@ -128,28 +121,43 @@ namespace SFXUtility.Features.Events
                 Menu = new Menu(Name, Name);
 
                 var championMenu = new Menu(ObjectManager.Player.ChampionName, Name + ObjectManager.Player.ChampionName);
-                championMenu.AddItem(
-                    new MenuItem(championMenu.Name + "PatternEarly", Global.Lang.Get("AutoLeveler_PatternEarly"))
-                        .SetValue(
-                            new StringList(
-                                new[]
-                                {
-                                    "Q W", "Q E", "W Q", "W E", "E Q", "E W", "Q W Q", "Q W W", "Q W E", "Q E Q", "Q E W",
-                                    "Q E E", "W Q Q", "W Q W", "W Q E", "W E Q", "W E W", "W E E", "E Q Q", "E Q W",
-                                    "E Q E", "E W Q", "E W W", "E W E", "Q W Q W", "Q W Q E", "Q W W Q", "Q W W E",
-                                    "Q W E Q", "Q W E W", "Q W E E", "Q E Q W", "Q E Q E", "Q E W Q", "Q E W W",
-                                    "Q E W E", "Q E E Q", "Q E E W", "W Q Q W", "W Q Q E", "W Q W Q", "W Q W E",
-                                    "W Q E Q", "W Q E W", "W Q E E", "W E Q Q", "W E Q W", "W E Q E", "W E W Q",
-                                    "W E W E", "W E E Q", "W E E W", "E Q Q W", "E Q Q E", "E Q W Q", "E Q W W",
-                                    "E Q W E", "E Q E Q", "E Q E W", "E W Q Q", "E W Q W", "E W Q E", "E W W Q",
-                                    "E W W E", "E W E Q", "E W E W"
-                                })));
-                championMenu.AddItem(new MenuItem(championMenu.Name + "PatternQ", "Q").SetValue(new Slider(3, 3, 1)));
-                championMenu.AddItem(new MenuItem(championMenu.Name + "PatternW", "W").SetValue(new Slider(1, 3, 1)));
-                championMenu.AddItem(new MenuItem(championMenu.Name + "PatternE", "E").SetValue(new Slider(2, 3, 1)));
-                championMenu.AddItem(
-                    new MenuItem(championMenu.Name + "Priority3LvL", Global.Lang.Get("AutoLeveler_Priority3LvL"))
-                        .SetValue(new Slider(4, 0, 13)));
+
+                var earlyMenu = new Menu(Global.Lang.Get("AutoLeveler_Early"), championMenu.Name + "Early");
+                earlyMenu.AddItem(
+                    new MenuItem(earlyMenu.Name + "1", "1: ").SetValue(
+                        new StringList(
+                            new[]
+                            {
+                                Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"),
+                                Global.Lang.Get("G_None"), "Q", "W", "E"
+                            })));
+                earlyMenu.AddItem(
+                    new MenuItem(earlyMenu.Name + "2", "2: ").SetValue(
+                        new StringList(
+                            new[] { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" },
+                            2)));
+                earlyMenu.AddItem(
+                    new MenuItem(earlyMenu.Name + "3", "3: ").SetValue(
+                        new StringList(
+                            new[] { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" },
+                            4)));
+                earlyMenu.AddItem(
+                    new MenuItem(earlyMenu.Name + "4", "4: ").SetValue(
+                        new StringList(
+                            new[] { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" },
+                            2)));
+                earlyMenu.AddItem(
+                    new MenuItem(earlyMenu.Name + "5", "5: ").SetValue(
+                        new StringList(
+                            new[] { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" },
+                            3)));
+
+                championMenu.AddSubMenu(earlyMenu);
+
+                championMenu.AddItem(new MenuItem(championMenu.Name + "Q", "Q").SetValue(new Slider(3, 3, 1)));
+                championMenu.AddItem(new MenuItem(championMenu.Name + "W", "W").SetValue(new Slider(1, 3, 1)));
+                championMenu.AddItem(new MenuItem(championMenu.Name + "E", "E").SetValue(new Slider(2, 3, 1)));
+
                 championMenu.AddItem(
                     new MenuItem(championMenu.Name + "OnlyR", Global.Lang.Get("AutoLeveler_OnlyR")).SetValue(false));
                 championMenu.AddItem(
@@ -170,16 +178,19 @@ namespace SFXUtility.Features.Events
             }
         }
 
-        private void OnObjAiBaseLevelUp(Obj_AI_Base sender, EventArgs args)
+        private void OnGameUpdate(EventArgs args)
         {
-            if (!sender.IsMe)
+            if (_lastCheck + CheckInterval > Environment.TickCount)
+            {
                 return;
+            }
+            _lastCheck = Environment.TickCount;
 
             var availablePoints = ObjectManager.Player.Level -
-                                   (ObjectManager.Player.Spellbook.GetSpell(SpellSlot.Q).Level +
-                                    ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Level +
-                                    ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).Level +
-                                    ObjectManager.Player.Spellbook.GetSpell(SpellSlot.R).Level);
+                                  (ObjectManager.Player.Spellbook.GetSpell(SpellSlot.Q).Level +
+                                   ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Level +
+                                   ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).Level +
+                                   ObjectManager.Player.Spellbook.GetSpell(SpellSlot.R).Level);
 
             if (availablePoints > 0)
             {
@@ -205,38 +216,28 @@ namespace SFXUtility.Features.Events
 
                 var availablePoints = args.RemainingPoints;
 
-                if (args.NewLevel ==
-                    Menu.Item(Name + ObjectManager.Player.ChampionName + "Priority3LvL").GetValue<Slider>().Value)
+                if (ObjectManager.Player.Level <= 5)
                 {
-                    var spellInfo = GetSpellInfoByPriority(3);
-                    if (!spellInfo.Equals(default(SpellInfoStruct)))
+                    var index =
+                        Menu.Item(Name + ObjectManager.Player.ChampionName + "Early" + ObjectManager.Player.Level)
+                            .GetValue<StringList>()
+                            .SelectedIndex;
+                    switch (index)
                     {
-                        ObjectManager.Player.Spellbook.LevelUpSpell(spellInfo.Slot);
-                        availablePoints--;
-                    }
-                }
-
-                var splittedPattern =
-                    Menu.Item(Name + ObjectManager.Player.ChampionName + "PatternEarly")
-                        .GetValue<StringList>()
-                        .SelectedValue.Split(' ');
-                if (splittedPattern.Length >= args.NewLevel)
-                {
-                    for (var i = 0; availablePoints > i; i++)
-                    {
-                        if (availablePoints <= 0)
-                        {
+                        case 0:
                             return;
-                        }
-
-                        var slot = Utils.GetSpellSlotByChar(splittedPattern[args.NewLevel - availablePoints]);
-                        if (slot != SpellSlot.Unknown)
-                        {
-                            ObjectManager.Player.Spellbook.LevelUpSpell(slot);
-                            availablePoints--;
-                        }
+                        case 1:
+                            return;
+                        case 2:
+                            ObjectManager.Player.Spellbook.LevelUpSpell(SpellSlot.Q);
+                            return;
+                        case 3:
+                            ObjectManager.Player.Spellbook.LevelUpSpell(SpellSlot.W);
+                            return;
+                        case 4:
+                            ObjectManager.Player.Spellbook.LevelUpSpell(SpellSlot.E);
+                            return;
                     }
-                    return;
                 }
 
                 foreach (var pItem in GetOrderedPriorityList())
