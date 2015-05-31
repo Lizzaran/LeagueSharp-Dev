@@ -180,7 +180,7 @@ namespace SFXChallenger.Champions
             W.SetSkillshot(1.6f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E, 525f);
-            E.SetSkillshot(0.1f, 90f, 800f, false, SkillshotType.SkillshotLine);
+            E.SetSkillshot(0f, 90f, 800f, false, SkillshotType.SkillshotLine);
 
             R = new Spell(SpellSlot.R, 700f);
             R.SetSkillshot(0f, 575f, float.MaxValue, false, SkillshotType.SkillshotCircle);
@@ -780,8 +780,8 @@ namespace SFXChallenger.Champions
 
                         var extDist = overrideExtendedDistance > 0 ? overrideExtendedDistance : (ELength / 4f);
                         var circle =
-                            new Geometry.Polygon.Circle(Player.Position, E.Range, 45).Points.Where(
-                                p => p.Distance(sCastPos) < extDist).OrderBy(p => p.Distance(sCastPos));
+                            new Geometry.Polygon.Circle(Player.Position, sCastPos.Distance(Player.Position), 45).Points
+                                .Where(p => p.Distance(sCastPos) < extDist).OrderBy(p => p.Distance(lTarget));
                         foreach (var point in circle)
                         {
                             input2.From = point.To3D();
