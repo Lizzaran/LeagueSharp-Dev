@@ -126,11 +126,7 @@ namespace SFXUtility.Features.Events
                 earlyMenu.AddItem(
                     new MenuItem(earlyMenu.Name + "1", "1: ").SetValue(
                         new StringList(
-                            new[]
-                            {
-                                Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"),
-                                Global.Lang.Get("G_None"), "Q", "W", "E"
-                            })));
+                            new[] { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" })));
                 earlyMenu.AddItem(
                     new MenuItem(earlyMenu.Name + "2", "2: ").SetValue(
                         new StringList(
