@@ -84,6 +84,7 @@
     <Compile Include="Global.cs" />
     <Compile Include="Helpers\ConvexHull.cs" />
     <Compile Include="Helpers\DynamicInitializer.cs" />
+    <Compile Include="Helpers\SpellQueue.cs" />
     <Compile Include="Helpers\Utils.cs" />
     <Compile Include="Managers\HitchanceManager.cs" />
     <Compile Include="Managers\KillstealManager.cs" />

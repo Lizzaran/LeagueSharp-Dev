@@ -227,7 +227,7 @@ namespace SFXUtility.Features.Events
                         case 0:
                             return;
                         case 1:
-                            return;
+                            break;
                         case 2:
                             ObjectManager.Player.Spellbook.LevelUpSpell(SpellSlot.Q);
                             return;

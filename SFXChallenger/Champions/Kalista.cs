@@ -40,6 +40,8 @@
 
 //#endregion License
 
+//using SFXChallenger.Helpers;
+
 //namespace SFXChallenger.Champions
 //{
 //    #region
@@ -87,62 +89,56 @@
 //        protected override void AddToMenu()
 //        {
 //            var drawingMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Drawing"), Menu.Name + ".drawing"));
-//            drawingMenu.AddItem(
-//                new MenuItem(drawingMenu.Name + ".circle-thickness", Global.Lang.Get("G_CircleThickness")).SetValue(new Slider(2, 0, 10)));
+//            drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".circle-thickness", Global.Lang.Get("G_CircleThickness")).SetValue(new Slider(2, 0, 10)));
 //            drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".q", "Q").SetValue(new Circle(false, Color.White)));
 //            drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".w", "W").SetValue(new Circle(false, Color.White)));
 //            drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".e", "E").SetValue(new Circle(false, Color.White)));
 //            drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".r", "R").SetValue(new Circle(false, Color.White)));
 
 //            var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_Combo"), Menu.Name + ".combo"));
-//            ManaManager.AddToMenu(comboMenu, "combo", 0);
-//            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("C_UseQ")).SetValue(true));
-//            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("C_UseE")).SetValue(true));
+//            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
+//            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 //            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".min-e-stacks", Global.Lang.Get("Kalista_MinEStacks")).SetValue(new Slider(10, 1, 20)));
+//            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
 
 //            var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_Harass"), Menu.Name + ".harass"));
-//            ManaManager.AddToMenu(harassMenu, "harass");
-//            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("C_UseQ")).SetValue(true));
+//            ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
+//            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
 //            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e-reset", Global.Lang.Get("Kalista_EReset")).SetValue(true));
 
 //            var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_LaneClear"), Menu.Name + ".lane-clear"));
-//            ManaManager.AddToMenu(laneclearMenu, "lane-clear");
-//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("C_UseQ")).SetValue(true));
-//            laneclearMenu.AddItem(
-//                new MenuItem(laneclearMenu.Name + ".min-q-minions", Global.Lang.Get("Kalista_MinQMinions")).SetValue(new Slider(3, 1, 10)));
-//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", Global.Lang.Get("C_UseE")).SetValue(false));
-//            laneclearMenu.AddItem(
-//                new MenuItem(laneclearMenu.Name + ".min-e-minions", Global.Lang.Get("Kalista_MinEMinions")).SetValue(new Slider(2, 1, 10)));
+//            ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
+//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
+//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".min-q", "Q " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
+//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(false));
+//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".min-e", "E " + Global.Lang.Get("G_Min")).SetValue(new Slider(2, 1, 5)));
 
+//            var lasthitMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LastHit"), Menu.Name + ".lasthit"));
+//            ManaManager.AddToMenu(lasthitMenu, "lasthit", ManaCheckType.Minimum, ManaValueType.Percent, 40);
+//            lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".e-big", Global.Lang.Get("Kalista_EBig")).SetValue(true));
+//            lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".e-unkillable", Global.Lang.Get("Kalista_EUnkillable")).SetValue(true));
 
-//            var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_Flee"), Menu.Name + ".flee"));
-//            ManaManager.AddToMenu(fleeMenu, "flee", 15);
-//            fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".autoattacks", Global.Lang.Get("C_UseAutoAttacks")).SetValue(true));
-
-//            var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
-//            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".e-big-minion", Global.Lang.Get("Kalista_EBig")).SetValue(true));
-//            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".e-unkillable-minion", Global.Lang.Get("Kalista_EUnkillable")).SetValue(true));
-//            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".e-killsteal", Global.Lang.Get("Kalista_EKillsteal")).SetValue(true));
-//            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r-save-ally", Global.Lang.Get("Kalista_RSave")).SetValue(true));
+//            var killstealMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Killsteal"), Menu.Name + ".killsteal"));
+//            killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 //        }
 
 //        protected override void SetupSpells()
 //        {
-//            Q = new Spell(SpellSlot.Q, 1200);
-//            Q.SetSkillshot(0.35f, 40, 2350, true, SkillshotType.SkillshotLine);
+//            Q = new Spell(SpellSlot.Q, 1200f);
+//            Q.SetSkillshot(0.35f, 40f, 2350f, true, SkillshotType.SkillshotLine);
 
-//            W = new Spell(SpellSlot.W, 5000);
+//            W = new Spell(SpellSlot.W, 5000f);
 
-//            E = new Spell(SpellSlot.E, 1000);
+//            E = new Spell(SpellSlot.E, 1000f);
 
-//            R = new Spell(SpellSlot.R, 1500);
+//            R = new Spell(SpellSlot.R, 1500f);
 //        }
 
 //        private void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
 //        {
 //            try
 //            {
-//                if (sender.Owner.IsMe && args.Slot == SpellSlot.Q && Player.IsDashing())
+//                if (sender.Owner.IsMe && args.Slot == Q.Slot && Player.IsDashing())
 //                {
 //                    args.Process = false;
 //                }
@@ -172,8 +168,8 @@
 //                    args.Target.NetworkId == SoulBoundData.Unit.NetworkId)
 //                {
 //                    SoulBoundData.IncomingDamage.Add(
-//                        SoulBoundData.Unit.ServerPosition.Distance(sender.ServerPosition)/args.SData.MissileSpeed + Game.Time,
-//                        (float) sender.GetAutoAttackDamage(SoulBoundData.Unit));
+//                        SoulBoundData.Unit.ServerPosition.Distance(sender.ServerPosition) / args.SData.MissileSpeed + Game.Time,
+//                        (float)sender.GetAutoAttackDamage(SoulBoundData.Unit));
 //                }
 //                else
 //                {
@@ -189,13 +185,13 @@
 //                                args.Target.NetworkId == SoulBoundData.Unit.NetworkId)
 //                            {
 //                                SoulBoundData.InstantDamage.Add(Game.Time + 2,
-//                                    (float) attacker.GetSummonerSpellDamage(SoulBoundData.Unit, Damage.SummonerSpell.Ignite));
+//                                    (float)attacker.GetSummonerSpellDamage(SoulBoundData.Unit, Damage.SummonerSpell.Ignite));
 //                            }
 //                            else if ((slot == SpellSlot.Q || slot == SpellSlot.W || slot == SpellSlot.E || slot == SpellSlot.R) &&
 //                                     ((args.Target != null && args.Target.NetworkId == SoulBoundData.Unit.NetworkId) ||
 //                                      args.End.Distance(SoulBoundData.Unit.ServerPosition) < Math.Pow(args.SData.LineWidth, 2)))
 //                            {
-//                                SoulBoundData.InstantDamage.Add(Game.Time + 2, (float) attacker.GetSpellDamage(SoulBoundData.Unit, slot));
+//                                SoulBoundData.InstantDamage.Add(Game.Time + 2, (float)attacker.GetSpellDamage(SoulBoundData.Unit, slot));
 //                            }
 //                        }
 //                    }
@@ -211,7 +207,7 @@
 //        {
 //            try
 //            {
-//                if (Menu.Item(Menu.Name + ".miscellaneous.e-unkillable-minion").GetValue<bool>() && E.IsReady())
+//                if (Menu.Item(Menu.Name + ".lasthit.e-unkillable").GetValue<bool>() && E.IsReady())
 //                {
 //                    var target = unit as Obj_AI_Base;
 //                    if (target != null && Utils.IsRendKillable(target))
@@ -230,38 +226,7 @@
 //        {
 //            try
 //            {
-//                Orbwalker.ForceTarget(null);
-//                if (Menu.Item(Menu.Name + ".miscellaneous.e-big-minion").GetValue<bool>() && E.IsReady() &&
-//                    ObjectManager.Get<Obj_AI_Minion>()
-//                        .Any(
-//                            m =>
-//                                m.IsValidTarget(E.Range) &&
-//                                (m.BaseSkinName.Contains("MinionSiege") || m.BaseSkinName.Contains("Dragon") || m.BaseSkinName.Contains("Baron")) &&
-//                                Utils.IsRendKillable(m)))
-//                {
-//                    E.Cast();
-//                }
-//                if (SoulBoundData.Unit == null)
-//                {
-//                    // ReSharper disable once StringLiteralTypo
-//                    SoulBoundData.Unit = HeroManager.Allies.Find(h => h.Buffs.Any(b => b.Caster.IsMe && b.Name.Contains("kalistacoopstrikeally")));
-//                }
-//                else if (Menu.Item(Menu.Name + ".miscellaneous.r-save-ally").GetValue<bool>() && R.IsReady())
-//                {
-//                    if (SoulBoundData.Unit.HealthPercent <= 10 && SoulBoundData.Unit.CountEnemiesInRange(500) > 0 ||
-//                        SoulBoundData.Damage > SoulBoundData.Unit.Health)
-//                        R.Cast();
-//                }
-//                foreach (var entry in SoulBoundData.IncomingDamage)
-//                {
-//                    if (entry.Key < Game.Time)
-//                        SoulBoundData.IncomingDamage.Remove(entry.Key);
-//                }
-//                foreach (var entry in SoulBoundData.InstantDamage)
-//                {
-//                    if (entry.Key < Game.Time)
-//                        SoulBoundData.InstantDamage.Remove(entry.Key);
-//                }
+
 //            }
 //            catch (Exception ex)
 //            {
@@ -271,63 +236,62 @@
 
 //        protected override void Combo()
 //        {
-//            var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>();
-//            var useE = Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>();
+//            var useQ = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady();
+//            var useE = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
 
-//            if (!(useQ && Q.IsReady()) && !(useE && E.IsReady()))
+//            if (!useQ && !useE)
 //            {
 //                return;
 //            }
+//            if (!Q.IsEnabled(Mode.COMBO) && !E.IsEnabled(Mode.COMBO))
+//                return;
 
-//            var target = TargetSelector.GetTarget((useQ && Q.IsReady()) ? Q.Range : (E.Range*1.2f), TargetSelector.DamageType.Physical);
+//            var target = TargetSelector.GetTarget(Q.IsEnabledAndReady(Mode.COMBO) ? Q.Range : (E.Range * 1.2f), TargetSelector.DamageType.Physical);
 //            if (target != null)
 //            {
-//                if ((CalculateComboDamage(target, true, false, false, false, 2) + Utils.GetRendDamage(target)*1.5) > target.Health)
-//                {
-//                    ItemManager.UseComboItems(target);
-//                    SummonerManager.UseComboSummoners(target);
-//                }
+//                // Q usage
+//                if (Q.IsEnabledAndReady(Mode.COMBO) && !player.IsDashing())
+//                    Q.Cast(target);
 
-//                if (useQ && !Player.IsDashing())
+//                // E usage
+//                if (E.IsEnabled(Mode.COMBO) && (E.Instance.State == SpellState.Ready || E.Instance.State == SpellState.Surpressed) && target.HasRendBuff())
 //                {
-//                    Casting.BasicSkillShot(target, Q, HitchanceManager.Get("q"));
-//                }
-
-//                if (useE && E.IsReady() && Utils.HasRendBuff(target))
-//                {
-//                    if (Player.Distance(target, true) > Math.Pow(Orbwalking.GetRealAutoAttackRange(target), 2))
+//                    // Target is not in range but has E stacks on
+//                    if (player.Distance(target, true) > Math.Pow(Orbwalking.GetRealAutoAttackRange(target), 2))
 //                    {
-//                        var minions = ObjectManager.Get<Obj_AI_Minion>().Where(m => m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m))).ToList();
-//                        if (minions.Any(Utils.IsRendKillable))
+//                        // Get minions around
+//                        var minions = ObjectManager.Get<Obj_AI_Minion>().Where(m => m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)));
+
+//                        // Check if a minion can die with the current E stacks
+//                        if (minions.Any(m => m.IsRendKillable()))
 //                        {
 //                            E.Cast(true);
 //                        }
 //                        else
 //                        {
-//                            var minion =
-//                                Utils.GetDashObjects(minions)
-//                                    .Find(
-//                                        m =>
-//                                            m.Health > Player.GetAutoAttackDamage(m) &&
-//                                            m.Health < Player.GetAutoAttackDamage(m) + Utils.GetRendDamage(m));
+//                            // Check if a minion can die with one AA and E. Also, the AA minion has be be behind the player direction for a further leap
+//                            var minion = VectorHelper.GetDashObjects(minions).Find(m => m.Health > player.GetAutoAttackDamage(m) && m.Health < player.GetAutoAttackDamage(m) + Damages.GetRendDamage(m, 1));
 //                            if (minion != null)
 //                            {
-//                                Orbwalker.ForceTarget(minion);
+//                                Config.Menu.Orbwalker.ForceTarget(minion);
 //                            }
 //                        }
 //                    }
-//                    else if (E.IsInRange(target))
+//                    // Target is in range and has at least the set amount of E stacks on
+//                    else if (E.IsInRange(target) &&
+//                        (target.IsRendKillable() || target.GetRendBuffCount() >= Config.SliderLinks["comboNumE"].Value.Value))
 //                    {
-//                        if (Utils.IsRendKillable(target))
+//                        // Check if the target would die from E
+//                        if (target.IsRendKillable())
 //                        {
-//                            E.Cast();
+//                            E.Cast(true);
 //                        }
-//                        else if (Utils.GetRendBuff(target).Count >= Menu.Item(Menu.Name + ".combo.min-e-stacks").GetValue<Slider>().Value)
+//                        else
 //                        {
-//                            if (target.ServerPosition.Distance(Player.ServerPosition, true) > Math.Pow(E.Range*0.8, 2) ||
-//                                Utils.GetRendBuff(target).EndTime - Game.Time < 0.3)
+//                            // Check if target is about to leave our E range or the buff is about to run out
+//                            if (target.ServerPosition.Distance(player.ServerPosition, true) > Math.Pow(E.Range * 0.8, 2))
 //                            {
-//                                E.Cast();
+//                                E.Cast(true);
 //                            }
 //                        }
 //                    }
@@ -339,19 +303,16 @@
 //        {
 //            if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && Q.IsReady())
 //            {
-//                Casting.BasicSkillShot(Q, HitchanceManager.Get("q"));
+//                Casting.BasicSkillShot(Q, HitchanceManager.Get("harass", "q"));
 //            }
 //            if (Menu.Item(Menu.Name + ".harass.e-reset").GetValue<bool>() && E.IsReady())
 //            {
-//                var enemy = HeroManager.Enemies.Where(Utils.HasRendBuff).OrderBy(o => o.Distance(Player, true)).FirstOrDefault();
+//                var enemy = HeroManager.Enemies.FirstOrDefault(e => Utils.HasRendBuff(e) && E.IsInRange(e));
 //                if (enemy != null)
 //                {
-//                    if (enemy.Distance(Player, true) < Math.Pow(E.Range + 200, 2))
+//                    if (ObjectManager.Get<Obj_AI_Minion>().Any(e => E.IsInRange(e) && Utils.IsRendKillable(e)))
 //                    {
-//                        if (ObjectManager.Get<Obj_AI_Minion>().Any(e => E.IsInRange(e) && Utils.IsRendKillable(e)))
-//                        {
-//                            E.Cast();
-//                        }
+//                        E.Cast();
 //                    }
 //                }
 //            }
@@ -359,41 +320,55 @@
 
 //        protected override void LaneClear()
 //        {
-//            var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>();
-//            var useE = Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>();
+//            var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
+//            var useE = Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady();
 
-//            if (!(useQ && Q.IsReady()) && !(useE && E.IsReady()))
+//            if (!useQ && !useE)
 //            {
 //                return;
 //            }
 
-//            var minions = MinionManager.GetMinions(Q.Range, MinionTypes.All, MinionTeam.NotAlly);
+//            var minions = MinionManager.GetMinions(Q.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
 //            if (minions.Count == 0)
-//            {
 //                return;
-//            }
 
-//            if (useQ && Q.IsReady() && !Player.IsDashing())
+//            if (useQ)
 //            {
-//                var minQMinions = Menu.Item(Menu.Name + ".lane-clear.min-q-minions").GetValue<Slider>().Value;
-//                if (minions.Count >= minQMinions)
+//                int hitNumber = Config.SliderLinks["waveNumQ"].Value.Value;
+//                if (minions.Count >= hitNumber)
 //                {
 //                    var killable = minions.Where(m => m.Health < Q.GetDamage(m)).ToList();
 //                    if (killable.Any())
 //                    {
+//                        var input = new PredictionInput()
+//                        {
+//                            From = Q.From,
+//                            Collision = Q.Collision,
+//                            Delay = Q.Delay,
+//                            Radius = Q.Width,
+//                            Range = Q.Range,
+//                            RangeCheckFrom = Q.RangeCheckFrom,
+//                            Speed = Q.Speed,
+//                            Type = Q.Type,
+//                            CollisionObjects = new[] { CollisionableObjects.Heroes, CollisionableObjects.Minions, CollisionableObjects.YasuoWall }
+//                        };
 //                        var currentHitNumber = 0;
 //                        var castPosition = Vector3.Zero;
 //                        foreach (var target in killable)
 //                        {
-//                            var colliding = Q.GetPrediction(target).CollisionObjects;
-//                            if (colliding.Count >= minQMinions)
+//                            input.Unit = target;
+//                            var colliding = LeagueSharp.Common.Collision.GetCollision(new List<Vector3>() { Player.Position.Extend(Prediction.GetPrediction(input).UnitPosition, Q.Range) }, input)
+//                                .MakeUnique()
+//                                .OrderBy(e => e.Distance(Player, true))
+//                                .ToList();
+//                            if (colliding.Count >= hitNumber && !colliding.Contains(Player))
 //                            {
-//                                var i = 0;
+//                                int i = 0;
 //                                foreach (var collide in colliding)
 //                                {
 //                                    if (Q.GetDamage(collide) < collide.Health)
 //                                    {
-//                                        if (currentHitNumber < i && i >= minQMinions)
+//                                        if (currentHitNumber < i && i >= hitNumber)
 //                                        {
 //                                            currentHitNumber = i;
 //                                            castPosition = Q.GetPrediction(collide).CastPosition;
@@ -404,20 +379,21 @@
 //                                }
 //                            }
 //                        }
-//                        if (castPosition != Vector3.Zero)
+//                        if (!castPosition.Equals(Vector3.Zero))
 //                        {
 //                            Q.Cast(castPosition);
 //                        }
 //                    }
 //                }
 //            }
-//            if (useE && E.IsReady())
+//            if (useE)
 //            {
-//                var minEMinions = Menu.Item(Menu.Name + ".lane-clear.min-e-minions").GetValue<Slider>().Value;
+//                int hitNumber = Config.SliderLinks["waveNumE"].Value.Value;
 //                var minionsInRange = minions.Where(m => E.IsInRange(m)).ToList();
-//                if (minionsInRange.Count >= minEMinions)
+//                if (minionsInRange.Count() >= hitNumber)
 //                {
-//                    if (minionsInRange.Where(Utils.IsRendKillable).ToList().Count >= minEMinions)
+//                    int killableNum = minionsInRange.Count(Utils.IsRendKillable);
+//                    if (killableNum >= hitNumber)
 //                    {
 //                        E.Cast();
 //                    }
@@ -427,22 +403,11 @@
 
 //        protected override void Flee()
 //        {
-//            if (Menu.Item(Menu.Name + ".flee.autoattacks").GetValue<bool>())
-//            {
-//                var objs = Utils.GetDashObjects();
-//                Orbwalking.Orbwalk(objs.Count > 0 ? objs.First() : null, Game.CursorPos);
-//            }
 //        }
 
 //        protected override void Killsteal()
 //        {
-//            if (Menu.Item(Menu.Name + ".miscellaneous.e-killsteal").GetValue<bool>() && E.IsReady())
-//            {
-//                if (HeroManager.Enemies.Any(h => h.IsValidTarget(E.Range) && !Invulnerable.HasBuff(h) && Utils.IsRendKillable(h)))
-//                {
-//                    E.Cast();
-//                }
-//            }
+
 //        }
 
 //        protected override void OnDraw()
@@ -463,7 +428,7 @@
 //            }
 //            if (e.Active)
 //            {
-//                Render.Circle.DrawCircle(Player.Position, E.Range*1.1f, e.Color, circleThickness);
+//                Render.Circle.DrawCircle(Player.Position, E.Range, e.Color, circleThickness);
 //            }
 //            if (r.Active)
 //            {
@@ -485,10 +450,10 @@
 
 //        internal class Utils
 //        {
-//            private static readonly float[] RawRendDamage = {20, 30, 40, 50, 60};
-//            private static readonly float[] RawRendDamageMultiplier = {0.6f, 0.6f, 0.6f, 0.6f, 0.6f};
-//            private static readonly float[] RawRendDamagePerSpear = {10, 14, 19, 25, 32};
-//            private static readonly float[] RawRendDamagePerSpearMultiplier = {0.2f, 0.225f, 0.25f, 0.275f, 0.3f};
+//            private static readonly float[] RawRendDamage = { 20, 30, 40, 50, 60 };
+//            private static readonly float[] RawRendDamageMultiplier = { 0.6f, 0.6f, 0.6f, 0.6f, 0.6f };
+//            private static readonly float[] RawRendDamagePerSpear = { 10, 14, 19, 25, 32 };
+//            private static readonly float[] RawRendDamagePerSpearMultiplier = { 0.2f, 0.225f, 0.25f, 0.275f, 0.3f };
 
 //            public static bool IsRendKillable(Obj_AI_Base target)
 //            {
@@ -497,7 +462,7 @@
 
 //            public static float GetRendDamage(Obj_AI_Base target)
 //            {
-//                return ((float) ObjectManager.Player.CalcDamage(target, Damage.DamageType.Physical, GetRawRendDamage(target)) - 10)*0.98f;
+//                return ((float)ObjectManager.Player.CalcDamage(target, Damage.DamageType.Physical, GetRawRendDamage(target)) - 10) * 0.98f;
 //            }
 
 //            public static float GetRawRendDamage(Obj_AI_Base target)
@@ -506,9 +471,9 @@
 //                var eLevel = ObjectManager.Player.GetSpell(SpellSlot.E).Level;
 //                if (buff != null)
 //                {
-//                    return (RawRendDamage[eLevel - 1] + RawRendDamageMultiplier[eLevel - 1]*ObjectManager.Player.TotalAttackDamage()) +
-//                           (buff.Count - 1)*
-//                           (RawRendDamagePerSpear[eLevel - 1] + RawRendDamagePerSpearMultiplier[eLevel - 1]*ObjectManager.Player.TotalAttackDamage());
+//                    return (RawRendDamage[eLevel - 1] + RawRendDamageMultiplier[eLevel - 1] * ObjectManager.Player.TotalAttackDamage()) +
+//                           (buff.Count - 1) *
+//                           (RawRendDamagePerSpear[eLevel - 1] + RawRendDamagePerSpearMultiplier[eLevel - 1] * ObjectManager.Player.TotalAttackDamage());
 //                }
 //                return 0;
 //            }
@@ -529,7 +494,7 @@
 //                    ? predefinedObjectList.ToList()
 //                    : ObjectManager.Get<Obj_AI_Base>().Where(o => o.IsValidTarget(Orbwalking.GetRealAutoAttackRange(o))).ToList();
 //                var apexPoint = ObjectManager.Player.ServerPosition.To2D() +
-//                                (ObjectManager.Player.ServerPosition.To2D() - Game.CursorPos.To2D()).Normalized()*
+//                                (ObjectManager.Player.ServerPosition.To2D() - Game.CursorPos.To2D()).Normalized() *
 //                                Orbwalking.GetRealAutoAttackRange(ObjectManager.Player);
 //                return
 //                    objects.Where(o => IsLyingInCone(o.ServerPosition.To2D(), apexPoint, ObjectManager.Player.ServerPosition.To2D(), Math.PI))
@@ -539,21 +504,21 @@
 
 //            public static bool IsLyingInCone(Vector2 position, Vector2 apexPoint, Vector2 circleCenter, double aperture)
 //            {
-//                var halfAperture = aperture/2;
+//                var halfAperture = aperture / 2;
 //                var apexToXVector = apexPoint - position;
 //                var axisVector = apexPoint - circleCenter;
-//                var isInInfiniteCone = DotProd(apexToXVector, axisVector)/Magn(apexToXVector)/Magn(axisVector) > Math.Cos(halfAperture);
-//                return isInInfiniteCone && DotProd(apexToXVector, axisVector)/Magn(axisVector) < Magn(axisVector);
+//                var isInInfiniteCone = DotProd(apexToXVector, axisVector) / Magn(apexToXVector) / Magn(axisVector) > Math.Cos(halfAperture);
+//                return isInInfiniteCone && DotProd(apexToXVector, axisVector) / Magn(axisVector) < Magn(axisVector);
 //            }
 
 //            private static float DotProd(Vector2 a, Vector2 b)
 //            {
-//                return a.X*b.X + a.Y*b.Y;
+//                return a.X * b.X + a.Y * b.Y;
 //            }
 
 //            private static float Magn(Vector2 a)
 //            {
-//                return (float) (Math.Sqrt(a.X*a.X + a.Y*a.Y));
+//                return (float)(Math.Sqrt(a.X * a.X + a.Y * a.Y));
 //            }
 //        }
 //    }

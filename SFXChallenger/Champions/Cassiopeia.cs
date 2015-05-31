@@ -180,6 +180,11 @@ namespace SFXChallenger.Champions
             uAssistedMenu.AddItem(
                 new MenuItem(uAssistedMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
 
+            ultimateMenu.AddItem(
+                new MenuItem(ultimateMenu.Name + ".range", Global.Lang.Get("G_Range")).SetValue(
+                    new Slider(700, 400, 825))).ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { R.Range = args.GetNewValue<Slider>().Value; };
+
             var killstealMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Killsteal"), Menu.Name + ".killsteal"));
             killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
             killstealMenu.AddItem(
@@ -199,6 +204,8 @@ namespace SFXChallenger.Champions
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-dash", "W " + Global.Lang.Get("G_Dash")).SetValue(false));
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".w-fleeing", "W " + Global.Lang.Get("G_Fleeing")).SetValue(false));
+
+            R.Range = Menu.Item(Menu.Name + ".ultimate.range").GetValue<Slider>().Value;
         }
 
         protected override void SetupSpells()
@@ -212,8 +219,8 @@ namespace SFXChallenger.Champions
             E = new Spell(SpellSlot.E, 700f);
             E.SetTargetted(0.2f, 1700f);
 
-            R = new Spell(SpellSlot.R, 780f);
-            R.SetSkillshot(0.7f, (float) (80 * Math.PI / 180), float.MaxValue, false, SkillshotType.SkillshotCone);
+            R = new Spell(SpellSlot.R, 825f);
+            R.SetSkillshot(0.8f, (float) (80 * Math.PI / 180), float.MaxValue, false, SkillshotType.SkillshotCone);
         }
 
         private void OnCorePreUpdate(EventArgs args)
@@ -282,7 +289,7 @@ namespace SFXChallenger.Champions
                                     From = flashPos,
                                     RangeCheckFrom = flashPos,
                                     Delay = R.Delay + 0.3f,
-                                    Range = R.Range * 1.05f,
+                                    Range = 820f,
                                     Speed = R.Speed,
                                     Radius = R.Width,
                                     Type = SkillshotType.SkillshotCone,
@@ -903,7 +910,7 @@ namespace SFXChallenger.Champions
             if (rFlash.Active && Player.Position.IsOnScreen(R.Range + SummonerManager.Flash.Range))
             {
                 Render.Circle.DrawCircle(
-                    Player.Position, R.Range * 1.05f + SummonerManager.Flash.Range, rFlash.Color, circleThickness);
+                    Player.Position, 820f + SummonerManager.Flash.Range, rFlash.Color, circleThickness);
             }
         }
     }

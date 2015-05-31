@@ -28,6 +28,7 @@ using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Enumerations;
+using SFXChallenger.Helpers;
 using SFXChallenger.Interfaces;
 using SFXChallenger.Managers;
 using SFXChallenger.Menus;
@@ -181,6 +182,7 @@ namespace SFXChallenger.Abstracts
                 OnLoad();
                 SetupSpells();
                 SetupMenu();
+                SpellQueue.Init();
 
                 Drawing.OnDraw += DrawingOnDraw;
                 Core.OnPreUpdate += OnCorePreUpdate;
@@ -247,69 +249,6 @@ namespace SFXChallenger.Abstracts
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
-        }
-
-        protected float CalculateComboDamage(Obj_AI_Hero target, int autoAttacks = 0)
-        {
-            try
-            {
-                var damage = Spells.Where(spell => spell.CanCast(target))
-                    .Aggregate(0d, (current, spell) => current + spell.GetDamage(target));
-                if (autoAttacks > 0 && Orbwalker.InAutoAttackRange(target))
-                {
-                    damage += (Player.GetAutoAttackDamage(target) * autoAttacks);
-                }
-                return (float) damage + ItemManager.CalculateComboDamage(target) +
-                       SummonerManager.CalculateComboDamage(target);
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return 0f;
-        }
-
-        protected float CalculateComboDamage(Obj_AI_Hero target,
-            bool q = true,
-            bool w = true,
-            bool e = true,
-            bool r = true,
-            int autoAttacks = 0)
-        {
-            try
-            {
-                var damage = 0d;
-
-                if (q && Q.CanCast(target))
-                {
-                    damage += Q.GetDamage(target);
-                }
-                if (w && W.CanCast(target))
-                {
-                    damage += W.GetDamage(target);
-                }
-                if (e && E.CanCast(target))
-                {
-                    damage += E.GetDamage(target);
-                }
-                if (r && R.CanCast(target))
-                {
-                    damage += R.GetDamage(target);
-                }
-
-                if (autoAttacks > 0 && Orbwalker.InAutoAttackRange(target))
-                {
-                    damage += (Player.GetAutoAttackDamage(target) * autoAttacks);
-                }
-
-                return (float) damage + ItemManager.CalculateComboDamage(target) +
-                       SummonerManager.CalculateComboDamage(target);
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return 0f;
         }
     }
 }
