@@ -26,10 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using LeagueSharp;
 using SharpDX.Direct3D9;
@@ -51,40 +48,9 @@ namespace SFXLibrary.Extensions.NET
                    value is long || value is ulong || value is float || value is double || value is decimal;
         }
 
-        public static string ToDebugString<TKey, TValue>(this IDictionary<TKey, TValue> dictionary)
-        {
-            return dictionary == null
-                ? string.Empty
-                : string.Join("," + Environment.NewLine, dictionary.Select(kv => kv.Key + " = " + kv.Value));
-        }
-
         public static Task<List<T>> ToListAsync<T>(this IQueryable<T> list)
         {
             return Task.Run(() => list.ToList());
-        }
-
-        public static IEnumerable<T> Randomize<T>(this IEnumerable<T> target)
-        {
-            var r = new Random();
-            return target.OrderBy(x => (r.Next()));
-        }
-
-        public static T DeepClone<T>(this T input) where T : ISerializable
-        {
-            using (var stream = new MemoryStream())
-            {
-                var formatter = new BinaryFormatter();
-                try
-                {
-                    formatter.Serialize(stream, input);
-                    stream.Position = 0;
-                    return (T) formatter.Deserialize(stream);
-                }
-                catch
-                {
-                    return default(T);
-                }
-            }
         }
 
         /// <exception cref="Exception">A delegate callback throws an exception. </exception>

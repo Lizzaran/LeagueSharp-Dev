@@ -57,13 +57,13 @@ namespace SFXChallenger.Abstracts
         }
 
         protected abstract ItemFlags ItemFlags { get; }
+        public Menu SFXMenu { get; private set; }
 
-        protected List<Spell> Spells
+        public List<Spell> Spells
         {
             get { return _spells ?? (_spells = new List<Spell> { Q, W, E, R }); }
         }
 
-        public Menu SFXMenu { get; private set; }
         public Menu Menu { get; private set; }
         public Orbwalking.Orbwalker Orbwalker { get; private set; }
 
@@ -108,7 +108,7 @@ namespace SFXChallenger.Abstracts
             try
             {
                 Utility.DelayAction.Add(
-                    1000, delegate
+                    750, delegate
                     {
                         if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Flee)
                         {
@@ -157,10 +157,7 @@ namespace SFXChallenger.Abstracts
         {
             try
             {
-                if (!Player.IsDead)
-                {
-                    OnDraw();
-                }
+                DrawingManager.Draw();
             }
             catch (Exception ex)
             {
@@ -173,7 +170,6 @@ namespace SFXChallenger.Abstracts
         protected abstract void LaneClear();
         protected abstract void Flee();
         protected abstract void Killsteal();
-        protected abstract void OnDraw();
 
         protected void OnCoreBoot(EventArgs args)
         {
@@ -234,6 +230,8 @@ namespace SFXChallenger.Abstracts
                 SFXMenu.AddToMainMenu();
 
                 Menu = new Menu(Player.ChampionName, Player.ChampionName, true);
+                DrawingManager.AddToMenu(
+                    Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Drawing"), Menu.Name + ".drawing")), this);
                 try
                 {
                     AddToMenu();

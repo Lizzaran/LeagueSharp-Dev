@@ -23,11 +23,11 @@
 #region
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXLibrary.Logger;
+using SharpDX;
 
 #endregion
 
@@ -40,7 +40,8 @@ namespace SFXChallenger.Helpers
             try
             {
                 return
-                    ObjectManager.Get<Obj_AI_Turret>().Any(turret => turret.IsValidTarget(900f + extraRange, true, target.Position));
+                    ObjectManager.Get<Obj_AI_Turret>()
+                        .Any(turret => turret.IsValidTarget(900f + extraRange, true, target.Position));
             }
 
             catch (Exception ex)
@@ -76,38 +77,32 @@ namespace SFXChallenger.Helpers
             return 0;
         }
 
-        public static List<TSource> MakeUnique<TSource>(this List<TSource> list) where TSource : Obj_AI_Base
+        public static bool IsLyingInCone(Vector2 position, Vector2 apexPoint, Vector2 circleCenter, double aperture)
         {
-            List<TSource> uniqueList = new List<TSource>();
-
-            foreach (var entry in list)
+            try
             {
-                if (uniqueList.All(e => e.NetworkId != entry.NetworkId))
-                    uniqueList.Add(entry);
+                var halfAperture = aperture / 2;
+                var apexToXVector = apexPoint - position;
+                var axisVector = apexPoint - circleCenter;
+                var isInInfiniteCone = DotProd(apexToXVector, axisVector) / Magn(apexToXVector) / Magn(axisVector) >
+                                       Math.Cos(halfAperture);
+                return isInInfiniteCone && DotProd(apexToXVector, axisVector) / Magn(axisVector) < Magn(axisVector);
             }
-
-            list.Clear();
-            list.AddRange(uniqueList);
-
-            return list;
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return false;
         }
 
-        private static IEnumerable<int> ConstructSetFromBits(int i)
+        private static float DotProd(Vector2 a, Vector2 b)
         {
-            for (int n = 0; i != 0; i /= 2, n++)
-            {
-                if ((i & 1) != 0)
-                    yield return n;
-            }
+            return a.X * b.X + a.Y * b.Y;
         }
 
-        public static IEnumerable<List<T>> ProduceEnumeration<T>(List<T> list)
+        private static float Magn(Vector2 a)
         {
-            for (int i = 0; i < (1 << list.Count); i++)
-            {
-                yield return
-                    ConstructSetFromBits(i).Select(n => list[n]).ToList();
-            }
+            return (float) (Math.Sqrt(a.X * a.X + a.Y * a.Y));
         }
     }
 }

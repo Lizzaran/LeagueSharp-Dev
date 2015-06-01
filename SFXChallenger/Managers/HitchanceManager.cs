@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections.Generic;
+using LeagueSharp;
 using LeagueSharp.Common;
 using SFXLibrary.Logger;
 
@@ -31,7 +32,7 @@ using SFXLibrary.Logger;
 
 namespace SFXChallenger.Managers
 {
-    internal class HitchanceManager
+    internal static class HitchanceManager
     {
         private static readonly Dictionary<string, Menu> Menues = new Dictionary<string, Menu>();
 
@@ -83,6 +84,22 @@ namespace SFXChallenger.Managers
                     }
                 }
                 throw new KeyNotFoundException(string.Format("HitchanceManager: UniqueID \"{0}\" not found.", uniqueId));
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return HitChance.High;
+        }
+
+        public static HitChance GetHitChance(this Spell spell, string uniqueId)
+        {
+            try
+            {
+                if (spell != null && spell.Slot != SpellSlot.Unknown)
+                {
+                    return Get(uniqueId, spell.Slot.ToString());
+                }
             }
             catch (Exception ex)
             {

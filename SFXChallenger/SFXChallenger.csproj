@@ -86,6 +86,7 @@
     <Compile Include="Helpers\DynamicInitializer.cs" />
     <Compile Include="Helpers\SpellQueue.cs" />
     <Compile Include="Helpers\Utils.cs" />
+    <Compile Include="Managers\DrawingManager.cs" />
     <Compile Include="Managers\HitchanceManager.cs" />
     <Compile Include="Managers\KillstealManager.cs" />
     <Compile Include="Menus\InfoMenu.cs" />

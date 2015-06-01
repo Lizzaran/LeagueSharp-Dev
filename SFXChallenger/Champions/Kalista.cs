@@ -20,506 +20,587 @@
 
 #endregion License
 
-///*
-// Copyright 2014 - 2015 Nikita Bernthaler
-// Kalista.cs is part of SFXChallenger.
+#region
 
-// SFXChallenger is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using LeagueSharp;
+using LeagueSharp.Common;
+using SFXChallenger.Abstracts;
+using SFXChallenger.Enumerations;
+using SFXChallenger.Helpers;
+using SFXChallenger.Managers;
+using SFXLibrary.Extensions.NET;
+using SFXLibrary.Logger;
+using SharpDX;
+using Collision = LeagueSharp.Common.Collision;
+using Utils = SFXChallenger.Helpers.Utils;
 
-// SFXChallenger is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
+#endregion
 
-// You should have received a copy of the GNU General Public License
-// along with SFXChallenger. If not, see <http://www.gnu.org/licenses/>.
-//*/
+namespace SFXChallenger.Champions
+{
+    internal class Kalista : Champion
+    {
+        protected override ItemFlags ItemFlags
+        {
+            get { return ItemFlags.Offensive | ItemFlags.Defensive | ItemFlags.Flee; }
+        }
 
-//#endregion License
+        protected override void OnLoad()
+        {
+            Obj_AI_Base.OnBuffAdd += OnObjAiBaseBuffAdd;
+            Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
+            Spellbook.OnCastSpell += OnSpellbookCastSpell;
+            Orbwalking.OnNonKillableMinion += OnOrbwalkingNonKillableMinion;
+            Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
+            Core.OnPreUpdate += OnCorePreUpdate;
+        }
 
-//using SFXChallenger.Helpers;
+        protected override void OnUnload()
+        {
+            Obj_AI_Base.OnBuffAdd -= OnObjAiBaseBuffAdd;
+            Obj_AI_Base.OnProcessSpellCast -= OnObjAiBaseProcessSpellCast;
+            Spellbook.OnCastSpell -= OnSpellbookCastSpell;
+            Orbwalking.OnNonKillableMinion -= OnOrbwalkingNonKillableMinion;
+            Orbwalking.AfterAttack -= OnOrbwalkingAfterAttack;
+            Core.OnPreUpdate -= OnCorePreUpdate;
+        }
 
-//namespace SFXChallenger.Champions
-//{
-//    #region
+        protected override void AddToMenu()
+        {
+            var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_Combo"), Menu.Name + ".combo"));
+            HitchanceManager.AddToMenu(
+                comboMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), comboMenu.Name + ".hitchance")), "combo",
+                new Dictionary<string, int> { { "Q", 2 } });
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
+            comboMenu.AddItem(
+                new MenuItem(comboMenu.Name + ".e-min", Global.Lang.Get("Kalista_MinEStacks")).SetValue(
+                    new Slider(10, 1, 20)));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
 
-//    using System;
-//    using System.Collections.Generic;
-//    using System.Linq;
-//    using Abstracts;
-//    using Enumerations;
-//    using LeagueSharp;
-//    using LeagueSharp.Common;
-//    using Managers;
-//    using SFXLibrary.Logger;
-//    using SharpDX;
-//    using Wrappers;
-//    using Color = System.Drawing.Color;
-//    using Orbwalking = LeagueSharp.Common.Orbwalking;
-//    using TargetSelector = LeagueSharp.Common.TargetSelector;
+            var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_Harass"), Menu.Name + ".harass"));
+            HitchanceManager.AddToMenu(
+                harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
+                new Dictionary<string, int> { { "Q", 2 } });
+            ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
+            harassMenu.AddItem(
+                new MenuItem(harassMenu.Name + ".e-reset", Global.Lang.Get("Kalista_EReset")).SetValue(true));
 
-//    #endregion
+            var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_LaneClear"), Menu.Name + ".lane-clear"));
+            ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
+            laneclearMenu.AddItem(
+                new MenuItem(laneclearMenu.Name + ".q-min", "Q " + Global.Lang.Get("G_Min")).SetValue(
+                    new Slider(3, 1, 5)));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(false));
+            laneclearMenu.AddItem(
+                new MenuItem(laneclearMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(
+                    new Slider(2, 1, 5)));
 
-//    internal class Kalista : Champion
-//    {
-//        protected override ItemFlags ItemFlags
-//        {
-//            get { return ItemFlags.Offensive | ItemFlags.Defensive | ItemFlags.Flee; }
-//        }
+            var lasthitMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LastHit"), Menu.Name + ".lasthit"));
+            ManaManager.AddToMenu(lasthitMenu, "lasthit", ManaCheckType.Minimum, ManaValueType.Percent, 40);
+            lasthitMenu.AddItem(
+                new MenuItem(lasthitMenu.Name + ".e-big", Global.Lang.Get("Kalista_EBig")).SetValue(true));
+            lasthitMenu.AddItem(
+                new MenuItem(lasthitMenu.Name + ".e-unkillable", Global.Lang.Get("Kalista_EUnkillable")).SetValue(true));
 
-//        protected override void OnLoad()
-//        {
-//            Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
-//            Spellbook.OnCastSpell += OnSpellbookCastSpell;
-//            Orbwalking.OnNonKillableMinion += OnOrbwalkingNonKillableMinion;
-//            Core.OnPreUpdate += OnCorePreUpdate;
-//        }
+            var killstealMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Killsteal"), Menu.Name + ".killsteal"));
+            killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
-//        protected override void OnUnload()
-//        {
-//            Obj_AI_Base.OnProcessSpellCast -= OnObjAiBaseProcessSpellCast;
-//            Spellbook.OnCastSpell -= OnSpellbookCastSpell;
-//            Orbwalking.OnNonKillableMinion -= OnOrbwalkingNonKillableMinion;
-//            Core.OnPreUpdate -= OnCorePreUpdate;
-//        }
+            var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Flee"), Menu.Name + ".flee"));
+            fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".aa", Global.Lang.Get("G_UseAutoAttack")).SetValue(true));
+        }
 
-//        protected override void AddToMenu()
-//        {
-//            var drawingMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Drawing"), Menu.Name + ".drawing"));
-//            drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".circle-thickness", Global.Lang.Get("G_CircleThickness")).SetValue(new Slider(2, 0, 10)));
-//            drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".q", "Q").SetValue(new Circle(false, Color.White)));
-//            drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".w", "W").SetValue(new Circle(false, Color.White)));
-//            drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".e", "E").SetValue(new Circle(false, Color.White)));
-//            drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".r", "R").SetValue(new Circle(false, Color.White)));
+        protected override void SetupSpells()
+        {
+            Q = new Spell(SpellSlot.Q, 1200f);
+            Q.SetSkillshot(0.35f, 40f, 2350f, true, SkillshotType.SkillshotLine);
 
-//            var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_Combo"), Menu.Name + ".combo"));
-//            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
-//            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
-//            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".min-e-stacks", Global.Lang.Get("Kalista_MinEStacks")).SetValue(new Slider(10, 1, 20)));
-//            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
+            W = new Spell(SpellSlot.W, 5000f);
 
-//            var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_Harass"), Menu.Name + ".harass"));
-//            ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
-//            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
-//            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e-reset", Global.Lang.Get("Kalista_EReset")).SetValue(true));
+            E = new Spell(SpellSlot.E, 1000f);
 
-//            var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_LaneClear"), Menu.Name + ".lane-clear"));
-//            ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
-//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
-//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".min-q", "Q " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
-//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(false));
-//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".min-e", "E " + Global.Lang.Get("G_Min")).SetValue(new Slider(2, 1, 5)));
+            R = new Spell(SpellSlot.R, 1500f);
+        }
 
-//            var lasthitMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LastHit"), Menu.Name + ".lasthit"));
-//            ManaManager.AddToMenu(lasthitMenu, "lasthit", ManaCheckType.Minimum, ManaValueType.Percent, 40);
-//            lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".e-big", Global.Lang.Get("Kalista_EBig")).SetValue(true));
-//            lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".e-unkillable", Global.Lang.Get("Kalista_EUnkillable")).SetValue(true));
+        private void OnObjAiBaseBuffAdd(Obj_AI_Base sender, Obj_AI_BaseBuffAddEventArgs args)
+        {
+            try
+            {
+                if (sender.IsAlly && args.Buff.Name.Equals("kalistapaltarbuff", StringComparison.OrdinalIgnoreCase))
+                {
+                    var hero = sender as Obj_AI_Hero;
+                    if (hero != null)
+                    {
+                        SoulBound.Unit = hero;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
 
-//            var killstealMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Killsteal"), Menu.Name + ".killsteal"));
-//            killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
-//        }
+        private void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
+        {
+            try
+            {
+                if (sender.Owner.IsMe && args.Slot == Q.Slot && Player.IsDashing())
+                {
+                    args.Process = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
 
-//        protected override void SetupSpells()
-//        {
-//            Q = new Spell(SpellSlot.Q, 1200f);
-//            Q.SetSkillshot(0.35f, 40f, 2350f, true, SkillshotType.SkillshotLine);
+        private void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
+        {
+            try
+            {
+                if (sender.IsMe)
+                {
+                    if (args.SData.Name.Equals("KalistaExpungeWrapper", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Utility.DelayAction.Add(250, Orbwalking.ResetAutoAttackTimer);
+                    }
+                }
+                if (!sender.IsEnemy || SoulBound.Unit == null || R.Level == 0 ||
+                    !Menu.Item(Menu.Name + ".combo.r").GetValue<bool>())
+                {
+                    return;
+                }
+                if (args.Target != null && args.Target.NetworkId == SoulBound.Unit.NetworkId &&
+                    (!(sender is Obj_AI_Hero) || args.SData.IsAutoAttack()))
+                {
+                    SoulBound.IncomingDamage.Add(
+                        SoulBound.Unit.ServerPosition.Distance(sender.ServerPosition) / args.SData.MissileSpeed +
+                        Game.Time, (float) sender.GetAutoAttackDamage(SoulBound.Unit));
+                }
+                else
+                {
+                    var hero = sender as Obj_AI_Hero;
+                    if (hero != null)
+                    {
+                        var slot = hero.GetSpellSlot(args.SData.Name);
+                        if (slot != SpellSlot.Unknown)
+                        {
+                            if (args.Target != null && args.Target.NetworkId == SoulBound.Unit.NetworkId &&
+                                slot == hero.GetSpellSlot("SummonerDot"))
+                            {
+                                SoulBound.InstantDamage.Add(
+                                    Game.Time + 2,
+                                    (float) hero.GetSummonerSpellDamage(SoulBound.Unit, Damage.SummonerSpell.Ignite));
+                            }
+                            else if ((slot == SpellSlot.Q || slot == SpellSlot.W || slot == SpellSlot.E ||
+                                      slot == SpellSlot.R) &&
+                                     ((args.Target != null && args.Target.NetworkId == SoulBound.Unit.NetworkId) ||
+                                      args.End.Distance(SoulBound.Unit.ServerPosition) <
+                                      Math.Pow(args.SData.LineWidth, 2)))
+                            {
+                                SoulBound.InstantDamage.Add(
+                                    Game.Time + 2, (float) hero.GetSpellDamage(SoulBound.Unit, slot));
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
 
-//            W = new Spell(SpellSlot.W, 5000f);
+        private void OnOrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
+        {
+            if (unit.IsMe)
+            {
+                if (Orbwalker.ActiveMode == Wrappers.Orbwalking.OrbwalkingMode.Combo)
+                {
+                    var enemy = target as Obj_AI_Hero;
+                    if (enemy != null)
+                    {
+                        ItemManager.UseComboItems(enemy);
+                        SummonerManager.UseComboSummoners(enemy);
+                    }
+                }
+            }
+        }
 
-//            E = new Spell(SpellSlot.E, 1000f);
+        private void OnOrbwalkingNonKillableMinion(AttackableUnit unit)
+        {
+            try
+            {
+                if (Menu.Item(Menu.Name + ".lasthit.e-unkillable").GetValue<bool>() && E.IsReady())
+                {
+                    var target = unit as Obj_AI_Base;
+                    if (target != null && Rend.IsKillable(target))
+                    {
+                        E.Cast();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
 
-//            R = new Spell(SpellSlot.R, 1500f);
-//        }
+        private void OnCorePreUpdate(EventArgs args)
+        {
+            try
+            {
+                Orbwalker.ForceTarget(null);
 
-//        private void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
-//        {
-//            try
-//            {
-//                if (sender.Owner.IsMe && args.Slot == Q.Slot && Player.IsDashing())
-//                {
-//                    args.Process = false;
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                Global.Logger.AddItem(new LogItem(ex));
-//            }
-//        }
+                if (Menu.Item(Menu.Name + ".lasthit.e-big").GetValue<bool>() && E.IsReady())
+                {
+                    if (
+                        ObjectManager.Get<Obj_AI_Minion>()
+                            .Any(
+                                m =>
+                                    m.IsValidTarget(E.Range) &&
+                                    (m.BaseSkinName.Contains("MinionSiege") || m.BaseSkinName.Contains("Dragon") ||
+                                     m.BaseSkinName.Contains("Baron")) && Rend.IsKillable(m)))
+                    {
+                        E.Cast();
+                    }
+                }
 
-//        private void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
-//        {
-//            try
-//            {
-//                if (sender.IsMe)
-//                {
-//                    if (args.SData.Name.Equals("KalistaExpungeWrapper", StringComparison.OrdinalIgnoreCase))
-//                    {
-//                        Utility.DelayAction.Add(250, Orbwalking.ResetAutoAttackTimer);
-//                    }
-//                }
+                if (R.Level > 0)
+                {
+                    if (Menu.Item(Menu.Name + ".combo.r").GetValue<bool>() && R.IsReady())
+                    {
+                        if (SoulBound.Unit.HealthPercent <= 10 && SoulBound.Unit.CountEnemiesInRange(500) > 0 ||
+                            SoulBound.TotalDamage * 1.1f > SoulBound.Unit.Health)
+                        {
+                            R.Cast();
+                        }
+                    }
 
-//                if (!sender.IsEnemy || SoulBoundData.Unit == null || !Menu.Item(Menu.Name + ".miscellaneous.r-save-ally").GetValue<bool>())
-//                    return;
+                    foreach (var entry in SoulBound.IncomingDamage.Where(entry => entry.Key < Game.Time))
+                    {
+                        SoulBound.IncomingDamage.Remove(entry.Key);
+                    }
 
-//                if ((!(sender is Obj_AI_Hero) || args.SData.IsAutoAttack()) && args.Target != null &&
-//                    args.Target.NetworkId == SoulBoundData.Unit.NetworkId)
-//                {
-//                    SoulBoundData.IncomingDamage.Add(
-//                        SoulBoundData.Unit.ServerPosition.Distance(sender.ServerPosition) / args.SData.MissileSpeed + Game.Time,
-//                        (float)sender.GetAutoAttackDamage(SoulBoundData.Unit));
-//                }
-//                else
-//                {
-//                    var hero = sender as Obj_AI_Hero;
-//                    if (hero != null)
-//                    {
-//                        var attacker = hero;
-//                        var slot = attacker.GetSpellSlot(args.SData.Name);
+                    foreach (var entry in SoulBound.InstantDamage.Where(entry => entry.Key < Game.Time))
+                    {
+                        SoulBound.InstantDamage.Remove(entry.Key);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
 
-//                        if (slot != SpellSlot.Unknown)
-//                        {
-//                            if (slot == attacker.GetSpellSlot("SummonerDot") && args.Target != null &&
-//                                args.Target.NetworkId == SoulBoundData.Unit.NetworkId)
-//                            {
-//                                SoulBoundData.InstantDamage.Add(Game.Time + 2,
-//                                    (float)attacker.GetSummonerSpellDamage(SoulBoundData.Unit, Damage.SummonerSpell.Ignite));
-//                            }
-//                            else if ((slot == SpellSlot.Q || slot == SpellSlot.W || slot == SpellSlot.E || slot == SpellSlot.R) &&
-//                                     ((args.Target != null && args.Target.NetworkId == SoulBoundData.Unit.NetworkId) ||
-//                                      args.End.Distance(SoulBoundData.Unit.ServerPosition) < Math.Pow(args.SData.LineWidth, 2)))
-//                            {
-//                                SoulBoundData.InstantDamage.Add(Game.Time + 2, (float)attacker.GetSpellDamage(SoulBoundData.Unit, slot));
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                Global.Logger.AddItem(new LogItem(ex));
-//            }
-//        }
+        protected override void Combo()
+        {
+            var useQ = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady();
+            var useE = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
 
-//        private void OnOrbwalkingNonKillableMinion(AttackableUnit unit)
-//        {
-//            try
-//            {
-//                if (Menu.Item(Menu.Name + ".lasthit.e-unkillable").GetValue<bool>() && E.IsReady())
-//                {
-//                    var target = unit as Obj_AI_Base;
-//                    if (target != null && Utils.IsRendKillable(target))
-//                    {
-//                        E.Cast();
-//                    }
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                Global.Logger.AddItem(new LogItem(ex));
-//            }
-//        }
 
-//        private void OnCorePreUpdate(EventArgs args)
-//        {
-//            try
-//            {
+            if (useQ)
+            {
+                Casting.BasicSkillShot(Q, Q.GetHitChance("combo"));
+            }
 
-//            }
-//            catch (Exception ex)
-//            {
-//                Global.Logger.AddItem(new LogItem(ex));
-//            }
-//        }
+            if (useE)
+            {
+                var target = TargetSelector.GetTarget(E.Range * 1.2f, TargetSelector.DamageType.Physical);
+                if (target != null && Rend.HasBuff(target))
+                {
+                    if (target.Distance(Player) > Orbwalking.GetRealAutoAttackRange(target))
+                    {
+                        var minions =
+                            ObjectManager.Get<Obj_AI_Minion>()
+                                .Where(m => m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)))
+                                .ToList();
+                        if (minions.Any(Rend.IsKillable))
+                        {
+                            E.Cast();
+                        }
+                        else
+                        {
+                            var minion =
+                                GetDashObjects(minions)
+                                    .Find(
+                                        m =>
+                                            m.Health > Player.GetAutoAttackDamage(m) &&
+                                            m.Health <
+                                            Player.GetAutoAttackDamage(m) +
+                                            Rend.GetDamage(m, (Rend.HasBuff(m) ? Rend.GetBuff(m).Count + 1 : 1)));
+                            if (minion != null)
+                            {
+                                Orbwalker.ForceTarget(minion);
+                            }
+                        }
+                    }
+                    else if (E.IsInRange(target))
+                    {
+                        if (Rend.IsKillable(target))
+                        {
+                            E.Cast();
+                        }
+                        else
+                        {
+                            var buff = Rend.GetBuff(target);
+                            if (buff != null &&
+                                buff.Count >= Menu.Item(Menu.Name + ".combo.e-min").GetValue<Slider>().Value)
+                            {
+                                if (target.Distance(Player) > E.Range * 0.8 || buff.EndTime - Game.Time < 0.3)
+                                {
+                                    E.Cast();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
-//        protected override void Combo()
-//        {
-//            var useQ = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady();
-//            var useE = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
+        protected override void Harass()
+        {
+            if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && Q.IsReady())
+            {
+                Casting.BasicSkillShot(Q, Q.GetHitChance("harass"));
+            }
+            if (Menu.Item(Menu.Name + ".harass.e-reset").GetValue<bool>() && E.IsReady() &&
+                HeroManager.Enemies.Any(e => Rend.HasBuff(e) && E.IsInRange(e)))
+            {
+                if (ObjectManager.Get<Obj_AI_Minion>().Any(e => E.IsInRange(e) && Rend.IsKillable(e)))
+                {
+                    E.Cast();
+                }
+            }
+        }
 
-//            if (!useQ && !useE)
-//            {
-//                return;
-//            }
-//            if (!Q.IsEnabled(Mode.COMBO) && !E.IsEnabled(Mode.COMBO))
-//                return;
+        protected override void LaneClear()
+        {
+            var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
+            var useE = Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady();
+            var minQ = Menu.Item(Menu.Name + ".lane-clear.q-min").GetValue<Slider>().Value;
+            var minE = Menu.Item(Menu.Name + ".lane-clear.e-min").GetValue<Slider>().Value;
 
-//            var target = TargetSelector.GetTarget(Q.IsEnabledAndReady(Mode.COMBO) ? Q.Range : (E.Range * 1.2f), TargetSelector.DamageType.Physical);
-//            if (target != null)
-//            {
-//                // Q usage
-//                if (Q.IsEnabledAndReady(Mode.COMBO) && !player.IsDashing())
-//                    Q.Cast(target);
+            if (!useQ && !useE)
+            {
+                return;
+            }
 
-//                // E usage
-//                if (E.IsEnabled(Mode.COMBO) && (E.Instance.State == SpellState.Ready || E.Instance.State == SpellState.Surpressed) && target.HasRendBuff())
-//                {
-//                    // Target is not in range but has E stacks on
-//                    if (player.Distance(target, true) > Math.Pow(Orbwalking.GetRealAutoAttackRange(target), 2))
-//                    {
-//                        // Get minions around
-//                        var minions = ObjectManager.Get<Obj_AI_Minion>().Where(m => m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)));
+            var minions = MinionManager.GetMinions(
+                Q.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+            if (minions.Count == 0)
+            {
+                return;
+            }
 
-//                        // Check if a minion can die with the current E stacks
-//                        if (minions.Any(m => m.IsRendKillable()))
-//                        {
-//                            E.Cast(true);
-//                        }
-//                        else
-//                        {
-//                            // Check if a minion can die with one AA and E. Also, the AA minion has be be behind the player direction for a further leap
-//                            var minion = VectorHelper.GetDashObjects(minions).Find(m => m.Health > player.GetAutoAttackDamage(m) && m.Health < player.GetAutoAttackDamage(m) + Damages.GetRendDamage(m, 1));
-//                            if (minion != null)
-//                            {
-//                                Config.Menu.Orbwalker.ForceTarget(minion);
-//                            }
-//                        }
-//                    }
-//                    // Target is in range and has at least the set amount of E stacks on
-//                    else if (E.IsInRange(target) &&
-//                        (target.IsRendKillable() || target.GetRendBuffCount() >= Config.SliderLinks["comboNumE"].Value.Value))
-//                    {
-//                        // Check if the target would die from E
-//                        if (target.IsRendKillable())
-//                        {
-//                            E.Cast(true);
-//                        }
-//                        else
-//                        {
-//                            // Check if target is about to leave our E range or the buff is about to run out
-//                            if (target.ServerPosition.Distance(player.ServerPosition, true) > Math.Pow(E.Range * 0.8, 2))
-//                            {
-//                                E.Cast(true);
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
+            if (useQ && !Player.IsDashing())
+            {
+                if (minions.Count >= minQ)
+                {
+                    var killable = minions.Where(m => m.Health < Q.GetDamage(m)).ToList();
+                    if (killable.Any())
+                    {
+                        var input = new PredictionInput
+                        {
+                            From = Q.From,
+                            Collision = Q.Collision,
+                            Delay = Q.Delay,
+                            Radius = Q.Width,
+                            Range = Q.Range,
+                            RangeCheckFrom = Q.RangeCheckFrom,
+                            Speed = Q.Speed,
+                            Type = Q.Type,
+                            CollisionObjects =
+                                new[]
+                                {
+                                    CollisionableObjects.Heroes, CollisionableObjects.Minions,
+                                    CollisionableObjects.YasuoWall
+                                }
+                        };
+                        var currentHitNumber = 0;
+                        var castPosition = Vector3.Zero;
+                        foreach (var target in killable)
+                        {
+                            input.Unit = target;
+                            var colliding =
+                                Collision.GetCollision(
+                                    new List<Vector3>
+                                    {
+                                        Player.ServerPosition.Extend(
+                                            Prediction.GetPrediction(input).UnitPosition, Q.Range)
+                                    }, input)
+                                    .DistinctBy(e => e.NetworkId)
+                                    .OrderBy(e => e.Distance(Player))
+                                    .ToList();
 
-//        protected override void Harass()
-//        {
-//            if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && Q.IsReady())
-//            {
-//                Casting.BasicSkillShot(Q, HitchanceManager.Get("harass", "q"));
-//            }
-//            if (Menu.Item(Menu.Name + ".harass.e-reset").GetValue<bool>() && E.IsReady())
-//            {
-//                var enemy = HeroManager.Enemies.FirstOrDefault(e => Utils.HasRendBuff(e) && E.IsInRange(e));
-//                if (enemy != null)
-//                {
-//                    if (ObjectManager.Get<Obj_AI_Minion>().Any(e => E.IsInRange(e) && Utils.IsRendKillable(e)))
-//                    {
-//                        E.Cast();
-//                    }
-//                }
-//            }
-//        }
+                            if (colliding.Count >= minQ && !colliding.Contains(Player))
+                            {
+                                var i = 0;
+                                foreach (var collide in colliding)
+                                {
+                                    if (Q.GetDamage(collide) < collide.Health)
+                                    {
+                                        if (currentHitNumber < i && i >= minQ)
+                                        {
+                                            currentHitNumber = i;
+                                            castPosition = Q.GetPrediction(collide).CastPosition;
+                                        }
+                                        break;
+                                    }
+                                    i++;
+                                }
+                            }
+                        }
+                        if (castPosition != Vector3.Zero)
+                        {
+                            if (Q.Cast(castPosition))
+                            {
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+            if (useE)
+            {
+                var minionsInRange = minions.Where(m => E.IsInRange(m)).ToList();
+                if (minionsInRange.Count >= minE)
+                {
+                    var killCount = minionsInRange.Count(Rend.IsKillable);
+                    if (killCount >= minE)
+                    {
+                        E.Cast();
+                    }
+                }
+            }
+        }
 
-//        protected override void LaneClear()
-//        {
-//            var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
-//            var useE = Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady();
+        protected override void Flee()
+        {
+            if (Menu.Item(Menu.Name + ".flee.aa").GetValue<bool>())
+            {
+                var dashObjects = GetDashObjects();
+                if (dashObjects.Count > 0)
+                {
+                    Orbwalking.Orbwalk(dashObjects.First(), Game.CursorPos);
+                }
+            }
+        }
 
-//            if (!useQ && !useE)
-//            {
-//                return;
-//            }
+        protected override void Killsteal()
+        {
+            if (Menu.Item(Menu.Name + ".killsteal.e").GetValue<bool>() && E.IsReady() &&
+                HeroManager.Enemies.Any(h => h.IsValidTarget(E.Range) && Rend.IsKillable(h)))
+            {
+                E.Cast();
+            }
+        }
 
-//            var minions = MinionManager.GetMinions(Q.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
-//            if (minions.Count == 0)
-//                return;
+        public static List<Obj_AI_Base> GetDashObjects(IEnumerable<Obj_AI_Base> predefinedObjectList = null)
+        {
+            try
+            {
+                var objects = predefinedObjectList != null
+                    ? predefinedObjectList.ToList()
+                    : ObjectManager.Get<Obj_AI_Base>()
+                        .Where(o => o.IsValidTarget(Orbwalking.GetRealAutoAttackRange(o)))
+                        .ToList();
+                var apexPoint = ObjectManager.Player.ServerPosition.To2D() +
+                                (ObjectManager.Player.ServerPosition.To2D() - Game.CursorPos.To2D()).Normalized() *
+                                Orbwalking.GetRealAutoAttackRange(ObjectManager.Player);
+                return
+                    objects.Where(
+                        o =>
+                            Utils.IsLyingInCone(
+                                o.ServerPosition.To2D(), apexPoint, ObjectManager.Player.ServerPosition.To2D(), Math.PI))
+                        .OrderBy(o => o.Distance(apexPoint, true))
+                        .ToList();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return new List<Obj_AI_Base>();
+        }
 
-//            if (useQ)
-//            {
-//                int hitNumber = Config.SliderLinks["waveNumQ"].Value.Value;
-//                if (minions.Count >= hitNumber)
-//                {
-//                    var killable = minions.Where(m => m.Health < Q.GetDamage(m)).ToList();
-//                    if (killable.Any())
-//                    {
-//                        var input = new PredictionInput()
-//                        {
-//                            From = Q.From,
-//                            Collision = Q.Collision,
-//                            Delay = Q.Delay,
-//                            Radius = Q.Width,
-//                            Range = Q.Range,
-//                            RangeCheckFrom = Q.RangeCheckFrom,
-//                            Speed = Q.Speed,
-//                            Type = Q.Type,
-//                            CollisionObjects = new[] { CollisionableObjects.Heroes, CollisionableObjects.Minions, CollisionableObjects.YasuoWall }
-//                        };
-//                        var currentHitNumber = 0;
-//                        var castPosition = Vector3.Zero;
-//                        foreach (var target in killable)
-//                        {
-//                            input.Unit = target;
-//                            var colliding = LeagueSharp.Common.Collision.GetCollision(new List<Vector3>() { Player.Position.Extend(Prediction.GetPrediction(input).UnitPosition, Q.Range) }, input)
-//                                .MakeUnique()
-//                                .OrderBy(e => e.Distance(Player, true))
-//                                .ToList();
-//                            if (colliding.Count >= hitNumber && !colliding.Contains(Player))
-//                            {
-//                                int i = 0;
-//                                foreach (var collide in colliding)
-//                                {
-//                                    if (Q.GetDamage(collide) < collide.Health)
-//                                    {
-//                                        if (currentHitNumber < i && i >= hitNumber)
-//                                        {
-//                                            currentHitNumber = i;
-//                                            castPosition = Q.GetPrediction(collide).CastPosition;
-//                                        }
-//                                        break;
-//                                    }
-//                                    i++;
-//                                }
-//                            }
-//                        }
-//                        if (!castPosition.Equals(Vector3.Zero))
-//                        {
-//                            Q.Cast(castPosition);
-//                        }
-//                    }
-//                }
-//            }
-//            if (useE)
-//            {
-//                int hitNumber = Config.SliderLinks["waveNumE"].Value.Value;
-//                var minionsInRange = minions.Where(m => E.IsInRange(m)).ToList();
-//                if (minionsInRange.Count() >= hitNumber)
-//                {
-//                    int killableNum = minionsInRange.Count(Utils.IsRendKillable);
-//                    if (killableNum >= hitNumber)
-//                    {
-//                        E.Cast();
-//                    }
-//                }
-//            }
-//        }
+        internal class SoulBound
+        {
+            public static Dictionary<float, float> IncomingDamage = new Dictionary<float, float>();
+            public static Dictionary<float, float> InstantDamage = new Dictionary<float, float>();
+            public static Obj_AI_Hero Unit { get; set; }
 
-//        protected override void Flee()
-//        {
-//        }
+            public static float TotalDamage
+            {
+                get { return IncomingDamage.Sum(e => e.Value) + InstantDamage.Sum(e => e.Value); }
+            }
+        }
 
-//        protected override void Killsteal()
-//        {
+        internal class Rend
+        {
+            private static readonly float[] Damage = { 20, 30, 40, 50, 60 };
+            private static readonly float[] DamageMultiplier = { 0.6f, 0.6f, 0.6f, 0.6f, 0.6f };
+            private static readonly float[] DamagePerSpear = { 10, 14, 19, 25, 32 };
+            private static readonly float[] DamagePerSpearMultiplier = { 0.2f, 0.225f, 0.25f, 0.275f, 0.3f };
 
-//        }
+            public static bool IsKillable(Obj_AI_Base target)
+            {
+                return GetDamage(target) > target.Health;
+            }
 
-//        protected override void OnDraw()
-//        {
-//            var q = Menu.Item(Menu.Name + ".drawing.q").GetValue<Circle>();
-//            var w = Menu.Item(Menu.Name + ".drawing.w").GetValue<Circle>();
-//            var e = Menu.Item(Menu.Name + ".drawing.e").GetValue<Circle>();
-//            var r = Menu.Item(Menu.Name + ".drawing.r").GetValue<Circle>();
-//            var circleThickness = Menu.Item(Menu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value;
+            public static float GetDamage(Obj_AI_Hero target)
+            {
+                return GetDamage(target, -1);
+            }
 
-//            if (q.Active)
-//            {
-//                Render.Circle.DrawCircle(Player.Position, Q.Range, q.Color, circleThickness);
-//            }
-//            if (w.Active)
-//            {
-//                Render.Circle.DrawCircle(Player.Position, W.Range, w.Color, circleThickness);
-//            }
-//            if (e.Active)
-//            {
-//                Render.Circle.DrawCircle(Player.Position, E.Range, e.Color, circleThickness);
-//            }
-//            if (r.Active)
-//            {
-//                Render.Circle.DrawCircle(Player.Position, R.Range, r.Color, circleThickness);
-//            }
-//        }
+            public static float GetDamage(Obj_AI_Base target, int customStacks = -1)
+            {
+                return
+                    ((float)
+                        ObjectManager.Player.CalcDamage(
+                            target, LeagueSharp.Common.Damage.DamageType.Physical, GetRawDamage(target, customStacks)) -
+                     20) * 0.98f;
+            }
 
-//        internal class SoulBoundData
-//        {
-//            public static Dictionary<float, float> IncomingDamage = new Dictionary<float, float>();
-//            public static Dictionary<float, float> InstantDamage = new Dictionary<float, float>();
-//            public static Obj_AI_Hero Unit { get; set; }
+            public static float GetRawDamage(Obj_AI_Base target, int customStacks = -1)
+            {
+                try
+                {
+                    var buff = GetBuff(target);
+                    var eLevel = ObjectManager.Player.GetSpell(SpellSlot.E).Level;
+                    if (buff != null || customStacks > -1)
+                    {
+                        return (Damage[eLevel - 1] +
+                                DamageMultiplier[eLevel - 1] * ObjectManager.Player.TotalAttackDamage()) +
+                               ((customStacks < 0 && buff != null ? buff.Count : customStacks) - 1) *
+                               (DamagePerSpear[eLevel - 1] +
+                                DamagePerSpearMultiplier[eLevel - 1] * ObjectManager.Player.TotalAttackDamage());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Global.Logger.AddItem(new LogItem(ex));
+                }
+                return 0f;
+            }
 
-//            public static float Damage
-//            {
-//                get { return IncomingDamage.Sum(e => e.Value) + InstantDamage.Sum(e => e.Value); }
-//            }
-//        }
+            public static bool HasBuff(Obj_AI_Base target)
+            {
+                return GetBuff(target) != null;
+            }
 
-//        internal class Utils
-//        {
-//            private static readonly float[] RawRendDamage = { 20, 30, 40, 50, 60 };
-//            private static readonly float[] RawRendDamageMultiplier = { 0.6f, 0.6f, 0.6f, 0.6f, 0.6f };
-//            private static readonly float[] RawRendDamagePerSpear = { 10, 14, 19, 25, 32 };
-//            private static readonly float[] RawRendDamagePerSpearMultiplier = { 0.2f, 0.225f, 0.25f, 0.275f, 0.3f };
-
-//            public static bool IsRendKillable(Obj_AI_Base target)
-//            {
-//                return GetRendDamage(target) > target.Health;
-//            }
-
-//            public static float GetRendDamage(Obj_AI_Base target)
-//            {
-//                return ((float)ObjectManager.Player.CalcDamage(target, Damage.DamageType.Physical, GetRawRendDamage(target)) - 10) * 0.98f;
-//            }
-
-//            public static float GetRawRendDamage(Obj_AI_Base target)
-//            {
-//                var buff = GetRendBuff(target);
-//                var eLevel = ObjectManager.Player.GetSpell(SpellSlot.E).Level;
-//                if (buff != null)
-//                {
-//                    return (RawRendDamage[eLevel - 1] + RawRendDamageMultiplier[eLevel - 1] * ObjectManager.Player.TotalAttackDamage()) +
-//                           (buff.Count - 1) *
-//                           (RawRendDamagePerSpear[eLevel - 1] + RawRendDamagePerSpearMultiplier[eLevel - 1] * ObjectManager.Player.TotalAttackDamage());
-//                }
-//                return 0;
-//            }
-
-//            public static bool HasRendBuff(Obj_AI_Base target)
-//            {
-//                return GetRendBuff(target) != null;
-//            }
-
-//            public static BuffInstance GetRendBuff(Obj_AI_Base target)
-//            {
-//                return target.Buffs.Find(b => b.Caster.IsMe && b.IsValidBuff() && b.DisplayName == "KalistaExpungeMarker");
-//            }
-
-//            public static List<Obj_AI_Base> GetDashObjects(IEnumerable<Obj_AI_Base> predefinedObjectList = null)
-//            {
-//                var objects = predefinedObjectList != null
-//                    ? predefinedObjectList.ToList()
-//                    : ObjectManager.Get<Obj_AI_Base>().Where(o => o.IsValidTarget(Orbwalking.GetRealAutoAttackRange(o))).ToList();
-//                var apexPoint = ObjectManager.Player.ServerPosition.To2D() +
-//                                (ObjectManager.Player.ServerPosition.To2D() - Game.CursorPos.To2D()).Normalized() *
-//                                Orbwalking.GetRealAutoAttackRange(ObjectManager.Player);
-//                return
-//                    objects.Where(o => IsLyingInCone(o.ServerPosition.To2D(), apexPoint, ObjectManager.Player.ServerPosition.To2D(), Math.PI))
-//                        .OrderBy(o => o.Distance(apexPoint, true))
-//                        .ToList();
-//            }
-
-//            public static bool IsLyingInCone(Vector2 position, Vector2 apexPoint, Vector2 circleCenter, double aperture)
-//            {
-//                var halfAperture = aperture / 2;
-//                var apexToXVector = apexPoint - position;
-//                var axisVector = apexPoint - circleCenter;
-//                var isInInfiniteCone = DotProd(apexToXVector, axisVector) / Magn(apexToXVector) / Magn(axisVector) > Math.Cos(halfAperture);
-//                return isInInfiniteCone && DotProd(apexToXVector, axisVector) / Magn(axisVector) < Magn(axisVector);
-//            }
-
-//            private static float DotProd(Vector2 a, Vector2 b)
-//            {
-//                return a.X * b.X + a.Y * b.Y;
-//            }
-
-//            private static float Magn(Vector2 a)
-//            {
-//                return (float)(Math.Sqrt(a.X * a.X + a.Y * a.Y));
-//            }
-//        }
-//    }
-//}
+            public static BuffInstance GetBuff(Obj_AI_Base target)
+            {
+                return
+                    target.Buffs.Find(b => b.Caster.IsMe && b.IsValidBuff() && b.DisplayName == "KalistaExpungeMarker");
+            }
+        }
+    }
+}

@@ -22,6 +22,7 @@
 
 #region
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using SharpDX;
@@ -243,7 +244,7 @@ namespace SFXChallenger.Helpers
             }
             else
             {
-                radius = (float) System.Math.Sqrt(bestRadius2);
+                radius = (float) Math.Sqrt(bestRadius2);
             }
         }
 
@@ -280,8 +281,8 @@ namespace SFXChallenger.Helpers
             foreach (var pt in
                 points.Where(
                     pt =>
-                        (pt.Y < bestPt[0].Y) ||
-                        ((System.Math.Abs(pt.Y - bestPt[0].Y) < float.Epsilon) && (pt.X < bestPt[0].X))))
+                        (pt.Y < bestPt[0].Y) || ((Math.Abs(pt.Y - bestPt[0].Y) < float.Epsilon) && (pt.X < bestPt[0].X)))
+                )
             {
                 bestPt[0] = pt;
             }
@@ -366,9 +367,9 @@ namespace SFXChallenger.Helpers
             float t;
 
             var dx = x2 - x1;
-            var ax = System.Math.Abs(dx);
+            var ax = Math.Abs(dx);
             var dy = y2 - y1;
-            var ay = System.Math.Abs(dy);
+            var ay = Math.Abs(dy);
             if ((ax + ay).Equals(0))
             {
                 // if (the two points are the same, return 360.

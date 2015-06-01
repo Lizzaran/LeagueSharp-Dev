@@ -31,12 +31,10 @@ using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
-using SFXLibrary.Extensions.SharpDX;
+using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
 using SharpDX;
-using Color = System.Drawing.Color;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
-using Utils = SFXChallenger.Helpers.Utils;
 
 #endregion
 
@@ -77,14 +75,8 @@ namespace SFXChallenger.Champions
 
         protected override void AddToMenu()
         {
-            var drawingMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Drawing"), Menu.Name + ".drawing"));
-            drawingMenu.AddItem(
-                new MenuItem(drawingMenu.Name + ".circle-thickness", Global.Lang.Get("G_CircleThickness")).SetValue(
-                    new Slider(2, 0, 10)));
-            drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".q", "Q").SetValue(new Circle(false, Color.White)));
-            drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".w", "W").SetValue(new Circle(false, Color.White)));
-            drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".e", "E").SetValue(new Circle(false, Color.White)));
-            drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".r", "R").SetValue(new Circle(false, Color.White)));
+            DrawingManager.Add("E " + Global.Lang.Get("G_Max"), MaxERange);
+            DrawingManager.Add("R " + Global.Lang.Get("G_Max"), R.Range + (R.Width / 2f));
 
             var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), Menu.Name + ".combo"));
             HitchanceManager.AddToMenu(
@@ -239,7 +231,7 @@ namespace SFXChallenger.Champions
                                  W.GetPrediction(t).Hitchance == HitChance.Immobile));
                     if (target != null)
                     {
-                        Casting.BasicSkillShot(target, W, HitchanceManager.Get("combo", "w"));
+                        Casting.BasicSkillShot(target, W, W.GetHitChance("combo"));
                     }
                 }
 
@@ -252,7 +244,7 @@ namespace SFXChallenger.Champions
                                 t.Buffs.Any(b => b.Type == BuffType.Slow && b.EndTime - Game.Time > 0.5f));
                     if (target != null)
                     {
-                        Casting.BasicSkillShot(target, W, HitchanceManager.Get("combo", "w"));
+                        Casting.BasicSkillShot(target, W, W.GetHitChance("combo"));
                     }
                 }
             }
@@ -444,11 +436,11 @@ namespace SFXChallenger.Champions
             }
             if (w)
             {
-                WLogic(HitchanceManager.Get("combo", "w"));
+                WLogic(W.GetHitChance("combo"));
             }
             if (e)
             {
-                ELogic(Targets, HitchanceManager.Get("combo", "e"));
+                ELogic(Targets, E.GetHitChance("combo"));
             }
             if (r)
             {
@@ -854,7 +846,7 @@ namespace SFXChallenger.Champions
             }
             if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>())
             {
-                ELogic(Targets, HitchanceManager.Get("harass", "e"));
+                ELogic(Targets, E.GetHitChance("harass"));
             }
         }
 
@@ -900,7 +892,7 @@ namespace SFXChallenger.Champions
                         .FirstOrDefault();
                 if (near != null)
                 {
-                    Casting.BasicSkillShot(near, W, HitchanceManager.Get("combo", "w"));
+                    Casting.BasicSkillShot(near, W, W.GetHitChance("combo"));
                 }
             }
             if (Menu.Item(Menu.Name + ".flee.q-upgraded").GetValue<bool>() && Q.IsReady() && IsSpellUpgraded(Q))
@@ -937,7 +929,7 @@ namespace SFXChallenger.Champions
                     var damage = E.GetDamage(target);
                     if (damage - 10 > target.Health)
                     {
-                        if (ELogic(new List<Obj_AI_Hero> { target }, HitchanceManager.Get("combo", "e")))
+                        if (ELogic(new List<Obj_AI_Hero> { target }, E.GetHitChance("combo")))
                         {
                             break;
                         }
@@ -952,7 +944,7 @@ namespace SFXChallenger.Champions
                     var damage = E.GetDamage(target) + CalcPassiveDamage(target) + Q.GetDamage(target);
                     if (damage - 10 > target.Health)
                     {
-                        if (ELogic(new List<Obj_AI_Hero> { target }, HitchanceManager.Get("combo", "e")))
+                        if (ELogic(new List<Obj_AI_Hero> { target }, E.GetHitChance("combo")))
                         {
                             Casting.BasicTargetSkill(target, Q);
                             Orbwalker.ForceTarget(target);
@@ -960,36 +952,6 @@ namespace SFXChallenger.Champions
                         }
                     }
                 }
-            }
-        }
-
-        protected override void OnDraw()
-        {
-            var q = Menu.Item(Menu.Name + ".drawing.q").GetValue<Circle>();
-            var w = Menu.Item(Menu.Name + ".drawing.w").GetValue<Circle>();
-            var e = Menu.Item(Menu.Name + ".drawing.e").GetValue<Circle>();
-            var r = Menu.Item(Menu.Name + ".drawing.r").GetValue<Circle>();
-            var circleThickness = Menu.Item(Menu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value;
-
-            if (q.Active && Player.Position.IsOnScreen(Q.Range))
-            {
-                Render.Circle.DrawCircle(Player.Position, Q.Range, q.Color, circleThickness);
-            }
-            if (w.Active && Player.Position.IsOnScreen(W.Range))
-            {
-                Render.Circle.DrawCircle(Player.Position, W.Range, w.Color, circleThickness);
-            }
-            if (e.Active && Player.Position.IsOnScreen(MaxERange))
-            {
-                Render.Circle.DrawCircle(Player.Position, MaxERange, e.Color, circleThickness);
-            }
-            if (r.Active && Player.Position.IsOnScreen(R.Range))
-            {
-                Render.Circle.DrawCircle(Player.Position, R.Range, r.Color, circleThickness);
-            }
-            if (r.Active && Player.Position.IsOnScreen(R.Range))
-            {
-                Render.Circle.DrawCircle(Player.Position, R.Range + (R.Width / 2f), r.Color, circleThickness);
             }
         }
 
@@ -1003,7 +965,7 @@ namespace SFXChallenger.Champions
             if (targets.Any())
             {
                 var possiblities =
-                    Utils.ProduceEnumeration(targets.Select(t => t.Position.To2D()).ToList())
+                    ListExtensions.ProduceEnumeration(targets.Select(t => t.Position.To2D()).ToList())
                         .Where(p => p.Count > 1)
                         .ToList();
                 if (possiblities.Any())
@@ -1053,7 +1015,7 @@ namespace SFXChallenger.Champions
             if (targets.Any())
             {
                 var possiblities =
-                    Utils.ProduceEnumeration(targets.Select(t => t.Position.To2D()).ToList())
+                    ListExtensions.ProduceEnumeration(targets.Select(t => t.Position.To2D()).ToList())
                         .Where(p => p.Count > 1)
                         .ToList();
                 if (possiblities.Any())

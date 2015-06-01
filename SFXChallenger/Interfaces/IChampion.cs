@@ -22,6 +22,7 @@
 
 #region
 
+using System.Collections.Generic;
 using LeagueSharp.Common;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 
@@ -33,6 +34,7 @@ namespace SFXChallenger.Interfaces
     {
         Menu Menu { get; }
         Orbwalking.Orbwalker Orbwalker { get; }
+        List<Spell> Spells { get; }
         void Combo();
         void Harass();
         void LaneClear();
