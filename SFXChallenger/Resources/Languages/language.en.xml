@@ -7,6 +7,10 @@
 	<entry key="Viktor_AutoFollow">Auto Follow</entry>
 	<!-- START: Viktor -->
 
+	<!-- START: Kalista -->
+	<entry key="Kalista_EHarassReset">E Harass Reset</entry>
+	<!-- START: Kalista -->
+
 	<!-- START: GLOBAL -->
 	<entry key="G_UpdateAvailable">Update available</entry>
 	<entry key="G_Enabled">Enabled</entry>
@@ -48,6 +52,7 @@
 	<entry key="G_Facing">Facing</entry>
 	<entry key="G_Poison">Poison</entry>
 	<entry key="G_Unkillable">Unkillable</entry>
+	<entry key="G_Big">Big</entry>
 	<entry key="G_Upgraded">Upgraded</entry>
 	<entry key="G_AutoAttack">AutoAttack</entry>
 	<entry key="G_Slowed">Slowed</entry>

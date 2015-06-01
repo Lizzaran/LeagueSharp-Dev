@@ -70,27 +70,24 @@ namespace SFXChallenger.Champions
 
         protected override void AddToMenu()
         {
-            var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_Combo"), Menu.Name + ".combo"));
+            var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), Menu.Name + ".combo"));
             HitchanceManager.AddToMenu(
                 comboMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), comboMenu.Name + ".hitchance")), "combo",
                 new Dictionary<string, int> { { "Q", 2 } });
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
             comboMenu.AddItem(
-                new MenuItem(comboMenu.Name + ".e-min", Global.Lang.Get("Kalista_MinEStacks")).SetValue(
-                    new Slider(10, 1, 20)));
+                new MenuItem(comboMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(new Slider(10, 1, 20)));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
 
-            var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_Harass"), Menu.Name + ".harass"));
+            var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Harass"), Menu.Name + ".harass"));
             HitchanceManager.AddToMenu(
                 harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
                 new Dictionary<string, int> { { "Q", 2 } });
             ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
-            harassMenu.AddItem(
-                new MenuItem(harassMenu.Name + ".e-reset", Global.Lang.Get("Kalista_EReset")).SetValue(true));
 
-            var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("C_LaneClear"), Menu.Name + ".lane-clear"));
+            var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LaneClear"), Menu.Name + ".lane-clear"));
             ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             laneclearMenu.AddItem(
@@ -102,17 +99,22 @@ namespace SFXChallenger.Champions
                     new Slider(2, 1, 5)));
 
             var lasthitMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LastHit"), Menu.Name + ".lasthit"));
-            ManaManager.AddToMenu(lasthitMenu, "lasthit", ManaCheckType.Minimum, ManaValueType.Percent, 40);
+            ManaManager.AddToMenu(lasthitMenu, "lasthit", ManaCheckType.Minimum, ManaValueType.Percent);
             lasthitMenu.AddItem(
-                new MenuItem(lasthitMenu.Name + ".e-big", Global.Lang.Get("Kalista_EBig")).SetValue(true));
+                new MenuItem(lasthitMenu.Name + ".e-big", "E " + Global.Lang.Get("G_Big")).SetValue(true));
             lasthitMenu.AddItem(
-                new MenuItem(lasthitMenu.Name + ".e-unkillable", Global.Lang.Get("Kalista_EUnkillable")).SetValue(true));
+                new MenuItem(lasthitMenu.Name + ".e-unkillable", "E " + Global.Lang.Get("G_Unkillable")).SetValue(true));
 
             var killstealMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Killsteal"), Menu.Name + ".killsteal"));
             killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
             var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Flee"), Menu.Name + ".flee"));
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".aa", Global.Lang.Get("G_UseAutoAttack")).SetValue(true));
+
+            var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
+            ManaManager.AddToMenu(laneclearMenu, "misc", ManaCheckType.Minimum, ManaValueType.Percent);
+            miscMenu.AddItem(
+                new MenuItem(miscMenu.Name + ".e-reset", Global.Lang.Get("Kalista_EHarassReset")).SetValue(true));
         }
 
         protected override void SetupSpells()
@@ -238,7 +240,8 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (Menu.Item(Menu.Name + ".lasthit.e-unkillable").GetValue<bool>() && E.IsReady())
+                if (Menu.Item(Menu.Name + ".lasthit.e-unkillable").GetValue<bool>() && E.IsReady() &&
+                    ManaManager.Check("lasthit"))
                 {
                     var target = unit as Obj_AI_Base;
                     if (target != null && Rend.IsKillable(target))
@@ -259,7 +262,8 @@ namespace SFXChallenger.Champions
             {
                 Orbwalker.ForceTarget(null);
 
-                if (Menu.Item(Menu.Name + ".lasthit.e-big").GetValue<bool>() && E.IsReady())
+                if (Menu.Item(Menu.Name + ".lasthit.e-big").GetValue<bool>() && E.IsReady() &&
+                    ManaManager.Check("lasthit"))
                 {
                     if (
                         ObjectManager.Get<Obj_AI_Minion>()
@@ -268,6 +272,15 @@ namespace SFXChallenger.Champions
                                     m.IsValidTarget(E.Range) &&
                                     (m.BaseSkinName.Contains("MinionSiege") || m.BaseSkinName.Contains("Dragon") ||
                                      m.BaseSkinName.Contains("Baron")) && Rend.IsKillable(m)))
+                    {
+                        E.Cast();
+                    }
+                }
+
+                if (Menu.Item(Menu.Name + ".miscellaneous.e-reset").GetValue<bool>() && E.IsReady() &&
+                    ManaManager.Check("misc") && HeroManager.Enemies.Any(e => Rend.HasBuff(e) && E.IsInRange(e)))
+                {
+                    if (ObjectManager.Get<Obj_AI_Minion>().Any(e => E.IsInRange(e) && Rend.IsKillable(e)))
                     {
                         E.Cast();
                     }
@@ -368,22 +381,24 @@ namespace SFXChallenger.Champions
 
         protected override void Harass()
         {
+            if (!ManaManager.Check("harass"))
+            {
+                return;
+            }
+
             if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && Q.IsReady())
             {
                 Casting.BasicSkillShot(Q, Q.GetHitChance("harass"));
-            }
-            if (Menu.Item(Menu.Name + ".harass.e-reset").GetValue<bool>() && E.IsReady() &&
-                HeroManager.Enemies.Any(e => Rend.HasBuff(e) && E.IsInRange(e)))
-            {
-                if (ObjectManager.Get<Obj_AI_Minion>().Any(e => E.IsInRange(e) && Rend.IsKillable(e)))
-                {
-                    E.Cast();
-                }
             }
         }
 
         protected override void LaneClear()
         {
+            if (!ManaManager.Check("lane-clear"))
+            {
+                return;
+            }
+
             var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
             var useE = Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady();
             var minQ = Menu.Item(Menu.Name + ".lane-clear.q-min").GetValue<Slider>().Value;
