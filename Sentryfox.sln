@@ -27,8 +27,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFXChallenger", "SFXChallen
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeagueSharp.Console", "LeagueSharp.Console\LeagueSharp.Console.csproj", "{3BB23CFE-3725-4B1F-AD6E-DFD6DAAD4CD1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFXCheater", "SFXCheater\SFXCheater.csproj", "{423B27E4-1317-4753-8C5A-397319821DE2}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -93,16 +91,6 @@ Global
 		{3BB23CFE-3725-4B1F-AD6E-DFD6DAAD4CD1}.Release|ARM.ActiveCfg = Release|Any CPU
 		{3BB23CFE-3725-4B1F-AD6E-DFD6DAAD4CD1}.Release|x64.ActiveCfg = Release|Any CPU
 		{3BB23CFE-3725-4B1F-AD6E-DFD6DAAD4CD1}.Release|x86.ActiveCfg = Release|Any CPU
-		{423B27E4-1317-4753-8C5A-397319821DE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{423B27E4-1317-4753-8C5A-397319821DE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{423B27E4-1317-4753-8C5A-397319821DE2}.Debug|ARM.ActiveCfg = Debug|Any CPU
-		{423B27E4-1317-4753-8C5A-397319821DE2}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{423B27E4-1317-4753-8C5A-397319821DE2}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{423B27E4-1317-4753-8C5A-397319821DE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{423B27E4-1317-4753-8C5A-397319821DE2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{423B27E4-1317-4753-8C5A-397319821DE2}.Release|ARM.ActiveCfg = Release|Any CPU
-		{423B27E4-1317-4753-8C5A-397319821DE2}.Release|x64.ActiveCfg = Release|Any CPU
-		{423B27E4-1317-4753-8C5A-397319821DE2}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

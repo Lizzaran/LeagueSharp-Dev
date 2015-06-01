@@ -38,6 +38,8 @@ namespace SFXUtility
         public static Container IoC = new Container();
         public static Language Lang = new Language();
         public static string DefaultFont = "Calibri";
+        public static string Name = "SFXUtility";
+        public static string UpdatePath = "Lizzaran/LeagueSharp-Dev/master/SFXUtility";
 
         static Global()
         {

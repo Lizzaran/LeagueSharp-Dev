@@ -28,6 +28,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Resources;
+using SFXLibrary;
 using SFXLibrary.Logger;
 using SFXUtility.Feature;
 using SFXUtility.Features.Activators;
@@ -103,6 +104,8 @@ namespace SFXUtility
                 {
                     Global.Lang.Current = CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
                 }
+
+                Update.Check(Global.Name, Assembly.GetExecutingAssembly().GetName().Version, Global.UpdatePath, 10000);
             }
             catch (Exception ex)
             {

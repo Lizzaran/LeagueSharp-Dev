@@ -33,6 +33,7 @@ using LeagueSharp.Common;
 using SFXChallenger.Abstracts;
 using SFXChallenger.Helpers;
 using SFXChallenger.Interfaces;
+using SFXLibrary;
 using SFXLibrary.Logger;
 
 #endregion
@@ -58,10 +59,11 @@ namespace SFXChallenger
 
                         if (_champion != null)
                         {
+                            Update.Check(
+                                Global.Name, Assembly.GetExecutingAssembly().GetName().Version, Global.UpdatePath, 10000);
+
                             Core.Init(_champion, 50);
                             Core.Boot();
-
-                            Update.Init(Global.UpdatePath, 10000);
                         }
                     }
                     catch (Exception ex)

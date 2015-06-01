@@ -2,20 +2,20 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Update.cs is part of SFXChallenger.
+ Update.cs is part of SFXLibrary.
 
- SFXChallenger is free software: you can redistribute it and/or modify
+ SFXLibrary is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
 
- SFXChallenger is distributed in the hope that it will be useful,
+ SFXLibrary is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  GNU General Public License for more details.
 
  You should have received a copy of the GNU General Public License
- along with SFXChallenger. If not, see <http://www.gnu.org/licenses/>.
+ along with SFXLibrary. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #endregion License
@@ -24,20 +24,18 @@
 
 using System;
 using System.Net;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using LeagueSharp.Common;
-using SFXLibrary.Logger;
 using Version = System.Version;
 
 #endregion
 
-namespace SFXChallenger
+namespace SFXLibrary
 {
-    internal class Update
+    public class Update
     {
-        public static void Init(string path, int displayTime)
+        public static void Check(string name, Version version, string path, int displayTime)
         {
             try
             {
@@ -54,31 +52,29 @@ namespace SFXChallenger
                                             string.Format(
                                                 "https://raw.githubusercontent.com/{0}/Properties/AssemblyInfo.cs", path));
 
-                                var version =
+                                var gVersion =
                                     Version.Parse(
                                         new Regex("AssemblyFileVersion\\((\"(.+?)\")\\)").Match(data).Groups[1].Value
                                             .Replace("\"", ""));
 
-                                var assemblyName = Assembly.GetExecutingAssembly().GetName();
-                                if (version > assemblyName.Version)
+
+                                if (gVersion > version)
                                 {
                                     Notifications.AddNotification(
-                                        string.Format(
-                                            "[{0}] {1}: {2} => {3}!", assemblyName.Name,
-                                            Global.Lang.Get("G_UpdateAvailable"), assemblyName.Version, version),
+                                        string.Format("[{0}] Update available: {1} => {2}!", name, version, gVersion),
                                         displayTime);
                                 }
                             }
                         }
                         catch (Exception ex)
                         {
-                            Global.Logger.AddItem(new LogItem(ex));
+                            Console.WriteLine(ex.ToString());
                         }
                     }).Start();
             }
             catch (Exception ex)
             {
-                Global.Logger.AddItem(new LogItem(ex));
+                Console.WriteLine(ex.ToString());
             }
         }
     }
