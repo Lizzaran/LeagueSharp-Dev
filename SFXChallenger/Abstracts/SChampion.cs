@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Champion.cs is part of SFXChallenger.
+ SChampion.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -24,11 +24,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Enumerations;
-using SFXChallenger.Helpers;
 using SFXChallenger.Interfaces;
 using SFXChallenger.Managers;
 using SFXChallenger.Menus;
@@ -40,17 +38,16 @@ using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
 namespace SFXChallenger.Abstracts
 {
-    internal abstract class Champion : IChampion
+    internal abstract class SChampion : IChampion
     {
         protected readonly Obj_AI_Hero Player = ObjectManager.Player;
         private List<Spell> _spells;
         protected Spell E;
         protected Spell Q;
         protected Spell R;
-        public List<Obj_AI_Hero> Targets = new List<Obj_AI_Hero>();
         protected Spell W;
 
-        protected Champion()
+        protected SChampion()
         {
             Core.OnBoot += OnCoreBoot;
             Core.OnShutdown += OnCoreShutdown;
@@ -136,18 +133,6 @@ namespace SFXChallenger.Abstracts
             }
         }
 
-        private void OnCorePreUpdate(EventArgs args)
-        {
-            try
-            {
-                Targets = TargetSelector.GetTargets(3000f).Select(t => t.Hero).ToList();
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
         protected abstract void SetupSpells();
         protected abstract void OnLoad();
         protected abstract void OnUnload();
@@ -171,7 +156,7 @@ namespace SFXChallenger.Abstracts
         protected abstract void Flee();
         protected abstract void Killsteal();
 
-        protected void OnCoreBoot(EventArgs args)
+        private void OnCoreBoot(EventArgs args)
         {
             try
             {
@@ -180,7 +165,6 @@ namespace SFXChallenger.Abstracts
                 SetupMenu();
 
                 Drawing.OnDraw += DrawingOnDraw;
-                Core.OnPreUpdate += OnCorePreUpdate;
             }
             catch (Exception ex)
             {
@@ -195,7 +179,6 @@ namespace SFXChallenger.Abstracts
                 OnUnload();
 
                 Drawing.OnDraw -= DrawingOnDraw;
-                Core.OnPreUpdate -= OnCorePreUpdate;
             }
             catch (Exception ex)
             {

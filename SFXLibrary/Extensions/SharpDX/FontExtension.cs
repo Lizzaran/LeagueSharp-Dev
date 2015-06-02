@@ -31,11 +31,30 @@ namespace SFXLibrary.Extensions.SharpDX
 {
     public static class FontExtension
     {
-        public static void DrawTextCentered(this Font font, string text, Vector2 position, Color color)
+        public static void DrawTextCentered(this Font font,
+            string text,
+            Vector2 position,
+            Color color,
+            bool outline = false)
         {
+            var measure = font.MeasureText(null, text, FontDrawFlags.Center);
+            if (outline)
+            {
+                font.DrawText(
+                    null, text, (int) (position.X + 1 - measure.Width / 2f),
+                    (int)(position.Y + 1 - measure.Height / 2f), Color.Black);
+                font.DrawText(
+                    null, text, (int) (position.X - 1 - measure.Width / 2f),
+                    (int)(position.Y - 1 - measure.Height / 2f), Color.Black);
+                font.DrawText(
+                    null, text, (int) (position.X + 1 - measure.Width / 2f), (int) (position.Y - measure.Height / 2f),
+                    Color.Black);
+                font.DrawText(
+                    null, text, (int) (position.X - 1 - measure.Width / 2f), (int) (position.Y - measure.Height / 2f),
+                    Color.Black);
+            }
             font.DrawText(
-                null, text, (int) (position.X - font.MeasureText(null, text, FontDrawFlags.Center).Width / 2f),
-                (int) (position.Y - font.MeasureText(null, text, FontDrawFlags.Center).Height / 2f), color);
+                null, text, (int)(position.X - measure.Width / 2f), (int)(position.Y - measure.Height / 2f), color);
         }
 
         public static void DrawTextCentered(this Font font, string text, int x, int y, Color color)

@@ -72,6 +72,7 @@ namespace SFXUtility.Features.Timers
             Drawing.OnPreReset += OnDrawingPreReset;
             Drawing.OnPostReset += OnDrawingPostReset;
             Drawing.OnEndScene += OnDrawingEndScene;
+
             base.OnEnable();
         }
 
@@ -85,8 +86,6 @@ namespace SFXUtility.Features.Timers
             Drawing.OnPostReset -= OnDrawingPostReset;
             Drawing.OnEndScene -= OnDrawingEndScene;
 
-            OnUnload(null, new UnloadEventArgs());
-
             base.OnDisable();
         }
 
@@ -95,12 +94,15 @@ namespace SFXUtility.Features.Timers
             if (args != null && args.Final)
             {
                 base.OnUnload(sender, args);
-            }
 
-            if (Initialized)
-            {
-                OnDrawingPreReset(null);
-                OnDrawingPostReset(null);
+                if (_mapText != null)
+                {
+                    _mapText.Dispose();
+                }
+                if (_minimapText != null)
+                {
+                    _minimapText.Dispose();
+                }
             }
         }
 

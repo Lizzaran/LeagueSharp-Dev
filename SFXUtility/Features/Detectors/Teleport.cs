@@ -85,8 +85,6 @@ namespace SFXUtility.Features.Detectors
             Drawing.OnPostReset -= OnDrawingPostReset;
             Drawing.OnEndScene -= OnDrawingEndScene;
 
-            OnUnload(null, new UnloadEventArgs());
-
             base.OnDisable();
         }
 
@@ -95,12 +93,19 @@ namespace SFXUtility.Features.Detectors
             if (args != null && args.Final)
             {
                 base.OnUnload(sender, args);
-            }
 
-            if (Initialized)
-            {
-                OnDrawingPreReset(null);
-                OnDrawingPostReset(null);
+                if (_line != null)
+                {
+                    _line.Dispose();
+                }
+                if (_text != null)
+                {
+                    _text.Dispose();
+                }
+                if (_barText != null)
+                {
+                    _barText.Dispose();
+                }
             }
         }
 
@@ -150,9 +155,9 @@ namespace SFXUtility.Features.Detectors
                         var teleports =
                             _teleportObjects.Where(
                                 t =>
-                                    t.Hero.IsAlly && t.LastStatus != Packet.S2C.Teleport.Status.Unknown &&
+                                    t.Hero.IsEnemy && t.LastStatus != Packet.S2C.Teleport.Status.Unknown &&
                                     t.Update(true)).OrderBy(t => t.Countdown);
-                        foreach (var teleport in teleports)
+                        foreach (var teleport in teleports.Where(t => t.Duration > 0 && !t.Hero.IsDead))
                         {
                             var scale = barWidth / teleport.Duration;
                             var hPercent = ((int) ((teleport.Hero.Health / teleport.Hero.MaxHealth) * 100)).ToString();
@@ -166,8 +171,8 @@ namespace SFXUtility.Features.Detectors
                             _line.Draw(
                                 new[]
                                 {
-                                    new Vector2(posX, posY + barHeight / 2),
-                                    new Vector2(posX + width, posY + barHeight / 2)
+                                    new Vector2(posX, posY + barHeight / 2f),
+                                    new Vector2(posX + width, posY + barHeight / 2f)
                                 },
                                 new SharpDX.Color((int) color.R, color.G, color.B, 100));
 

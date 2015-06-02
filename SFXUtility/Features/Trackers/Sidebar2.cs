@@ -40,47 +40,55 @@
 
 //#endregion License
 
+//#region
+
+//using System;
+//using System.Collections.Generic;
+//using System.Drawing;
+//using System.Linq;
+//using LeagueSharp;
+//using LeagueSharp.Common;
+//using SFXLibrary.Extensions.NET;
+//using SFXLibrary.Extensions.SharpDX;
+//using SFXLibrary.Logger;
+//using SFXUtility.Classes;
+//using SFXUtility.Features.Detectors;
+//using SFXUtility.Properties;
+//using SharpDX;
+//using SharpDX.Direct3D9;
+//using Color = SharpDX.Color;
+//using Font = SharpDX.Direct3D9.Font;
+
+//#endregion
+
 //#pragma warning disable 618
 
 //namespace SFXUtility.Features.Trackers
 //{
-//    #region
 
-//    using System;
-//    using System.Collections.Generic;
-//    using System.Drawing;
-//    using System.Linq;
-//    using Classes;
-//    using Detectors;
-//    using LeagueSharp;
-//    using LeagueSharp.Common;
-//    using Properties;
-//    using SFXLibrary.Extensions.NET;
-//    using SFXLibrary.Extensions.SharpDX;
-//    using SFXLibrary.Logger;
-//    using SharpDX;
-//    using SharpDX.Direct3D9;
-//    using Font = SharpDX.Direct3D9.Font;
+//    #region
 
 //    #endregion
 
 //    internal class Sidebar2 : Base
 //    {
-//        private readonly string[] _champsEnergy =
+//        private readonly string[] _champsEnergy = { "Akali", "Kennen", "LeeSin", "Shen", "Zed", "Gnar", "Rengar" };
+
+//        private readonly string[] _champsNoEnergy =
 //        {
-//            "Akali", "Kennen", "LeeSin", "Shen", "Zed", "Gnar", "Katarina", "RekSai", "Renekton", "Rengar",
-//            "Rumble"
+//            "Aatrox", "DrMundo", "Vladimir", "Zac", "Katarina", "Garen",
+//            "Riven"
 //        };
 
-//        private readonly string[] _champsNoEnergy = {"Aatrox", "DrMundo", "Vladimir", "Zac", "Katarina", "Garen", "Riven"};
-//        private readonly string[] _champsRage = {"Shyvana"};
-//        private readonly Dictionary<int, Texture> _heroTextures = new Dictionary<int, Texture>();
-//        private readonly SpellSlot[] _summonerSpellSlots = {SpellSlot.Summoner1, SpellSlot.Summoner2};
+//        private readonly string[] _champsRage = { "Shyvana", "RekSai", "Renekton", "Rumble" };
+//        private readonly List<EnemyObject> _enemyObjects = new List<EnemyObject>();
+//        private readonly SpellSlot[] _summonerSpellSlots = { SpellSlot.Summoner1, SpellSlot.Summoner2 };
 //        private readonly Dictionary<string, Texture> _summonerTextures = new Dictionary<string, Texture>();
 //        private Texture _hudTexture;
 //        private Texture _invisibleTexture;
 //        private Line _line;
 //        private Trackers _parent;
+//        private Sprite _sprite;
 //        private Texture _teleportAbortTexture;
 //        private Texture _teleportFinishTexture;
 //        private Texture _teleportStartTexture;
@@ -89,11 +97,19 @@
 //        private Font _text18;
 //        private Font _text30;
 //        private Texture _ultimateTexture;
-//        private Sprite _sprite;
+//        private const float HudWidth = 95f;
+//        private const float HudHeight = 90f;
+//        private const float SummonerWidth = 22f;
+//        private const float SummonerHeight = 22f;
+//        public Sidebar2(SFXUtility sfx) : base(sfx) {}
 
 //        public override bool Enabled
 //        {
-//            get { return !Unloaded && _parent != null && _parent.Enabled && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+//            get
+//            {
+//                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+//                       Menu.Item(Name + "Enabled").GetValue<bool>();
+//            }
 //        }
 
 //        public override string Name
@@ -109,9 +125,13 @@
 //                {
 //                    _parent = Global.IoC.Resolve<Trackers>();
 //                    if (_parent.Initialized)
+//                    {
 //                        OnParentInitialized(null, null);
+//                    }
 //                    else
+//                    {
 //                        _parent.OnInitialized += OnParentInitialized;
+//                    }
 //                }
 //            }
 //            catch (Exception ex)
@@ -145,7 +165,9 @@
 //        protected override void OnUnload(object sender, UnloadEventArgs args)
 //        {
 //            if (args != null && args.Final)
+//            {
 //                base.OnUnload(sender, args);
+//            }
 
 //            if (Initialized)
 //            {
@@ -159,44 +181,158 @@
 //            try
 //            {
 //                if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
+//                {
 //                    return;
+//                }
 
 //                var index = 0;
-//                var scale = Menu.Item(Menu.Name + "DrawingScale").GetValue<Slider>().Value/10f;
+//                var scale = Menu.Item(Menu.Name + "DrawingScale").GetValue<Slider>().Value / 10f;
 
-//                var hudWidth = (int)(95 * scale);
-//                var hudHeight = (int)(90 * scale);
+//                var hudWidth = (float) (Math.Ceiling(HudWidth * scale));
+//                var hudHeight = (float)(Math.Ceiling(HudHeight * scale));
 
-//                var spacing = 20*scale + hudHeight;
+//                var spacing = (float) (Math.Ceiling(20f * scale)) + hudHeight;
 
-//                var offsetTop = Menu.Item(Menu.Name + "DrawingOffsetTop").GetValue<Slider>().Value + hudHeight/2;
-//                var offsetRight = Drawing.Width - Menu.Item(Menu.Name + "DrawingOffsetRight").GetValue<Slider>().Value - hudWidth/2;
+//                var offsetTop = Menu.Item(Menu.Name + "DrawingOffsetTop").GetValue<Slider>().Value + hudHeight / 2;
+//                var offsetRight = Drawing.Width - Menu.Item(Menu.Name + "DrawingOffsetRight").GetValue<Slider>().Value -
+//                                  hudWidth / 2;
 
-//                _sprite.Begin(SpriteFlags.AlphaBlend);
-
-//                foreach (var enemy in HeroManager.Enemies)
+//                foreach (var enemy in _enemyObjects)
 //                {
+//                    if (enemy.Unit.IsDead && Game.Time > enemy.DeathEndTime)
+//                    {
+//                        enemy.DeathEndTime = Game.Time + enemy.Unit.DeathDuration + 1;
+//                    }
+//                    else if (!enemy.Unit.IsDead)
+//                    {
+//                        enemy.DeathEndTime = 0;
+//                    }
+
 //                    var offset = spacing * index;
-//                    _sprite.DrawCentered(_teleportStartTexture, new Vector2(offsetRight, offsetTop + 1 * scale + offset));
+
+//                    if (enemy.TeleportStatus == Packet.S2C.Teleport.Status.Start ||
+//                        (enemy.TeleportStatus == Packet.S2C.Teleport.Status.Finish ||
+//                         enemy.TeleportStatus == Packet.S2C.Teleport.Status.Abort) &&
+//                        Game.Time <= enemy.LastTeleportStatusTime + 5f)
+//                    {
+//                        _sprite.Begin(SpriteFlags.AlphaBlend);
+//                        _sprite.DrawCentered(
+//                            enemy.TeleportStatus == Packet.S2C.Teleport.Status.Start
+//                                ? _teleportStartTexture
+//                                : (enemy.TeleportStatus == Packet.S2C.Teleport.Status.Finish
+//                                    ? _teleportFinishTexture
+//                                    : _teleportAbortTexture),
+//                            new Vector2(
+//                                offsetRight + (float) (Math.Ceiling(4 * scale)),
+//                                offsetTop + (float) (Math.Ceiling(1 * scale)) + offset));
+//                        _sprite.End();
+//                    }
 
 //                    for (var i = 0; _summonerSpellSlots.Length > i; i++)
 //                    {
-//                        var spell = enemy.Spellbook.GetSpell(_summonerSpellSlots[i]);
-//                        if (_summonerTextures.ContainsKey(spell.Name))
+//                        var spell = enemy.Unit.Spellbook.GetSpell(_summonerSpellSlots[i]);
+//                        if (spell != null && _summonerTextures.ContainsKey(spell.Name))
 //                        {
-//                            _sprite.DrawCentered(_summonerTextures[spell.Name], new Vector2(offsetRight - 23 * scale, offsetTop - 28 * scale + offset + ((22 * scale + 3 * scale) * i)));
+//                            _sprite.Begin(SpriteFlags.AlphaBlend);
+//                            _sprite.DrawCentered(
+//                                _summonerTextures[spell.Name],
+//                                new Vector2(
+//                                    offsetRight - hudWidth * 0.23f,
+//                                    offsetTop - hudHeight * 0.3f + offset + ((float) (Math.Ceiling(24 * scale)) * i)));
+//                            _sprite.End();
+//                            if (spell.CooldownExpires - Game.Time > 0)
+//                            {
+//                                _text13.DrawTextCentered(
+//                                    ((int) (spell.CooldownExpires - Game.Time)).ToStringLookUp(),
+//                                    new Vector2(
+//                                        offsetRight - hudWidth * 0.23f,
+//                                        offsetTop - hudHeight * 0.3f + offset + ((float) (Math.Ceiling(24 * scale)) * i)),
+//                                    Color.White, true);
+//                            }
 //                        }
 //                    }
 
-//                    _sprite.DrawCentered(_heroTextures[enemy.NetworkId], new Vector2(offsetRight + 20 * scale, offsetTop - 13 * scale + offset));
-//                    _sprite.DrawCentered(_hudTexture, new Vector2(offsetRight + 3 * scale, offsetTop + offset));
-//                    _sprite.DrawCentered(_ultimateTexture, new Vector2(offsetRight + 42 * scale, offsetTop - 35 * scale + offset));
-//                    _text12.DrawTextCentered(enemy.Level.ToString(), new Vector2(offsetRight + 42 * scale, offsetTop + 50 * scale + offset), SharpDX.Color.White);
+//                    _sprite.Begin(SpriteFlags.AlphaBlend);
+
+//                    _sprite.DrawCentered(
+//                        enemy.Texture,
+//                        new Vector2(offsetRight + hudWidth * 0.21f, offsetTop - hudHeight * 0.13f + offset));
+//                    _sprite.DrawCentered(
+//                        _hudTexture, new Vector2(offsetRight + (float) (Math.Ceiling(3 * scale)), offsetTop + offset));
+
+//                    if (enemy.RSpell != null && enemy.RSpell.CooldownExpires - Game.Time < 0)
+//                    {
+//                        _sprite.DrawCentered(
+//                            _ultimateTexture,
+//                            new Vector2(offsetRight + hudWidth * 0.445f, offsetTop - hudHeight * 0.385f + offset));
+//                    }
+
+//                    _sprite.End();
+
+//                    if (enemy.RSpell != null && enemy.RSpell.CooldownExpires - Game.Time > 0)
+//                    {
+//                        _text12.DrawTextCentered(
+//                            ((int) (enemy.RSpell.CooldownExpires - Game.Time)).ToStringLookUp(),
+//                            new Vector2(offsetRight + hudWidth * 0.45f, offsetTop - hudHeight * 0.37f + offset),
+//                            Color.White, true);
+//                    }
+
+//                    _text12.DrawTextCentered(
+//                        enemy.Unit.Level.ToStringLookUp(),
+//                        new Vector2(offsetRight + hudWidth * 0.43f, offsetTop + hudHeight * 0.13f + offset), Color.White);
+
+//                    if (!Enumerable.Contains(_champsNoEnergy, enemy.Unit.ChampionName))
+//                    {
+//                        _line.Draw(
+//                            new[]
+//                            {
+//                                new Vector2(offsetRight - hudWidth * 0.1f, offsetTop + hudHeight * 0.415f + offset),
+//                                new Vector2(offsetRight + hudWidth * 0.51f, offsetTop + hudHeight * 0.415f + offset)
+//                            },
+//                            Enumerable.Contains(_champsEnergy, enemy.Unit.ChampionName)
+//                                ? Color.Yellow
+//                                : (Enumerable.Contains(_champsRage, enemy.Unit.ChampionName)
+//                                    ? Color.DarkRed
+//                                    : Color.Blue));
+//                        _text13.DrawTextCentered(
+//                            (int) (enemy.Unit.Mana) + " / " + (int) (enemy.Unit.MaxMana),
+//                            new Vector2(offsetRight + hudWidth * 0.21f, offsetTop + hudHeight * 0.425f + offset),
+//                            Color.White, true);
+//                    }
+
+//                    _line.Draw(
+//                        new[]
+//                        {
+//                            new Vector2(offsetRight - hudWidth * 0.1f, offsetTop + hudHeight * 0.265f + offset),
+//                            new Vector2(offsetRight + hudWidth * 0.51f, offsetTop + hudHeight * 0.265f + offset)
+//                        },
+//                        Color.Green);
+//                    _text13.DrawTextCentered(
+//                        (int) (enemy.Unit.Health) + " / " + (int) (enemy.Unit.MaxHealth),
+//                        new Vector2(offsetRight + hudWidth * 0.21f, offsetTop + hudHeight * 0.275f + offset),
+//                        Color.White, true);
+
+//                    _text18.DrawTextCentered(
+//                        (enemy.Unit.MinionsKilled + enemy.Unit.NeutralMinionsKilled).ToStringLookUp(),
+//                        new Vector2(offsetRight - hudWidth * 0.28f, offsetTop + hudHeight * 0.24f + offset), Color.White);
+
+//                    if (enemy.Unit.IsDead)
+//                    {
+//                        _text30.DrawTextCentered(
+//                            ((int) (enemy.DeathEndTime - Game.Time)).ToStringLookUp(),
+//                            new Vector2(offsetRight + hudWidth * 0.21f, offsetTop - hudHeight * 0.11f + offset),
+//                            Color.White, true);
+//                    }
+
+//                    if (!enemy.Unit.IsVisible || enemy.Unit.IsDead)
+//                    {
+//                        _sprite.Begin(SpriteFlags.AlphaBlend);
+//                        _sprite.DrawCentered(_invisibleTexture, new Vector2(offsetRight + 3, offsetTop + 1 + offset));
+//                        _sprite.End();
+//                    }
 
 //                    index++;
 //                }
-
-//                _sprite.End();
 //            }
 //            catch (Exception ex)
 //            {
@@ -235,21 +371,26 @@
 //            try
 //            {
 //                if (_parent.Menu == null)
+//                {
 //                    return;
+//                }
 
 //                Menu = new Menu(Name, Name);
 
 //                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
 
 //                drawingMenu.AddItem(
-//                    new MenuItem(drawingMenu.Name + "OffsetTop", Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Top")).SetValue(new Slider(
-//                        150, 0, Drawing.Height)));
+//                    new MenuItem(
+//                        drawingMenu.Name + "OffsetTop", Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Top"))
+//                        .SetValue(new Slider(150, 0, Drawing.Height)));
 
 //                drawingMenu.AddItem(
-//                    new MenuItem(drawingMenu.Name + "OffsetRight", Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Right")).SetValue(new Slider(
-//                        0, 0, Drawing.Width)));
+//                    new MenuItem(
+//                        drawingMenu.Name + "OffsetRight", Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Right"))
+//                        .SetValue(new Slider(0, 0, Drawing.Width)));
 
-//                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Scale", Global.Lang.Get("G_Scale")).SetValue(new Slider(10, 1, 20)));
+//                drawingMenu.AddItem(
+//                    new MenuItem(drawingMenu.Name + "Scale", Global.Lang.Get("G_Scale")).SetValue(new Slider(10, 1, 20)));
 
 //                Menu.AddSubMenu(drawingMenu);
 //                Menu.AddItem(new MenuItem(Name + "Clickable", Global.Lang.Get("Sidebar_Clickable")).SetValue(false));
@@ -259,7 +400,9 @@
 //                _parent.Menu.AddSubMenu(Menu);
 
 //                if (!HeroManager.Enemies.Any())
+//                {
 //                    return;
+//                }
 
 //                if (Global.IoC.IsRegistered<Teleport>())
 //                {
@@ -270,45 +413,52 @@
 //                    rt.OnUnknown += TeleportHandle;
 //                }
 
-//                var scale = Menu.Item(Menu.Name + "DrawingScale").GetValue<Slider>().Value/10f;
+//                var scale = Menu.Item(Menu.Name + "DrawingScale").GetValue<Slider>().Value / 10f;
 
-//                _text12 = new Font(Drawing.Direct3DDevice,
+//                _text12 = new Font(
+//                    Drawing.Direct3DDevice,
 //                    new FontDescription
 //                    {
 //                        FaceName = Global.DefaultFont,
-//                        Height = (int)(12 * scale),
+//                        Height = (int) (Math.Ceiling(12 * scale)),
 //                        OutputPrecision = FontPrecision.Default,
 //                        Quality = FontQuality.Default
 //                    });
-//                _text13 = new Font(Drawing.Direct3DDevice,
+//                _text13 = new Font(
+//                    Drawing.Direct3DDevice,
 //                    new FontDescription
 //                    {
 //                        FaceName = Global.DefaultFont,
-//                        Height = (int)(13 * scale),
+//                        Height = (int)(Math.Ceiling(13 * scale)),
 //                        OutputPrecision = FontPrecision.Default,
 //                        Quality = FontQuality.Default
 //                    });
-//                _text18 = new Font(Drawing.Direct3DDevice,
+//                _text18 = new Font(
+//                    Drawing.Direct3DDevice,
 //                    new FontDescription
 //                    {
 //                        FaceName = Global.DefaultFont,
-//                        Height = (int)(18 * scale),
+//                        Height = (int) (Math.Ceiling(18 * scale)),
 //                        OutputPrecision = FontPrecision.Default,
 //                        Quality = FontQuality.Default
 //                    });
-//                _text30 = new Font(Drawing.Direct3DDevice,
+//                _text30 = new Font(
+//                    Drawing.Direct3DDevice,
 //                    new FontDescription
 //                    {
 //                        FaceName = Global.DefaultFont,
-//                        Height = (int)(30 * scale),
+//                        Height = (int) (Math.Ceiling(30 * scale)),
 //                        OutputPrecision = FontPrecision.Default,
 //                        Quality = FontQuality.Default
 //                    });
 
 //                foreach (var enemy in HeroManager.Enemies)
 //                {
-//                    _heroTextures[enemy.NetworkId] =
-//                        (((Bitmap)Resources.ResourceManager.GetObject(string.Format("SB_{0}", enemy.ChampionName))).Scale(scale) ?? Resources.SB_Aatrox.Scale(scale)).ToTexture();
+//                    _enemyObjects.Add(
+//                        new EnemyObject(
+//                            enemy,
+//                            (((Bitmap) Resources.ResourceManager.GetObject(string.Format("SB_{0}", enemy.ChampionName)))
+//                                .Scale(scale) ?? Resources.SB_Aatrox.Scale(scale)).ToTexture()));
 //                }
 
 //                foreach (var summonerSlot in _summonerSpellSlots)
@@ -319,8 +469,9 @@
 //                        if (!_summonerTextures.ContainsKey(spell.Name))
 //                        {
 //                            _summonerTextures[spell.Name] =
-//                                (((Bitmap)Resources.ResourceManager.GetObject(string.Format("SB_{0}", spell.Name.ToLower()))).Scale(scale) ??
-//                                 Resources.SB_summonerbarrier).Scale(scale).ToTexture();
+//                                (((Bitmap)
+//                                    Resources.ResourceManager.GetObject(string.Format("SB_{0}", spell.Name.ToLower())))
+//                                    .Scale(scale) ?? Resources.SB_summonerbarrier).Scale(scale).ToTexture();
 //                        }
 //                    }
 //                }
@@ -331,7 +482,7 @@
 //                _teleportFinishTexture = Resources.SB_RecallFinish.Scale(scale).ToTexture();
 //                _teleportStartTexture = Resources.SB_RecallStart.Scale(scale).ToTexture();
 //                _ultimateTexture = Resources.SB_Ultimate.Scale(scale).ToTexture();
-//                _line = new Line(Drawing.Direct3DDevice);
+//                _line = new Line(Drawing.Direct3DDevice) { Width = (int)(Math.Ceiling(9*scale)) };
 //                _sprite = new Sprite(Drawing.Direct3DDevice);
 //                HandleEvents(_parent);
 //                RaiseOnInitialized();
@@ -344,73 +495,95 @@
 
 //        private void TeleportHandle(object sender, TeleportEventArgs teleportEventArgs)
 //        {
-//            //var enemyObject = _enemyObjects.FirstOrDefault(e => e.Hero.NetworkId == teleportEventArgs.UnitNetworkId);
-//            //if (enemyObject != null)
-//            //{
-//            //    enemyObject.TeleportStatus = teleportEventArgs.Status;
-//            //}
+//            var enemyObject = _enemyObjects.FirstOrDefault(e => e.Unit.NetworkId == teleportEventArgs.UnitNetworkId);
+//            if (enemyObject != null)
+//            {
+//                enemyObject.TeleportStatus = teleportEventArgs.Status;
+//            }
 //        }
 
 //        private void OnGameWndProc(WndEventArgs args)
 //        {
-//            //if (!Menu.Item(Name + "Clickable").GetValue<bool>())
-//            //    return;
+//            if (!Menu.Item(Name + "Clickable").GetValue<bool>())
+//                return;
 
-//            //if (args.Msg == (uint) WindowsMessages.WM_LBUTTONUP)
-//            //{
-//            //    var pos = Utils.GetCursorPos();
-//            //    foreach (var enemy in _enemyObjects.Where(e => Utils.IsUnderRectangle(pos, e.Position.X, e.Position.Y, e.Width, e.Height)))
-//            //    {
-//            //        if (ObjectManager.Player.Spellbook.ActiveSpellSlot != SpellSlot.Unknown)
-//            //        {
-//            //            var spell = ObjectManager.Player.Spellbook.GetSpell(ObjectManager.Player.Spellbook.ActiveSpellSlot);
-//            //            if (spell.SData.TargettingType == SpellDataTargetType.Unit)
-//            //            {
-//            //                ObjectManager.Player.Spellbook.CastSpell(spell.Slot, enemy.Hero);
-//            //            }
-//            //            else
-//            //            {
-//            //                ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo,
-//            //                    enemy.Hero.Position.Extend(ObjectManager.Player.Position, spell.SData.CastRange));
-//            //            }
-//            //        }
-//            //        else
-//            //        {
-//            //            ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, enemy.Hero);
-//            //        }
-//            //    }
-//            //}
-//            //if (args.Msg == (uint) WindowsMessages.WM_RBUTTONUP)
-//            //{
-//            //    var pos = Utils.GetCursorPos();
-//            //    foreach (var enemy in
-//            //        _enemyObjects.Where(
-//            //            e => !e.Hero.IsDead && e.Hero.IsVisible && Utils.IsUnderRectangle(pos, e.Position.X, e.Position.Y, e.Width, e.Height)))
-//            //    {
-//            //        if (ObjectManager.Player.Path.Length > 0)
-//            //            ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, ObjectManager.Player.Path[ObjectManager.Player.Path.Length - 1]);
-//            //        else
-//            //        {
-//            //            ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo,
-//            //                ObjectManager.Player.ServerPosition.Distance(enemy.Hero.ServerPosition) >
-//            //                ObjectManager.Player.AttackRange + ObjectManager.Player.BoundingRadius
-//            //                    ? enemy.Hero.ServerPosition
-//            //                    : ObjectManager.Player.Position);
-//            //            ObjectManager.Player.IssueOrder(GameObjectOrder.AutoAttack, enemy.Hero);
-//            //        }
-//            //    }
-//            //}
+//            var index = 0;
+//            var scale = Menu.Item(Menu.Name + "DrawingScale").GetValue<Slider>().Value / 10f;
+
+//            var hudWidth = (float)(Math.Ceiling(HudWidth * scale));
+//            var hudHeight = (float)(Math.Ceiling(HudHeight * scale));
+
+//            var spacing = (float)(Math.Ceiling(20f * scale)) + hudHeight;
+
+//            var offsetTop = Menu.Item(Menu.Name + "DrawingOffsetTop").GetValue<Slider>().Value + hudHeight / 2;
+//            var offsetRight = Drawing.Width - Menu.Item(Menu.Name + "DrawingOffsetRight").GetValue<Slider>().Value -
+//                              hudWidth / 2;
+
+//            if (args.Msg == (uint)WindowsMessages.WM_RBUTTONUP || args.Msg == (uint)WindowsMessages.WM_LBUTTONDBLCLCK)
+//            {
+//                var pos = Utils.GetCursorPos();
+//                foreach (var enemy in _enemyObjects)
+//                {
+//                    var offset = spacing * index;
+//                    if (args.Msg == (uint) WindowsMessages.WM_LBUTTONDBLCLCK)
+//                    {
+//                        for (var i = 0; _summonerSpellSlots.Length > i; i++)
+//                        {
+//                            var spell = enemy.Unit.Spellbook.GetSpell(_summonerSpellSlots[i]);
+//                            if (spell != null)
+//                            {
+//                                if (Utils.IsUnderRectangle(
+//                                pos, offsetRight - hudWidth * 0.23f - SummonerWidth/2f,
+//                                offsetTop - hudHeight * 0.3f + offset + ((float)(Math.Ceiling(24 * scale)) * i) - SummonerHeight/2f, SummonerWidth, SummonerHeight))
+//                                {
+//                                    if (spell.CooldownExpires - Game.Time < 0)
+//                                    {
+//                                        Game.Say(string.Format("{0} {1} {2}", enemy.Unit.ChampionName, spell.Name, (Game.ClockTime).FormatTime()));
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                    else
+//                    {
+//                        if (enemy.Unit.IsVisible && !enemy.Unit.IsDead && Utils.IsUnderRectangle(
+//                           pos, offsetRight + (float)(Math.Ceiling(3 * scale)) - hudWidth / 2f,
+//                           offsetTop + offset - hudHeight / 2f, hudWidth, hudHeight))
+//                        {
+//                            ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, enemy.Unit);
+//                        }
+//                    }
+//                    index++;
+//                }
+//            }
 //        }
 
 //        private class EnemyObject
 //        {
-//            public float DeathDuration { get; set; }
-//            public float LastTeleportStatusTime { get; set; }
-//            public Packet.S2C.Teleport.Status TeleportStatus { get; set; }
+//            private Packet.S2C.Teleport.Status _teleportStatus;
 
-//            public EnemyObject()
+//            public EnemyObject(Obj_AI_Hero unit, Texture texture)
 //            {
 //                TeleportStatus = Packet.S2C.Teleport.Status.Unknown;
+//                Unit = unit;
+//                Texture = texture;
+//                RSpell = unit.GetSpell(SpellSlot.R);
+//            }
+
+//            public Texture Texture { get; private set; }
+//            public SpellDataInst RSpell { get; private set; }
+//            public Obj_AI_Hero Unit { get; private set; }
+//            public float DeathEndTime { get; set; }
+//            public float LastTeleportStatusTime { get; private set; }
+
+//            public Packet.S2C.Teleport.Status TeleportStatus
+//            {
+//                get { return _teleportStatus; }
+//                set
+//                {
+//                    _teleportStatus = value;
+//                    LastTeleportStatusTime = Game.Time;
+//                }
 //            }
 //        }
 //    }

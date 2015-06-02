@@ -79,7 +79,6 @@ namespace SFXUtility.Features.Timers
             Drawing.OnPostReset += OnDrawingPostReset;
             Drawing.OnEndScene += OnDrawingEndScene;
 
-
             Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
 
             base.OnEnable();
@@ -92,8 +91,6 @@ namespace SFXUtility.Features.Timers
             Drawing.OnEndScene -= OnDrawingEndScene;
 
             Obj_AI_Base.OnProcessSpellCast -= OnObjAiBaseProcessSpellCast;
-
-            OnUnload(null, new UnloadEventArgs());
 
             base.OnDisable();
         }
@@ -127,12 +124,19 @@ namespace SFXUtility.Features.Timers
             if (args != null && args.Final)
             {
                 base.OnUnload(sender, args);
-            }
 
-            if (Initialized)
-            {
-                OnDrawingPreReset(null);
-                OnDrawingPostReset(null);
+                if (_line != null)
+                {
+                    _line.Dispose();
+                }
+                if (_text != null)
+                {
+                    _text.Dispose();
+                }
+                if (_sprite != null)
+                {
+                    _sprite.Dispose();
+                }
             }
         }
 

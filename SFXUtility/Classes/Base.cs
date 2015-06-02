@@ -79,7 +79,10 @@ namespace SFXUtility.Classes
                 {
                     return;
                 }
-                RaiseOnInitialized();
+                if (!Initialized)
+                {
+                    RaiseOnInitialized();
+                }
             }
             catch (Exception ex)
             {
@@ -91,8 +94,11 @@ namespace SFXUtility.Classes
         {
             try
             {
-                Initialized = true;
-                OnInitialized.RaiseEvent(this, null);
+                if (!Initialized && !Unloaded)
+                {
+                    Initialized = true;
+                    OnInitialized.RaiseEvent(this, null);
+                }
             }
             catch (Exception ex)
             {
@@ -104,7 +110,7 @@ namespace SFXUtility.Classes
         {
             try
             {
-                if (Initialized)
+                if (Initialized && Enabled && !Unloaded)
                 {
                     OnDisabled.RaiseEvent(null, null);
                 }
@@ -117,6 +123,10 @@ namespace SFXUtility.Classes
 
         protected virtual void OnUnload(object sender, UnloadEventArgs args)
         {
+            if (Unloaded)
+            {
+                return;
+            }
             OnDisable();
             if (args != null && args.Final)
             {

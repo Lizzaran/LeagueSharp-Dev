@@ -446,7 +446,6 @@ namespace SFXChallenger.Wrappers
         /// </summary>
         public class Orbwalker
         {
-            private const int FarmDelay = 10;
             private const float LaneClearWaitTimeMod = 2f;
             private static Menu _menu;
             private Obj_AI_Base _forcedTarget;
@@ -479,6 +478,13 @@ namespace SFXChallenger.Wrappers
                     new MenuItem(misc.Name + ".extra-windup-time", Global.Lang.Get("Orbwalker_ExtraWindupTime"))
                         .SetValue(new Slider(80, 0, 200)));
                 misc.AddItem(
+                    new MenuItem(misc.Name + ".farm-delay", Global.Lang.Get("Orbwalker_FarmDelay")).SetShared()
+                        .SetValue(new Slider(0, 0, 200)));
+                misc.AddItem(
+                    new MenuItem(misc.Name + ".movement-delay", Global.Lang.Get("Orbwalker_MovementDelay")).SetShared()
+                        .SetValue(new Slider(80, 0, 250)));
+
+                misc.AddItem(
                     new MenuItem(misc.Name + ".hold-position-radius", Global.Lang.Get("Orbwalker_HoldPositionRadius"))
                         .SetValue(new Slider(0, 0, 250)));
                 misc.AddItem(
@@ -506,7 +512,7 @@ namespace SFXChallenger.Wrappers
                     new MenuItem(_menu.Name + ".combo", Global.Lang.Get("Orbwalker_Combo")).SetValue(
                         new KeyBind(32, KeyBindType.Press)));
 
-                _delay = _menu.Item(_menu.Name + ".miscellaneous.extra-windup-time").GetValue<Slider>().Value;
+                _delay = _menu.Item(_menu.Name + ".miscellaneous.movement-delay").GetValue<Slider>().Value;
                 Game.OnUpdate += GameOnOnGameUpdate;
                 Drawing.OnDraw += DrawingOnOnDraw;
             }
@@ -514,6 +520,11 @@ namespace SFXChallenger.Wrappers
             public int HoldAreaRadius
             {
                 get { return _menu.Item(_menu.Name + ".miscellaneous.hold-position-radius").GetValue<Slider>().Value; }
+            }
+
+            private int FarmDelay
+            {
+                get { return _menu.Item(_menu.Name + ".miscellaneous.farm-delay").GetValue<Slider>().Value; }
             }
 
             public OrbwalkingMode ActiveMode

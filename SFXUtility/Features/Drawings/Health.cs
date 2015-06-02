@@ -75,9 +75,7 @@ namespace SFXUtility.Features.Drawings
             Drawing.OnPostReset -= OnDrawingPostReset;
             Drawing.OnEndScene -= OnDrawingEndScene;
 
-            OnUnload(null, new UnloadEventArgs());
-
-            base.OnEnable();
+            base.OnDisable();
         }
 
         protected override void OnUnload(object sender, UnloadEventArgs args)
@@ -85,12 +83,11 @@ namespace SFXUtility.Features.Drawings
             if (args != null && args.Final)
             {
                 base.OnUnload(sender, args);
-            }
 
-            if (Initialized)
-            {
-                OnDrawingPreReset(null);
-                OnDrawingPostReset(null);
+                if (_text != null)
+                {
+                    _text.Dispose();
+                }
             }
         }
 

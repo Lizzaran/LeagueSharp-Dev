@@ -41,7 +41,7 @@ using Utils = SFXChallenger.Helpers.Utils;
 
 namespace SFXChallenger.Champions
 {
-    internal class Kalista : Champion
+    internal class Kalista : SChampion
     {
         protected override ItemFlags ItemFlags
         {

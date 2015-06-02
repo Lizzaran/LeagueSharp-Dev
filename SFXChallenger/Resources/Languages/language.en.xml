@@ -126,6 +126,8 @@
 	<entry key="Orbwalker_EnemyAttackRange">Enemy Attack Range</entry>
 	<entry key="Orbwalker_HoldZone">Hold Zone</entry>
 	<entry key="Orbwalker_ExtraWindupTime">Extra Windup Time</entry>
+	<entry key="Orbwalker_FarmDelay">Farm Delay</entry>
+	<entry key="Orbwalker_MovementDelay">Movement Delay</entry>
 	<entry key="Orbwalker_HoldPositionRadius">Hold Position Radius</entry>
 	<entry key="Orbwalker_PrioritizeLastHit">Prioritize Lasthit</entry>
 	<entry key="Orbwalker_Flee">Flee</entry>

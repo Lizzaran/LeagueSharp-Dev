@@ -40,11 +40,11 @@ using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 
 namespace SFXChallenger.Champions
 {
-    internal class Viktor : Champion
+    internal class Viktor : MChampion
     {
         private const float MaxERange = 1225f;
         private const float ELength = 700f;
-        private const float RMoveInterval = 125f;
+        private const float RMoveInterval = 325f;
         private float _lastRMoveCommand = Environment.TickCount;
         private GameObject _rObject;
 
@@ -175,7 +175,7 @@ namespace SFXChallenger.Champions
             E.SetSkillshot(0f, 90f, 800f, false, SkillshotType.SkillshotLine);
 
             R = new Spell(SpellSlot.R, 700f);
-            R.SetSkillshot(0f, 575f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            R.SetSkillshot(0.25f, 575f, float.MaxValue, false, SkillshotType.SkillshotCircle);
         }
 
         private void OnCorePostUpdate(EventArgs args)
@@ -481,7 +481,7 @@ namespace SFXChallenger.Champions
                 {
                     damage += E.GetDamage(target);
                 }
-                if (r && R.IsReady() && target.IsValidTarget(extended ? R.Range + (R.Width / 2) : R.Range))
+                if (r && R.IsReady() && target.IsValidTarget(extended ? R.Range + (R.Width * 0.45f) : R.Range))
                 {
                     damage += R.GetDamage(target);
 
@@ -570,15 +570,24 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                if (!R.IsReady())
+                {
+                    return false;
+                }
                 if (HeroManager.Enemies.Count(em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) == 1)
                 {
                     var extended = false;
-                    var extendedRange = R.Range + (R.Width / 2);
+                    var extendedRange = R.Range + (R.Width * 0.4f);
                     var targets = Targets.Where(t => t.HealthPercent > 20 && R.CanCast(t)).ToList();
-                    if (!targets.Any() && R.IsReady())
+                    if (!targets.Any())
                     {
-                        targets = Targets.Where(t => t.HealthPercent > 20 && t.IsValidTarget(extendedRange)).ToList();
-                        extended = true;
+                        targets =
+                            Targets.Where(
+                                t =>
+                                    t.HealthPercent > 20 && t.IsFacing(Player)
+                                        ? t.IsValidTarget(extendedRange)
+                                        : R.GetPrediction(t, true, extendedRange).Hitchance >= HitChance.High).ToList();
+                        extended = targets.Any();
                     }
 
                     foreach (var target in targets)

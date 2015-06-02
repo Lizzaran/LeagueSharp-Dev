@@ -84,12 +84,11 @@ namespace SFXUtility.Features.Others
                 if (args != null && args.Final)
                 {
                     base.OnUnload(sender, args);
-                }
 
-                if (Initialized)
-                {
-                    OnDrawingPreReset(null);
-                    OnDrawingPostReset(null);
+                    if (_text != null)
+                    {
+                        _text.Dispose();
+                    }
                 }
             }
             catch (Exception ex)

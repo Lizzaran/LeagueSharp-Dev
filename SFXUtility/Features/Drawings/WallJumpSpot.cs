@@ -173,7 +173,7 @@ namespace SFXUtility.Features.Drawings
                 OnUnload(null, new UnloadEventArgs(true));
                 return;
             }
-            
+
             base.OnInitialize();
         }
 

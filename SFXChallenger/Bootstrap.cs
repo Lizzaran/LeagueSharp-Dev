@@ -87,7 +87,7 @@ namespace SFXChallenger
                     .FirstOrDefault(
                         t => t.Name.Equals(ObjectManager.Player.ChampionName, StringComparison.OrdinalIgnoreCase));
 
-            return type != null ? (Champion) DynamicInitializer.NewInstance(type) : null;
+            return type != null ? (MChampion) DynamicInitializer.NewInstance(type) : null;
         }
 
         private static void SetupLogger()

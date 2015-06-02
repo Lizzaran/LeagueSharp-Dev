@@ -94,8 +94,6 @@ namespace SFXUtility.Features.Detectors
                 _timer.Stop();
             }
 
-            OnUnload(null, new UnloadEventArgs());
-
             base.OnDisable();
         }
 
@@ -104,12 +102,11 @@ namespace SFXUtility.Features.Detectors
             if (args != null && args.Final)
             {
                 base.OnUnload(sender, args);
-            }
 
-            if (Initialized)
-            {
-                OnDrawingPreReset(null);
-                OnDrawingPostReset(null);
+                if (_sprite != null)
+                {
+                    _sprite.Dispose();
+                }
             }
         }
 
