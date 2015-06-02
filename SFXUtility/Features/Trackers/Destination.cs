@@ -40,8 +40,9 @@ namespace SFXUtility.Features.Trackers
 
     internal class Destination : Base
     {
-        private readonly List<DestinationObject> _destinations = new List<DestinationObject>();
+        private List<DestinationObject> _destinations;
         private Trackers _parent;
+        public Destination(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -128,20 +129,27 @@ namespace SFXUtility.Features.Trackers
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                SetupDestinations();
-
-                if (_destinations.Count == 0)
-                {
-                    return;
-                }
-
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        protected override void OnInitialize()
+        {
+            _destinations = new List<DestinationObject>();
+
+            SetupDestinations();
+
+            if (_destinations.Count == 0)
+            {
+                OnUnload(null, new UnloadEventArgs(true));
+                return;
+            }
+
+            base.OnInitialize();
         }
 
         private void SetupDestinations()

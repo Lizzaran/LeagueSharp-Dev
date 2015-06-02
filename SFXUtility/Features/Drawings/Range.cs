@@ -40,6 +40,7 @@ namespace SFXUtility.Features.Drawings
         private const float ExperienceRange = 1400f;
         private const float TurretRange = 900f;
         private Drawings _parent;
+        public Range(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -409,7 +410,6 @@ namespace SFXUtility.Features.Drawings
                 _parent.Menu.AddSubMenu(Menu);
 
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {

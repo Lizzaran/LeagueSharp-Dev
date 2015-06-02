@@ -35,9 +35,10 @@ namespace SFXUtility.Features.Others
 {
     internal class Humanize : Base
     {
-        private readonly Dictionary<SpellSlot, float> _lastSpell = new Dictionary<SpellSlot, float>();
         private float _lastMovement;
+        private Dictionary<SpellSlot, float> _lastSpell;
         private Others _parent;
+        public Humanize(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -115,12 +116,17 @@ namespace SFXUtility.Features.Others
                 _parent.Menu.AddSubMenu(Menu);
 
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        protected override void OnInitialize()
+        {
+            _lastSpell = new Dictionary<SpellSlot, float>();
+            base.OnInitialize();
         }
 
         private void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)

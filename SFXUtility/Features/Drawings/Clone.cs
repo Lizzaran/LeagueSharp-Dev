@@ -37,9 +37,10 @@ namespace SFXUtility.Features.Drawings
 {
     internal class Clone : Base
     {
-        private readonly List<string> _cloneHeroes = new List<string> { "shaco", "leblanc", "monkeyking", "yorick" };
-        private readonly List<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
+        private List<string> _cloneHeroes;
+        private List<Obj_AI_Hero> _heroes;
         private Drawings _parent;
+        public Clone(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -142,20 +143,28 @@ namespace SFXUtility.Features.Drawings
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _heroes.AddRange(HeroManager.Enemies.Where(hero => _cloneHeroes.Contains(hero.ChampionName.ToLower())));
-
-                if (!_heroes.Any())
-                {
-                    return;
-                }
-
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        protected override void OnInitialize()
+        {
+            _cloneHeroes = new List<string> { "shaco", "leblanc", "monkeyking", "yorick" };
+            _heroes = new List<Obj_AI_Hero>();
+
+            _heroes.AddRange(HeroManager.Enemies.Where(hero => _cloneHeroes.Contains(hero.ChampionName.ToLower())));
+
+            if (!_heroes.Any())
+            {
+                OnUnload(null, new UnloadEventArgs(true));
+                return;
+            }
+
+            base.OnInitialize();
         }
     }
 }

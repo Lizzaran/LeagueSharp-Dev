@@ -33,6 +33,8 @@ namespace SFXUtility.Features.Timers
 {
     internal class Timers : Base
     {
+        public Timers(SFXUtility sfx) : base(sfx) {}
+
         public override bool Enabled
         {
             get { return Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }

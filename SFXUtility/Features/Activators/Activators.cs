@@ -33,6 +33,8 @@ namespace SFXUtility.Features.Activators
 {
     internal class Activators : Base
     {
+        public Activators(SFXUtility sfx) : base(sfx) {}
+
         public override bool Enabled
         {
             get { return Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }

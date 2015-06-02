@@ -41,12 +41,13 @@ namespace SFXUtility.Features.Timers
     internal class Jungle : Base
     {
         private const float CheckInterval = 800f;
-        private readonly List<Camp> _camps = new List<Camp>();
+        private List<Camp> _camps;
         private int _dragonStacks;
-        private float _lastCheck = Environment.TickCount;
+        private float _lastCheck;
         private Font _mapText;
         private Font _minimapText;
         private Timers _parent;
+        public Jungle(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -255,8 +256,14 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
-                _mapText.OnResetDevice();
-                _minimapText.OnResetDevice();
+                if (_mapText != null)
+                {
+                    _mapText.OnResetDevice();
+                }
+                if (_minimapText != null)
+                {
+                    _minimapText.OnResetDevice();
+                }
             }
             catch (Exception ex)
             {
@@ -268,8 +275,14 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
-                _mapText.OnLostDevice();
-                _minimapText.OnResetDevice();
+                if (_mapText != null)
+                {
+                    _mapText.OnLostDevice();
+                }
+                if (_minimapText != null)
+                {
+                    _minimapText.OnResetDevice();
+                }
             }
             catch (Exception ex)
             {
@@ -342,43 +355,50 @@ namespace SFXUtility.Features.Timers
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _camps.AddRange(
-                    Data.Jungle.Camps.Where(c => c.MapType == Utility.Map.GetMap().Type)
-                        .Select(
-                            c => new Camp(c.SpawnTime, c.RespawnTime, c.Position, c.Mobs, c.IsBig, c.MapType, c.Team)));
-
-                if (!_camps.Any())
-                {
-                    return;
-                }
-
-                _minimapText = new Font(
-                    Drawing.Direct3DDevice,
-                    new FontDescription
-                    {
-                        FaceName = Global.DefaultFont,
-                        Height = Menu.Item(Name + "DrawingMinimapFontSize").GetValue<Slider>().Value,
-                        OutputPrecision = FontPrecision.Default,
-                        Quality = FontQuality.Default
-                    });
-
-                _mapText = new Font(
-                    Drawing.Direct3DDevice,
-                    new FontDescription
-                    {
-                        FaceName = Global.DefaultFont,
-                        Height = Menu.Item(Name + "DrawingMapFontSize").GetValue<Slider>().Value,
-                        OutputPrecision = FontPrecision.Default,
-                        Quality = FontQuality.Default
-                    });
-
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        protected override void OnInitialize()
+        {
+            _camps = new List<Camp>();
+            _lastCheck = Environment.TickCount;
+
+            _camps.AddRange(
+                Data.Jungle.Camps.Where(c => c.MapType == Utility.Map.GetMap().Type)
+                    .Select(c => new Camp(c.SpawnTime, c.RespawnTime, c.Position, c.Mobs, c.IsBig, c.MapType, c.Team)));
+
+            if (!_camps.Any())
+            {
+                OnUnload(null, new UnloadEventArgs(true));
+                return;
+            }
+
+            _minimapText = new Font(
+                Drawing.Direct3DDevice,
+                new FontDescription
+                {
+                    FaceName = Global.DefaultFont,
+                    Height = Menu.Item(Name + "DrawingMinimapFontSize").GetValue<Slider>().Value,
+                    OutputPrecision = FontPrecision.Default,
+                    Quality = FontQuality.Default
+                });
+
+            _mapText = new Font(
+                Drawing.Direct3DDevice,
+                new FontDescription
+                {
+                    FaceName = Global.DefaultFont,
+                    Height = Menu.Item(Name + "DrawingMapFontSize").GetValue<Slider>().Value,
+                    OutputPrecision = FontPrecision.Default,
+                    Quality = FontQuality.Default
+                });
+
+            base.OnInitialize();
         }
 
         private class Camp : Data.Jungle.Camp

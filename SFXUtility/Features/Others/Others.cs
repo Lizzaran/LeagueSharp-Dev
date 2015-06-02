@@ -33,6 +33,8 @@ namespace SFXUtility.Features.Others
 {
     internal class Others : Base
     {
+        public Others(SFXUtility sfx) : base(sfx) {}
+
         public override bool Enabled
         {
             get { return Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }

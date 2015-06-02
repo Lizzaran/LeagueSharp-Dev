@@ -33,6 +33,8 @@ namespace SFXUtility.Features.Detectors
 {
     internal class Detectors : Base
     {
+        public Detectors(SFXUtility sfx) : base(sfx) {}
+
         public override bool Enabled
         {
             get { return Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }

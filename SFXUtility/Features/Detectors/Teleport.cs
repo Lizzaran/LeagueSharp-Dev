@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- teleport.cs is part of SFXUtility.
+ Teleport.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -47,8 +47,9 @@ namespace SFXUtility.Features.Detectors
         private Font _barText;
         private Line _line;
         private Detectors _parent;
-        private List<TeleportObject> _teleportObjects = new List<TeleportObject>();
+        private List<TeleportObject> _teleportObjects;
         private Font _text;
+        public Teleport(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -149,7 +150,7 @@ namespace SFXUtility.Features.Detectors
                         var teleports =
                             _teleportObjects.Where(
                                 t =>
-                                    t.Hero.IsEnemy && t.LastStatus != Packet.S2C.Teleport.Status.Unknown &&
+                                    t.Hero.IsAlly && t.LastStatus != Packet.S2C.Teleport.Status.Unknown &&
                                     t.Update(true)).OrderBy(t => t.Countdown);
                         foreach (var teleport in teleports)
                         {
@@ -178,22 +179,26 @@ namespace SFXUtility.Features.Detectors
                             _line.Draw(
                                 new[]
                                 {
-                                    new Vector2(posX + width, posY - seperatorHeight - barHeight / 2f),
-                                    new Vector2(posX + width, posY)
+                                    new Vector2(
+                                        posX + width,
+                                        (top ? posY - seperatorHeight - barHeight / 2f : posY + barHeight + 2)),
+                                    new Vector2(posX + width, (top ? posY : posY + seperatorHeight * 2 + barHeight + 2))
                                 }, SharpDX.Color.White);
 
                             _line.End();
 
                             _barText.DrawTextCentered(
                                 teleport.Hero.ChampionName, posX + width,
-                                (top ? posY - barHeight - seperatorHeight - 2 : posY + barHeight + seperatorHeight + 2),
+                                (top
+                                    ? posY - barHeight - seperatorHeight - 2
+                                    : posY + barHeight * 2 + seperatorHeight * 2 + 2),
                                 new ColorBGRA(color.R, color.G, color.B, color.A));
 
                             _barText.DrawTextCentered(
                                 hPercent, posX + width - 1,
                                 (top
-                                    ? posY - barHeight - 3 - seperatorHeight - _barText.Description.Height + 5
-                                    : posY + barHeight + 3 + _barText.Description.Height + 5),
+                                    ? posY - barHeight - 3 - seperatorHeight - _barText.Description.Height + 3
+                                    : posY + barHeight * 2 + 3 + seperatorHeight * 2 + _barText.Description.Height - 1),
                                 new ColorBGRA(color.R, color.G, color.B, color.A));
                             top = !top;
                         }
@@ -236,9 +241,18 @@ namespace SFXUtility.Features.Detectors
         {
             try
             {
-                _line.OnResetDevice();
-                _text.OnResetDevice();
-                _barText.OnResetDevice();
+                if (_line != null)
+                {
+                    _line.OnResetDevice();
+                }
+                if (_text != null)
+                {
+                    _text.OnResetDevice();
+                }
+                if (_barText != null)
+                {
+                    _barText.OnResetDevice();
+                }
             }
             catch (Exception ex)
             {
@@ -250,9 +264,18 @@ namespace SFXUtility.Features.Detectors
         {
             try
             {
-                _line.OnLostDevice();
-                _text.OnLostDevice();
-                _barText.OnLostDevice();
+                if (_line != null)
+                {
+                    _line.OnLostDevice();
+                }
+                if (_text != null)
+                {
+                    _text.OnLostDevice();
+                }
+                if (_barText != null)
+                {
+                    _barText.OnLostDevice();
+                }
             }
             catch (Exception ex)
             {
@@ -314,7 +337,10 @@ namespace SFXUtility.Features.Detectors
                         .SetValue(new Slider(10, 0, 10))).ValueChanged +=
                     delegate(object o, OnValueChangeEventArgs args)
                     {
-                        _teleportObjects.ForEach(t => t.AdditionalTextTime = args.GetNewValue<Slider>().Value);
+                        if (_teleportObjects != null)
+                        {
+                            _teleportObjects.ForEach(t => t.AdditionalTextTime = args.GetNewValue<Slider>().Value);
+                        }
                     };
                 drawingTextMenu.AddItem(
                     new MenuItem(drawingTextMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
@@ -340,11 +366,13 @@ namespace SFXUtility.Features.Detectors
                             new Slider((int) (Drawing.Width * 0.425d), 0, Drawing.Width)));
                 drawingBarMenu.AddItem(
                     new MenuItem(drawingBarMenu.Name + "AdditionalTime", Global.Lang.Get("Teleport_AdditionalTime"))
-                        .SetValue(new Slider(5, 0, 10))).ValueChanged +=
-                    delegate(object o, OnValueChangeEventArgs args)
-                    {
-                        _teleportObjects.ForEach(t => t.AdditionalBarTime = args.GetNewValue<Slider>().Value);
-                    };
+                        .SetValue(new Slider(5, 0, 10))).ValueChanged += delegate(object o, OnValueChangeEventArgs args)
+                        {
+                            if (_teleportObjects != null)
+                            {
+                                _teleportObjects.ForEach(t => t.AdditionalBarTime = args.GetNewValue<Slider>().Value);
+                            }
+                        };
                 drawingBarMenu.AddItem(
                     new MenuItem(drawingBarMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
@@ -357,52 +385,56 @@ namespace SFXUtility.Features.Detectors
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _teleportObjects =
-                    HeroManager.AllHeroes.Select(
-                        hero =>
-                            new TeleportObject(hero)
-                            {
-                                AdditionalTextTime =
-                                    Menu.Item(Menu.Name + "DrawingTextAdditionalTime").GetValue<Slider>().Value,
-                                AdditionalBarTime =
-                                    Menu.Item(Menu.Name + "DrawingBarAdditionalTime").GetValue<Slider>().Value
-                            })
-                        .ToList();
-
-                Obj_AI_Base.OnTeleport += OnObjAiBaseTeleport;
-
-                _text = new Font(
-                    Drawing.Direct3DDevice,
-                    new FontDescription
-                    {
-                        FaceName = Global.DefaultFont,
-                        Height = Menu.Item(Menu.Name + "DrawingTextFontSize").GetValue<Slider>().Value,
-                        OutputPrecision = FontPrecision.Default,
-                        Quality = FontQuality.Default
-                    });
-
-                _barText = new Font(
-                    Drawing.Direct3DDevice,
-                    new FontDescription
-                    {
-                        FaceName = Global.DefaultFont,
-                        Height =
-                            (int)
-                                (Math.Ceiling(
-                                    13 * (Menu.Item(Menu.Name + "DrawingBarScale").GetValue<Slider>().Value / 10d))),
-                        OutputPrecision = FontPrecision.Default,
-                        Quality = FontQuality.Default
-                    });
-
-                _line = new Line(Drawing.Direct3DDevice);
-
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        protected override void OnInitialize()
+        {
+            _teleportObjects = new List<TeleportObject>();
+            _teleportObjects =
+                HeroManager.AllHeroes.Select(
+                    hero =>
+                        new TeleportObject(hero)
+                        {
+                            AdditionalTextTime =
+                                Menu.Item(Menu.Name + "DrawingTextAdditionalTime").GetValue<Slider>().Value,
+                            AdditionalBarTime =
+                                Menu.Item(Menu.Name + "DrawingBarAdditionalTime").GetValue<Slider>().Value
+                        }).ToList();
+
+            Obj_AI_Base.OnTeleport += OnObjAiBaseTeleport;
+
+            _text = new Font(
+                Drawing.Direct3DDevice,
+                new FontDescription
+                {
+                    FaceName = Global.DefaultFont,
+                    Height = Menu.Item(Menu.Name + "DrawingTextFontSize").GetValue<Slider>().Value,
+                    OutputPrecision = FontPrecision.Default,
+                    Quality = FontQuality.Default
+                });
+
+            _barText = new Font(
+                Drawing.Direct3DDevice,
+                new FontDescription
+                {
+                    FaceName = Global.DefaultFont,
+                    Height =
+                        (int)
+                            (Math.Ceiling(
+                                13 * (Menu.Item(Menu.Name + "DrawingBarScale").GetValue<Slider>().Value / 10d))),
+                    OutputPrecision = FontPrecision.Default,
+                    Quality = FontQuality.Default
+                });
+
+            _line = new Line(Drawing.Direct3DDevice);
+
+            base.OnInitialize();
         }
 
         private void OnObjAiBaseTeleport(GameObject sender, GameObjectTeleportEventArgs args)

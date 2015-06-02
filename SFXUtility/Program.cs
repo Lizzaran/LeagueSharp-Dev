@@ -30,7 +30,6 @@ using System.Reflection;
 using System.Resources;
 using SFXLibrary;
 using SFXLibrary.Logger;
-using SFXUtility.Feature;
 using SFXUtility.Features.Activators;
 using SFXUtility.Features.Detectors;
 using SFXUtility.Features.Drawings;
@@ -38,7 +37,6 @@ using SFXUtility.Features.Events;
 using SFXUtility.Features.Others;
 using SFXUtility.Features.Timers;
 using SFXUtility.Features.Trackers;
-using Object = SFXUtility.Features.Timers.Object;
 
 #endregion
 
@@ -112,60 +110,61 @@ namespace SFXUtility
                 Console.WriteLine(ex);
             }
 
-            Global.IoC.Register(() => new SFXUtility(), true, true);
+            var sfx = new SFXUtility();
+            Global.IoC.Register(() => sfx, true, true);
 
-            Global.IoC.Register(() => new Activators(), true, true);
-            Global.IoC.Register(() => new BushRevealer(), true, true);
-            Global.IoC.Register(() => new InvisibilityRevealer(), true, true);
-            Global.IoC.Register(() => new KillSteal(), true, true);
-            Global.IoC.Register(() => new Potion(), true, true);
-            Global.IoC.Register(() => new Smite(), true, true);
+            Global.IoC.Register(() => new Activators(sfx), true, true);
+            //Global.IoC.Register(() => new BushRevealer(sfx), true, true);
+            //Global.IoC.Register(() => new InvisibilityRevealer(sfx), true, true);
+            Global.IoC.Register(() => new KillSteal(sfx), true, true);
+            Global.IoC.Register(() => new Potion(sfx), true, true);
+            Global.IoC.Register(() => new Smite(sfx), true, true);
 
-            Global.IoC.Register(() => new Detectors(), true, true);
-            Global.IoC.Register(() => new Gank(), true, true);
-            Global.IoC.Register(() => new Replay(), true, true);
-            Global.IoC.Register(() => new SharedExperience(), true, true);
-            Global.IoC.Register(() => new Teleport(), true, true);
+            Global.IoC.Register(() => new Detectors(sfx), true, true);
+            //Global.IoC.Register(() => new Gank(sfx), true, true);
+            Global.IoC.Register(() => new Replay(sfx), true, true);
+            //Global.IoC.Register(() => new SharedExperience(sfx), true, true);
+            Global.IoC.Register(() => new Teleport(sfx), true, true);
 
-            Global.IoC.Register(() => new Drawings(), true, true);
-            Global.IoC.Register(() => new Clock(), true, true);
-            Global.IoC.Register(() => new Clone(), true, true);
-            Global.IoC.Register(() => new DamageIndicator(), true, true);
-            Global.IoC.Register(() => new Health(), true, true);
-            Global.IoC.Register(() => new LasthitMarker(), true, true);
-            Global.IoC.Register(() => new PerfectWard(), true, true);
-            Global.IoC.Register(() => new Range(), true, true);
-            Global.IoC.Register(() => new SafeJungleSpot(), true, true);
-            Global.IoC.Register(() => new WallJumpSpot(), true, true);
-            Global.IoC.Register(() => new Waypoint(), true, true);
+            Global.IoC.Register(() => new Drawings(sfx), true, true);
+            Global.IoC.Register(() => new Clock(sfx), true, true);
+            Global.IoC.Register(() => new Clone(sfx), true, true);
+            Global.IoC.Register(() => new DamageIndicator(sfx), true, true);
+            Global.IoC.Register(() => new Health(sfx), true, true);
+            Global.IoC.Register(() => new LasthitMarker(sfx), true, true);
+            Global.IoC.Register(() => new PerfectWard(sfx), true, true);
+            Global.IoC.Register(() => new Range(sfx), true, true);
+            Global.IoC.Register(() => new SafeJungleSpot(sfx), true, true);
+            Global.IoC.Register(() => new WallJumpSpot(sfx), true, true);
+            Global.IoC.Register(() => new Waypoint(sfx), true, true);
 
-            Global.IoC.Register(() => new Events(), true, true);
-            Global.IoC.Register(() => new AutoLeveler(), true, true);
-            Global.IoC.Register(() => new Game(), true, true);
-            Global.IoC.Register(() => new Trinket(), true, true);
+            Global.IoC.Register(() => new Events(sfx), true, true);
+            Global.IoC.Register(() => new AutoLeveler(sfx), true, true);
+            Global.IoC.Register(() => new Game(sfx), true, true);
+            Global.IoC.Register(() => new Trinket(sfx), true, true);
 
-            Global.IoC.Register(() => new Others(), true, true);
-            Global.IoC.Register(() => new AntiTrap(), true, true);
-            Global.IoC.Register(() => new AutoLantern(), true, true);
-            Global.IoC.Register(() => new ExtendFlash(), true, true);
-            Global.IoC.Register(() => new Humanize(), true, true);
-            Global.IoC.Register(() => new Ping(), true, true);
-            Global.IoC.Register(() => new SkinChanger(), true, true);
-            Global.IoC.Register(() => new SummonerInfo(), true, true);
-            Global.IoC.Register(() => new TurnAround(), true, true);
+            Global.IoC.Register(() => new Others(sfx), true, true);
+            //Global.IoC.Register(() => new AntiTrap(sfx), true, true);
+            Global.IoC.Register(() => new AutoLantern(sfx), true, true);
+            Global.IoC.Register(() => new ExtendFlash(sfx), true, true);
+            Global.IoC.Register(() => new Humanize(sfx), true, true);
+            Global.IoC.Register(() => new Ping(sfx), true, true);
+            Global.IoC.Register(() => new SkinChanger(sfx), true, true);
+            //Global.IoC.Register(() => new SummonerInfo(sfx), true, true);
+            Global.IoC.Register(() => new TurnAround(sfx), true, true);
 
-            Global.IoC.Register(() => new Timers(), true, true);
-            Global.IoC.Register(() => new Ability(), true, true);
-            Global.IoC.Register(() => new Cooldown(), true, true);
-            Global.IoC.Register(() => new Jungle(), true, true);
-            Global.IoC.Register(() => new Object(), true, true);
+            Global.IoC.Register(() => new Timers(sfx), true, true);
+            Global.IoC.Register(() => new Ability(sfx), true, true);
+            Global.IoC.Register(() => new Cooldown(sfx), true, true);
+            Global.IoC.Register(() => new Jungle(sfx), true, true);
+            //Global.IoC.Register(() => new Object(sfx), true, true);
 
-            Global.IoC.Register(() => new Trackers(), true, true);
-            Global.IoC.Register(() => new GoldEfficiency(), true, true);
-            Global.IoC.Register(() => new Destination(), true, true);
-            Global.IoC.Register(() => new LastPosition(), true, true);
-            Global.IoC.Register(() => new Sidebar(), true, true);
-            Global.IoC.Register(() => new Ward(), true, true);
+            Global.IoC.Register(() => new Trackers(sfx), true, true);
+            Global.IoC.Register(() => new GoldEfficiency(sfx), true, true);
+            Global.IoC.Register(() => new Destination(sfx), true, true);
+            Global.IoC.Register(() => new LastPosition(sfx), true, true);
+            Global.IoC.Register(() => new Sidebar(sfx), true, true);
+            Global.IoC.Register(() => new Ward(sfx), true, true);
         }
     }
 }

@@ -38,15 +38,11 @@ namespace SFXUtility.Features.Others
 {
     internal class TurnAround : Base
     {
-        private readonly List<SpellInfo> _spellInfos = new List<SpellInfo>
-        {
-            new SpellInfo("Cassiopeia", "CassiopeiaPetrifyingGaze", 1000f, false, true, 0.65f),
-            new SpellInfo("Tryndamere", "MockingShout", 900f, false, false, 0.65f)
-        };
-
         private float _blockMovementTime;
         private Vector3 _lastMove;
         private Others _parent;
+        private List<SpellInfo> _spellInfos;
+        public TurnAround(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -172,18 +168,29 @@ namespace SFXUtility.Features.Others
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                if (!HeroManager.Enemies.Any(h => _spellInfos.Any(i => i.Owner == h.ChampionName)))
-                {
-                    return;
-                }
-
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        protected override void OnInitialize()
+        {
+            _spellInfos = new List<SpellInfo>
+            {
+                new SpellInfo("Cassiopeia", "CassiopeiaPetrifyingGaze", 1000f, false, true, 0.65f),
+                new SpellInfo("Tryndamere", "MockingShout", 900f, false, false, 0.65f)
+            };
+
+            if (!HeroManager.Enemies.Any(h => _spellInfos.Any(i => i.Owner == h.ChampionName)))
+            {
+                OnUnload(null, new UnloadEventArgs(true));
+                return;
+            }
+
+            base.OnInitialize();
         }
 
         private class SpellInfo

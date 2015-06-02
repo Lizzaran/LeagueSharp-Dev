@@ -39,10 +39,11 @@ namespace SFXUtility.Features.Others
     internal class SkinChanger : Base
     {
         private const float CheckInterval = 300f;
-        private readonly List<ModelUnit> _playerList = new List<ModelUnit>();
-        private float _lastCheck = Environment.TickCount;
+        private float _lastCheck;
         private Others _parent;
         private ModelUnit _player;
+        private List<ModelUnit> _playerList;
+        public SkinChanger(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -106,62 +107,70 @@ namespace SFXUtility.Features.Others
 
                 Menu = new Menu(Name, Name);
 
-                foreach (var hero in HeroManager.AllHeroes)
-                {
-                    var localHero = hero;
-                    var champMenu = new Menu(
-                        (hero.IsAlly ? "A: " : "E: ") + hero.ChampionName, (hero.IsAlly ? "a" : "e") + hero.ChampionName);
-                    var modelUnit = new ModelUnit(hero);
-
-                    _playerList.Add(modelUnit);
-
-                    if (hero.IsMe)
-                    {
-                        _player = modelUnit;
-                    }
-
-                    foreach (Dictionary<string, object> skin in ModelManager.GetSkins(hero.ChampionName))
-                    {
-                        var localSkin = skin;
-                        var skinName = skin["name"].ToString().Equals("default")
-                            ? hero.ChampionName
-                            : skin["name"].ToString();
-                        var changeSkin = champMenu.AddItem(new MenuItem(skinName, skinName).SetValue(false));
-                        if (changeSkin.IsActive())
-                        {
-                            modelUnit.SetModel(hero.BaseSkinName, (int) skin["num"]);
-                        }
-
-                        changeSkin.ValueChanged += (s, e) =>
-                        {
-                            if (e.GetNewValue<bool>())
-                            {
-                                champMenu.Items.ForEach(
-                                    p =>
-                                    {
-                                        if (p.GetValue<bool>() && p.Name != skinName)
-                                        {
-                                            p.SetValue(false);
-                                        }
-                                    });
-                                modelUnit.SetModel(localHero.ChampionName, (int) localSkin["num"]);
-                            }
-                        };
-                    }
-                    Menu.AddSubMenu(champMenu);
-                }
-
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        protected override void OnInitialize()
+        {
+            _playerList = new List<ModelUnit>();
+            _lastCheck = Environment.TickCount;
+
+
+            foreach (var hero in HeroManager.AllHeroes)
+            {
+                var localHero = hero;
+                var champMenu = new Menu(
+                    (hero.IsAlly ? "A: " : "E: ") + hero.ChampionName, (hero.IsAlly ? "a" : "e") + hero.ChampionName);
+                var modelUnit = new ModelUnit(hero);
+
+                _playerList.Add(modelUnit);
+
+                if (hero.IsMe)
+                {
+                    _player = modelUnit;
+                }
+
+                foreach (Dictionary<string, object> skin in ModelManager.GetSkins(hero.ChampionName))
+                {
+                    var localSkin = skin;
+                    var skinName = skin["name"].ToString().Equals("default")
+                        ? hero.ChampionName
+                        : skin["name"].ToString();
+                    var changeSkin = champMenu.AddItem(new MenuItem(skinName, skinName).SetValue(false));
+                    if (changeSkin.IsActive())
+                    {
+                        modelUnit.SetModel(hero.BaseSkinName, (int) skin["num"]);
+                    }
+
+                    changeSkin.ValueChanged += (s, e) =>
+                    {
+                        if (e.GetNewValue<bool>())
+                        {
+                            champMenu.Items.ForEach(
+                                p =>
+                                {
+                                    if (p.GetValue<bool>() && p.Name != skinName)
+                                    {
+                                        p.SetValue(false);
+                                    }
+                                });
+                            modelUnit.SetModel(localHero.ChampionName, (int) localSkin["num"]);
+                        }
+                    };
+                }
+                Menu.AddSubMenu(champMenu);
+            }
+
+            base.OnInitialize();
         }
 
         private void OnGameInput(GameInputEventArgs args)

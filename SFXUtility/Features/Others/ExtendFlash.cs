@@ -36,6 +36,7 @@ namespace SFXUtility.Features.Others
     internal class ExtendFlash : Base
     {
         private Others _parent;
+        public ExtendFlash(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -102,7 +103,6 @@ namespace SFXUtility.Features.Others
                 _parent.Menu.AddSubMenu(Menu);
 
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {

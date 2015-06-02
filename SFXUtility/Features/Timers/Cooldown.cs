@@ -46,17 +46,18 @@ namespace SFXUtility.Features.Timers
     internal class Cooldown : Base
     {
         private const int TeleportCd = 240;
-        private readonly SpellSlot[] _spellSlots = { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R };
-        private readonly SpellSlot[] _summonerSlots = { SpellSlot.Summoner1, SpellSlot.Summoner2 };
-        private readonly Dictionary<string, Texture> _summonerTextures = new Dictionary<string, Texture>();
-        private readonly Dictionary<int, float> _teleports = new Dictionary<int, float>();
-        private List<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
+        private List<Obj_AI_Hero> _heroes;
         private Texture _hudSelfTexture;
         private Texture _hudTexture;
         private Line _line;
         private Timers _parent;
+        private SpellSlot[] _spellSlots;
         private Sprite _sprite;
+        private SpellSlot[] _summonerSlots;
+        private Dictionary<string, Texture> _summonerTextures;
+        private Dictionary<int, float> _teleports;
         private Font _text;
+        public Cooldown(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -187,6 +188,10 @@ namespace SFXUtility.Features.Timers
 
                 Menu.Item(Name + "DrawingEnemy").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
                 {
+                    if (_heroes == null)
+                    {
+                        return;
+                    }
                     var ally = Menu.Item(Name + "DrawingAlly").GetValue<bool>();
                     var enemy = args.GetNewValue<bool>();
                     _heroes = ally && enemy
@@ -207,6 +212,10 @@ namespace SFXUtility.Features.Timers
 
                 Menu.Item(Name + "DrawingAlly").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
                 {
+                    if (_heroes == null)
+                    {
+                        return;
+                    }
                     var ally = args.GetNewValue<bool>();
                     var enemy = Menu.Item(Name + "DrawingEnemy").GetValue<bool>();
                     _heroes = ally && enemy
@@ -232,6 +241,10 @@ namespace SFXUtility.Features.Timers
 
                 Menu.Item(Name + "DrawingSelf").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
                 {
+                    if (_heroes == null)
+                    {
+                        return;
+                    }
                     var ally = Menu.Item(Name + "DrawingAlly").GetValue<bool>();
                     var enemy = Menu.Item(Name + "DrawingEnemy").GetValue<bool>();
                     _heroes = ally && enemy
@@ -252,58 +265,67 @@ namespace SFXUtility.Features.Timers
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                if (Global.IoC.IsRegistered<Teleport>())
-                {
-                    var rt = Global.IoC.Resolve<Teleport>();
-                    rt.OnFinish += TeleportFinish;
-                }
-
-                foreach (var sName in
-                    HeroManager.AllHeroes.SelectMany(
-                        h =>
-                            _summonerSlots.Select(summoner => h.Spellbook.GetSpell(summoner).Name.ToLower())
-                                .Where(sName => !_summonerTextures.ContainsKey(FixSummonerName(sName)))))
-                {
-                    _summonerTextures[FixSummonerName(sName)] =
-                        ((Bitmap) Resources.ResourceManager.GetObject(string.Format("CD_{0}", FixSummonerName(sName))) ??
-                         Resources.CD_summonerbarrier).ToTexture();
-                }
-
-                _sprite = new Sprite(Drawing.Direct3DDevice);
-                _hudTexture = Resources.CD_Hud.ToTexture();
-                _hudSelfTexture = Resources.CD_HudSelf.ToTexture();
-                _line = new Line(Drawing.Direct3DDevice) { Width = 4 };
-                _text = new Font(
-                    Drawing.Direct3DDevice,
-                    new FontDescription
-                    {
-                        FaceName = Global.DefaultFont,
-                        Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
-                        OutputPrecision = FontPrecision.Default,
-                        Quality = FontQuality.Default
-                    });
-
-                _heroes = Menu.Item(Name + "DrawingAlly").GetValue<bool>() &&
-                          Menu.Item(Name + "DrawingEnemy").GetValue<bool>()
-                    ? HeroManager.AllHeroes
-                    : (Menu.Item(Name + "DrawingAlly").GetValue<bool>()
-                        ? HeroManager.Allies
-                        : (Menu.Item(Name + "DrawingEnemy").GetValue<bool>()
-                            ? HeroManager.Enemies
-                            : new List<Obj_AI_Hero>()));
-
-                if (!Menu.Item(Name + "DrawingSelf").GetValue<bool>())
-                {
-                    _heroes.RemoveAll(h => h.NetworkId == ObjectManager.Player.NetworkId);
-                }
-
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        protected override void OnInitialize()
+        {
+            _spellSlots = new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R };
+            _summonerSlots = new[] { SpellSlot.Summoner1, SpellSlot.Summoner2 };
+            _summonerTextures = new Dictionary<string, Texture>();
+            _teleports = new Dictionary<int, float>();
+            _heroes = new List<Obj_AI_Hero>();
+
+
+            if (Global.IoC.IsRegistered<Teleport>())
+            {
+                var rt = Global.IoC.Resolve<Teleport>();
+                rt.OnFinish += TeleportFinish;
+            }
+
+            foreach (var sName in
+                HeroManager.AllHeroes.SelectMany(
+                    h =>
+                        _summonerSlots.Select(summoner => h.Spellbook.GetSpell(summoner).Name.ToLower())
+                            .Where(sName => !_summonerTextures.ContainsKey(FixSummonerName(sName)))))
+            {
+                _summonerTextures[FixSummonerName(sName)] =
+                    ((Bitmap) Resources.ResourceManager.GetObject(string.Format("CD_{0}", FixSummonerName(sName))) ??
+                     Resources.CD_summonerbarrier).ToTexture();
+            }
+
+            _sprite = new Sprite(Drawing.Direct3DDevice);
+            _hudTexture = Resources.CD_Hud.ToTexture();
+            _hudSelfTexture = Resources.CD_HudSelf.ToTexture();
+            _line = new Line(Drawing.Direct3DDevice) { Width = 4 };
+            _text = new Font(
+                Drawing.Direct3DDevice,
+                new FontDescription
+                {
+                    FaceName = Global.DefaultFont,
+                    Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
+                    OutputPrecision = FontPrecision.Default,
+                    Quality = FontQuality.Default
+                });
+
+            _heroes = Menu.Item(Name + "DrawingAlly").GetValue<bool>() &&
+                      Menu.Item(Name + "DrawingEnemy").GetValue<bool>()
+                ? HeroManager.AllHeroes
+                : (Menu.Item(Name + "DrawingAlly").GetValue<bool>()
+                    ? HeroManager.Allies
+                    : (Menu.Item(Name + "DrawingEnemy").GetValue<bool>() ? HeroManager.Enemies : new List<Obj_AI_Hero>()));
+
+            if (!Menu.Item(Name + "DrawingSelf").GetValue<bool>())
+            {
+                _heroes.RemoveAll(h => h.NetworkId == ObjectManager.Player.NetworkId);
+            }
+
+            base.OnInitialize();
         }
 
         private void TeleportFinish(object sender, TeleportEventArgs e)
@@ -439,9 +461,18 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
-                _line.OnResetDevice();
-                _text.OnResetDevice();
-                _sprite.OnResetDevice();
+                if (_line != null)
+                {
+                    _line.OnResetDevice();
+                }
+                if (_text != null)
+                {
+                    _text.OnResetDevice();
+                }
+                if (_sprite != null)
+                {
+                    _sprite.OnResetDevice();
+                }
             }
             catch (Exception ex)
             {
@@ -453,9 +484,18 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
-                _line.OnLostDevice();
-                _text.OnLostDevice();
-                _sprite.OnLostDevice();
+                if (_line != null)
+                {
+                    _line.OnLostDevice();
+                }
+                if (_text != null)
+                {
+                    _text.OnLostDevice();
+                }
+                if (_sprite != null)
+                {
+                    _sprite.OnLostDevice();
+                }
             }
             catch (Exception ex)
             {

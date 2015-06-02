@@ -42,13 +42,14 @@ namespace SFXUtility.Features.Activators
     internal class Smite : Base
     {
         public const float SmiteRange = 570f;
-        private readonly List<Jungle.Camp> _camps = new List<Jungle.Camp>();
-        private readonly List<HeroSpell> _heroSpells = new List<HeroSpell>();
+        private List<Jungle.Camp> _camps;
         private Obj_AI_Minion _currentMinion;
         private bool _delayActive;
+        private List<HeroSpell> _heroSpells;
         private string[] _mobNames = new string[0];
         private Activators _parent;
         private Spell _smiteSpell;
+        public Smite(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -102,117 +103,6 @@ namespace SFXUtility.Features.Activators
 
                 var spellMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Spell"), Name + "Spell"));
 
-                var championMenu =
-                    spellMenu.AddSubMenu(
-                        new Menu(ObjectManager.Player.ChampionName, spellMenu.Name + ObjectManager.Player.ChampionName));
-                var championPriorityMenu =
-                    championMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Priority"), championMenu.Name + "Priority"));
-                var spells =
-                    ObjectManager.Player.Spellbook.Spells.Where(
-                        s => new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R }.Contains(s.Slot)).ToList();
-                var index = spells.Count;
-
-                foreach (var spell in spells.Where(s => s.SData.TargettingType != SpellDataTargetType.Self))
-                {
-                    var spellName = Utils.GetEnumName(spell.Slot);
-                    championPriorityMenu.AddItem(
-                        new MenuItem(championPriorityMenu.Name + spellName, spellName).SetValue(
-                            new Slider(index--, 1, spells.Count)));
-
-                    var championSpellMenu = championMenu.AddSubMenu(new Menu(spellName, championMenu.Name + spellName));
-
-                    var championDrawingMenu =
-                        championSpellMenu.AddSubMenu(
-                            new Menu(Global.Lang.Get("G_Drawing"), championSpellMenu.Name + "Drawing"));
-                    championDrawingMenu.AddItem(
-                        new MenuItem(
-                            championDrawingMenu.Name + "UseableColor",
-                            Global.Lang.Get("G_Useable") + " " + Global.Lang.Get("G_Color")).SetValue(Color.Blue));
-                    championDrawingMenu.AddItem(
-                        new MenuItem(
-                            championDrawingMenu.Name + "UnusableColor",
-                            Global.Lang.Get("G_Unusable") + " " + Global.Lang.Get("G_Color")).SetValue(Color.Gray));
-                    championDrawingMenu.AddItem(
-                        new MenuItem(championDrawingMenu.Name + "Thickness", Global.Lang.Get("G_Thickness")).SetValue(
-                            new Slider(2, 1, 10)));
-                    championDrawingMenu.AddItem(
-                        new MenuItem(championDrawingMenu.Name + "Range", Global.Lang.Get("G_Range")).SetValue(false));
-                    championSpellMenu.AddItem(
-                        new MenuItem(
-                            championSpellMenu.Name + "IsSkillshot",
-                            Global.Lang.Get("G_Is") + " " + Global.Lang.Get("G_Skillshot")).SetValue(false));
-                    championSpellMenu.AddItem(
-                        new MenuItem(championSpellMenu.Name + "Collision", Global.Lang.Get("G_Collision")).SetValue(
-                            false));
-                    championSpellMenu.AddItem(
-                        new MenuItem(
-                            championSpellMenu.Name + "MinHitChance",
-                            Global.Lang.Get("G_Minimum") + " " + Global.Lang.Get("G_HitChance")).SetValue(
-                                new StringList(Global.Lang.GetList("Smite_MinHitChanceList"), 1)));
-                    championSpellMenu.AddItem(
-                        new MenuItem(
-                            championSpellMenu.Name + "DamageType",
-                            Global.Lang.Get("G_Damage") + " " + Global.Lang.Get("G_Type")).SetValue(
-                                new StringList(Global.Lang.GetList("Smite_DamageTypeList"))));
-                    championSpellMenu.AddItem(
-                        new MenuItem(
-                            championSpellMenu.Name + "SkillshotType",
-                            Global.Lang.Get("G_Skillshot") + " " + Global.Lang.Get("G_Type")).SetValue(
-                                new StringList(Global.Lang.GetList("Smite_SkillshotTypeList"))));
-                    championSpellMenu.AddItem(
-                        new MenuItem(championSpellMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
-
-                    var heroSpell = new HeroSpell(
-                        spell.Slot, Menu.Item(championSpellMenu.Name + "IsSkillshot").GetValue<bool>(),
-                        Menu.Item(championSpellMenu.Name + "Collision").GetValue<bool>(),
-                        (HitChance)
-                            (Menu.Item(championSpellMenu.Name + "MinHitChance").GetValue<StringList>().SelectedIndex + 3),
-                        (TargetSelector.DamageType)
-                            (Menu.Item(championSpellMenu.Name + "DamageType").GetValue<StringList>().SelectedIndex),
-                        (SkillshotType)
-                            (Menu.Item(championSpellMenu.Name + "SkillshotType").GetValue<StringList>().SelectedIndex),
-                        Menu.Item(championSpellMenu.Name + "Enabled").GetValue<bool>())
-                    {
-                        Priority = Menu.Item(championPriorityMenu.Name + spellName).GetValue<Slider>().Value,
-                        UseableColor = Menu.Item(championDrawingMenu.Name + "UseableColor").GetValue<Color>(),
-                        UnusableColor = Menu.Item(championDrawingMenu.Name + "UnusableColor").GetValue<Color>(),
-                        Thickness = Menu.Item(championDrawingMenu.Name + "Thickness").GetValue<Slider>().Value,
-                        Drawing = Menu.Item(championDrawingMenu.Name + "Range").GetValue<bool>()
-                    };
-
-                    Menu.Item(championPriorityMenu.Name + spellName).ValueChanged +=
-                        (o, args) => heroSpell.Priority = args.GetNewValue<Slider>().Value;
-                    Menu.Item(championSpellMenu.Name + "IsSkillshot").ValueChanged +=
-                        (o, args) => heroSpell.IsSkillshot = args.GetNewValue<bool>();
-                    Menu.Item(championSpellMenu.Name + "Collision").ValueChanged +=
-                        (o, args) => heroSpell.Collision = args.GetNewValue<bool>();
-                    Menu.Item(championSpellMenu.Name + "MinHitChance").ValueChanged +=
-                        (o, args) =>
-                            heroSpell.MinHitChance = (HitChance) (args.GetNewValue<StringList>().SelectedIndex + 3);
-                    Menu.Item(championSpellMenu.Name + "DamageType").ValueChanged +=
-                        (o, args) =>
-                            heroSpell.DamageType =
-                                (TargetSelector.DamageType) (args.GetNewValue<StringList>().SelectedIndex);
-                    Menu.Item(championSpellMenu.Name + "SkillshotType").ValueChanged +=
-                        (o, args) =>
-                            heroSpell.SkillshotType = (SkillshotType) (args.GetNewValue<StringList>().SelectedIndex);
-                    Menu.Item(championSpellMenu.Name + "Enabled").ValueChanged +=
-                        (o, args) => heroSpell.Enabled = args.GetNewValue<bool>();
-
-                    Menu.Item(championDrawingMenu.Name + "UseableColor").ValueChanged +=
-                        (o, args) => heroSpell.UseableColor = args.GetNewValue<Color>();
-                    Menu.Item(championDrawingMenu.Name + "UnusableColor").ValueChanged +=
-                        (o, args) => heroSpell.UnusableColor = args.GetNewValue<Color>();
-                    Menu.Item(championDrawingMenu.Name + "Thickness").ValueChanged +=
-                        (o, args) => heroSpell.Thickness = args.GetNewValue<Slider>().Value;
-                    Menu.Item(championDrawingMenu.Name + "Range").ValueChanged +=
-                        (o, args) => heroSpell.Drawing = args.GetNewValue<bool>();
-
-                    _heroSpells.Add(heroSpell);
-                }
-                championMenu.AddItem(
-                    new MenuItem(championMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
-
                 var smiteMenu = spellMenu.AddSubMenu(new Menu(Global.Lang.Get("Smite_Smite"), spellMenu.Name + "Smite"));
 
                 var smiteDrawingMenu =
@@ -252,33 +142,152 @@ namespace SFXUtility.Features.Activators
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                var smiteSpell =
-                    ObjectManager.Player.Spellbook.Spells.FirstOrDefault(
-                        s => s.Name.Contains("Smite", StringComparison.OrdinalIgnoreCase));
-                if (smiteSpell != null)
-                {
-                    _smiteSpell = new Spell(smiteSpell.Slot, SmiteRange, TargetSelector.DamageType.True);
-                }
-
-                _camps.AddRange(Jungle.Camps.Where(c => c.MapType == Utility.Map.GetMap().Type));
-
-                _mobNames = Menu.Item(Name + "SmallCamps").GetValue<bool>()
-                    ? (from c in _camps from m in c.Mobs.Where(m => m.IsBig) select m.Name).ToArray()
-                    : (from c in _camps.Where(c => c.IsBig) from m in c.Mobs.Where(m => m.IsBig) select m.Name).ToArray(
-                        );
-
-                if (!_camps.Any() || _smiteSpell == null && !_heroSpells.Any())
-                {
-                    return;
-                }
-
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        protected override void OnInitialize()
+        {
+            _camps = new List<Jungle.Camp>();
+            _heroSpells = new List<HeroSpell>();
+
+            var smiteSpell =
+                ObjectManager.Player.Spellbook.Spells.FirstOrDefault(
+                    s => s.Name.Contains("Smite", StringComparison.OrdinalIgnoreCase));
+
+            if (smiteSpell != null)
+            {
+                _smiteSpell = new Spell(smiteSpell.Slot, SmiteRange, TargetSelector.DamageType.True);
+            }
+
+            _camps.AddRange(Jungle.Camps.Where(c => c.MapType == Utility.Map.GetMap().Type));
+
+
+            if (!_camps.Any() || _smiteSpell == null && !_heroSpells.Any())
+            {
+                OnUnload(this, new UnloadEventArgs(true));
+                return;
+            }
+
+            _mobNames = Menu.Item(Name + "SmallCamps").GetValue<bool>()
+                ? (from c in _camps from m in c.Mobs.Where(m => m.IsBig) select m.Name).ToArray()
+                : (from c in _camps.Where(c => c.IsBig) from m in c.Mobs.Where(m => m.IsBig) select m.Name).ToArray();
+
+            var spellMenu = Menu.SubMenu(Name + "Spell");
+            var championMenu =
+                spellMenu.AddSubMenu(
+                    new Menu(ObjectManager.Player.ChampionName, spellMenu.Name + ObjectManager.Player.ChampionName));
+            var championPriorityMenu =
+                championMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Priority"), championMenu.Name + "Priority"));
+            var spells =
+                ObjectManager.Player.Spellbook.Spells.Where(
+                    s => new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R }.Contains(s.Slot)).ToList();
+            var index = spells.Count;
+
+            foreach (var spell in spells.Where(s => s.SData.TargettingType != SpellDataTargetType.Self))
+            {
+                var spellName = Utils.GetEnumName(spell.Slot);
+                championPriorityMenu.AddItem(
+                    new MenuItem(championPriorityMenu.Name + spellName, spellName).SetValue(
+                        new Slider(index--, 1, spells.Count)));
+
+                var championSpellMenu = championMenu.AddSubMenu(new Menu(spellName, championMenu.Name + spellName));
+
+                var championDrawingMenu =
+                    championSpellMenu.AddSubMenu(
+                        new Menu(Global.Lang.Get("G_Drawing"), championSpellMenu.Name + "Drawing"));
+                championDrawingMenu.AddItem(
+                    new MenuItem(
+                        championDrawingMenu.Name + "UseableColor",
+                        Global.Lang.Get("G_Useable") + " " + Global.Lang.Get("G_Color")).SetValue(Color.Blue));
+                championDrawingMenu.AddItem(
+                    new MenuItem(
+                        championDrawingMenu.Name + "UnusableColor",
+                        Global.Lang.Get("G_Unusable") + " " + Global.Lang.Get("G_Color")).SetValue(Color.Gray));
+                championDrawingMenu.AddItem(
+                    new MenuItem(championDrawingMenu.Name + "Thickness", Global.Lang.Get("G_Thickness")).SetValue(
+                        new Slider(2, 1, 10)));
+                championDrawingMenu.AddItem(
+                    new MenuItem(championDrawingMenu.Name + "Range", Global.Lang.Get("G_Range")).SetValue(false));
+                championSpellMenu.AddItem(
+                    new MenuItem(
+                        championSpellMenu.Name + "IsSkillshot",
+                        Global.Lang.Get("G_Is") + " " + Global.Lang.Get("G_Skillshot")).SetValue(false));
+                championSpellMenu.AddItem(
+                    new MenuItem(championSpellMenu.Name + "Collision", Global.Lang.Get("G_Collision")).SetValue(false));
+                championSpellMenu.AddItem(
+                    new MenuItem(
+                        championSpellMenu.Name + "MinHitChance",
+                        Global.Lang.Get("G_Minimum") + " " + Global.Lang.Get("G_HitChance")).SetValue(
+                            new StringList(Global.Lang.GetList("Smite_MinHitChanceList"), 1)));
+                championSpellMenu.AddItem(
+                    new MenuItem(
+                        championSpellMenu.Name + "DamageType",
+                        Global.Lang.Get("G_Damage") + " " + Global.Lang.Get("G_Type")).SetValue(
+                            new StringList(Global.Lang.GetList("Smite_DamageTypeList"))));
+                championSpellMenu.AddItem(
+                    new MenuItem(
+                        championSpellMenu.Name + "SkillshotType",
+                        Global.Lang.Get("G_Skillshot") + " " + Global.Lang.Get("G_Type")).SetValue(
+                            new StringList(Global.Lang.GetList("Smite_SkillshotTypeList"))));
+                championSpellMenu.AddItem(
+                    new MenuItem(championSpellMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+
+                var heroSpell = new HeroSpell(
+                    spell.Slot, Menu.Item(championSpellMenu.Name + "IsSkillshot").GetValue<bool>(),
+                    Menu.Item(championSpellMenu.Name + "Collision").GetValue<bool>(),
+                    (HitChance)
+                        (Menu.Item(championSpellMenu.Name + "MinHitChance").GetValue<StringList>().SelectedIndex + 3),
+                    (TargetSelector.DamageType)
+                        (Menu.Item(championSpellMenu.Name + "DamageType").GetValue<StringList>().SelectedIndex),
+                    (SkillshotType)
+                        (Menu.Item(championSpellMenu.Name + "SkillshotType").GetValue<StringList>().SelectedIndex),
+                    Menu.Item(championSpellMenu.Name + "Enabled").GetValue<bool>())
+                {
+                    Priority = Menu.Item(championPriorityMenu.Name + spellName).GetValue<Slider>().Value,
+                    UseableColor = Menu.Item(championDrawingMenu.Name + "UseableColor").GetValue<Color>(),
+                    UnusableColor = Menu.Item(championDrawingMenu.Name + "UnusableColor").GetValue<Color>(),
+                    Thickness = Menu.Item(championDrawingMenu.Name + "Thickness").GetValue<Slider>().Value,
+                    Drawing = Menu.Item(championDrawingMenu.Name + "Range").GetValue<bool>()
+                };
+
+                Menu.Item(championPriorityMenu.Name + spellName).ValueChanged +=
+                    (o, args) => heroSpell.Priority = args.GetNewValue<Slider>().Value;
+                Menu.Item(championSpellMenu.Name + "IsSkillshot").ValueChanged +=
+                    (o, args) => heroSpell.IsSkillshot = args.GetNewValue<bool>();
+                Menu.Item(championSpellMenu.Name + "Collision").ValueChanged +=
+                    (o, args) => heroSpell.Collision = args.GetNewValue<bool>();
+                Menu.Item(championSpellMenu.Name + "MinHitChance").ValueChanged +=
+                    (o, args) => heroSpell.MinHitChance = (HitChance) (args.GetNewValue<StringList>().SelectedIndex + 3);
+                Menu.Item(championSpellMenu.Name + "DamageType").ValueChanged +=
+                    (o, args) =>
+                        heroSpell.DamageType =
+                            (TargetSelector.DamageType) (args.GetNewValue<StringList>().SelectedIndex);
+                Menu.Item(championSpellMenu.Name + "SkillshotType").ValueChanged +=
+                    (o, args) =>
+                        heroSpell.SkillshotType = (SkillshotType) (args.GetNewValue<StringList>().SelectedIndex);
+                Menu.Item(championSpellMenu.Name + "Enabled").ValueChanged +=
+                    (o, args) => heroSpell.Enabled = args.GetNewValue<bool>();
+
+                Menu.Item(championDrawingMenu.Name + "UseableColor").ValueChanged +=
+                    (o, args) => heroSpell.UseableColor = args.GetNewValue<Color>();
+                Menu.Item(championDrawingMenu.Name + "UnusableColor").ValueChanged +=
+                    (o, args) => heroSpell.UnusableColor = args.GetNewValue<Color>();
+                Menu.Item(championDrawingMenu.Name + "Thickness").ValueChanged +=
+                    (o, args) => heroSpell.Thickness = args.GetNewValue<Slider>().Value;
+                Menu.Item(championDrawingMenu.Name + "Range").ValueChanged +=
+                    (o, args) => heroSpell.Drawing = args.GetNewValue<bool>();
+
+                _heroSpells.Add(heroSpell);
+            }
+            championMenu.AddItem(
+                new MenuItem(championMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+
+            base.OnInitialize();
         }
 
         protected override void OnGameLoad(EventArgs args)

@@ -53,7 +53,10 @@ namespace SFXLibrary.Logger
             {
                 Directory.CreateDirectory(LogDir);
             }
-            catch {}
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         }
 
         public Dictionary<string, string> AdditionalData { get; set; }
@@ -126,6 +129,11 @@ namespace SFXLibrary.Logger
                                 text,
                                 (current, entry) =>
                                     current + string.Format("{0}{1}: {2}", Environment.NewLine, entry.Key, entry.Value));
+
+                        if (string.IsNullOrWhiteSpace(text.Trim()))
+                        {
+                            return;
+                        }
 
                         var logByte = new UTF8Encoding(true).GetBytes(text);
 

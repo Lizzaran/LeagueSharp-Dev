@@ -40,10 +40,11 @@ namespace SFXUtility.Features.Drawings
 {
     internal class Health : Base
     {
-        private readonly List<Obj_BarracksDampener> _inhibs = new List<Obj_BarracksDampener>();
-        private readonly List<Obj_AI_Turret> _turrets = new List<Obj_AI_Turret>();
+        private List<Obj_BarracksDampener> _inhibs;
         private Drawings _parent;
         private Font _text;
+        private List<Obj_AI_Turret> _turrets;
+        public Health(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -135,7 +136,10 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                _text.OnResetDevice();
+                if (_text != null)
+                {
+                    _text.OnResetDevice();
+                }
             }
             catch (Exception ex)
             {
@@ -147,7 +151,10 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                _text.OnLostDevice();
+                if (_text != null)
+                {
+                    _text.OnLostDevice();
+                }
             }
             catch (Exception ex)
             {
@@ -182,33 +189,41 @@ namespace SFXUtility.Features.Drawings
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _turrets.AddRange(
-                    ObjectManager.Get<Obj_AI_Turret>()
-                        .Where(t => t.IsValid && !t.IsDead && t.Health > 1f && t.Health < 9999f));
-                _inhibs.AddRange(ObjectManager.Get<Obj_BarracksDampener>().Where(i => i.IsValid));
-
-                if (!_turrets.Any() || !_inhibs.Any())
-                {
-                    return;
-                }
-
-                _text = new Font(
-                    Drawing.Direct3DDevice,
-                    new FontDescription
-                    {
-                        FaceName = Global.DefaultFont,
-                        Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
-                        OutputPrecision = FontPrecision.Default,
-                        Quality = FontQuality.Default
-                    });
-
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        protected override void OnInitialize()
+        {
+            _inhibs = new List<Obj_BarracksDampener>();
+            _turrets = new List<Obj_AI_Turret>();
+
+            _turrets.AddRange(
+                ObjectManager.Get<Obj_AI_Turret>()
+                    .Where(t => t.IsValid && !t.IsDead && t.Health > 1f && t.Health < 9999f));
+            _inhibs.AddRange(ObjectManager.Get<Obj_BarracksDampener>().Where(i => i.IsValid));
+
+            if (!_turrets.Any() || !_inhibs.Any())
+            {
+                OnUnload(null, new UnloadEventArgs(true));
+                return;
+            }
+
+            _text = new Font(
+                Drawing.Direct3DDevice,
+                new FontDescription
+                {
+                    FaceName = Global.DefaultFont,
+                    Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
+                    OutputPrecision = FontPrecision.Default,
+                    Quality = FontQuality.Default
+                });
+
+            base.OnInitialize();
         }
 
         protected override void OnGameLoad(EventArgs args)

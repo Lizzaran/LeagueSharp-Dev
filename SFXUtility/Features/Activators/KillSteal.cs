@@ -39,6 +39,7 @@ namespace SFXUtility.Features.Activators
     internal class KillSteal : Base
     {
         private Activators _parent;
+        public KillSteal(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -85,7 +86,6 @@ namespace SFXUtility.Features.Activators
                 _parent.Menu.AddSubMenu(Menu);
 
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {

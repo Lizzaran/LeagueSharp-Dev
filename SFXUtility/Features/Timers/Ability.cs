@@ -40,121 +40,13 @@ namespace SFXUtility.Features.Timers
     internal class Ability : Base
     {
         // ReSharper disable StringLiteralTypo
-        private readonly Dictionary<string, AbilityItem> _abilities = new Dictionary<string, AbilityItem>
-        {
-            { "absolutezero2_green_cas.troy", new AbilityItem("nunu", "R " + Global.Lang.Get("G_Ally"), 3f) },
-            { "absolutezero2_red_cas.troy", new AbilityItem("nunu", "R " + Global.Lang.Get("G_Enemy"), 3f) },
-            {
-                "akali_base_smoke_bomb_tar_team_green.troy",
-                new AbilityItem("akali", "W " + Global.Lang.Get("G_Ally"), 8f)
-            },
-            {
-                "akali_base_smoke_bomb_tar_team_red.troy", new AbilityItem("akali", "W " + Global.Lang.Get("G_Enemy"), 8f)
-            },
-            { "azir_base_w_sandbib.troy", new AbilityItem("azir", "W " + Global.Lang.Get("G_Ally"), 9f) },
-            { "azir_base_w_sandbib_enemy.troy", new AbilityItem("azir", "W " + Global.Lang.Get("G_Enemy"), 9f) },
-            { "azir_base_w_towersandbib.troy", new AbilityItem("azir", "W2 " + Global.Lang.Get("G_Ally"), 4.5f) },
-            { "azir_base_w_towersandbib_enemy.troy", new AbilityItem("azir", "W2 " + Global.Lang.Get("G_Enemy"), 4.5f) },
-            { "azir_base_r_soldiercape.troy", new AbilityItem("azir", "R " + Global.Lang.Get("G_Ally"), 5f) },
-            { "azir_base_r_soldiercape_enemy.troy", new AbilityItem("azir", "R " + Global.Lang.Get("G_Enemy"), 5f) },
-            { "bard_base_e_door.troy", new AbilityItem("bard", "E", 10f) },
-            { "bard_base_r_stasis_skin_full.troy", new AbilityItem("bard", "R", 2.5f) },
-            { "card_blue.troy", new AbilityItem("twistedfate", "W " + Global.Lang.Get("G_Blue"), 6f) },
-            { "card_red.troy", new AbilityItem("twistedfate", "W " + Global.Lang.Get("G_Red"), 6f) },
-            { "card_yellow.troy", new AbilityItem("twistedfate", "W " + Global.Lang.Get("G_Yellow"), 6f) },
-            { "counterstrike_cas.troy", new AbilityItem("jax", "R", 2f) },
-            { "ekko_base_w_indicator.troy", new AbilityItem("ekko", "W", 3f) },
-            { "diplomaticimmunity_buf.troy", new AbilityItem("poppy", "R", 8f) },
-            { "dr_mundo_heal.troy", new AbilityItem("mundo", "R", 12f) },
-            { "eggtimer.troy", new AbilityItem("anivia", Global.Lang.Get("Ability_Passive"), 6f) },
-            { "eyeforaneye_cas.troy", new AbilityItem("kayle", "R " + Global.Lang.Get("G_Ally"), 3f) },
-            { "eyeforaneye_self.troy", new AbilityItem("kayle", "R " + Global.Lang.Get("G_Self"), 3f) },
-            { "galio_talion_channel.troy", new AbilityItem("galio", "R", 2f) },
-            { "viktor_catalyst_green.troy", new AbilityItem("viktor", "W " + Global.Lang.Get("G_Ally"), 4f) },
-            { "viktor_catalyst_red.troy", new AbilityItem("viktor", "W " + Global.Lang.Get("G_Enemy"), 4f) },
-            { "viktor_base_w_aug_green.troy", new AbilityItem("viktor", "W+ " + Global.Lang.Get("G_Ally"), 4f) },
-            { "viktor_base_w_aug_red.troy", new AbilityItem("viktor", "W+ " + Global.Lang.Get("G_Enemy"), 4f) },
-            { "viktor_chaosstorm_green.troy", new AbilityItem("viktor", "R " + Global.Lang.Get("G_Ally"), 7f) },
-            { "viktor_chaosstorm_red.troy", new AbilityItem("viktor", "R " + Global.Lang.Get("G_Gnemy"), 7f) },
-            { "infiniteduress_tar.troy", new AbilityItem("warwick", "R", 1.8f) },
-            { "jinx_base_e_mine_idle_green.troy", new AbilityItem("jinx", "E " + Global.Lang.Get("G_Ally"), 5f) },
-            { "jinx_base_e_mine_idle_red.troy", new AbilityItem("jinx", "E " + Global.Lang.Get("G_Enemy"), 5f) },
-            { "karthus_base_r_cas.troy", new AbilityItem("karthus", "R", 3f) },
-            { "karthus_base_w_wall.troy", new AbilityItem("karthus", "W", 5f) },
-            { "kennen_lr_buf.troy", new AbilityItem("kennen", "E", 2f) },
-            { "kennen_ss_aoe_green.troy", new AbilityItem("kennen", "R " + Global.Lang.Get("G_Ally"), 3f) },
-            { "kennen_ss_aoe_red.troy", new AbilityItem("kennen", "R " + Global.Lang.Get("G_Enemy"), 3f) },
-            {
-                "rumble_ult_impact_burn_teamid_green.troy",
-                new AbilityItem("rumble", "R " + Global.Lang.Get("G_Ally"), 5f)
-            },
-            {
-                "rumble_ult_impact_burn_teamid_red.troy", new AbilityItem("rumble", "R " + Global.Lang.Get("G_Enemy"), 5f)
-            },
-            { "leblanc_base_rw_return_indicator.troy", new AbilityItem("leblanc", "R W", 4f) },
-            { "leblanc_base_w_return_indicator.troy", new AbilityItem("leblanc", "W", 4f) },
-            { "lifeaura.troy", new AbilityItem("items", Global.Lang.Get("Ability_Guardian"), 4f) },
-            { "lissandra_base_r_iceblock.troy", new AbilityItem("lissandra", "R " + Global.Lang.Get("G_Self"), 2.5f) },
-            { "lissandra_base_r_ring_green.troy", new AbilityItem("lissandra", "R " + Global.Lang.Get("G_Ally"), 1.5f) },
-            { "lissandra_base_r_ring_red.troy", new AbilityItem("lissandra", "R " + Global.Lang.Get("G_Enemy"), 1.5f) },
-            { "malzahar_base_r_tar.troy", new AbilityItem("malzahar", "R", 3f) },
-            { "maokai_base_r_aura.troy", new AbilityItem("maokai", "R", 10f) },
-            { "masteryi_base_w_buf.troy", new AbilityItem("masteryi", "W", 4f) },
-            { "monkeyking_base_r_cas.troy", new AbilityItem("wukong", "R", 4f) },
-            { "morgana_base_r_indicator_ring.troy", new AbilityItem("morgana", "R", 3.5f) },
-            { "ziggs_base_w_aoe_green.troy", new AbilityItem("ziggs", "W " + Global.Lang.Get("G_Ally"), 4f) },
-            { "ziggs_base_w_aoe_red.troy", new AbilityItem("ziggs", "W " + Global.Lang.Get("G_Enemy"), 4f) },
-            { "nickoftime_tar.troy", new AbilityItem("zilean", "R", 5f) },
-            { "olaf_ragnorok_enraged.troy", new AbilityItem("olaf", "R", 6f) },
-            { "pantheon_base_r_cas.troy", new AbilityItem("pantheon", "R 1", 2f) },
-            {
-                "pantheon_base_r_indicator_green.troy",
-                new AbilityItem("pantheon", "R 2 " + Global.Lang.Get("G_Ally"), 4.5f)
-            },
-            {
-                "pantheon_base_r_indicator_red.troy",
-                new AbilityItem("pantheon", "R 2 " + Global.Lang.Get("G_Enemy"), 4.5f)
-            },
-            { "passive_death_activate.troy", new AbilityItem("aatrox", Global.Lang.Get("Ability_Passive"), 3f) },
-            {
-                "pirate_cannonbarrage_aoe_indicator_green.troy",
-                new AbilityItem("gangplank", "R " + Global.Lang.Get("G_Ally"), 7f)
-            },
-            {
-                "pirate_cannonbarrage_aoe_indicator_red.troy",
-                new AbilityItem("gangplank", "R " + Global.Lang.Get("G_Enemy"), 7f)
-            },
-            { "reapthewhirlwind_green_cas.troy", new AbilityItem("janna", "R " + Global.Lang.Get("G_Ally"), 3f) },
-            { "reapthewhirlwind_red_cas.troy", new AbilityItem("janna", "R " + Global.Lang.Get("G_Enemy"), 3f) },
-            { "shen_standunited_shield_v2.troy", new AbilityItem("shen", "R", 3f) },
-            { "sion_base_r_cas.troy", new AbilityItem("sion", "R", 8f) },
-            { "skarner_base_r_beam.troy", new AbilityItem("skarner", "R", 2f) },
-            { "thresh_base_lantern_cas_green.troy", new AbilityItem("tresh", "W " + Global.Lang.Get("G_Ally"), 6f) },
-            { "thresh_base_lantern_cas_red.troy", new AbilityItem("tresh", "W " + Global.Lang.Get("G_Enemy"), 6f) },
-            { "undyingrage_glow.troy", new AbilityItem("tryndamere", "R", 5f) },
-            { "veigar_base_e_cage_green.troy", new AbilityItem("veigar", "E " + Global.Lang.Get("G_Ally"), 3f) },
-            { "veigar_base_e_cage_red.troy", new AbilityItem("veigar", "E " + Global.Lang.Get("G_Enemy"), 3f) },
-            { "veigar_base_w_cas_green.troy", new AbilityItem("veigar", "W " + Global.Lang.Get("G_Ally"), 1.2f) },
-            { "veigar_base_w_cas_red.troy", new AbilityItem("veigar", "W " + Global.Lang.Get("G_Enemy"), 1.2f) },
-            { "velkoz_base_r_beam_eye.troy", new AbilityItem("anivia", "R", 2.5f) },
-            { "vladimir_base_w_buf.troy", new AbilityItem("vladimir", "W", 2f) },
-            { "yasuo_base_w_windwall_activate.troy", new AbilityItem("yasuo", "W", 4f) },
-            { "zac_r_tar.troy", new AbilityItem("zac", "R", 4f) },
-            { "zed_base_r_cloneswap_buf.troy", new AbilityItem("zed", "R", 7f) },
-            { "zed_base_w_cloneswap_buf.troy", new AbilityItem("zed", "W", 4.5f) },
-            { "zilean_base_r_buf.troy", new AbilityItem("zilean", "R " + Global.Lang.Get("Ability_Revive"), 3f) },
-            { "zyra_r_cast_green_team.troy", new AbilityItem("zyra", "R " + Global.Lang.Get("G_Ally"), 2f) },
-            { "zyra_r_cast_red_team.troy", new AbilityItem("zyra", "R " + Global.Lang.Get("G_Enemy"), 2f) },
-            { "zhonyas_ring_activate.troy", new AbilityItem("items", Global.Lang.Get("Ability_Zhonyas"), 2.5f) },
-            { "jester_copy.troy", new AbilityItem("shaco", "R", 18f) },
-            { "fizz_ring_green.troy", new AbilityItem("fizz", "R " + Global.Lang.Get("G_Ally"), 1.5f) },
-            { "fizz_ring_red.troy", new AbilityItem("fizz", "R " + Global.Lang.Get("G_Enemy"), 1.5f) }
-        };
+        private Dictionary<string, AbilityItem> _abilities;
 
         // ReSharper restore StringLiteralTypo
-        private readonly List<AbilityDraw> _drawings = new List<AbilityDraw>();
+        private List<AbilityDraw> _drawings;
         private Timers _parent;
         private Font _text;
+        public Ability(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -307,7 +199,10 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
-                _text.OnResetDevice();
+                if (_text != null)
+                {
+                    _text.OnResetDevice();
+                }
             }
             catch (Exception ex)
             {
@@ -319,7 +214,10 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
-                _text.OnLostDevice();
+                if (_text != null)
+                {
+                    _text.OnLostDevice();
+                }
             }
             catch (Exception ex)
             {
@@ -382,67 +280,195 @@ namespace SFXUtility.Features.Timers
 
                 Menu.AddSubMenu(drawingMenu);
 
-                var group = 1;
-                var counter = 0;
-
-                var spellMenu =
-                    Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Spell") + " " + group, Name + "Spell" + group));
-                var listItems = _abilities.OrderBy(a => a.Value.Champ).GroupBy(a => a.Value.Champ).ToList();
-                foreach (var items in listItems)
-                {
-                    var champMenu = new Menu(items.Key.FirstCharToUpper(), spellMenu + items.Key);
-                    foreach (var item in items)
-                    {
-                        var localItem = item;
-                        var mItem =
-                            new MenuItem(champMenu.Name + item.Value.Name, item.Value.Name.FirstCharToUpper()).SetValue(
-                                new Circle(
-                                    true,
-                                    System.Drawing.Color.FromArgb(
-                                        item.Value.Color.A, item.Value.Color.R, item.Value.Color.G, item.Value.Color.B)));
-                        champMenu.AddItem(mItem).ValueChanged += delegate(object o, OnValueChangeEventArgs args)
-                        {
-                            localItem.Value.Enabled = args.GetNewValue<Circle>().Active;
-                            var color = args.GetNewValue<Circle>().Color;
-                            localItem.Value.Color = new Color(color.R, color.G, color.B, color.A);
-                        };
-
-                        localItem.Value.Enabled = mItem.GetValue<Circle>().Active;
-                        var tColor = mItem.GetValue<Circle>().Color;
-                        localItem.Value.Color = new Color(tColor.R, tColor.G, tColor.B, tColor.A);
-                    }
-                    spellMenu.AddSubMenu(champMenu);
-                    counter++;
-                    if (counter == 10 && group * 10 != listItems.Count())
-                    {
-                        counter = 0;
-                        group++;
-                        spellMenu =
-                            Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Spell") + " " + group, Name + "Spell" + group));
-                    }
-                }
-
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _text = new Font(
-                    Drawing.Direct3DDevice,
-                    new FontDescription
-                    {
-                        FaceName = Global.DefaultFont,
-                        Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
-                        OutputPrecision = FontPrecision.Default,
-                        Quality = FontQuality.Default
-                    });
-
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        protected override void OnInitialize()
+        {
+            _drawings = new List<AbilityDraw>();
+            _abilities = new Dictionary<string, AbilityItem>
+            {
+                { "absolutezero2_green_cas.troy", new AbilityItem("nunu", "R " + Global.Lang.Get("G_Ally"), 3f) },
+                { "absolutezero2_red_cas.troy", new AbilityItem("nunu", "R " + Global.Lang.Get("G_Enemy"), 3f) },
+                {
+                    "akali_base_smoke_bomb_tar_team_green.troy",
+                    new AbilityItem("akali", "W " + Global.Lang.Get("G_Ally"), 8f)
+                },
+                {
+                    "akali_base_smoke_bomb_tar_team_red.troy",
+                    new AbilityItem("akali", "W " + Global.Lang.Get("G_Enemy"), 8f)
+                },
+                { "azir_base_w_sandbib.troy", new AbilityItem("azir", "W " + Global.Lang.Get("G_Ally"), 9f) },
+                { "azir_base_w_sandbib_enemy.troy", new AbilityItem("azir", "W " + Global.Lang.Get("G_Enemy"), 9f) },
+                { "azir_base_w_towersandbib.troy", new AbilityItem("azir", "W2 " + Global.Lang.Get("G_Ally"), 4.5f) },
+                {
+                    "azir_base_w_towersandbib_enemy.troy",
+                    new AbilityItem("azir", "W2 " + Global.Lang.Get("G_Enemy"), 4.5f)
+                },
+                { "azir_base_r_soldiercape.troy", new AbilityItem("azir", "R " + Global.Lang.Get("G_Ally"), 5f) },
+                { "azir_base_r_soldiercape_enemy.troy", new AbilityItem("azir", "R " + Global.Lang.Get("G_Enemy"), 5f) },
+                { "bard_base_e_door.troy", new AbilityItem("bard", "E", 10f) },
+                { "bard_base_r_stasis_skin_full.troy", new AbilityItem("bard", "R", 2.5f) },
+                { "card_blue.troy", new AbilityItem("twistedfate", "W " + Global.Lang.Get("G_Blue"), 6f) },
+                { "card_red.troy", new AbilityItem("twistedfate", "W " + Global.Lang.Get("G_Red"), 6f) },
+                { "card_yellow.troy", new AbilityItem("twistedfate", "W " + Global.Lang.Get("G_Yellow"), 6f) },
+                { "counterstrike_cas.troy", new AbilityItem("jax", "R", 2f) },
+                { "ekko_base_w_indicator.troy", new AbilityItem("ekko", "W", 3f) },
+                { "diplomaticimmunity_buf.troy", new AbilityItem("poppy", "R", 8f) },
+                { "dr_mundo_heal.troy", new AbilityItem("mundo", "R", 12f) },
+                { "eggtimer.troy", new AbilityItem("anivia", Global.Lang.Get("Ability_Passive"), 6f) },
+                { "eyeforaneye_cas.troy", new AbilityItem("kayle", "R " + Global.Lang.Get("G_Ally"), 3f) },
+                { "eyeforaneye_self.troy", new AbilityItem("kayle", "R " + Global.Lang.Get("G_Self"), 3f) },
+                { "galio_talion_channel.troy", new AbilityItem("galio", "R", 2f) },
+                { "viktor_catalyst_green.troy", new AbilityItem("viktor", "W " + Global.Lang.Get("G_Ally"), 4f) },
+                { "viktor_catalyst_red.troy", new AbilityItem("viktor", "W " + Global.Lang.Get("G_Enemy"), 4f) },
+                { "viktor_base_w_aug_green.troy", new AbilityItem("viktor", "W+ " + Global.Lang.Get("G_Ally"), 4f) },
+                { "viktor_base_w_aug_red.troy", new AbilityItem("viktor", "W+ " + Global.Lang.Get("G_Enemy"), 4f) },
+                { "viktor_chaosstorm_green.troy", new AbilityItem("viktor", "R " + Global.Lang.Get("G_Ally"), 7f) },
+                { "viktor_chaosstorm_red.troy", new AbilityItem("viktor", "R " + Global.Lang.Get("G_Gnemy"), 7f) },
+                { "infiniteduress_tar.troy", new AbilityItem("warwick", "R", 1.8f) },
+                { "jinx_base_e_mine_idle_green.troy", new AbilityItem("jinx", "E " + Global.Lang.Get("G_Ally"), 5f) },
+                { "jinx_base_e_mine_idle_red.troy", new AbilityItem("jinx", "E " + Global.Lang.Get("G_Enemy"), 5f) },
+                { "karthus_base_r_cas.troy", new AbilityItem("karthus", "R", 3f) },
+                { "karthus_base_w_wall.troy", new AbilityItem("karthus", "W", 5f) },
+                { "kennen_lr_buf.troy", new AbilityItem("kennen", "E", 2f) },
+                { "kennen_ss_aoe_green.troy", new AbilityItem("kennen", "R " + Global.Lang.Get("G_Ally"), 3f) },
+                { "kennen_ss_aoe_red.troy", new AbilityItem("kennen", "R " + Global.Lang.Get("G_Enemy"), 3f) },
+                {
+                    "rumble_ult_impact_burn_teamid_green.troy",
+                    new AbilityItem("rumble", "R " + Global.Lang.Get("G_Ally"), 5f)
+                },
+                {
+                    "rumble_ult_impact_burn_teamid_red.troy",
+                    new AbilityItem("rumble", "R " + Global.Lang.Get("G_Enemy"), 5f)
+                },
+                { "leblanc_base_rw_return_indicator.troy", new AbilityItem("leblanc", "R W", 4f) },
+                { "leblanc_base_w_return_indicator.troy", new AbilityItem("leblanc", "W", 4f) },
+                { "lifeaura.troy", new AbilityItem("items", Global.Lang.Get("Ability_Guardian"), 4f) },
+                {
+                    "lissandra_base_r_iceblock.troy", new AbilityItem("lissandra", "R " + Global.Lang.Get("G_Self"), 2.5f)
+                },
+                {
+                    "lissandra_base_r_ring_green.troy",
+                    new AbilityItem("lissandra", "R " + Global.Lang.Get("G_Ally"), 1.5f)
+                },
+                {
+                    "lissandra_base_r_ring_red.troy",
+                    new AbilityItem("lissandra", "R " + Global.Lang.Get("G_Enemy"), 1.5f)
+                },
+                { "malzahar_base_r_tar.troy", new AbilityItem("malzahar", "R", 3f) },
+                { "maokai_base_r_aura.troy", new AbilityItem("maokai", "R", 10f) },
+                { "masteryi_base_w_buf.troy", new AbilityItem("masteryi", "W", 4f) },
+                { "monkeyking_base_r_cas.troy", new AbilityItem("wukong", "R", 4f) },
+                { "morgana_base_r_indicator_ring.troy", new AbilityItem("morgana", "R", 3.5f) },
+                { "ziggs_base_w_aoe_green.troy", new AbilityItem("ziggs", "W " + Global.Lang.Get("G_Ally"), 4f) },
+                { "ziggs_base_w_aoe_red.troy", new AbilityItem("ziggs", "W " + Global.Lang.Get("G_Enemy"), 4f) },
+                { "nickoftime_tar.troy", new AbilityItem("zilean", "R", 5f) },
+                { "olaf_ragnorok_enraged.troy", new AbilityItem("olaf", "R", 6f) },
+                { "pantheon_base_r_cas.troy", new AbilityItem("pantheon", "R 1", 2f) },
+                {
+                    "pantheon_base_r_indicator_green.troy",
+                    new AbilityItem("pantheon", "R 2 " + Global.Lang.Get("G_Ally"), 4.5f)
+                },
+                {
+                    "pantheon_base_r_indicator_red.troy",
+                    new AbilityItem("pantheon", "R 2 " + Global.Lang.Get("G_Enemy"), 4.5f)
+                },
+                { "passive_death_activate.troy", new AbilityItem("aatrox", Global.Lang.Get("Ability_Passive"), 3f) },
+                {
+                    "pirate_cannonbarrage_aoe_indicator_green.troy",
+                    new AbilityItem("gangplank", "R " + Global.Lang.Get("G_Ally"), 7f)
+                },
+                {
+                    "pirate_cannonbarrage_aoe_indicator_red.troy",
+                    new AbilityItem("gangplank", "R " + Global.Lang.Get("G_Enemy"), 7f)
+                },
+                { "reapthewhirlwind_green_cas.troy", new AbilityItem("janna", "R " + Global.Lang.Get("G_Ally"), 3f) },
+                { "reapthewhirlwind_red_cas.troy", new AbilityItem("janna", "R " + Global.Lang.Get("G_Enemy"), 3f) },
+                { "shen_standunited_shield_v2.troy", new AbilityItem("shen", "R", 3f) },
+                { "sion_base_r_cas.troy", new AbilityItem("sion", "R", 8f) },
+                { "skarner_base_r_beam.troy", new AbilityItem("skarner", "R", 2f) },
+                { "thresh_base_lantern_cas_green.troy", new AbilityItem("tresh", "W " + Global.Lang.Get("G_Ally"), 6f) },
+                { "thresh_base_lantern_cas_red.troy", new AbilityItem("tresh", "W " + Global.Lang.Get("G_Enemy"), 6f) },
+                { "undyingrage_glow.troy", new AbilityItem("tryndamere", "R", 5f) },
+                { "veigar_base_e_cage_green.troy", new AbilityItem("veigar", "E " + Global.Lang.Get("G_Ally"), 3f) },
+                { "veigar_base_e_cage_red.troy", new AbilityItem("veigar", "E " + Global.Lang.Get("G_Enemy"), 3f) },
+                { "veigar_base_w_cas_green.troy", new AbilityItem("veigar", "W " + Global.Lang.Get("G_Ally"), 1.2f) },
+                { "veigar_base_w_cas_red.troy", new AbilityItem("veigar", "W " + Global.Lang.Get("G_Enemy"), 1.2f) },
+                { "velkoz_base_r_beam_eye.troy", new AbilityItem("anivia", "R", 2.5f) },
+                { "vladimir_base_w_buf.troy", new AbilityItem("vladimir", "W", 2f) },
+                { "yasuo_base_w_windwall_activate.troy", new AbilityItem("yasuo", "W", 4f) },
+                { "zac_r_tar.troy", new AbilityItem("zac", "R", 4f) },
+                { "zed_base_r_cloneswap_buf.troy", new AbilityItem("zed", "R", 7f) },
+                { "zed_base_w_cloneswap_buf.troy", new AbilityItem("zed", "W", 4.5f) },
+                { "zilean_base_r_buf.troy", new AbilityItem("zilean", "R " + Global.Lang.Get("Ability_Revive"), 3f) },
+                { "zyra_r_cast_green_team.troy", new AbilityItem("zyra", "R " + Global.Lang.Get("G_Ally"), 2f) },
+                { "zyra_r_cast_red_team.troy", new AbilityItem("zyra", "R " + Global.Lang.Get("G_Enemy"), 2f) },
+                { "zhonyas_ring_activate.troy", new AbilityItem("items", Global.Lang.Get("Ability_Zhonyas"), 2.5f) },
+                { "jester_copy.troy", new AbilityItem("shaco", "R", 18f) },
+                { "fizz_ring_green.troy", new AbilityItem("fizz", "R " + Global.Lang.Get("G_Ally"), 1.5f) },
+                { "fizz_ring_red.troy", new AbilityItem("fizz", "R " + Global.Lang.Get("G_Enemy"), 1.5f) }
+            };
+
+            var group = 1;
+            var counter = 0;
+
+            var spellMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Spell") + " " + group, Name + "Spell" + group));
+            var listItems = _abilities.OrderBy(a => a.Value.Champ).GroupBy(a => a.Value.Champ).ToList();
+            foreach (var items in listItems)
+            {
+                var champMenu = new Menu(items.Key.FirstCharToUpper(), spellMenu + items.Key);
+                foreach (var item in items)
+                {
+                    var localItem = item;
+                    var mItem =
+                        new MenuItem(champMenu.Name + item.Value.Name, item.Value.Name.FirstCharToUpper()).SetValue(
+                            new Circle(
+                                true,
+                                System.Drawing.Color.FromArgb(
+                                    item.Value.Color.A, item.Value.Color.R, item.Value.Color.G, item.Value.Color.B)));
+                    champMenu.AddItem(mItem).ValueChanged += delegate(object o, OnValueChangeEventArgs args)
+                    {
+                        localItem.Value.Enabled = args.GetNewValue<Circle>().Active;
+                        var color = args.GetNewValue<Circle>().Color;
+                        localItem.Value.Color = new Color(color.R, color.G, color.B, color.A);
+                    };
+
+                    localItem.Value.Enabled = mItem.GetValue<Circle>().Active;
+                    var tColor = mItem.GetValue<Circle>().Color;
+                    localItem.Value.Color = new Color(tColor.R, tColor.G, tColor.B, tColor.A);
+                }
+                spellMenu.AddSubMenu(champMenu);
+                counter++;
+                if (counter == 10 && group * 10 != listItems.Count())
+                {
+                    counter = 0;
+                    group++;
+                    spellMenu =
+                        Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Spell") + " " + group, Name + "Spell" + group));
+                }
+            }
+
+            _text = new Font(
+                Drawing.Direct3DDevice,
+                new FontDescription
+                {
+                    FaceName = Global.DefaultFont,
+                    Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
+                    OutputPrecision = FontPrecision.Default,
+                    Quality = FontQuality.Default
+                });
+
+            base.OnInitialize();
         }
 
         internal class AbilityItem

@@ -20,8 +20,6 @@
 
 #endregion License
 
-// Credits: TC-Crew
-
 #region
 
 using System;
@@ -42,10 +40,11 @@ namespace SFXUtility.Features.Trackers
     internal class GoldEfficiency : Base
     {
         private const float CheckInterval = 1000f;
-        private readonly Dictionary<Obj_AI_Hero, string> _goldEfficiencies = new Dictionary<Obj_AI_Hero, string>();
-        private float _lastCheck = Environment.TickCount;
+        private Dictionary<Obj_AI_Hero, string> _goldEfficiencies;
+        private float _lastCheck;
         private Trackers _parent;
         private Font _text;
+        public GoldEfficiency(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -144,23 +143,30 @@ namespace SFXUtility.Features.Trackers
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _text = new Font(
-                    Drawing.Direct3DDevice,
-                    new FontDescription
-                    {
-                        FaceName = Global.DefaultFont,
-                        Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
-                        OutputPrecision = FontPrecision.Default,
-                        Quality = FontQuality.Default
-                    });
-
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        protected override void OnInitialize()
+        {
+            _goldEfficiencies = new Dictionary<Obj_AI_Hero, string>();
+            _lastCheck = Environment.TickCount;
+
+            _text = new Font(
+                Drawing.Direct3DDevice,
+                new FontDescription
+                {
+                    FaceName = Global.DefaultFont,
+                    Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
+                    OutputPrecision = FontPrecision.Default,
+                    Quality = FontQuality.Default
+                });
+
+            base.OnInitialize();
         }
 
         private void OnDrawingEndScene(EventArgs args)
@@ -191,7 +197,10 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                _text.OnResetDevice();
+                if (_text != null)
+                {
+                    _text.OnResetDevice();
+                }
             }
             catch (Exception ex)
             {
@@ -203,7 +212,10 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                _text.OnLostDevice();
+                if (_text != null)
+                {
+                    _text.OnLostDevice();
+                }
             }
             catch (Exception ex)
             {

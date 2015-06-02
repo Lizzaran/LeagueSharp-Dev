@@ -40,6 +40,8 @@ namespace SFXUtility.Features.Drawings
 
     internal class Drawings : Base
     {
+        public Drawings(SFXUtility sfx) : base(sfx) {}
+
         public override bool Enabled
         {
             get { return Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }

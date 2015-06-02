@@ -37,8 +37,9 @@ namespace SFXUtility.Features.Events
     internal class AutoLeveler : Base
     {
         private const float CheckInterval = 300f;
-        private float _lastCheck = Environment.TickCount;
+        private float _lastCheck;
         private Events _parent;
+        public AutoLeveler(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -166,12 +167,17 @@ namespace SFXUtility.Features.Events
                 _parent.Menu.AddSubMenu(Menu);
 
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        protected override void OnInitialize()
+        {
+            _lastCheck = Environment.TickCount;
+            base.OnInitialize();
         }
 
         private void OnGameUpdate(EventArgs args)

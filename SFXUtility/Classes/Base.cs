@@ -33,9 +33,8 @@ namespace SFXUtility.Classes
 {
     internal abstract class Base
     {
-        protected Base()
+        protected Base(SFXUtility sfx)
         {
-            var sfx = Global.IoC.Resolve<SFXUtility>();
             BaseMenu = sfx.Menu;
             sfx.OnUnload += OnUnload;
             CustomEvents.Game.OnGameLoad += OnGameLoad;
@@ -56,6 +55,14 @@ namespace SFXUtility.Classes
         {
             try
             {
+                if (Unloaded)
+                {
+                    return;
+                }
+                if (!Initialized)
+                {
+                    OnInitialize();
+                }
                 OnEnabled.RaiseEvent(null, null);
             }
             catch (Exception ex)
@@ -64,24 +71,19 @@ namespace SFXUtility.Classes
             }
         }
 
-        protected virtual void OnDisable()
+        protected virtual void OnInitialize()
         {
             try
             {
-                OnDisabled.RaiseEvent(null, null);
+                if (Unloaded)
+                {
+                    return;
+                }
+                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        protected virtual void OnUnload(object sender, UnloadEventArgs args)
-        {
-            OnDisable();
-            if (args != null && args.Final)
-            {
-                Unloaded = true;
             }
         }
 
@@ -95,6 +97,30 @@ namespace SFXUtility.Classes
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        protected virtual void OnDisable()
+        {
+            try
+            {
+                if (Initialized)
+                {
+                    OnDisabled.RaiseEvent(null, null);
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        protected virtual void OnUnload(object sender, UnloadEventArgs args)
+        {
+            OnDisable();
+            if (args != null && args.Final)
+            {
+                Unloaded = true;
             }
         }
 

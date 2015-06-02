@@ -178,7 +178,6 @@ namespace SFXChallenger.Abstracts
                 OnLoad();
                 SetupSpells();
                 SetupMenu();
-                SpellQueue.Init();
 
                 Drawing.OnDraw += DrawingOnDraw;
                 Core.OnPreUpdate += OnCorePreUpdate;

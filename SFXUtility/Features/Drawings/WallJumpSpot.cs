@@ -39,8 +39,9 @@ namespace SFXUtility.Features.Drawings
 {
     internal class WallJumpSpot : Base
     {
-        private readonly List<PositionStruct> _walljumpSpots = new List<PositionStruct>();
         private Drawings _parent;
+        private List<PositionStruct> _walljumpSpots;
+        public WallJumpSpot(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -148,23 +149,32 @@ namespace SFXUtility.Features.Drawings
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                if (Utility.Map.GetMap().Type != Utility.Map.MapType.SummonersRift)
-                {
-                    return;
-                }
-
-                SetupPositions();
-
-                if (_walljumpSpots.Count > 0)
-                {
-                    HandleEvents(_parent);
-                    RaiseOnInitialized();
-                }
+                HandleEvents(_parent);
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        protected override void OnInitialize()
+        {
+            if (Utility.Map.GetMap().Type != Utility.Map.MapType.SummonersRift)
+            {
+                OnUnload(null, new UnloadEventArgs(true));
+                return;
+            }
+
+            _walljumpSpots = new List<PositionStruct>();
+            SetupPositions();
+
+            if (_walljumpSpots.Count <= 0)
+            {
+                OnUnload(null, new UnloadEventArgs(true));
+                return;
+            }
+            
+            base.OnInitialize();
         }
 
         private void SetupPositions()

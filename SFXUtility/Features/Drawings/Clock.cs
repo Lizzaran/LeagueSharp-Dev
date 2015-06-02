@@ -36,6 +36,7 @@ namespace SFXUtility.Features.Drawings
     internal class Clock : Base
     {
         private Drawings _parent;
+        public Clock(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -131,7 +132,6 @@ namespace SFXUtility.Features.Drawings
                 _parent.Menu.AddSubMenu(Menu);
 
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {

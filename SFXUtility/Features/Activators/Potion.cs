@@ -39,14 +39,8 @@ namespace SFXUtility.Features.Activators
     internal class Potion : Base
     {
         private Activators _parent;
-
-        private List<PotionStruct> _potions = new List<PotionStruct>
-        {
-            new PotionStruct(
-                "ItemCrystalFlask", ItemId.Crystalline_Flask, 1, 1, new[] { PotionType.Health, PotionType.Mana }),
-            new PotionStruct("RegenerationPotion", ItemId.Health_Potion, 0, 2, new[] { PotionType.Health }),
-            new PotionStruct("FlaskOfCrystalWater", ItemId.Mana_Potion, 0, 3, new[] { PotionType.Mana })
-        };
+        private List<PotionStruct> _potions;
+        public Potion(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -83,7 +77,6 @@ namespace SFXUtility.Features.Activators
                     return;
                 }
 
-                _potions = _potions.OrderBy(x => x.Priority).ToList();
                 Menu = new Menu(Name, Name);
                 var healthMenu = new Menu(Global.Lang.Get("G_Health"), Name + "Health");
                 healthMenu.AddItem(
@@ -114,12 +107,26 @@ namespace SFXUtility.Features.Activators
                 _parent.Menu.AddSubMenu(Menu);
 
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        protected override void OnInitialize()
+        {
+            _potions =
+                new List<PotionStruct>
+                {
+                    new PotionStruct(
+                        "ItemCrystalFlask", ItemId.Crystalline_Flask, 1, 1, new[] { PotionType.Health, PotionType.Mana }),
+                    new PotionStruct("RegenerationPotion", ItemId.Health_Potion, 0, 2, new[] { PotionType.Health }),
+                    new PotionStruct("FlaskOfCrystalWater", ItemId.Mana_Potion, 0, 3, new[] { PotionType.Mana })
+                }
+                    .OrderBy(x => x.Priority).ToList();
+
+            base.OnInitialize();
         }
 
         private InventorySlot GetPotionSlot(PotionType type)

@@ -44,8 +44,9 @@ namespace SFXUtility.Features.Trackers
 {
     internal class Sidebar : Base
     {
-        private readonly List<EnemyObject> _enemyObjects = new List<EnemyObject>();
+        private List<EnemyObject> _enemyObjects;
         private Trackers _parent;
+        public Sidebar(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -87,14 +88,20 @@ namespace SFXUtility.Features.Trackers
         protected override void OnEnable()
         {
             Game.OnWndProc += OnGameWndProc;
-            _enemyObjects.ForEach(cd => cd.Active = true);
+            if (_enemyObjects != null)
+            {
+                _enemyObjects.ForEach(cd => cd.Active = true);
+            }
             base.OnEnable();
         }
 
         protected override void OnDisable()
         {
             Game.OnWndProc -= OnGameWndProc;
-            _enemyObjects.ForEach(cd => cd.Active = false);
+            if (_enemyObjects != null)
+            {
+                _enemyObjects.ForEach(cd => cd.Active = false);
+            }
             base.OnDisable();
         }
 
@@ -123,32 +130,38 @@ namespace SFXUtility.Features.Trackers
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                if (Global.IoC.IsRegistered<Teleport>())
-                {
-                    var rt = Global.IoC.Resolve<Teleport>();
-                    rt.OnFinish += TeleportHandle;
-                    rt.OnStart += TeleportHandle;
-                    rt.OnAbort += TeleportHandle;
-                    rt.OnUnknown += TeleportHandle;
-                }
-
-                var index = 0;
-                foreach (var enemy in HeroManager.Enemies)
-                {
-                    _enemyObjects.Add(
-                        new EnemyObject(enemy, index++, Menu.Item(Name + "DrawingOffsetTop").GetValue<Slider>().Value)
-                        {
-                            Active = Enabled
-                        });
-                }
-
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        protected override void OnInitialize()
+        {
+            _enemyObjects = new List<EnemyObject>();
+
+            if (Global.IoC.IsRegistered<Teleport>())
+            {
+                var rt = Global.IoC.Resolve<Teleport>();
+                rt.OnFinish += TeleportHandle;
+                rt.OnStart += TeleportHandle;
+                rt.OnAbort += TeleportHandle;
+                rt.OnUnknown += TeleportHandle;
+            }
+
+            var index = 0;
+            foreach (var enemy in HeroManager.Enemies)
+            {
+                _enemyObjects.Add(
+                    new EnemyObject(enemy, index++, Menu.Item(Name + "DrawingOffsetTop").GetValue<Slider>().Value)
+                    {
+                        Active = true
+                    });
+            }
+
+            base.OnInitialize();
         }
 
         private void TeleportHandle(object sender, TeleportEventArgs teleportEventArgs)

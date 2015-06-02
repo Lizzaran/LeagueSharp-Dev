@@ -33,6 +33,8 @@ namespace SFXUtility.Features.Trackers
 {
     internal class Trackers : Base
     {
+        public Trackers(SFXUtility sfx) : base(sfx) {}
+
         public override bool Enabled
         {
             get { return Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }

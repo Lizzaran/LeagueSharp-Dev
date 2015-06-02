@@ -38,9 +38,10 @@ namespace SFXUtility.Features.Others
 {
     internal class Ping : Base
     {
-        private readonly List<PingItem> _pingItems = new List<PingItem>();
         private Others _parent;
+        private List<PingItem> _pingItems;
         private Font _text;
+        public Ping(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -142,23 +143,29 @@ namespace SFXUtility.Features.Others
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _text = new Font(
-                    Drawing.Direct3DDevice,
-                    new FontDescription
-                    {
-                        FaceName = Global.DefaultFont,
-                        Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
-                        OutputPrecision = FontPrecision.Default,
-                        Quality = FontQuality.Default
-                    });
-
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        protected override void OnInitialize()
+        {
+            _pingItems = new List<PingItem>();
+
+            _text = new Font(
+                Drawing.Direct3DDevice,
+                new FontDescription
+                {
+                    FaceName = Global.DefaultFont,
+                    Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
+                    OutputPrecision = FontPrecision.Default,
+                    Quality = FontQuality.Default
+                });
+
+            base.OnInitialize();
         }
 
         private void OnGamePing(GamePingEventArgs args)
@@ -201,7 +208,10 @@ namespace SFXUtility.Features.Others
         {
             try
             {
-                _text.OnResetDevice();
+                if (_text != null)
+                {
+                    _text.OnResetDevice();
+                }
             }
             catch (Exception ex)
             {
@@ -213,7 +223,10 @@ namespace SFXUtility.Features.Others
         {
             try
             {
-                _text.OnLostDevice();
+                if (_text != null)
+                {
+                    _text.OnLostDevice();
+                }
             }
             catch (Exception ex)
             {

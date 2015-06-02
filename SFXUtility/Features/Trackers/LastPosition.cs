@@ -45,13 +45,14 @@ namespace SFXUtility.Features.Trackers
 {
     internal class LastPosition : Base
     {
-        private readonly Dictionary<int, Texture> _heroTextures = new Dictionary<int, Texture>();
-        private readonly List<LastPositionStruct> _lastPositions = new List<LastPositionStruct>();
+        private Dictionary<int, Texture> _heroTextures;
+        private List<LastPositionStruct> _lastPositions;
         private Trackers _parent;
         private Vector2 _spawnPoint;
         private Sprite _sprite;
         private Texture _teleportTexture;
         private Font _text;
+        public LastPosition(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -185,7 +186,7 @@ namespace SFXUtility.Features.Trackers
                             _sprite.DrawCentered(_teleportTexture, pos);
                         }
 
-                        if (timer && lp.LastSeen != 0f && (Game.Time - lp.LastSeen) > 3f)
+                        if (timer && !lp.LastSeen.Equals(0f) && (Game.Time - lp.LastSeen) > 3f)
                         {
                             _text.DrawTextCentered(
                                 (Game.Time - lp.LastSeen).FormatTime(totalSeconds),
@@ -205,8 +206,14 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                _text.OnResetDevice();
-                _sprite.OnResetDevice();
+                if (_text != null)
+                {
+                    _text.OnResetDevice();
+                }
+                if (_sprite != null)
+                {
+                    _sprite.OnResetDevice();
+                }
             }
             catch (Exception ex)
             {
@@ -218,8 +225,14 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                _text.OnLostDevice();
-                _sprite.OnLostDevice();
+                if (_text != null)
+                {
+                    _text.OnLostDevice();
+                }
+                if (_sprite != null)
+                {
+                    _sprite.OnLostDevice();
+                }
             }
             catch (Exception ex)
             {
@@ -258,45 +271,52 @@ namespace SFXUtility.Features.Trackers
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                if (Global.IoC.IsRegistered<Teleport>())
-                {
-                    var rt = Global.IoC.Resolve<Teleport>();
-                    rt.OnFinish += TeleportFinish;
-                    rt.OnStart += TeleportStart;
-                    rt.OnAbort += TeleportAbort;
-                    rt.OnUnknown += TeleportAbort;
-                }
-
-                var spawn = ObjectManager.Get<GameObject>().FirstOrDefault(s => s is Obj_SpawnPoint && s.IsEnemy);
-                _spawnPoint = spawn != null ? Drawing.WorldToMinimap(spawn.Position) : Vector2.Zero;
-
-                foreach (var enemy in HeroManager.Enemies)
-                {
-                    _heroTextures[enemy.NetworkId] =
-                        ((Bitmap) Resources.ResourceManager.GetObject(string.Format("LP_{0}", enemy.ChampionName)) ??
-                         Resources.LP_Aatrox).ToTexture();
-                    _lastPositions.Add(new LastPositionStruct(enemy));
-                }
-
-                _sprite = new Sprite(Drawing.Direct3DDevice);
-                _teleportTexture = Resources.LP_Teleport.ToTexture();
-                _text = new Font(
-                    Drawing.Direct3DDevice,
-                    new FontDescription
-                    {
-                        FaceName = Global.DefaultFont,
-                        Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
-                        OutputPrecision = FontPrecision.Default,
-                        Quality = FontQuality.Default
-                    });
-
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        protected override void OnInitialize()
+        {
+            _heroTextures = new Dictionary<int, Texture>();
+            _lastPositions = new List<LastPositionStruct>();
+
+            if (Global.IoC.IsRegistered<Teleport>())
+            {
+                var rt = Global.IoC.Resolve<Teleport>();
+                rt.OnFinish += TeleportFinish;
+                rt.OnStart += TeleportStart;
+                rt.OnAbort += TeleportAbort;
+                rt.OnUnknown += TeleportAbort;
+            }
+
+            var spawn = ObjectManager.Get<GameObject>().FirstOrDefault(s => s is Obj_SpawnPoint && s.IsEnemy);
+            _spawnPoint = spawn != null ? Drawing.WorldToMinimap(spawn.Position) : Vector2.Zero;
+
+            foreach (var enemy in HeroManager.Enemies)
+            {
+                _heroTextures[enemy.NetworkId] =
+                    ((Bitmap) Resources.ResourceManager.GetObject(string.Format("LP_{0}", enemy.ChampionName)) ??
+                     Resources.LP_Aatrox).ToTexture();
+                _lastPositions.Add(new LastPositionStruct(enemy));
+            }
+
+            _sprite = new Sprite(Drawing.Direct3DDevice);
+            _teleportTexture = Resources.LP_Teleport.ToTexture();
+            _text = new Font(
+                Drawing.Direct3DDevice,
+                new FontDescription
+                {
+                    FaceName = Global.DefaultFont,
+                    Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
+                    OutputPrecision = FontPrecision.Default,
+                    Quality = FontQuality.Default
+                });
+
+            base.OnInitialize();
         }
 
         internal class LastPositionStruct

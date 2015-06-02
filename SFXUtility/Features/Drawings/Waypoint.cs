@@ -41,9 +41,10 @@ namespace SFXUtility.Features.Drawings
     internal class Waypoint : Base
     {
         private const float CheckInterval = 50f;
-        private readonly Dictionary<int, List<Vector2>> _waypoints = new Dictionary<int, List<Vector2>>();
-        private float _lastCheck = Environment.TickCount;
+        private float _lastCheck;
         private Drawings _parent;
+        private Dictionary<int, List<Vector2>> _waypoints;
+        public Waypoint(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -191,6 +192,10 @@ namespace SFXUtility.Features.Drawings
 
                 Menu.Item(Name + "DrawAlly").ValueChanged += delegate
                 {
+                    if (_waypoints == null)
+                    {
+                        return;
+                    }
                     foreach (var ally in HeroManager.Allies.Where(ally => _waypoints.ContainsKey(ally.NetworkId)))
                     {
                         _waypoints.Remove(ally.NetworkId);
@@ -199,6 +204,10 @@ namespace SFXUtility.Features.Drawings
 
                 Menu.Item(Name + "DrawEnemy").ValueChanged += delegate
                 {
+                    if (_waypoints == null)
+                    {
+                        return;
+                    }
                     foreach (var enemy in HeroManager.Enemies.Where(enemy => _waypoints.ContainsKey(enemy.NetworkId)))
                     {
                         _waypoints.Remove(enemy.NetworkId);
@@ -208,12 +217,18 @@ namespace SFXUtility.Features.Drawings
                 _parent.Menu.AddSubMenu(Menu);
 
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        protected override void OnInitialize()
+        {
+            _waypoints = new Dictionary<int, List<Vector2>>();
+            _lastCheck = Environment.TickCount;
+            base.OnInitialize();
         }
     }
 }

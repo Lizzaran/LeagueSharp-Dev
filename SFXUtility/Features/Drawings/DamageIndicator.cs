@@ -38,15 +38,9 @@ namespace SFXUtility.Features.Drawings
 {
     internal class DamageIndicator : Base
     {
-        private readonly List<Spell> _spells = new List<Spell>
-        {
-            new Spell(SpellSlot.Q),
-            new Spell(SpellSlot.W),
-            new Spell(SpellSlot.E),
-            new Spell(SpellSlot.R)
-        };
-
         private Drawings _parent;
+        private List<Spell> _spells;
+        public DamageIndicator(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -160,12 +154,23 @@ namespace SFXUtility.Features.Drawings
                 _parent.Menu.AddSubMenu(Menu);
 
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        protected override void OnInitialize()
+        {
+            _spells = new List<Spell>
+            {
+                new Spell(SpellSlot.Q),
+                new Spell(SpellSlot.W),
+                new Spell(SpellSlot.E),
+                new Spell(SpellSlot.R)
+            };
+            base.OnInitialize();
         }
 
         private double CalculateComboDamage(Obj_AI_Hero enemy)

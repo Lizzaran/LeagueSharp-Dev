@@ -39,8 +39,9 @@ namespace SFXUtility.Features.Drawings
 {
     internal class LasthitMarker : Base
     {
-        private IEnumerable<Obj_AI_Minion> _minions = new List<Obj_AI_Minion>();
+        private IEnumerable<Obj_AI_Minion> _minions;
         private Drawings _parent;
+        public LasthitMarker(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -159,12 +160,17 @@ namespace SFXUtility.Features.Drawings
                 _parent.Menu.AddSubMenu(Menu);
 
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        protected override void OnInitialize()
+        {
+            _minions = new List<Obj_AI_Minion>();
+            base.OnInitialize();
         }
 
         protected override void OnEnable()

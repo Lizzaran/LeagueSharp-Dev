@@ -36,6 +36,7 @@ namespace SFXUtility.Features.Others
     internal class AutoLantern : Base
     {
         private Others _parent;
+        public AutoLantern(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -116,7 +117,6 @@ namespace SFXUtility.Features.Others
                 }
 
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {

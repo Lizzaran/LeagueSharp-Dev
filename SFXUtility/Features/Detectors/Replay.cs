@@ -41,11 +41,12 @@ namespace SFXUtility.Features.Detectors
 {
     internal class Replay : Base
     {
-        private readonly Timer _timer = new Timer();
         private bool _isRecording;
         private Detectors _parent;
         private Texture _recordTexture;
         private Sprite _sprite;
+        private Timer _timer;
+        public Replay(SFXUtility sfx) : base(sfx) {}
 
         public override bool Enabled
         {
@@ -71,8 +72,11 @@ namespace SFXUtility.Features.Detectors
             {
                 OnTimerElapsed(null, null);
 
-                _timer.Enabled = true;
-                _timer.Start();
+                if (_timer != null)
+                {
+                    _timer.Enabled = true;
+                    _timer.Start();
+                }
             }
 
             base.OnEnable();
@@ -84,7 +88,7 @@ namespace SFXUtility.Features.Detectors
             Drawing.OnPostReset -= OnDrawingPostReset;
             Drawing.OnEndScene -= OnDrawingEndScene;
 
-            if (_timer.Enabled)
+            if (_timer != null && _timer.Enabled)
             {
                 _timer.Enabled = false;
                 _timer.Stop();
@@ -135,7 +139,10 @@ namespace SFXUtility.Features.Detectors
         {
             try
             {
-                _sprite.OnResetDevice();
+                if (_sprite != null)
+                {
+                    _sprite.OnResetDevice();
+                }
             }
             catch (Exception ex)
             {
@@ -147,7 +154,10 @@ namespace SFXUtility.Features.Detectors
         {
             try
             {
-                _sprite.OnLostDevice();
+                if (_sprite != null)
+                {
+                    _sprite.OnLostDevice();
+                }
             }
             catch (Exception ex)
             {
@@ -205,20 +215,25 @@ namespace SFXUtility.Features.Detectors
 
                 _parent.Menu.AddSubMenu(Menu);
 
-                _sprite = new Sprite(Drawing.Direct3DDevice);
-                _recordTexture = Resources.RC_On.ToTexture();
-
-                _timer.Enabled = false;
-                _timer.Interval = Menu.Item(Name + "CheckInterval").GetValue<Slider>().Value * 60 * 1000;
-                _timer.Elapsed += OnTimerElapsed;
-
                 HandleEvents(_parent);
-                RaiseOnInitialized();
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        protected override void OnInitialize()
+        {
+            _timer = new Timer();
+            _sprite = new Sprite(Drawing.Direct3DDevice);
+            _recordTexture = Resources.RC_On.ToTexture();
+
+            _timer.Enabled = false;
+            _timer.Interval = Menu.Item(Name + "CheckInterval").GetValue<Slider>().Value * 60 * 1000;
+            _timer.Elapsed += OnTimerElapsed;
+
+            base.OnInitialize();
         }
 
         private void OnTimerElapsed(object sender, ElapsedEventArgs elapsedEventArgs)

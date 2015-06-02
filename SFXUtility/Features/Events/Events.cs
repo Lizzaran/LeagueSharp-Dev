@@ -33,6 +33,8 @@ namespace SFXUtility.Features.Events
 {
     internal class Events : Base
     {
+        public Events(SFXUtility sfx) : base(sfx) {}
+
         public override bool Enabled
         {
             get { return Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
