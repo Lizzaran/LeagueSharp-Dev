@@ -30,7 +30,6 @@ using System.Reflection;
 using System.Resources;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXChallenger.Abstracts;
 using SFXChallenger.Helpers;
 using SFXChallenger.Interfaces;
 using SFXLibrary;
@@ -87,7 +86,7 @@ namespace SFXChallenger
                     .FirstOrDefault(
                         t => t.Name.Equals(ObjectManager.Player.ChampionName, StringComparison.OrdinalIgnoreCase));
 
-            return type != null ? (MChampion) DynamicInitializer.NewInstance(type) : null;
+            return type != null ? (IChampion) DynamicInitializer.NewInstance(type) : null;
         }
 
         private static void SetupLogger()

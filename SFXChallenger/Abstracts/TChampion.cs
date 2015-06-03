@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- MChampion.cs is part of SFXChallenger.
+ tchampion.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -33,11 +33,12 @@ using SFXLibrary.Logger;
 
 namespace SFXChallenger.Abstracts
 {
-    internal abstract class MChampion : SChampion
+    // ReSharper disable once InconsistentNaming
+    internal abstract class TChampion : Champion
     {
         public List<Obj_AI_Hero> Targets = new List<Obj_AI_Hero>();
 
-        protected MChampion()
+        protected TChampion()
         {
             Core.OnBoot += OnCoreBoot;
             Core.OnShutdown += OnCoreShutdown;

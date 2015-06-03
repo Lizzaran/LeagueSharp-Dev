@@ -38,7 +38,7 @@ using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
 namespace SFXChallenger.Abstracts
 {
-    internal abstract class SChampion : IChampion
+    internal abstract class Champion : IChampion
     {
         protected readonly Obj_AI_Hero Player = ObjectManager.Player;
         private List<Spell> _spells;
@@ -47,7 +47,7 @@ namespace SFXChallenger.Abstracts
         protected Spell R;
         protected Spell W;
 
-        protected SChampion()
+        protected Champion()
         {
             Core.OnBoot += OnCoreBoot;
             Core.OnShutdown += OnCoreShutdown;

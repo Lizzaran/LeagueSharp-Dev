@@ -40,7 +40,7 @@ using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
 namespace SFXChallenger.Champions
 {
-    internal class Cassiopeia : MChampion
+    internal class Cassiopeia : TChampion
     {
         private float _lastEEndTime;
         private float _lastPoisonClearDelay;

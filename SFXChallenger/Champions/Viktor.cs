@@ -40,7 +40,7 @@ using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 
 namespace SFXChallenger.Champions
 {
-    internal class Viktor : MChampion
+    internal class Viktor : TChampion
     {
         private const float MaxERange = 1225f;
         private const float ELength = 700f;

@@ -37,7 +37,7 @@ using SFXLibrary.Logger;
 
 namespace SFXChallenger.Champions
 {
-    internal class Graves : SChampion
+    internal class Graves : Champion
     {
         protected override ItemFlags ItemFlags
         {
@@ -163,7 +163,6 @@ namespace SFXChallenger.Champions
             var useW = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady();
             var useE = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
             var useR = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && R.IsReady();
-
 
             if (useQ)
             {
