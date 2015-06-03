@@ -115,25 +115,6 @@ namespace SFXChallenger.Champions
             ManaManager.AddToMenu(laneclearMenu, "misc", ManaCheckType.Minimum, ManaValueType.Percent);
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".e-reset", Global.Lang.Get("Kalista_EHarassReset")).SetValue(true));
-
-
-            var hits = 0;
-            Obj_AI_Base target = null;
-            var minions = MinionManager.GetMinions(Player.Position, W.Range);
-            foreach (var minion in minions)
-            {
-                var count = minions.Count(m => m.NetworkId != minion.NetworkId && m.Distance(minion) < 200);
-                ;
-                if (count > hits)
-                {
-                    hits = count;
-                    target = minion;
-                }
-            }
-            if (target != null)
-            {
-                W.Cast(target);
-            }
         }
 
         protected override void SetupSpells()
