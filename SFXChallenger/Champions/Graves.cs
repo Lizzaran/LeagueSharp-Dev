@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Graves.cs is part of SFXChallenger.
+ graves.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -132,15 +132,7 @@ namespace SFXChallenger.Champions
                 }
                 if (Menu.Item(Menu.Name + ".miscellaneous.e-gapcloser").GetValue<bool>())
                 {
-                    var turret =
-                        ObjectManager.Get<Obj_AI_Turret>()
-                            .Where(t => t.IsValid && !t.IsDead && t.Team == Player.Team)
-                            .OrderBy(t => t.Distance(Player))
-                            .FirstOrDefault();
-                    E.Cast(
-                        turret != null
-                            ? Player.Position.Extend(turret.Position, E.Range)
-                            : Player.Position.Extend(endPos, E.Range));
+                    E.Cast(endPos.Extend(Player.Position, E.Range));
                 }
             }
             catch (Exception ex)
