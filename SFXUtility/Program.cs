@@ -49,8 +49,6 @@ namespace SFXUtility
         {
             try
             {
-                Global.Logger.LogLevel = LogLevel.High;
-
                 AppDomain.CurrentDomain.UnhandledException +=
                     delegate(object sender, UnhandledExceptionEventArgs eventArgs)
                     {
@@ -114,10 +112,9 @@ namespace SFXUtility
             Global.IoC.Register(() => sfx, true, true);
 
             Global.IoC.Register(() => new Activators(sfx), true, true);
-            //Global.IoC.Register(() => new BushRevealer(sfx), true, true);
-            //Global.IoC.Register(() => new InvisibilityRevealer(sfx), true, true);
             Global.IoC.Register(() => new KillSteal(sfx), true, true);
             Global.IoC.Register(() => new Potion(sfx), true, true);
+            //Global.IoC.Register(() => new Revealer(sfx), true, true);
             Global.IoC.Register(() => new Smite(sfx), true, true);
 
             Global.IoC.Register(() => new Detectors(sfx), true, true);
@@ -144,13 +141,12 @@ namespace SFXUtility
             Global.IoC.Register(() => new Trinket(sfx), true, true);
 
             Global.IoC.Register(() => new Others(sfx), true, true);
-            //Global.IoC.Register(() => new AntiTrap(sfx), true, true);
             Global.IoC.Register(() => new AutoLantern(sfx), true, true);
             Global.IoC.Register(() => new ExtendFlash(sfx), true, true);
             Global.IoC.Register(() => new Humanize(sfx), true, true);
+            Global.IoC.Register(() => new MoveTo(sfx), true, true);
             Global.IoC.Register(() => new Ping(sfx), true, true);
             Global.IoC.Register(() => new SkinChanger(sfx), true, true);
-            //Global.IoC.Register(() => new SummonerInfo(sfx), true, true);
             Global.IoC.Register(() => new TurnAround(sfx), true, true);
 
             Global.IoC.Register(() => new Timers(sfx), true, true);

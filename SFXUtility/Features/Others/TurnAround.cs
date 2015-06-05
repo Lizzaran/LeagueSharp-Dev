@@ -36,22 +36,12 @@ using SharpDX;
 
 namespace SFXUtility.Features.Others
 {
-    internal class TurnAround : Base
+    internal class TurnAround : Child<Others>
     {
         private float _blockMovementTime;
         private Vector3 _lastMove;
-        private Others _parent;
         private List<SpellInfo> _spellInfos;
         public TurnAround(SFXUtility sfx) : base(sfx) {}
-
-        public override bool Enabled
-        {
-            get
-            {
-                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
-        }
 
         public override string Name
         {
@@ -136,14 +126,14 @@ namespace SFXUtility.Features.Others
             {
                 if (Global.IoC.IsRegistered<Others>())
                 {
-                    _parent = Global.IoC.Resolve<Others>();
-                    if (_parent.Initialized)
+                    Parent = Global.IoC.Resolve<Others>();
+                    if (Parent.Initialized)
                     {
                         OnParentInitialized(null, null);
                     }
                     else
                     {
-                        _parent.OnInitialized += OnParentInitialized;
+                        Parent.OnInitialized += OnParentInitialized;
                     }
                 }
             }
@@ -157,18 +147,13 @@ namespace SFXUtility.Features.Others
         {
             try
             {
-                if (_parent.Menu == null)
-                {
-                    return;
-                }
-
                 Menu = new Menu(Name, Name);
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                _parent.Menu.AddSubMenu(Menu);
+                Parent.Menu.AddSubMenu(Menu);
 
-                HandleEvents(_parent);
+                HandleEvents();
             }
             catch (Exception ex)
             {

@@ -31,14 +31,9 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Activators
 {
-    internal class Activators : Base
+    internal class Activators : Parent
     {
         public Activators(SFXUtility sfx) : base(sfx) {}
-
-        public override bool Enabled
-        {
-            get { return Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
-        }
 
         public override string Name
         {

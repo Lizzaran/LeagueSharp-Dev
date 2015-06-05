@@ -74,13 +74,15 @@ namespace SFXLibrary.Extensions.NET
         public static Texture ToTexture(this Bitmap bitmap)
         {
             return Texture.FromMemory(
-                Drawing.Direct3DDevice, (byte[])new ImageConverter().ConvertTo(bitmap, typeof(byte[])), bitmap.Width,
+                Drawing.Direct3DDevice, (byte[]) new ImageConverter().ConvertTo(bitmap, typeof(byte[])), bitmap.Width,
                 bitmap.Height, 0, Usage.None, Format.A1, Pool.Managed, Filter.Default, Filter.Default, 0);
         }
 
         public static Bitmap Scale(this Bitmap bitmap, float scale)
         {
-            return new Bitmap(bitmap, new Size((int)(Math.Ceiling(bitmap.Width * scale)), (int)(Math.Ceiling(bitmap.Height * scale))));
+            return new Bitmap(
+                bitmap,
+                new Size((int) (Math.Ceiling(bitmap.Width * scale)), (int) (Math.Ceiling(bitmap.Height * scale))));
         }
     }
 }

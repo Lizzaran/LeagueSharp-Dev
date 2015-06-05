@@ -68,8 +68,8 @@ namespace SFXChallenger.Managers
 
                 foreach (var enemy in HeroManager.Enemies.Where(e => !Invulnerable.HasBuff(e)))
                 {
-                    var itemDamage = (items ? ItemManager.CalculateComboDamage(enemy) : 0) - 20;
-                    var summonerDamage = (items ? SummonerManager.CalculateComboDamage(enemy) : 0) - 20;
+                    var itemDamage = items ? ItemManager.CalculateComboDamage(enemy) - 20 : 0;
+                    var summonerDamage = summoners ? SummonerManager.CalculateComboDamage(enemy) - 10 : 0;
                     if (items && itemDamage > enemy.Health)
                     {
                         ItemManager.UseComboItems(enemy);

@@ -269,13 +269,14 @@ namespace SFXChallenger.Managers
             }
             try
             {
+                var distance = target.Distance(ObjectManager.Player.Position, true);
                 return
                     (float)
                         Items.Where(
                             i =>
-                                ((i.Flags & (_itemFlags)) != 0) && i.EffectFlags.HasFlag(EffectFlags.Damage) &&
+                                i.EffectFlags.HasFlag(EffectFlags.Damage) && ((i.Flags & (_itemFlags)) != 0) &&
                                 _menu.Item(_menu.Name + "." + i.Name + ".combo").GetValue<bool>() && i.Item.IsOwned() &&
-                                i.Item.IsReady() && target.Distance(ObjectManager.Player.Position) <= i.Range &&
+                                i.Item.IsReady() && distance <= Math.Pow(i.Range, 2) &&
                                 ObjectManager.Player.CountEnemiesInRange(i.Range) >=
                                 _menu.Item(_menu.Name + "." + i.Name + ".min-enemies-range").GetValue<Slider>().Value)
                             .Sum(item => ObjectManager.Player.GetItemDamage(target, item.Damage));
@@ -295,12 +296,13 @@ namespace SFXChallenger.Managers
             }
             try
             {
+                var distance = target.Distance(ObjectManager.Player.Position, true);
                 foreach (var item in
                     Items.Where(
                         i =>
                             ((i.Flags & (_itemFlags)) != 0) &&
                             _menu.Item(_menu.Name + "." + i.Name + ".combo").GetValue<bool>() && i.Item.IsOwned() &&
-                            i.Item.IsReady() && target.Distance(ObjectManager.Player.Position) <= i.Range &&
+                            i.Item.IsReady() && distance <= Math.Pow(i.Range, 2) &&
                             ObjectManager.Player.CountEnemiesInRange(i.Range) >=
                             _menu.Item(_menu.Name + "." + i.Name + ".min-enemies-range").GetValue<Slider>().Value))
                 {
@@ -352,7 +354,8 @@ namespace SFXChallenger.Managers
                             HeroManager.Enemies.OrderByDescending(
                                 e =>
                                     !Invulnerable.HasBuff(e) &&
-                                    e.Position.Distance(ObjectManager.Player.Position) < localItem.Range))
+                                    e.Position.Distance(ObjectManager.Player.Position, true) <
+                                    Math.Pow(localItem.Range, 2)))
                         {
                             if (!enemy.HasBuffOfType(BuffType.Slow) && !enemy.HasBuffOfType(BuffType.Stun) &&
                                 !enemy.HasBuffOfType(BuffType.Fear) && !enemy.HasBuffOfType(BuffType.Flee) &&

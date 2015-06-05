@@ -228,6 +228,10 @@
 	<entry key="F_Humanize">Humanize</entry>
 	<!-- END: Humanize -->
 
+	<!-- START: MoveTo -->
+	<entry key="F_MoveTo">Move To</entry>
+	<!-- END: MoveTo -->
+
 	<!-- START: Ping -->
 	<entry key="F_Ping">Ping</entry>
 	<!-- END: Ping -->

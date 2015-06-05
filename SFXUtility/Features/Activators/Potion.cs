@@ -36,20 +36,10 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Activators
 {
-    internal class Potion : Base
+    internal class Potion : Child<Activators>
     {
-        private Activators _parent;
         private List<PotionStruct> _potions;
         public Potion(SFXUtility sfx) : base(sfx) {}
-
-        public override bool Enabled
-        {
-            get
-            {
-                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
-        }
 
         public override string Name
         {
@@ -72,11 +62,6 @@ namespace SFXUtility.Features.Activators
         {
             try
             {
-                if (_parent.Menu == null)
-                {
-                    return;
-                }
-
                 Menu = new Menu(Name, Name);
                 var healthMenu = new Menu(Global.Lang.Get("G_Health"), Name + "Health");
                 healthMenu.AddItem(
@@ -104,9 +89,9 @@ namespace SFXUtility.Features.Activators
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                _parent.Menu.AddSubMenu(Menu);
+                Parent.Menu.AddSubMenu(Menu);
 
-                HandleEvents(_parent);
+                HandleEvents();
             }
             catch (Exception ex)
             {
@@ -154,20 +139,20 @@ namespace SFXUtility.Features.Activators
             {
                 if (Global.IoC.IsRegistered<Activators>())
                 {
-                    _parent = Global.IoC.Resolve<Activators>();
-                    if (_parent.Initialized)
+                    Parent = Global.IoC.Resolve<Activators>();
+                    if (Parent.Initialized)
                     {
                         OnParentInitialized(null, null);
                     }
                     else
                     {
-                        _parent.OnInitialized += OnParentInitialized;
+                        Parent.OnInitialized += OnParentInitialized;
                     }
                 }
                 else if (Global.IoC.IsRegistered<Mediator>())
                 {
                     Global.IoC.Resolve<Mediator>()
-                        .Register(_parent.Name, delegate(object o) { OnParentInitialized(o, new EventArgs()); });
+                        .Register(Parent.Name, delegate(object o) { OnParentInitialized(o, new EventArgs()); });
                 }
             }
             catch (Exception ex)

@@ -38,7 +38,7 @@ using SharpDX.Direct3D9;
 
 namespace SFXUtility.Features.Timers
 {
-    internal class Jungle : Base
+    internal class Jungle : Child<Timers>
     {
         private const float CheckInterval = 800f;
         private List<Camp> _camps;
@@ -46,17 +46,7 @@ namespace SFXUtility.Features.Timers
         private float _lastCheck;
         private Font _mapText;
         private Font _minimapText;
-        private Timers _parent;
         public Jungle(SFXUtility sfx) : base(sfx) {}
-
-        public override bool Enabled
-        {
-            get
-            {
-                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
-        }
 
         public override string Name
         {
@@ -68,9 +58,6 @@ namespace SFXUtility.Features.Timers
             GameObject.OnCreate += OnGameObjectCreate;
             GameObject.OnDelete += OnGameObjectDelete;
             Game.OnUpdate += OnGameUpdate;
-
-            Drawing.OnPreReset += OnDrawingPreReset;
-            Drawing.OnPostReset += OnDrawingPostReset;
             Drawing.OnEndScene += OnDrawingEndScene;
 
             base.OnEnable();
@@ -81,29 +68,9 @@ namespace SFXUtility.Features.Timers
             GameObject.OnCreate -= OnGameObjectCreate;
             GameObject.OnDelete -= OnGameObjectDelete;
             Game.OnUpdate -= OnGameUpdate;
-
-            Drawing.OnPreReset -= OnDrawingPreReset;
-            Drawing.OnPostReset -= OnDrawingPostReset;
             Drawing.OnEndScene -= OnDrawingEndScene;
 
             base.OnDisable();
-        }
-
-        protected override void OnUnload(object sender, UnloadEventArgs args)
-        {
-            if (args != null && args.Final)
-            {
-                base.OnUnload(sender, args);
-
-                if (_mapText != null)
-                {
-                    _mapText.Dispose();
-                }
-                if (_minimapText != null)
-                {
-                    _minimapText.Dispose();
-                }
-            }
         }
 
         private void OnGameObjectDelete(GameObject sender, EventArgs args)
@@ -254,58 +221,20 @@ namespace SFXUtility.Features.Timers
             }
         }
 
-        private void OnDrawingPostReset(EventArgs args)
-        {
-            try
-            {
-                if (_mapText != null)
-                {
-                    _mapText.OnResetDevice();
-                }
-                if (_minimapText != null)
-                {
-                    _minimapText.OnResetDevice();
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnDrawingPreReset(EventArgs args)
-        {
-            try
-            {
-                if (_mapText != null)
-                {
-                    _mapText.OnLostDevice();
-                }
-                if (_minimapText != null)
-                {
-                    _minimapText.OnResetDevice();
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
         protected override void OnGameLoad(EventArgs args)
         {
             try
             {
                 if (Global.IoC.IsRegistered<Timers>())
                 {
-                    _parent = Global.IoC.Resolve<Timers>();
-                    if (_parent.Initialized)
+                    Parent = Global.IoC.Resolve<Timers>();
+                    if (Parent.Initialized)
                     {
                         OnParentInitialized(null, null);
                     }
                     else
                     {
-                        _parent.OnInitialized += OnParentInitialized;
+                        Parent.OnInitialized += OnParentInitialized;
                     }
                 }
             }
@@ -319,11 +248,6 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
-                if (_parent.Menu == null)
-                {
-                    return;
-                }
-
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
@@ -355,9 +279,9 @@ namespace SFXUtility.Features.Timers
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                _parent.Menu.AddSubMenu(Menu);
+                Parent.Menu.AddSubMenu(Menu);
 
-                HandleEvents(_parent);
+                HandleEvents();
             }
             catch (Exception ex)
             {
@@ -380,25 +304,8 @@ namespace SFXUtility.Features.Timers
                 return;
             }
 
-            _minimapText = new Font(
-                Drawing.Direct3DDevice,
-                new FontDescription
-                {
-                    FaceName = Global.DefaultFont,
-                    Height = Menu.Item(Name + "DrawingMinimapFontSize").GetValue<Slider>().Value,
-                    OutputPrecision = FontPrecision.Default,
-                    Quality = FontQuality.Default
-                });
-
-            _mapText = new Font(
-                Drawing.Direct3DDevice,
-                new FontDescription
-                {
-                    FaceName = Global.DefaultFont,
-                    Height = Menu.Item(Name + "DrawingMapFontSize").GetValue<Slider>().Value,
-                    OutputPrecision = FontPrecision.Default,
-                    Quality = FontQuality.Default
-                });
+            _minimapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMinimapFontSize").GetValue<Slider>().Value);
+            _mapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMapFontSize").GetValue<Slider>().Value);
 
             base.OnInitialize();
         }

@@ -4,9 +4,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFXUtility", "SFXUtility\SFXUtility.csproj", "{2D7486BB-8A00-4CDB-AE64-8BF17463B518}"
-	ProjectSection(ProjectDependencies) = postProject
-		{C9D4DEB3-9CAC-49B4-9CCB-1509D01AD618} = {C9D4DEB3-9CAC-49B4-9CCB-1509D01AD618}
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Github", "Github", "{4C60A78D-3A94-4062-A28A-6FA91FEA539A}"
 	ProjectSection(SolutionItems) = preProject

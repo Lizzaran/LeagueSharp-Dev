@@ -42,23 +42,13 @@ using Font = SharpDX.Direct3D9.Font;
 
 namespace SFXUtility.Features.Detectors
 {
-    internal class Teleport : Base
+    internal class Teleport : Child<Detectors>
     {
         private Font _barText;
         private Line _line;
-        private Detectors _parent;
         private List<TeleportObject> _teleportObjects;
         private Font _text;
         public Teleport(SFXUtility sfx) : base(sfx) {}
-
-        public override bool Enabled
-        {
-            get
-            {
-                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
-        }
 
         public override string Name
         {
@@ -72,8 +62,6 @@ namespace SFXUtility.Features.Detectors
 
         protected override void OnEnable()
         {
-            Drawing.OnPreReset += OnDrawingPreReset;
-            Drawing.OnPostReset += OnDrawingPostReset;
             Drawing.OnEndScene += OnDrawingEndScene;
 
             base.OnEnable();
@@ -81,32 +69,9 @@ namespace SFXUtility.Features.Detectors
 
         protected override void OnDisable()
         {
-            Drawing.OnPreReset -= OnDrawingPreReset;
-            Drawing.OnPostReset -= OnDrawingPostReset;
             Drawing.OnEndScene -= OnDrawingEndScene;
 
             base.OnDisable();
-        }
-
-        protected override void OnUnload(object sender, UnloadEventArgs args)
-        {
-            if (args != null && args.Final)
-            {
-                base.OnUnload(sender, args);
-
-                if (_line != null)
-                {
-                    _line.Dispose();
-                }
-                if (_text != null)
-                {
-                    _text.Dispose();
-                }
-                if (_barText != null)
-                {
-                    _barText.Dispose();
-                }
-            }
         }
 
         private void OnDrawingEndScene(EventArgs args)
@@ -242,66 +207,20 @@ namespace SFXUtility.Features.Detectors
             }
         }
 
-        private void OnDrawingPostReset(EventArgs args)
-        {
-            try
-            {
-                if (_line != null)
-                {
-                    _line.OnResetDevice();
-                }
-                if (_text != null)
-                {
-                    _text.OnResetDevice();
-                }
-                if (_barText != null)
-                {
-                    _barText.OnResetDevice();
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnDrawingPreReset(EventArgs args)
-        {
-            try
-            {
-                if (_line != null)
-                {
-                    _line.OnLostDevice();
-                }
-                if (_text != null)
-                {
-                    _text.OnLostDevice();
-                }
-                if (_barText != null)
-                {
-                    _barText.OnLostDevice();
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
         protected override void OnGameLoad(EventArgs args)
         {
             try
             {
                 if (Global.IoC.IsRegistered<Detectors>())
                 {
-                    _parent = Global.IoC.Resolve<Detectors>();
-                    if (_parent.Initialized)
+                    Parent = Global.IoC.Resolve<Detectors>();
+                    if (Parent.Initialized)
                     {
                         OnParentInitialized(null, null);
                     }
                     else
                     {
-                        _parent.OnInitialized += OnParentInitialized;
+                        Parent.OnInitialized += OnParentInitialized;
                     }
                 }
             }
@@ -315,11 +234,6 @@ namespace SFXUtility.Features.Detectors
         {
             try
             {
-                if (_parent.Menu == null)
-                {
-                    return;
-                }
-
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
@@ -336,7 +250,7 @@ namespace SFXUtility.Features.Detectors
                             new Slider((int) (Drawing.Width * 0.68d), 0, Drawing.Width)));
                 drawingTextMenu.AddItem(
                     new MenuItem(drawingTextMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(
-                        new Slider(15, 3, 30)));
+                        new Slider(15, 5, 30)));
                 drawingTextMenu.AddItem(
                     new MenuItem(drawingTextMenu.Name + "AdditionalTime", Global.Lang.Get("Teleport_AdditionalTime"))
                         .SetValue(new Slider(10, 0, 10))).ValueChanged +=
@@ -351,6 +265,9 @@ namespace SFXUtility.Features.Detectors
                     new MenuItem(drawingTextMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 var drawingBarMenu = new Menu(Global.Lang.Get("G_Bar"), drawingMenu.Name + "Bar");
+                drawingBarMenu.AddItem(
+                    new MenuItem(drawingBarMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(
+                        new Slider(13, 5, 30)));
                 drawingBarMenu.AddItem(
                     new MenuItem(drawingBarMenu.Name + "Scale", Global.Lang.Get("G_Scale")).SetValue(
                         new Slider(10, 1, 20)));
@@ -388,9 +305,9 @@ namespace SFXUtility.Features.Detectors
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                _parent.Menu.AddSubMenu(Menu);
+                Parent.Menu.AddSubMenu(Menu);
 
-                HandleEvents(_parent);
+                HandleEvents();
             }
             catch (Exception ex)
             {
@@ -414,30 +331,14 @@ namespace SFXUtility.Features.Detectors
 
             Obj_AI_Base.OnTeleport += OnObjAiBaseTeleport;
 
-            _text = new Font(
-                Drawing.Direct3DDevice,
-                new FontDescription
-                {
-                    FaceName = Global.DefaultFont,
-                    Height = Menu.Item(Menu.Name + "DrawingTextFontSize").GetValue<Slider>().Value,
-                    OutputPrecision = FontPrecision.Default,
-                    Quality = FontQuality.Default
-                });
-
-            _barText = new Font(
-                Drawing.Direct3DDevice,
-                new FontDescription
-                {
-                    FaceName = Global.DefaultFont,
-                    Height =
-                        (int)
-                            (Math.Ceiling(
-                                13 * (Menu.Item(Menu.Name + "DrawingBarScale").GetValue<Slider>().Value / 10d))),
-                    OutputPrecision = FontPrecision.Default,
-                    Quality = FontQuality.Default
-                });
-
-            _line = new Line(Drawing.Direct3DDevice);
+            _text = MDrawing.GetFont(Menu.Item(Name + "DrawingTextFontSize").GetValue<Slider>().Value);
+            _barText =
+                MDrawing.GetFont(
+                    (int)
+                        (Math.Ceiling(
+                            Menu.Item(Name + "DrawingBarFontSize").GetValue<Slider>().Value *
+                            (Menu.Item(Menu.Name + "DrawingBarScale").GetValue<Slider>().Value / 10d))));
+            _line = MDrawing.GetLine(1);
 
             base.OnInitialize();
         }

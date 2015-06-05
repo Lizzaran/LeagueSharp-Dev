@@ -24,7 +24,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
@@ -36,32 +35,20 @@ using SFXUtility.Features.Detectors;
 using SFXUtility.Properties;
 using SharpDX;
 using SharpDX.Direct3D9;
-using Color = SharpDX.Color;
-using Font = SharpDX.Direct3D9.Font;
 
 #endregion
 
 namespace SFXUtility.Features.Trackers
 {
-    internal class LastPosition : Base
+    internal class LastPosition : Child<Trackers>
     {
         private Dictionary<int, Texture> _heroTextures;
         private List<LastPositionStruct> _lastPositions;
-        private Trackers _parent;
         private Vector2 _spawnPoint;
         private Sprite _sprite;
         private Texture _teleportTexture;
         private Font _text;
         public LastPosition(SFXUtility sfx) : base(sfx) {}
-
-        public override bool Enabled
-        {
-            get
-            {
-                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
-        }
 
         public override string Name
         {
@@ -74,14 +61,14 @@ namespace SFXUtility.Features.Trackers
             {
                 if (Global.IoC.IsRegistered<Trackers>())
                 {
-                    _parent = Global.IoC.Resolve<Trackers>();
-                    if (_parent.Initialized)
+                    Parent = Global.IoC.Resolve<Trackers>();
+                    if (Parent.Initialized)
                     {
                         OnParentInitialized(null, null);
                     }
                     else
                     {
-                        _parent.OnInitialized += OnParentInitialized;
+                        Parent.OnInitialized += OnParentInitialized;
                     }
                 }
             }
@@ -121,8 +108,6 @@ namespace SFXUtility.Features.Trackers
 
         protected override void OnEnable()
         {
-            Drawing.OnPreReset += OnDrawingPreReset;
-            Drawing.OnPostReset += OnDrawingPostReset;
             Drawing.OnEndScene += OnDrawingEndScene;
 
             base.OnEnable();
@@ -130,28 +115,9 @@ namespace SFXUtility.Features.Trackers
 
         protected override void OnDisable()
         {
-            Drawing.OnPreReset -= OnDrawingPreReset;
-            Drawing.OnPostReset -= OnDrawingPostReset;
             Drawing.OnEndScene -= OnDrawingEndScene;
 
             base.OnDisable();
-        }
-
-        protected override void OnUnload(object sender, UnloadEventArgs args)
-        {
-            if (args != null && args.Final)
-            {
-                base.OnUnload(sender, args);
-
-                if (_text != null)
-                {
-                    _text.Dispose();
-                }
-                if (_sprite != null)
-                {
-                    _sprite.Dispose();
-                }
-            }
         }
 
         private void OnDrawingEndScene(EventArgs args)
@@ -203,53 +169,10 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private void OnDrawingPostReset(EventArgs args)
-        {
-            try
-            {
-                if (_text != null)
-                {
-                    _text.OnResetDevice();
-                }
-                if (_sprite != null)
-                {
-                    _sprite.OnResetDevice();
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnDrawingPreReset(EventArgs args)
-        {
-            try
-            {
-                if (_text != null)
-                {
-                    _text.OnLostDevice();
-                }
-                if (_sprite != null)
-                {
-                    _sprite.OnLostDevice();
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
         private void OnParentInitialized(object sender, EventArgs eventArgs)
         {
             try
             {
-                if (_parent.Menu == null)
-                {
-                    return;
-                }
-
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
@@ -270,9 +193,9 @@ namespace SFXUtility.Features.Trackers
                 Menu.AddItem(new MenuItem(Name + "SSTimer", Global.Lang.Get("LastPosition_SSTimer")).SetValue(false));
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                _parent.Menu.AddSubMenu(Menu);
+                Parent.Menu.AddSubMenu(Menu);
 
-                HandleEvents(_parent);
+                HandleEvents();
             }
             catch (Exception ex)
             {
@@ -300,22 +223,13 @@ namespace SFXUtility.Features.Trackers
             foreach (var enemy in HeroManager.Enemies)
             {
                 _heroTextures[enemy.NetworkId] =
-                    ((Bitmap) Resources.ResourceManager.GetObject(string.Format("LP_{0}", enemy.ChampionName)) ??
-                     Resources.LP_Aatrox).ToTexture();
+                    (ImageLoader.Load("LP", enemy.ChampionName) ?? Resources.LP_Default).ToTexture();
                 _lastPositions.Add(new LastPositionStruct(enemy));
             }
 
-            _sprite = new Sprite(Drawing.Direct3DDevice);
+            _sprite = MDrawing.GetSprite();
             _teleportTexture = Resources.LP_Teleport.ToTexture();
-            _text = new Font(
-                Drawing.Direct3DDevice,
-                new FontDescription
-                {
-                    FaceName = Global.DefaultFont,
-                    Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
-                    OutputPrecision = FontPrecision.Default,
-                    Quality = FontQuality.Default
-                });
+            _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
 
             base.OnInitialize();
         }

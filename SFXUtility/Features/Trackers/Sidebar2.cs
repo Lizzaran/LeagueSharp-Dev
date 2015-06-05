@@ -70,7 +70,7 @@
 
 //    #endregion
 
-//    internal class Sidebar2 : Base
+//    internal class Sidebar2 : Child<>
 //    {
 //        private readonly string[] _champsEnergy = { "Akali", "Kennen", "LeeSin", "Shen", "Zed", "Gnar", "Rengar" };
 
@@ -87,7 +87,7 @@
 //        private Texture _hudTexture;
 //        private Texture _invisibleTexture;
 //        private Line _line;
-//        private Trackers _parent;
+//        private Trackers Parent;
 //        private Sprite _sprite;
 //        private Texture _teleportAbortTexture;
 //        private Texture _teleportFinishTexture;
@@ -107,7 +107,7 @@
 //        {
 //            get
 //            {
-//                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
+//                return !Unloaded && Parent != null && Parent.Enabled && Menu != null &&
 //                       Menu.Item(Name + "Enabled").GetValue<bool>();
 //            }
 //        }
@@ -123,14 +123,14 @@
 //            {
 //                if (Global.IoC.IsRegistered<Trackers>())
 //                {
-//                    _parent = Global.IoC.Resolve<Trackers>();
-//                    if (_parent.Initialized)
+//                    Parent = Global.IoC.Resolve<Trackers>();
+//                    if (Parent.Initialized)
 //                    {
 //                        OnParentInitialized(null, null);
 //                    }
 //                    else
 //                    {
-//                        _parent.OnInitialized += OnParentInitialized;
+//                        Parent.OnInitialized += OnParentInitialized;
 //                    }
 //                }
 //            }
@@ -370,7 +370,7 @@
 //        {
 //            try
 //            {
-//                if (_parent.Menu == null)
+//                if (Parent.Menu == null)
 //                {
 //                    return;
 //                }
@@ -390,14 +390,14 @@
 //                        .SetValue(new Slider(0, 0, Drawing.Width)));
 
 //                drawingMenu.AddItem(
-//                    new MenuItem(drawingMenu.Name + "Scale", Global.Lang.Get("G_Scale")).SetValue(new Slider(10, 1, 20)));
+//                    new MenuItem(drawingMenu.Name + "Scale", Global.Lang.Get("G_Scale")).SetValue(new Slider(10, 5, 15)));
 
 //                Menu.AddSubMenu(drawingMenu);
 //                Menu.AddItem(new MenuItem(Name + "Clickable", Global.Lang.Get("Sidebar_Clickable")).SetValue(false));
 
 //                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-//                _parent.Menu.AddSubMenu(Menu);
+//                Parent.Menu.AddSubMenu(Menu);
 
 //                if (!HeroManager.Enemies.Any())
 //                {
@@ -484,7 +484,7 @@
 //                _ultimateTexture = Resources.SB_Ultimate.Scale(scale).ToTexture();
 //                _line = new Line(Drawing.Direct3DDevice) { Width = (int)(Math.Ceiling(9*scale)) };
 //                _sprite = new Sprite(Drawing.Direct3DDevice);
-//                HandleEvents(_parent);
+//                HandleEvents();
 //                RaiseOnInitialized();
 //            }
 //            catch (Exception ex)

@@ -36,21 +36,11 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Events
 {
-    internal class Trinket : Base
+    internal class Trinket : Child<Events>
     {
         private const float CheckInterval = 300f;
         private float _lastCheck;
-        private Events _parent;
         public Trinket(SFXUtility sfx) : base(sfx) {}
-
-        public override bool Enabled
-        {
-            get
-            {
-                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
-        }
 
         public override string Name
         {
@@ -75,14 +65,14 @@ namespace SFXUtility.Features.Events
             {
                 if (Global.IoC.IsRegistered<Events>())
                 {
-                    _parent = Global.IoC.Resolve<Events>();
-                    if (_parent.Initialized)
+                    Parent = Global.IoC.Resolve<Events>();
+                    if (Parent.Initialized)
                     {
                         OnParentInitialized(null, null);
                     }
                     else
                     {
-                        _parent.OnInitialized += OnParentInitialized;
+                        Parent.OnInitialized += OnParentInitialized;
                     }
                 }
             }
@@ -96,11 +86,6 @@ namespace SFXUtility.Features.Events
         {
             try
             {
-                if (_parent.Menu == null)
-                {
-                    return;
-                }
-
                 Menu = new Menu(Name, Name);
 
                 var timersMenu = new Menu(Global.Lang.Get("Trinket_Timers"), Name + "Timers");
@@ -149,9 +134,9 @@ namespace SFXUtility.Features.Events
                     new MenuItem(Name + "SellUpgraded", Global.Lang.Get("Trinket_SellUpgraded")).SetValue(false));
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                _parent.Menu.AddSubMenu(Menu);
+                Parent.Menu.AddSubMenu(Menu);
 
-                HandleEvents(_parent);
+                HandleEvents();
             }
             catch (Exception ex)
             {

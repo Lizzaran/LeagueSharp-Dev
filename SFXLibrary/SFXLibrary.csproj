@@ -22,7 +22,7 @@
     <AssemblyVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyVersionSettings>
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
-    <AssemblyVersion>1.0.0.6</AssemblyVersion>
+    <AssemblyVersion>1.0.0.14</AssemblyVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -74,6 +74,7 @@
   <ItemGroup>
     <Compile Include="Draw.cs" />
     <Compile Include="Extensions\LeagueSharp\Common\MenuExtensions.cs" />
+    <Compile Include="Extensions\NET\BitmapExtensions.cs" />
     <Compile Include="Extensions\NET\CharExtensions.cs" />
     <Compile Include="Extensions\NET\ColorExtensions.cs" />
     <Compile Include="Extensions\NET\DictionaryExtensions.cs" />

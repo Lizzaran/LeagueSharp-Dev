@@ -40,28 +40,18 @@ using Color = System.Drawing.Color;
 
 namespace SFXUtility.Features.Trackers
 {
-    internal class Ward : Base
+    internal class Ward : Child<Trackers>
     {
         private const float CheckInterval = 300f;
         private Texture _greenWardTexture;
         private float _lastCheck;
         private Line _line;
-        private Trackers _parent;
         private Texture _pinkWardTexture;
         private Sprite _sprite;
         private Font _text;
         private List<WardObject> _wardObjects;
         private List<WardStruct> _wardStructs;
         public Ward(SFXUtility sfx) : base(sfx) {}
-
-        public override bool Enabled
-        {
-            get
-            {
-                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
-        }
 
         public override string Name
         {
@@ -74,13 +64,9 @@ namespace SFXUtility.Features.Trackers
             Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
             GameObject.OnCreate += OnGameObjectCreate;
             GameObject.OnDelete += OnGameObjectDelete;
-
-            Drawing.OnPreReset += OnDrawingPreReset;
-            Drawing.OnPostReset += OnDrawingPostReset;
             Drawing.OnEndScene += OnDrawingEndScene;
-
-
             Game.OnWndProc += OnGameWndProc;
+
             base.OnEnable();
         }
 
@@ -90,35 +76,10 @@ namespace SFXUtility.Features.Trackers
             Obj_AI_Base.OnProcessSpellCast -= OnObjAiBaseProcessSpellCast;
             GameObject.OnCreate -= OnGameObjectCreate;
             GameObject.OnDelete -= OnGameObjectDelete;
-
-            Drawing.OnPreReset -= OnDrawingPreReset;
-            Drawing.OnPostReset -= OnDrawingPostReset;
             Drawing.OnEndScene -= OnDrawingEndScene;
-
             Game.OnWndProc += OnGameWndProc;
 
             base.OnDisable();
-        }
-
-        protected override void OnUnload(object sender, UnloadEventArgs args)
-        {
-            if (args != null && args.Final)
-            {
-                base.OnUnload(sender, args);
-
-                if (_text != null)
-                {
-                    _text.Dispose();
-                }
-                if (_sprite != null)
-                {
-                    _sprite.Dispose();
-                }
-                if (_line != null)
-                {
-                    _line.Dispose();
-                }
-            }
         }
 
         protected override void OnGameLoad(EventArgs args)
@@ -127,14 +88,14 @@ namespace SFXUtility.Features.Trackers
             {
                 if (Global.IoC.IsRegistered<Trackers>())
                 {
-                    _parent = Global.IoC.Resolve<Trackers>();
-                    if (_parent.Initialized)
+                    Parent = Global.IoC.Resolve<Trackers>();
+                    if (Parent.Initialized)
                     {
                         OnParentInitialized(null, null);
                     }
                     else
                     {
-                        _parent.OnInitialized += OnParentInitialized;
+                        Parent.OnInitialized += OnParentInitialized;
                     }
                 }
             }
@@ -148,11 +109,6 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                if (_parent.Menu == null)
-                {
-                    return;
-                }
-
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
@@ -205,9 +161,9 @@ namespace SFXUtility.Features.Trackers
                         new KeyBind(16, KeyBindType.Press)));
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                _parent.Menu.AddSubMenu(Menu);
+                Parent.Menu.AddSubMenu(Menu);
 
-                HandleEvents(_parent);
+                HandleEvents();
             }
             catch (Exception ex)
             {
@@ -237,23 +193,11 @@ namespace SFXUtility.Features.Trackers
             };
             _lastCheck = Environment.TickCount;
 
-            _sprite = new Sprite(Drawing.Direct3DDevice);
+            _sprite = MDrawing.GetSprite();
             _greenWardTexture = Resources.WT_Green.ToTexture();
             _pinkWardTexture = Resources.WT_Pink.ToTexture();
-            _text = new Font(
-                Drawing.Direct3DDevice,
-                new FontDescription
-                {
-                    FaceName = Global.DefaultFont,
-                    Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
-                    OutputPrecision = FontPrecision.Default,
-                    Quality = FontQuality.Default
-                });
-
-            _line = new Line(Drawing.Direct3DDevice)
-            {
-                Width = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value
-            };
+            _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
+            _line = MDrawing.GetLine(Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value);
 
             base.OnInitialize();
         }
@@ -349,52 +293,6 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private void OnDrawingPostReset(EventArgs args)
-        {
-            try
-            {
-                if (_text != null)
-                {
-                    _text.OnResetDevice();
-                }
-                if (_sprite != null)
-                {
-                    _sprite.OnResetDevice();
-                }
-                if (_line != null)
-                {
-                    _line.OnResetDevice();
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnDrawingPreReset(EventArgs args)
-        {
-            try
-            {
-                if (_text != null)
-                {
-                    _text.OnLostDevice();
-                }
-                if (_sprite != null)
-                {
-                    _sprite.OnLostDevice();
-                }
-                if (_line != null)
-                {
-                    _line.OnLostDevice();
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
         private void OnGameObjectDelete(GameObject sender, EventArgs args)
         {
             var ward = sender as Obj_AI_Base;
@@ -412,7 +310,7 @@ namespace SFXUtility.Features.Trackers
             try
             {
                 var missile = sender as Obj_SpellMissile;
-                if (missile != null)
+                if (missile != null && missile.IsValid)
                 {
                     if (missile.SpellCaster != null && !missile.SpellCaster.IsAlly && missile.SData != null)
                     {
@@ -446,7 +344,7 @@ namespace SFXUtility.Features.Trackers
                 else
                 {
                     var wardObject = sender as Obj_AI_Base;
-                    if (wardObject != null && !wardObject.IsAlly)
+                    if (wardObject != null && wardObject.IsValid && !wardObject.IsAlly)
                     {
                         foreach (var ward in _wardStructs)
                         {

@@ -406,38 +406,44 @@ namespace SFXChallenger.Wrappers
                         h => ignoredChampions == null || ignoredChampions.All(i => i.NetworkId != h.NetworkId))
                         .Where(h => IsValidTarget(h, aRange, damageType, ignoreShields, from))
                         .ToList();
-
-                if (assassin)
+                if (targets.Count > 0)
                 {
-                    var assassinTargets =
-                        targets.Where(h => _menu.Item(_menu.Name + ".assassin-mode." + h.ChampionName).GetValue<bool>())
-                            .ToList();
-                    if (assassinTargets.Any())
+                    if (assassin)
                     {
-                        targets = assassinTargets;
+                        var assassinTargets =
+                            targets.Where(
+                                h => _menu.Item(_menu.Name + ".assassin-mode." + h.ChampionName).GetValue<bool>())
+                                .ToList();
+                        if (assassinTargets.Any())
+                        {
+                            targets = assassinTargets;
+                        }
                     }
+
+                    foreach (var item in WeightedItems.Where(w => w.Weight > 0))
+                    {
+                        item.CurrentMin = targets.Select(item.GetValue).DefaultIfEmpty().Min();
+                        item.CurrentMax = targets.Select(item.GetValue).DefaultIfEmpty().Max();
+                    }
+
+                    var targetsWeight = TargetWeights(targets);
+
+                    if (_menu != null && SelectedTarget != null &&
+                        SelectedTarget.IsValidTarget(
+                            _menu.Item(_menu.Name + ".force-focus-selected").GetValue<bool>() ? float.MaxValue : aRange,
+                            true, from))
+                    {
+                        var id = targetsWeight.FindIndex(x => x.Hero.NetworkId == SelectedTarget.NetworkId);
+                        if (id > 0)
+                        {
+                            var item = targetsWeight[id];
+                            targetsWeight.RemoveAt(id);
+                            targetsWeight.Insert(0, item);
+                        }
+                    }
+
+                    return targetsWeight;
                 }
-
-                foreach (var item in WeightedItems.Where(w => w.Weight > 0))
-                {
-                    item.CurrentMin = targets.Select(item.GetValue).DefaultIfEmpty().Min();
-                    item.CurrentMax = targets.Select(item.GetValue).DefaultIfEmpty().Max();
-                }
-
-                var targetsWeight = TargetWeights(targets);
-
-                if (_menu != null && SelectedTarget != null &&
-                    SelectedTarget.IsValidTarget(
-                        _menu.Item(_menu.Name + ".force-focus-selected").GetValue<bool>() ? float.MaxValue : aRange,
-                        true, from))
-                {
-                    var id = targetsWeight.FindIndex(x => x.Hero.NetworkId == SelectedTarget.NetworkId);
-                    var item = targetsWeight[id];
-                    targetsWeight.RemoveAt(id);
-                    targetsWeight.Insert(0, item);
-                }
-
-                return targetsWeight;
             }
             catch (Exception ex)
             {

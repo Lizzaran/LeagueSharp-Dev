@@ -31,14 +31,9 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Timers
 {
-    internal class Timers : Base
+    internal class Timers : Parent
     {
         public Timers(SFXUtility sfx) : base(sfx) {}
-
-        public override bool Enabled
-        {
-            get { return Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
-        }
 
         public override string Name
         {

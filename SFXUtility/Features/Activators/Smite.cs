@@ -39,7 +39,7 @@ using Utils = SFXLibrary.Utils;
 
 namespace SFXUtility.Features.Activators
 {
-    internal class Smite : Base
+    internal class Smite : Child<Activators>
     {
         public const float SmiteRange = 570f;
         private List<Jungle.Camp> _camps;
@@ -47,18 +47,8 @@ namespace SFXUtility.Features.Activators
         private bool _delayActive;
         private List<HeroSpell> _heroSpells;
         private string[] _mobNames = new string[0];
-        private Activators _parent;
         private Spell _smiteSpell;
         public Smite(SFXUtility sfx) : base(sfx) {}
-
-        public override bool Enabled
-        {
-            get
-            {
-                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
-        }
 
         public override string Name
         {
@@ -83,11 +73,6 @@ namespace SFXUtility.Features.Activators
         {
             try
             {
-                if (_parent.Menu == null)
-                {
-                    return;
-                }
-
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing"));
@@ -140,9 +125,9 @@ namespace SFXUtility.Features.Activators
                                 .ToArray();
                     };
 
-                _parent.Menu.AddSubMenu(Menu);
+                Parent.Menu.AddSubMenu(Menu);
 
-                HandleEvents(_parent);
+                HandleEvents();
             }
             catch (Exception ex)
             {
@@ -296,14 +281,14 @@ namespace SFXUtility.Features.Activators
             {
                 if (Global.IoC.IsRegistered<Activators>())
                 {
-                    _parent = Global.IoC.Resolve<Activators>();
-                    if (_parent.Initialized)
+                    Parent = Global.IoC.Resolve<Activators>();
+                    if (Parent.Initialized)
                     {
                         OnParentInitialized(null, null);
                     }
                     else
                     {
-                        _parent.OnInitialized += OnParentInitialized;
+                        Parent.OnInitialized += OnParentInitialized;
                     }
                 }
             }

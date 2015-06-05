@@ -31,14 +31,9 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Trackers
 {
-    internal class Trackers : Base
+    internal class Trackers : Parent
     {
         public Trackers(SFXUtility sfx) : base(sfx) {}
-
-        public override bool Enabled
-        {
-            get { return Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
-        }
 
         public override string Name
         {

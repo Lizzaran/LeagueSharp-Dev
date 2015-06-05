@@ -147,21 +147,28 @@ namespace SFXChallenger.Managers
             }
             try
             {
+                var ignite = _menu.Item(_menu.Name + ".ignite").GetValue<bool>() && Ignite.Exists() && Ignite.IsReady();
+                var smite = _menu.Item(_menu.Name + ".smite").GetValue<bool>() &&
+                            (BlueSmite.Exists() && BlueSmite.IsReady() || RedSmite.Exists() && RedSmite.IsReady());
+
+                if (!ignite && !smite)
+                {
+                    return 0f;
+                }
+                var distance = target.Position.Distance(ObjectManager.Player.Position, true);
+
                 var damage = 0f;
-                if (_menu.Item(_menu.Name + ".ignite").GetValue<bool>() && Ignite.Exists() && Ignite.IsReady() &&
-                    target.Position.Distance(ObjectManager.Player.Position) <= Ignite.Range)
+                if (ignite && distance <= Math.Pow(Ignite.Range, 2))
                 {
                     damage += (float) ObjectManager.Player.GetSummonerSpellDamage(target, Damage.SummonerSpell.Ignite);
                 }
-                if (_menu.Item(_menu.Name + ".smite").GetValue<bool>())
+                if (smite)
                 {
-                    if (BlueSmite.Exists() && BlueSmite.IsReady() &&
-                        target.Position.Distance(ObjectManager.Player.Position) <= BlueSmite.Range)
+                    if (distance <= Math.Pow(BlueSmite.Range, 2))
                     {
                         damage += CalculateBlueSmiteDamage();
                     }
-                    else if (RedSmite.Exists() && RedSmite.IsReady() &&
-                             target.Position.Distance(ObjectManager.Player.Position) <= RedSmite.Range)
+                    else if (distance <= Math.Pow(RedSmite.Range, 2))
                     {
                         damage += CalculateRedSmiteDamage();
                     }
@@ -179,20 +186,26 @@ namespace SFXChallenger.Managers
         {
             try
             {
-                if (_menu.Item(_menu.Name + ".ignite").GetValue<bool>() && Ignite.Exists() && Ignite.IsReady() &&
-                    target.Position.Distance(ObjectManager.Player.Position) <= Ignite.Range)
+                var ignite = _menu.Item(_menu.Name + ".ignite").GetValue<bool>() && Ignite.Exists() && Ignite.IsReady();
+                var smite = _menu.Item(_menu.Name + ".smite").GetValue<bool>() &&
+                            (BlueSmite.Exists() && BlueSmite.IsReady() || RedSmite.Exists() && RedSmite.IsReady());
+
+                if (!ignite && !smite)
+                {
+                    return;
+                }
+                var distance = target.Position.Distance(ObjectManager.Player.Position, true);
+                if (ignite && distance <= Math.Pow(Ignite.Range, 2))
                 {
                     Ignite.Cast(target);
                 }
-                if (_menu.Item(_menu.Name + ".smite").GetValue<bool>())
+                if (smite)
                 {
-                    if (BlueSmite.Exists() && BlueSmite.IsReady() &&
-                        target.Position.Distance(ObjectManager.Player.Position) <= BlueSmite.Range)
+                    if (distance <= Math.Pow(BlueSmite.Range, 2))
                     {
                         BlueSmite.Cast(target);
                     }
-                    else if (RedSmite.Exists() && RedSmite.IsReady() &&
-                             target.Position.Distance(ObjectManager.Player.Position) <= RedSmite.Range)
+                    else if (distance <= Math.Pow(RedSmite.Range, 2))
                     {
                         RedSmite.Cast(target);
                     }

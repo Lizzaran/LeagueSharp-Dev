@@ -42,20 +42,10 @@ using Color = SharpDX.Color;
 
 namespace SFXUtility.Features.Trackers
 {
-    internal class Sidebar : Base
+    internal class Sidebar : Child<Trackers>
     {
         private List<EnemyObject> _enemyObjects;
-        private Trackers _parent;
         public Sidebar(SFXUtility sfx) : base(sfx) {}
-
-        public override bool Enabled
-        {
-            get
-            {
-                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
-        }
 
         public override string Name
         {
@@ -68,14 +58,14 @@ namespace SFXUtility.Features.Trackers
             {
                 if (Global.IoC.IsRegistered<Trackers>())
                 {
-                    _parent = Global.IoC.Resolve<Trackers>();
-                    if (_parent.Initialized)
+                    Parent = Global.IoC.Resolve<Trackers>();
+                    if (Parent.Initialized)
                     {
                         OnParentInitialized(null, null);
                     }
                     else
                     {
-                        _parent.OnInitialized += OnParentInitialized;
+                        Parent.OnInitialized += OnParentInitialized;
                     }
                 }
             }
@@ -109,11 +99,6 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                if (_parent.Menu == null)
-                {
-                    return;
-                }
-
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
@@ -128,9 +113,9 @@ namespace SFXUtility.Features.Trackers
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                _parent.Menu.AddSubMenu(Menu);
+                Parent.Menu.AddSubMenu(Menu);
 
-                HandleEvents(_parent);
+                HandleEvents();
             }
             catch (Exception ex)
             {
@@ -314,24 +299,22 @@ namespace SFXUtility.Features.Trackers
                         }
                     };
 
-                    _heroSprite =
-                        new Render.Sprite(
-                            (Bitmap) Resources.ResourceManager.GetObject(string.Format("SB_{0}", Hero.ChampionName)) ??
-                            Resources.SB_Aatrox, Vector2.Zero)
+                    _heroSprite = new Render.Sprite(
+                        ImageLoader.Load("SB", Hero.ChampionName) ?? Resources.SB_Default, Vector2.Zero)
+                    {
+                        VisibleCondition = delegate
                         {
-                            VisibleCondition = delegate
+                            try
                             {
-                                try
-                                {
-                                    return Active;
-                                }
-                                catch (Exception ex)
-                                {
-                                    Global.Logger.AddItem(new LogItem(ex));
-                                    return false;
-                                }
+                                return Active;
                             }
-                        };
+                            catch (Exception ex)
+                            {
+                                Global.Logger.AddItem(new LogItem(ex));
+                                return false;
+                            }
+                        }
+                    };
                     _heroSprite.Position = new Vector2(Drawing.Width - _heroSprite.Width - 1, _hudSprite.Y + 1);
 
                     _teleportStartSprite = new Render.Sprite(

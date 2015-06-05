@@ -48,7 +48,10 @@ namespace SFXChallenger.Abstracts
         {
             try
             {
-                Targets = TargetSelector.GetTargets(3000f).Select(t => t.Hero).ToList();
+                var targets = TargetSelector.GetTargets(3000f);
+                Targets = targets != null && targets.Count > 0
+                    ? targets.Select(t => t.Hero).ToList()
+                    : new List<Obj_AI_Hero>();
             }
             catch (Exception ex)
             {

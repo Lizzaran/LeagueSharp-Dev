@@ -151,7 +151,10 @@ namespace SFXUtility
                             {
                                 File.Delete(file);
                             }
-                            catch {}
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex);
+                            }
                         }
                         if (!selectedLanguage.Equals(autoName, StringComparison.OrdinalIgnoreCase))
                         {

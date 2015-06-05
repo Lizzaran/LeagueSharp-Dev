@@ -31,14 +31,9 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Detectors
 {
-    internal class Detectors : Base
+    internal class Detectors : Parent
     {
         public Detectors(SFXUtility sfx) : base(sfx) {}
-
-        public override bool Enabled
-        {
-            get { return Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
-        }
 
         public override string Name
         {

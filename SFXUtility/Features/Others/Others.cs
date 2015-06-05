@@ -31,14 +31,9 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Others
 {
-    internal class Others : Base
+    internal class Others : Parent
     {
         public Others(SFXUtility sfx) : base(sfx) {}
-
-        public override bool Enabled
-        {
-            get { return Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
-        }
 
         public override string Name
         {

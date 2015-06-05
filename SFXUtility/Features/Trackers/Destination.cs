@@ -38,20 +38,10 @@ namespace SFXUtility.Features.Trackers
 {
     // Credits: Screeder
 
-    internal class Destination : Base
+    internal class Destination : Child<Trackers>
     {
         private List<DestinationObject> _destinations;
-        private Trackers _parent;
         public Destination(SFXUtility sfx) : base(sfx) {}
-
-        public override bool Enabled
-        {
-            get
-            {
-                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
-        }
 
         public override string Name
         {
@@ -82,14 +72,14 @@ namespace SFXUtility.Features.Trackers
             {
                 if (Global.IoC.IsRegistered<Trackers>())
                 {
-                    _parent = Global.IoC.Resolve<Trackers>();
-                    if (_parent.Initialized)
+                    Parent = Global.IoC.Resolve<Trackers>();
+                    if (Parent.Initialized)
                     {
                         OnParentInitialized(null, null);
                     }
                     else
                     {
-                        _parent.OnInitialized += OnParentInitialized;
+                        Parent.OnInitialized += OnParentInitialized;
                     }
                 }
             }
@@ -103,11 +93,6 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                if (_parent.Menu == null)
-                {
-                    return;
-                }
-
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
@@ -127,9 +112,9 @@ namespace SFXUtility.Features.Trackers
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                _parent.Menu.AddSubMenu(Menu);
+                Parent.Menu.AddSubMenu(Menu);
 
-                HandleEvents(_parent);
+                HandleEvents();
             }
             catch (Exception ex)
             {

@@ -37,7 +37,7 @@ namespace SFXChallenger.Helpers
         {
             get
             {
-                var busy = _sendTime > 0 && _sendTime + (Game.Ping / 1000f) + 0.2f - Game.Time > 0 ||
+                var busy = _sendTime > 0 && _sendTime + (Game.Ping / 1000f) + 0.1f - Game.Time > 0 ||
                            ObjectManager.Player.Spellbook.IsCastingSpell || ObjectManager.Player.Spellbook.IsChanneling ||
                            ObjectManager.Player.Spellbook.IsCharging;
 

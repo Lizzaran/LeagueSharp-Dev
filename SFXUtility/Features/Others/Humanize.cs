@@ -33,21 +33,11 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Others
 {
-    internal class Humanize : Base
+    internal class Humanize : Child<Others>
     {
         private float _lastMovement;
         private Dictionary<SpellSlot, float> _lastSpell;
-        private Others _parent;
         public Humanize(SFXUtility sfx) : base(sfx) {}
-
-        public override bool Enabled
-        {
-            get
-            {
-                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
-        }
 
         public override string Name
         {
@@ -74,14 +64,14 @@ namespace SFXUtility.Features.Others
             {
                 if (Global.IoC.IsRegistered<Others>())
                 {
-                    _parent = Global.IoC.Resolve<Others>();
-                    if (_parent.Initialized)
+                    Parent = Global.IoC.Resolve<Others>();
+                    if (Parent.Initialized)
                     {
                         OnParentInitialized(null, null);
                     }
                     else
                     {
-                        _parent.OnInitialized += OnParentInitialized;
+                        Parent.OnInitialized += OnParentInitialized;
                     }
                 }
             }
@@ -95,11 +85,6 @@ namespace SFXUtility.Features.Others
         {
             try
             {
-                if (_parent.Menu == null)
-                {
-                    return;
-                }
-
                 Menu = new Menu(Name, Name);
 
                 var delayMenu = new Menu(Global.Lang.Get("G_Delay"), Name + "Delay");
@@ -113,9 +98,9 @@ namespace SFXUtility.Features.Others
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                _parent.Menu.AddSubMenu(Menu);
+                Parent.Menu.AddSubMenu(Menu);
 
-                HandleEvents(_parent);
+                HandleEvents();
             }
             catch (Exception ex)
             {

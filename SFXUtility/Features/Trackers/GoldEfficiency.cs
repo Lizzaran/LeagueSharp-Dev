@@ -37,23 +37,13 @@ using SharpDX.Direct3D9;
 
 namespace SFXUtility.Features.Trackers
 {
-    internal class GoldEfficiency : Base
+    internal class GoldEfficiency : Child<Trackers>
     {
         private const float CheckInterval = 1000f;
         private Dictionary<Obj_AI_Hero, string> _goldEfficiencies;
         private float _lastCheck;
-        private Trackers _parent;
         private Font _text;
         public GoldEfficiency(SFXUtility sfx) : base(sfx) {}
-
-        public override bool Enabled
-        {
-            get
-            {
-                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
-        }
 
         public override string Name
         {
@@ -63,9 +53,6 @@ namespace SFXUtility.Features.Trackers
         protected override void OnEnable()
         {
             Game.OnUpdate += OnGameUpdate;
-
-            Drawing.OnPreReset += OnDrawingPreReset;
-            Drawing.OnPostReset += OnDrawingPostReset;
             Drawing.OnEndScene += OnDrawingEndScene;
 
             base.OnEnable();
@@ -74,25 +61,9 @@ namespace SFXUtility.Features.Trackers
         protected override void OnDisable()
         {
             Game.OnUpdate -= OnGameUpdate;
-
-            Drawing.OnPreReset -= OnDrawingPreReset;
-            Drawing.OnPostReset -= OnDrawingPostReset;
             Drawing.OnEndScene -= OnDrawingEndScene;
 
             base.OnDisable();
-        }
-
-        protected override void OnUnload(object sender, UnloadEventArgs args)
-        {
-            if (args != null && args.Final)
-            {
-                base.OnUnload(sender, args);
-
-                if (_text != null)
-                {
-                    _text.Dispose();
-                }
-            }
         }
 
         protected override void OnGameLoad(EventArgs args)
@@ -101,14 +72,14 @@ namespace SFXUtility.Features.Trackers
             {
                 if (Global.IoC.IsRegistered<Trackers>())
                 {
-                    _parent = Global.IoC.Resolve<Trackers>();
-                    if (_parent.Initialized)
+                    Parent = Global.IoC.Resolve<Trackers>();
+                    if (Parent.Initialized)
                     {
                         OnParentInitialized(null, null);
                     }
                     else
                     {
-                        _parent.OnInitialized += OnParentInitialized;
+                        Parent.OnInitialized += OnParentInitialized;
                     }
                 }
             }
@@ -122,11 +93,6 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                if (_parent.Menu == null)
-                {
-                    return;
-                }
-
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
@@ -138,9 +104,9 @@ namespace SFXUtility.Features.Trackers
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                _parent.Menu.AddSubMenu(Menu);
+                Parent.Menu.AddSubMenu(Menu);
 
-                HandleEvents(_parent);
+                HandleEvents();
             }
             catch (Exception ex)
             {
@@ -152,16 +118,7 @@ namespace SFXUtility.Features.Trackers
         {
             _goldEfficiencies = new Dictionary<Obj_AI_Hero, string>();
             _lastCheck = Environment.TickCount;
-
-            _text = new Font(
-                Drawing.Direct3DDevice,
-                new FontDescription
-                {
-                    FaceName = Global.DefaultFont,
-                    Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
-                    OutputPrecision = FontPrecision.Default,
-                    Quality = FontQuality.Default
-                });
+            _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
 
             base.OnInitialize();
         }
@@ -182,36 +139,6 @@ namespace SFXUtility.Features.Trackers
                     _text.DrawTextLeft(
                         entry.Value, (int) (entry.Key.HPBarPosition.X + 139),
                         (int) (entry.Key.HPBarPosition.Y + (entry.Key.IsMe ? 35 : 55)), Color.Gold);
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnDrawingPostReset(EventArgs args)
-        {
-            try
-            {
-                if (_text != null)
-                {
-                    _text.OnResetDevice();
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnDrawingPreReset(EventArgs args)
-        {
-            try
-            {
-                if (_text != null)
-                {
-                    _text.OnLostDevice();
                 }
             }
             catch (Exception ex)

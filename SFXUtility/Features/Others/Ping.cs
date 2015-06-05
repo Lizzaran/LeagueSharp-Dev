@@ -36,21 +36,11 @@ using SharpDX.Direct3D9;
 
 namespace SFXUtility.Features.Others
 {
-    internal class Ping : Base
+    internal class Ping : Child<Others>
     {
-        private Others _parent;
         private List<PingItem> _pingItems;
         private Font _text;
         public Ping(SFXUtility sfx) : base(sfx) {}
-
-        public override bool Enabled
-        {
-            get
-            {
-                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
-        }
 
         public override string Name
         {
@@ -60,8 +50,6 @@ namespace SFXUtility.Features.Others
         protected override void OnEnable()
         {
             Game.OnPing += OnGamePing;
-            Drawing.OnPreReset += OnDrawingPreReset;
-            Drawing.OnPostReset += OnDrawingPostReset;
             Drawing.OnEndScene += OnDrawingEndScene;
 
             base.OnEnable();
@@ -70,31 +58,9 @@ namespace SFXUtility.Features.Others
         protected override void OnDisable()
         {
             Game.OnPing -= OnGamePing;
-            Drawing.OnPreReset -= OnDrawingPreReset;
-            Drawing.OnPostReset -= OnDrawingPostReset;
             Drawing.OnEndScene -= OnDrawingEndScene;
 
             base.OnDisable();
-        }
-
-        protected override void OnUnload(object sender, UnloadEventArgs args)
-        {
-            try
-            {
-                if (args != null && args.Final)
-                {
-                    base.OnUnload(sender, args);
-
-                    if (_text != null)
-                    {
-                        _text.Dispose();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
         }
 
         protected override void OnGameLoad(EventArgs args)
@@ -103,14 +69,14 @@ namespace SFXUtility.Features.Others
             {
                 if (Global.IoC.IsRegistered<Others>())
                 {
-                    _parent = Global.IoC.Resolve<Others>();
-                    if (_parent.Initialized)
+                    Parent = Global.IoC.Resolve<Others>();
+                    if (Parent.Initialized)
                     {
                         OnParentInitialized(null, null);
                     }
                     else
                     {
-                        _parent.OnInitialized += OnParentInitialized;
+                        Parent.OnInitialized += OnParentInitialized;
                     }
                 }
             }
@@ -124,11 +90,6 @@ namespace SFXUtility.Features.Others
         {
             try
             {
-                if (_parent.Menu == null)
-                {
-                    return;
-                }
-
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
@@ -140,9 +101,9 @@ namespace SFXUtility.Features.Others
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                _parent.Menu.AddSubMenu(Menu);
+                Parent.Menu.AddSubMenu(Menu);
 
-                HandleEvents(_parent);
+                HandleEvents();
             }
             catch (Exception ex)
             {
@@ -154,15 +115,7 @@ namespace SFXUtility.Features.Others
         {
             _pingItems = new List<PingItem>();
 
-            _text = new Font(
-                Drawing.Direct3DDevice,
-                new FontDescription
-                {
-                    FaceName = Global.DefaultFont,
-                    Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
-                    OutputPrecision = FontPrecision.Default,
-                    Quality = FontQuality.Default
-                });
+            _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
 
             base.OnInitialize();
         }
@@ -195,36 +148,6 @@ namespace SFXUtility.Features.Others
                         ? Drawing.WorldToScreen(ping.Target.Position)
                         : Drawing.WorldToScreen(ping.Position.To3D());
                     _text.DrawTextCentered(ping.Name, (int) pos.X, (int) pos.Y - 25, Color.White);
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnDrawingPostReset(EventArgs args)
-        {
-            try
-            {
-                if (_text != null)
-                {
-                    _text.OnResetDevice();
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnDrawingPreReset(EventArgs args)
-        {
-            try
-            {
-                if (_text != null)
-                {
-                    _text.OnLostDevice();
                 }
             }
             catch (Exception ex)

@@ -43,14 +43,13 @@ using Rectangle = SharpDX.Rectangle;
 
 namespace SFXUtility.Features.Timers
 {
-    internal class Cooldown : Base
+    internal class Cooldown : Child<Timers>
     {
         private const int TeleportCd = 240;
         private List<Obj_AI_Hero> _heroes;
         private Texture _hudSelfTexture;
         private Texture _hudTexture;
         private Line _line;
-        private Timers _parent;
         private SpellSlot[] _spellSlots;
         private Sprite _sprite;
         private SpellSlot[] _summonerSlots;
@@ -59,15 +58,6 @@ namespace SFXUtility.Features.Timers
         private Font _text;
         public Cooldown(SFXUtility sfx) : base(sfx) {}
 
-        public override bool Enabled
-        {
-            get
-            {
-                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
-        }
-
         public override string Name
         {
             get { return Global.Lang.Get("F_Cooldown"); }
@@ -75,10 +65,7 @@ namespace SFXUtility.Features.Timers
 
         protected override void OnEnable()
         {
-            Drawing.OnPreReset += OnDrawingPreReset;
-            Drawing.OnPostReset += OnDrawingPostReset;
             Drawing.OnEndScene += OnDrawingEndScene;
-
             Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
 
             base.OnEnable();
@@ -86,10 +73,7 @@ namespace SFXUtility.Features.Timers
 
         protected override void OnDisable()
         {
-            Drawing.OnPreReset -= OnDrawingPreReset;
-            Drawing.OnPostReset -= OnDrawingPostReset;
             Drawing.OnEndScene -= OnDrawingEndScene;
-
             Obj_AI_Base.OnProcessSpellCast -= OnObjAiBaseProcessSpellCast;
 
             base.OnDisable();
@@ -119,41 +103,20 @@ namespace SFXUtility.Features.Timers
             }
         }
 
-        protected override void OnUnload(object sender, UnloadEventArgs args)
-        {
-            if (args != null && args.Final)
-            {
-                base.OnUnload(sender, args);
-
-                if (_line != null)
-                {
-                    _line.Dispose();
-                }
-                if (_text != null)
-                {
-                    _text.Dispose();
-                }
-                if (_sprite != null)
-                {
-                    _sprite.Dispose();
-                }
-            }
-        }
-
         protected override void OnGameLoad(EventArgs args)
         {
             try
             {
                 if (Global.IoC.IsRegistered<Timers>())
                 {
-                    _parent = Global.IoC.Resolve<Timers>();
-                    if (_parent.Initialized)
+                    Parent = Global.IoC.Resolve<Timers>();
+                    if (Parent.Initialized)
                     {
                         OnParentInitialized(null, null);
                     }
                     else
                     {
-                        _parent.OnInitialized += OnParentInitialized;
+                        Parent.OnInitialized += OnParentInitialized;
                     }
                 }
             }
@@ -167,11 +130,6 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
-                if (_parent.Menu == null)
-                {
-                    return;
-                }
-
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
@@ -267,9 +225,9 @@ namespace SFXUtility.Features.Timers
                     }
                 };
 
-                _parent.Menu.AddSubMenu(Menu);
+                Parent.Menu.AddSubMenu(Menu);
 
-                HandleEvents(_parent);
+                HandleEvents();
             }
             catch (Exception ex)
             {
@@ -303,19 +261,11 @@ namespace SFXUtility.Features.Timers
                      Resources.CD_summonerbarrier).ToTexture();
             }
 
-            _sprite = new Sprite(Drawing.Direct3DDevice);
+            _sprite = MDrawing.GetSprite();
             _hudTexture = Resources.CD_Hud.ToTexture();
             _hudSelfTexture = Resources.CD_HudSelf.ToTexture();
-            _line = new Line(Drawing.Direct3DDevice) { Width = 4 };
-            _text = new Font(
-                Drawing.Direct3DDevice,
-                new FontDescription
-                {
-                    FaceName = Global.DefaultFont,
-                    Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
-                    OutputPrecision = FontPrecision.Default,
-                    Quality = FontQuality.Default
-                });
+            _line = MDrawing.GetLine(4);
+            _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
 
             _heroes = Menu.Item(Name + "DrawingAlly").GetValue<bool>() &&
                       Menu.Item(Name + "DrawingEnemy").GetValue<bool>()
@@ -453,52 +403,6 @@ namespace SFXUtility.Features.Timers
                     {
                         Global.Logger.AddItem(new LogItem(ex));
                     }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnDrawingPostReset(EventArgs args)
-        {
-            try
-            {
-                if (_line != null)
-                {
-                    _line.OnResetDevice();
-                }
-                if (_text != null)
-                {
-                    _text.OnResetDevice();
-                }
-                if (_sprite != null)
-                {
-                    _sprite.OnResetDevice();
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnDrawingPreReset(EventArgs args)
-        {
-            try
-            {
-                if (_line != null)
-                {
-                    _line.OnLostDevice();
-                }
-                if (_text != null)
-                {
-                    _text.OnLostDevice();
-                }
-                if (_sprite != null)
-                {
-                    _sprite.OnLostDevice();
                 }
             }
             catch (Exception ex)

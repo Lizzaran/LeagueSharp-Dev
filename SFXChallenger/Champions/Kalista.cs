@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- kalista.cs is part of SFXChallenger.
+ Kalista.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -78,7 +78,6 @@ namespace SFXChallenger.Champions
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
             comboMenu.AddItem(
                 new MenuItem(comboMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(new Slider(10, 1, 20)));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
 
             var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Harass"), Menu.Name + ".harass"));
             HitchanceManager.AddToMenu(
@@ -115,6 +114,7 @@ namespace SFXChallenger.Champions
             ManaManager.AddToMenu(miscMenu, "misc", ManaCheckType.Minimum, ManaValueType.Percent);
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".e-reset", Global.Lang.Get("Kalista_EHarassReset")).SetValue(true));
+            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
         }
 
         protected override void SetupSpells()
@@ -175,16 +175,23 @@ namespace SFXChallenger.Champions
                     }
                 }
                 if (!sender.IsEnemy || SoulBound.Unit == null || R.Level == 0 ||
-                    !Menu.Item(Menu.Name + ".combo.r").GetValue<bool>())
+                    !Menu.Item(Menu.Name + ".miscellaneous.r").GetValue<bool>())
                 {
                     return;
                 }
                 if (args.Target != null && args.Target.NetworkId == SoulBound.Unit.NetworkId &&
                     (!(sender is Obj_AI_Hero) || args.SData.IsAutoAttack()))
                 {
-                    SoulBound.IncomingDamage.Add(
-                        SoulBound.Unit.ServerPosition.Distance(sender.ServerPosition) / args.SData.MissileSpeed +
-                        Game.Time, (float) sender.GetAutoAttackDamage(SoulBound.Unit));
+                    var time = SoulBound.Unit.ServerPosition.Distance(sender.ServerPosition) / args.SData.MissileSpeed +
+                               Game.Time;
+                    if (SoulBound.InstantDamage.ContainsKey(time))
+                    {
+                        SoulBound.InstantDamage[time] += (float) sender.GetAutoAttackDamage(SoulBound.Unit);
+                    }
+                    else
+                    {
+                        SoulBound.InstantDamage.Add(time, (float) sender.GetAutoAttackDamage(SoulBound.Unit));
+                    }
                 }
                 else
                 {
@@ -194,12 +201,12 @@ namespace SFXChallenger.Champions
                         var slot = hero.GetSpellSlot(args.SData.Name);
                         if (slot != SpellSlot.Unknown)
                         {
+                            var damage = 0f;
                             if (args.Target != null && args.Target.NetworkId == SoulBound.Unit.NetworkId &&
                                 slot == hero.GetSpellSlot("SummonerDot"))
                             {
-                                SoulBound.InstantDamage.Add(
-                                    Game.Time + 2,
-                                    (float) hero.GetSummonerSpellDamage(SoulBound.Unit, Damage.SummonerSpell.Ignite));
+                                damage =
+                                    (float) hero.GetSummonerSpellDamage(SoulBound.Unit, Damage.SummonerSpell.Ignite);
                             }
                             else if ((slot == SpellSlot.Q || slot == SpellSlot.W || slot == SpellSlot.E ||
                                       slot == SpellSlot.R) &&
@@ -207,8 +214,18 @@ namespace SFXChallenger.Champions
                                       args.End.Distance(SoulBound.Unit.ServerPosition) <
                                       Math.Pow(args.SData.LineWidth, 2)))
                             {
-                                SoulBound.InstantDamage.Add(
-                                    Game.Time + 2, (float) hero.GetSpellDamage(SoulBound.Unit, slot));
+                                damage = (float) hero.GetSpellDamage(SoulBound.Unit, slot);
+                            }
+                            if (damage > 0)
+                            {
+                                if (SoulBound.InstantDamage.ContainsKey(Game.Time + 2))
+                                {
+                                    SoulBound.InstantDamage[Game.Time + 2] += damage;
+                                }
+                                else
+                                {
+                                    SoulBound.InstantDamage.Add(Game.Time + 2, damage);
+                                }
                             }
                         }
                     }
@@ -270,8 +287,10 @@ namespace SFXChallenger.Champions
                             .Any(
                                 m =>
                                     m.IsValidTarget(E.Range) &&
-                                    (m.BaseSkinName.Contains("MinionSiege") || m.BaseSkinName.Contains("Dragon") ||
-                                     m.BaseSkinName.Contains("Baron")) && Rend.IsKillable(m)))
+                                    (m.BaseSkinName.Contains("MinionSiege") || m.BaseSkinName.StartsWith("SRU_Dragon") ||
+                                     m.BaseSkinName.StartsWith("SRU_Baron") || m.BaseSkinName.StartsWith("SRU_Red") ||
+                                     m.BaseSkinName.StartsWith("SRU_Blue")) && Rend.IsKillable(m)))
+
                     {
                         E.Cast();
                     }
@@ -288,7 +307,8 @@ namespace SFXChallenger.Champions
 
                 if (R.Level > 0)
                 {
-                    if (Menu.Item(Menu.Name + ".combo.r").GetValue<bool>() && R.IsReady())
+                    if (Menu.Item(Menu.Name + ".miscellaneous.r").GetValue<bool>() && SoulBound.Unit != null &&
+                        R.IsReady())
                     {
                         if (SoulBound.Unit.HealthPercent <= 10 && SoulBound.Unit.CountEnemiesInRange(500) > 0 ||
                             SoulBound.TotalDamage * 1.1f > SoulBound.Unit.Health)

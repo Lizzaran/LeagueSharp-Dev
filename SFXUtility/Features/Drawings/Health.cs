@@ -38,22 +38,12 @@ using SharpDX.Direct3D9;
 
 namespace SFXUtility.Features.Drawings
 {
-    internal class Health : Base
+    internal class Health : Child<Drawings>
     {
         private List<Obj_BarracksDampener> _inhibs;
-        private Drawings _parent;
         private Font _text;
         private List<Obj_AI_Turret> _turrets;
         public Health(SFXUtility sfx) : base(sfx) {}
-
-        public override bool Enabled
-        {
-            get
-            {
-                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
-        }
 
         public override string Name
         {
@@ -62,8 +52,6 @@ namespace SFXUtility.Features.Drawings
 
         protected override void OnEnable()
         {
-            Drawing.OnPreReset += OnDrawingPreReset;
-            Drawing.OnPostReset += OnDrawingPostReset;
             Drawing.OnEndScene += OnDrawingEndScene;
 
             base.OnEnable();
@@ -71,24 +59,9 @@ namespace SFXUtility.Features.Drawings
 
         protected override void OnDisable()
         {
-            Drawing.OnPreReset -= OnDrawingPreReset;
-            Drawing.OnPostReset -= OnDrawingPostReset;
             Drawing.OnEndScene -= OnDrawingEndScene;
 
             base.OnDisable();
-        }
-
-        protected override void OnUnload(object sender, UnloadEventArgs args)
-        {
-            if (args != null && args.Final)
-            {
-                base.OnUnload(sender, args);
-
-                if (_text != null)
-                {
-                    _text.Dispose();
-                }
-            }
         }
 
         private void OnDrawingEndScene(EventArgs args)
@@ -129,45 +102,10 @@ namespace SFXUtility.Features.Drawings
             }
         }
 
-        private void OnDrawingPostReset(EventArgs args)
-        {
-            try
-            {
-                if (_text != null)
-                {
-                    _text.OnResetDevice();
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnDrawingPreReset(EventArgs args)
-        {
-            try
-            {
-                if (_text != null)
-                {
-                    _text.OnLostDevice();
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
         private void OnParentInitialized(object sender, EventArgs eventArgs)
         {
             try
             {
-                if (_parent.Menu == null)
-                {
-                    return;
-                }
-
                 Menu = new Menu(Name, Name);
 
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
@@ -184,9 +122,9 @@ namespace SFXUtility.Features.Drawings
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                _parent.Menu.AddSubMenu(Menu);
+                Parent.Menu.AddSubMenu(Menu);
 
-                HandleEvents(_parent);
+                HandleEvents();
             }
             catch (Exception ex)
             {
@@ -210,15 +148,7 @@ namespace SFXUtility.Features.Drawings
                 return;
             }
 
-            _text = new Font(
-                Drawing.Direct3DDevice,
-                new FontDescription
-                {
-                    FaceName = Global.DefaultFont,
-                    Height = Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value,
-                    OutputPrecision = FontPrecision.Default,
-                    Quality = FontQuality.Default
-                });
+            _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
 
             base.OnInitialize();
         }
@@ -229,14 +159,14 @@ namespace SFXUtility.Features.Drawings
             {
                 if (Global.IoC.IsRegistered<Drawings>())
                 {
-                    _parent = Global.IoC.Resolve<Drawings>();
-                    if (_parent.Initialized)
+                    Parent = Global.IoC.Resolve<Drawings>();
+                    if (Parent.Initialized)
                     {
                         OnParentInitialized(null, null);
                     }
                     else
                     {
-                        _parent.OnInitialized += OnParentInitialized;
+                        Parent.OnInitialized += OnParentInitialized;
                     }
                 }
             }

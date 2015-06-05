@@ -33,24 +33,14 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Events
 {
-    internal class Game : Base
+    internal class Game : Child<Events>
     {
         private bool _onEndTriggerd;
         private bool _onStartTriggerd;
-        private Events _parent;
 
         public Game(SFXUtility sfx) : base(sfx)
         {
             LeagueSharp.Game.OnStart += delegate { _onStartTriggerd = true; };
-        }
-
-        public override bool Enabled
-        {
-            get
-            {
-                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
         }
 
         public override string Name
@@ -76,14 +66,14 @@ namespace SFXUtility.Features.Events
             {
                 if (Global.IoC.IsRegistered<Events>())
                 {
-                    _parent = Global.IoC.Resolve<Events>();
-                    if (_parent.Initialized)
+                    Parent = Global.IoC.Resolve<Events>();
+                    if (Parent.Initialized)
                     {
                         OnParentInitialized(null, null);
                     }
                     else
                     {
-                        _parent.OnInitialized += OnParentInitialized;
+                        Parent.OnInitialized += OnParentInitialized;
                     }
                 }
             }
@@ -97,11 +87,6 @@ namespace SFXUtility.Features.Events
         {
             try
             {
-                if (_parent.Menu == null)
-                {
-                    return;
-                }
-
                 Menu = new Menu(Name, Name);
 
                 var startMenu = new Menu(Global.Lang.Get("Game_OnStart"), Name + "OnStart");
@@ -129,9 +114,9 @@ namespace SFXUtility.Features.Events
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                _parent.Menu.AddSubMenu(Menu);
+                Parent.Menu.AddSubMenu(Menu);
 
-                HandleEvents(_parent);
+                HandleEvents();
             }
             catch (Exception ex)
             {

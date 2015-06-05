@@ -47,7 +47,23 @@ namespace SFXChallenger
         {
             try
             {
-                SetupLogger();
+                AppDomain.CurrentDomain.UnhandledException +=
+                    delegate(object sender, UnhandledExceptionEventArgs eventArgs)
+                    {
+                        try
+                        {
+                            var ex = sender as Exception;
+                            if (ex != null)
+                            {
+                                Global.Logger.AddItem(new LogItem(ex));
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                        }
+                    };
+
                 SetupLanguage();
 
                 CustomEvents.Game.OnGameLoad += delegate
@@ -87,23 +103,6 @@ namespace SFXChallenger
                         t => t.Name.Equals(ObjectManager.Player.ChampionName, StringComparison.OrdinalIgnoreCase));
 
             return type != null ? (IChampion) DynamicInitializer.NewInstance(type) : null;
-        }
-
-        private static void SetupLogger()
-        {
-            Global.Logger = new FileLogger(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Global.Name + " - Logs"))
-            {
-                LogLevel = LogLevel.High
-            };
-
-            AppDomain.CurrentDomain.UnhandledException += delegate(object sender, UnhandledExceptionEventArgs eventArgs)
-            {
-                var ex = sender as Exception;
-                if (ex != null)
-                {
-                    Global.Logger.AddItem(new LogItem(ex));
-                }
-            };
         }
 
         private static void SetupLanguage()

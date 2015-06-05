@@ -24,6 +24,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using SFXLibrary;
 using SFXLibrary.IoCContainer;
 using SFXLibrary.Logger;
@@ -40,10 +41,25 @@ namespace SFXUtility
         public static string DefaultFont = "Calibri";
         public static string Name = "SFXUtility";
         public static string UpdatePath = "Lizzaran/LeagueSharp-Dev/master/SFXUtility";
+        public static string LogDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Name + " - Logs");
+        public static string CacheDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Name + " - Cache");
 
         static Global()
         {
-            Logger = new FileLogger(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SFXUtility - Logs"));
+            Logger = new FileLogger(LogDir) { LogLevel = LogLevel.High };
+
+            try
+            {
+                Directory.GetFiles(LogDir)
+                    .Select(f => new FileInfo(f))
+                    .Where(f => f.CreationTime < DateTime.Now.AddDays(-7))
+                    .ToList()
+                    .ForEach(f => f.Delete());
+            }
+            catch (Exception ex)
+            {
+                Logger.AddItem(new LogItem(ex));
+            }
         }
     }
 }

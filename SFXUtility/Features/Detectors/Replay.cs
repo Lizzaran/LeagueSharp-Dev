@@ -39,23 +39,13 @@ using Timer = System.Timers.Timer;
 
 namespace SFXUtility.Features.Detectors
 {
-    internal class Replay : Base
+    internal class Replay : Child<Detectors>
     {
         private bool _isRecording;
-        private Detectors _parent;
         private Texture _recordTexture;
         private Sprite _sprite;
         private Timer _timer;
         public Replay(SFXUtility sfx) : base(sfx) {}
-
-        public override bool Enabled
-        {
-            get
-            {
-                return !Unloaded && _parent != null && _parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
-            }
-        }
 
         public override string Name
         {
@@ -64,8 +54,6 @@ namespace SFXUtility.Features.Detectors
 
         protected override void OnEnable()
         {
-            Drawing.OnPreReset += OnDrawingPreReset;
-            Drawing.OnPostReset += OnDrawingPostReset;
             Drawing.OnEndScene += OnDrawingEndScene;
 
             if (!_isRecording)
@@ -84,8 +72,6 @@ namespace SFXUtility.Features.Detectors
 
         protected override void OnDisable()
         {
-            Drawing.OnPreReset -= OnDrawingPreReset;
-            Drawing.OnPostReset -= OnDrawingPostReset;
             Drawing.OnEndScene -= OnDrawingEndScene;
 
             if (_timer != null && _timer.Enabled)
@@ -95,19 +81,6 @@ namespace SFXUtility.Features.Detectors
             }
 
             base.OnDisable();
-        }
-
-        protected override void OnUnload(object sender, UnloadEventArgs args)
-        {
-            if (args != null && args.Final)
-            {
-                base.OnUnload(sender, args);
-
-                if (_sprite != null)
-                {
-                    _sprite.Dispose();
-                }
-            }
         }
 
         private void OnDrawingEndScene(EventArgs args)
@@ -132,50 +105,20 @@ namespace SFXUtility.Features.Detectors
             }
         }
 
-        private void OnDrawingPostReset(EventArgs args)
-        {
-            try
-            {
-                if (_sprite != null)
-                {
-                    _sprite.OnResetDevice();
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnDrawingPreReset(EventArgs args)
-        {
-            try
-            {
-                if (_sprite != null)
-                {
-                    _sprite.OnLostDevice();
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
         protected override void OnGameLoad(EventArgs args)
         {
             try
             {
                 if (Global.IoC.IsRegistered<Detectors>())
                 {
-                    _parent = Global.IoC.Resolve<Detectors>();
-                    if (_parent.Initialized)
+                    Parent = Global.IoC.Resolve<Detectors>();
+                    if (Parent.Initialized)
                     {
                         OnParentInitialized(null, null);
                     }
                     else
                     {
-                        _parent.OnInitialized += OnParentInitialized;
+                        Parent.OnInitialized += OnParentInitialized;
                     }
                 }
             }
@@ -189,11 +132,6 @@ namespace SFXUtility.Features.Detectors
         {
             try
             {
-                if (_parent.Menu == null)
-                {
-                    return;
-                }
-
                 Menu = new Menu(Name, Name);
 
                 Menu.AddItem(new MenuItem(Name + "DoRecord", Global.Lang.Get("Replay_DoRecord")).SetValue(false));
@@ -210,9 +148,9 @@ namespace SFXUtility.Features.Detectors
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                _parent.Menu.AddSubMenu(Menu);
+                Parent.Menu.AddSubMenu(Menu);
 
-                HandleEvents(_parent);
+                HandleEvents();
             }
             catch (Exception ex)
             {
@@ -223,7 +161,7 @@ namespace SFXUtility.Features.Detectors
         protected override void OnInitialize()
         {
             _timer = new Timer();
-            _sprite = new Sprite(Drawing.Direct3DDevice);
+            _sprite = MDrawing.GetSprite();
             _recordTexture = Resources.RC_On.ToTexture();
 
             _timer.Enabled = false;

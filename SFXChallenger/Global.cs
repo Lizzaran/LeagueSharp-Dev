@@ -22,6 +22,9 @@
 
 #region
 
+using System;
+using System.IO;
+using System.Linq;
 using SFXLibrary;
 using SFXLibrary.Logger;
 
@@ -33,7 +36,26 @@ namespace SFXChallenger
     {
         public static string Name = "SFXChallenger";
         public static ILogger Logger;
+        public static string LogDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Name + " - Logs");
         public static string UpdatePath = "Lizzaran/LeagueSharp-Dev/master/SFXChallenger";
         public static Language Lang = new Language();
+
+        static Global()
+        {
+            Logger = new FileLogger(LogDir) { LogLevel = LogLevel.High };
+
+            try
+            {
+                Directory.GetFiles(LogDir)
+                    .Select(f => new FileInfo(f))
+                    .Where(f => f.CreationTime < DateTime.Now.AddDays(-7))
+                    .ToList()
+                    .ForEach(f => f.Delete());
+            }
+            catch (Exception ex)
+            {
+                Logger.AddItem(new LogItem(ex));
+            }
+        }
     }
 }

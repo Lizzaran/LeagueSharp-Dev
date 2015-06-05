@@ -133,50 +133,5 @@ namespace SFXUtility.Classes
                 Unloaded = true;
             }
         }
-
-        protected virtual void HandleEvents(Base parent)
-        {
-            try
-            {
-                parent.Menu.Item(parent.Name + "Enabled").ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        if (!Unloaded && args.GetNewValue<bool>())
-                        {
-                            if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
-                            {
-                                OnEnable();
-                            }
-                        }
-                        else
-                        {
-                            OnDisable();
-                        }
-                    };
-                Menu.Item(Name + "Enabled").ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
-                {
-                    if (!Unloaded && args.GetNewValue<bool>())
-                    {
-                        if (parent.Menu != null && parent.Menu.Item(parent.Name + "Enabled").GetValue<bool>())
-                        {
-                            OnEnable();
-                        }
-                    }
-                    else
-                    {
-                        OnDisable();
-                    }
-                };
-
-                if (Enabled)
-                {
-                    OnEnable();
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
     }
 }

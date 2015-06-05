@@ -42,10 +42,10 @@ namespace SFXLibrary.Extensions.SharpDX
             {
                 font.DrawText(
                     null, text, (int) (position.X + 1 - measure.Width / 2f),
-                    (int)(position.Y + 1 - measure.Height / 2f), Color.Black);
+                    (int) (position.Y + 1 - measure.Height / 2f), Color.Black);
                 font.DrawText(
                     null, text, (int) (position.X - 1 - measure.Width / 2f),
-                    (int)(position.Y - 1 - measure.Height / 2f), Color.Black);
+                    (int) (position.Y - 1 - measure.Height / 2f), Color.Black);
                 font.DrawText(
                     null, text, (int) (position.X + 1 - measure.Width / 2f), (int) (position.Y - measure.Height / 2f),
                     Color.Black);
@@ -54,7 +54,7 @@ namespace SFXLibrary.Extensions.SharpDX
                     Color.Black);
             }
             font.DrawText(
-                null, text, (int)(position.X - measure.Width / 2f), (int)(position.Y - measure.Height / 2f), color);
+                null, text, (int) (position.X - measure.Width / 2f), (int) (position.Y - measure.Height / 2f), color);
         }
 
         public static void DrawTextCentered(this Font font, string text, int x, int y, Color color)
