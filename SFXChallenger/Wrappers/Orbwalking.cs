@@ -601,6 +601,11 @@ namespace SFXChallenger.Wrappers
                 _forcedTarget = target;
             }
 
+            public Obj_AI_Base ForcedTarget()
+            {
+                return _forcedTarget;
+            }
+
             /// <summary>
             ///     Forces the orbwalker to move to that point while orbwalking (Game.CursorPos by default).
             /// </summary>

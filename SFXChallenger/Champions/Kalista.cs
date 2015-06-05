@@ -85,6 +85,9 @@ namespace SFXChallenger.Champions
                 new Dictionary<string, int> { { "Q", 2 } });
             ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
+            harassMenu.AddItem(
+                new MenuItem(harassMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(new Slider(5, 1, 15)));
 
             var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LaneClear"), Menu.Name + ".lane-clear"));
             ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
@@ -115,6 +118,17 @@ namespace SFXChallenger.Champions
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".e-reset", Global.Lang.Get("Kalista_EHarassReset")).SetValue(true));
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
+
+            DrawingManager.Add("E Damage", new Circle(true, DamageIndicator.DrawingColor)).ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args)
+                {
+                    DamageIndicator.Enabled = args.GetNewValue<Circle>().Active;
+                    DamageIndicator.DrawingColor = args.GetNewValue<Circle>().Color;
+                };
+
+            DamageIndicator.Initialize(Rend.GetDamage);
+            DamageIndicator.Enabled = DrawingManager.Get<Circle>("E Damage").Active;
+            DamageIndicator.DrawingColor = DrawingManager.Get<Circle>("E Damage").Color;
         }
 
         protected override void SetupSpells()
@@ -152,7 +166,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (sender.Owner.IsMe && args.Slot == Q.Slot && Player.IsDashing())
+                if (sender.Owner.IsMe && args.Slot == SpellSlot.Q && Player.IsDashing())
                 {
                     args.Process = false;
                 }
@@ -241,6 +255,11 @@ namespace SFXChallenger.Champions
         {
             if (unit.IsMe)
             {
+                var forced = Orbwalker.ForcedTarget();
+                if (forced != null && target.NetworkId == forced.NetworkId)
+                {
+                    Orbwalker.ForceTarget(null);
+                }
                 if (Orbwalker.ActiveMode == Wrappers.Orbwalking.OrbwalkingMode.Combo)
                 {
                     var enemy = target as Obj_AI_Hero;
@@ -277,8 +296,6 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                Orbwalker.ForceTarget(null);
-
                 if (Menu.Item(Menu.Name + ".lasthit.e-big").GetValue<bool>() && E.IsReady() &&
                     ManaManager.Check("lasthit"))
                 {
@@ -405,10 +422,31 @@ namespace SFXChallenger.Champions
             {
                 return;
             }
-
             if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && Q.IsReady())
             {
                 Casting.BasicSkillShot(Q, Q.GetHitChance("harass"));
+            }
+            if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>() && E.IsReady())
+            {
+                foreach (var enemy in HeroManager.Enemies.Where(e => E.IsInRange(e)))
+                {
+                    if (Rend.IsKillable(enemy))
+                    {
+                        E.Cast();
+                    }
+                    else
+                    {
+                        var buff = Rend.GetBuff(enemy);
+                        if (buff != null &&
+                            buff.Count >= Menu.Item(Menu.Name + ".harass.e-min").GetValue<Slider>().Value)
+                        {
+                            if (enemy.Distance(Player) > E.Range * 0.8 || buff.EndTime - Game.Time < 0.3)
+                            {
+                                E.Cast();
+                            }
+                        }
+                    }
+                }
             }
         }
 
