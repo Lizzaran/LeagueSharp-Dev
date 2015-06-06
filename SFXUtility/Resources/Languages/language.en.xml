@@ -114,6 +114,7 @@
 	<entry key="Gank_OnlySmite">Only Smite</entry>
 	<entry key="Gank_Cooldown">Cooldown</entry>
 	<entry key="Gank_Duration">Duration</entry>
+	<entry key="Gank_ChampionName">Champion Name</entry>
 	<!-- END: Gank -->
 
 	<!-- START: Replay -->
