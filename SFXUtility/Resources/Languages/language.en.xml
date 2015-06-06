@@ -66,6 +66,7 @@
 	<entry key="G_Collision">Collision</entry>
 	<entry key="G_Type">Type</entry>
 	<entry key="G_None">None</entry>
+	<entry key="G_Ping">Ping</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: SFXUtility -->
@@ -107,6 +108,13 @@
 	<entry key="Smite_DamageTypeList">Magical|Physical|True</entry>
 	<entry key="Smite_SkillshotTypeList">Line|Circle|Cone</entry>
 	<!-- END: Smite -->
+
+	<!-- START: Gank -->
+	<entry key="F_Gank">Gank</entry>
+	<entry key="Gank_OnlySmite">Only Smite</entry>
+	<entry key="Gank_Cooldown">Cooldown</entry>
+	<entry key="Gank_Duration">Duration</entry>
+	<!-- END: Gank -->
 
 	<!-- START: Replay -->
 	<entry key="F_Replay">Replay op.gg</entry>

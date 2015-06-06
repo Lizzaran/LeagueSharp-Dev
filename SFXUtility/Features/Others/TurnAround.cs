@@ -106,7 +106,6 @@ namespace SFXUtility.Features.Others
                                 ObjectManager.Player.ServerPosition,
                                 ObjectManager.Player.ServerPosition.Distance(sender.ServerPosition) +
                                 (spellInfo.TurnOpposite ? 100 : -100)));
-                        Utility.DelayAction.Add(250, () => Game.SendEmote(Emote.Laugh));
                         _blockMovementTime = Game.Time + spellInfo.CastTime;
                         Utility.DelayAction.Add(
                             (int) ((spellInfo.CastTime + 0.1) * 1000),

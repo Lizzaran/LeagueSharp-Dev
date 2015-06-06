@@ -118,7 +118,7 @@ namespace SFXUtility
             Global.IoC.Register(() => new Smite(sfx), true, true);
 
             Global.IoC.Register(() => new Detectors(sfx), true, true);
-            //Global.IoC.Register(() => new Gank(sfx), true, true);
+            Global.IoC.Register(() => new Gank(sfx), true, true);
             Global.IoC.Register(() => new Replay(sfx), true, true);
             //Global.IoC.Register(() => new SharedExperience(sfx), true, true);
             Global.IoC.Register(() => new Teleport(sfx), true, true);

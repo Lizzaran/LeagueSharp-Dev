@@ -32,7 +32,7 @@ namespace SFXChallenger.Menus
     {
         public static void AddToMenu(Menu menu)
         {
-            menu.AddItem(new MenuItem(menu.Name + ".tick", Global.Lang.Get("F_Tick")).SetValue(new Slider(50, 1, 250)))
+            menu.AddItem(new MenuItem(menu.Name + ".tick", Global.Lang.Get("F_Tick")).SetValue(new Slider(100, 1, 250)))
                 .ValueChanged +=
                 delegate(object sender, OnValueChangeEventArgs args)
                 {

@@ -98,10 +98,8 @@ namespace SFXUtility.Features.Others
                     HeroManager.Allies.Any(
                         a => !a.IsMe && a.ChampionName.Equals("Thresh", StringComparison.OrdinalIgnoreCase)))
                 {
-                    return;
+                    HandleEvents();
                 }
-
-                HandleEvents();
             }
             catch (Exception ex)
             {
@@ -119,15 +117,15 @@ namespace SFXUtility.Features.Others
                 }
 
                 if (ObjectManager.Player.HealthPercent <= Menu.Item(Name + "Percent").GetValue<Slider>().Value ||
-                    Menu.Item(Name + "Hotkey").IsActive())
+                    Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active)
                 {
                     var lantern =
-                        ObjectManager.Get<Obj_AI_Base>()
+                        ObjectManager.Get<Obj_AI_Minion>()
                             .FirstOrDefault(
                                 obj =>
                                     obj.IsValid && obj.IsAlly &&
                                     obj.Name.Equals("ThreshLantern", StringComparison.OrdinalIgnoreCase));
-                    if (lantern != null && lantern.IsValidTarget(500, false, ObjectManager.Player.ServerPosition))
+                    if (lantern != null && lantern.Distance(ObjectManager.Player) <= 500)
                     {
                         ObjectManager.Player.Spellbook.CastSpell((SpellSlot) 62, lantern);
                     }
