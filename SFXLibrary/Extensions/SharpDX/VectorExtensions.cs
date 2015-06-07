@@ -23,7 +23,6 @@
 #region
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
@@ -54,15 +53,22 @@ namespace SFXLibrary.Extensions.SharpDX
             {
                 return true;
             }
-            return
-                new List<Geometry.IntersectionResult>
-                {
-                    new Vector2(0, 0).Intersection(new Vector2(0, Drawing.Width), start, end),
-                    new Vector2(0, Drawing.Width).Intersection(new Vector2(Drawing.Height, Drawing.Width), start, end),
-                    new Vector2(Drawing.Height, Drawing.Width).Intersection(new Vector2(Drawing.Height, 0), start, end),
-                    new Vector2(Drawing.Height, 0).Intersection(new Vector2(0, 0), start, end)
-                }.Any(
-                    intersection => intersection.Intersects);
+            if (start.Intersection(end, new Vector2(0, 0), new Vector2(Drawing.Width, 0)).Intersects)
+            {
+                return true;
+            }
+            if (start.Intersection(end, new Vector2(0, 0), new Vector2(0, Drawing.Height)).Intersects)
+            {
+                return true;
+            }
+            if (
+                start.Intersection(end, new Vector2(0, Drawing.Height), new Vector2(Drawing.Width, Drawing.Height))
+                    .Intersects)
+            {
+                return true;
+            }
+            return start.Intersection(end, new Vector2(Drawing.Width, 0), new Vector2(Drawing.Width, Drawing.Height))
+                .Intersects;
         }
 
         public static Vector2 FindNearestLineCircleIntersections(this Vector2 start,
@@ -84,7 +90,7 @@ namespace SFXLibrary.Extensions.SharpDX
             {
                 return Vector2.Zero;
             }
-            if (det == 0)
+            if (det.Equals(0f))
             {
                 t = -b / (2 * a);
                 return new Vector2(start.X + t * dx, start.Y + t * dy);
@@ -123,7 +129,7 @@ namespace SFXLibrary.Extensions.SharpDX
                             names.Any(name => minion.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase))))
             {
                 var distance = Vector3.Distance(position, minion.ServerPosition);
-                if (nearest > distance || nearest == float.MaxValue)
+                if (nearest > distance || nearest.Equals(float.MaxValue))
                 {
                     nearest = distance;
                     sMinion = minion;

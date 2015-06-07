@@ -33,6 +33,7 @@ using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
+using SharpDX;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
@@ -173,7 +174,9 @@ namespace SFXChallenger.Champions
                     new Slider(700, 400, 825))).ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
                     {
                         R.Range = args.GetNewValue<Slider>().Value;
-                        DrawingManager.Update("R " + Global.Lang.Get("G_Flash"), args.GetNewValue<Slider>().Value);
+                        DrawingManager.Update(
+                            "R " + Global.Lang.Get("G_Flash"),
+                            args.GetNewValue<Slider>().Value + SummonerManager.Flash.Range);
                     };
 
             var killstealMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Killsteal"), Menu.Name + ".killsteal"));
@@ -198,7 +201,8 @@ namespace SFXChallenger.Champions
 
             R.Range = Menu.Item(Menu.Name + ".ultimate.range").GetValue<Slider>().Value;
             DrawingManager.Update(
-                "R " + Global.Lang.Get("G_Flash"), Menu.Item(Menu.Name + ".ultimate.range").GetValue<Slider>().Value);
+                "R " + Global.Lang.Get("G_Flash"),
+                Menu.Item(Menu.Name + ".ultimate.range").GetValue<Slider>().Value + SummonerManager.Flash.Range);
         }
 
         protected override void SetupSpells()
@@ -282,22 +286,25 @@ namespace SFXChallenger.Champions
                                     From = flashPos,
                                     RangeCheckFrom = flashPos,
                                     Delay = R.Delay + 0.3f,
-                                    Range = 820f,
+                                    Range = R.Range,
                                     Speed = R.Speed,
                                     Radius = R.Width,
-                                    Type = SkillshotType.SkillshotCone,
+                                    Type = R.Type,
                                     Unit = target.Hero
                                 });
                         if (pred.Hitchance >= R.GetHitChance("combo"))
                         {
+                            R.From = flashPos;
+                            R.RangeCheckFrom = flashPos;
                             if (
                                 HeroManager.Enemies.Count(
-                                    x => R.WillHit(x, pred.CastPosition, 0, R.GetHitChance("combo"))) >= min)
+                                    x =>
+                                        R.WillHit(x,pred.CastPosition)) >= min)
                             {
                                 R.Cast(
                                     Player.Position.Extend(
                                         pred.CastPosition, -(Player.Position.Distance(pred.CastPosition) * 2)), true);
-                                Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(pred.CastPosition));
+                                Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
                             }
                             else if (Menu.Item(Menu.Name + ".ultimate.flash.1v1").GetValue<bool>())
                             {
@@ -310,10 +317,12 @@ namespace SFXChallenger.Champions
                                     R.Cast(
                                         Player.Position.Extend(
                                             pred.CastPosition, -(Player.Position.Distance(pred.CastPosition) * 2)), true);
-                                    Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(pred.CastPosition));
+                                    Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
                                     return;
                                 }
                             }
+                            R.From = default(Vector3);
+                            R.RangeCheckFrom = default(Vector3);
                         }
                     }
                 }
