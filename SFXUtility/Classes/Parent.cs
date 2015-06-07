@@ -22,7 +22,9 @@
 
 #region
 
-
+using System;
+using LeagueSharp.Common;
+using SFXLibrary.Logger;
 
 #endregion
 
@@ -30,11 +32,32 @@ namespace SFXUtility.Classes
 {
     internal abstract class Parent : Base
     {
-        protected Parent(SFXUtility sfx) : base(sfx) {}
+        protected Parent(SFXUtility sfx) : base(sfx)
+        {
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
+        }
 
         public override bool Enabled
         {
             get { return !Unloaded && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
+        }
+
+        protected void OnGameLoad(EventArgs args)
+        {
+            try
+            {
+                Menu = new Menu(Name, Name);
+
+                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+
+                BaseMenu.AddSubMenu(Menu);
+
+                RaiseOnInitialized();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
     }
 }

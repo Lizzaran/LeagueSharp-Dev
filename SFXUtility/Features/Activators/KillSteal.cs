@@ -26,7 +26,6 @@ using System;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXLibrary;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
 using SFXUtility.Data;
@@ -57,48 +56,17 @@ namespace SFXUtility.Features.Activators
             base.OnDisable();
         }
 
-        private void OnParentInitialized(object sender, EventArgs eventArgs)
+        protected override void OnLoad()
         {
             try
             {
                 Menu = new Menu(Name, Name);
-
                 Menu.AddItem(new MenuItem(Name + "Summoners", Global.Lang.Get("KillSteal_Summoners")).SetValue(false));
                 Menu.AddItem(new MenuItem(Name + "Items", Global.Lang.Get("KillSteal_Items")).SetValue(false));
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
-
-                HandleEvents();
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        protected override void OnGameLoad(EventArgs args)
-        {
-            try
-            {
-                if (Global.IoC.IsRegistered<Activators>())
-                {
-                    Parent = Global.IoC.Resolve<Activators>();
-                    if (Parent.Initialized)
-                    {
-                        OnParentInitialized(null, null);
-                    }
-                    else
-                    {
-                        Parent.OnInitialized += OnParentInitialized;
-                    }
-                }
-                else if (Global.IoC.IsRegistered<Mediator>())
-                {
-                    Global.IoC.Resolve<Mediator>()
-                        .Register(Parent.Name, delegate(object o) { OnParentInitialized(o, new EventArgs()); });
-                }
             }
             catch (Exception ex)
             {

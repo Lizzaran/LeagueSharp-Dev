@@ -27,7 +27,6 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
@@ -58,7 +57,7 @@ namespace SFXUtility.Features.Activators
             base.OnDisable();
         }
 
-        private void OnParentInitialized(object sender, EventArgs eventArgs)
+        protected override void OnLoad()
         {
             try
             {
@@ -90,8 +89,6 @@ namespace SFXUtility.Features.Activators
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
-
-                HandleEvents();
             }
             catch (Exception ex)
             {
@@ -131,34 +128,6 @@ namespace SFXUtility.Features.Activators
                         potion =>
                             ObjectManager.Player.Buffs.Any(
                                 b => b.Name.Equals(potion.BuffName, StringComparison.OrdinalIgnoreCase)));
-        }
-
-        protected override void OnGameLoad(EventArgs args)
-        {
-            try
-            {
-                if (Global.IoC.IsRegistered<Activators>())
-                {
-                    Parent = Global.IoC.Resolve<Activators>();
-                    if (Parent.Initialized)
-                    {
-                        OnParentInitialized(null, null);
-                    }
-                    else
-                    {
-                        Parent.OnInitialized += OnParentInitialized;
-                    }
-                }
-                else if (Global.IoC.IsRegistered<Mediator>())
-                {
-                    Global.IoC.Resolve<Mediator>()
-                        .Register(Parent.Name, delegate(object o) { OnParentInitialized(o, new EventArgs()); });
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
         }
 
         private void OnGameUpdate(EventArgs args)

@@ -37,7 +37,6 @@ namespace SFXUtility.Classes
         {
             BaseMenu = sfx.Menu;
             sfx.OnUnload += OnUnload;
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
         public abstract bool Enabled { get; }
@@ -49,7 +48,6 @@ namespace SFXUtility.Classes
         public event EventHandler OnInitialized;
         public event EventHandler OnEnabled;
         public event EventHandler OnDisabled;
-        protected abstract void OnGameLoad(EventArgs args);
 
         protected virtual void OnEnable()
         {

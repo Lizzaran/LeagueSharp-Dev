@@ -54,35 +54,11 @@ namespace SFXUtility.Features.Others
             base.OnDisable();
         }
 
-        protected override void OnGameLoad(EventArgs args)
-        {
-            try
-            {
-                if (Global.IoC.IsRegistered<Others>())
-                {
-                    Parent = Global.IoC.Resolve<Others>();
-                    if (Parent.Initialized)
-                    {
-                        OnParentInitialized(null, null);
-                    }
-                    else
-                    {
-                        Parent.OnInitialized += OnParentInitialized;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnParentInitialized(object sender, EventArgs eventArgs)
+        protected override void OnLoad()
         {
             try
             {
                 Menu = new Menu(Name, Name);
-
                 Menu.AddItem(
                     new MenuItem(Name + "Percent", Global.Lang.Get("G_Health") + " " + Global.Lang.Get("G_Percent"))
                         .SetValue(new Slider(20, 0, 50)));
@@ -96,10 +72,7 @@ namespace SFXUtility.Features.Others
 
                 if (
                     HeroManager.Allies.Any(
-                        a => !a.IsMe && a.ChampionName.Equals("Thresh", StringComparison.OrdinalIgnoreCase)))
-                {
-                    HandleEvents();
-                }
+                        a => !a.IsMe && a.ChampionName.Equals("Thresh", StringComparison.OrdinalIgnoreCase))) {}
             }
             catch (Exception ex)
             {

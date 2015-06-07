@@ -22,9 +22,6 @@
 
 #region
 
-using System;
-using LeagueSharp.Common;
-using SFXLibrary.Logger;
 using SFXUtility.Classes;
 
 #endregion
@@ -38,24 +35,6 @@ namespace SFXUtility.Features.Detectors
         public override string Name
         {
             get { return Global.Lang.Get("F_Detectors"); }
-        }
-
-        protected override void OnGameLoad(EventArgs args)
-        {
-            try
-            {
-                Menu = new Menu(Name, Name);
-
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
-
-                BaseMenu.AddSubMenu(Menu);
-
-                RaiseOnInitialized();
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
         }
     }
 }

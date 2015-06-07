@@ -63,35 +63,11 @@ namespace SFXUtility.Features.Others
             base.OnDisable();
         }
 
-        protected override void OnGameLoad(EventArgs args)
-        {
-            try
-            {
-                if (Global.IoC.IsRegistered<Others>())
-                {
-                    Parent = Global.IoC.Resolve<Others>();
-                    if (Parent.Initialized)
-                    {
-                        OnParentInitialized(null, null);
-                    }
-                    else
-                    {
-                        Parent.OnInitialized += OnParentInitialized;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnParentInitialized(object sender, EventArgs eventArgs)
+        protected override void OnLoad()
         {
             try
             {
                 Menu = new Menu(Name, Name);
-
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(
@@ -102,8 +78,6 @@ namespace SFXUtility.Features.Others
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
-
-                HandleEvents();
             }
             catch (Exception ex)
             {

@@ -97,12 +97,11 @@ namespace SFXUtility.Features.Drawings
             }
         }
 
-        private void OnParentInitialized(object sender, EventArgs eventArgs)
+        protected override void OnLoad()
         {
             try
             {
                 Menu = new Menu(Name, Name);
-
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
 
                 var drawingHpBarMenu = new Menu(Global.Lang.Get("LasthitMarker_HpBar"), drawingMenu.Name + "HpBar");
@@ -143,8 +142,6 @@ namespace SFXUtility.Features.Drawings
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
-
-                HandleEvents();
             }
             catch (Exception ex)
             {
@@ -170,29 +167,6 @@ namespace SFXUtility.Features.Drawings
             Game.OnUpdate -= OnGameUpdate;
             Drawing.OnDraw -= OnDrawingDraw;
             base.OnDisable();
-        }
-
-        protected override void OnGameLoad(EventArgs args)
-        {
-            try
-            {
-                if (Global.IoC.IsRegistered<Drawings>())
-                {
-                    Parent = Global.IoC.Resolve<Drawings>();
-                    if (Parent.Initialized)
-                    {
-                        OnParentInitialized(null, null);
-                    }
-                    else
-                    {
-                        Parent.OnInitialized += OnParentInitialized;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
         }
 
         private void OnGameUpdate(EventArgs args)

@@ -658,7 +658,7 @@ namespace SFXChallenger.Champions
                     var pred = R.GetPrediction(target, true);
                     if (pred.Hitchance >= hitChance)
                     {
-                        var hits = HeroManager.Enemies.Count(x => R.WillHit(x.Position, pred.CastPosition));
+                        var hits = HeroManager.Enemies.Count(x => R.WillHit(x, pred.CastPosition));
                         if (hits >= min)
                         {
                             R.Cast(pred.CastPosition);

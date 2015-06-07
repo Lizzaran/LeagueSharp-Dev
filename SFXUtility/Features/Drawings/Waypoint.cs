@@ -130,35 +130,11 @@ namespace SFXUtility.Features.Drawings
             }
         }
 
-        protected override void OnGameLoad(EventArgs args)
-        {
-            try
-            {
-                if (Global.IoC.IsRegistered<Drawings>())
-                {
-                    Parent = Global.IoC.Resolve<Drawings>();
-                    if (Parent.Initialized)
-                    {
-                        OnParentInitialized(null, null);
-                    }
-                    else
-                    {
-                        Parent.OnInitialized += OnParentInitialized;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnParentInitialized(object sender, EventArgs eventArgs)
+        protected override void OnLoad()
         {
             try
             {
                 Menu = new Menu(Name, Name);
-
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
                 drawingMenu.AddItem(
                     new MenuItem(
@@ -200,8 +176,6 @@ namespace SFXUtility.Features.Drawings
                 };
 
                 Parent.Menu.AddSubMenu(Menu);
-
-                HandleEvents();
             }
             catch (Exception ex)
             {

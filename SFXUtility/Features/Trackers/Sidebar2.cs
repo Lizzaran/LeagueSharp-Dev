@@ -366,7 +366,7 @@
 //            }
 //        }
 
-//        private void OnParentInitialized(object sender, EventArgs eventArgs)
+//        protected override void OnLoad()
 //        {
 //            try
 //            {
@@ -484,7 +484,7 @@
 //                _ultimateTexture = Resources.SB_Ultimate.Scale(scale).ToTexture();
 //                _line = new Line(Drawing.Direct3DDevice) { Width = (int)(Math.Ceiling(9*scale)) };
 //                _sprite = new Sprite(Drawing.Direct3DDevice);
-//                HandleEvents();
+//                
 //                RaiseOnInitialized();
 //            }
 //            catch (Exception ex)

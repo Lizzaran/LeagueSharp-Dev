@@ -60,35 +60,11 @@ namespace SFXUtility.Features.Events
             base.OnDisable();
         }
 
-        protected override void OnGameLoad(EventArgs args)
-        {
-            try
-            {
-                if (Global.IoC.IsRegistered<Events>())
-                {
-                    Parent = Global.IoC.Resolve<Events>();
-                    if (Parent.Initialized)
-                    {
-                        OnParentInitialized(null, null);
-                    }
-                    else
-                    {
-                        Parent.OnInitialized += OnParentInitialized;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnParentInitialized(object sender, EventArgs eventArgs)
+        protected override void OnLoad()
         {
             try
             {
                 Menu = new Menu(Name, Name);
-
                 var startMenu = new Menu(Global.Lang.Get("Game_OnStart"), Name + "OnStart");
                 startMenu.AddItem(
                     new MenuItem(startMenu.Name + "Delay", Global.Lang.Get("G_Delay")).SetValue(new Slider(20, 0, 75)));
@@ -115,8 +91,6 @@ namespace SFXUtility.Features.Events
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
-
-                HandleEvents();
             }
             catch (Exception ex)
             {

@@ -56,29 +56,6 @@ namespace SFXUtility.Features.Others
             base.OnDisable();
         }
 
-        protected override void OnGameLoad(EventArgs args)
-        {
-            try
-            {
-                if (Global.IoC.IsRegistered<Others>())
-                {
-                    Parent = Global.IoC.Resolve<Others>();
-                    if (Parent.Initialized)
-                    {
-                        OnParentInitialized(null, null);
-                    }
-                    else
-                    {
-                        Parent.OnInitialized += OnParentInitialized;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
         private void OnGameUpdate(EventArgs args)
         {
             try
@@ -101,12 +78,11 @@ namespace SFXUtility.Features.Others
             }
         }
 
-        private void OnParentInitialized(object sender, EventArgs eventArgs)
+        protected override void OnLoad()
         {
             try
             {
                 Menu = new Menu(Name, Name);
-
                 Menu.AddItem(
                     new MenuItem(Name + "Hotkey", Global.Lang.Get("G_Hotkey")).SetValue(
                         new KeyBind('G', KeyBindType.Press)));
@@ -114,8 +90,6 @@ namespace SFXUtility.Features.Others
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
-
-                HandleEvents();
             }
             catch (Exception ex)
             {

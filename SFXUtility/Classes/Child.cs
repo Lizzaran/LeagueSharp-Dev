@@ -32,8 +32,19 @@ namespace SFXUtility.Classes
 {
     internal abstract class Child<T> : Base where T : Parent
     {
-        protected Child(SFXUtility sfx) : base(sfx) {}
+        protected Child(SFXUtility sfx) : base(sfx)
+        {
+            LoadParent();
+            CustomEvents.Game.OnGameLoad += delegate
+            {
+                Started = true;
+                HandleEvents();
+            };
+        }
+
         public T Parent { get; set; }
+        public bool Started { get; protected set; }
+        public bool Handled { get; protected set; }
 
         public override bool Enabled
         {
@@ -44,11 +55,49 @@ namespace SFXUtility.Classes
             }
         }
 
+        private void LoadParent()
+        {
+            try
+            {
+                if (Global.IoC.IsRegistered<T>())
+                {
+                    Parent = Global.IoC.Resolve<T>();
+                    if (Parent.Initialized)
+                    {
+                        OnParentInitialized(null, new EventArgs());
+                    }
+                    else
+                    {
+                        Parent.OnInitialized += OnParentInitialized;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        protected abstract void OnLoad();
+
+        private void OnParentInitialized(object obj, EventArgs args)
+        {
+            try
+            {
+                Parent = Global.IoC.Resolve<T>();
+                OnLoad();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
         protected virtual void HandleEvents()
         {
             try
             {
-                if (Parent == null || Parent.Menu == null || Menu == null)
+                if (Parent == null || Parent.Menu == null || Menu == null || !Started || Handled)
                 {
                     return;
                 }
@@ -87,6 +136,7 @@ namespace SFXUtility.Classes
                 {
                     OnEnable();
                 }
+                Handled = true;
             }
             catch (Exception ex)
             {
