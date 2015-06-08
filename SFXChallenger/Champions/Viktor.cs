@@ -166,7 +166,7 @@ namespace SFXChallenger.Champions
         protected override void SetupSpells()
         {
             Q = new Spell(SpellSlot.Q, 600f);
-            Q.SetTargetted(3.5f, 2000f);
+            Q.SetTargetted(0.3f, 2000f);
 
             W = new Spell(SpellSlot.W, 700f);
             W.SetSkillshot(1.6f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
@@ -175,7 +175,7 @@ namespace SFXChallenger.Champions
             E.SetSkillshot(0f, 90f, 800f, false, SkillshotType.SkillshotLine);
 
             R = new Spell(SpellSlot.R, 700f);
-            R.SetSkillshot(0.25f, 575f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            R.SetSkillshot(0.75f, 575f, float.MaxValue, false, SkillshotType.SkillshotCircle);
         }
 
         private void OnCorePostUpdate(EventArgs args)
