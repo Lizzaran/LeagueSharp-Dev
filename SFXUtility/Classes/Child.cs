@@ -84,8 +84,14 @@ namespace SFXUtility.Classes
         {
             try
             {
-                Parent = Global.IoC.Resolve<T>();
-                OnLoad();
+                if (Global.IoC.IsRegistered<T>())
+                {
+                    Parent = Global.IoC.Resolve<T>();
+                    if (Parent != null)
+                    {
+                        OnLoad();
+                    }
+                }
             }
             catch (Exception ex)
             {

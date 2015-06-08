@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- program.cs is part of SFXUtility.
+ Program.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ namespace SFXUtility
         // ReSharper disable once UnusedParameter.Local
         private static void Main(string[] args)
         {
-            Upvote.Initialize();
+            //Upvote.Initialize();
 
             try
             {
