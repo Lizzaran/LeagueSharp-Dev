@@ -50,6 +50,12 @@ namespace SFXUtility
         {
             try
             {
+                DayOfWeek day = DateTime.Now.DayOfWeek;
+                if (day != DayOfWeek.Wednesday)
+                {
+                    return;
+                }
+
                 _font = new Font(
                     Drawing.Direct3DDevice,
                     new FontDescription

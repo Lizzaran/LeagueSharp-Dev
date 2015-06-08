@@ -60,9 +60,14 @@ namespace SFXLibrary
 
                                 if (gVersion > version)
                                 {
-                                    Notifications.AddNotification(
-                                        string.Format("[{0}] Update available: {1} => {2}!", name, version, gVersion),
-                                        displayTime);
+                                    CustomEvents.Game.OnGameLoad +=
+                                        delegate
+                                        {
+                                            Notifications.AddNotification(
+                                                string.Format(
+                                                    "[{0}] Update available: {1} => {2}!", name, version, gVersion),
+                                                displayTime);
+                                        };
                                 }
                             }
                         }

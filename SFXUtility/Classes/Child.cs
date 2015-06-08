@@ -35,15 +35,9 @@ namespace SFXUtility.Classes
         protected Child(SFXUtility sfx) : base(sfx)
         {
             LoadParent();
-            CustomEvents.Game.OnGameLoad += delegate
-            {
-                Started = true;
-                HandleEvents();
-            };
         }
 
         public T Parent { get; set; }
-        public bool Started { get; protected set; }
         public bool Handled { get; protected set; }
 
         public override bool Enabled
@@ -90,6 +84,7 @@ namespace SFXUtility.Classes
                     if (Parent != null)
                     {
                         OnLoad();
+                        HandleEvents();
                     }
                 }
             }
@@ -103,7 +98,7 @@ namespace SFXUtility.Classes
         {
             try
             {
-                if (Parent == null || Parent.Menu == null || Menu == null || !Started || Handled)
+                if (Parent == null || Parent.Menu == null || Menu == null || Handled)
                 {
                     return;
                 }
