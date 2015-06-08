@@ -62,41 +62,56 @@ namespace SFXChallenger.Managers
         public static SummonerSpell Ignite;
         public static SummonerSpell Smite;
         public static List<SummonerSpell> SummonerSpells;
+        public static float MaxRange;
 
         static SummonerManager()
         {
-            // ReSharper disable once StringLiteralTypo
-            BlueSmite = new SummonerSpell
+            try
             {
-                Name = "s5_summonersmiteplayerganker",
-                CastType = CastType.Target,
-                Range = 750f
-            };
-            RedSmite = new SummonerSpell { Name = "s5_summonersmiteduel", CastType = CastType.Target, Range = 750f };
-            Ghost = new SummonerSpell { Name = "SummonerHaste", CastType = CastType.Self, Range = float.MaxValue };
-            Clarity = new SummonerSpell { Name = "SummonerMana", CastType = CastType.Self, Range = 600f };
-            Heal = new SummonerSpell { Name = "SummonerHeal", CastType = CastType.Self, Range = 850f };
-            Barrier = new SummonerSpell { Name = "SummonerBarrier", CastType = CastType.Self, Range = float.MaxValue };
-            Exhaust = new SummonerSpell { Name = "SummonerExhaust", CastType = CastType.Target, Range = 650f };
-            Cleanse = new SummonerSpell { Name = "SummonerBoost", CastType = CastType.Self, Range = float.MaxValue };
-            Flash = new SummonerSpell { Name = "SummonerFlash", CastType = CastType.Position, Range = 425f };
-            Ignite = new SummonerSpell { Name = "SummonerDot", CastType = CastType.Target, Range = 600f };
-            Smite = new SummonerSpell { Name = "SummonerSmite", CastType = CastType.Target, Range = 750f };
+                // ReSharper disable once StringLiteralTypo
+                BlueSmite = new SummonerSpell
+                {
+                    Name = "s5_summonersmiteplayerganker",
+                    CastType = CastType.Target,
+                    Range = 750f
+                };
+                RedSmite = new SummonerSpell { Name = "s5_summonersmiteduel", CastType = CastType.Target, Range = 750f };
+                Ghost = new SummonerSpell { Name = "SummonerHaste", CastType = CastType.Self, Range = float.MaxValue };
+                Clarity = new SummonerSpell { Name = "SummonerMana", CastType = CastType.Self, Range = 600f };
+                Heal = new SummonerSpell { Name = "SummonerHeal", CastType = CastType.Self, Range = 850f };
+                Barrier = new SummonerSpell
+                {
+                    Name = "SummonerBarrier",
+                    CastType = CastType.Self,
+                    Range = float.MaxValue
+                };
+                Exhaust = new SummonerSpell { Name = "SummonerExhaust", CastType = CastType.Target, Range = 650f };
+                Cleanse = new SummonerSpell { Name = "SummonerBoost", CastType = CastType.Self, Range = float.MaxValue };
+                Flash = new SummonerSpell { Name = "SummonerFlash", CastType = CastType.Position, Range = 425f };
+                Ignite = new SummonerSpell { Name = "SummonerDot", CastType = CastType.Target, Range = 600f };
+                Smite = new SummonerSpell { Name = "SummonerSmite", CastType = CastType.Target, Range = 750f };
 
-            SummonerSpells = new List<SummonerSpell>
+                SummonerSpells = new List<SummonerSpell>
+                {
+                    Ghost,
+                    Clarity,
+                    Heal,
+                    Barrier,
+                    Exhaust,
+                    Cleanse,
+                    Flash,
+                    Ignite,
+                    Smite,
+                    BlueSmite,
+                    RedSmite
+                };
+
+                MaxRange = SummonerSpells.Max(s => s.Range);
+            }
+            catch (Exception ex)
             {
-                Ghost,
-                Clarity,
-                Heal,
-                Barrier,
-                Exhaust,
-                Cleanse,
-                Flash,
-                Ignite,
-                Smite,
-                BlueSmite,
-                RedSmite
-            };
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         public static bool IsReady(this SummonerSpell spell)
@@ -141,7 +156,7 @@ namespace SFXChallenger.Managers
 
         public static float CalculateComboDamage(Obj_AI_Hero target)
         {
-            if (_menu == null)
+            if (_menu == null || !_menu.Item(_menu.Name + ".enabled").GetValue<bool>())
             {
                 return 0f;
             }
@@ -184,6 +199,10 @@ namespace SFXChallenger.Managers
 
         public static void UseComboSummoners(Obj_AI_Hero target)
         {
+            if (_menu == null || !_menu.Item(_menu.Name + ".enabled").GetValue<bool>())
+            {
+                return;
+            }
             try
             {
                 var ignite = _menu.Item(_menu.Name + ".ignite").GetValue<bool>() && Ignite.Exists() && Ignite.IsReady();
@@ -222,9 +241,9 @@ namespace SFXChallenger.Managers
             try
             {
                 _menu = menu;
-
                 menu.AddItem(new MenuItem(_menu.Name + ".ignite", Global.Lang.Get("MS_UseIgnite")).SetValue(true));
                 menu.AddItem(new MenuItem(_menu.Name + ".smite", Global.Lang.Get("MS_UseSmite")).SetValue(true));
+                menu.AddItem(new MenuItem(menu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
             }
             catch (Exception ex)
             {

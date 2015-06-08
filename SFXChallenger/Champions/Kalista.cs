@@ -244,6 +244,15 @@ namespace SFXChallenger.Champions
                         }
                     }
                 }
+                foreach (var entry in SoulBound.IncomingDamage.Where(entry => entry.Key < Game.Time))
+                {
+                    SoulBound.IncomingDamage.Remove(entry.Key);
+                }
+
+                foreach (var entry in SoulBound.InstantDamage.Where(entry => entry.Key < Game.Time))
+                {
+                    SoulBound.InstantDamage.Remove(entry.Key);
+                }
             }
             catch (Exception ex)
             {
@@ -332,16 +341,6 @@ namespace SFXChallenger.Champions
                         {
                             R.Cast();
                         }
-                    }
-
-                    foreach (var entry in SoulBound.IncomingDamage.Where(entry => entry.Key < Game.Time))
-                    {
-                        SoulBound.IncomingDamage.Remove(entry.Key);
-                    }
-
-                    foreach (var entry in SoulBound.InstantDamage.Where(entry => entry.Key < Game.Time))
-                    {
-                        SoulBound.InstantDamage.Remove(entry.Key);
                     }
                 }
             }

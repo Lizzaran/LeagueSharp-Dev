@@ -24,6 +24,7 @@
 
 using System;
 using System.Linq;
+using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Wrappers;
 using SFXLibrary.Logger;
@@ -35,6 +36,7 @@ namespace SFXChallenger.Managers
     internal class KillstealManager
     {
         private static Menu _menu;
+        public static float MaxRange { get; set; }
 
         public static void AddToMenu(Menu menu)
         {
@@ -43,6 +45,9 @@ namespace SFXChallenger.Managers
                 _menu = menu;
                 menu.AddItem(new MenuItem(menu.Name + ".items", Global.Lang.Get("MK_UseItems")).SetValue(true));
                 menu.AddItem(new MenuItem(menu.Name + ".summoners", Global.Lang.Get("MK_UseSummoners")).SetValue(true));
+                menu.AddItem(new MenuItem(menu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+
+                MaxRange = Math.Max(ItemManager.MaxRange, SummonerManager.MaxRange);
             }
             catch (Exception ex)
             {
@@ -52,7 +57,7 @@ namespace SFXChallenger.Managers
 
         public static void Killsteal()
         {
-            if (_menu == null)
+            if (_menu == null || !_menu.Item(_menu.Name + ".enabled").GetValue<bool>())
             {
                 return;
             }
@@ -66,7 +71,9 @@ namespace SFXChallenger.Managers
                     return;
                 }
 
-                foreach (var enemy in HeroManager.Enemies.Where(e => !Invulnerable.HasBuff(e)))
+                foreach (var enemy in
+                    HeroManager.Enemies.Where(
+                        e => e.Distance(ObjectManager.Player) <= MaxRange && !Invulnerable.HasBuff(e)))
                 {
                     var itemDamage = items ? ItemManager.CalculateComboDamage(enemy) - 20 : 0;
                     var summonerDamage = summoners ? SummonerManager.CalculateComboDamage(enemy) - 10 : 0;

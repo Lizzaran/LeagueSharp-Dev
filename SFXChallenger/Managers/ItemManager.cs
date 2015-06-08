@@ -71,155 +71,166 @@ namespace SFXChallenger.Managers
 
         static ItemManager()
         {
-            // Speed + Atk Speed
-            Youmuu = new CustomItem
+            try
             {
-                Name = "youmuus-ghostblade",
-                DisplayName = Global.Lang.Get("MI_YoumuusGhostblade"),
-                Item = ItemData.Youmuus_Ghostblade.GetItem(),
-                Flags = ItemFlags.Offensive | ItemFlags.Flee,
-                CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
-                EffectFlags = EffectFlags.AttackSpeed | EffectFlags.MovementSpeed,
-                CastType = CastType.Self,
-                Range =
-                    ObjectManager.Player.IsMeele
-                        ? ObjectManager.Player.AttackRange * 3
-                        : Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)
-            };
+                // Speed + Atk Speed
+                Youmuu = new CustomItem
+                {
+                    Name = "youmuus-ghostblade",
+                    DisplayName = Global.Lang.Get("MI_YoumuusGhostblade"),
+                    Item = ItemData.Youmuus_Ghostblade.GetItem(),
+                    Flags = ItemFlags.Offensive | ItemFlags.Flee,
+                    CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
+                    EffectFlags = EffectFlags.AttackSpeed | EffectFlags.MovementSpeed,
+                    CastType = CastType.Self,
+                    Range =
+                        ObjectManager.Player.IsMeele
+                            ? ObjectManager.Player.AttackRange * 3
+                            : Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)
+                };
 
-            // AOE damage, only melee
-            Tiamat = new CustomItem
-            {
-                Name = "tiamat",
-                DisplayName = Global.Lang.Get("MI_Tiamat"),
-                Item = ItemData.Tiamat_Melee_Only.GetItem(),
-                Flags = ItemFlags.Offensive,
-                CombatFlags = CombatFlags.Melee,
-                EffectFlags = EffectFlags.Damage,
-                CastType = CastType.Self,
-                Damage = Damage.DamageItems.Tiamat,
-                Range = ItemData.Tiamat_Melee_Only.GetItem().Range
-            };
+                // AOE damage, only melee
+                Tiamat = new CustomItem
+                {
+                    Name = "tiamat",
+                    DisplayName = Global.Lang.Get("MI_Tiamat"),
+                    Item = ItemData.Tiamat_Melee_Only.GetItem(),
+                    Flags = ItemFlags.Offensive,
+                    CombatFlags = CombatFlags.Melee,
+                    EffectFlags = EffectFlags.Damage,
+                    CastType = CastType.Self,
+                    Damage = Damage.DamageItems.Tiamat,
+                    Range = ItemData.Tiamat_Melee_Only.GetItem().Range
+                };
 
-            // AOE damage, only melee
-            Hydra = new CustomItem
-            {
-                Name = "hydra",
-                DisplayName = Global.Lang.Get("MI_Hydra"),
-                Item = ItemData.Ravenous_Hydra_Melee_Only.GetItem(),
-                Flags = ItemFlags.Offensive,
-                CombatFlags = CombatFlags.Melee,
-                EffectFlags = EffectFlags.Damage,
-                CastType = CastType.Self,
-                Damage = Damage.DamageItems.Hydra,
-                Range = ItemData.Ravenous_Hydra_Melee_Only.GetItem().Range
-            };
-            // Slow + Damage
-            BilgewaterCutlass = new CustomItem
-            {
-                Name = "bilgewater-cutlass",
-                DisplayName = Global.Lang.Get("MI_BilgewaterCutlass"),
-                Item = ItemData.Bilgewater_Cutlass.GetItem(),
-                Flags = ItemFlags.Offensive | ItemFlags.Flee,
-                CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
-                EffectFlags = EffectFlags.Damage | EffectFlags.MovementSlow,
-                CastType = CastType.Target,
-                Damage = Damage.DamageItems.Bilgewater,
-                Range = ItemData.Bilgewater_Cutlass.GetItem().Range
-            };
+                // AOE damage, only melee
+                Hydra = new CustomItem
+                {
+                    Name = "hydra",
+                    DisplayName = Global.Lang.Get("MI_Hydra"),
+                    Item = ItemData.Ravenous_Hydra_Melee_Only.GetItem(),
+                    Flags = ItemFlags.Offensive,
+                    CombatFlags = CombatFlags.Melee,
+                    EffectFlags = EffectFlags.Damage,
+                    CastType = CastType.Self,
+                    Damage = Damage.DamageItems.Hydra,
+                    Range = ItemData.Ravenous_Hydra_Melee_Only.GetItem().Range
+                };
+                // Slow + Damage
+                BilgewaterCutlass = new CustomItem
+                {
+                    Name = "bilgewater-cutlass",
+                    DisplayName = Global.Lang.Get("MI_BilgewaterCutlass"),
+                    Item = ItemData.Bilgewater_Cutlass.GetItem(),
+                    Flags = ItemFlags.Offensive | ItemFlags.Flee,
+                    CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
+                    EffectFlags = EffectFlags.Damage | EffectFlags.MovementSlow,
+                    CastType = CastType.Target,
+                    Damage = Damage.DamageItems.Bilgewater,
+                    Range = ItemData.Bilgewater_Cutlass.GetItem().Range
+                };
 
-            // Slow + Damage
-            BladeRuinedKing = new CustomItem
-            {
-                Name = "blade-ruined-king",
-                DisplayName = Global.Lang.Get("MI_BladeRuinedKing"),
-                Item = ItemData.Blade_of_the_Ruined_King.GetItem(),
-                Flags = ItemFlags.Offensive | ItemFlags.Flee,
-                CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
-                EffectFlags = EffectFlags.Damage | EffectFlags.MovementSlow,
-                CastType = CastType.Target,
-                Damage = Damage.DamageItems.Botrk,
-                Range = ItemData.Blade_of_the_Ruined_King.GetItem().Range
-            };
+                // Slow + Damage
+                BladeRuinedKing = new CustomItem
+                {
+                    Name = "blade-ruined-king",
+                    DisplayName = Global.Lang.Get("MI_BladeRuinedKing"),
+                    Item = ItemData.Blade_of_the_Ruined_King.GetItem(),
+                    Flags = ItemFlags.Offensive | ItemFlags.Flee,
+                    CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
+                    EffectFlags = EffectFlags.Damage | EffectFlags.MovementSlow,
+                    CastType = CastType.Target,
+                    Damage = Damage.DamageItems.Botrk,
+                    Range = ItemData.Blade_of_the_Ruined_King.GetItem().Range
+                };
 
-            // Damage + Slow
-            HextechGunblade = new CustomItem
-            {
-                Name = "hextech-gunblade",
-                DisplayName = Global.Lang.Get("MI_HextechGunblade"),
-                Item = ItemData.Hextech_Gunblade.GetItem(),
-                Flags = ItemFlags.Offensive | ItemFlags.Flee,
-                CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
-                EffectFlags = EffectFlags.Damage | EffectFlags.MovementSlow,
-                CastType = CastType.Target,
-                Damage = Damage.DamageItems.Hexgun,
-                Range = ItemData.Hextech_Gunblade.GetItem().Range
-            };
+                // Damage + Slow
+                HextechGunblade = new CustomItem
+                {
+                    Name = "hextech-gunblade",
+                    DisplayName = Global.Lang.Get("MI_HextechGunblade"),
+                    Item = ItemData.Hextech_Gunblade.GetItem(),
+                    Flags = ItemFlags.Offensive | ItemFlags.Flee,
+                    CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
+                    EffectFlags = EffectFlags.Damage | EffectFlags.MovementSlow,
+                    CastType = CastType.Target,
+                    Damage = Damage.DamageItems.Hexgun,
+                    Range = ItemData.Hextech_Gunblade.GetItem().Range
+                };
 
-            // Remove stun + heal
-            MikaelsCrucible = new CustomItem
-            {
-                Name = "mikaels-crucible",
-                DisplayName = Global.Lang.Get("MI_MikaelsCrucible"),
-                Item = ItemData.Mikaels_Crucible.GetItem(),
-                Flags = ItemFlags.Supportive | ItemFlags.Defensive,
-                CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
-                EffectFlags = EffectFlags.RemoveStun | EffectFlags.Heal,
-                CastType = CastType.Target,
-                Range = ItemData.Mikaels_Crucible.GetItem().Range
-            };
+                // Remove stun + heal
+                MikaelsCrucible = new CustomItem
+                {
+                    Name = "mikaels-crucible",
+                    DisplayName = Global.Lang.Get("MI_MikaelsCrucible"),
+                    Item = ItemData.Mikaels_Crucible.GetItem(),
+                    Flags = ItemFlags.Supportive | ItemFlags.Defensive,
+                    CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
+                    EffectFlags = EffectFlags.RemoveStun | EffectFlags.Heal,
+                    CastType = CastType.Target,
+                    Range = ItemData.Mikaels_Crucible.GetItem().Range
+                };
 
-            // AOE Shield
-            LocketIronSolari = new CustomItem
-            {
-                Name = "locket-iron-solari",
-                DisplayName = Global.Lang.Get("MI_LocketIronSolari"),
-                Item = ItemData.Locket_of_the_Iron_Solari.GetItem(),
-                Flags = ItemFlags.Supportive | ItemFlags.Defensive,
-                CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
-                EffectFlags = EffectFlags.Shield,
-                CastType = CastType.Self,
-                Range = ItemData.Locket_of_the_Iron_Solari.GetItem().Range
-            };
+                // AOE Shield
+                LocketIronSolari = new CustomItem
+                {
+                    Name = "locket-iron-solari",
+                    DisplayName = Global.Lang.Get("MI_LocketIronSolari"),
+                    Item = ItemData.Locket_of_the_Iron_Solari.GetItem(),
+                    Flags = ItemFlags.Supportive | ItemFlags.Defensive,
+                    CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
+                    EffectFlags = EffectFlags.Shield,
+                    CastType = CastType.Self,
+                    Range = ItemData.Locket_of_the_Iron_Solari.GetItem().Range
+                };
 
-            // Place wards
-            Sightstone = new CustomItem
-            {
-                Name = "sightstone",
-                DisplayName = Global.Lang.Get("MI_Sightstone"),
-                Item = ItemData.Sightstone.GetItem(),
-                Flags = ItemFlags.Supportive,
-                CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
-                CastType = CastType.Position,
-                Range = ItemData.Sightstone.GetItem().Range
-            };
+                // Place wards
+                Sightstone = new CustomItem
+                {
+                    Name = "sightstone",
+                    DisplayName = Global.Lang.Get("MI_Sightstone"),
+                    Item = ItemData.Sightstone.GetItem(),
+                    Flags = ItemFlags.Supportive,
+                    CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
+                    CastType = CastType.Position,
+                    Range = ItemData.Sightstone.GetItem().Range
+                };
 
-            // Place wards
-            RubySightstone = new CustomItem
-            {
-                Name = "ruby-sightstone",
-                DisplayName = Global.Lang.Get("MI_RubySightstone"),
-                Item = ItemData.Ruby_Sightstone.GetItem(),
-                Flags = ItemFlags.Supportive,
-                CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
-                CastType = CastType.Position,
-                Range = ItemData.Ruby_Sightstone.GetItem().Range
-            };
+                // Place wards
+                RubySightstone = new CustomItem
+                {
+                    Name = "ruby-sightstone",
+                    DisplayName = Global.Lang.Get("MI_RubySightstone"),
+                    Item = ItemData.Ruby_Sightstone.GetItem(),
+                    Flags = ItemFlags.Supportive,
+                    CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
+                    CastType = CastType.Position,
+                    Range = ItemData.Ruby_Sightstone.GetItem().Range
+                };
 
-            Items = new List<CustomItem>
+                Items = new List<CustomItem>
+                {
+                    Youmuu,
+                    Tiamat,
+                    Hydra,
+                    BilgewaterCutlass,
+                    BladeRuinedKing,
+                    HextechGunblade,
+                    MikaelsCrucible,
+                    LocketIronSolari,
+                    Sightstone,
+                    RubySightstone
+                };
+
+                MaxRange = Items.Max(s => s.Range);
+            }
+            catch (Exception ex)
             {
-                Youmuu,
-                Tiamat,
-                Hydra,
-                BilgewaterCutlass,
-                BladeRuinedKing,
-                HextechGunblade,
-                MikaelsCrucible,
-                LocketIronSolari,
-                Sightstone,
-                RubySightstone
-            };
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
+
+        public static float MaxRange { get; set; }
 
         public static void AddToMenu(Menu menu, ItemFlags itemFlags)
         {
@@ -254,6 +265,8 @@ namespace SFXChallenger.Managers
                         }
                     }
                 }
+
+                menu.AddItem(new MenuItem(menu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
             }
             catch (Exception ex)
             {
@@ -263,13 +276,17 @@ namespace SFXChallenger.Managers
 
         public static float CalculateComboDamage(Obj_AI_Hero target)
         {
-            if (_menu == null)
+            if (_menu == null || !_menu.Item(_menu.Name + ".enabled").GetValue<bool>())
             {
                 return 0f;
             }
             try
             {
                 var distance = target.Distance(ObjectManager.Player.Position, true);
+                if (distance >= Math.Pow(MaxRange, 2))
+                {
+                    return 0f;
+                }
                 return
                     (float)
                         Items.Where(
@@ -290,13 +307,17 @@ namespace SFXChallenger.Managers
 
         public static void UseComboItems(Obj_AI_Hero target)
         {
-            if (_menu == null)
+            if (_menu == null || !_menu.Item(_menu.Name + ".enabled").GetValue<bool>())
             {
                 return;
             }
             try
             {
                 var distance = target.Distance(ObjectManager.Player.Position, true);
+                if (distance >= Math.Pow(MaxRange, 2))
+                {
+                    return;
+                }
                 foreach (var item in
                     Items.Where(
                         i =>
@@ -332,7 +353,7 @@ namespace SFXChallenger.Managers
 
         public static void UseFleeItems()
         {
-            if (_menu == null)
+            if (_menu == null || !_menu.Item(_menu.Name + ".enabled").GetValue<bool>())
             {
                 return;
             }

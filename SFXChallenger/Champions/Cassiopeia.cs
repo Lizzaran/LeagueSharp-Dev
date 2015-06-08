@@ -33,7 +33,6 @@ using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
-using SharpDX;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
@@ -296,10 +295,7 @@ namespace SFXChallenger.Champions
                         {
                             R.From = flashPos;
                             R.RangeCheckFrom = flashPos;
-                            if (
-                                HeroManager.Enemies.Count(
-                                    x =>
-                                        R.WillHit(x,pred.CastPosition)) >= min)
+                            if (HeroManager.Enemies.Count(x => R.WillHit(x, pred.CastPosition)) >= min)
                             {
                                 R.Cast(
                                     Player.Position.Extend(
@@ -321,8 +317,7 @@ namespace SFXChallenger.Champions
                                     return;
                                 }
                             }
-                            R.From = default(Vector3);
-                            R.RangeCheckFrom = default(Vector3);
+                            R.UpdateSourcePosition();
                         }
                     }
                 }

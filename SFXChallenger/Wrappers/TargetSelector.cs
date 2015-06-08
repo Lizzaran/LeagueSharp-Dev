@@ -61,18 +61,10 @@ namespace SFXChallenger.Wrappers
             WeightedItems = new List<WeightedItem>
             {
                 new WeightedItem(
-                    "killable", Global.Lang.Get("TS_AAKillable"), 20, false, delegate(Obj_AI_Hero t)
-                    {
-                        var time = (int) (ObjectManager.Player.AttackCastDelay * 1000) - 100 + Game.Ping / 2 +
-                                   1000 * (int) ObjectManager.Player.Distance(t) /
-                                   (int) Orbwalking.GetMyProjectileSpeed();
-                        return HealthPrediction.GetHealthPrediction(t, time, 0) + t.HPRegenRate * time <=
-                               ObjectManager.Player.GetAutoAttackDamage(t, true)
-                            ? 1
-                            : 0;
-                    }),
+                    "killable", Global.Lang.Get("TS_AAKillable"), 20, false, 333,
+                    t => t.Health < ObjectManager.Player.GetAutoAttackDamage(t, true) ? 1 : 0),
                 new WeightedItem(
-                    "attack-damage", Global.Lang.Get("TS_AttackDamage"), 10, false, delegate(Obj_AI_Hero t)
+                    "attack-damage", Global.Lang.Get("TS_AttackDamage"), 10, false, 8000, delegate(Obj_AI_Hero t)
                     {
                         var ad = (t.BaseAttackDamage + t.FlatPhysicalDamageMod);
                         ad += ad / 100 * (t.Crit * 100) * (t.HasItem(ItemData.Infinity_Edge.Id) ? 2.5f : 2f);
@@ -81,7 +73,7 @@ namespace SFXChallenger.Wrappers
                         return (ad * (100 / (100 + (averageArmor > 0 ? averageArmor : 0)))) * t.AttackSpeedMod;
                     }),
                 new WeightedItem(
-                    "ability-power", Global.Lang.Get("TS_AbilityPower"), 10, false, delegate(Obj_AI_Hero t)
+                    "ability-power", Global.Lang.Get("TS_AbilityPower"), 10, false, 8000, delegate(Obj_AI_Hero t)
                     {
                         var averageMr = HeroManager.Allies.Average(a => a.SpellBlock) *
                                         ObjectManager.Player.PercentMagicPenetrationMod - t.FlatMagicPenetrationMod;
@@ -89,24 +81,24 @@ namespace SFXChallenger.Wrappers
                                (100 / (100 + (averageMr > 0 ? averageMr : 0)));
                     }),
                 new WeightedItem(
-                    "low-resists", Global.Lang.Get("TS_LowResists"), 6, true,
+                    "low-resists", Global.Lang.Get("TS_LowResists"), 6, true, 8000,
                     t =>
                         ObjectManager.Player.FlatPhysicalDamageMod >= ObjectManager.Player.FlatMagicDamageMod
                             ? t.Armor
                             : t.SpellBlock),
-                new WeightedItem("low-health", Global.Lang.Get("TS_LowHealth"), 8, true, t => t.Health),
+                new WeightedItem("low-health", Global.Lang.Get("TS_LowHealth"), 8, true, 333, t => t.Health),
                 new WeightedItem(
-                    "short-distance", Global.Lang.Get("TS_ShortDistance"), 7, true,
+                    "short-distance", Global.Lang.Get("TS_ShortDistance"), 7, true, 333,
                     t => t.Distance(ObjectManager.Player)),
                 new WeightedItem(
-                    "team-focus", Global.Lang.Get("TS_TeamFocus"), 5, false,
+                    "team-focus", Global.Lang.Get("TS_TeamFocus"), 0, false, 1250,
                     t =>
                         AggroItems.Count(
                             a =>
                                 a.Value.Target.NetworkId == t.NetworkId &&
                                 (Game.Time - a.Value.Timestamp) <= AggroFadeTime)),
                 new WeightedItem(
-                    "damage-me", Global.Lang.Get("TS_DamageMe"), 7, false, delegate(Obj_AI_Hero t)
+                    "damage-me", Global.Lang.Get("TS_DamageMe"), 0, false, 1250, delegate(Obj_AI_Hero t)
                     {
                         List<DamageItem> damageItems;
                         if (DamageItems.TryGetValue(t.NetworkId, out damageItems))
@@ -120,7 +112,7 @@ namespace SFXChallenger.Wrappers
                         return 0;
                     }),
                 new WeightedItem(
-                    "gold", Global.Lang.Get("TS_Gold"), 7, false,
+                    "gold", Global.Lang.Get("TS_Gold"), 7, false, 8000,
                     t => t.MinionsKilled * MinionGold + t.ChampionsKilled * KillGold + t.Assists * AssistGold)
             };
 
@@ -152,19 +144,20 @@ namespace SFXChallenger.Wrappers
         {
             try
             {
-                var source = HeroManager.Enemies.FirstOrDefault(h => h.NetworkId == args.SourceNetworkId);
-                if (source != null && ObjectManager.Player.NetworkId == args.TargetNetworkId)
+                if (!sender.IsEnemy || sender.Type != GameObjectType.obj_AI_Hero ||
+                    ObjectManager.Player.NetworkId != args.TargetNetworkId)
                 {
-                    foreach (var item in DamageItems)
-                    {
-                        item.Value.RemoveAll(i => Game.Time - i.Timestamp > DamageFadeTime);
-                    }
-                    if (!DamageItems.ContainsKey(source.NetworkId))
-                    {
-                        DamageItems[source.NetworkId] = new List<DamageItem>();
-                    }
-                    DamageItems[source.NetworkId].Add(new DamageItem(ObjectManager.Player, args.Damage));
+                    return;
                 }
+                foreach (var item in DamageItems)
+                {
+                    item.Value.RemoveAll(i => Game.Time - i.Timestamp > DamageFadeTime);
+                }
+                if (!DamageItems.ContainsKey(sender.NetworkId))
+                {
+                    DamageItems[sender.NetworkId] = new List<DamageItem>();
+                }
+                DamageItems[sender.NetworkId].Add(new DamageItem(ObjectManager.Player, args.Damage));
             }
             catch (Exception ex)
             {
@@ -176,6 +169,10 @@ namespace SFXChallenger.Wrappers
         {
             try
             {
+                if (!sender.IsEnemy || sender.Type != GameObjectType.obj_AI_Hero)
+                {
+                    return;
+                }
                 var hero = sender as Obj_AI_Hero;
                 var target = HeroManager.Enemies.FirstOrDefault(h => h.NetworkId == args.NetworkId);
                 if (hero != null && target != null)
@@ -236,38 +233,51 @@ namespace SFXChallenger.Wrappers
                             _menu.Item(_menu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value, true);
                     }
                 }
-                if (_menu.Item(_menu.Name + ".drawing.debug").GetValue<bool>())
+                if (_menu.Item(_menu.Name + ".drawing.debug").GetValue<bool>() &&
+                    _menu.Item(_menu.Name + ".weights.enabled").GetValue<bool>())
                 {
-                    if (_menu.Item(_menu.Name + ".weights.enabled").GetValue<bool>())
+                    foreach (var target in
+                        HeroManager.Enemies.Where(h => h.IsVisible && !h.IsDead && h.Position.IsOnScreen()))
                     {
-                        foreach (var target in
-                            HeroManager.Enemies.Where(h => h.IsVisible && !h.IsDead && h.Position.IsOnScreen()))
+                        var position = Drawing.WorldToScreen(target.Position);
+                        var offset = 0;
+                        foreach (var weight in WeightedItems)
                         {
-                            var champWeight =
-                                (((_menu.Item(_menu.Name + ".heroes." + target.ChampionName).GetValue<Slider>().Value *
-                                   (_averageWeight - MinWeight)) / 5) + MinWeight) + 1;
-                            var position = Drawing.WorldToScreen(target.Position);
-                            var offset = 0;
-                            var totalWeight = 0f;
-                            foreach (var weight in WeightedItems)
+                            var lastWeight = weight.LastWeight(target);
+                            if (lastWeight > 0f)
                             {
-                                weight.CurrentMin = HeroManager.Enemies.Select(weight.GetValue).DefaultIfEmpty().Min();
-                                weight.CurrentMax = HeroManager.Enemies.Select(weight.GetValue).DefaultIfEmpty().Max();
-                                var tmpWeight = weight.CalculatedWeight(target);
-                                tmpWeight += champWeight *
-                                             _menu.Item(_menu.Name + ".heroes.weight-multiplicator")
-                                                 .GetValue<Slider>()
-                                                 .Value;
-                                totalWeight += tmpWeight;
+                                lastWeight +=
+                                    (_menu.Item(_menu.Name + ".heroes." + target.ChampionName).GetValue<Slider>().Value *
+                                     _averageWeight + 0.1f) *
+                                    _menu.Item(_menu.Name + ".heroes.weight-multiplicator").GetValue<Slider>().Value;
                                 Drawing.DrawText(
                                     position.X + target.BoundingRadius, position.Y - 100 + offset, Color.White,
-                                    string.Format("{0} - {1}", tmpWeight.ToString("00.00"), weight.DisplayName));
+                                    string.Format("{0} - {1}", lastWeight.ToString("00.00"), weight.DisplayName));
                                 offset += 17;
                             }
-                            Drawing.DrawText(
-                                target.HPBarPosition.X + 51, target.HPBarPosition.Y - 20, Color.White,
-                                totalWeight.ToString("0.00"));
                         }
+                    }
+                }
+
+                if (_menu.Item(_menu.Name + ".drawing.weights").GetValue<bool>() &&
+                    _menu.Item(_menu.Name + ".weights.enabled").GetValue<bool>())
+                {
+                    foreach (var target in
+                        HeroManager.Enemies.Where(h => h.IsVisible && !h.IsDead && h.Position.IsOnScreen()))
+                    {
+                        var totalWeight =
+                            WeightedItems.Select(weight => weight.LastWeight(target))
+                                .Where(lastWeight => lastWeight > 0f)
+                                .Sum(
+                                    lastWeight =>
+                                        lastWeight +
+                                        (_menu.Item(_menu.Name + ".heroes." + target.ChampionName)
+                                            .GetValue<Slider>()
+                                            .Value * _averageWeight + 0.1f) *
+                                        _menu.Item(_menu.Name + ".heroes.weight-multiplicator").GetValue<Slider>().Value);
+                        Drawing.DrawText(
+                            target.HPBarPosition.X + 55, target.HPBarPosition.Y - 20, Color.White,
+                            totalWeight.ToString("0.0").Replace(",", "."));
                     }
                 }
             }
@@ -367,12 +377,6 @@ namespace SFXChallenger.Wrappers
                     }
                 }
 
-                foreach (var item in WeightedItems.Where(w => w.Weight > 0))
-                {
-                    item.CurrentMin = targets.Select(item.GetValue).DefaultIfEmpty().Min();
-                    item.CurrentMax = targets.Select(item.GetValue).DefaultIfEmpty().Max();
-                }
-
                 var target = TargetWeights(targets).FirstOrDefault();
                 return target != null ? target.Hero : null;
             }
@@ -420,12 +424,6 @@ namespace SFXChallenger.Wrappers
                         }
                     }
 
-                    foreach (var item in WeightedItems.Where(w => w.Weight > 0))
-                    {
-                        item.CurrentMin = targets.Select(item.GetValue).DefaultIfEmpty().Min();
-                        item.CurrentMax = targets.Select(item.GetValue).DefaultIfEmpty().Max();
-                    }
-
                     var targetsWeight = TargetWeights(targets);
 
                     if (_menu != null && SelectedTarget != null &&
@@ -456,20 +454,39 @@ namespace SFXChallenger.Wrappers
         {
             try
             {
-                var targetsList = new List<Target>();
+                foreach (var item in WeightedItems.Where(w => w.Weight > 0))
+                {
+                    var min = float.MaxValue;
+                    var max = float.MinValue;
+                    foreach (var target in targets)
+                    {
+                        var value = item.GetValue(target);
+                        if (value < min)
+                        {
+                            min = value;
+                        }
+                        if (value > max)
+                        {
+                            max = value;
+                        }
+                    }
+                    item.CurrentMin = min;
+                    item.CurrentMax = max;
+                }
 
+                var targetsList = new List<Target>();
+                var weights = _menu == null || _menu.Item(_menu.Name + ".weights.enabled").GetValue<bool>();
                 foreach (var target in targets)
                 {
-                    var tmpWeight = _menu != null && _menu.Item(_menu.Name + ".weights.enabled").GetValue<bool>()
-                        ? WeightedItems.Where(w => w.Weight > 0).Sum(weight => weight.CalculatedWeight(target))
+                    var tmpWeight = weights
+                        ? WeightedItems.Where(w => w.Weight > 0).Sum(w => w.CalculatedWeight(target))
                         : 0;
                     if (_menu != null)
                     {
-                        var champWeight =
-                            (((_menu.Item(_menu.Name + ".heroes." + target.ChampionName).GetValue<Slider>().Value *
-                               (_averageWeight - MinWeight)) / 5) + MinWeight) + 1;
-                        tmpWeight += champWeight *
-                                     _menu.Item(_menu.Name + ".heroes.weight-multiplicator").GetValue<Slider>().Value;
+                        tmpWeight +=
+                            (_menu.Item(_menu.Name + ".heroes." + target.ChampionName).GetValue<Slider>().Value *
+                             _averageWeight + 0.1f) *
+                            _menu.Item(_menu.Name + ".heroes.weight-multiplicator").GetValue<Slider>().Value;
                     }
 
                     targetsList.Add(new Target(target, tmpWeight));
@@ -499,6 +516,8 @@ namespace SFXChallenger.Wrappers
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + ".circle-thickness", Global.Lang.Get("G_CircleThickness")).SetValue(
                         new Slider(2, 1, 10)));
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + ".weights", Global.Lang.Get("TS_Weights")).SetValue(false));
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + ".debug", Global.Lang.Get("G_Debug")).SetValue(false));
 
@@ -535,6 +554,7 @@ namespace SFXChallenger.Wrappers
                             localItem.Weight = args.GetNewValue<Slider>().Value;
                             _averageWeight = (float) WeightedItems.Average(w => w.Weight);
                         };
+                    item.Weight = _menu.Item(weightsMenu.Name + "." + item.Name).GetValue<Slider>().Value;
                 }
 
                 weightsMenu.AddItem(
@@ -608,15 +628,41 @@ namespace SFXChallenger.Wrappers
         public float Timestamp { get; private set; }
     }
 
+    internal class WeightedCache
+    {
+        private float _value;
+
+        public WeightedCache(float value)
+        {
+            Value = value;
+            Time = Environment.TickCount;
+        }
+
+        public float Value
+        {
+            get { return _value; }
+            set
+            {
+                _value = value;
+                Time = Environment.TickCount;
+            }
+        }
+
+        public int Time { get; private set; }
+    }
+
     internal class WeightedItem
     {
         private readonly Func<Obj_AI_Hero, float> _getValue;
+        private readonly Dictionary<int, WeightedCache> _valueCache = new Dictionary<int, WeightedCache>();
+        private readonly Dictionary<int, WeightedCache> _weightCache = new Dictionary<int, WeightedCache>();
         private float _currentMax;
 
         public WeightedItem(string name,
             string displayName,
             int weight,
             bool inverted,
+            int cacheTime,
             Func<Obj_AI_Hero, float> getValue)
         {
             _getValue = getValue;
@@ -624,12 +670,14 @@ namespace SFXChallenger.Wrappers
             DisplayName = displayName;
             Weight = weight;
             Inverted = inverted;
+            CacheTime = cacheTime;
         }
 
         public string Name { get; set; }
         public string DisplayName { get; set; }
         public int Weight { get; set; }
         public bool Inverted { get; set; }
+        public float CacheTime { get; set; }
         public float CurrentMin { get; set; }
 
         public float CurrentMax
@@ -648,11 +696,45 @@ namespace SFXChallenger.Wrappers
             }
         }
 
+        public float LastWeight(Obj_AI_Hero target)
+        {
+            WeightedCache cache;
+            if (_weightCache.TryGetValue(target.NetworkId, out cache))
+            {
+                return cache.Value;
+            }
+            return 0f;
+        }
+
+        public float LastValue(Obj_AI_Hero target)
+        {
+            WeightedCache cache;
+            if (_valueCache.TryGetValue(target.NetworkId, out cache))
+            {
+                return cache.Value;
+            }
+            return 0f;
+        }
+
         public float CalculatedWeight(Obj_AI_Hero target)
         {
-            return CalculatedWeight(
+            WeightedCache cache;
+            if (_weightCache.TryGetValue(target.NetworkId, out cache) && cache.Time + CacheTime > Environment.TickCount)
+            {
+                return cache.Value;
+            }
+            var weight = CalculatedWeight(
                 GetValue(target), CurrentMin, CurrentMax, Inverted ? Weight : TargetSelector.MinWeight,
                 Inverted ? TargetSelector.MinWeight : Weight);
+            if (cache == null)
+            {
+                _weightCache[target.NetworkId] = new WeightedCache(weight);
+            }
+            else
+            {
+                _weightCache[target.NetworkId].Value = weight;
+            }
+            return weight;
         }
 
         public float CalculatedWeight(float currentValue, float currentMin, float currentMax, float newMin, float newMax)
@@ -665,7 +747,22 @@ namespace SFXChallenger.Wrappers
         {
             try
             {
-                return _getValue(target);
+                WeightedCache cache;
+                if (_valueCache.TryGetValue(target.NetworkId, out cache) &&
+                    cache.Time + CacheTime > Environment.TickCount)
+                {
+                    return cache.Value;
+                }
+                var value = _getValue(target);
+                if (cache == null)
+                {
+                    _valueCache[target.NetworkId] = new WeightedCache(value);
+                }
+                else
+                {
+                    _valueCache[target.NetworkId].Value = value;
+                }
+                return value;
             }
             catch
             {
