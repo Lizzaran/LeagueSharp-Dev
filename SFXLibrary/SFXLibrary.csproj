@@ -72,6 +72,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConcurrentSet.cs" />
     <Compile Include="Draw.cs" />
     <Compile Include="Extensions\LeagueSharp\Common\MenuExtensions.cs" />
     <Compile Include="Extensions\NET\BitmapExtensions.cs" />

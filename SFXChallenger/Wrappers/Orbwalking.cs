@@ -26,6 +26,7 @@ using System;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXChallenger.Helpers;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Extensions.SharpDX;
 using SFXLibrary.Logger;
@@ -617,7 +618,7 @@ namespace SFXChallenger.Wrappers
             private bool ShouldWait()
             {
                 return
-                    ObjectManager.Get<Obj_AI_Minion>()
+                    ObjectCache.GetMinions()
                         .Any(
                             minion =>
                                 minion.IsValidTarget() && minion.Team != GameObjectTeam.Neutral &&
@@ -646,7 +647,7 @@ namespace SFXChallenger.Wrappers
                     ActiveMode == OrbwalkingMode.LastHit)
                 {
                     foreach (var minion in
-                        ObjectManager.Get<Obj_AI_Minion>()
+                        ObjectCache.GetMinions()
                             .Where(
                                 minion =>
                                     minion.IsValidTarget() && InAutoAttackRange(minion) &&
@@ -719,7 +720,7 @@ namespace SFXChallenger.Wrappers
                 if (ActiveMode == OrbwalkingMode.LaneClear || ActiveMode == OrbwalkingMode.Mixed)
                 {
                     result =
-                        ObjectManager.Get<Obj_AI_Minion>()
+                        ObjectCache.GetMinions()
                             .Where(
                                 mob =>
                                     mob.IsValidTarget() && InAutoAttackRange(mob) && mob.Team == GameObjectTeam.Neutral)
@@ -747,7 +748,7 @@ namespace SFXChallenger.Wrappers
                         }
 
                         result = (from minion in
-                            ObjectManager.Get<Obj_AI_Minion>()
+                            ObjectCache.GetMinions()
                                 .Where(minion => minion.IsValidTarget() && InAutoAttackRange(minion))
                             let predHealth =
                                 HealthPrediction.LaneClearHealthPrediction(

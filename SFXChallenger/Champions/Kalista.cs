@@ -309,7 +309,7 @@ namespace SFXChallenger.Champions
                     ManaManager.Check("lasthit"))
                 {
                     if (
-                        ObjectManager.Get<Obj_AI_Minion>()
+                        ObjectCache.GetMinions()
                             .Any(
                                 m =>
                                     m.IsValidTarget(E.Range) &&
@@ -325,7 +325,7 @@ namespace SFXChallenger.Champions
                 if (Menu.Item(Menu.Name + ".miscellaneous.e-reset").GetValue<bool>() && E.IsReady() &&
                     ManaManager.Check("misc") && HeroManager.Enemies.Any(e => Rend.HasBuff(e) && E.IsInRange(e)))
                 {
-                    if (ObjectManager.Get<Obj_AI_Minion>().Any(e => E.IsInRange(e) && Rend.IsKillable(e)))
+                    if (ObjectCache.GetMinions().Any(e => E.IsInRange(e) && Rend.IsKillable(e)))
                     {
                         E.Cast();
                     }
@@ -369,7 +369,7 @@ namespace SFXChallenger.Champions
                     if (target.Distance(Player) > Orbwalking.GetRealAutoAttackRange(target))
                     {
                         var minions =
-                            ObjectManager.Get<Obj_AI_Minion>()
+                            ObjectCache.GetMinions()
                                 .Where(m => m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)))
                                 .ToList();
                         if (minions.Any(Rend.IsKillable))
@@ -466,7 +466,7 @@ namespace SFXChallenger.Champions
                 return;
             }
 
-            var minions = MinionManager.GetMinions(
+            var minions = ObjectCache.GetMinions(
                 Q.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
             if (minions.Count == 0)
             {

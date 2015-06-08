@@ -308,7 +308,7 @@ namespace SFXChallenger.Champions
                         }
 
                         var minion =
-                            MinionManager.GetMinions(
+                            ObjectCache.GetMinions(
                                 1000, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
                                 .Where(m => Orbwalker.InAutoAttackRange(m))
                                 .FirstOrDefault(
@@ -864,7 +864,7 @@ namespace SFXChallenger.Champions
             if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady() &&
                 ManaManager.Check("lane-clear-e"))
             {
-                var minions = MinionManager.GetMinions(
+                var minions = ObjectCache.GetMinions(
                     MaxERange * 1.3f, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
                 var minHits = minions.Any(m => m.Team == GameObjectTeam.Neutral)
                     ? 1
@@ -882,7 +882,7 @@ namespace SFXChallenger.Champions
                 ManaManager.Check("lane-clear-q"))
             {
                 var minion =
-                    MinionManager.GetMinions(Q.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
+                    ObjectCache.GetMinions(Q.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
                         .FirstOrDefault(m => m.Health < Q.GetDamage(m) || m.Health * 2 > Q.GetDamage(m));
                 if (minion != null)
                 {

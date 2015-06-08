@@ -92,7 +92,7 @@ namespace SFXChallenger.Helpers
                 return;
             }
 
-            var minion = MinionManager.GetMinions(
+            var minion = ObjectCache.GetMinions(
                 ObjectManager.Player.ServerPosition, spell.Range, MinionTypes.All, MinionTeam.NotAlly);
 
             if (minion.Count == 0)

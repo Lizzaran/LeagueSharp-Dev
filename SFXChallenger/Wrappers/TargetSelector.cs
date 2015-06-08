@@ -64,7 +64,7 @@ namespace SFXChallenger.Wrappers
                     "killable", Global.Lang.Get("TS_AAKillable"), 20, false, 333,
                     t => t.Health < ObjectManager.Player.GetAutoAttackDamage(t, true) ? 1 : 0),
                 new WeightedItem(
-                    "attack-damage", Global.Lang.Get("TS_AttackDamage"), 10, false, 8000, delegate(Obj_AI_Hero t)
+                    "attack-damage", Global.Lang.Get("TS_AttackDamage"), 10, false, 6500, delegate(Obj_AI_Hero t)
                     {
                         var ad = (t.BaseAttackDamage + t.FlatPhysicalDamageMod);
                         ad += ad / 100 * (t.Crit * 100) * (t.HasItem(ItemData.Infinity_Edge.Id) ? 2.5f : 2f);
@@ -73,7 +73,7 @@ namespace SFXChallenger.Wrappers
                         return (ad * (100 / (100 + (averageArmor > 0 ? averageArmor : 0)))) * t.AttackSpeedMod;
                     }),
                 new WeightedItem(
-                    "ability-power", Global.Lang.Get("TS_AbilityPower"), 10, false, 8000, delegate(Obj_AI_Hero t)
+                    "ability-power", Global.Lang.Get("TS_AbilityPower"), 10, false, 7000, delegate(Obj_AI_Hero t)
                     {
                         var averageMr = HeroManager.Allies.Average(a => a.SpellBlock) *
                                         ObjectManager.Player.PercentMagicPenetrationMod - t.FlatMagicPenetrationMod;
@@ -81,7 +81,7 @@ namespace SFXChallenger.Wrappers
                                (100 / (100 + (averageMr > 0 ? averageMr : 0)));
                     }),
                 new WeightedItem(
-                    "low-resists", Global.Lang.Get("TS_LowResists"), 6, true, 8000,
+                    "low-resists", Global.Lang.Get("TS_LowResists"), 6, true, 7500,
                     t =>
                         ObjectManager.Player.FlatPhysicalDamageMod >= ObjectManager.Player.FlatMagicDamageMod
                             ? t.Armor

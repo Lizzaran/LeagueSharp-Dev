@@ -231,8 +231,7 @@ namespace SFXChallenger.Champions
                     if (eHit || ePoison)
                     {
                         var m =
-                            MinionManager.GetMinions(
-                                Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly)
+                            ObjectCache.GetMinions(Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly)
                                 .FirstOrDefault(
                                     e =>
                                         e.Health < E.GetDamage(e) - 5 &&
@@ -775,7 +774,7 @@ namespace SFXChallenger.Champions
                 ManaManager.Check("lane-clear"))
             {
                 var minion =
-                    MinionManager.GetMinions(
+                    ObjectCache.GetMinions(
                         Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
                         .Where(
                             e =>
@@ -795,7 +794,7 @@ namespace SFXChallenger.Champions
             if (q || w)
             {
                 var minions =
-                    MinionManager.GetMinions(Player.ServerPosition, Q.Range + Q.Width)
+                    ObjectCache.GetMinions(Player.ServerPosition, Q.Range + Q.Width)
                         .Where(e => GetPoisonBuffEndTime(e) < Q.Delay * 1.1)
                         .OrderByDescending(
                             m => m.BaseSkinName.Contains("MinionSiege", StringComparison.OrdinalIgnoreCase))
@@ -824,7 +823,7 @@ namespace SFXChallenger.Champions
                 else
                 {
                     var creep =
-                        MinionManager.GetMinions(
+                        ObjectCache.GetMinions(
                             Player.ServerPosition, Q.Range + Q.Width, MinionTypes.All, MinionTeam.Neutral,
                             MinionOrderTypes.MaxHealth).FirstOrDefault(e => GetPoisonBuffEndTime(e) < Q.Delay * 1.1);
                     if (creep != null)

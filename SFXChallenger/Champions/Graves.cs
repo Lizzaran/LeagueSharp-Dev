@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- graves.cs is part of SFXChallenger.
+ Graves.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -224,7 +224,7 @@ namespace SFXChallenger.Champions
 
             if (useQ)
             {
-                var minions = MinionManager.GetMinions(
+                var minions = ObjectCache.GetMinions(
                     Q.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
                 if (minions.Count >= minQ)
                 {
