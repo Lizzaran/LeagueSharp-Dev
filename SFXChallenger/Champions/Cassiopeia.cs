@@ -214,6 +214,7 @@ namespace SFXChallenger.Champions
 
             E = new Spell(SpellSlot.E, 700f);
             E.SetTargetted(0.2f, 1700f);
+            E.Collision = true;
 
             R = new Spell(SpellSlot.R, 825f);
             R.SetSkillshot(0.8f, (float) (80 * Math.PI / 180), float.MaxValue, false, SkillshotType.SkillshotCone);
@@ -444,6 +445,7 @@ namespace SFXChallenger.Champions
                     return;
                 }
 
+                var endTick = Game.Time - Game.Ping / 2000f + (args.EndPos.Distance(args.StartPos) / args.Speed);
                 var endPos = args.EndPos;
                 if (hero.ChampionName.Equals("Fizz", StringComparison.OrdinalIgnoreCase))
                 {
@@ -458,7 +460,7 @@ namespace SFXChallenger.Champions
                 if (Menu.Item(Menu.Name + ".miscellaneous.w-dash").GetValue<bool>() &&
                     Player.Distance(endPos) <= W.Range && W.IsReady())
                 {
-                    var delay = (int) (args.EndTick - Game.Time - W.Delay - 0.1f);
+                    var delay = (int) (endTick - Game.Time - W.Delay - 0.1f);
                     if (delay > 0)
                     {
                         Utility.DelayAction.Add(delay * 1000, () => W.Cast(endPos));
@@ -471,16 +473,16 @@ namespace SFXChallenger.Champions
                 }
 
                 if (!wCasted && Menu.Item(Menu.Name + ".miscellaneous.q-dash").GetValue<bool>() &&
-                    Player.Distance(args.EndPos) <= Q.Range)
+                    Player.Distance(endPos) <= Q.Range && Q.IsReady())
                 {
-                    var delay = (int) (args.EndTick - Game.Time - Q.Delay - 0.1f);
+                    var delay = (int) (endTick - Game.Time - Q.Delay - 0.1f);
                     if (delay > 0)
                     {
-                        Utility.DelayAction.Add(delay * 1000, () => Q.Cast(args.EndPos));
+                        Utility.DelayAction.Add(delay * 1000, () => Q.Cast(endPos));
                     }
                     else
                     {
-                        Q.Cast(args.EndPos);
+                        Q.Cast(endPos);
                     }
                 }
             }
@@ -722,7 +724,11 @@ namespace SFXChallenger.Champions
                 var ts = Targets.FirstOrDefault(t => E.CanCast(t) && GetPoisonBuffEndTime(t) > E.GetSpellDelay(t));
                 if (ts != null)
                 {
-                    E.Cast(ts);
+                    var pred = E.GetPrediction(ts, false, -1f, new[] { CollisionableObjects.YasuoWall });
+                    if (pred.Hitchance != HitChance.Collision)
+                    {
+                        E.Cast(ts);
+                    }
                 }
             }
             catch (Exception ex)
