@@ -314,7 +314,7 @@ namespace SFXUtility.Features.Activators
                 }
                 if (_smiteSpell != null && Menu.Item(Name + "SpellSmiteUse").GetValue<bool>())
                 {
-                    if (_smiteSpell.CanCast(_currentMinion) || damage.Equals(0d))
+                    if (_smiteSpell.IsReady() || damage.Equals(0d))
                     {
                         damage += ObjectManager.Player.GetSummonerSpellDamage(
                             _currentMinion, Damage.SummonerSpell.Smite);
