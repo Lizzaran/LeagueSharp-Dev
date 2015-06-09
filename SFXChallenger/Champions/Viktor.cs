@@ -47,6 +47,7 @@ namespace SFXChallenger.Champions
         private const float RMoveInterval = 325f;
         private float _lastRMoveCommand = Environment.TickCount;
         private GameObject _rObject;
+        public Viktor() : base(1500f) {}
 
         protected override ItemFlags ItemFlags
         {

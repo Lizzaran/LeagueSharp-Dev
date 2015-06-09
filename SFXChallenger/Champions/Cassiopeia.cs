@@ -46,6 +46,7 @@ namespace SFXChallenger.Champions
         private float _lastPoisonClearDelay;
         private float _lastQPoisonDelay;
         private Obj_AI_Base _lastQPoisonT;
+        public Cassiopeia() : base(1500f) {}
 
         protected override ItemFlags ItemFlags
         {

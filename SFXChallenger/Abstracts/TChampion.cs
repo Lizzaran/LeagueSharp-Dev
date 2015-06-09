@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- tchampion.cs is part of SFXChallenger.
+ TChampion.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -36,10 +36,12 @@ namespace SFXChallenger.Abstracts
     // ReSharper disable once InconsistentNaming
     internal abstract class TChampion : Champion
     {
+        public readonly float MaxRange;
         public List<Obj_AI_Hero> Targets = new List<Obj_AI_Hero>();
 
-        protected TChampion()
+        protected TChampion(float maxRange)
         {
+            MaxRange = maxRange;
             Core.OnBoot += OnCoreBoot;
             Core.OnShutdown += OnCoreShutdown;
         }
@@ -48,7 +50,7 @@ namespace SFXChallenger.Abstracts
         {
             try
             {
-                var targets = TargetSelector.GetTargets(3000f);
+                var targets = TargetSelector.GetTargets(MaxRange);
                 Targets = targets != null && targets.Count > 0
                     ? targets.Select(t => t.Hero).ToList()
                     : new List<Obj_AI_Hero>();

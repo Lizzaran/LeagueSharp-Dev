@@ -302,11 +302,6 @@ namespace SFXUtility.Features.Activators
             if (minion && _currentMinion.IsVisible && Menu.Item(Name + "DrawingDamageIndicator").GetValue<bool>())
             {
                 var damage = 0d;
-                if (_smiteSpell != null && Menu.Item(Name + "SpellSmiteUse").GetValue<bool>() &&
-                    _smiteSpell.CanCast(_currentMinion))
-                {
-                    damage += ObjectManager.Player.GetSummonerSpellDamage(_currentMinion, Damage.SummonerSpell.Smite);
-                }
                 if (Menu.Item(Name + "Spell" + ObjectManager.Player.ChampionName + "Enabled").GetValue<bool>())
                 {
                     var heroSpell =
@@ -315,6 +310,14 @@ namespace SFXUtility.Features.Activators
                     if (heroSpell != null)
                     {
                         damage += heroSpell.CalculateDamage(_currentMinion, false);
+                    }
+                }
+                if (_smiteSpell != null && Menu.Item(Name + "SpellSmiteUse").GetValue<bool>())
+                {
+                    if (_smiteSpell.CanCast(_currentMinion) || damage.Equals(0d))
+                    {
+                        damage += ObjectManager.Player.GetSummonerSpellDamage(
+                            _currentMinion, Damage.SummonerSpell.Smite);
                     }
                 }
                 if (damage > 0)
