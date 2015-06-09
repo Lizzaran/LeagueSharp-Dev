@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Smite.cs is part of SFXUtility.
+ smite.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -308,21 +308,16 @@ namespace SFXUtility.Features.Activators
                     if (heroSpell.Any())
                     {
                         HeroSpell spell = null;
-                        var ready = true;
                         if (heroSpell.Count == 1)
                         {
                             spell = heroSpell.First();
                         }
                         else if (heroSpell.Count > 1)
                         {
-                            spell = heroSpell.FirstOrDefault(s => s.Spell.IsReady());
-                            if (spell == null)
-                            {
-                                spell = heroSpell.OrderBy(h => h.Spell.Instance.CooldownExpires).First();
-                                ready = false;
-                            }
+                            spell = heroSpell.FirstOrDefault(s => s.Spell.IsReady()) ??
+                                    heroSpell.OrderBy(h => h.Spell.Instance.CooldownExpires).First();
                         }
-                        if (spell != null && (ready || spell.Spell.Instance.CooldownExpires - Game.Time < 5f))
+                        if (spell != null && (spell.Spell.Instance.CooldownExpires - Game.Time) < 3f)
                         {
                             damage += spell.CalculateDamage(_currentMinion, false);
                         }
@@ -330,7 +325,7 @@ namespace SFXUtility.Features.Activators
                 }
                 if (_smiteSpell != null && Menu.Item(Name + "SpellSmiteUse").GetValue<bool>())
                 {
-                    if (_smiteSpell.Instance.CooldownExpires - Game.Time < 5f)
+                    if ((_smiteSpell.Instance.CooldownExpires - Game.Time) < 3f)
                     {
                         damage += ObjectManager.Player.GetSummonerSpellDamage(
                             _currentMinion, Damage.SummonerSpell.Smite);
