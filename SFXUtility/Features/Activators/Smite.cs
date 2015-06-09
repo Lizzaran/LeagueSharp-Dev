@@ -322,10 +322,7 @@ namespace SFXUtility.Features.Activators
                                 ready = false;
                             }
                         }
-                        if (spell != null &&
-                            (ready ||
-                             (_smiteSpell != null && Menu.Item(Name + "SpellSmiteUse").GetValue<bool>() &&
-                              spell.Spell.Instance.CooldownExpires < _smiteSpell.Instance.CooldownExpires)))
+                        if (spell != null && (ready || spell.Spell.Instance.CooldownExpires - Game.Time < 5f))
                         {
                             damage += spell.CalculateDamage(_currentMinion, false);
                         }
@@ -333,7 +330,7 @@ namespace SFXUtility.Features.Activators
                 }
                 if (_smiteSpell != null && Menu.Item(Name + "SpellSmiteUse").GetValue<bool>())
                 {
-                    if (_smiteSpell.IsReady() || damage.Equals(0d))
+                    if (_smiteSpell.Instance.CooldownExpires - Game.Time < 5f)
                     {
                         damage += ObjectManager.Player.GetSummonerSpellDamage(
                             _currentMinion, Damage.SummonerSpell.Smite);
