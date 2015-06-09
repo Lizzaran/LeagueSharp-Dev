@@ -301,14 +301,30 @@ namespace SFXUtility.Features.Activators
             }
             if (minion && _currentMinion.IsVisible && Menu.Item(Name + "DrawingDamageIndicator").GetValue<bool>())
             {
-                var pos = Drawing.WorldToScreen(_currentMinion.Position);
-                Drawing.DrawText(
-                    pos.X, pos.Y + _currentMinion.BoundingRadius / 2f,
-                    Menu.Item(Name + "DrawingDamageColor").GetValue<Color>(),
-                    ((int)
-                        (_currentMinion.Health -
-                         ObjectManager.Player.GetSummonerSpellDamage(_currentMinion, Damage.SummonerSpell.Smite)))
-                        .ToString());
+                var damage = 0d;
+                if (_smiteSpell != null && Menu.Item(Name + "SpellSmiteUse").GetValue<bool>() &&
+                    _smiteSpell.CanCast(_currentMinion))
+                {
+                    damage += ObjectManager.Player.GetSummonerSpellDamage(_currentMinion, Damage.SummonerSpell.Smite);
+                }
+                if (Menu.Item(Name + "Spell" + ObjectManager.Player.ChampionName + "Enabled").GetValue<bool>())
+                {
+                    var heroSpell =
+                        _heroSpells.OrderByDescending(s => s.Priority)
+                            .FirstOrDefault(s => s.Enabled && s.CanCast(_currentMinion));
+                    if (heroSpell != null)
+                    {
+                        damage += heroSpell.CalculateDamage(_currentMinion, false);
+                    }
+                }
+                if (damage > 0)
+                {
+                    var pos = Drawing.WorldToScreen(_currentMinion.Position);
+                    Drawing.DrawText(
+                        pos.X, pos.Y + _currentMinion.BoundingRadius / 2f,
+                        Menu.Item(Name + "DrawingDamageColor").GetValue<Color>(),
+                        ((int) (_currentMinion.Health - damage)).ToString());
+                }
             }
         }
 
