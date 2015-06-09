@@ -304,12 +304,31 @@ namespace SFXUtility.Features.Activators
                 var damage = 0d;
                 if (Menu.Item(Name + "Spell" + ObjectManager.Player.ChampionName + "Enabled").GetValue<bool>())
                 {
-                    var heroSpell =
-                        _heroSpells.OrderByDescending(s => s.Priority)
-                            .FirstOrDefault(s => s.Enabled && s.CanCast(_currentMinion));
-                    if (heroSpell != null)
+                    var heroSpell = _heroSpells.Where(s => s.Enabled).OrderByDescending(s => s.Priority).ToList();
+                    if (heroSpell.Any())
                     {
-                        damage += heroSpell.CalculateDamage(_currentMinion, false);
+                        HeroSpell spell = null;
+                        var ready = true;
+                        if (heroSpell.Count == 1)
+                        {
+                            spell = heroSpell.First();
+                        }
+                        else if (heroSpell.Count > 1)
+                        {
+                            spell = heroSpell.FirstOrDefault(s => s.Spell.IsReady());
+                            if (spell == null)
+                            {
+                                spell = heroSpell.OrderBy(h => h.Spell.Instance.CooldownExpires).First();
+                                ready = false;
+                            }
+                        }
+                        if (spell != null &&
+                            (ready ||
+                             (_smiteSpell != null && Menu.Item(Name + "SpellSmiteUse").GetValue<bool>() &&
+                              spell.Spell.Instance.CooldownExpires < _smiteSpell.Instance.CooldownExpires)))
+                        {
+                            damage += spell.CalculateDamage(_currentMinion, false);
+                        }
                     }
                 }
                 if (_smiteSpell != null && Menu.Item(Name + "SpellSmiteUse").GetValue<bool>())
