@@ -23,8 +23,9 @@
 #region
 
 using System;
+using System.IO;
+using System.Linq;
 using LeagueSharp;
-using LeagueSharp.Common;
 using SFXLibrary.Extensions.SharpDX;
 using SFXLibrary.Logger;
 using SharpDX;
@@ -36,22 +37,56 @@ namespace SFXUtility
 {
     internal class Upvote
     {
-        private const string Text =
-            "                                     SFXUtility\r\nPlease consider to upvote it in the Assembly Database.";
-
         private const int Padding = 5;
         private const int Margin = 8;
+        private static string _text;
         private static Font _font;
         private static Line _line;
         private static Rectangle _measured;
         private static bool _started;
 
-        public static void Initialize()
+        public static void Initialize(string name, int maxGames)
         {
             try
             {
-                DayOfWeek day = DateTime.Now.DayOfWeek;
-                if (day != DayOfWeek.Wednesday)
+                if (ObjectManager.Get<Obj_AI_Hero>().Any())
+                {
+                    return;
+                }
+                var error = false;
+                var count = 1;
+                try
+                {
+                    var file = Path.Combine(Global.BaseDir, string.Format("{0}.upvote", name.ToLower()));
+                    if (File.Exists(file))
+                    {
+                        var content = File.ReadAllText(file);
+                        if (int.TryParse(content, out count))
+                        {
+                            count++;
+                            File.WriteAllText(file, count >= maxGames ? "0" : count.ToString());
+                        }
+                        else
+                        {
+                            File.WriteAllText(file, count.ToString());
+                            error = true;
+                        }
+                    }
+                    else
+                    {
+                        File.WriteAllText(file, count.ToString());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Global.Logger.AddItem(new LogItem(ex));
+                    error = true;
+                }
+
+                _text = string.Format("Please consider to upvote {0} in the Assembly Database.", name);
+
+                var day = DateTime.Now.DayOfWeek;
+                if ((error && day != DayOfWeek.Wednesday) || (!error && count < maxGames))
                 {
                     return;
                 }
@@ -65,10 +100,9 @@ namespace SFXUtility
                         OutputPrecision = FontPrecision.Default,
                         Quality = FontQuality.Default
                     });
-                _measured = _font.MeasureText(null, Text, FontDrawFlags.Center);
+                _measured = _font.MeasureText(null, _text, FontDrawFlags.Center);
                 _line = new Line(Drawing.Direct3DDevice) { Width = _measured.Height + (Padding * 2) };
 
-                CustomEvents.Game.OnGameLoad += OnGameLoad;
                 Game.OnUpdate += OnGameUpdate;
                 Drawing.OnEndScene += OnDrawingEndScene;
                 Drawing.OnPreReset -= OnDrawingPreReset;
@@ -118,38 +152,11 @@ namespace SFXUtility
             }
         }
 
-        private static void OnGameLoad(EventArgs args)
-        {
-            try
-            {
-                OnInGame();
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
         private static void OnGameUpdate(EventArgs args)
         {
             try
             {
                 if (!_started && Game.Time > 0)
-                {
-                    OnInGame();
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private static void OnInGame()
-        {
-            try
-            {
-                if (!_started)
                 {
                     _started = true;
                     Game.OnUpdate -= OnGameUpdate;
@@ -192,7 +199,8 @@ namespace SFXUtility
                 _line.End();
 
                 _font.DrawTextCentered(
-                    Text, new Vector2(Drawing.Width / 2f, _measured.Height / 2f + Margin), new Color(255, 255, 255, 175));
+                    _text, new Vector2(Drawing.Width / 2f, _measured.Height / 2f + Margin),
+                    new Color(255, 255, 255, 175));
             }
             catch (Exception ex)
             {
