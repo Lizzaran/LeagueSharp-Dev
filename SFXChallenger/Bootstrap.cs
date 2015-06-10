@@ -47,6 +47,8 @@ namespace SFXChallenger
         {
             try
             {
+                Upvote.Initialize(Global.Name, 7);
+
                 AppDomain.CurrentDomain.UnhandledException +=
                     delegate(object sender, UnhandledExceptionEventArgs eventArgs)
                     {

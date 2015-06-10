@@ -24,6 +24,7 @@
 
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary;
 using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
 #endregion

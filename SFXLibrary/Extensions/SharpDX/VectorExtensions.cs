@@ -67,8 +67,9 @@ namespace SFXLibrary.Extensions.SharpDX
             {
                 return true;
             }
-            return start.Intersection(end, new Vector2(Drawing.Width, 0), new Vector2(Drawing.Width, Drawing.Height))
-                .Intersects;
+            return
+                start.Intersection(end, new Vector2(Drawing.Width, 0), new Vector2(Drawing.Width, Drawing.Height))
+                    .Intersects;
         }
 
         public static Vector2 FindNearestLineCircleIntersections(this Vector2 start,
@@ -122,7 +123,7 @@ namespace SFXLibrary.Extensions.SharpDX
             var nearest = float.MaxValue;
             Obj_AI_Minion sMinion = null;
             foreach (var minion in
-                ObjectManager.Get<Obj_AI_Minion>()
+                ObjectCache.GetMinions()
                     .Where(
                         minion =>
                             minion != null && minion.IsValid &&
@@ -141,8 +142,7 @@ namespace SFXLibrary.Extensions.SharpDX
         public static Obj_AI_Minion GetMinionFastByNames(this Vector3 position, float range, string[] names)
         {
             return
-                ObjectManager.Get<Obj_AI_Minion>()
-                    .FirstOrDefault(m => names.Any(n => m.Name.Equals(n)) && m.IsValidTarget(range));
+                ObjectCache.GetMinions().FirstOrDefault(m => names.Any(n => m.Name.Equals(n)) && m.IsValidTarget(range));
         }
 
         public static Obj_AI_Minion GetNearestMinionByNames(this Vector2 position, string[] names)
