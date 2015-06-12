@@ -24,7 +24,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using LeagueSharp;
 using SFXChallenger.Wrappers;
 using SFXLibrary.Logger;
@@ -51,9 +50,7 @@ namespace SFXChallenger.Abstracts
             try
             {
                 var targets = TargetSelector.GetTargets(MaxRange);
-                Targets = targets != null && targets.Count > 0
-                    ? targets.Select(t => t.Hero).ToList()
-                    : new List<Obj_AI_Hero>();
+                Targets = targets != null && targets.Count > 0 ? targets : new List<Obj_AI_Hero>();
             }
             catch (Exception ex)
             {

@@ -35,7 +35,6 @@ using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
-using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
 #endregion
 
@@ -265,18 +264,17 @@ namespace SFXChallenger.Champions
                         Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
                     }
                     var targets =
-                        TargetSelector.GetTargets(R.Range + SummonerManager.Flash.Range)
-                            .Where(
-                                t =>
-                                    t.Hero != null && !t.Hero.IsDashing() &&
-                                    (t.Hero.IsFacing(Player)
-                                        ? (t.Hero.Distance(Player))
-                                        : (Prediction.GetPrediction(t.Hero, R.Delay + 0.3f)
-                                            .UnitPosition.Distance(Player.Position))) > R.Range * 1.025f);
+                        Targets.Where(
+                            t =>
+                                t.Distance(Player) < R.Range + SummonerManager.Flash.Range && !t.IsDashing() &&
+                                (t.IsFacing(Player)
+                                    ? (t.Distance(Player))
+                                    : (Prediction.GetPrediction(t, R.Delay + 0.3f)
+                                        .UnitPosition.Distance(Player.Position))) > R.Range * 1.025f);
                     foreach (var target in targets)
                     {
                         var min = Menu.Item(Menu.Name + ".ultimate.flash.min").GetValue<Slider>().Value;
-                        var flashPos = Player.Position.Extend(target.Hero.Position, SummonerManager.Flash.Range);
+                        var flashPos = Player.Position.Extend(target.Position, SummonerManager.Flash.Range);
                         var pred =
                             Prediction.GetPrediction(
                                 new PredictionInput
@@ -291,7 +289,7 @@ namespace SFXChallenger.Champions
                                     Speed = R.Speed,
                                     Radius = R.Width,
                                     Type = R.Type,
-                                    Unit = target.Hero
+                                    Unit = target
                                 });
                         if (pred.Hitchance >= R.GetHitChance("combo"))
                         {
@@ -307,10 +305,10 @@ namespace SFXChallenger.Champions
                             else if (Menu.Item(Menu.Name + ".ultimate.flash.1v1").GetValue<bool>())
                             {
                                 var cDmg = CalcComboDamage(
-                                    target.Hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
+                                    target, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                                     Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
                                     Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true);
-                                if (cDmg - 20 >= target.Hero.Health)
+                                if (cDmg - 20 >= target.Health)
                                 {
                                     R.Cast(
                                         Player.Position.Extend(

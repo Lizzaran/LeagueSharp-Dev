@@ -40,14 +40,45 @@ namespace SFXChallenger.Menus
             menu.AddItem(
                 new MenuItem(menu.Name + ".language", Global.Lang.Get("F_Language")).SetValue(
                     new StringList(
-                        new[] { Global.Lang.Get("Language_Auto") }.Concat(Global.Lang.Languages.ToArray()).ToArray())));
+                        new[] { Global.Lang.Get("Language_Auto") }.Concat(Global.Lang.Languages.ToArray()).ToArray())))
+                .ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
+                {
+                    try
+                    {
+                        var preName = string.Format("{0}.language.", Global.Name.ToLower());
+                        var autoName = Global.Lang.Get("Language_Auto");
+                        var files = Directory.GetFiles(
+                            AppDomain.CurrentDomain.BaseDirectory, preName + "*", SearchOption.TopDirectoryOnly);
+                        var selectedLanguage = args.GetNewValue<StringList>().SelectedValue;
+                        foreach (var file in files)
+                        {
+                            try
+                            {
+                                File.Delete(file);
+                            }
+                            catch
+                            {
+                                // ignored
+                            }
+                        }
+                        if (!selectedLanguage.Equals(autoName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            File.Create(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, preName + selectedLanguage));
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Global.Logger.AddItem(new LogItem(ex));
+                    }
+                };
 
             try
             {
                 var file =
                     Directory.GetFiles(
-                        AppDomain.CurrentDomain.BaseDirectory, string.Format("{0}.language.", Global.Name) + "*",
-                        SearchOption.TopDirectoryOnly).FirstOrDefault();
+                        AppDomain.CurrentDomain.BaseDirectory,
+                        string.Format("{0}.language.", Global.Name.ToLower()) + "*", SearchOption.TopDirectoryOnly)
+                        .FirstOrDefault();
                 if (!string.IsNullOrEmpty(file))
                 {
                     var ext = Path.GetExtension(file);
@@ -69,34 +100,6 @@ namespace SFXChallenger.Menus
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
-
-            Core.OnShutdown += delegate
-            {
-                try
-                {
-                    var preName = string.Format("{0}.language.", Global.Name);
-                    var autoName = Global.Lang.Get("Language_Auto");
-                    var files = Directory.GetFiles(
-                        AppDomain.CurrentDomain.BaseDirectory, preName + "*", SearchOption.TopDirectoryOnly);
-                    var selectedLanguage = menu.Item(menu.Name + ".language").GetValue<StringList>().SelectedValue;
-                    foreach (var file in files)
-                    {
-                        try
-                        {
-                            File.Delete(file);
-                        }
-                        catch {}
-                    }
-                    if (!selectedLanguage.Equals(autoName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        File.Create(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, preName + selectedLanguage));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Global.Logger.AddItem(new LogItem(ex));
-                }
-            };
         }
     }
 }

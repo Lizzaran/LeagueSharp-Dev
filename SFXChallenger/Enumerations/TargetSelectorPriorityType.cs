@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- TickMenu.cs is part of SFXChallenger.
+ TargetSelectorPriorityType.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,25 +20,13 @@
 
 #endregion License
 
-#region
-
-using LeagueSharp.Common;
-
-#endregion
-
-namespace SFXChallenger.Menus
+namespace SFXChallenger.Enumerations
 {
-    internal class TickMenu
+    public enum TargetSelectorPriorityType
     {
-        public static void AddToMenu(Menu menu)
-        {
-            menu.AddItem(new MenuItem(menu.Name + ".tick", Global.Lang.Get("F_Tick")).SetValue(new Slider(100, 1, 300)))
-                .ValueChanged +=
-                delegate(object sender, OnValueChangeEventArgs args)
-                {
-                    Core.SetInterval(args.GetNewValue<Slider>().Value);
-                };
-            Core.SetInterval(menu.Item(menu.Name + ".tick").GetValue<Slider>().Value);
-        }
+        Highest = 4,
+        High = 3,
+        Medium = 2,
+        Low = 1
     }
 }

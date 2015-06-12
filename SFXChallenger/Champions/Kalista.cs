@@ -23,6 +23,7 @@
 #region
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
@@ -199,13 +200,15 @@ namespace SFXChallenger.Champions
                 {
                     var time = SoulBound.Unit.ServerPosition.Distance(sender.ServerPosition) / args.SData.MissileSpeed +
                                Game.Time;
-                    if (SoulBound.InstantDamage.ContainsKey(time))
+                    float val;
+                    if (SoulBound.IncomingDamage.TryGetValue(time, out val))
                     {
-                        SoulBound.InstantDamage[time] += (float) sender.GetAutoAttackDamage(SoulBound.Unit);
+                        SoulBound.IncomingDamage.TryUpdate(
+                            time, val + (float) sender.GetAutoAttackDamage(SoulBound.Unit), val);
                     }
                     else
                     {
-                        SoulBound.InstantDamage.Add(time, (float) sender.GetAutoAttackDamage(SoulBound.Unit));
+                        SoulBound.IncomingDamage.TryAdd(time, (float) sender.GetAutoAttackDamage(SoulBound.Unit));
                     }
                 }
                 else
@@ -231,28 +234,18 @@ namespace SFXChallenger.Champions
                             {
                                 damage = (float) hero.GetSpellDamage(SoulBound.Unit, slot);
                             }
-                            if (damage > 0)
+                            var time = Game.Time + 2;
+                            float val;
+                            if (SoulBound.InstantDamage.TryGetValue(time, out val))
                             {
-                                if (SoulBound.InstantDamage.ContainsKey(Game.Time + 2))
-                                {
-                                    SoulBound.InstantDamage[Game.Time + 2] += damage;
-                                }
-                                else
-                                {
-                                    SoulBound.InstantDamage.Add(Game.Time + 2, damage);
-                                }
+                                SoulBound.InstantDamage.TryUpdate(time, val + damage, val);
+                            }
+                            else
+                            {
+                                SoulBound.InstantDamage.TryAdd(time, damage);
                             }
                         }
                     }
-                }
-                foreach (var entry in SoulBound.IncomingDamage.Where(entry => entry.Key < Game.Time))
-                {
-                    SoulBound.IncomingDamage.Remove(entry.Key);
-                }
-
-                foreach (var entry in SoulBound.InstantDamage.Where(entry => entry.Key < Game.Time))
-                {
-                    SoulBound.InstantDamage.Remove(entry.Key);
                 }
             }
             catch (Exception ex)
@@ -343,6 +336,15 @@ namespace SFXChallenger.Champions
                             R.Cast();
                         }
                     }
+                }
+                float old;
+                foreach (var entry in SoulBound.IncomingDamage.Where(entry => entry.Key < Game.Time))
+                {
+                    SoulBound.IncomingDamage.TryRemove(entry.Key, out old);
+                }
+                foreach (var entry in SoulBound.InstantDamage.Where(entry => entry.Key < Game.Time))
+                {
+                    SoulBound.InstantDamage.TryRemove(entry.Key, out old);
                 }
             }
             catch (Exception ex)
@@ -606,8 +608,8 @@ namespace SFXChallenger.Champions
 
         internal class SoulBound
         {
-            public static Dictionary<float, float> IncomingDamage = new Dictionary<float, float>();
-            public static Dictionary<float, float> InstantDamage = new Dictionary<float, float>();
+            public static ConcurrentDictionary<float, float> IncomingDamage = new ConcurrentDictionary<float, float>();
+            public static ConcurrentDictionary<float, float> InstantDamage = new ConcurrentDictionary<float, float>();
             public static Obj_AI_Hero Unit { get; set; }
 
             public static float TotalDamage

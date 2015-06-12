@@ -309,19 +309,32 @@ namespace SFXChallenger.Champions
                             return;
                         }
 
-                        var minion =
+                        var minions =
                             ObjectCache.GetMinions(
                                 1000, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
                                 .Where(m => Orbwalker.InAutoAttackRange(m))
-                                .FirstOrDefault(
+                                .ToList();
+
+                        var killable =
+                            minions.FirstOrDefault(
+                                m =>
+                                    HealthPrediction.GetHealthPrediction(m, (int) ((Player.AttackDelay * 1000))) <
+                                    CalcPassiveDamage(m));
+                        if (killable != null)
+                        {
+                            Orbwalker.ForceTarget(killable);
+                        }
+                        else
+                        {
+                            var other =
+                                minions.FirstOrDefault(
                                     m =>
                                         HealthPrediction.GetHealthPrediction(m, (int) ((Player.AttackDelay * 1000))) * 2 >
-                                        CalcPassiveDamage(m) ||
-                                        HealthPrediction.GetHealthPrediction(m, (int) ((Player.AttackDelay * 1000))) <
                                         CalcPassiveDamage(m));
-                        if (minion != null)
-                        {
-                            Orbwalker.ForceTarget(minion);
+                            if (other != null)
+                            {
+                                Orbwalker.ForceTarget(other);
+                            }
                         }
                         args.Process = false;
                         return;
@@ -329,7 +342,6 @@ namespace SFXChallenger.Champions
                     args.Process = true;
                     return;
                 }
-                Orbwalker.ForceTarget(null);
                 if (args.Target.Type == GameObjectType.obj_AI_Hero &&
                     (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
                      Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Harass))
@@ -337,6 +349,7 @@ namespace SFXChallenger.Champions
                     args.Process = (!Q.IsReady() || Player.Mana < Q.Instance.ManaCost) &&
                                    (!E.IsReady() || Player.Mana < E.Instance.ManaCost);
                 }
+                Orbwalker.ForceTarget(null);
             }
             catch (Exception ex)
             {
@@ -942,23 +955,6 @@ namespace SFXChallenger.Champions
                     {
                         if (ELogic(new List<Obj_AI_Hero> { target }, E.GetHitChance("combo")))
                         {
-                            break;
-                        }
-                    }
-                }
-            }
-            if (Menu.Item(Menu.Name + ".killsteal.q-aa").GetValue<bool>() && Q.IsReady() &&
-                Menu.Item(Menu.Name + ".killsteal.e").GetValue<bool>() && E.IsReady())
-            {
-                foreach (var target in Targets.Where(t => Orbwalker.InAutoAttackRange(t)))
-                {
-                    var damage = E.GetDamage(target) + CalcPassiveDamage(target) + Q.GetDamage(target);
-                    if (damage - 10 > target.Health)
-                    {
-                        if (ELogic(new List<Obj_AI_Hero> { target }, E.GetHitChance("combo")))
-                        {
-                            Casting.BasicTargetSkill(target, Q);
-                            Orbwalker.ForceTarget(target);
                             break;
                         }
                     }

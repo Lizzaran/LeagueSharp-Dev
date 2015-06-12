@@ -28,6 +28,7 @@ using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using LeagueSharp.Common.Data;
+using SFXChallenger.Enumerations;
 using SFXLibrary.Extensions.LeagueSharp;
 using SFXLibrary.Logger;
 using SharpDX;
@@ -52,12 +53,67 @@ namespace SFXChallenger.Wrappers
         private static float _averageWeight;
         private static Menu _menu;
         private static Obj_AI_Hero _selectedTarget;
+        private static readonly List<Priority> Priorities;
         private static readonly List<WeightedItem> WeightedItems;
         private static readonly Dictionary<int, AggroItem> AggroItems = new Dictionary<int, AggroItem>();
         private static readonly Dictionary<int, List<DamageItem>> DamageItems = new Dictionary<int, List<DamageItem>>();
+        private static TargetSelectorModeType _tsMode = TargetSelectorModeType.Weights;
 
         static TargetSelector()
         {
+            #region Settings
+
+            Priorities = new List<Priority>
+            {
+                new Priority
+                {
+                    Champions =
+                        new[]
+                        {
+                            "Ahri", "Anivia", "Annie", "Ashe", "Azir", "Brand", "Caitlyn", "Cassiopeia", "Corki", "Draven",
+                            "Ezreal", "Graves", "Jinx", "Kalista", "Karma", "Karthus", "Katarina", "Kennen", "KogMaw",
+                            "Leblanc", "Lucian", "Lux", "Malzahar", "MasterYi", "MissFortune", "Orianna", "Quinn",
+                            "Sivir", "Syndra", "Talon", "Teemo", "Tristana", "TwistedFate", "Twitch", "Varus", "Vayne",
+                            "Veigar", "VelKoz", "Viktor", "Xerath", "Zed", "Ziggs"
+                        },
+                    Type = TargetSelectorPriorityType.Highest
+                },
+                new Priority
+                {
+                    Champions =
+                        new[]
+                        {
+                            "Akali", "Diana", "Ekko", "Fiddlesticks", "Fiora", "Fizz", "Heimerdinger", "Jayce", "Kassadin",
+                            "Kayle", "Kha'Zix", "Lissandra", "Mordekaiser", "Nidalee", "Riven", "Shaco", "Vladimir",
+                            "Yasuo", "Zilean"
+                        },
+                    Type = TargetSelectorPriorityType.High
+                },
+                new Priority
+                {
+                    Champions =
+                        new[]
+                        {
+                            "Aatrox", "Darius", "Elise", "Evelynn", "Galio", "Gangplank", "Gragas", "Irelia", "Jax",
+                            "Lee Sin", "Maokai", "Morgana", "Nocturne", "Pantheon", "Poppy", "Rengar", "Rumble", "Ryze",
+                            "Swain", "Trundle", "Tryndamere", "Udyr", "Urgot", "Vi", "XinZhao", "RekSai"
+                        },
+                    Type = TargetSelectorPriorityType.Medium
+                },
+                new Priority
+                {
+                    Champions =
+                        new[]
+                        {
+                            "Alistar", "Amumu", "Bard", "Blitzcrank", "Braum", "Cho'Gath", "Dr. Mundo", "Garen", "Gnar",
+                            "Hecarim", "Janna", "Jarvan IV", "Leona", "Lulu", "Malphite", "Nami", "Nasus", "Nautilus",
+                            "Nunu", "Olaf", "Rammus", "Renekton", "Sejuani", "Shen", "Shyvana", "Singed", "Sion",
+                            "Skarner", "Sona", "Soraka", "Taric", "Thresh", "Volibear", "Warwick", "MonkeyKing",
+                            "Yorick", "Zac", "Zyra"
+                        },
+                    Type = TargetSelectorPriorityType.Low
+                }
+            };
             WeightedItems = new List<WeightedItem>
             {
                 new WeightedItem(
@@ -116,6 +172,8 @@ namespace SFXChallenger.Wrappers
                     t => t.MinionsKilled * MinionGold + t.ChampionsKilled * KillGold + t.Assists * AssistGold)
             };
 
+            #endregion
+
             Game.OnWndProc += OnGameWndProc;
             Drawing.OnDraw += OnDrawingDraw;
             AttackableUnit.OnDamage += OnAttackableUnitDamage;
@@ -130,14 +188,6 @@ namespace SFXChallenger.Wrappers
                     ? _selectedTarget
                     : null);
             }
-        }
-
-        ~TargetSelector()
-        {
-            Game.OnWndProc -= OnGameWndProc;
-            Drawing.OnDraw -= OnDrawingDraw;
-            AttackableUnit.OnDamage -= OnAttackableUnitDamage;
-            Obj_AI_Base.OnAggro -= OnObjAiBaseAggro;
         }
 
         private static void OnAttackableUnitDamage(AttackableUnit sender, AttackableUnitDamageEventArgs args)
@@ -221,7 +271,7 @@ namespace SFXChallenger.Wrappers
                     foreach (var target in
                         HeroManager.Enemies.Where(
                             h =>
-                                _menu.Item(_menu.Name + ".assassin-mode.enemy-list." + h.ChampionName).GetValue<bool>() &&
+                                _menu.Item(_menu.Name + ".assassin-mode.heroes." + h.ChampionName).GetValue<bool>() &&
                                 h.Position.Distance(ObjectManager.Player.Position) <=
                                 _menu.Item(_menu.Name + ".assassin-mode.range-" + ObjectManager.Player.ChampionName)
                                     .GetValue<Slider>()
@@ -234,7 +284,7 @@ namespace SFXChallenger.Wrappers
                     }
                 }
                 if (_menu.Item(_menu.Name + ".drawing.debug").GetValue<bool>() &&
-                    _menu.Item(_menu.Name + ".weights.enabled").GetValue<bool>())
+                    _tsMode == TargetSelectorModeType.Weights)
                 {
                     foreach (var target in
                         HeroManager.Enemies.Where(h => h.IsVisible && !h.IsDead && h.Position.IsOnScreen()))
@@ -247,9 +297,12 @@ namespace SFXChallenger.Wrappers
                             if (lastWeight > 0f)
                             {
                                 lastWeight +=
-                                    (_menu.Item(_menu.Name + ".heroes." + target.ChampionName).GetValue<Slider>().Value *
-                                     _averageWeight + 0.1f) *
-                                    _menu.Item(_menu.Name + ".heroes.weight-multiplicator").GetValue<Slider>().Value;
+                                    (_menu.Item(_menu.Name + ".weights.heroes." + target.ChampionName)
+                                        .GetValue<Slider>()
+                                        .Value * _averageWeight + 0.1f) *
+                                    _menu.Item(_menu.Name + ".weights.heroes.weight-multiplicator")
+                                        .GetValue<Slider>()
+                                        .Value;
                                 Drawing.DrawText(
                                     position.X + target.BoundingRadius, position.Y - 100 + offset, Color.White,
                                     string.Format("{0} - {1}", lastWeight.ToString("00.00"), weight.DisplayName));
@@ -260,21 +313,24 @@ namespace SFXChallenger.Wrappers
                 }
 
                 if (_menu.Item(_menu.Name + ".drawing.weights").GetValue<bool>() &&
-                    _menu.Item(_menu.Name + ".weights.enabled").GetValue<bool>())
+                    _tsMode == TargetSelectorModeType.Weights)
                 {
                     foreach (var target in
                         HeroManager.Enemies.Where(h => h.IsVisible && !h.IsDead && h.Position.IsOnScreen()))
                     {
+                        var lTarget = target;
                         var totalWeight =
-                            WeightedItems.Select(weight => weight.LastWeight(target))
+                            WeightedItems.Select(weight => weight.LastWeight(lTarget))
                                 .Where(lastWeight => lastWeight > 0f)
                                 .Sum(
                                     lastWeight =>
                                         lastWeight +
-                                        (_menu.Item(_menu.Name + ".heroes." + target.ChampionName)
+                                        (_menu.Item(_menu.Name + ".weights.heroes." + lTarget.ChampionName)
                                             .GetValue<Slider>()
                                             .Value * _averageWeight + 0.1f) *
-                                        _menu.Item(_menu.Name + ".heroes.weight-multiplicator").GetValue<Slider>().Value);
+                                        _menu.Item(_menu.Name + ".weights.heroes.weight-multiplicator")
+                                            .GetValue<Slider>()
+                                            .Value);
                         Drawing.DrawText(
                             target.HPBarPosition.X + 55, target.HPBarPosition.Y - 20, Color.White,
                             totalWeight.ToString("0.0").Replace(",", "."));
@@ -342,43 +398,7 @@ namespace SFXChallenger.Wrappers
         {
             try
             {
-                var assassin = _menu != null &&
-                               _menu.Item(_menu.Name + ".assassin-mode.enabled-" + ObjectManager.Player.ChampionName)
-                                   .GetValue<bool>();
-
-                var aRange = assassin
-                    ? _menu.Item(_menu.Name + ".assassin-mode.range-" + ObjectManager.Player.ChampionName)
-                        .GetValue<Slider>()
-                        .Value
-                    : range;
-
-                if (_menu != null && SelectedTarget != null &&
-                    SelectedTarget.IsValidTarget(
-                        _menu.Item(_menu.Name + ".force-focus-selected").GetValue<bool>() ? float.MaxValue : aRange,
-                        true, from))
-                {
-                    return SelectedTarget;
-                }
-
-                var targets =
-                    HeroManager.Enemies.Where(
-                        h => ignoredChampions == null || ignoredChampions.All(i => i.NetworkId != h.NetworkId))
-                        .Where(h => IsValidTarget(h, aRange, damageType, ignoreShields, from))
-                        .ToList();
-
-                if (assassin)
-                {
-                    var assassinTargets =
-                        targets.Where(h => _menu.Item(_menu.Name + ".assassin-mode." + h.ChampionName).GetValue<bool>())
-                            .ToList();
-                    if (assassinTargets.Any())
-                    {
-                        targets = assassinTargets;
-                    }
-                }
-
-                var target = TargetWeights(targets).FirstOrDefault();
-                return target != null ? target.Hero : null;
+                return GetTargets(range, damageType, ignoreShields, from, ignoredChampions).FirstOrDefault();
             }
             catch (Exception ex)
             {
@@ -387,7 +407,7 @@ namespace SFXChallenger.Wrappers
             return null;
         }
 
-        public static List<Target> GetTargets(float range,
+        public static List<Obj_AI_Hero> GetTargets(float range,
             LeagueSharp.Common.TargetSelector.DamageType damageType = LeagueSharp.Common.TargetSelector.DamageType.True,
             bool ignoreShields = true,
             Vector3 from = default(Vector3),
@@ -424,23 +444,23 @@ namespace SFXChallenger.Wrappers
                         }
                     }
 
-                    var targetsWeight = TargetWeights(targets);
 
+                    targets = GetChampionsByMode(targets).ToList();
                     if (_menu != null && SelectedTarget != null &&
                         SelectedTarget.IsValidTarget(
                             _menu.Item(_menu.Name + ".force-focus-selected").GetValue<bool>() ? float.MaxValue : aRange,
                             true, from))
                     {
-                        var id = targetsWeight.FindIndex(x => x.Hero.NetworkId == SelectedTarget.NetworkId);
+                        var id = targets.FindIndex(x => x.NetworkId == SelectedTarget.NetworkId);
                         if (id > 0)
                         {
-                            var item = targetsWeight[id];
-                            targetsWeight.RemoveAt(id);
-                            targetsWeight.Insert(0, item);
+                            var item = targets[id];
+                            targets.RemoveAt(id);
+                            targets.Insert(0, item);
                         }
                     }
 
-                    return targetsWeight;
+                    return targets;
                 }
             }
             catch (Exception ex)
@@ -450,7 +470,46 @@ namespace SFXChallenger.Wrappers
             return null;
         }
 
-        private static List<Target> TargetWeights(List<Obj_AI_Hero> targets)
+        public static void SetMode(TargetSelectorModeType mode)
+        {
+            _tsMode = mode;
+        }
+
+        private static IEnumerable<Obj_AI_Hero> GetChampionsByMode(List<Obj_AI_Hero> heroes)
+        {
+            switch (_tsMode)
+            {
+                case TargetSelectorModeType.Weights:
+                    return TargetWeights(heroes);
+
+                case TargetSelectorModeType.LessAttacksToKill:
+                    return heroes.OrderBy(x => x.Health / ObjectManager.Player.TotalAttackDamage);
+
+                case TargetSelectorModeType.MostAbilityPower:
+                    return heroes.OrderByDescending(x => x.TotalMagicalDamage);
+
+                case TargetSelectorModeType.MostAttackDamage:
+                    return heroes.OrderByDescending(x => x.TotalAttackDamage);
+
+                case TargetSelectorModeType.Closest:
+                    return heroes.OrderBy(x => x.Distance(ObjectManager.Player));
+
+                case TargetSelectorModeType.NearMouse:
+                    return heroes.OrderBy(x => x.Distance(Game.CursorPos));
+
+                case TargetSelectorModeType.LessCastPriority:
+                    return heroes.OrderBy(x => x.Health / ObjectManager.Player.TotalMagicalDamage);
+
+                case TargetSelectorModeType.Priorities:
+                    return heroes.OrderByDescending(x => GetPriorityByName(x.ChampionName));
+
+                case TargetSelectorModeType.LeastHealth:
+                    return heroes.OrderBy(x => x.Health);
+            }
+            return null;
+        }
+
+        private static IEnumerable<Obj_AI_Hero> TargetWeights(List<Obj_AI_Hero> targets)
         {
             try
             {
@@ -475,29 +534,52 @@ namespace SFXChallenger.Wrappers
                 }
 
                 var targetsList = new List<Target>();
-                var weights = _menu == null || _menu.Item(_menu.Name + ".weights.enabled").GetValue<bool>();
                 foreach (var target in targets)
                 {
-                    var tmpWeight = weights
-                        ? WeightedItems.Where(w => w.Weight > 0).Sum(w => w.CalculatedWeight(target))
+                    var lTarget = target;
+                    var tmpWeight = _menu == null
+                        ? WeightedItems.Where(w => w.Weight > 0).Sum(w => w.CalculatedWeight(lTarget))
                         : 0;
                     if (_menu != null)
                     {
                         tmpWeight +=
-                            (_menu.Item(_menu.Name + ".heroes." + target.ChampionName).GetValue<Slider>().Value *
+                            (_menu.Item(_menu.Name + ".weights.heroes." + target.ChampionName).GetValue<Slider>().Value *
                              _averageWeight + 0.1f) *
-                            _menu.Item(_menu.Name + ".heroes.weight-multiplicator").GetValue<Slider>().Value;
+                            _menu.Item(_menu.Name + ".weights.heroes.weight-multiplicator").GetValue<Slider>().Value;
                     }
 
                     targetsList.Add(new Target(target, tmpWeight));
                 }
-                return targetsList.OrderByDescending(t => t.Weight).ToList();
+                return targetsList.Count > 0 ? targetsList.OrderByDescending(t => t.Weight).Select(t => t.Hero) : null;
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
             return null;
+        }
+
+        private static int GetPriorityByName(string name)
+        {
+            if (_menu != null)
+            {
+                var item = _menu.Item(_menu.Name + ".priorites." + name);
+                if (item != null)
+                {
+                    return item.GetValue<Slider>().Value;
+                }
+            }
+            return 1;
+        }
+
+        private static TargetSelectorPriorityType GetDefaultPriorityByName(string name)
+        {
+            var pirority = Priorities.FirstOrDefault(m => m.Champions.Contains(name));
+            if (pirority != null)
+            {
+                return pirority.Type;
+            }
+            return TargetSelectorPriorityType.Low;
         }
 
         public static void AddToMenu(Menu menu)
@@ -524,8 +606,7 @@ namespace SFXChallenger.Wrappers
                 var assassinManager =
                     _menu.AddSubMenu(new Menu(Global.Lang.Get("TS_AssassinMode"), menu.Name + ".assassin-mode"));
                 var enemyListMenu =
-                    assassinManager.AddSubMenu(
-                        new Menu(Global.Lang.Get("TS_EnemyList"), assassinManager.Name + ".enemy-list"));
+                    assassinManager.AddSubMenu(new Menu(Global.Lang.Get("G_Heroes"), assassinManager.Name + ".heroes"));
                 foreach (var enemy in HeroManager.Enemies)
                 {
                     enemyListMenu.AddItem(
@@ -542,6 +623,20 @@ namespace SFXChallenger.Wrappers
 
                 var weightsMenu = _menu.AddSubMenu(new Menu(Global.Lang.Get("TS_Weights"), menu.Name + ".weights"));
 
+                var heroesMenu =
+                    weightsMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Heroes"), weightsMenu.Name + ".heroes"));
+
+                heroesMenu.AddItem(
+                    new MenuItem(heroesMenu.Name + ".weight-multiplicator", Global.Lang.Get("TS_WeightMultiplicator"))
+                        .SetValue(new Slider(1, MinMultiplicator, MaxMultiplicator)));
+
+                foreach (var enemy in HeroManager.Enemies)
+                {
+                    heroesMenu.AddItem(
+                        new MenuItem(heroesMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(
+                            new Slider(1, 1, 5)));
+                }
+
                 foreach (var item in WeightedItems)
                 {
                     var localItem = item;
@@ -557,21 +652,33 @@ namespace SFXChallenger.Wrappers
                     item.Weight = _menu.Item(weightsMenu.Name + "." + item.Name).GetValue<Slider>().Value;
                 }
 
-                weightsMenu.AddItem(
-                    new MenuItem(weightsMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
 
-                var heroesMenu = _menu.AddSubMenu(new Menu(Global.Lang.Get("G_Heroes"), menu.Name + ".heroes"));
-
-                heroesMenu.AddItem(
-                    new MenuItem(heroesMenu.Name + ".weight-multiplicator", Global.Lang.Get("TS_WeightMultiplicator"))
-                        .SetValue(new Slider(1, MinMultiplicator, MaxMultiplicator)));
-
+                var prioritiesMenu =
+                    _menu.AddSubMenu(new Menu(Global.Lang.Get("TS_Priorities"), menu.Name + ".priorites"));
+                prioritiesMenu.AddItem(
+                    new MenuItem(prioritiesMenu.Name + ".auto", Global.Lang.Get("TS_AutoPriority")).SetValue(false))
+                    .ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        if (args.GetNewValue<bool>())
+                        {
+                            foreach (var enemy in HeroManager.Enemies)
+                            {
+                                _menu.Item(prioritiesMenu.Name + "." + enemy.ChampionName)
+                                    .SetValue(
+                                        new Slider(Convert.ToInt32(GetDefaultPriorityByName(enemy.ChampionName)), 1, 5));
+                            }
+                        }
+                    };
                 foreach (var enemy in HeroManager.Enemies)
                 {
-                    heroesMenu.AddItem(
-                        new MenuItem(
-                            heroesMenu.Name + "." + enemy.ChampionName,
-                            Global.Lang.Get("TS_Weights") + ": " + enemy.ChampionName).SetValue(new Slider(1, 1, 5)));
+                    var item =
+                        new MenuItem(prioritiesMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(
+                            new Slider(1, 1, 5));
+                    prioritiesMenu.AddItem(item);
+                    if (_menu.Item(menu.Name + ".priorites.auto").GetValue<bool>())
+                    {
+                        item.SetValue(new Slider(Convert.ToInt32(GetDefaultPriorityByName(enemy.ChampionName)), 1, 5));
+                    }
                 }
 
                 _menu.AddItem(
@@ -581,12 +688,70 @@ namespace SFXChallenger.Wrappers
                     new MenuItem(menu.Name + ".force-focus-selected", Global.Lang.Get("TS_OnlyAttackSelectedTarget"))
                         .SetValue(false));
 
+                _menu.AddItem(
+                    new MenuItem(menu.Name + ".mode", Global.Lang.Get("TS_Mode")).SetValue(
+                        new StringList(
+                            new[]
+                            {
+                                Global.Lang.Get("TS_Weights"), Global.Lang.Get("TS_Priorities"),
+                                Global.Lang.Get("TS_LessAttacksToKill"), Global.Lang.Get("TS_MostAbilityPower"),
+                                Global.Lang.Get("TS_MostAttackDamage"), Global.Lang.Get("TS_Closest"),
+                                Global.Lang.Get("TS_NearMouse"), Global.Lang.Get("TS_LessCastPriority"),
+                                Global.Lang.Get("TS_LeastHealth")
+                            }))).ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        _tsMode = GetPriorityByMenuValue(args.GetNewValue<StringList>().SelectedValue);
+                    };
+
+                _tsMode = GetPriorityByMenuValue(_menu.Item(menu.Name + ".mode").GetValue<StringList>().SelectedValue);
                 _averageWeight = (float) WeightedItems.Average(w => w.Weight);
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        private static TargetSelectorModeType GetPriorityByMenuValue(string value)
+        {
+            if (value.Equals(Global.Lang.Get("TS_Weights")))
+            {
+                _tsMode = TargetSelectorModeType.Weights;
+            }
+            else if (value.Equals(Global.Lang.Get("TS_Priorities")))
+            {
+                _tsMode = TargetSelectorModeType.Priorities;
+            }
+            else if (value.Equals(Global.Lang.Get("TS_LessAttacksToKill")))
+            {
+                _tsMode = TargetSelectorModeType.LessAttacksToKill;
+            }
+            else if (value.Equals(Global.Lang.Get("TS_MostAbilityPower")))
+            {
+                _tsMode = TargetSelectorModeType.MostAbilityPower;
+            }
+            else if (value.Equals(Global.Lang.Get("TS_MostAttackDamage")))
+            {
+                _tsMode = TargetSelectorModeType.MostAttackDamage;
+            }
+            else if (value.Equals(Global.Lang.Get("TS_Closest")))
+            {
+                _tsMode = TargetSelectorModeType.Closest;
+            }
+            else if (value.Equals(Global.Lang.Get("TS_NearMouse")))
+            {
+                _tsMode = TargetSelectorModeType.NearMouse;
+            }
+            else if (value.Equals(Global.Lang.Get("TS_LessCastPriority")))
+            {
+                _tsMode = TargetSelectorModeType.LessCastPriority;
+            }
+            else if (value.Equals(Global.Lang.Get("TS_LeastHealth")))
+            {
+                _tsMode = TargetSelectorModeType.LeastHealth;
+            }
+            return TargetSelectorModeType.Priorities;
         }
     }
 
@@ -769,5 +934,11 @@ namespace SFXChallenger.Wrappers
                 return Inverted ? float.MaxValue : float.MinValue;
             }
         }
+    }
+
+    internal class Priority
+    {
+        public TargetSelectorPriorityType Type { get; set; }
+        public string[] Champions { get; set; }
     }
 }

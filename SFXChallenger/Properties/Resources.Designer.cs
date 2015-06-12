@@ -66,20 +66,49 @@ namespace SFXChallenger.Properties {
         ///&lt;!-- ReSharper disable MarkupTextTypo --&gt;
         ///&lt;language lang=&quot;en&quot;&gt;
         ///
+        ///	&lt;!-- START: Viktor --&gt;
+        ///	&lt;entry key=&quot;Viktor_AutoFollow&quot;&gt;Auto Follow&lt;/entry&gt;
+        ///	&lt;!-- START: Viktor --&gt;
+        ///
+        ///	&lt;!-- START: Kalista --&gt;
+        ///	&lt;entry key=&quot;Kalista_EHarassReset&quot;&gt;E Harass Reset&lt;/entry&gt;
+        ///	&lt;!-- START: Kalista --&gt;
+        ///
         ///	&lt;!-- START: GLOBAL --&gt;
         ///	&lt;entry key=&quot;G_UpdateAvailable&quot;&gt;Update available&lt;/entry&gt;
         ///	&lt;entry key=&quot;G_Enabled&quot;&gt;Enabled&lt;/entry&gt;
         ///	&lt;entry key=&quot;G_Drawing&quot;&gt;Drawing&lt;/entry&gt;
-        ///	&lt;entry key=&quot;G_CircleThickness&quot;&gt;Circle Thickness&lt;/entry&gt;
-        ///	&lt;entry key=&quot;G_Debug&quot;&gt;Debug&lt;/entry&gt;
-        ///	&lt;entry key=&quot;G_Range&quot;&gt;Range&lt;/entry&gt;
-        ///	&lt;entry key=&quot;G_Hero&quot;&gt;Hero&lt;/entry&gt;
-        ///	&lt;entry key=&quot;G_Heroes&quot;&gt;Heroes&lt;/entry&gt;
-        ///	&lt;entry key=&quot;G_Miscellaneous&quot;&gt;Mi [rest of string was truncated]&quot;;.
+        ///	&lt;entry key=&quot;G_Circl [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string language_en {
             get {
                 return ResourceManager.GetString("language_en", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+        ///
+        ///&lt;!-- ReSharper disable MarkupTextTypo --&gt;
+        ///&lt;language lang=&quot;tr&quot;&gt;
+        ///
+        ///	&lt;!-- START: Viktor --&gt;
+        ///	&lt;entry key=&quot;Viktor_AutoFollow&quot;&gt;Otomatik Takip&lt;/entry&gt;
+        ///	&lt;!-- START: Viktor --&gt;
+        ///
+        ///	&lt;!-- START: Kalista --&gt;
+        ///	&lt;entry key=&quot;Kalista_EHarassReset&quot;&gt;E Harass Resetleme&lt;/entry&gt;
+        ///	&lt;!-- START: Kalista --&gt;
+        ///
+        ///	&lt;!-- START: GLOBAL --&gt;
+        ///	&lt;entry key=&quot;G_UpdateAvailable&quot;&gt;Güncelleme mevcut&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Enabled&quot;&gt;Etkin&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_Drawing&quot;&gt;Çizim&lt;/entry&gt;
+        ///	&lt;entry key=&quot;G_C [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string language_tr {
+            get {
+                return ResourceManager.GetString("language_tr", resourceCulture);
             }
         }
     }

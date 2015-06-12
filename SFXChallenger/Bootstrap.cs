@@ -139,7 +139,7 @@ namespace SFXChallenger
 
             var lang =
                 Directory.GetFiles(
-                    AppDomain.CurrentDomain.BaseDirectory, string.Format(@"{0}.Global.Lang.*", Global.Name),
+                    AppDomain.CurrentDomain.BaseDirectory, string.Format(@"{0}.language.*", Global.Name.ToLower()),
                     SearchOption.TopDirectoryOnly).Select(Path.GetExtension).FirstOrDefault();
             if (lang != null && Global.Lang.Languages.Any(l => l.Equals(lang.Substring(1))))
             {

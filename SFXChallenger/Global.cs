@@ -34,6 +34,7 @@ namespace SFXChallenger
 {
     internal class Global
     {
+        public static string ChampionPrefix = "SFX";
         public static string Name = "SFXChallenger";
         public static ILogger Logger;
         public static string LogDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Name + " - Logs");

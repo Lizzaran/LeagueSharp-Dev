@@ -144,7 +144,16 @@
 	<entry key="TS_AssassinTargetColor">Assasin Target Color</entry>
 	<entry key="TS_BestTargetColor">Best Target Color</entry>
 	<entry key="TS_AssassinMode">Assassin Mode</entry>
-	<entry key="TS_EnemyList">Enemy List</entry>
+	<entry key="TS_Priorities">Priorities</entry>
+	<entry key="TS_AutoPriority">Auto Priority</entry>
+	<entry key="TS_Mode">Mode</entry>
+	<entry key="TS_LessAttacksToKill">Less Attacks To Kill</entry>
+	<entry key="TS_MostAbilityPower">Most Ability Power</entry>
+	<entry key="TS_MostAttackDamage">Most Attack Damage</entry>
+	<entry key="TS_Closest">Closest</entry>
+	<entry key="TS_NearMouse">Near Mouse</entry>
+	<entry key="TS_LessCastPriority">Less Cast Priority</entry>
+	<entry key="TS_LeastHealth">Least Health</entry>
 	<entry key="TS_Weights">Weigths</entry>
 	<entry key="TS_WeightMultiplicator">Weight Multiplicator</entry>
 	<entry key="TS_FocusSelectedTarget">Focus Selected Target</entry>
