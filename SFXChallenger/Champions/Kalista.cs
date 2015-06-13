@@ -187,9 +187,9 @@ namespace SFXChallenger.Champions
             {
                 if (sender.IsMe)
                 {
-                    if (args.SData.Name.Equals("KalistaExpungeWrapper", StringComparison.OrdinalIgnoreCase))
+                    if (args.SData.Name == "KalistaExpungeWrapper")
                     {
-                        Utility.DelayAction.Add(250, Orbwalking.ResetAutoAttackTimer);
+                        Orbwalking.ResetAutoAttackTimer();
                     }
                 }
                 if (!sender.IsEnemy || SoulBound.Unit == null || R.Level == 0 ||
@@ -319,7 +319,8 @@ namespace SFXChallenger.Champions
                 }
 
                 if (Menu.Item(Menu.Name + ".miscellaneous.e-reset").GetValue<bool>() && E.IsReady() &&
-                    ManaManager.Check("misc") && HeroManager.Enemies.Any(e => Rend.HasBuff(e) && E.IsInRange(e)))
+                    Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.Combo && ManaManager.Check("misc") &&
+                    HeroManager.Enemies.Any(e => Rend.HasBuff(e) && E.IsInRange(e)))
                 {
                     if (ObjectCache.GetMinions().Any(e => E.IsInRange(e) && Rend.IsKillable(e)))
                     {
@@ -630,7 +631,7 @@ namespace SFXChallenger.Champions
 
             public static bool IsKillable(Obj_AI_Base target)
             {
-                return GetDamage(target) > target.Health;
+                return GetDamage(target) > target.Health + target.AttackShield;
             }
 
             public static float GetDamage(Obj_AI_Hero target)
@@ -655,11 +656,16 @@ namespace SFXChallenger.Champions
                     var eLevel = ObjectManager.Player.GetSpell(SpellSlot.E).Level;
                     if (buff != null || customStacks > -1)
                     {
-                        return (Damage[eLevel - 1] +
-                                DamageMultiplier[eLevel - 1] * ObjectManager.Player.TotalAttackDamage()) +
-                               ((customStacks < 0 && buff != null ? buff.Count : customStacks) - 1) *
-                               (DamagePerSpear[eLevel - 1] +
-                                DamagePerSpearMultiplier[eLevel - 1] * ObjectManager.Player.TotalAttackDamage());
+                        var damage = (Damage[eLevel - 1] +
+                                      DamageMultiplier[eLevel - 1] * ObjectManager.Player.TotalAttackDamage()) +
+                                     ((customStacks < 0 && buff != null ? buff.Count : customStacks) - 1) *
+                                     (DamagePerSpear[eLevel - 1] +
+                                      DamagePerSpearMultiplier[eLevel - 1] * ObjectManager.Player.TotalAttackDamage());
+                        if (ObjectManager.Player.HasBuff("summonerexhaust"))
+                        {
+                            damage *= 0.7f;
+                        }
+                        return damage;
                     }
                 }
                 catch (Exception ex)

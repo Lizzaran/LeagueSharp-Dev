@@ -398,7 +398,8 @@ namespace SFXChallenger.Wrappers
         {
             try
             {
-                return GetTargets(range, damageType, ignoreShields, from, ignoredChampions).FirstOrDefault();
+                var targets = GetTargets(range, damageType, ignoreShields, from, ignoredChampions);
+                return targets != null ? targets.FirstOrDefault() : null;
             }
             catch (Exception ex)
             {
