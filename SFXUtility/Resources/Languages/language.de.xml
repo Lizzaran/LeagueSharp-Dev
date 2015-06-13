@@ -91,7 +91,7 @@
 	<entry key="Smite_SmallCamps">Kleine Lager</entry>
 	<entry key="Smite_Smite">Zerschmettern</entry>
 	<entry key="Smite_MinHitChanceList">Niedrig|Mittel|Hoch|Sehr Hoch</entry>
-	"<!-- END: Smite -->
+	<!-- END: Smite -->
 
 	<!-- START: Teleport -->
 	<entry key="F_Teleport">Teleport</entry>

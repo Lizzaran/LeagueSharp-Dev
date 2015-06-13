@@ -24,8 +24,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Xml.Linq;
+using System.Xml;
 
 #endregion
 
@@ -44,20 +45,41 @@ namespace SFXLibrary
         {
             try
             {
-                var language = XDocument.Parse(xml).Root;
-                if (language != null)
+                var entries = new Dictionary<string, string>();
+                string language = null;
+                using (var reader = XmlReader.Create(new StringReader(xml)))
                 {
-                    var lang = language.Attribute("lang").Value;
-                    if (!Languages.Contains(lang))
+                    while (reader.Read())
                     {
-                        Languages.Add(lang);
+                        switch (reader.Name)
+                        {
+                            case "language":
+                                var lang = reader["lang"];
+                                if (lang != null)
+                                {
+                                    language = lang;
+                                }
+                                break;
+                            case "entry":
+                                var key = reader["key"];
+                                if (key != null)
+                                {
+                                    if (reader.Read())
+                                    {
+                                        entries[key] = reader.Value;
+                                    }
+                                }
+                                break;
+                        }
                     }
-                    var entries = new Dictionary<string, string>();
-                    foreach (var entry in language.Descendants("entry"))
+                }
+                if (!string.IsNullOrEmpty(language))
+                {
+                    if (!Languages.Contains(language))
                     {
-                        entries[entry.Attribute("key").Value] = entry.Value;
+                        Languages.Add(language);
                     }
-                    _languagesDictionary[lang] = entries;
+                    _languagesDictionary[language] = entries;
                 }
             }
             catch (Exception ex)

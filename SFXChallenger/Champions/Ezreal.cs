@@ -112,11 +112,11 @@
 
 //            if (q)
 //            {
-//                Casting.BasicSkillShot(Q, HitchanceManager.Get("q"));
+//                Casting.SkillShot(Q, HitchanceManager.Get("q"));
 //            }
 //            if (w)
 //            {
-//                Casting.BasicSkillShot(W, HitchanceManager.Get("w"));
+//                Casting.SkillShot(W, HitchanceManager.Get("w"));
 //            }
 
 //            var target = TargetSelector.GetTarget(-1);
@@ -129,11 +129,11 @@
 //            {
 //                if (e)
 //                {
-//                    Casting.BasicSkillShot(E, HitchanceManager.Get("e"), true);
+//                    Casting.SkillShot(E, HitchanceManager.Get("e"), true);
 //                }
 //                if (r)
 //                {
-//                    Casting.BasicSkillShot(R, HitchanceManager.Get("r"));
+//                    Casting.SkillShot(R, HitchanceManager.Get("r"));
 //                }
 //            }
 //            if (cDmg*1.5 > target.Health)
@@ -162,11 +162,11 @@
 //        {
 //            if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>())
 //            {
-//                Casting.BasicSkillShot(Q, HitchanceManager.Get("q"));
+//                Casting.SkillShot(Q, HitchanceManager.Get("q"));
 //            }
 //            if (Menu.Item(Menu.Name + ".harass.w").GetValue<bool>())
 //            {
-//                Casting.BasicSkillShot(W, HitchanceManager.Get("w"));
+//                Casting.SkillShot(W, HitchanceManager.Get("w"));
 //            }
 //        }
 
@@ -174,11 +174,11 @@
 //        {
 //            if (Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>())
 //            {
-//                Casting.BasicFarm(Q);
+//                Casting.Farm(Q);
 //            }
 //            if (Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>())
 //            {
-//                Casting.BasicFarm(W);
+//                Casting.Farm(W);
 //            }
 //        }
 

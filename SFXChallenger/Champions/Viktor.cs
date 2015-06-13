@@ -233,7 +233,7 @@ namespace SFXChallenger.Champions
                                  W.GetPrediction(t).Hitchance == HitChance.Immobile));
                     if (target != null)
                     {
-                        Casting.BasicSkillShot(target, W, W.GetHitChance("combo"));
+                        Casting.SkillShot(target, W, W.GetHitChance("combo"));
                     }
                 }
 
@@ -246,7 +246,7 @@ namespace SFXChallenger.Champions
                                 t.Buffs.Any(b => b.Type == BuffType.Slow && b.EndTime - Game.Time > 0.5f));
                     if (target != null)
                     {
-                        Casting.BasicSkillShot(target, W, W.GetHitChance("combo"));
+                        Casting.SkillShot(target, W, W.GetHitChance("combo"));
                     }
                 }
             }
@@ -661,7 +661,7 @@ namespace SFXChallenger.Champions
                 var ts = Targets.FirstOrDefault(t => Q.CanCast(t));
                 if (ts != null)
                 {
-                    Casting.BasicTargetSkill(ts, Q);
+                    Casting.TargetSkill(ts, Q);
                 }
             }
             catch (Exception ex)
@@ -901,7 +901,7 @@ namespace SFXChallenger.Champions
                         .FirstOrDefault(m => m.Health < Q.GetDamage(m) || m.Health * 2 > Q.GetDamage(m));
                 if (minion != null)
                 {
-                    Casting.BasicTargetSkill(minion, Q);
+                    Casting.TargetSkill(minion, Q);
                 }
             }
         }
@@ -916,7 +916,7 @@ namespace SFXChallenger.Champions
                         .FirstOrDefault();
                 if (near != null)
                 {
-                    Casting.BasicSkillShot(near, W, W.GetHitChance("combo"));
+                    Casting.SkillShot(near, W, W.GetHitChance("combo"));
                 }
             }
             if (Menu.Item(Menu.Name + ".flee.q-upgraded").GetValue<bool>() && Q.IsReady() && IsSpellUpgraded(Q))
@@ -927,7 +927,7 @@ namespace SFXChallenger.Champions
                         .FirstOrDefault();
                 if (near != null)
                 {
-                    Casting.BasicTargetSkill(near, Q);
+                    Casting.TargetSkill(near, Q);
                 }
             }
         }
@@ -941,7 +941,7 @@ namespace SFXChallenger.Champions
                     var damage = CalcPassiveDamage(target) + Q.GetDamage(target);
                     if (damage - 10 > target.Health)
                     {
-                        Casting.BasicTargetSkill(target, Q);
+                        Casting.TargetSkill(target, Q);
                         Orbwalker.ForceTarget(target);
                     }
                 }

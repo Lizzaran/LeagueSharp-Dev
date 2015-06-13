@@ -37,6 +37,8 @@ using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
 using SharpDX;
 using Collision = LeagueSharp.Common.Collision;
+using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 using Utils = SFXChallenger.Helpers.Utils;
 
 #endregion
@@ -263,7 +265,7 @@ namespace SFXChallenger.Champions
                 {
                     Orbwalker.ForceTarget(null);
                 }
-                if (Orbwalker.ActiveMode == Wrappers.Orbwalking.OrbwalkingMode.Combo)
+                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
                 {
                     var enemy = target as Obj_AI_Hero;
                     if (enemy != null)
@@ -361,12 +363,13 @@ namespace SFXChallenger.Champions
 
             if (useQ)
             {
-                Casting.BasicSkillShot(Q, Q.GetHitChance("combo"));
+                Casting.SkillShot(Q, Q.GetHitChance("combo"));
             }
 
             if (useE)
             {
-                var target = TargetSelector.GetTarget(E.Range * 1.2f, TargetSelector.DamageType.Physical);
+                var target = TargetSelector.GetTarget(
+                    E.Range * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Physical);
                 if (target != null && Rend.HasBuff(target))
                 {
                     if (target.Distance(Player) > Orbwalking.GetRealAutoAttackRange(target))
@@ -426,7 +429,7 @@ namespace SFXChallenger.Champions
             }
             if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && Q.IsReady())
             {
-                Casting.BasicSkillShot(Q, Q.GetHitChance("harass"));
+                Casting.SkillShot(Q, Q.GetHitChance("harass"));
             }
             if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>() && E.IsReady())
             {

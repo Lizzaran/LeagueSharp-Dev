@@ -31,8 +31,9 @@ using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
-using SFXLibrary;
 using SFXLibrary.Logger;
+using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
 #endregion
 
@@ -146,7 +147,7 @@ namespace SFXChallenger.Champions
         {
             if (unit.IsMe)
             {
-                if (Orbwalker.ActiveMode == Wrappers.Orbwalking.OrbwalkingMode.Combo)
+                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
                 {
                     var enemy = target as Obj_AI_Hero;
                     if (enemy != null)
@@ -167,16 +168,16 @@ namespace SFXChallenger.Champions
 
             if (useQ)
             {
-                Casting.BasicSkillShot(Q, Q.GetHitChance("combo"));
+                Casting.SkillShot(Q, Q.GetHitChance("combo"));
             }
             if (useW)
             {
-                Casting.BasicSkillShot(W, W.GetHitChance("combo"));
+                Casting.SkillShot(W, W.GetHitChance("combo"));
             }
             if (useE)
             {
                 var target = TargetSelector.GetTarget(
-                    (E.Range + Player.AttackRange) * 0.9f, TargetSelector.DamageType.Physical);
+                    (E.Range + Player.AttackRange) * 0.9f, LeagueSharp.Common.TargetSelector.DamageType.Physical);
                 if (target != null)
                 {
                     var pos = Player.Position.Extend(target.Position, E.Range);
@@ -188,7 +189,7 @@ namespace SFXChallenger.Champions
             }
             if (useR)
             {
-                var target = TargetSelector.GetTarget(R.Range, TargetSelector.DamageType.Physical);
+                var target = TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical);
                 if (R.GetDamage(target) * 0.9f > target.Health || Orbwalker.InAutoAttackRange(target))
                 {
                     var pred = R.GetPrediction(target);
@@ -209,7 +210,7 @@ namespace SFXChallenger.Champions
 
             if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && Q.IsReady())
             {
-                Casting.BasicSkillShot(Q, Q.GetHitChance("harass"));
+                Casting.SkillShot(Q, Q.GetHitChance("harass"));
             }
         }
 
@@ -225,16 +226,7 @@ namespace SFXChallenger.Champions
 
             if (useQ)
             {
-                var minions = ObjectCache.GetMinions(
-                    Q.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
-                if (minions.Count >= minQ)
-                {
-                    var pred = Q.GetCircularFarmLocation(minions, 200f);
-                    if (pred.MinionsHit >= minQ)
-                    {
-                        Q.Cast(pred.Position);
-                    }
-                }
+                Casting.Farm(Q, minQ, 200f);
             }
         }
 

@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- spectator.cs is part of SFXUtility.
+ Spectator.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ using System.Threading.Tasks;
 using System.Web;
 using LeagueSharp;
 using SFXLibrary.Extensions.NET;
+using SFXLibrary.Logger;
 
 #endregion
 
@@ -87,7 +88,10 @@ namespace SFXUtility.Classes
                         SummonerId = id;
                     }
                 }
-                catch {}
+                catch (Exception ex)
+                {
+                    Global.Logger.AddItem(new LogItem(ex));
+                }
             }
         }
 

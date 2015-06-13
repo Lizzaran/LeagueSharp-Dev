@@ -119,7 +119,10 @@ namespace LeagueSharp.Console.Parts
                     evt(null, null);
                 }
             }
-            catch {}
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex);
+            }
         }
 
         private static void OnGameWndProc(WndEventArgs args)

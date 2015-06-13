@@ -26,6 +26,7 @@ using System;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary.Extensions.NET;
 using SharpDX;
 using Color = System.Drawing.Color;
 
@@ -39,20 +40,13 @@ namespace SFXChallenger.Helpers
         private const int LineThickness = 9;
         private static Utility.HpBarDamageIndicator.DamageToUnitDelegate _damageToUnit;
         private static readonly Vector2 BarOffset = new Vector2(10, 25);
-        private static Color _drawingColor;
-
-        public static Color DrawingColor
-        {
-            get { return _drawingColor; }
-            set { _drawingColor = Color.FromArgb(150, value); }
-        }
-
+        public static Color DrawingColor { get; set; }
         public static bool Enabled { get; set; }
 
         public static void Initialize(Utility.HpBarDamageIndicator.DamageToUnitDelegate damageToUnit)
         {
             _damageToUnit = damageToUnit;
-            DrawingColor = Color.Green;
+            DrawingColor = Color.Green.ToArgb(150);
             Enabled = true;
             Drawing.OnDraw += OnDrawingDraw;
         }

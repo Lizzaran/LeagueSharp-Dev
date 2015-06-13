@@ -240,7 +240,7 @@ namespace SFXChallenger.Champions
                                         (ePoison && GetPoisonBuffEndTime(e) > E.GetSpellDelay(e) || eHit));
                         if (m != null)
                         {
-                            Casting.BasicTargetSkill(m, E);
+                            Casting.TargetSkill(m, E);
                         }
                     }
                 }
@@ -377,7 +377,7 @@ namespace SFXChallenger.Champions
                                  W.GetPrediction(t).Hitchance == HitChance.Immobile));
                     if (target != null)
                     {
-                        Casting.BasicSkillShot(target, W, W.GetHitChance("harass"));
+                        Casting.SkillShot(target, W, W.GetHitChance("harass"));
                     }
                 }
             }
@@ -501,7 +501,7 @@ namespace SFXChallenger.Champions
                     Menu.Item(Menu.Name + ".ultimate.auto.interrupt." + sender.ChampionName).GetValue<bool>() &&
                     sender.IsFacing(Player))
                 {
-                    Casting.BasicSkillShot(sender, R, R.GetHitChance("combo"));
+                    Casting.SkillShot(sender, R, R.GetHitChance("combo"));
                 }
             }
             catch (Exception ex)
@@ -634,7 +634,7 @@ namespace SFXChallenger.Champions
                         if (HeroManager.Enemies.Count(em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) ==
                             1)
                         {
-                            Casting.BasicSkillShot(target, R, hitChance);
+                            Casting.SkillShot(target, R, hitChance);
                         }
                     }
                 }
@@ -685,7 +685,7 @@ namespace SFXChallenger.Champions
                 {
                     _lastQPoisonDelay = Game.Time + Q.Delay;
                     _lastQPoisonT = ts;
-                    Casting.BasicSkillShot(ts, Q, hitChance);
+                    Casting.SkillShot(ts, Q, hitChance);
                 }
             }
             catch (Exception ex)
@@ -708,7 +708,7 @@ namespace SFXChallenger.Champions
                               t.IsMoving && t.Distance(Player) > 150)));
                 if (ts != null)
                 {
-                    Casting.BasicSkillShot(ts, W, hitChance);
+                    Casting.SkillShot(ts, W, hitChance);
                 }
             }
             catch (Exception ex)
@@ -793,7 +793,7 @@ namespace SFXChallenger.Champions
                 if (minion != null)
                 {
                     _lastEEndTime = Game.Time + E.GetSpellDelay(minion) + 0.1f;
-                    Casting.BasicTargetSkill(minion, E);
+                    Casting.TargetSkill(minion, E);
                 }
             }
 
@@ -878,7 +878,7 @@ namespace SFXChallenger.Champions
                             (ePoison && GetPoisonBuffEndTime(e) > E.GetSpellDelay(e) || eHit));
                 if (m != null)
                 {
-                    Casting.BasicTargetSkill(m, E);
+                    Casting.TargetSkill(m, E);
                 }
             }
         }

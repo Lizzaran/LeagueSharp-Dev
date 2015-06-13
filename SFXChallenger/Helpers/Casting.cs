@@ -33,12 +33,12 @@ namespace SFXChallenger.Helpers
 {
     internal class Casting
     {
-        public static void BasicSkillShot(Spell spell, HitChance hitChance, bool aoe = false, bool towerCheck = false)
+        public static void SkillShot(Spell spell, HitChance hitChance, bool aoe = false, bool towerCheck = false)
         {
-            BasicSkillShot(TargetSelector.GetTarget(spell.Range, spell.DamageType), spell, hitChance, aoe, towerCheck);
+            SkillShot(TargetSelector.GetTarget(spell.Range, spell.DamageType), spell, hitChance, aoe, towerCheck);
         }
 
-        public static void BasicSkillShot(Obj_AI_Base target,
+        public static void SkillShot(Obj_AI_Base target,
             Spell spell,
             HitChance hitChance,
             bool aoe = false,
@@ -63,15 +63,12 @@ namespace SFXChallenger.Helpers
             }
         }
 
-        public static void BasicTargetSkill(Spell spell, bool packet = false, bool towerCheck = false)
+        public static void TargetSkill(Spell spell, bool packet = false, bool towerCheck = false)
         {
-            BasicTargetSkill(TargetSelector.GetTarget(spell.Range, spell.DamageType), spell, packet, towerCheck);
+            TargetSkill(TargetSelector.GetTarget(spell.Range, spell.DamageType), spell, packet, towerCheck);
         }
 
-        public static void BasicTargetSkill(Obj_AI_Base target,
-            Spell spell,
-            bool packet = false,
-            bool towerCheck = false)
+        public static void TargetSkill(Obj_AI_Base target, Spell spell, bool packet = false, bool towerCheck = false)
         {
             if (!spell.IsReady())
             {
@@ -86,7 +83,7 @@ namespace SFXChallenger.Helpers
             spell.Cast(target, packet);
         }
 
-        public static void BasicFarm(Spell spell)
+        public static void Farm(Spell spell, int minHit = 2, float overrideWidth = -1f)
         {
             if (!spell.IsReady())
             {
@@ -94,7 +91,8 @@ namespace SFXChallenger.Helpers
             }
 
             var minion = ObjectCache.GetMinions(
-                ObjectManager.Player.ServerPosition, spell.Range, MinionTypes.All, MinionTeam.NotAlly);
+                ObjectManager.Player.ServerPosition, spell.Range, MinionTypes.All, MinionTeam.NotAlly,
+                MinionOrderTypes.MaxHealth);
 
             if (minion.Count == 0)
             {
@@ -105,8 +103,8 @@ namespace SFXChallenger.Helpers
             {
                 spell.UpdateSourcePosition();
 
-                var prediction = spell.GetCircularFarmLocation(minion);
-                if (prediction.MinionsHit >= 2)
+                var prediction = spell.GetCircularFarmLocation(minion, overrideWidth);
+                if (prediction.MinionsHit >= minHit)
                 {
                     spell.Cast(prediction.Position);
                 }
@@ -115,8 +113,8 @@ namespace SFXChallenger.Helpers
             {
                 spell.UpdateSourcePosition();
 
-                var prediction = spell.GetLineFarmLocation(minion);
-                if (prediction.MinionsHit >= 2)
+                var prediction = spell.GetLineFarmLocation(minion, overrideWidth);
+                if (prediction.MinionsHit >= minHit)
                 {
                     spell.Cast(prediction.Position);
                 }
