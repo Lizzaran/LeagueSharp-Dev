@@ -57,6 +57,7 @@
 	<entry key="G_AutoAttack">AutoAttack</entry>
 	<entry key="G_Slowed">Slowed</entry>
 	<entry key="G_Range">Range</entry>
+	<entry key="G_Jungle">Jungle</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: Language -->

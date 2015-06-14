@@ -109,6 +109,8 @@ namespace SFXChallenger.Champions
             lasthitMenu.AddItem(
                 new MenuItem(lasthitMenu.Name + ".e-big", "E " + Global.Lang.Get("G_Big")).SetValue(true));
             lasthitMenu.AddItem(
+                new MenuItem(lasthitMenu.Name + ".e-jungle", "E " + Global.Lang.Get("G_Jungle")).SetValue(true));
+            lasthitMenu.AddItem(
                 new MenuItem(lasthitMenu.Name + ".e-unkillable", "E " + Global.Lang.Get("G_Unkillable")).SetValue(true));
 
             var killstealMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Killsteal"), Menu.Name + ".killsteal"));
@@ -301,17 +303,18 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (Menu.Item(Menu.Name + ".lasthit.e-big").GetValue<bool>() && E.IsReady() &&
-                    ManaManager.Check("lasthit"))
+                if (E.IsReady() && ManaManager.Check("lasthit"))
                 {
-                    if (
-                        ObjectCache.GetMinions()
-                            .Any(
-                                m =>
-                                    m.IsValidTarget(E.Range) &&
-                                    (m.BaseSkinName.Contains("MinionSiege") || m.BaseSkinName.StartsWith("SRU_Dragon") ||
-                                     m.BaseSkinName.StartsWith("SRU_Baron") || m.BaseSkinName.StartsWith("SRU_Red") ||
-                                     m.BaseSkinName.StartsWith("SRU_Blue")) && Rend.IsKillable(m)))
+                    var minions = ObjectCache.GetMinions();
+                    if ((Menu.Item(Menu.Name + ".lasthit.e-big").GetValue<bool>() &&
+                         minions.Any(
+                             m =>
+                                 m.IsValidTarget(E.Range) &&
+                                 (m.BaseSkinName.Contains("MinionSiege") || m.BaseSkinName.StartsWith("SRU_Dragon") ||
+                                  m.BaseSkinName.StartsWith("SRU_Baron")) && Rend.IsKillable(m))) ||
+                        Menu.Item(Menu.Name + ".lasthit.e-jungle").GetValue<bool>() &&
+                        minions.Any(
+                            m => m.Team == GameObjectTeam.Neutral && m.IsValidTarget(E.Range) && Rend.IsKillable(m)))
 
                     {
                         E.Cast();
