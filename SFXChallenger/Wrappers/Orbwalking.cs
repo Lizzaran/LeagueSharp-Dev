@@ -29,6 +29,7 @@ using LeagueSharp.Common;
 using SFXLibrary;
 using SharpDX;
 using Color = System.Drawing.Color;
+using Utils = LeagueSharp.Common.Utils;
 
 #endregion
 
@@ -75,7 +76,7 @@ namespace SFXChallenger.Wrappers
         {
             "jarvanivcataclysmattack", "monkeykingdoubleattack",
             "shyvanadoubleattack", "shyvanadoubleattackdragon", "zyragraspingplantattack", "zyragraspingplantattack2",
-            "zyragraspingplantattackfire", "zyragraspingplantattack2fire", "viktorpowertransfer"
+            "zyragraspingplantattackfire", "zyragraspingplantattack2fire", "viktorpowertransfer", "sivirwattackbounce"
         };
 
         //Spells that are attacks even if they dont have the "attack" word in their name.
@@ -108,11 +109,6 @@ namespace SFXChallenger.Wrappers
             Obj_AI_Base.OnProcessSpellCast += OnProcessSpell;
             GameObject.OnCreate += MissileClient_OnCreate;
             Spellbook.OnStopCast += SpellbookOnStopCast;
-        }
-
-        public static int TickCount
-        {
-            get { return (int) (Game.ClockTime * 1000); }
         }
 
         /// <summary>
@@ -251,7 +247,7 @@ namespace SFXChallenger.Wrappers
         /// </summary>
         public static bool CanAttack()
         {
-            return TickCount + Game.Ping / 2 + 25 >= LastAaTick + Player.AttackDelay * 1000 && Attack;
+            return Utils.GameTimeTickCount + Game.Ping / 2 + 25 >= LastAaTick + Player.AttackDelay * 1000 && Attack;
         }
 
         /// <summary>
@@ -264,13 +260,13 @@ namespace SFXChallenger.Wrappers
                 return false;
             }
 
-            if (_missileLaunched)
+            if (_missileLaunched && Orbwalker.MissileCheck)
             {
                 return true;
             }
 
             return NoCancelChamps.Contains(Player.ChampionName) ||
-                   (TickCount + Game.Ping / 2 >= LastAaTick + Player.AttackCastDelay * 1000 + extraWindup);
+                   (Utils.GameTimeTickCount + Game.Ping / 2 >= LastAaTick + Player.AttackCastDelay * 1000 + extraWindup);
         }
 
         public static void SetMovementDelay(int delay)
@@ -299,12 +295,12 @@ namespace SFXChallenger.Wrappers
             bool useFixedDistance = true,
             bool randomizeMinDistance = true)
         {
-            if (TickCount - LastMoveCommandT < _delay && !overrideTimer)
+            if (Utils.GameTimeTickCount - LastMoveCommandT < _delay && !overrideTimer)
             {
                 return;
             }
 
-            LastMoveCommandT = TickCount;
+            LastMoveCommandT = Utils.GameTimeTickCount;
 
             if (Player.ServerPosition.Distance(position, true) < holdAreaRadius * holdAreaRadius)
             {
@@ -362,6 +358,12 @@ namespace SFXChallenger.Wrappers
 
                     if (!DisableNextAttack)
                     {
+                        if (!NoCancelChamps.Contains(Player.ChampionName))
+                        {
+                            LastAaTick = Utils.GameTimeTickCount + Game.Ping + 100 -
+                                         (int) (ObjectManager.Player.AttackCastDelay * 1000f);
+                            _missileLaunched = false;
+                        }
                         Player.IssueOrder(GameObjectOrder.AttackUnit, target);
                         _lastTarget = target;
                         return;
@@ -423,7 +425,7 @@ namespace SFXChallenger.Wrappers
                 if (unit.IsMe &&
                     (spell.Target is Obj_AI_Base || spell.Target is Obj_BarracksDampener || spell.Target is Obj_HQ))
                 {
-                    LastAaTick = TickCount - Game.Ping / 2;
+                    LastAaTick = Utils.GameTimeTickCount - Game.Ping / 2;
                     _missileLaunched = false;
 
                     var @base = spell.Target as Obj_AI_Base;
@@ -502,15 +504,31 @@ namespace SFXChallenger.Wrappers
                 misc.AddItem(
                     new MenuItem("HoldPosRadius", "Hold Position Radius").SetShared().SetValue(new Slider(0, 0, 250)));
                 misc.AddItem(new MenuItem("PriorizeFarm", "Priorize farm over harass").SetShared().SetValue(true));
+                misc.AddItem(
+                    new MenuItem("FreezeHealth", "LaneFreeze Damage %").SetShared().SetValue(new Slider(50, 50)));
+                misc.AddItem(new MenuItem("PermaShow", "PermaShow").SetShared().SetValue(true)).ValueChanged +=
+                    (s, args) =>
+                    {
+                        if (args.GetNewValue<bool>())
+                        {
+                            _config.Item("Freeze").Permashow(true, "Freeze");
+                        }
+                        else
+                        {
+                            _config.Item("Freeze").Permashow(false);
+                        }
+                    };
                 _config.AddSubMenu(misc);
 
+                /* Missile check */
+                _config.AddItem(new MenuItem("MissileCheck", "Use Missile Check").SetShared().SetValue(true));
 
                 /* Delay sliders */
                 _config.AddItem(
                     new MenuItem("ExtraWindup", "Extra windup time").SetShared().SetValue(new Slider(80, 0, 200)));
                 _config.AddItem(new MenuItem("FarmDelay", "Farm delay").SetShared().SetValue(new Slider(0, 0, 200)));
                 _config.AddItem(
-                    new MenuItem("MovementDelay", "Movement delay").SetShared().SetValue(new Slider(80, 0, 250)))
+                    new MenuItem("MovementDelay", "Movement delay").SetShared().SetValue(new Slider(30, 0, 250)))
                     .ValueChanged += (sender, args) => SetMovementDelay(args.GetNewValue<Slider>().Value);
 
 
@@ -528,10 +546,23 @@ namespace SFXChallenger.Wrappers
                 _config.AddItem(
                     new MenuItem("Orbwalk", "Combo").SetShared().SetValue(new KeyBind(32, KeyBindType.Press)));
 
+                _config.AddItem(
+                    new MenuItem("Freeze", "Lane Freeze (Toggle)").SetShared()
+                        .SetValue(new KeyBind('H', KeyBindType.Toggle)));
+
+                _config.Item("Freeze").Permashow(_config.Item("PermaShow").GetValue<bool>(), "Freeze");
+
                 _delay = _config.Item("MovementDelay").GetValue<Slider>().Value;
+
+
                 _player = ObjectManager.Player;
                 Game.OnUpdate += GameOnOnGameUpdate;
                 Drawing.OnDraw += DrawingOnOnDraw;
+            }
+
+            public int HoldAreaRadius
+            {
+                get { return _config.Item("HoldPosRadius").GetValue<Slider>().Value; }
             }
 
             private int FarmDelay
@@ -539,9 +570,9 @@ namespace SFXChallenger.Wrappers
                 get { return _config.Item("FarmDelay").GetValue<Slider>().Value; }
             }
 
-            public int HoldAreaRadius
+            public static bool MissileCheck
             {
-                get { return _config.Item("HoldPosRadius").GetValue<Slider>().Value; }
+                get { return _config.Item("MissileCheck").GetValue<bool>(); }
             }
 
             public OrbwalkingMode ActiveMode
@@ -571,6 +602,11 @@ namespace SFXChallenger.Wrappers
                     if (_config.Item("LastHit").GetValue<KeyBind>().Active)
                     {
                         return OrbwalkingMode.LastHit;
+                    }
+
+                    if (_config.Item("Flee").GetValue<KeyBind>().Active)
+                    {
+                        return OrbwalkingMode.Flee;
                     }
 
                     return OrbwalkingMode.None;
@@ -646,7 +682,9 @@ namespace SFXChallenger.Wrappers
                 if (ActiveMode == OrbwalkingMode.LaneClear || ActiveMode == OrbwalkingMode.Mixed ||
                     ActiveMode == OrbwalkingMode.LastHit)
                 {
-                    foreach (var minion in
+                    var freezeActive = _config.Item("Freeze").GetValue<KeyBind>().Active &&
+                                       (ActiveMode != OrbwalkingMode.LaneClear);
+                    var minionList =
                         ObjectCache.GetMinions()
                             .Where(
                                 minion =>
@@ -654,11 +692,20 @@ namespace SFXChallenger.Wrappers
                                     minion.Health <
                                     2 *
                                     (ObjectManager.Player.BaseAttackDamage + ObjectManager.Player.FlatPhysicalDamageMod))
-                        )
+                            .OrderByDescending(m => m.MaxHealth);
+
+                    foreach (var minion in minionList)
                     {
+                        var freezeDamage = _player.GetAutoAttackDamage(minion) *
+                                           (_config.Item("FreezeHealth").GetValue<Slider>().Value / 100f);
                         var t = (int) (_player.AttackCastDelay * 1000) - 100 + Game.Ping / 2 +
                                 1000 * (int) _player.Distance(minion) / (int) GetMyProjectileSpeed();
                         var predHealth = HealthPrediction.GetHealthPrediction(minion, t, FarmDelay);
+
+                        if (freezeActive && predHealth.Equals(minion.Health))
+                        {
+                            continue;
+                        }
 
                         if (minion.Team != GameObjectTeam.Neutral && MinionManager.IsMinion(minion, true))
                         {
@@ -667,7 +714,8 @@ namespace SFXChallenger.Wrappers
                                 FireOnNonKillableMinion(minion);
                             }
 
-                            if (predHealth > 0 && predHealth <= _player.GetAutoAttackDamage(minion, true))
+                            if (predHealth > 0 &&
+                                predHealth <= (freezeActive ? freezeDamage : _player.GetAutoAttackDamage(minion, true)))
                             {
                                 return minion;
                             }
