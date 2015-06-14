@@ -104,6 +104,7 @@ namespace SFXChallenger.Abstracts
         {
             try
             {
+                Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
                 Utility.DelayAction.Add(
                     750, delegate
                     {

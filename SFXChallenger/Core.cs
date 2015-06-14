@@ -83,7 +83,6 @@ namespace SFXChallenger
                             case Orbwalking.OrbwalkingMode.Combo:
                                 _champion.Combo();
                                 break;
-                            case Orbwalking.OrbwalkingMode.Harass:
                             case Orbwalking.OrbwalkingMode.Mixed:
                                 _champion.Harass();
                                 break;

@@ -312,7 +312,7 @@ namespace SFXChallenger.Champions
                         var minions =
                             ObjectCache.GetMinions(
                                 1000, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
-                                .Where(m => Orbwalker.InAutoAttackRange(m))
+                                .Where(Orbwalking.InAutoAttackRange)
                                 .ToList();
 
                         var killable =
@@ -344,7 +344,7 @@ namespace SFXChallenger.Champions
                 }
                 if (args.Target.Type == GameObjectType.obj_AI_Hero &&
                     (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
-                     Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Harass))
+                     Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed))
                 {
                     args.Process = (!Q.IsReady() || Player.Mana < Q.Instance.ManaCost) &&
                                    (!E.IsReady() || Player.Mana < E.Instance.ManaCost);
@@ -480,14 +480,14 @@ namespace SFXChallenger.Champions
             try
             {
                 var damage = 0f;
-                if (Player.HasBuff("viktorpowertransferreturn") && Orbwalker.InAutoAttackRange(target))
+                if (Player.HasBuff("viktorpowertransferreturn") && Orbwalking.InAutoAttackRange(target))
                 {
                     damage += CalcPassiveDamage(target);
                 }
                 if (q && Q.IsReady() && target.IsValidTarget(Q.Range))
                 {
                     damage += Q.GetDamage(target);
-                    if (Orbwalker.InAutoAttackRange(target))
+                    if (Orbwalking.InAutoAttackRange(target))
                     {
                         damage += CalcPassiveDamage(target);
                     }
@@ -936,7 +936,7 @@ namespace SFXChallenger.Champions
         {
             if (Menu.Item(Menu.Name + ".killsteal.q-aa").GetValue<bool>() && Q.IsReady())
             {
-                foreach (var target in Targets.Where(t => Orbwalker.InAutoAttackRange(t)))
+                foreach (var target in Targets.Where(Orbwalking.InAutoAttackRange))
                 {
                     var damage = CalcPassiveDamage(target) + Q.GetDamage(target);
                     if (damage - 10 > target.Health)

@@ -27,9 +27,6 @@ using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXLibrary;
-using SFXLibrary.Extensions.NET;
-using SFXLibrary.Extensions.SharpDX;
-using SFXLibrary.Logger;
 using SharpDX;
 using Color = System.Drawing.Color;
 
@@ -54,17 +51,45 @@ namespace SFXChallenger.Wrappers
 
         public enum OrbwalkingMode
         {
-            Combo,
-            Mixed,
-            Harass,
-            LaneClear,
             LastHit,
+            Mixed,
+            LaneClear,
+            Combo,
             Flee,
             None
         }
 
-        // ReSharper disable once InconsistentNaming
-        public static int LastAATick;
+        //Spells that reset the attack timer.
+        private static readonly string[] AttackResets =
+        {
+            "dariusnoxiantacticsonh", "fioraflurry", "garenq",
+            "hecarimrapidslash", "jaxempowertwo", "jaycehypercharge", "leonashieldofdaybreak", "luciane", "lucianq",
+            "monkeykingdoubleattack", "mordekaisermaceofspades", "nasusq", "nautiluspiercinggaze", "netherblade",
+            "parley", "poppydevastatingblow", "powerfist", "renektonpreexecute", "rengarq", "shyvanadoubleattack",
+            "sivirw", "takedown", "talonnoxiandiplomacy", "trundletrollsmash", "vaynetumble", "vie", "volibearq",
+            "xenzhaocombotarget", "yorickspectral", "reksaiq"
+        };
+
+        //Spells that are not attacks even if they have the "attack" word in their name.
+        private static readonly string[] NoAttacks =
+        {
+            "jarvanivcataclysmattack", "monkeykingdoubleattack",
+            "shyvanadoubleattack", "shyvanadoubleattackdragon", "zyragraspingplantattack", "zyragraspingplantattack2",
+            "zyragraspingplantattackfire", "zyragraspingplantattack2fire", "viktorpowertransfer"
+        };
+
+        //Spells that are attacks even if they dont have the "attack" word in their name.
+        private static readonly string[] Attacks =
+        {
+            "caitlynheadshotmissile", "frostarrow", "garenslash2",
+            "kennenmegaproc", "lucianpassiveattack", "masteryidoublestrike", "quinnwenhanced", "renektonexecute",
+            "renektonsuperexecute", "rengarnewpassivebuffdash", "trundleq", "xenzhaothrust", "xenzhaothrust2",
+            "xenzhaothrust3", "viktorqbuff"
+        };
+
+        // Champs whose auto attacks can't be cancelled
+        private static readonly string[] NoCancelChamps = { "Kalista" };
+        public static int LastAaTick;
         public static bool Attack = true;
         public static bool DisableNextAttack;
         public static bool Move = true;
@@ -72,18 +97,20 @@ namespace SFXChallenger.Wrappers
         public static Vector3 LastMoveCommandPosition = Vector3.Zero;
         private static AttackableUnit _lastTarget;
         private static readonly Obj_AI_Hero Player;
-        private static int _delay = 80;
+        private static int _delay;
         private static float _minDistance = 400;
+        private static bool _missileLaunched;
         private static readonly Random Random = new Random(DateTime.Now.Millisecond);
 
         static Orbwalking()
         {
             Player = ObjectManager.Player;
             Obj_AI_Base.OnProcessSpellCast += OnProcessSpell;
+            GameObject.OnCreate += MissileClient_OnCreate;
             Spellbook.OnStopCast += SpellbookOnStopCast;
         }
 
-        private static int TickCount
+        public static int TickCount
         {
             get { return (int) (Game.ClockTime * 1000); }
         }
@@ -162,7 +189,7 @@ namespace SFXChallenger.Wrappers
         /// </summary>
         public static bool IsAutoAttackReset(string name)
         {
-            return Enumerable.Contains(AttackResets, name.ToLower());
+            return AttackResets.Contains(name.ToLower());
         }
 
         /// <summary>
@@ -173,18 +200,13 @@ namespace SFXChallenger.Wrappers
             return unit.CombatType == GameObjectCombatType.Melee;
         }
 
-        public static void SetMovementDelay(int delay)
-        {
-            _delay = delay;
-        }
-
         /// <summary>
         ///     Returns true if the spellname is an auto-attack.
         /// </summary>
         public static bool IsAutoAttack(string name)
         {
-            return (name.ToLower().Contains("attack") && !Enumerable.Contains(NoAttacks, name.ToLower())) ||
-                   Enumerable.Contains(Attacks, name.ToLower());
+            return (name.ToLower().Contains("attack") && !NoAttacks.Contains(name.ToLower())) ||
+                   Attacks.Contains(name.ToLower());
         }
 
         /// <summary>
@@ -229,12 +251,7 @@ namespace SFXChallenger.Wrappers
         /// </summary>
         public static bool CanAttack()
         {
-            if (LastAATick <= TickCount)
-            {
-                return TickCount + Game.Ping / 2 + 25 >= LastAATick + Player.AttackDelay * 1000 && Attack;
-            }
-
-            return false;
+            return TickCount + Game.Ping / 2 + 25 >= LastAaTick + Player.AttackDelay * 1000 && Attack;
         }
 
         /// <summary>
@@ -247,14 +264,18 @@ namespace SFXChallenger.Wrappers
                 return false;
             }
 
-            if (LastAATick <= TickCount)
+            if (_missileLaunched)
             {
-                return Move && Enumerable.Contains(NoCancelChamps, Player.ChampionName)
-                    ? (TickCount - LastAATick > 250)
-                    : (TickCount + Game.Ping / 2 >= LastAATick + Player.AttackCastDelay * 1000 + extraWindup);
+                return true;
             }
 
-            return false;
+            return NoCancelChamps.Contains(Player.ChampionName) ||
+                   (TickCount + Game.Ping / 2 >= LastAaTick + Player.AttackCastDelay * 1000 + extraWindup);
+        }
+
+        public static void SetMovementDelay(int delay)
+        {
+            _delay = delay;
         }
 
         public static void SetMinimumOrbwalkDistance(float d)
@@ -287,7 +308,7 @@ namespace SFXChallenger.Wrappers
 
             if (Player.ServerPosition.Distance(position, true) < holdAreaRadius * holdAreaRadius)
             {
-                if (Player.Path.Length > 1)
+                if (Player.Path.Count() > 1)
                 {
                     Player.IssueOrder((GameObjectOrder) 10, Player.ServerPosition);
                     Player.IssueOrder(GameObjectOrder.HoldPosition, Player.ServerPosition);
@@ -342,12 +363,6 @@ namespace SFXChallenger.Wrappers
                     if (!DisableNextAttack)
                     {
                         Player.IssueOrder(GameObjectOrder.AttackUnit, target);
-
-                        if (_lastTarget != null && _lastTarget.IsValid && _lastTarget != target)
-                        {
-                            LastAATick = TickCount + Game.Ping / 2;
-                        }
-
                         _lastTarget = target;
                         return;
                     }
@@ -369,7 +384,7 @@ namespace SFXChallenger.Wrappers
         /// </summary>
         public static void ResetAutoAttackTimer()
         {
-            LastAATick = 0;
+            LastAaTick = 0;
         }
 
         private static void SpellbookOnStopCast(Spellbook spellbook, SpellbookStopCastEventArgs args)
@@ -377,6 +392,15 @@ namespace SFXChallenger.Wrappers
             if (spellbook.Owner.IsValid && spellbook.Owner.IsMe && args.DestroyMissile && args.StopAnimation)
             {
                 ResetAutoAttackTimer();
+            }
+        }
+
+        private static void MissileClient_OnCreate(GameObject sender, EventArgs args)
+        {
+            var missile = sender as MissileClient;
+            if (missile != null && missile.SpellCaster.IsMe && IsAutoAttack(missile.SData.Name))
+            {
+                _missileLaunched = true;
             }
         }
 
@@ -399,11 +423,13 @@ namespace SFXChallenger.Wrappers
                 if (unit.IsMe &&
                     (spell.Target is Obj_AI_Base || spell.Target is Obj_BarracksDampener || spell.Target is Obj_HQ))
                 {
-                    LastAATick = TickCount - Game.Ping / 2;
+                    LastAaTick = TickCount - Game.Ping / 2;
+                    _missileLaunched = false;
 
-                    var target = spell.Target as Obj_AI_Base;
-                    if (target != null)
+                    var @base = spell.Target as Obj_AI_Base;
+                    if (@base != null)
                     {
+                        var target = @base;
                         if (target.IsValid)
                         {
                             FireOnTargetSwitch(target);
@@ -448,7 +474,8 @@ namespace SFXChallenger.Wrappers
         public class Orbwalker
         {
             private const float LaneClearWaitTimeMod = 2f;
-            private static Menu _menu;
+            private static Menu _config;
+            private readonly Obj_AI_Hero _player;
             private Obj_AI_Base _forcedTarget;
             private OrbwalkingMode _mode = OrbwalkingMode.None;
             private Vector3 _orbwalkingPoint;
@@ -456,76 +483,65 @@ namespace SFXChallenger.Wrappers
 
             public Orbwalker(Menu attachToMenu)
             {
-                _menu = attachToMenu;
+                _config = attachToMenu;
                 /* Drawings submenu */
-                var drawings = new Menu(Global.Lang.Get("G_Drawing"), _menu.Name + ".drawing");
+                var drawings = new Menu("Drawings", "drawings");
                 drawings.AddItem(
-                    new MenuItem(drawings.Name + ".aa-range", Global.Lang.Get("Orbwalker_AttackRange")).SetValue(
-                        new Circle(true, Color.FromArgb(255, 255, 0, 255))));
+                    new MenuItem("AACircle", "AACircle").SetShared()
+                        .SetValue(new Circle(true, Color.FromArgb(255, 255, 0, 255))));
                 drawings.AddItem(
-                    new MenuItem(drawings.Name + ".aa-enemy-range", Global.Lang.Get("Orbwalker_EnemyAttackRange"))
+                    new MenuItem("AACircle2", "Enemy AA circle").SetShared()
                         .SetValue(new Circle(false, Color.FromArgb(255, 255, 0, 255))));
                 drawings.AddItem(
-                    new MenuItem(drawings.Name + ".hold-zone", Global.Lang.Get("Orbwalker_HoldZone")).SetValue(
-                        new Circle(false, Color.FromArgb(255, 255, 0, 255))));
-                drawings.AddItem(
-                    new MenuItem(drawings.Name + ".circle-thickness", Global.Lang.Get("G_CircleThickness")).SetValue(
-                        new Slider(5, 1, 15)));
-                _menu.AddSubMenu(drawings);
+                    new MenuItem("HoldZone", "HoldZone").SetShared()
+                        .SetValue(new Circle(false, Color.FromArgb(255, 255, 0, 255))));
+                _config.AddSubMenu(drawings);
 
                 /* Misc options */
-                var misc = new Menu(Global.Lang.Get("G_Miscellaneous"), _menu.Name + ".miscellaneous");
+                var misc = new Menu("Misc", "Misc");
                 misc.AddItem(
-                    new MenuItem(misc.Name + ".extra-windup-time", Global.Lang.Get("Orbwalker_ExtraWindupTime"))
-                        .SetValue(new Slider(80, 0, 200)));
-                misc.AddItem(
-                    new MenuItem(misc.Name + ".farm-delay", Global.Lang.Get("Orbwalker_FarmDelay")).SetShared()
-                        .SetValue(new Slider(0, 0, 200)));
-                misc.AddItem(
-                    new MenuItem(misc.Name + ".movement-delay", Global.Lang.Get("Orbwalker_MovementDelay")).SetShared()
-                        .SetValue(new Slider(80, 0, 250)));
+                    new MenuItem("HoldPosRadius", "Hold Position Radius").SetShared().SetValue(new Slider(0, 0, 250)));
+                misc.AddItem(new MenuItem("PriorizeFarm", "Priorize farm over harass").SetShared().SetValue(true));
+                _config.AddSubMenu(misc);
 
-                misc.AddItem(
-                    new MenuItem(misc.Name + ".hold-position-radius", Global.Lang.Get("Orbwalker_HoldPositionRadius"))
-                        .SetValue(new Slider(0, 0, 250)));
-                misc.AddItem(
-                    new MenuItem(misc.Name + ".prioritize-lasthit", Global.Lang.Get("Orbwalker_PrioritizeLastHit"))
-                        .SetValue(true));
-                _menu.AddSubMenu(misc);
+
+                /* Delay sliders */
+                _config.AddItem(
+                    new MenuItem("ExtraWindup", "Extra windup time").SetShared().SetValue(new Slider(80, 0, 200)));
+                _config.AddItem(new MenuItem("FarmDelay", "Farm delay").SetShared().SetValue(new Slider(0, 0, 200)));
+                _config.AddItem(
+                    new MenuItem("MovementDelay", "Movement delay").SetShared().SetValue(new Slider(80, 0, 250)))
+                    .ValueChanged += (sender, args) => SetMovementDelay(args.GetNewValue<Slider>().Value);
+
 
                 /*Load the menu*/
-                _menu.AddItem(
-                    new MenuItem(_menu.Name + ".flee", Global.Lang.Get("Orbwalker_Flee")).SetValue(
-                        new KeyBind('G', KeyBindType.Press)));
-                _menu.AddItem(
-                    new MenuItem(_menu.Name + ".lasthit", Global.Lang.Get("Orbwalker_LastHit")).SetValue(
-                        new KeyBind('X', KeyBindType.Press)));
-                _menu.AddItem(
-                    new MenuItem(_menu.Name + ".laneclear", Global.Lang.Get("Orbwalker_LaneClear")).SetValue(
-                        new KeyBind('V', KeyBindType.Press)));
-                _menu.AddItem(
-                    new MenuItem(_menu.Name + ".harass", Global.Lang.Get("Orbwalker_Harass")).SetValue(
-                        new KeyBind('T', KeyBindType.Press)));
-                _menu.AddItem(
-                    new MenuItem(_menu.Name + ".mixed", Global.Lang.Get("Orbwalker_Mixed")).SetValue(
-                        new KeyBind('C', KeyBindType.Press)));
-                _menu.AddItem(
-                    new MenuItem(_menu.Name + ".combo", Global.Lang.Get("Orbwalker_Combo")).SetValue(
-                        new KeyBind(32, KeyBindType.Press)));
+                _config.AddItem(new MenuItem("Flee", "Flee").SetShared().SetValue(new KeyBind('G', KeyBindType.Press)));
 
-                _delay = _menu.Item(_menu.Name + ".miscellaneous.movement-delay").GetValue<Slider>().Value;
+                _config.AddItem(
+                    new MenuItem("LastHit", "Last hit").SetShared().SetValue(new KeyBind('X', KeyBindType.Press)));
+
+                _config.AddItem(new MenuItem("Farm", "Mixed").SetShared().SetValue(new KeyBind('C', KeyBindType.Press)));
+
+                _config.AddItem(
+                    new MenuItem("LaneClear", "LaneClear").SetShared().SetValue(new KeyBind('V', KeyBindType.Press)));
+
+                _config.AddItem(
+                    new MenuItem("Orbwalk", "Combo").SetShared().SetValue(new KeyBind(32, KeyBindType.Press)));
+
+                _delay = _config.Item("MovementDelay").GetValue<Slider>().Value;
+                _player = ObjectManager.Player;
                 Game.OnUpdate += GameOnOnGameUpdate;
                 Drawing.OnDraw += DrawingOnOnDraw;
             }
 
-            public int HoldAreaRadius
-            {
-                get { return _menu.Item(_menu.Name + ".miscellaneous.hold-position-radius").GetValue<Slider>().Value; }
-            }
-
             private int FarmDelay
             {
-                get { return _menu.Item(_menu.Name + ".miscellaneous.farm-delay").GetValue<Slider>().Value; }
+                get { return _config.Item("FarmDelay").GetValue<Slider>().Value; }
+            }
+
+            public int HoldAreaRadius
+            {
+                get { return _config.Item("HoldPosRadius").GetValue<Slider>().Value; }
             }
 
             public OrbwalkingMode ActiveMode
@@ -537,45 +553,29 @@ namespace SFXChallenger.Wrappers
                         return _mode;
                     }
 
-                    if (_menu.Item(_menu.Name + ".combo").GetValue<KeyBind>().Active)
+                    if (_config.Item("Orbwalk").GetValue<KeyBind>().Active)
                     {
                         return OrbwalkingMode.Combo;
                     }
 
-                    if (_menu.Item(_menu.Name + ".mixed").GetValue<KeyBind>().Active)
-                    {
-                        return OrbwalkingMode.Mixed;
-                    }
-
-                    if (_menu.Item(_menu.Name + ".harass").GetValue<KeyBind>().Active)
-                    {
-                        return OrbwalkingMode.Harass;
-                    }
-
-                    if (_menu.Item(_menu.Name + ".laneclear").GetValue<KeyBind>().Active)
+                    if (_config.Item("LaneClear").GetValue<KeyBind>().Active)
                     {
                         return OrbwalkingMode.LaneClear;
                     }
 
-                    if (_menu.Item(_menu.Name + ".lasthit").GetValue<KeyBind>().Active)
+                    if (_config.Item("Farm").GetValue<KeyBind>().Active)
                     {
-                        return OrbwalkingMode.LastHit;
+                        return OrbwalkingMode.Mixed;
                     }
 
-                    if (_menu.Item(_menu.Name + ".flee").GetValue<KeyBind>().Active)
+                    if (_config.Item("LastHit").GetValue<KeyBind>().Active)
                     {
-                        return OrbwalkingMode.Flee;
+                        return OrbwalkingMode.LastHit;
                     }
 
                     return OrbwalkingMode.None;
                 }
                 set { _mode = value; }
-            }
-
-            // ReSharper disable once MemberHidesStaticFromOuterClass
-            public virtual bool InAutoAttackRange(AttackableUnit target)
-            {
-                return Orbwalking.InAutoAttackRange(target);
             }
 
             /// <summary>
@@ -624,16 +624,16 @@ namespace SFXChallenger.Wrappers
                                 minion.IsValidTarget() && minion.Team != GameObjectTeam.Neutral &&
                                 InAutoAttackRange(minion) &&
                                 HealthPrediction.LaneClearHealthPrediction(
-                                    minion, (int) ((Player.AttackDelay * 1000) * LaneClearWaitTimeMod), FarmDelay) <=
-                                Player.GetAutoAttackDamage(minion));
+                                    minion, (int) ((_player.AttackDelay * 1000) * LaneClearWaitTimeMod), FarmDelay) <=
+                                _player.GetAutoAttackDamage(minion));
             }
 
             public virtual AttackableUnit GetTarget()
             {
                 AttackableUnit result = null;
-                if ((ActiveMode == OrbwalkingMode.Mixed || ActiveMode == OrbwalkingMode.Harass ||
-                     ActiveMode == OrbwalkingMode.LaneClear) &&
-                    !_menu.Item(_menu.Name + ".miscellaneous.prioritize-lasthit").GetValue<bool>())
+
+                if ((ActiveMode == OrbwalkingMode.Mixed || ActiveMode == OrbwalkingMode.LaneClear) &&
+                    !_config.Item("PriorizeFarm").GetValue<bool>())
                 {
                     var target = TargetSelector.GetTarget(-1, LeagueSharp.Common.TargetSelector.DamageType.Physical);
                     if (target != null)
@@ -651,13 +651,13 @@ namespace SFXChallenger.Wrappers
                             .Where(
                                 minion =>
                                     minion.IsValidTarget() && InAutoAttackRange(minion) &&
-                                    !minion.BaseSkinName.Contains("ward", StringComparison.OrdinalIgnoreCase) &&
-                                    !minion.BaseSkinName.Contains("trinket", StringComparison.OrdinalIgnoreCase))
-                            .OrderByDescending(
-                                m => m.BaseSkinName.Contains("MinionSiege", StringComparison.OrdinalIgnoreCase)))
+                                    minion.Health <
+                                    2 *
+                                    (ObjectManager.Player.BaseAttackDamage + ObjectManager.Player.FlatPhysicalDamageMod))
+                        )
                     {
-                        var t = (int) (Player.AttackCastDelay * 1000) - 100 + Game.Ping / 2 +
-                                1000 * (int) Player.Distance(minion) / (int) GetMyProjectileSpeed();
+                        var t = (int) (_player.AttackCastDelay * 1000) - 100 + Game.Ping / 2 +
+                                1000 * (int) _player.Distance(minion) / (int) GetMyProjectileSpeed();
                         var predHealth = HealthPrediction.GetHealthPrediction(minion, t, FarmDelay);
 
                         if (minion.Team != GameObjectTeam.Neutral && MinionManager.IsMinion(minion, true))
@@ -667,7 +667,7 @@ namespace SFXChallenger.Wrappers
                                 FireOnNonKillableMinion(minion);
                             }
 
-                            if (predHealth > 0 && predHealth <= Player.GetAutoAttackDamage(minion, true))
+                            if (predHealth > 0 && predHealth <= _player.GetAutoAttackDamage(minion, true))
                             {
                                 return minion;
                             }
@@ -739,8 +739,8 @@ namespace SFXChallenger.Wrappers
                         if (_prevMinion.IsValidTarget() && InAutoAttackRange(_prevMinion))
                         {
                             var predHealth = HealthPrediction.LaneClearHealthPrediction(
-                                _prevMinion, (int) ((Player.AttackDelay * 1000) * LaneClearWaitTimeMod), FarmDelay);
-                            if (predHealth >= Player.GetAutoAttackDamage(_prevMinion) * 2 ||
+                                _prevMinion, (int) ((_player.AttackDelay * 1000) * LaneClearWaitTimeMod), FarmDelay);
+                            if (predHealth >= 2 * _player.GetAutoAttackDamage(_prevMinion) ||
                                 Math.Abs(predHealth - _prevMinion.Health) < float.Epsilon)
                             {
                                 return _prevMinion;
@@ -752,16 +752,10 @@ namespace SFXChallenger.Wrappers
                                 .Where(minion => minion.IsValidTarget() && InAutoAttackRange(minion))
                             let predHealth =
                                 HealthPrediction.LaneClearHealthPrediction(
-                                    minion, (int) ((Player.AttackDelay * 1000) * LaneClearWaitTimeMod), FarmDelay)
+                                    minion, (int) ((_player.AttackDelay * 1000) * LaneClearWaitTimeMod), FarmDelay)
                             where
-                                predHealth >= Player.GetAutoAttackDamage(minion) * 2 ||
+                                predHealth >= 2 * _player.GetAutoAttackDamage(minion) ||
                                 Math.Abs(predHealth - minion.Health) < float.Epsilon
-                            where
-                                !minion.BaseSkinName.Contains("ward", StringComparison.OrdinalIgnoreCase) &&
-                                !minion.BaseSkinName.Contains("trinket", StringComparison.OrdinalIgnoreCase)
-                            orderby
-                                minion.BaseSkinName.Contains("MinionSiege", StringComparison.OrdinalIgnoreCase)
-                                    descending
                             select minion).MaxOrDefault(m => m.Health);
 
                         if (result != null)
@@ -784,110 +778,50 @@ namespace SFXChallenger.Wrappers
                     }
 
                     //Prevent canceling important spells
-                    if (Player.IsCastingInterruptableSpell(true))
+                    if (_player.IsCastingInterruptableSpell(true))
                     {
                         return;
                     }
 
-                    if (ActiveMode == OrbwalkingMode.Flee)
-                    {
-                        MoveTo(
-                            (_orbwalkingPoint.To2D().IsValid()) ? _orbwalkingPoint : Game.CursorPos,
-                            _menu.Item(_menu.Name + ".miscellaneous.hold-position-radius").GetValue<Slider>().Value,
-                            true);
-                        return;
-                    }
+                    var target = GetTarget();
                     Orbwalk(
-                        GetTarget(), (_orbwalkingPoint.To2D().IsValid()) ? _orbwalkingPoint : Game.CursorPos,
-                        _menu.Item(_menu.Name + ".miscellaneous.extra-windup-time").GetValue<Slider>().Value,
-                        _menu.Item(_menu.Name + ".miscellaneous.hold-position-radius").GetValue<Slider>().Value);
+                        target, (_orbwalkingPoint.To2D().IsValid()) ? _orbwalkingPoint : Game.CursorPos,
+                        _config.Item("ExtraWindup").GetValue<Slider>().Value,
+                        _config.Item("HoldPosRadius").GetValue<Slider>().Value);
                 }
-                catch (Exception ex)
+                catch (Exception e)
                 {
-                    Global.Logger.AddItem(new LogItem(ex));
+                    Console.WriteLine(e);
                 }
             }
 
             private void DrawingOnOnDraw(EventArgs args)
             {
-                try
+                if (_config.Item("AACircle").GetValue<Circle>().Active)
                 {
-                    if (ObjectManager.Player.IsDead)
-                    {
-                        return;
-                    }
+                    Render.Circle.DrawCircle(
+                        _player.Position, GetRealAutoAttackRange(null) + 65,
+                        _config.Item("AACircle").GetValue<Circle>().Color);
+                }
 
-                    if (_menu.Item(_menu.Name + ".drawing.aa-range").GetValue<Circle>().Active)
+                if (_config.Item("AACircle2").GetValue<Circle>().Active)
+                {
+                    foreach (var target in
+                        HeroManager.Enemies.FindAll(target => target.IsValidTarget(1175)))
                     {
                         Render.Circle.DrawCircle(
-                            Player.Position, GetRealAutoAttackRange(null) + 65,
-                            _menu.Item(_menu.Name + ".drawing.aa-range").GetValue<Circle>().Color,
-                            _menu.Item(_menu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value);
-                    }
-
-                    if (_menu.Item(_menu.Name + ".drawing.aa-enemy-range").GetValue<Circle>().Active)
-                    {
-                        foreach (var target in
-                            HeroManager.Enemies.Where(
-                                target =>
-                                    target.IsValidTarget(1500) &&
-                                    target.Position.IsOnScreen(GetRealAutoAttackRange(target) + 65)))
-                        {
-                            Render.Circle.DrawCircle(
-                                target.Position, GetRealAutoAttackRange(target) + 65,
-                                _menu.Item(_menu.Name + ".drawing.aa-enemy-range").GetValue<Circle>().Color,
-                                _menu.Item(_menu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value);
-                        }
-                    }
-
-                    if (_menu.Item(_menu.Name + ".drawing.hold-zone").GetValue<Circle>().Active)
-                    {
-                        Render.Circle.DrawCircle(
-                            Player.Position,
-                            _menu.Item(_menu.Name + ".miscellaneous.hold-position-radius").GetValue<Slider>().Value,
-                            _menu.Item(_menu.Name + ".drawing.hold-zone").GetValue<Circle>().Color,
-                            _menu.Item(_menu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value);
+                            target.Position, GetRealAutoAttackRange(target) + 65,
+                            _config.Item("AACircle2").GetValue<Circle>().Color);
                     }
                 }
-                catch (Exception ex)
+
+                if (_config.Item("HoldZone").GetValue<Circle>().Active)
                 {
-                    Global.Logger.AddItem(new LogItem(ex));
+                    Render.Circle.DrawCircle(
+                        _player.Position, _config.Item("HoldPosRadius").GetValue<Slider>().Value,
+                        _config.Item("HoldZone").GetValue<Circle>().Color);
                 }
             }
         }
-
-        // ReSharper disable StringLiteralTypo
-        //Spells that reset the attack timer.
-        private static readonly string[] AttackResets =
-        {
-            "dariusnoxiantacticsonh", "fioraflurry", "garenq",
-            "hecarimrapidslash", "jaxempowertwo", "jaycehypercharge", "leonashieldofdaybreak", "luciane", "lucianq",
-            "monkeykingdoubleattack", "mordekaisermaceofspades", "nasusq", "nautiluspiercinggaze", "netherblade",
-            "parley", "poppydevastatingblow", "powerfist", "renektonpreexecute", "rengarq", "shyvanadoubleattack",
-            "sivirw", "takedown", "talonnoxiandiplomacy", "trundletrollsmash", "vaynetumble", "vie", "volibearq",
-            "xenzhaocombotarget", "yorickspectral", "reksaiq"
-        };
-
-        //Spells that are not attacks even if they have the "attack" word in their name.
-        private static readonly string[] NoAttacks =
-        {
-            "jarvanivcataclysmattack", "monkeykingdoubleattack",
-            "shyvanadoubleattack", "shyvanadoubleattackdragon", "zyragraspingplantattack", "zyragraspingplantattack2",
-            "zyragraspingplantattackfire", "zyragraspingplantattack2fire", "viktorpowertransfer"
-        };
-
-        //Spells that are attacks even if they dont have the "attack" word in their name.
-        private static readonly string[] Attacks =
-        {
-            "caitlynheadshotmissile", "frostarrow", "garenslash2",
-            "kennenmegaproc", "lucianpassiveattack", "masteryidoublestrike", "quinnwenhanced", "renektonexecute",
-            "renektonsuperexecute", "rengarnewpassivebuffdash", "trundleq", "xenzhaothrust", "xenzhaothrust2",
-            "xenzhaothrust3", "viktorqbuff"
-        };
-
-        // Champs whose auto attacks can't be cancelled
-        private static readonly string[] NoCancelChamps = { "Kalista" };
-
-        // ReSharper restore StringLiteralTypo
     }
 }

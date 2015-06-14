@@ -394,7 +394,7 @@ namespace SFXChallenger.Champions
                 var t = args.Target as Obj_AI_Hero;
                 if (t != null &&
                     (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
-                     Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Harass))
+                     Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed))
                 {
                     args.Process = Q.Instance.ManaCost > Player.Mana && W.Instance.ManaCost > Player.Mana &&
                                    (E.Instance.ManaCost > Player.Mana || GetPoisonBuffEndTime(t) < E.GetSpellDelay(t));

@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.5.2.10</AssemblyVersion>
+    <AssemblyVersion>0.5.2.11</AssemblyVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -106,7 +106,6 @@
     <Compile Include="Menus\LanguageMenu.cs" />
     <Compile Include="Menus\TickMenu.cs" />
     <Compile Include="Helpers\Casting.cs" />
-    <Compile Include="Wrappers\Orbwalking.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -116,6 +115,7 @@
     <Compile Include="Core.cs" />
     <Compile Include="Enumerations\ItemFlags.cs" />
     <Compile Include="Wrappers\Invulnerable.cs" />
+    <Compile Include="Wrappers\Orbwalking.cs" />
     <Compile Include="Wrappers\TargetSelector.cs" />
     <Compile Include="Managers\ItemManager.cs" />
     <Compile Include="Managers\ManaManager.cs" />

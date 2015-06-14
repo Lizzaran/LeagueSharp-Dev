@@ -190,7 +190,7 @@ namespace SFXChallenger.Champions
             if (useR)
             {
                 var target = TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical);
-                if (R.GetDamage(target) * 0.9f > target.Health || Orbwalker.InAutoAttackRange(target))
+                if (R.GetDamage(target) * 0.9f > target.Health || Orbwalking.InAutoAttackRange(target))
                 {
                     var pred = R.GetPrediction(target);
                     if (pred.Hitchance >= R.GetHitChance("combo"))
