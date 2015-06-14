@@ -739,7 +739,7 @@ namespace SFXChallenger.Champions
                         foreach (var t in targets.Where(t => t.NetworkId != lTarget.NetworkId))
                         {
                             var count = 1;
-                            var cTarget = target;
+                            var cTarget = t;
                             input.Unit = t;
                             input.From = cCastPos;
                             input.RangeCheckFrom = cCastPos;
@@ -760,9 +760,9 @@ namespace SFXChallenger.Champions
                                     if (
                                         new Geometry.Polygon.Circle(
                                             cPredPos,
-                                            c.Type == GameObjectType.obj_AI_Minion && c.IsMoving
+                                            (c.Type == GameObjectType.obj_AI_Minion && c.IsMoving
                                                 ? (c.BoundingRadius / 2f)
-                                                : (c.BoundingRadius)).Points.Any(p => rect.IsInside(p)))
+                                                : (c.BoundingRadius) * 0.9f)).Points.Any(p => rect.IsInside(p)))
                                     {
                                         count++;
                                     }
@@ -819,9 +819,9 @@ namespace SFXChallenger.Champions
                                     if (
                                         new Geometry.Polygon.Circle(
                                             cPredPos,
-                                            c.Type == GameObjectType.obj_AI_Minion && c.IsMoving
+                                            (c.Type == GameObjectType.obj_AI_Minion && c.IsMoving
                                                 ? (c.BoundingRadius / 2f)
-                                                : (c.BoundingRadius)).Points.Any(p => rect.IsInside(p)))
+                                                : (c.BoundingRadius) * 0.9f)).Points.Any(p => rect.IsInside(p)))
                                     {
                                         count++;
                                     }
@@ -888,9 +888,8 @@ namespace SFXChallenger.Champions
                 if (minions.Count >= minHits)
                 {
                     ELogic(
-                        minHits > 1
-                            ? minions.Concat(Targets.Select(t => t as Obj_AI_Base).Where(t => t != null)).ToList()
-                            : minions, HitChance.High, minHits);
+                        minHits > 1 ? minions.Concat(Targets.Select(t => t as Obj_AI_Base)).ToList() : minions,
+                        HitChance.High, minHits);
                 }
             }
             if (Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady() &&

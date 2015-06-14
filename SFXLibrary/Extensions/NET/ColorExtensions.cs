@@ -32,7 +32,7 @@ namespace SFXLibrary.Extensions.NET
     {
         public static Color ToArgb(this Color color, int opacity)
         {
-            return Color.FromArgb(opacity, color.R, color.G, color.B);
+            return Color.FromArgb(opacity, color);
         }
     }
 }
