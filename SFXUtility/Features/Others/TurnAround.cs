@@ -66,9 +66,12 @@ namespace SFXUtility.Features.Others
         {
             try
             {
-                if (sender.IsMe && args.Order == GameObjectOrder.MoveTo || args.Order == GameObjectOrder.AttackTo)
+                if (sender.IsMe)
                 {
-                    _lastMove = args.TargetPosition;
+                    if (args.Order == GameObjectOrder.MoveTo)
+                    {
+                        _lastMove = args.TargetPosition;
+                    }
                     if (_blockMovementTime > Game.Time)
                     {
                         args.Process = false;
@@ -138,7 +141,7 @@ namespace SFXUtility.Features.Others
         {
             _spellInfos = new List<SpellInfo>
             {
-                new SpellInfo("Cassiopeia", "CassiopeiaPetrifyingGaze", 1000f, false, true, 0.65f),
+                new SpellInfo("Cassiopeia", "CassiopeiaPetrifyingGaze", 1000f, false, true, 0.85f),
                 new SpellInfo("Tryndamere", "MockingShout", 900f, false, false, 0.65f)
             };
 

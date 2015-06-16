@@ -53,17 +53,20 @@ namespace SFXChallenger.Wrappers
         private static float _averageWeight;
         private static Menu _menu;
         private static Obj_AI_Hero _selectedTarget;
-        private static readonly List<Priority> Priorities;
-        private static readonly List<WeightedItem> WeightedItems;
+        private static readonly HashSet<Priority> Priorities;
+        private static readonly HashSet<WeightedItem> WeightedItems;
         private static readonly Dictionary<int, AggroItem> AggroItems = new Dictionary<int, AggroItem>();
-        private static readonly Dictionary<int, List<DamageItem>> DamageItems = new Dictionary<int, List<DamageItem>>();
+
+        private static readonly Dictionary<int, HashSet<DamageItem>> DamageItems =
+            new Dictionary<int, HashSet<DamageItem>>();
+
         private static TargetSelectorModeType _tsMode = TargetSelectorModeType.Weights;
 
         static TargetSelector()
         {
             #region Settings
 
-            Priorities = new List<Priority>
+            Priorities = new HashSet<Priority>
             {
                 new Priority
                 {
@@ -114,7 +117,7 @@ namespace SFXChallenger.Wrappers
                     Type = TargetSelectorPriorityType.Low
                 }
             };
-            WeightedItems = new List<WeightedItem>
+            WeightedItems = new HashSet<WeightedItem>
             {
                 new WeightedItem(
                     "killable", Global.Lang.Get("TS_AAKillable"), 20, false, 333,
@@ -156,7 +159,7 @@ namespace SFXChallenger.Wrappers
                 new WeightedItem(
                     "damage-me", Global.Lang.Get("TS_DamageMe"), 0, false, 1250, delegate(Obj_AI_Hero t)
                     {
-                        List<DamageItem> damageItems;
+                        HashSet<DamageItem> damageItems;
                         if (DamageItems.TryGetValue(t.NetworkId, out damageItems))
                         {
                             return
@@ -169,7 +172,9 @@ namespace SFXChallenger.Wrappers
                     }),
                 new WeightedItem(
                     "gold", Global.Lang.Get("TS_Gold"), 7, false, 8000,
-                    t => t.MinionsKilled * MinionGold + t.ChampionsKilled * KillGold + t.Assists * AssistGold)
+                    t =>
+                        (t.MinionsKilled + t.NeutralMinionsKilled) * MinionGold + t.ChampionsKilled * KillGold +
+                        t.Assists * AssistGold)
             };
 
             #endregion
@@ -201,11 +206,11 @@ namespace SFXChallenger.Wrappers
                 }
                 foreach (var item in DamageItems)
                 {
-                    item.Value.RemoveAll(i => Game.Time - i.Timestamp > DamageFadeTime);
+                    item.Value.RemoveWhere(i => Game.Time - i.Timestamp > DamageFadeTime);
                 }
                 if (!DamageItems.ContainsKey(sender.NetworkId))
                 {
-                    DamageItems[sender.NetworkId] = new List<DamageItem>();
+                    DamageItems[sender.NetworkId] = new HashSet<DamageItem>();
                 }
                 DamageItems[sender.NetworkId].Add(new DamageItem(ObjectManager.Player, args.Damage));
             }
@@ -516,37 +521,20 @@ namespace SFXChallenger.Wrappers
             {
                 foreach (var item in WeightedItems.Where(w => w.Weight > 0))
                 {
-                    var min = float.MaxValue;
-                    var max = float.MinValue;
-                    foreach (var target in targets)
-                    {
-                        var value = item.GetValue(target);
-                        if (value < min)
-                        {
-                            min = value;
-                        }
-                        if (value > max)
-                        {
-                            max = value;
-                        }
-                    }
-                    item.CurrentMin = min;
-                    item.CurrentMax = max;
+                    item.UpdateMinMax(targets);
                 }
 
-                var targetsList = new List<Target>();
+                var targetsList = new HashSet<Target>();
+                var multiplicator =
+                    _menu.Item(_menu.Name + ".weights.heroes.weight-multiplicator").GetValue<Slider>().Value;
                 foreach (var target in targets)
                 {
-                    var lTarget = target;
-                    var tmpWeight = _menu == null
-                        ? WeightedItems.Where(w => w.Weight > 0).Sum(w => w.CalculatedWeight(lTarget))
-                        : 0;
+                    var tmpWeight = WeightedItems.Where(w => w.Weight > 0).Sum(w => w.CalculatedWeight(target));
                     if (_menu != null)
                     {
                         tmpWeight +=
                             (_menu.Item(_menu.Name + ".weights.heroes." + target.ChampionName).GetValue<Slider>().Value *
-                             _averageWeight + 0.1f) *
-                            _menu.Item(_menu.Name + ".weights.heroes.weight-multiplicator").GetValue<Slider>().Value;
+                             _averageWeight + 0.1f) * multiplicator;
                     }
 
                     targetsList.Add(new Target(target, tmpWeight));
@@ -794,11 +782,11 @@ namespace SFXChallenger.Wrappers
         public float Timestamp { get; private set; }
     }
 
-    internal class WeightedCache
+    internal class Cache
     {
         private float _value;
 
-        public WeightedCache(float value)
+        public Cache(float value)
         {
             Value = value;
             Time = Environment.TickCount;
@@ -820,9 +808,10 @@ namespace SFXChallenger.Wrappers
     internal class WeightedItem
     {
         private readonly Func<Obj_AI_Hero, float> _getValue;
-        private readonly Dictionary<int, WeightedCache> _valueCache = new Dictionary<int, WeightedCache>();
-        private readonly Dictionary<int, WeightedCache> _weightCache = new Dictionary<int, WeightedCache>();
-        private float _currentMax;
+        private readonly Cache _maxCache = new Cache(0);
+        private readonly Cache _minCache = new Cache(0);
+        private readonly Dictionary<int, Cache> _valueCache = new Dictionary<int, Cache>();
+        private readonly Dictionary<int, Cache> _weightCache = new Dictionary<int, Cache>();
 
         public WeightedItem(string name,
             string displayName,
@@ -844,27 +833,10 @@ namespace SFXChallenger.Wrappers
         public int Weight { get; set; }
         public bool Inverted { get; set; }
         public float CacheTime { get; set; }
-        public float CurrentMin { get; set; }
-
-        public float CurrentMax
-        {
-            get { return _currentMax; }
-            set
-            {
-                if (value > CurrentMin)
-                {
-                    _currentMax = value;
-                }
-                else
-                {
-                    _currentMax = CurrentMin + 1;
-                }
-            }
-        }
 
         public float LastWeight(Obj_AI_Hero target)
         {
-            WeightedCache cache;
+            Cache cache;
             if (_weightCache.TryGetValue(target.NetworkId, out cache))
             {
                 return cache.Value;
@@ -874,7 +846,7 @@ namespace SFXChallenger.Wrappers
 
         public float LastValue(Obj_AI_Hero target)
         {
-            WeightedCache cache;
+            Cache cache;
             if (_valueCache.TryGetValue(target.NetworkId, out cache))
             {
                 return cache.Value;
@@ -882,19 +854,29 @@ namespace SFXChallenger.Wrappers
             return 0f;
         }
 
+        public float LastMin()
+        {
+            return _minCache.Value;
+        }
+
+        public float LastMax()
+        {
+            return _maxCache.Value;
+        }
+
         public float CalculatedWeight(Obj_AI_Hero target)
         {
-            WeightedCache cache;
+            Cache cache;
             if (_weightCache.TryGetValue(target.NetworkId, out cache) && cache.Time + CacheTime > Environment.TickCount)
             {
                 return cache.Value;
             }
             var weight = CalculatedWeight(
-                GetValue(target), CurrentMin, CurrentMax, Inverted ? Weight : TargetSelector.MinWeight,
+                GetValue(target), LastMin(), LastMax(), Inverted ? Weight : TargetSelector.MinWeight,
                 Inverted ? TargetSelector.MinWeight : Weight);
             if (cache == null)
             {
-                _weightCache[target.NetworkId] = new WeightedCache(weight);
+                _weightCache[target.NetworkId] = new Cache(weight);
             }
             else
             {
@@ -913,7 +895,7 @@ namespace SFXChallenger.Wrappers
         {
             try
             {
-                WeightedCache cache;
+                Cache cache;
                 if (_valueCache.TryGetValue(target.NetworkId, out cache) &&
                     cache.Time + CacheTime > Environment.TickCount)
                 {
@@ -922,7 +904,7 @@ namespace SFXChallenger.Wrappers
                 var value = _getValue(target);
                 if (cache == null)
                 {
-                    _valueCache[target.NetworkId] = new WeightedCache(value);
+                    _valueCache[target.NetworkId] = new Cache(value);
                 }
                 else
                 {
@@ -934,6 +916,34 @@ namespace SFXChallenger.Wrappers
             {
                 return Inverted ? float.MaxValue : float.MinValue;
             }
+        }
+
+        public void UpdateMinMax(List<Obj_AI_Hero> targets)
+        {
+            if (_minCache.Time + CacheTime > Environment.TickCount || targets.Count == 0)
+            {
+                return;
+            }
+            var min = float.MaxValue;
+            var max = float.MinValue;
+            foreach (var target in targets)
+            {
+                var value = GetValue(target);
+                if (value < min)
+                {
+                    min = value;
+                }
+                if (value > max)
+                {
+                    max = value;
+                }
+            }
+            _minCache.Value = min;
+            if (min > max)
+            {
+                max = min + 1;
+            }
+            _maxCache.Value = max;
         }
     }
 
