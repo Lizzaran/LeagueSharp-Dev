@@ -133,8 +133,8 @@ namespace SFXChallenger.Champions
                 };
 
             DamageIndicator.Initialize(Rend.GetDamage);
-            DamageIndicator.Enabled = DrawingManager.Get<Circle>("E Damage").Active;
-            DamageIndicator.DrawingColor = DrawingManager.Get<Circle>("E Damage").Color;
+            DamageIndicator.Enabled = DrawingManager.Get("E Damage").GetValue<Circle>().Active;
+            DamageIndicator.DrawingColor = DrawingManager.Get("E Damage").GetValue<Circle>().Color;
         }
 
         protected override void SetupSpells()

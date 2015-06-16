@@ -160,7 +160,7 @@ namespace SFXUtility.Data
                         Utility.Map.MapType.SummonersRift, GameObjectTeam.Neutral),
                     //Order: Wraiths
                     new Camp(
-                        100, 75, new Vector3(3550f, 6250f, 60f),
+                        95, 75, new Vector3(4373.14f, 5842.84f, -107.14f),
                         new List<Mob>(
                             new[]
                             {
@@ -168,19 +168,19 @@ namespace SFXUtility.Data
                             }), false, Utility.Map.MapType.TwistedTreeline, GameObjectTeam.Order),
                     //Order: Golems
                     new Camp(
-                        100, 75, new Vector3(4500f, 8550f, 60f),
+                        95, 75, new Vector3(5106.94f, 7985.90f, -108.38f),
                         new List<Mob>(new[] { new Mob("TT_NGolem2.1.1", true), new Mob("TT_NGolem22.1.2") }), false,
                         Utility.Map.MapType.TwistedTreeline, GameObjectTeam.Order),
                     //Order: Wolves
                     new Camp(
-                        100, 75, new Vector3(5600f, 6400f, 60f),
+                        95, 75, new Vector3(6078.15f, 6094.45f, -98.63f),
                         new List<Mob>(
                             new[]
                             { new Mob("TT_NWolf3.1.1", true), new Mob("TT_NWolf23.1.2"), new Mob("TT_NWolf23.1.3") }),
                         false, Utility.Map.MapType.TwistedTreeline, GameObjectTeam.Order),
                     //Chaos: Wraiths
                     new Camp(
-                        100, 75, new Vector3(10300f, 6250f, 60f),
+                        95, 75, new Vector3(11025.95f, 5805.61f, -107.19f),
                         new List<Mob>(
                             new List<Mob>(
                                 new[]
@@ -191,12 +191,12 @@ namespace SFXUtility.Data
                         GameObjectTeam.Chaos),
                     //Chaos: Golems
                     new Camp(
-                        100, 75, new Vector3(9800f, 8550f, 60f),
+                        95, 75, new Vector3(10276.81f, 8037.54f, -108.92f),
                         new List<Mob>(new[] { new Mob("TT_NGolem5.1.1", true), new Mob("TT_NGolem25.1.2") }), false,
                         Utility.Map.MapType.TwistedTreeline, GameObjectTeam.Chaos),
                     //Chaos: Wolves
                     new Camp(
-                        100, 75, new Vector3(8600f, 6400f, 60f),
+                        95, 75, new Vector3(9294.02f, 6085.41f, -96.70f),
                         new List<Mob>(
                             new List<Mob>(
                                 new[]
@@ -204,7 +204,7 @@ namespace SFXUtility.Data
                         false, Utility.Map.MapType.TwistedTreeline, GameObjectTeam.Chaos),
                     //Neutral: Vilemaw
                     new Camp(
-                        600, 300, new Vector3(7150f, 11100f, 60f),
+                        600, 360, new Vector3(7738.30f, 10079.78f, -61.60f),
                         new List<Mob>(new List<Mob>(new[] { new Mob("TT_Spiderboss8.1.1", true) })), true,
                         Utility.Map.MapType.SummonersRift, GameObjectTeam.Neutral)
                 };

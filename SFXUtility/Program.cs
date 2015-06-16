@@ -156,9 +156,11 @@ namespace SFXUtility
 
                 Global.IoC.Register(() => new Timers(sfx), true, true);
                 Global.IoC.Register(() => new Ability(sfx), true, true);
+                Global.IoC.Register(() => new Altar(sfx), true, true);
                 Global.IoC.Register(() => new Cooldown(sfx), true, true);
+                Global.IoC.Register(() => new Relic(sfx), true, true);
+                Global.IoC.Register(() => new Inhibitor(sfx), true, true);
                 Global.IoC.Register(() => new Jungle(sfx), true, true);
-                //Global.IoC.Register(() => new Object(sfx), true, true);
 
                 Global.IoC.Register(() => new Trackers(sfx), true, true);
                 Global.IoC.Register(() => new GoldEfficiency(sfx), true, true);

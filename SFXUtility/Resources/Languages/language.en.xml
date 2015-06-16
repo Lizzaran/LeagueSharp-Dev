@@ -269,6 +269,18 @@
 	<entry key="F_Jungle">Jungle</entry>
 	<!-- END: Jungle -->
 
+	<!-- START: Altar -->
+	<entry key="F_Altar">Altar</entry>
+	<!-- END: Altar -->
+
+	<!-- START: Relic -->
+	<entry key="F_Relic">Relic</entry>
+	<!-- END: Relic -->
+
+	<!-- START: Inhibitor -->
+	<entry key="F_Inhibitor">Inhibitor</entry>
+	<!-- END: Inhibitor -->
+
 	<!-- START: Destination -->
 	<entry key="F_Destination">Destination</entry>
 	<!-- END: Destination -->

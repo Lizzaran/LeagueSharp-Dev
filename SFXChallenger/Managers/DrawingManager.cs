@@ -42,7 +42,7 @@ namespace SFXChallenger.Managers
         private static IChampion _champion;
         private static bool _seperator;
         private static readonly Dictionary<string, float> Customs = new Dictionary<string, float>();
-        private static readonly Dictionary<string, object> Others = new Dictionary<string, object>();
+        private static readonly Dictionary<string, MenuItem> Others = new Dictionary<string, MenuItem>();
 
         public static void AddToMenu(Menu menu, IChampion champion)
         {
@@ -108,10 +108,10 @@ namespace SFXChallenger.Managers
                 {
                     throw new ArgumentException(string.Format("DrawingManager: Name \"{0}\" already exist.", name));
                 }
-                var item = new MenuItem(_menu.Name + "." + key, name).SetValue(new Circle(false, Color.White));
+                var item = new MenuItem(_menu.Name + "." + key, name).SetValue(value);
                 _menu.AddItem(item);
 
-                Others[key] = value;
+                Others[key] = item;
 
                 return item;
             }
@@ -122,15 +122,15 @@ namespace SFXChallenger.Managers
             return null;
         }
 
-        public static T Get<T>(string name)
+        public static MenuItem Get(string name)
         {
             var key = name.Trim().ToLower();
-            object value;
+            MenuItem value;
             if (!Others.TryGetValue(key, out value))
             {
                 throw new ArgumentException(string.Format("DrawingManager: Name \"{0}\" not found.", name));
             }
-            return value is T ? (T) value : default(T);
+            return value;
         }
 
         public static void Update(string name, float range)

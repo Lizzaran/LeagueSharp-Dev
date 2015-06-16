@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- jungle.cs is part of SFXUtility.
+ Relic.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@ using SFXLibrary.Extensions.NET;
 using SFXLibrary.Extensions.SharpDX;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
+using SFXUtility.Data;
 using SharpDX;
 using SharpDX.Direct3D9;
 
@@ -38,26 +39,22 @@ using SharpDX.Direct3D9;
 
 namespace SFXUtility.Features.Timers
 {
-    internal class Jungle : Child<Timers>
+    internal class Relic : Child<Timers>
     {
-        private const float CheckInterval = 800f;
-        private List<Camp> _camps;
-        private int _dragonStacks;
-        private float _lastCheck;
         private Font _mapText;
         private Font _minimapText;
-        public Jungle(SFXUtility sfx) : base(sfx) {}
+        private List<RelicObj> _relicObjs;
+        public Relic(SFXUtility sfx) : base(sfx) {}
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_Jungle"); }
+            get { return Global.Lang.Get("F_Relic"); }
         }
 
         protected override void OnEnable()
         {
             GameObject.OnCreate += OnGameObjectCreate;
             GameObject.OnDelete += OnGameObjectDelete;
-            Game.OnUpdate += OnGameUpdate;
             Drawing.OnEndScene += OnDrawingEndScene;
 
             base.OnEnable();
@@ -67,7 +64,6 @@ namespace SFXUtility.Features.Timers
         {
             GameObject.OnCreate -= OnGameObjectCreate;
             GameObject.OnDelete -= OnGameObjectDelete;
-            Game.OnUpdate -= OnGameUpdate;
             Drawing.OnEndScene -= OnDrawingEndScene;
 
             base.OnDisable();
@@ -77,26 +73,15 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
-                if (!sender.IsValid || sender.Type != GameObjectType.obj_AI_Minion ||
-                    sender.Team != GameObjectTeam.Neutral)
+                if (!sender.IsValid)
                 {
                     return;
                 }
 
-                foreach (var camp in _camps)
+                foreach (var relic in _relicObjs.Where(h => !h.Picked && h.Position.Distance(sender.Position) < 300f))
                 {
-                    var mob =
-                        camp.Mobs.FirstOrDefault(m => m.Name.Contains(sender.Name, StringComparison.OrdinalIgnoreCase));
-                    if (mob != null)
-                    {
-                        mob.Dead = true;
-                        camp.Dead = camp.Mobs.All(m => m.Dead);
-                        if (camp.Dead)
-                        {
-                            camp.Dead = true;
-                            camp.NextRespawnTime = (int) Game.Time + camp.RespawnTime - 3;
-                        }
-                    }
+                    relic.Picked = true;
+                    relic.NextRespawnTime = (int) Game.Time + relic.RespawnTime;
                 }
             }
             catch (Exception ex)
@@ -109,76 +94,19 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
-                if (!sender.IsValid || sender.Type != GameObjectType.obj_AI_Minion ||
-                    sender.Team != GameObjectTeam.Neutral)
+                if (!sender.IsValid)
                 {
                     return;
                 }
 
-                foreach (var camp in _camps)
+                foreach (var relic in _relicObjs.Where(h => h.Picked && h.Position.Distance(sender.Position) < 300f))
                 {
-                    var mob =
-                        camp.Mobs.FirstOrDefault(m => m.Name.Contains(sender.Name, StringComparison.OrdinalIgnoreCase));
-                    if (mob != null)
-                    {
-                        mob.Dead = false;
-                        camp.Dead = false;
-                    }
+                    relic.Picked = false;
                 }
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnGameUpdate(EventArgs args)
-        {
-            if (_lastCheck + CheckInterval > Environment.TickCount)
-            {
-                return;
-            }
-
-            _lastCheck = Environment.TickCount;
-
-
-            var dragonStacks = 0;
-            foreach (var enemy in HeroManager.Enemies)
-            {
-                var buff =
-                    enemy.Buffs.FirstOrDefault(
-                        b => b.Name.Equals("s5test_dragonslayerbuff", StringComparison.OrdinalIgnoreCase));
-                if (buff != null && buff.Count > dragonStacks)
-                {
-                    dragonStacks = buff.Count;
-                }
-            }
-            if (dragonStacks > _dragonStacks)
-            {
-                var dCamp = _camps.FirstOrDefault(c => c.Mobs.Any(m => m.Name.Contains("Dragon")));
-                if (dCamp != null && !dCamp.Dead)
-                {
-                    dCamp.Dead = true;
-                    dCamp.NextRespawnTime = (int) Game.Time + dCamp.RespawnTime;
-                }
-            }
-            _dragonStacks = dragonStacks;
-
-            var bCamp = _camps.FirstOrDefault(c => c.Mobs.Any(m => m.Name.Contains("Baron")));
-            if (bCamp != null && !bCamp.Dead)
-            {
-                var heroes = HeroManager.Enemies.Where(e => e.IsVisible);
-                foreach (var hero in heroes)
-                {
-                    var buff =
-                        hero.Buffs.FirstOrDefault(
-                            b => b.Name.Equals("exaltedwithbaronnashor", StringComparison.OrdinalIgnoreCase));
-                    if (buff != null)
-                    {
-                        bCamp.Dead = true;
-                        bCamp.NextRespawnTime = (int) buff.StartTime + bCamp.RespawnTime;
-                    }
-                }
             }
         }
 
@@ -202,25 +130,25 @@ namespace SFXUtility.Features.Timers
                     return;
                 }
 
-                foreach (var camp in _camps.Where(c => c.Dead))
+                foreach (var relic in _relicObjs.Where(h => h.Picked))
                 {
-                    if (camp.NextRespawnTime - Game.Time <= 0)
+                    if (relic.NextRespawnTime - Game.Time <= 0)
                     {
-                        camp.Dead = false;
+                        relic.Picked = false;
                         continue;
                     }
 
-                    if (mapEnabled && camp.Position.IsOnScreen())
+                    if (mapEnabled && relic.Position.IsOnScreen())
                     {
                         _mapText.DrawTextCentered(
-                            (camp.NextRespawnTime - (int) Game.Time).FormatTime(mapTotalSeconds),
-                            Drawing.WorldToScreen(camp.Position), Color.White);
+                            (relic.NextRespawnTime - (int) Game.Time).FormatTime(mapTotalSeconds),
+                            Drawing.WorldToScreen(relic.Position), Color.White, true);
                     }
                     if (minimapEnabled)
                     {
                         _minimapText.DrawTextCentered(
-                            (camp.NextRespawnTime - (int) Game.Time).FormatTime(minimapTotalSeconds),
-                            camp.MinimapPosition, Color.White);
+                            (relic.NextRespawnTime - (int) Game.Time).FormatTime(minimapTotalSeconds),
+                            relic.MinimapPosition, Color.White);
                     }
                 }
             }
@@ -274,14 +202,13 @@ namespace SFXUtility.Features.Timers
 
         protected override void OnInitialize()
         {
-            _camps = new List<Camp>();
-            _lastCheck = Environment.TickCount;
+            _relicObjs = new List<RelicObj>();
 
-            _camps.AddRange(
-                Data.Jungle.Camps.Where(c => c.MapType == Utility.Map.GetMap().Type)
-                    .Select(c => new Camp(c.SpawnTime, c.RespawnTime, c.Position, c.Mobs, c.IsBig, c.MapType, c.Team)));
+            _relicObjs.AddRange(
+                Relics.Objects.Where(c => c.MapType == Utility.Map.GetMap().Type)
+                    .Select(c => new RelicObj(c.SpawnTime, c.RespawnTime, c.Position, c.ObjectName, c.MapType)));
 
-            if (!_camps.Any())
+            if (!_relicObjs.Any())
             {
                 OnUnload(null, new UnloadEventArgs(true));
                 return;
@@ -293,34 +220,20 @@ namespace SFXUtility.Features.Timers
             base.OnInitialize();
         }
 
-        private class Camp : Data.Jungle.Camp
+        private class RelicObj : Relics.RelicObject
         {
-            public Camp(float spawnTime,
+            public RelicObj(float spawnTime,
                 float respawnTime,
                 Vector3 position,
-                List<Data.Jungle.Mob> mobs,
-                bool isBig,
+                string objectName,
                 Utility.Map.MapType mapType,
-                GameObjectTeam team,
-                bool dead = false) : base(spawnTime, respawnTime, position, mobs, isBig, mapType, team)
+                bool picked = false) : base(spawnTime, respawnTime, position, objectName, mapType)
             {
-                Dead = dead;
-                Mobs = mobs.Select(mob => new Mob(mob.Name)).ToList();
+                Picked = picked;
             }
 
-            public new List<Mob> Mobs { get; private set; }
             public float NextRespawnTime { get; set; }
-            public bool Dead { get; set; }
-        }
-
-        private class Mob : Data.Jungle.Mob
-        {
-            public Mob(string name, bool dead = false) : base(name)
-            {
-                Dead = dead;
-            }
-
-            public bool Dead { get; set; }
+            public bool Picked { get; set; }
         }
     }
 }

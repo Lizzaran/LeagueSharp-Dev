@@ -23,7 +23,7 @@
     <AssemblyVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyVersionSettings>
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
-    <AssemblyVersion>0.8.2.5</AssemblyVersion>
+    <AssemblyVersion>0.8.2.8</AssemblyVersion>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -99,6 +99,7 @@
     <Compile Include="Classes\ImageLoader.cs" />
     <Compile Include="Classes\MDrawing.cs" />
     <Compile Include="Classes\Parent.cs" />
+    <Compile Include="Data\Relics.cs" />
     <Compile Include="Data\Items.cs" />
     <Compile Include="Data\Jungle.cs" />
     <Compile Include="Classes\Spectator.cs" />
@@ -131,6 +132,9 @@
     <Compile Include="Features\Others\Ping.cs" />
     <Compile Include="Features\Others\SkinChanger.cs" />
     <Compile Include="Features\Others\TurnAround.cs" />
+    <Compile Include="Features\Timers\Altar.cs" />
+    <Compile Include="Features\Timers\Relic.cs" />
+    <Compile Include="Features\Timers\Inhibitor.cs" />
     <Compile Include="Features\Trackers\GoldEfficiency.cs" />
     <Compile Include="Features\Trackers\Sidebar.cs" />
     <Compile Include="Features\Trackers\Sidebar2.cs" />
@@ -142,7 +146,6 @@
     <Compile Include="Features\Timers\Ability.cs" />
     <Compile Include="Features\Timers\Jungle.cs" />
     <Compile Include="Features\Drawings\LasthitMarker.cs" />
-    <Compile Include="Features\Timers\Object.cs" />
     <Compile Include="Features\Drawings\Range.cs" />
     <Compile Include="Features\Timers\Timers.cs" />
     <Compile Include="Features\Trackers\Trackers.cs" />
