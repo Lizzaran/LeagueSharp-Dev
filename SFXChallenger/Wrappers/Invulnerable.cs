@@ -36,33 +36,36 @@ namespace SFXChallenger.Wrappers
     internal static class Invulnerable
     {
         // ReSharper disable StringLiteralTypo
-        private static readonly List<InvulnerableStruct> Invulnerables = new List<InvulnerableStruct>
+        private static readonly HashSet<InvulnerableStruct> Invulnerables = new HashSet<InvulnerableStruct>
         {
             new InvulnerableStruct(
-                "FerociousHowl", null, false,
+                "Alistar", "FerociousHowl", null, false,
                 (target, type) =>
                     ObjectManager.Player.CountEnemiesInRange(Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)) >
                     1),
-            new InvulnerableStruct("UndyingRage", null, false, (target, type) => target.HealthPercent < 5),
-            new InvulnerableStruct("JudicatorIntervention", null, false),
-            new InvulnerableStruct("BlackShield", LeagueSharp.Common.TargetSelector.DamageType.Magical, true),
-            new InvulnerableStruct("BansheesVeil", LeagueSharp.Common.TargetSelector.DamageType.Magical, true),
-            new InvulnerableStruct("SivirShield", LeagueSharp.Common.TargetSelector.DamageType.Magical, true),
-            new InvulnerableStruct("ShroudofDarkness", LeagueSharp.Common.TargetSelector.DamageType.Magical, true)
+            new InvulnerableStruct("Tryndamere", "UndyingRage", null, false, (target, type) => target.HealthPercent < 5),
+            new InvulnerableStruct("Kayle", "JudicatorIntervention", null, false),
+            new InvulnerableStruct(null, "BlackShield", LeagueSharp.Common.TargetSelector.DamageType.Magical, true),
+            new InvulnerableStruct(null, "BansheesVeil", LeagueSharp.Common.TargetSelector.DamageType.Magical, true),
+            new InvulnerableStruct("Sivir", "SivirShield", LeagueSharp.Common.TargetSelector.DamageType.Magical, true),
+            new InvulnerableStruct(
+                "Nocturne", "ShroudofDarkness", LeagueSharp.Common.TargetSelector.DamageType.Magical, true)
         };
 
         // ReSharper restore StringLiteralTypo
-        public static bool HasBuff(Obj_AI_Base target,
+        public static bool HasBuff(Obj_AI_Hero target,
             LeagueSharp.Common.TargetSelector.DamageType damageType = LeagueSharp.Common.TargetSelector.DamageType.True,
             bool ignoreShields = true)
         {
             try
             {
-                return target.HasBuffOfType(BuffType.Invulnerability) || (from i in Invulnerables
-                    where !ignoreShields || !i.IsShield
-                    where target.HasBuff(i.BuffName)
-                    where i.DamageType == null || i.DamageType == damageType
-                    select i.CustomCheck == null || i.CustomCheck(target, damageType)).Any();
+                return target.HasBuffOfType(BuffType.Invulnerability) ||
+                       Invulnerables.Any(
+                           i =>
+                               (i.Champion == null || i.Champion == target.ChampionName) &&
+                               (!ignoreShields || !i.IsShield) && (i.DamageType == null || i.DamageType == damageType) &&
+                               target.HasBuff(i.BuffName) &&
+                               (i.CustomCheck == null || i.CustomCheck(target, damageType)));
             }
             catch (Exception ex)
             {
@@ -74,17 +77,20 @@ namespace SFXChallenger.Wrappers
 
     internal struct InvulnerableStruct
     {
-        public InvulnerableStruct(string buffName,
+        public InvulnerableStruct(string champion,
+            string buffName,
             LeagueSharp.Common.TargetSelector.DamageType? damageType,
             bool isShield,
             Func<Obj_AI_Base, LeagueSharp.Common.TargetSelector.DamageType, bool> customCheck = null) : this()
         {
+            Champion = champion;
             BuffName = buffName;
             DamageType = damageType;
             IsShield = isShield;
             CustomCheck = customCheck;
         }
 
+        public string Champion { get; set; }
         public string BuffName { get; private set; }
         public LeagueSharp.Common.TargetSelector.DamageType? DamageType { get; private set; }
         public bool IsShield { get; private set; }

@@ -383,7 +383,7 @@ namespace SFXChallenger.Wrappers
             return GetTarget(spell.Range, spell.DamageType, ignoreShields, from, ignoredChampions);
         }
 
-        private static bool IsValidTarget(Obj_AI_Base target,
+        private static bool IsValidTarget(Obj_AI_Hero target,
             float range,
             LeagueSharp.Common.TargetSelector.DamageType damageType,
             bool ignoreShields = true,
@@ -453,9 +453,9 @@ namespace SFXChallenger.Wrappers
 
                     targets = GetChampionsByMode(targets).ToList();
                     if (_menu != null && SelectedTarget != null &&
-                        SelectedTarget.IsValidTarget(
+                        (SelectedTarget.IsValidTarget(
                             _menu.Item(_menu.Name + ".force-focus-selected").GetValue<bool>() ? float.MaxValue : aRange,
-                            true, from))
+                            true, from) || targets.Any(t => t.NetworkId == SelectedTarget.NetworkId)))
                     {
                         var id = targets.FindIndex(x => x.NetworkId == SelectedTarget.NetworkId);
                         if (id > 0)
