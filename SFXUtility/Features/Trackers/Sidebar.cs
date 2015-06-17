@@ -45,11 +45,6 @@ using Font = SharpDX.Direct3D9.Font;
 
 namespace SFXUtility.Features.Trackers
 {
-
-    #region
-
-    #endregion
-
     internal class Sidebar : Child<Trackers>
     {
         private const float HudWidth = 95f;
@@ -460,8 +455,8 @@ namespace SFXUtility.Features.Trackers
                                                 "{0} {1} {2}", enemy.Unit.ChampionName, sName,
                                                 ((float)
                                                     (Math.Round(
-                                                        (spell.CooldownExpires - Game.Time) * 20f,
-                                                        MidpointRounding.AwayFromZero) / 20f)).FormatTime()));
+                                                        (spell.CooldownExpires - Game.Time) * 2f,
+                                                        MidpointRounding.AwayFromZero) / 2f)).FormatTime()));
                                     }
                                 }
                             }

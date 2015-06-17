@@ -55,7 +55,7 @@ namespace SFXChallenger.Helpers
         {
             if (Enabled)
             {
-                foreach (var unit in HeroManager.Enemies.Where(u => u.IsValidTarget() && u.IsHPBarRendered))
+                foreach (var unit in HeroManager.Enemies.Where(u => u.IsHPBarRendered && u.IsValidTarget()))
                 {
                     var damage = _damageToUnit(unit);
                     if (damage <= 0)

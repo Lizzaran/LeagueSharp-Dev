@@ -887,9 +887,7 @@ namespace SFXChallenger.Champions
 
                 if (minions.Count >= minHits)
                 {
-                    ELogic(
-                        minHits > 1 ? minions.Concat(Targets.Select(t => t as Obj_AI_Base)).ToList() : minions,
-                        HitChance.High, minHits);
+                    ELogic((minions.Concat(Targets.Cast<Obj_AI_Base>())).ToList(), HitChance.High, minHits);
                 }
             }
             if (Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady() &&

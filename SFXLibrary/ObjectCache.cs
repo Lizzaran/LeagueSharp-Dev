@@ -35,7 +35,7 @@ namespace SFXLibrary
 {
     public class ObjectCache
     {
-        private static readonly ConcurrentSet<Obj_AI_Minion> Minions = new ConcurrentSet<Obj_AI_Minion>();
+        private static readonly HashSet<Obj_AI_Minion> Minions = new HashSet<Obj_AI_Minion>();
         private static int _lastRefresh;
         private static readonly int RefreshInterval = 60 * 1000;
         private static int _lastCheck;
@@ -43,10 +43,14 @@ namespace SFXLibrary
 
         static ObjectCache()
         {
-            foreach (var minion in ObjectManager.Get<Obj_AI_Minion>().Where(m => m.IsValid && !m.IsAlly && !m.IsDead))
+            lock (Minions)
             {
-                Minions.Add(minion);
+                foreach (var minion in ObjectManager.Get<Obj_AI_Minion>().Where(m => m.IsValid && !m.IsDead))
+                {
+                    Minions.Add(minion);
+                }
             }
+
             _lastRefresh = Environment.TickCount;
             _lastCheck = Environment.TickCount;
 
@@ -58,9 +62,12 @@ namespace SFXLibrary
         private static void OnGameObjectCreate(GameObject sender, EventArgs args)
         {
             var minion = sender as Obj_AI_Minion;
-            if (minion != null && minion.IsValid && !minion.IsAlly && !Minions.Contains(minion))
+            if (minion != null && minion.IsValid && !Minions.Contains(minion))
             {
-                Minions.Add(minion);
+                lock (Minions)
+                {
+                    Minions.Add(minion);
+                }
             }
         }
 
@@ -69,7 +76,10 @@ namespace SFXLibrary
             var minion = sender as Obj_AI_Minion;
             if (minion != null && Minions.Contains(minion))
             {
-                Minions.Remove(minion);
+                lock (Minions)
+                {
+                    Minions.Remove(minion);
+                }
             }
         }
 
@@ -77,11 +87,13 @@ namespace SFXLibrary
         {
             if (_lastRefresh + RefreshInterval > Environment.TickCount)
             {
-                Minions.Clear();
-                foreach (
-                    var minion in ObjectManager.Get<Obj_AI_Minion>().Where(m => m.IsValid && !m.IsAlly && !m.IsDead))
+                lock (Minions)
                 {
-                    Minions.Add(minion);
+                    Minions.Clear();
+                    foreach (var minion in ObjectManager.Get<Obj_AI_Minion>().Where(m => m.IsValid && !m.IsDead))
+                    {
+                        Minions.Add(minion);
+                    }
                 }
                 _lastRefresh = Environment.TickCount;
                 _lastCheck = Environment.TickCount;
@@ -89,20 +101,26 @@ namespace SFXLibrary
             }
             if (_lastCheck + CheckInterval > Environment.TickCount)
             {
-                foreach (var minion in GetMinions().Where(m => m == null || !m.IsValid || m.IsDead))
+                lock (Minions)
                 {
-                    Minions.Remove(minion);
+                    foreach (var minion in GetMinions().Where(m => m == null || !m.IsValid || m.IsDead))
+                    {
+                        Minions.Remove(minion);
+                    }
                 }
                 _lastCheck = Environment.TickCount;
             }
         }
 
-        public static ConcurrentSet<Obj_AI_Minion> GetMinions()
+        public static HashSet<Obj_AI_Minion> GetMinions()
         {
-            return Minions;
+            lock (Minions)
+            {
+                return Minions;
+            }
         }
 
-        public static List<Obj_AI_Base> GetMinions(Vector3 from,
+        public static List<Obj_AI_Minion> GetMinions(Vector3 from,
             float range,
             MinionTypes type = MinionTypes.All,
             MinionTeam team = MinionTeam.Enemy,
@@ -127,7 +145,7 @@ namespace SFXLibrary
                     minion.IsMelee() && type == MinionTypes.Melee || !minion.IsMelee() && type == MinionTypes.Ranged ||
                     type == MinionTypes.All
                 where IsMinion(minion) || minionTeam == GameObjectTeam.Neutral
-                select minion).Cast<Obj_AI_Base>().ToList();
+                select minion).ToList();
 
             switch (order)
             {
@@ -142,7 +160,7 @@ namespace SFXLibrary
             return result;
         }
 
-        public static List<Obj_AI_Base> GetMinions(float range,
+        public static List<Obj_AI_Minion> GetMinions(float range,
             MinionTypes type = MinionTypes.All,
             MinionTeam team = MinionTeam.Enemy,
             MinionOrderTypes order = MinionOrderTypes.Health)

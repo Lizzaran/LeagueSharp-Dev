@@ -23,7 +23,6 @@
 #region
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
@@ -193,25 +192,16 @@ namespace SFXChallenger.Champions
                     }
                 }
                 if (!sender.IsEnemy || SoulBound.Unit == null || R.Level == 0 ||
-                    !Menu.Item(Menu.Name + ".miscellaneous.r").GetValue<bool>())
+                    !Menu.Item(Menu.Name + ".miscellaneous.r").GetValue<bool>() || R.Level == 0)
                 {
                     return;
                 }
                 if (args.Target != null && args.Target.NetworkId == SoulBound.Unit.NetworkId &&
                     (!(sender is Obj_AI_Hero) || args.SData.IsAutoAttack()))
                 {
-                    var time = SoulBound.Unit.ServerPosition.Distance(sender.ServerPosition) / args.SData.MissileSpeed +
-                               Game.Time;
-                    float val;
-                    if (SoulBound.IncomingDamage.TryGetValue(time, out val))
-                    {
-                        SoulBound.IncomingDamage.TryUpdate(
-                            time, val + (float) sender.GetAutoAttackDamage(SoulBound.Unit), val);
-                    }
-                    else
-                    {
-                        SoulBound.IncomingDamage.TryAdd(time, (float) sender.GetAutoAttackDamage(SoulBound.Unit));
-                    }
+                    SoulBound.AddIncoming(
+                        SoulBound.Unit.ServerPosition.Distance(sender.ServerPosition) / args.SData.MissileSpeed +
+                        Game.Time, (float) sender.GetAutoAttackDamage(SoulBound.Unit));
                 }
                 else
                 {
@@ -236,16 +226,7 @@ namespace SFXChallenger.Champions
                             {
                                 damage = (float) hero.GetSpellDamage(SoulBound.Unit, slot);
                             }
-                            var time = Game.Time + 2;
-                            float val;
-                            if (SoulBound.InstantDamage.TryGetValue(time, out val))
-                            {
-                                SoulBound.InstantDamage.TryUpdate(time, val + damage, val);
-                            }
-                            else
-                            {
-                                SoulBound.InstantDamage.TryAdd(time, damage);
-                            }
+                            SoulBound.AddInstant(Game.Time + 2, damage);
                         }
                     }
                 }
@@ -332,15 +313,7 @@ namespace SFXChallenger.Champions
                             R.Cast();
                         }
                     }
-                }
-                float old;
-                foreach (var entry in SoulBound.IncomingDamage.Where(entry => entry.Key < Game.Time))
-                {
-                    SoulBound.IncomingDamage.TryRemove(entry.Key, out old);
-                }
-                foreach (var entry in SoulBound.InstantDamage.Where(entry => entry.Key < Game.Time))
-                {
-                    SoulBound.InstantDamage.TryRemove(entry.Key, out old);
+                    SoulBound.Clean();
                 }
             }
             catch (Exception ex)
@@ -367,11 +340,11 @@ namespace SFXChallenger.Champions
                 {
                     if (target.Distance(Player) > Orbwalking.GetRealAutoAttackRange(target))
                     {
-                        var minions =
+                        var minion =
                             ObjectCache.GetMinions()
-                                .Where(m => m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)))
-                                .ToList();
-                        if (minions.Any(Rend.IsKillable))
+                                .FirstOrDefault(
+                                    m => m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)) && Rend.IsKillable(m));
+                        if (minion != null)
                         {
                             E.Cast();
                         }
@@ -486,7 +459,7 @@ namespace SFXChallenger.Champions
                             var kills = 0;
                             var predPos = pred.UnitPosition;
                             var rec = new Geometry.Polygon.Rectangle(
-                                input.From, input.From.Extend(predPos, input.Range), input.Range);
+                                input.From, input.From.Extend(predPos, input.Range), input.Radius);
                             foreach (var t in minions.OrderBy(m => m.Distance(Player)))
                             {
                                 var circle = new Geometry.Polygon.Circle(
@@ -580,13 +553,103 @@ namespace SFXChallenger.Champions
 
         internal class SoulBound
         {
-            public static ConcurrentDictionary<float, float> IncomingDamage = new ConcurrentDictionary<float, float>();
-            public static ConcurrentDictionary<float, float> InstantDamage = new ConcurrentDictionary<float, float>();
+            public static Dictionary<float, float> IncomingDamage = new Dictionary<float, float>();
+            public static Dictionary<float, float> InstantDamage = new Dictionary<float, float>();
             public static Obj_AI_Hero Unit { get; set; }
 
             public static float TotalDamage
             {
-                get { return IncomingDamage.Sum(e => e.Value) + InstantDamage.Sum(e => e.Value); }
+                get
+                {
+                    var sum = 0f;
+                    try
+                    {
+                        if (IncomingDamage.Count > 0)
+                        {
+                            lock (IncomingDamage)
+                            {
+                                sum += IncomingDamage.Sum(e => e.Value);
+                            }
+                        }
+                        if (InstantDamage.Count > 0)
+                        {
+                            lock (InstantDamage)
+                            {
+                                sum += InstantDamage.Sum(e => e.Value);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Global.Logger.AddItem(new LogItem(ex));
+                    }
+                    return sum;
+                }
+            }
+
+            public static void Clean()
+            {
+                try
+                {
+                    lock (IncomingDamage)
+                    {
+                        foreach (var entry in IncomingDamage.Where(entry => entry.Key < Game.Time))
+                        {
+                            IncomingDamage.Remove(entry.Key);
+                        }
+                    }
+                    lock (InstantDamage)
+                    {
+                        foreach (var entry in InstantDamage.Where(entry => entry.Key < Game.Time))
+                        {
+                            InstantDamage.Remove(entry.Key);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Global.Logger.AddItem(new LogItem(ex));
+                }
+            }
+
+            public static void AddInstant(float time, float damage)
+            {
+                try
+                {
+                    lock (InstantDamage)
+                    {
+                        float value;
+                        if (InstantDamage.TryGetValue(time, out value))
+                        {
+                            value += damage;
+                        }
+                        InstantDamage[time] = value;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Global.Logger.AddItem(new LogItem(ex));
+                }
+            }
+
+            public static void AddIncoming(float time, float damage)
+            {
+                try
+                {
+                    lock (IncomingDamage)
+                    {
+                        float value;
+                        if (IncomingDamage.TryGetValue(time, out value))
+                        {
+                            value += damage;
+                        }
+                        IncomingDamage[time] = value;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Global.Logger.AddItem(new LogItem(ex));
+                }
             }
         }
 

@@ -804,6 +804,7 @@ namespace SFXChallenger.Champions
                         .Where(e => GetPoisonBuffEndTime(e) < Q.Delay * 1.1)
                         .OrderByDescending(
                             m => m.BaseSkinName.Contains("MinionSiege", StringComparison.OrdinalIgnoreCase))
+                        .Cast<Obj_AI_Base>()
                         .ToList();
                 if (minions.Any())
                 {

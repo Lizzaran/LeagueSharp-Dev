@@ -654,10 +654,9 @@ namespace SFXChallenger.Wrappers
             private bool ShouldWait()
             {
                 return
-                    ObjectCache.GetMinions()
+                    ObjectCache.GetMinions(Player.Position, float.MaxValue)
                         .Any(
                             minion =>
-                                minion.IsValidTarget() && minion.Team != GameObjectTeam.Neutral &&
                                 InAutoAttackRange(minion) &&
                                 HealthPrediction.LaneClearHealthPrediction(
                                     minion, (int) ((_player.AttackDelay * 1000) * LaneClearWaitTimeMod), FarmDelay) <=
@@ -685,10 +684,10 @@ namespace SFXChallenger.Wrappers
                     var freezeActive = _config.Item("Freeze").GetValue<KeyBind>().Active &&
                                        (ActiveMode != OrbwalkingMode.LaneClear);
                     var minionList =
-                        ObjectCache.GetMinions()
+                        ObjectCache.GetMinions(Player.Position, float.MaxValue)
                             .Where(
                                 minion =>
-                                    minion.IsValidTarget() && InAutoAttackRange(minion) &&
+                                    InAutoAttackRange(minion) &&
                                     minion.Health <
                                     2 *
                                     (ObjectManager.Player.BaseAttackDamage + ObjectManager.Player.FlatPhysicalDamageMod))
@@ -707,7 +706,7 @@ namespace SFXChallenger.Wrappers
                             continue;
                         }
 
-                        if (minion.Team != GameObjectTeam.Neutral && MinionManager.IsMinion(minion, true))
+                        if (minion.Team != GameObjectTeam.Neutral && ObjectCache.IsMinion(minion, true))
                         {
                             if (predHealth <= 0)
                             {
@@ -768,10 +767,8 @@ namespace SFXChallenger.Wrappers
                 if (ActiveMode == OrbwalkingMode.LaneClear || ActiveMode == OrbwalkingMode.Mixed)
                 {
                     result =
-                        ObjectCache.GetMinions()
-                            .Where(
-                                mob =>
-                                    mob.IsValidTarget() && InAutoAttackRange(mob) && mob.Team == GameObjectTeam.Neutral)
+                        ObjectCache.GetMinions(Player.Position, float.MaxValue, MinionTypes.All, MinionTeam.Neutral)
+                            .Where(InAutoAttackRange)
                             .MaxOrDefault(mob => mob.MaxHealth);
                     if (result != null)
                     {
@@ -796,8 +793,7 @@ namespace SFXChallenger.Wrappers
                         }
 
                         result = (from minion in
-                            ObjectCache.GetMinions()
-                                .Where(minion => minion.IsValidTarget() && InAutoAttackRange(minion))
+                            ObjectCache.GetMinions(Player.Position, float.MaxValue).Where(InAutoAttackRange)
                             let predHealth =
                                 HealthPrediction.LaneClearHealthPrediction(
                                     minion, (int) ((_player.AttackDelay * 1000) * LaneClearWaitTimeMod), FarmDelay)

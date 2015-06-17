@@ -22,6 +22,7 @@
 
 #region
 
+using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXLibrary;
@@ -90,11 +91,12 @@ namespace SFXChallenger.Helpers
                 return;
             }
 
-            var minion = ObjectCache.GetMinions(
-                ObjectManager.Player.ServerPosition, spell.Range, MinionTypes.All, MinionTeam.NotAlly,
-                MinionOrderTypes.MaxHealth);
+            var minions =
+                ObjectCache.GetMinions(
+                    ObjectManager.Player.ServerPosition, spell.Range, MinionTypes.All, MinionTeam.NotAlly,
+                    MinionOrderTypes.MaxHealth).Cast<Obj_AI_Base>().ToList();
 
-            if (minion.Count == 0)
+            if (minions.Count == 0)
             {
                 return;
             }
@@ -103,7 +105,7 @@ namespace SFXChallenger.Helpers
             {
                 spell.UpdateSourcePosition();
 
-                var prediction = spell.GetCircularFarmLocation(minion, overrideWidth);
+                var prediction = spell.GetCircularFarmLocation(minions, overrideWidth);
                 if (prediction.MinionsHit >= minHit)
                 {
                     spell.Cast(prediction.Position);
@@ -113,7 +115,7 @@ namespace SFXChallenger.Helpers
             {
                 spell.UpdateSourcePosition();
 
-                var prediction = spell.GetLineFarmLocation(minion, overrideWidth);
+                var prediction = spell.GetLineFarmLocation(minions, overrideWidth);
                 if (prediction.MinionsHit >= minHit)
                 {
                     spell.Cast(prediction.Position);
