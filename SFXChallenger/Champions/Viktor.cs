@@ -35,6 +35,10 @@ using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
 using SharpDX;
+using MinionManager = SFXLibrary.MinionManager;
+using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
+using MinionTeam = SFXLibrary.MinionTeam;
+using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 
 #endregion
@@ -118,7 +122,7 @@ namespace SFXChallenger.Champions
 
             var autoInterruptMenu =
                 uAutoMenu.AddSubMenu(new Menu(Global.Lang.Get("G_InterruptSpell"), uAutoMenu.Name + ".interrupt"));
-            foreach (var enemy in HeroManager.Enemies)
+            foreach (var enemy in GameObjects.EnemyHeroes)
             {
                 autoInterruptMenu.AddItem(
                     new MenuItem(autoInterruptMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(true));
@@ -310,7 +314,7 @@ namespace SFXChallenger.Champions
                         }
 
                         var minions =
-                            ObjectCache.GetMinions(
+                            MinionManager.GetMinions(
                                 1000, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
                                 .Where(Orbwalking.InAutoAttackRange)
                                 .ToList();
@@ -589,7 +593,7 @@ namespace SFXChallenger.Champions
                 {
                     return false;
                 }
-                if (HeroManager.Enemies.Count(em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) == 1)
+                if (GameObjects.EnemyHeroes.Count(em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) == 1)
                 {
                     var extended = false;
                     var extendedRange = R.Range + (R.Width * 0.4f);
@@ -678,7 +682,7 @@ namespace SFXChallenger.Champions
                     Targets.Where(t => W.CanCast(t))
                         .OrderByDescending(
                             t =>
-                                HeroManager.Enemies.Count(
+                                GameObjects.EnemyHeroes.Count(
                                     e => W.WillHit(e.Position, W.GetPrediction(t, true).CastPosition)))
                         .FirstOrDefault();
                 if (ts != null)
@@ -879,7 +883,7 @@ namespace SFXChallenger.Champions
             if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady() &&
                 ManaManager.Check("lane-clear-e"))
             {
-                var minions = ObjectCache.GetMinions(
+                var minions = MinionManager.GetMinions(
                     MaxERange * 1.3f, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
                 var minHits = minions.Any(m => m.Team == GameObjectTeam.Neutral)
                     ? 1
@@ -887,14 +891,14 @@ namespace SFXChallenger.Champions
 
                 if (minions.Count >= minHits)
                 {
-                    ELogic((minions.Concat(Targets.Cast<Obj_AI_Base>())).ToList(), HitChance.High, minHits);
+                    ELogic((minions.Concat(Targets)).ToList(), HitChance.High, minHits);
                 }
             }
             if (Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady() &&
                 ManaManager.Check("lane-clear-q"))
             {
                 var minion =
-                    ObjectCache.GetMinions(Q.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
+                    MinionManager.GetMinions(Q.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
                         .FirstOrDefault(m => m.Health < Q.GetDamage(m) || m.Health * 2 > Q.GetDamage(m));
                 if (minion != null)
                 {
@@ -908,7 +912,7 @@ namespace SFXChallenger.Champions
             if (Menu.Item(Menu.Name + ".flee.w").GetValue<bool>() && W.IsReady())
             {
                 var near =
-                    HeroManager.Enemies.Where(e => W.CanCast(e))
+                    GameObjects.EnemyHeroes.Where(e => W.CanCast(e))
                         .OrderBy(e => e.Distance(Player.Position))
                         .FirstOrDefault();
                 if (near != null)
@@ -919,7 +923,7 @@ namespace SFXChallenger.Champions
             if (Menu.Item(Menu.Name + ".flee.q-upgraded").GetValue<bool>() && Q.IsReady() && IsSpellUpgraded(Q))
             {
                 var near =
-                    HeroManager.Enemies.Where(e => Q.CanCast(e))
+                    GameObjects.EnemyHeroes.Where(e => Q.CanCast(e))
                         .OrderBy(e => e.Distance(Player.Position))
                         .FirstOrDefault();
                 if (near != null)

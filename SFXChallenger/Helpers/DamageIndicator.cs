@@ -26,6 +26,7 @@ using System;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SharpDX;
 using Color = System.Drawing.Color;
@@ -55,7 +56,7 @@ namespace SFXChallenger.Helpers
         {
             if (Enabled)
             {
-                foreach (var unit in HeroManager.Enemies.Where(u => u.IsHPBarRendered && u.IsValidTarget()))
+                foreach (var unit in GameObjects.EnemyHeroes.Where(u => u.IsHPBarRendered && u.IsValidTarget()))
                 {
                     var damage = _damageToUnit(unit);
                     if (damage <= 0)

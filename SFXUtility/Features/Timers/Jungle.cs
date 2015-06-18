@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- jungle.cs is part of SFXUtility.
+ Jungle.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Extensions.SharpDX;
 using SFXLibrary.Logger;
@@ -143,7 +144,7 @@ namespace SFXUtility.Features.Timers
 
 
             var dragonStacks = 0;
-            foreach (var enemy in HeroManager.Enemies)
+            foreach (var enemy in GameObjects.EnemyHeroes)
             {
                 var buff =
                     enemy.Buffs.FirstOrDefault(
@@ -167,7 +168,7 @@ namespace SFXUtility.Features.Timers
             var bCamp = _camps.FirstOrDefault(c => c.Mobs.Any(m => m.Name.Contains("Baron")));
             if (bCamp != null && !bCamp.Dead)
             {
-                var heroes = HeroManager.Enemies.Where(e => e.IsVisible);
+                var heroes = GameObjects.EnemyHeroes.Where(e => e.IsVisible);
                 foreach (var hero in heroes)
                 {
                     var buff =

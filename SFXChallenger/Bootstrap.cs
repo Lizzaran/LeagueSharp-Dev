@@ -68,6 +68,8 @@ namespace SFXChallenger
 
                 SetupLanguage();
 
+                GameObjects.Initialize();
+
                 CustomEvents.Game.OnGameLoad += delegate
                 {
                     try

@@ -28,6 +28,7 @@ using System.Drawing;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Extensions.SharpDX;
 using SFXLibrary.Logger;
@@ -50,8 +51,10 @@ namespace SFXUtility.Features.Timers
         private Texture _hudSelfTexture;
         private Texture _hudTexture;
         private Line _line;
+        private Dictionary<int, List<SpellDataInst>> _spellDatas;
         private SpellSlot[] _spellSlots;
         private Sprite _sprite;
+        private Dictionary<int, List<SpellDataInst>> _summonerDatas;
         private SpellSlot[] _summonerSlots;
         private Dictionary<string, Texture> _summonerTextures;
         private Dictionary<int, float> _teleports;
@@ -133,8 +136,9 @@ namespace SFXUtility.Features.Timers
                     var ally = Menu.Item(Name + "DrawingAlly").GetValue<bool>();
                     var enemy = args.GetNewValue<bool>();
                     _heroes = ally && enemy
-                        ? HeroManager.AllHeroes
-                        : (ally ? HeroManager.Allies : (enemy ? HeroManager.Enemies : new List<Obj_AI_Hero>()));
+                        ? GameObjects.Heroes.ToList()
+                        : (ally ? GameObjects.AllyHeroes : (enemy ? GameObjects.EnemyHeroes : new List<Obj_AI_Hero>()))
+                            .ToList();
                     if (Menu.Item(Name + "DrawingSelf").GetValue<bool>())
                     {
                         if (_heroes.All(h => h.NetworkId != ObjectManager.Player.NetworkId))
@@ -157,8 +161,9 @@ namespace SFXUtility.Features.Timers
                     var ally = args.GetNewValue<bool>();
                     var enemy = Menu.Item(Name + "DrawingEnemy").GetValue<bool>();
                     _heroes = ally && enemy
-                        ? HeroManager.AllHeroes
-                        : (ally ? HeroManager.Allies : (enemy ? HeroManager.Enemies : new List<Obj_AI_Hero>()));
+                        ? GameObjects.Heroes.ToList()
+                        : (ally ? GameObjects.AllyHeroes : (enemy ? GameObjects.EnemyHeroes : new List<Obj_AI_Hero>()))
+                            .ToList();
                     if (Menu.Item(Name + "DrawingSelf").GetValue<bool>() &&
                         _heroes.All(h => h.NetworkId != ObjectManager.Player.NetworkId))
                     {
@@ -186,8 +191,9 @@ namespace SFXUtility.Features.Timers
                     var ally = Menu.Item(Name + "DrawingAlly").GetValue<bool>();
                     var enemy = Menu.Item(Name + "DrawingEnemy").GetValue<bool>();
                     _heroes = ally && enemy
-                        ? HeroManager.AllHeroes
-                        : (ally ? HeroManager.Allies : (enemy ? HeroManager.Enemies : new List<Obj_AI_Hero>()));
+                        ? GameObjects.Heroes.ToList()
+                        : (ally ? GameObjects.AllyHeroes : (enemy ? GameObjects.EnemyHeroes : new List<Obj_AI_Hero>()))
+                            .ToList();
                     if (args.GetNewValue<bool>())
                     {
                         if (_heroes.All(h => h.NetworkId != ObjectManager.Player.NetworkId))
@@ -216,7 +222,8 @@ namespace SFXUtility.Features.Timers
             _summonerTextures = new Dictionary<string, Texture>();
             _teleports = new Dictionary<int, float>();
             _heroes = new List<Obj_AI_Hero>();
-
+            _spellDatas = new Dictionary<int, List<SpellDataInst>>();
+            _summonerDatas = new Dictionary<int, List<SpellDataInst>>();
 
             if (Global.IoC.IsRegistered<Teleport>())
             {
@@ -224,8 +231,14 @@ namespace SFXUtility.Features.Timers
                 rt.OnFinish += TeleportFinish;
             }
 
+            foreach (var enemy in GameObjects.Heroes)
+            {
+                _spellDatas.Add(enemy.NetworkId, _spellSlots.Select(slot => enemy.GetSpell(slot)).ToList());
+                _summonerDatas.Add(enemy.NetworkId, _summonerSlots.Select(slot => enemy.GetSpell(slot)).ToList());
+            }
+
             foreach (var sName in
-                HeroManager.AllHeroes.SelectMany(
+                GameObjects.Heroes.SelectMany(
                     h =>
                         _summonerSlots.Select(summoner => h.Spellbook.GetSpell(summoner).Name.ToLower())
                             .Where(sName => !_summonerTextures.ContainsKey(FixSummonerName(sName)))))
@@ -243,10 +256,12 @@ namespace SFXUtility.Features.Timers
 
             _heroes = Menu.Item(Name + "DrawingAlly").GetValue<bool>() &&
                       Menu.Item(Name + "DrawingEnemy").GetValue<bool>()
-                ? HeroManager.AllHeroes
+                ? GameObjects.Heroes.ToList()
                 : (Menu.Item(Name + "DrawingAlly").GetValue<bool>()
-                    ? HeroManager.Allies
-                    : (Menu.Item(Name + "DrawingEnemy").GetValue<bool>() ? HeroManager.Enemies : new List<Obj_AI_Hero>()));
+                    ? GameObjects.AllyHeroes
+                    : (Menu.Item(Name + "DrawingEnemy").GetValue<bool>()
+                        ? GameObjects.EnemyHeroes
+                        : new List<Obj_AI_Hero>())).ToList();
 
             if (!Menu.Item(Name + "DrawingSelf").GetValue<bool>())
             {
@@ -293,10 +308,10 @@ namespace SFXUtility.Features.Timers
                         var y = (int) hero.HPBarPosition.Y + (hero.IsEnemy ? 17 : (hero.IsMe ? 6 : 14));
 
                         _sprite.Begin(SpriteFlags.AlphaBlend);
-
-                        for (var i = 0; i < _summonerSlots.Length; i++)
+                        var summonerData = _summonerDatas[hero.NetworkId];
+                        for (var i = 0; i < summonerData.Count; i++)
                         {
-                            var spell = hero.Spellbook.GetSpell(_summonerSlots[i]);
+                            var spell = summonerData[i];
                             if (spell != null)
                             {
                                 var teleportCd = 0f;
@@ -337,19 +352,20 @@ namespace SFXUtility.Features.Timers
                         var y2 = y + 21;
 
                         _line.Begin();
-                        foreach (var slot in _spellSlots)
+                        var spellData = _spellDatas[hero.NetworkId];
+                        foreach (var spell in spellData)
                         {
-                            var spell = hero.Spellbook.GetSpell(slot);
                             if (spell != null)
                             {
+                                var spell1 = spell;
                                 var manual = hero.IsAlly
                                     ? _manualAllySpells.FirstOrDefault(
                                         m =>
-                                            m.Slot.Equals(slot) &&
+                                            m.Slot.Equals(spell.Slot) &&
                                             m.Champ.Equals(hero.ChampionName, StringComparison.OrdinalIgnoreCase))
                                     : _manualEnemySpells.FirstOrDefault(
                                         m =>
-                                            m.Slot.Equals(slot) &&
+                                            m.Slot.Equals(spell1.Slot) &&
                                             m.Champ.Equals(hero.ChampionName, StringComparison.OrdinalIgnoreCase));
                                 var t = (manual != null ? manual.CooldownExpires : spell.CooldownExpires) - Game.Time;
                                 var spellCooldown = manual != null ? manual.Cooldown : spell.Cooldown;
@@ -359,10 +375,11 @@ namespace SFXUtility.Features.Timers
                                 if (t > 0 && t < 100)
                                 {
                                     _text.DrawTextCentered(
-                                        t.FormatTime(totalSeconds), x2 + 23 / 2, y2 + 13,
+                                        t.FormatTime(totalSeconds), x2 + 27 / 2, y2 + 13,
                                         new ColorBGRA(255, 255, 255, 255));
                                 }
-                                if (hero.Spellbook.CanUseSpell(slot) != SpellState.NotLearned)
+
+                                if (spell.Level > 0)
                                 {
                                     _line.Draw(
                                         new[] { new Vector2(x2, y2), new Vector2(x2 + percent * 23, y2) },

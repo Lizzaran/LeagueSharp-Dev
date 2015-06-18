@@ -123,11 +123,8 @@ namespace SFXLibrary.Extensions.SharpDX
             var nearest = float.MaxValue;
             Obj_AI_Minion sMinion = null;
             foreach (var minion in
-                ObjectCache.GetMinions()
-                    .Where(
-                        minion =>
-                            minion != null && minion.IsValid &&
-                            names.Any(name => minion.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase))))
+                GameObjects.Jungle.Where(
+                    minion => names.Any(name => minion.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase))))
             {
                 var distance = Vector3.Distance(position, minion.ServerPosition);
                 if (nearest > distance || nearest.Equals(float.MaxValue))
@@ -141,8 +138,7 @@ namespace SFXLibrary.Extensions.SharpDX
 
         public static Obj_AI_Minion GetMinionFastByNames(this Vector3 position, float range, string[] names)
         {
-            return
-                ObjectCache.GetMinions().FirstOrDefault(m => names.Any(n => m.Name.Equals(n)) && m.IsValidTarget(range));
+            return GameObjects.Jungle.FirstOrDefault(m => names.Any(n => m.Name.Equals(n)) && m.IsValidTarget(range));
         }
 
         public static Obj_AI_Minion GetNearestMinionByNames(this Vector2 position, string[] names)

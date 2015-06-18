@@ -22,6 +22,7 @@
 
 #region
 
+using System.Collections.Generic;
 using SharpDX;
 using SharpDX.Direct3D9;
 
@@ -31,30 +32,45 @@ namespace SFXLibrary.Extensions.SharpDX
 {
     public static class FontExtension
     {
+        private static readonly Dictionary<string, Rectangle> Measured = new Dictionary<string, Rectangle>();
+
+        private static Rectangle GetMeasured(Font font, string text)
+        {
+            Rectangle rec;
+            var key = font.Description.FaceName + font.Description.Width + font.Description.Height +
+                      font.Description.Weight + text;
+            if (!Measured.TryGetValue(key, out rec))
+            {
+                rec = font.MeasureText(null, text, FontDrawFlags.Center);
+                Measured.Add(key, rec);
+            }
+            return rec;
+        }
+
         public static void DrawTextCentered(this Font font,
             string text,
             Vector2 position,
             Color color,
             bool outline = false)
         {
-            var measure = font.MeasureText(null, text, FontDrawFlags.Center);
+            var measure = GetMeasured(font, text);
             if (outline)
             {
                 font.DrawText(
-                    null, text, (int) (position.X + 1 - measure.Width / 2f),
-                    (int) (position.Y + 1 - measure.Height / 2f), Color.Black);
+                    null, text, (int) (position.X + 1 - measure.Width * 0.5f),
+                    (int) (position.Y + 1 - measure.Height * 0.5f), Color.Black);
                 font.DrawText(
-                    null, text, (int) (position.X - 1 - measure.Width / 2f),
-                    (int) (position.Y - 1 - measure.Height / 2f), Color.Black);
+                    null, text, (int) (position.X - 1 - measure.Width * 0.5f),
+                    (int) (position.Y - 1 - measure.Height * 0.5f), Color.Black);
                 font.DrawText(
-                    null, text, (int) (position.X + 1 - measure.Width / 2f), (int) (position.Y - measure.Height / 2f),
-                    Color.Black);
+                    null, text, (int) (position.X + 1 - measure.Width * 0.5f),
+                    (int) (position.Y - measure.Height * 0.5f), Color.Black);
                 font.DrawText(
-                    null, text, (int) (position.X - 1 - measure.Width / 2f), (int) (position.Y - measure.Height / 2f),
-                    Color.Black);
+                    null, text, (int) (position.X - 1 - measure.Width * 0.5f),
+                    (int) (position.Y - measure.Height * 0.5f), Color.Black);
             }
             font.DrawText(
-                null, text, (int) (position.X - measure.Width / 2f), (int) (position.Y - measure.Height / 2f), color);
+                null, text, (int) (position.X - measure.Width * 0.5f), (int) (position.Y - measure.Height * 0.5f), color);
         }
 
         public static void DrawTextCentered(this Font font, string text, int x, int y, Color color)
@@ -64,9 +80,9 @@ namespace SFXLibrary.Extensions.SharpDX
 
         public static void DrawTextLeft(this Font font, string text, Vector2 position, Color color)
         {
+            var measure = GetMeasured(font, text);
             font.DrawText(
-                null, text, (int) (position.X - font.MeasureText(null, text, FontDrawFlags.Center).Width),
-                (int) (position.Y - font.MeasureText(null, text, FontDrawFlags.Center).Height / 2f), color);
+                null, text, (int) (position.X - measure.Width), (int) (position.Y - measure.Height * 0.5f), color);
         }
 
         public static void DrawTextLeft(this Font font, string text, int x, int y, Color color)
@@ -76,9 +92,9 @@ namespace SFXLibrary.Extensions.SharpDX
 
         public static void DrawTextRight(this Font font, string text, Vector2 position, Color color)
         {
+            var measure = GetMeasured(font, text);
             font.DrawText(
-                null, text, (int) (position.X + font.MeasureText(null, text, FontDrawFlags.Center).Width),
-                (int) (position.Y - font.MeasureText(null, text, FontDrawFlags.Center).Height / 2f), color);
+                null, text, (int) (position.X + measure.Width), (int) (position.Y - measure.Height * 0.5f), color);
         }
 
         public static void DrawTextRight(this Font font, string text, int x, int y, Color color)

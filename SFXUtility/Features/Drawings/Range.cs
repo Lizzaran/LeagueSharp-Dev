@@ -27,6 +27,7 @@ using System.Drawing;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary;
 using SFXLibrary.Extensions.SharpDX;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
@@ -37,8 +38,8 @@ namespace SFXUtility.Features.Drawings
 {
     internal class Range : Child<Drawings>
     {
-        private const float ExperienceRange = 1400f;
-        private const float TurretRange = 900f;
+        private const float ExperienceRange = 1350f;
+        private const float TurretRange = 875f;
         public Range(SFXUtility sfx) : base(sfx) {}
 
         public override string Name
@@ -65,7 +66,7 @@ namespace SFXUtility.Features.Drawings
                 var selfColor = Menu.Item(Name + "AttackColorSelf").GetValue<Color>();
 
                 foreach (var hero in
-                    HeroManager.AllHeroes.Where(hero => !hero.IsDead && hero.IsVisible)
+                    GameObjects.Heroes.Where(hero => !hero.IsDead && hero.IsVisible)
                         .Where(
                             hero =>
                                 (hero.IsAlly && drawAlly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) &&
@@ -105,7 +106,7 @@ namespace SFXUtility.Features.Drawings
                 var selfColor = Menu.Item(Name + "ExperienceColorSelf").GetValue<Color>();
 
                 foreach (var hero in
-                    HeroManager.AllHeroes.Where(hero => !hero.IsDead && hero.IsVisible)
+                    GameObjects.Heroes.Where(hero => !hero.IsDead && hero.IsVisible)
                         .Where(
                             hero =>
                                 (hero.IsAlly && drawAlly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) &&
@@ -153,7 +154,7 @@ namespace SFXUtility.Features.Drawings
 
                 var spellMaxRange = Menu.Item(Name + "SpellMaxRange").GetValue<Slider>().Value;
 
-                foreach (var hero in HeroManager.AllHeroes.Where(hero => !hero.IsDead && hero.IsVisible))
+                foreach (var hero in GameObjects.Heroes.Where(hero => !hero.IsDead && hero.IsVisible))
                 {
                     if ((hero.IsAlly && drawAllyQ || hero.IsEnemy && drawEnemyQ || hero.IsMe && drawSelfQ) &&
                         !(hero.IsMe && !drawSelfQ))
@@ -232,11 +233,10 @@ namespace SFXUtility.Features.Drawings
                 var enemyColor = Menu.Item(Name + "TurretColorEnemy").GetValue<Color>();
 
                 foreach (var turret in
-                    ObjectManager.Get<Obj_AI_Turret>()
-                        .Where(
-                            t =>
-                                t.IsValid && !t.IsDead && t.Health > 1f && t.IsVisible &&
-                                (t.IsAlly && drawAlly || t.IsEnemy && drawEnemy) && t.Position.IsOnScreen(TurretRange)))
+                    GameObjects.Turrets.Where(
+                        t =>
+                            t.IsValid && !t.IsDead && t.Health > 1f && t.IsVisible &&
+                            (t.IsAlly && drawAlly || t.IsEnemy && drawEnemy) && t.Position.IsOnScreen(TurretRange)))
                 {
                     Render.Circle.DrawCircle(
                         turret.Position, TurretRange, turret.IsAlly ? allyColor : enemyColor, thickness);

@@ -27,6 +27,7 @@ using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Wrappers;
+using SFXLibrary;
 using SFXLibrary.Logger;
 
 #endregion
@@ -72,7 +73,7 @@ namespace SFXChallenger.Managers
                 }
 
                 foreach (var enemy in
-                    HeroManager.Enemies.Where(
+                    GameObjects.EnemyHeroes.Where(
                         e => e.Distance(ObjectManager.Player) <= MaxRange && !Invulnerable.HasBuff(e)))
                 {
                     var itemDamage = items ? ItemManager.CalculateComboDamage(enemy) - 20 : 0;

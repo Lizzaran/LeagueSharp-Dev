@@ -30,6 +30,7 @@ using LeagueSharp.Common;
 using LeagueSharp.Common.Data;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Wrappers;
+using SFXLibrary;
 using SFXLibrary.Logger;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 
@@ -372,7 +373,7 @@ namespace SFXChallenger.Managers
                     {
                         var localItem = item;
                         foreach (var enemy in
-                            HeroManager.Enemies.OrderByDescending(
+                            GameObjects.EnemyHeroes.OrderByDescending(
                                 e =>
                                     !Invulnerable.HasBuff(e) &&
                                     e.Position.Distance(ObjectManager.Player.Position, true) <

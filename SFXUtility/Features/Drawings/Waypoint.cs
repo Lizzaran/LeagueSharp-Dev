@@ -75,7 +75,7 @@ namespace SFXUtility.Features.Drawings
                 _lastCheck = Environment.TickCount;
 
                 foreach (var hero in
-                    HeroManager.AllHeroes.Where(
+                    GameObjects.Heroes.Where(
                         hero =>
                             Menu.Item(Name + "DrawAlly").GetValue<bool>() && hero.IsAlly ||
                             Menu.Item(Name + "DrawEnemy").GetValue<bool>() && hero.IsEnemy))
@@ -157,7 +157,7 @@ namespace SFXUtility.Features.Drawings
                     {
                         return;
                     }
-                    foreach (var ally in HeroManager.Allies.Where(ally => _waypoints.ContainsKey(ally.NetworkId)))
+                    foreach (var ally in GameObjects.AllyHeroes.Where(ally => _waypoints.ContainsKey(ally.NetworkId)))
                     {
                         _waypoints.Remove(ally.NetworkId);
                     }
@@ -169,7 +169,8 @@ namespace SFXUtility.Features.Drawings
                     {
                         return;
                     }
-                    foreach (var enemy in HeroManager.Enemies.Where(enemy => _waypoints.ContainsKey(enemy.NetworkId)))
+                    foreach (
+                        var enemy in GameObjects.EnemyHeroes.Where(enemy => _waypoints.ContainsKey(enemy.NetworkId)))
                     {
                         _waypoints.Remove(enemy.NetworkId);
                     }

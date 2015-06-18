@@ -28,6 +28,7 @@ using System.Drawing;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
@@ -54,7 +55,7 @@ namespace SFXUtility.Features.Drawings
                 var fillColor = Menu.Item(Name + "DrawingFillColor").GetValue<Color>();
 
                 foreach (var enemy in
-                    HeroManager.Enemies.Where(
+                    GameObjects.EnemyHeroes.Where(
                         e => e.IsValid && !e.IsDead && e.IsHPBarRendered && e.Position.IsOnScreen()))
                 {
                     var barPos = enemy.HPBarPosition;

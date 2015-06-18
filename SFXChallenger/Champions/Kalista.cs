@@ -34,6 +34,11 @@ using SFXChallenger.Managers;
 using SFXLibrary;
 using SFXLibrary.Logger;
 using SharpDX;
+using Collision = LeagueSharp.Common.Collision;
+using MinionManager = SFXLibrary.MinionManager;
+using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
+using MinionTeam = SFXLibrary.MinionTeam;
+using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 using Utils = SFXChallenger.Helpers.Utils;
@@ -100,13 +105,13 @@ namespace SFXChallenger.Champions
             laneclearMenu.AddItem(
                 new MenuItem(laneclearMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(
                     new Slider(2, 1, 5)));
+            laneclearMenu.AddItem(
+                new MenuItem(laneclearMenu.Name + ".e-jungle", "E " + Global.Lang.Get("G_Jungle")).SetValue(true));
 
             var lasthitMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LastHit"), Menu.Name + ".lasthit"));
             ManaManager.AddToMenu(lasthitMenu, "lasthit", ManaCheckType.Minimum, ManaValueType.Percent);
             lasthitMenu.AddItem(
                 new MenuItem(lasthitMenu.Name + ".e-big", "E " + Global.Lang.Get("G_Big")).SetValue(true));
-            lasthitMenu.AddItem(
-                new MenuItem(lasthitMenu.Name + ".e-jungle", "E " + Global.Lang.Get("G_Jungle")).SetValue(true));
             lasthitMenu.AddItem(
                 new MenuItem(lasthitMenu.Name + ".e-unkillable", "E " + Global.Lang.Get("G_Unkillable")).SetValue(true));
 
@@ -150,7 +155,8 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (sender.IsAlly && args.Buff.Name.Equals("kalistapaltarbuff", StringComparison.OrdinalIgnoreCase))
+                if (args.Buff.Caster.IsMe && sender.IsAlly &&
+                    args.Buff.Name.Equals("kalistapaltarbuff", StringComparison.OrdinalIgnoreCase))
                 {
                     var hero = sender as Obj_AI_Hero;
                     if (hero != null)
@@ -276,16 +282,13 @@ namespace SFXChallenger.Champions
             {
                 if (E.IsReady() && ManaManager.Check("lasthit"))
                 {
-                    var minions = ObjectCache.GetMinions();
-                    if ((Menu.Item(Menu.Name + ".lasthit.e-big").GetValue<bool>() &&
-                         minions.Any(
-                             m =>
-                                 m.IsValidTarget(E.Range) &&
-                                 (m.BaseSkinName.Contains("MinionSiege") || m.BaseSkinName.StartsWith("SRU_Dragon") ||
-                                  m.BaseSkinName.StartsWith("SRU_Baron")) && Rend.IsKillable(m))) ||
-                        Menu.Item(Menu.Name + ".lasthit.e-jungle").GetValue<bool>() &&
+                    var minions = GameObjects.Jungle.ToList();
+                    if (Menu.Item(Menu.Name + ".lasthit.e-big").GetValue<bool>() &&
                         minions.Any(
-                            m => m.Team == GameObjectTeam.Neutral && m.IsValidTarget(E.Range) && Rend.IsKillable(m)))
+                            m =>
+                                m.IsValidTarget(E.Range) &&
+                                (m.BaseSkinName.Contains("MinionSiege") || m.BaseSkinName.StartsWith("SRU_Dragon") ||
+                                 m.BaseSkinName.StartsWith("SRU_Baron")) && Rend.IsKillable(m)))
 
                     {
                         E.Cast();
@@ -294,9 +297,9 @@ namespace SFXChallenger.Champions
 
                 if (Menu.Item(Menu.Name + ".miscellaneous.e-reset").GetValue<bool>() && E.IsReady() &&
                     Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.Combo && ManaManager.Check("misc") &&
-                    HeroManager.Enemies.Any(e => Rend.HasBuff(e) && E.IsInRange(e)))
+                    GameObjects.EnemyHeroes.Any(e => Rend.HasBuff(e) && E.IsInRange(e)))
                 {
-                    if (ObjectCache.GetMinions().Any(e => E.IsInRange(e) && Rend.IsKillable(e)))
+                    if (GameObjects.EnemyMinions.Any(e => E.IsInRange(e) && Rend.IsKillable(e)))
                     {
                         E.Cast();
                     }
@@ -308,7 +311,7 @@ namespace SFXChallenger.Champions
                         R.IsReady())
                     {
                         if (SoulBound.Unit.HealthPercent <= 10 && SoulBound.Unit.CountEnemiesInRange(500) > 0 ||
-                            SoulBound.TotalDamage * 1.1f > SoulBound.Unit.Health)
+                            (SoulBound.Unit.HealthPercent <= 45 && SoulBound.TotalDamage * 1.1f > SoulBound.Unit.Health))
                         {
                             R.Cast();
                         }
@@ -341,9 +344,8 @@ namespace SFXChallenger.Champions
                     if (target.Distance(Player) > Orbwalking.GetRealAutoAttackRange(target))
                     {
                         var minion =
-                            ObjectCache.GetMinions()
-                                .FirstOrDefault(
-                                    m => m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)) && Rend.IsKillable(m));
+                            GameObjects.EnemyMinions.FirstOrDefault(
+                                m => m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)) && Rend.IsKillable(m));
                         if (minion != null)
                         {
                             E.Cast();
@@ -384,7 +386,7 @@ namespace SFXChallenger.Champions
             }
             if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>() && E.IsReady())
             {
-                foreach (var enemy in HeroManager.Enemies.Where(e => E.IsInRange(e)))
+                foreach (var enemy in GameObjects.EnemyHeroes.Where(e => E.IsInRange(e)))
                 {
                     if (Rend.IsKillable(enemy))
                     {
@@ -406,6 +408,25 @@ namespace SFXChallenger.Champions
             }
         }
 
+        private List<Obj_AI_Base> QGetCollisions(Obj_AI_Hero source, Vector3 targetposition)
+        {
+            var input = new PredictionInput
+            {
+                Unit = source,
+                Radius = Q.Width,
+                Delay = Q.Delay,
+                Speed = Q.Speed,
+                Range = Q.Range,
+                Type = SkillshotType.SkillshotLine,
+                CollisionObjects =
+                    new[] { CollisionableObjects.Minions, CollisionableObjects.Heroes, CollisionableObjects.YasuoWall }
+            };
+            return
+                Collision.GetCollision(new List<Vector3> { targetposition }, input)
+                    .OrderBy(obj => obj.Distance(source))
+                    .ToList();
+        }
+
         protected override void LaneClear()
         {
             if (!ManaManager.Check("lane-clear"))
@@ -423,86 +444,45 @@ namespace SFXChallenger.Champions
                 return;
             }
 
-            var minions = ObjectCache.GetMinions(
+            var minions = MinionManager.GetMinions(
                 Q.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
             if (minions.Count == 0)
             {
                 return;
             }
-
-            if (useQ && !Player.IsDashing() && minions.Count >= minQ)
+            if (useQ && !Player.IsDashing() && Player.IsWindingUp && minions.Count >= minQ)
             {
-                var killable = minions.Where(m => m.Health < Q.GetDamage(m)).ToList();
-                if (killable.Any())
+                foreach (var minion in GameObjects.EnemyMinions.Where(m => m.Health < Q.GetDamage(m)))
                 {
-                    var input = new PredictionInput
+                    var kills = 0;
+                    foreach (
+                        var col in QGetCollisions(Player, Player.ServerPosition.Extend(minion.ServerPosition, Q.Range)))
                     {
-                        From = Q.From,
-                        Collision = Q.Collision,
-                        Delay = Q.Delay,
-                        Radius = Q.Width,
-                        Range = Q.Range,
-                        RangeCheckFrom = Q.RangeCheckFrom,
-                        Speed = Q.Speed,
-                        Type = Q.Type,
-                        CollisionObjects = new[] { CollisionableObjects.Heroes, CollisionableObjects.YasuoWall }
-                    };
-                    var hits = 0;
-                    var castPosition = Vector3.Zero;
-                    foreach (var target in killable)
-                    {
-                        var lTarget = target;
-                        input.Unit = lTarget;
-                        var pred = Prediction.GetPrediction(input);
-                        if (pred.Hitchance >= HitChance.High)
+                        if (col.Type == GameObjectType.obj_AI_Minion && col.Health <= Q.GetDamage(col))
                         {
-                            var kills = 0;
-                            var predPos = pred.UnitPosition;
-                            var rec = new Geometry.Polygon.Rectangle(
-                                input.From, input.From.Extend(predPos, input.Range), input.Radius);
-                            foreach (var t in minions.OrderBy(m => m.Distance(Player)))
-                            {
-                                var circle = new Geometry.Polygon.Circle(
-                                    Prediction.GetPrediction(input).UnitPosition,
-                                    (t.IsMoving ? t.BoundingRadius / 2f : t.BoundingRadius) * 0.7f);
-                                if (circle.Points.Any(p => rec.IsInside(p)))
-                                {
-                                    if (t.Health < Q.GetDamage(t))
-                                    {
-                                        kills++;
-                                    }
-                                    else
-                                    {
-                                        break;
-                                    }
-                                }
-                            }
-                            if (kills > hits)
-                            {
-                                hits = kills;
-                                castPosition = predPos;
-                            }
+                            kills++;
+                        }
+                        else
+                        {
+                            break;
                         }
                     }
-                    if (castPosition != Vector3.Zero && hits >= minQ)
+
+                    if (kills >= minQ)
                     {
-                        if (Q.Cast(castPosition))
-                        {
-                            return;
-                        }
+                        Q.Cast(minion.ServerPosition);
+                        return;
                     }
                 }
             }
             if (useE)
             {
                 var minionsInRange = minions.Where(m => E.IsInRange(m)).ToList();
-                if (minionsInRange.Count >= minE)
+                var killCount = minionsInRange.Count(Rend.IsKillable);
+                if (killCount >= minE ||
+                    killCount >= 1 && Menu.Item(Menu.Name + ".lane-clear.e-jungle").GetValue<bool>())
                 {
-                    var killCount = minionsInRange.Count(Rend.IsKillable);
-                    if (killCount >= minE)
-                    {
-                        E.Cast();
-                    }
+                    E.Cast();
                 }
             }
         }
@@ -522,18 +502,18 @@ namespace SFXChallenger.Champions
         protected override void Killsteal()
         {
             if (Menu.Item(Menu.Name + ".killsteal.e").GetValue<bool>() && E.IsReady() &&
-                HeroManager.Enemies.Any(h => h.IsValidTarget(E.Range) && Rend.IsKillable(h)))
+                GameObjects.EnemyHeroes.Any(h => h.IsValidTarget(E.Range) && Rend.IsKillable(h)))
             {
                 E.Cast();
             }
         }
 
-        public static IOrderedEnumerable<Obj_AI_Minion> GetDashObjects()
+        public static IOrderedEnumerable<Obj_AI_Base> GetDashObjects()
         {
             try
             {
                 var objects =
-                    ObjectCache.GetMinions().Where(o => o.IsValidTarget(Orbwalking.GetRealAutoAttackRange(o))).ToList();
+                    GameObjects.Enemy.Where(o => o.IsValidTarget(Orbwalking.GetRealAutoAttackRange(o))).ToList();
                 var apexPoint = ObjectManager.Player.ServerPosition.To2D() +
                                 (ObjectManager.Player.ServerPosition.To2D() - Game.CursorPos.To2D()).Normalized() *
                                 Orbwalking.GetRealAutoAttackRange(ObjectManager.Player);
@@ -659,6 +639,12 @@ namespace SFXChallenger.Champions
             private static readonly float[] DamageMultiplier = { 0.6f, 0.6f, 0.6f, 0.6f, 0.6f };
             private static readonly float[] DamagePerSpear = { 10, 14, 19, 25, 32 };
             private static readonly float[] DamagePerSpearMultiplier = { 0.2f, 0.225f, 0.25f, 0.275f, 0.3f };
+            private static readonly SpellDataInst E;
+
+            static Rend()
+            {
+                E = ObjectManager.Player.GetSpell(SpellSlot.E);
+            }
 
             public static bool IsKillable(Obj_AI_Base target)
             {
@@ -684,7 +670,7 @@ namespace SFXChallenger.Champions
                 try
                 {
                     var buff = GetBuff(target);
-                    var eLevel = ObjectManager.Player.GetSpell(SpellSlot.E).Level;
+                    var eLevel = E.Level;
                     if (buff != null || customStacks > -1)
                     {
                         var damage = (Damage[eLevel - 1] +

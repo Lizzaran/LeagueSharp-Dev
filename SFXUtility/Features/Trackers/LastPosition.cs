@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Extensions.SharpDX;
 using SFXLibrary.Logger;
@@ -191,10 +192,10 @@ namespace SFXUtility.Features.Trackers
                 rt.OnUnknown += TeleportAbort;
             }
 
-            var spawn = ObjectManager.Get<GameObject>().FirstOrDefault(s => s is Obj_SpawnPoint && s.IsEnemy);
+            var spawn = GameObjects.EnemySpawnPoints.FirstOrDefault();
             _spawnPoint = spawn != null ? Drawing.WorldToMinimap(spawn.Position) : Vector2.Zero;
 
-            foreach (var enemy in HeroManager.Enemies)
+            foreach (var enemy in GameObjects.EnemyHeroes)
             {
                 _heroTextures[enemy.NetworkId] =
                     (ImageLoader.Load("LP", enemy.ChampionName) ?? Resources.LP_Default).ToTexture();

@@ -37,7 +37,11 @@ namespace SFXUtility.Features.Events
     internal class AutoLeveler : Child<Events>
     {
         private const float CheckInterval = 300f;
+        private SpellDataInst _e;
         private float _lastCheck;
+        private SpellDataInst _q;
+        private SpellDataInst _r;
+        private SpellDataInst _w;
         public AutoLeveler(SFXUtility sfx) : base(sfx) {}
 
         public override string Name
@@ -73,7 +77,7 @@ namespace SFXUtility.Features.Events
                         SpellSlot.W, Menu.Item(Name + ObjectManager.Player.ChampionName + "W").GetValue<Slider>().Value),
                     new SpellInfoStruct(
                         SpellSlot.E, Menu.Item(Name + ObjectManager.Player.ChampionName + "E").GetValue<Slider>().Value),
-                    new SpellInfoStruct(SpellSlot.R, 4)
+                    new SpellInfoStruct(SpellSlot.R, 5)
                 }.ToList();
         }
 
@@ -136,6 +140,10 @@ namespace SFXUtility.Features.Events
         protected override void OnInitialize()
         {
             _lastCheck = Environment.TickCount;
+            _q = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.Q);
+            _w = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W);
+            _e = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E);
+            _r = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.R);
             base.OnInitialize();
         }
 
@@ -147,11 +155,7 @@ namespace SFXUtility.Features.Events
             }
             _lastCheck = Environment.TickCount;
 
-            var availablePoints = ObjectManager.Player.Level -
-                                  (ObjectManager.Player.Spellbook.GetSpell(SpellSlot.Q).Level +
-                                   ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Level +
-                                   ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E).Level +
-                                   ObjectManager.Player.Spellbook.GetSpell(SpellSlot.R).Level);
+            var availablePoints = ObjectManager.Player.Level - (_q.Level + _w.Level + _e.Level + _r.Level);
 
             if (availablePoints > 0)
             {
@@ -216,7 +220,6 @@ namespace SFXUtility.Features.Events
                         ObjectManager.Player.Spellbook.LevelUpSpell(pItem.Slot);
                         availablePoints--;
                     }
-
                     if (pItem.Slot == SpellSlot.R &&
                         Menu.Item(Name + ObjectManager.Player.ChampionName + "OnlyR").GetValue<bool>())
                     {

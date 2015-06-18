@@ -27,6 +27,8 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using LeagueSharp.Common.Data;
+using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
@@ -102,9 +104,18 @@ namespace SFXUtility.Features.Activators
                 new List<PotionStruct>
                 {
                     new PotionStruct(
-                        "ItemCrystalFlask", ItemId.Crystalline_Flask, 1, 1, new[] { PotionType.Health, PotionType.Mana }),
-                    new PotionStruct("RegenerationPotion", ItemId.Health_Potion, 0, 2, new[] { PotionType.Health }),
-                    new PotionStruct("FlaskOfCrystalWater", ItemId.Mana_Potion, 0, 3, new[] { PotionType.Mana })
+                        "ItemCrystalFlask", (ItemId) ItemData.Crystalline_Flask.Id, 1, 1,
+                        new[] { PotionType.Health, PotionType.Mana }),
+                    new PotionStruct(
+                        "RegenerationPotion", (ItemId) ItemData.Health_Potion.Id, 0, 2, new[] { PotionType.Health }),
+                    new PotionStruct(
+                        "ItemMiniRegenPotion", (ItemId) ItemData.Total_Biscuit_of_Rejuvenation.Id, 0, 3,
+                        new[] { PotionType.Health }),
+                    new PotionStruct(
+                        "ItemMiniRegenPotion", (ItemId) ItemData.Total_Biscuit_of_Rejuvenation2.Id, 0, 4,
+                        new[] { PotionType.Health }),
+                    new PotionStruct(
+                        "FlaskOfCrystalWater", (ItemId) ItemData.Mana_Potion.Id, 0, 5, new[] { PotionType.Mana })
                 }
                     .OrderBy(x => x.Priority).ToList();
 
@@ -145,7 +156,7 @@ namespace SFXUtility.Features.Activators
 
                 var enemyDist = Menu.Item(Name + "MinEnemyDistance").GetValue<Slider>().Value;
                 if (enemyDist != 0 &&
-                    !HeroManager.Enemies.Any(e => e.Position.Distance(ObjectManager.Player.Position) <= enemyDist))
+                    !GameObjects.EnemyHeroes.Any(e => e.Position.Distance(ObjectManager.Player.Position) <= enemyDist))
                 {
                     return;
                 }

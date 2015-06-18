@@ -34,7 +34,7 @@ namespace SFXUtility.Classes
     {
         protected Parent(SFXUtility sfx) : base(sfx)
         {
-            CustomEvents.Game.OnGameLoad += OnGameLoad;
+            OnLoad();
         }
 
         public override bool Enabled
@@ -42,7 +42,7 @@ namespace SFXUtility.Classes
             get { return !Unloaded && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
-        protected void OnGameLoad(EventArgs args)
+        private void OnLoad()
         {
             try
             {

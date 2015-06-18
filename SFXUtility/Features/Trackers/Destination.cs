@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
 using SharpDX;
@@ -113,7 +114,7 @@ namespace SFXUtility.Features.Trackers
 
         private void SetupDestinations()
         {
-            foreach (var hero in HeroManager.Enemies)
+            foreach (var hero in GameObjects.EnemyHeroes)
             {
                 foreach (var spell in
                     hero.Spellbook.Spells.Where(

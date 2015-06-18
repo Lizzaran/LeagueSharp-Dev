@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
@@ -145,7 +146,7 @@ namespace SFXUtility.Features.Others
                 new SpellInfo("Tryndamere", "MockingShout", 900f, false, false, 0.65f)
             };
 
-            if (!HeroManager.Enemies.Any(h => _spellInfos.Any(i => i.Owner == h.ChampionName)))
+            if (!GameObjects.EnemyHeroes.Any(h => _spellInfos.Any(i => i.Owner == h.ChampionName)))
             {
                 OnUnload(null, new UnloadEventArgs(true));
                 return;

@@ -25,7 +25,10 @@
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXLibrary;
+using MinionManager = SFXLibrary.MinionManager;
+using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
+using MinionTeam = SFXLibrary.MinionTeam;
+using MinionTypes = SFXLibrary.MinionTypes;
 using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
 #endregion
@@ -90,11 +93,10 @@ namespace SFXChallenger.Helpers
             {
                 return;
             }
-
             var minions =
-                ObjectCache.GetMinions(
+                MinionManager.GetMinions(
                     ObjectManager.Player.ServerPosition, spell.Range, MinionTypes.All, MinionTeam.NotAlly,
-                    MinionOrderTypes.MaxHealth).Cast<Obj_AI_Base>().ToList();
+                    MinionOrderTypes.MaxHealth).ToList();
 
             if (minions.Count == 0)
             {

@@ -26,6 +26,7 @@ using System;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
 using SFXUtility.Data;
@@ -93,7 +94,7 @@ namespace SFXUtility.Features.Activators
                         return;
                     }
 
-                    foreach (var enemy in HeroManager.Enemies.Where(e => e.IsVisible && !e.IsDead))
+                    foreach (var enemy in GameObjects.EnemyHeroes.Where(e => e.IsVisible && !e.IsDead))
                     {
                         var itemDamage = (items ? Items.CalculateComboDamage(enemy) : 0) - 20;
                         var summonerDamage = (items ? Summoners.CalculateComboDamage(enemy, true, true) : 0) - 20;

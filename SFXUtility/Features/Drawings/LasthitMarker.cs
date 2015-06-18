@@ -27,7 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXLibrary.Extensions.NET;
+using SFXLibrary;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
 using SharpDX;
@@ -173,17 +173,7 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                _minions =
-                    ObjectManager.Get<Obj_AI_Minion>()
-                        .Where(
-                            minion =>
-                                minion != null && minion.IsValid && !minion.IsDead && minion.IsTargetable &&
-                                minion.IsHPBarRendered && minion.Health > 0.1f &&
-                                minion.BaseSkinName.Contains("Minion", StringComparison.OrdinalIgnoreCase) &&
-                                minion.Team ==
-                                (ObjectManager.Player.Team == GameObjectTeam.Order
-                                    ? GameObjectTeam.Chaos
-                                    : GameObjectTeam.Order) && minion.Position.IsOnScreen());
+                _minions = GameObjects.EnemyMinions.Where(m => m.IsHPBarRendered && m.IsValidTarget());
             }
             catch (Exception ex)
             {

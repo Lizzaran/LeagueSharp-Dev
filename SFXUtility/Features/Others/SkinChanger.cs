@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
 using SFXUtility.Data;
@@ -84,7 +85,7 @@ namespace SFXUtility.Features.Others
             _lastCheck = Environment.TickCount;
 
 
-            foreach (var hero in HeroManager.AllHeroes)
+            foreach (var hero in GameObjects.Heroes)
             {
                 var localHero = hero;
                 var champMenu = new Menu(

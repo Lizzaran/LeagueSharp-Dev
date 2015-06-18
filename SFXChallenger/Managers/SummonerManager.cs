@@ -37,13 +37,14 @@ namespace SFXChallenger.Managers
 {
     internal class SummonerSpell
     {
+        private SpellSlot? _slot;
         public string Name { get; set; }
         public float Range { get; set; }
         public CastType CastType { get; set; }
 
         public SpellSlot Slot
         {
-            get { return ObjectManager.Player.GetSpellSlot(Name); }
+            get { return (SpellSlot) (_slot ?? (_slot = ObjectManager.Player.GetSpellSlot(Name))); }
         }
     }
 

@@ -29,6 +29,9 @@ using LeagueSharp.Common;
 using SFXLibrary;
 using SharpDX;
 using Color = System.Drawing.Color;
+using MinionManager = SFXLibrary.MinionManager;
+using MinionTeam = SFXLibrary.MinionTeam;
+using MinionTypes = SFXLibrary.MinionTypes;
 using Utils = LeagueSharp.Common.Utils;
 
 #endregion
@@ -654,7 +657,7 @@ namespace SFXChallenger.Wrappers
             private bool ShouldWait()
             {
                 return
-                    ObjectCache.GetMinions(Player.Position, float.MaxValue)
+                    MinionManager.GetMinions(Player.Position, float.MaxValue)
                         .Any(
                             minion =>
                                 InAutoAttackRange(minion) &&
@@ -684,7 +687,7 @@ namespace SFXChallenger.Wrappers
                     var freezeActive = _config.Item("Freeze").GetValue<KeyBind>().Active &&
                                        (ActiveMode != OrbwalkingMode.LaneClear);
                     var minionList =
-                        ObjectCache.GetMinions(Player.Position, float.MaxValue)
+                        MinionManager.GetMinions(Player.Position, float.MaxValue)
                             .Where(
                                 minion =>
                                     InAutoAttackRange(minion) &&
@@ -706,7 +709,7 @@ namespace SFXChallenger.Wrappers
                             continue;
                         }
 
-                        if (minion.Team != GameObjectTeam.Neutral && ObjectCache.IsMinion(minion, true))
+                        if (minion.Team != GameObjectTeam.Neutral && MinionManager.IsMinion(minion, true))
                         {
                             if (predHealth <= 0)
                             {
@@ -767,7 +770,7 @@ namespace SFXChallenger.Wrappers
                 if (ActiveMode == OrbwalkingMode.LaneClear || ActiveMode == OrbwalkingMode.Mixed)
                 {
                     result =
-                        ObjectCache.GetMinions(Player.Position, float.MaxValue, MinionTypes.All, MinionTeam.Neutral)
+                        MinionManager.GetMinions(Player.Position, float.MaxValue, MinionTypes.All, MinionTeam.Neutral)
                             .Where(InAutoAttackRange)
                             .MaxOrDefault(mob => mob.MaxHealth);
                     if (result != null)
@@ -793,7 +796,7 @@ namespace SFXChallenger.Wrappers
                         }
 
                         result = (from minion in
-                            ObjectCache.GetMinions(Player.Position, float.MaxValue).Where(InAutoAttackRange)
+                            MinionManager.GetMinions(Player.Position, float.MaxValue).Where(InAutoAttackRange)
                             let predHealth =
                                 HealthPrediction.LaneClearHealthPrediction(
                                     minion, (int) ((_player.AttackDelay * 1000) * LaneClearWaitTimeMod), FarmDelay)
@@ -851,7 +854,7 @@ namespace SFXChallenger.Wrappers
                 if (_config.Item("AACircle2").GetValue<Circle>().Active)
                 {
                     foreach (var target in
-                        HeroManager.Enemies.FindAll(target => target.IsValidTarget(1175)))
+                        GameObjects.EnemyHeroes.Where(target => target.IsValidTarget(1175)))
                     {
                         Render.Circle.DrawCircle(
                             target.Position, GetRealAutoAttackRange(target) + 65,

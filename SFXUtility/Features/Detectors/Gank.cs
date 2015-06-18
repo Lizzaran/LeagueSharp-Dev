@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Extensions.SharpDX;
 using SFXLibrary.Logger;
@@ -189,7 +190,7 @@ namespace SFXUtility.Features.Detectors
                             }
                         }
                     };
-                foreach (var enemy in HeroManager.Enemies)
+                foreach (var enemy in GameObjects.EnemyHeroes)
                 {
                     enemyMenu.AddItem(
                         new MenuItem(enemyMenu.Name + enemy.ChampionName, enemy.ChampionName).SetValue(
@@ -246,7 +247,7 @@ namespace SFXUtility.Features.Detectors
                             }
                         }
                     };
-                foreach (var ally in HeroManager.Allies.Where(a => !a.IsMe))
+                foreach (var ally in GameObjects.AllyHeroes.Where(a => !a.IsMe))
                 {
                     allyMenu.AddItem(
                         new MenuItem(allyMenu.Name + ally.ChampionName, ally.ChampionName).SetValue(
@@ -298,7 +299,7 @@ namespace SFXUtility.Features.Detectors
             _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
 
             _championObjects = new List<ChampionObject>();
-            foreach (var hero in HeroManager.AllHeroes.Where(h => !h.IsMe))
+            foreach (var hero in GameObjects.Heroes.Where(h => !h.IsMe))
             {
                 var hasSmite =
                     hero.Spellbook.Spells.Any(spell => spell.Name.Contains("Smite", StringComparison.OrdinalIgnoreCase));

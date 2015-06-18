@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Extensions.SharpDX;
 using SFXLibrary.Logger;
@@ -293,7 +294,7 @@ namespace SFXUtility.Features.Detectors
         {
             _teleportObjects = new List<TeleportObject>();
             _teleportObjects =
-                HeroManager.AllHeroes.Select(
+                GameObjects.Heroes.Select(
                     hero =>
                         new TeleportObject(hero)
                         {

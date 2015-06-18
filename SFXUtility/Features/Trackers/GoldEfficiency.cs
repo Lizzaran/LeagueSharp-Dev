@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary;
 using SFXLibrary.Extensions.SharpDX;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
@@ -129,7 +130,7 @@ namespace SFXUtility.Features.Trackers
             }
             _lastCheck = Environment.TickCount;
 
-            foreach (var hero in HeroManager.AllHeroes.Where(h => h.IsValid && h.IsVisible))
+            foreach (var hero in GameObjects.Heroes.Where(h => h.IsValid && h.IsVisible))
             {
                 var value = (hero.BaseAttackDamage + hero.FlatPhysicalDamageMod) * Data.AttackDamage;
                 value += (hero.BaseAbilityDamage + hero.FlatMagicDamageMod) * Data.AbilityPower;

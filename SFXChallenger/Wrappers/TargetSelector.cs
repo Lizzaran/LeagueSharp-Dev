@@ -29,6 +29,7 @@ using LeagueSharp;
 using LeagueSharp.Common;
 using LeagueSharp.Common.Data;
 using SFXChallenger.Enumerations;
+using SFXLibrary;
 using SFXLibrary.Extensions.LeagueSharp;
 using SFXLibrary.Logger;
 using SharpDX;
@@ -127,14 +128,14 @@ namespace SFXChallenger.Wrappers
                     {
                         var ad = (t.BaseAttackDamage + t.FlatPhysicalDamageMod);
                         ad += ad / 100 * (t.Crit * 100) * (t.HasItem(ItemData.Infinity_Edge.Id) ? 2.5f : 2f);
-                        var averageArmor = HeroManager.Allies.Average(a => a.Armor) *
+                        var averageArmor = GameObjects.AllyHeroes.Average(a => a.Armor) *
                                            ObjectManager.Player.PercentArmorPenetrationMod - t.FlatArmorPenetrationMod;
                         return (ad * (100 / (100 + (averageArmor > 0 ? averageArmor : 0)))) * t.AttackSpeedMod;
                     }),
                 new WeightedItem(
                     "ability-power", Global.Lang.Get("TS_AbilityPower"), 10, false, 7000, delegate(Obj_AI_Hero t)
                     {
-                        var averageMr = HeroManager.Allies.Average(a => a.SpellBlock) *
+                        var averageMr = GameObjects.AllyHeroes.Average(a => a.SpellBlock) *
                                         ObjectManager.Player.PercentMagicPenetrationMod - t.FlatMagicPenetrationMod;
                         return (t.BaseAbilityDamage + t.FlatMagicDamageMod) *
                                (100 / (100 + (averageMr > 0 ? averageMr : 0)));
@@ -229,7 +230,7 @@ namespace SFXChallenger.Wrappers
                     return;
                 }
                 var hero = sender as Obj_AI_Hero;
-                var target = HeroManager.Enemies.FirstOrDefault(h => h.NetworkId == args.NetworkId);
+                var target = GameObjects.EnemyHeroes.FirstOrDefault(h => h.NetworkId == args.NetworkId);
                 if (hero != null && target != null)
                 {
                     AggroItem aggro;
@@ -274,7 +275,7 @@ namespace SFXChallenger.Wrappers
                     _menu.Item(_menu.Name + ".drawing.assassin-color").GetValue<Circle>().Active)
                 {
                     foreach (var target in
-                        HeroManager.Enemies.Where(
+                        GameObjects.EnemyHeroes.Where(
                             h =>
                                 _menu.Item(_menu.Name + ".assassin-mode.heroes." + h.ChampionName).GetValue<bool>() &&
                                 h.Position.Distance(ObjectManager.Player.Position) <=
@@ -292,7 +293,7 @@ namespace SFXChallenger.Wrappers
                     _tsMode == TargetSelectorModeType.Weights)
                 {
                     foreach (var target in
-                        HeroManager.Enemies.Where(h => h.IsVisible && !h.IsDead && h.Position.IsOnScreen()))
+                        GameObjects.EnemyHeroes.Where(h => h.IsVisible && !h.IsDead && h.Position.IsOnScreen()))
                     {
                         var position = Drawing.WorldToScreen(target.Position);
                         var offset = 0;
@@ -321,7 +322,7 @@ namespace SFXChallenger.Wrappers
                     _tsMode == TargetSelectorModeType.Weights)
                 {
                     foreach (var target in
-                        HeroManager.Enemies.Where(h => h.IsVisible && !h.IsDead && h.Position.IsOnScreen()))
+                        GameObjects.EnemyHeroes.Where(h => h.IsVisible && !h.IsDead && h.Position.IsOnScreen()))
                     {
                         var lTarget = target;
                         var totalWeight =
@@ -356,7 +357,7 @@ namespace SFXChallenger.Wrappers
             }
 
             _selectedTarget =
-                HeroManager.Enemies.Where(
+                GameObjects.EnemyHeroes.Where(
                     h => h.IsValidTarget() && h.Distance(Game.CursorPos) < h.BoundingRadius + SelectClickBuffer)
                     .OrderBy(h => h.Distance(Game.CursorPos))
                     .FirstOrDefault();
@@ -432,7 +433,7 @@ namespace SFXChallenger.Wrappers
                     : range;
 
                 var targets =
-                    HeroManager.Enemies.Where(
+                    GameObjects.EnemyHeroes.Where(
                         h => ignoredChampions == null || ignoredChampions.All(i => i.NetworkId != h.NetworkId))
                         .Where(h => IsValidTarget(h, aRange, damageType, ignoreShields, from))
                         .ToList();
@@ -596,7 +597,7 @@ namespace SFXChallenger.Wrappers
                     _menu.AddSubMenu(new Menu(Global.Lang.Get("TS_AssassinMode"), menu.Name + ".assassin-mode"));
                 var enemyListMenu =
                     assassinManager.AddSubMenu(new Menu(Global.Lang.Get("G_Heroes"), assassinManager.Name + ".heroes"));
-                foreach (var enemy in HeroManager.Enemies)
+                foreach (var enemy in GameObjects.EnemyHeroes)
                 {
                     enemyListMenu.AddItem(
                         new MenuItem(enemyListMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(false));
@@ -619,7 +620,7 @@ namespace SFXChallenger.Wrappers
                     new MenuItem(heroesMenu.Name + ".weight-multiplicator", Global.Lang.Get("TS_WeightMultiplicator"))
                         .SetValue(new Slider(1, MinMultiplicator, MaxMultiplicator)));
 
-                foreach (var enemy in HeroManager.Enemies)
+                foreach (var enemy in GameObjects.EnemyHeroes)
                 {
                     heroesMenu.AddItem(
                         new MenuItem(heroesMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(
@@ -650,7 +651,7 @@ namespace SFXChallenger.Wrappers
                     {
                         if (args.GetNewValue<bool>())
                         {
-                            foreach (var enemy in HeroManager.Enemies)
+                            foreach (var enemy in GameObjects.EnemyHeroes)
                             {
                                 _menu.Item(prioritiesMenu.Name + "." + enemy.ChampionName)
                                     .SetValue(
@@ -658,7 +659,7 @@ namespace SFXChallenger.Wrappers
                             }
                         }
                     };
-                foreach (var enemy in HeroManager.Enemies)
+                foreach (var enemy in GameObjects.EnemyHeroes)
                 {
                     var item =
                         new MenuItem(prioritiesMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(

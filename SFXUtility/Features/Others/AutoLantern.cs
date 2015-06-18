@@ -26,6 +26,7 @@ using System;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
 
@@ -71,7 +72,7 @@ namespace SFXUtility.Features.Others
                 Parent.Menu.AddSubMenu(Menu);
 
                 if (
-                    HeroManager.Allies.Any(
+                    GameObjects.AllyHeroes.Any(
                         a => !a.IsMe && a.ChampionName.Equals("Thresh", StringComparison.OrdinalIgnoreCase))) {}
             }
             catch (Exception ex)
@@ -93,11 +94,8 @@ namespace SFXUtility.Features.Others
                     Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active)
                 {
                     var lantern =
-                        ObjectManager.Get<Obj_AI_Minion>()
-                            .FirstOrDefault(
-                                obj =>
-                                    obj.IsValid && obj.IsAlly &&
-                                    obj.Name.Equals("ThreshLantern", StringComparison.OrdinalIgnoreCase));
+                        GameObjects.Ally.FirstOrDefault(
+                            obj => obj.Name.Equals("ThreshLantern", StringComparison.OrdinalIgnoreCase));
                     if (lantern != null && lantern.Distance(ObjectManager.Player) <= 500)
                     {
                         ObjectManager.Player.Spellbook.CastSpell((SpellSlot) 62, lantern);

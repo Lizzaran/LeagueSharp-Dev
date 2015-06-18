@@ -34,6 +34,10 @@ using SFXChallenger.Managers;
 using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
+using MinionManager = SFXLibrary.MinionManager;
+using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
+using MinionTeam = SFXLibrary.MinionTeam;
+using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 
 #endregion
@@ -123,7 +127,7 @@ namespace SFXChallenger.Champions
             var autoGapMenu =
                 uAutoMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Gapcloser"), uAutoMenu.Name + ".gapcloser"));
             foreach (var enemy in
-                HeroManager.Enemies.Where(
+                GameObjects.EnemyHeroes.Where(
                     e =>
                         AntiGapcloser.Spells.Any(
                             s => s.ChampionName.Equals(e.ChampionName, StringComparison.OrdinalIgnoreCase))))
@@ -134,7 +138,7 @@ namespace SFXChallenger.Champions
 
             var autoInterruptMenu =
                 uAutoMenu.AddSubMenu(new Menu(Global.Lang.Get("G_InterruptSpell"), uAutoMenu.Name + ".interrupt"));
-            foreach (var enemy in HeroManager.Enemies)
+            foreach (var enemy in GameObjects.EnemyHeroes)
             {
                 autoInterruptMenu.AddItem(
                     new MenuItem(autoInterruptMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(true));
@@ -233,7 +237,8 @@ namespace SFXChallenger.Champions
                     if (eHit || ePoison)
                     {
                         var m =
-                            ObjectCache.GetMinions(Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly)
+                            MinionManager.GetMinions(
+                                Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly)
                                 .FirstOrDefault(
                                     e =>
                                         e.Health < E.GetDamage(e) - 5 &&
@@ -295,7 +300,7 @@ namespace SFXChallenger.Champions
                         {
                             R.From = flashPos;
                             R.RangeCheckFrom = flashPos;
-                            if (HeroManager.Enemies.Count(x => R.WillHit(x, pred.CastPosition)) >= min)
+                            if (GameObjects.EnemyHeroes.Count(x => R.WillHit(x, pred.CastPosition)) >= min)
                             {
                                 R.Cast(
                                     Player.Position.Extend(
@@ -314,6 +319,7 @@ namespace SFXChallenger.Champions
                                         Player.Position.Extend(
                                             pred.CastPosition, -(Player.Position.Distance(pred.CastPosition) * 2)), true);
                                     Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
+                                    R.UpdateSourcePosition();
                                     return;
                                 }
                             }
@@ -631,8 +637,9 @@ namespace SFXChallenger.Champions
                     var cDmg = CalcComboDamage(target, q, w, e, true);
                     if (cDmg - 20 >= target.Health)
                     {
-                        if (HeroManager.Enemies.Count(em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) ==
-                            1)
+                        if (
+                            GameObjects.EnemyHeroes.Count(
+                                em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) == 1)
                         {
                             Casting.SkillShot(target, R, hitChance);
                         }
@@ -654,7 +661,7 @@ namespace SFXChallenger.Champions
                     var pred = R.GetPrediction(target, true);
                     if (pred.Hitchance >= hitChance)
                     {
-                        var hits = HeroManager.Enemies.Count(x => R.WillHit(x, pred.CastPosition));
+                        var hits = GameObjects.EnemyHeroes.Count(x => R.WillHit(x, pred.CastPosition));
                         if (hits >= min)
                         {
                             R.Cast(pred.CastPosition);
@@ -780,7 +787,7 @@ namespace SFXChallenger.Champions
                 ManaManager.Check("lane-clear"))
             {
                 var minion =
-                    ObjectCache.GetMinions(
+                    MinionManager.GetMinions(
                         Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
                         .Where(
                             e =>
@@ -800,7 +807,7 @@ namespace SFXChallenger.Champions
             if (q || w)
             {
                 var minions =
-                    ObjectCache.GetMinions(Player.ServerPosition, Q.Range + Q.Width)
+                    MinionManager.GetMinions(Player.ServerPosition, Q.Range + Q.Width)
                         .Where(e => GetPoisonBuffEndTime(e) < Q.Delay * 1.1)
                         .OrderByDescending(
                             m => m.BaseSkinName.Contains("MinionSiege", StringComparison.OrdinalIgnoreCase))
@@ -830,7 +837,7 @@ namespace SFXChallenger.Champions
                 else
                 {
                     var creep =
-                        ObjectCache.GetMinions(
+                        MinionManager.GetMinions(
                             Player.ServerPosition, Q.Range + Q.Width, MinionTypes.All, MinionTeam.Neutral,
                             MinionOrderTypes.MaxHealth).FirstOrDefault(e => GetPoisonBuffEndTime(e) < Q.Delay * 1.1);
                     if (creep != null)
@@ -852,7 +859,7 @@ namespace SFXChallenger.Champions
         {
             if (Menu.Item(Menu.Name + ".flee.w").GetValue<bool>() && E.IsReady())
             {
-                var near = HeroManager.Enemies.OrderBy(e => e.Distance(Player.Position)).FirstOrDefault();
+                var near = GameObjects.EnemyHeroes.OrderBy(e => e.Distance(Player.Position)).FirstOrDefault();
                 if (near != null)
                 {
                     var pred = W.GetPrediction(near, true);
@@ -873,7 +880,7 @@ namespace SFXChallenger.Champions
             if (ePoison || eHit && E.IsReady())
             {
                 var m =
-                    HeroManager.Enemies.FirstOrDefault(
+                    GameObjects.EnemyHeroes.FirstOrDefault(
                         e =>
                             E.CanCast(e) && e.Health < E.GetDamage(e) - 5 &&
                             (ePoison && GetPoisonBuffEndTime(e) > E.GetSpellDelay(e) || eHit));

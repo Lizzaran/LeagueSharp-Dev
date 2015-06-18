@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Extensions.SharpDX;
 using SFXLibrary.Logger;
@@ -135,9 +136,8 @@ namespace SFXUtility.Features.Drawings
             _turrets = new List<Obj_AI_Turret>();
 
             _turrets.AddRange(
-                ObjectManager.Get<Obj_AI_Turret>()
-                    .Where(t => t.IsValid && !t.IsDead && t.Health > 1f && t.Health < 9999f));
-            _inhibs.AddRange(ObjectManager.Get<Obj_BarracksDampener>().Where(i => i.IsValid));
+                GameObjects.Turrets.Where(t => t.IsValid && !t.IsDead && t.Health > 1f && t.Health < 9999f));
+            _inhibs.AddRange(GameObjects.Inhibitors);
 
             if (!_turrets.Any() || !_inhibs.Any())
             {

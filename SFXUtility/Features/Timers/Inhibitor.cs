@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Extensions.SharpDX;
 using SFXLibrary.Logger;
@@ -185,7 +186,7 @@ namespace SFXUtility.Features.Timers
         {
             _inhibs = new List<InhibitorObject>();
 
-            foreach (var inhib in ObjectManager.Get<Obj_BarracksDampener>())
+            foreach (var inhib in GameObjects.Inhibitors)
             {
                 _inhibs.Add(new InhibitorObject(inhib));
             }

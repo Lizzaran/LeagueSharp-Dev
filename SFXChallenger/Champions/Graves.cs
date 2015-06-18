@@ -31,6 +31,7 @@ using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
+using SFXLibrary;
 using SFXLibrary.Logger;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
@@ -243,7 +244,7 @@ namespace SFXChallenger.Champions
             if (Menu.Item(Menu.Name + ".killsteal.q").GetValue<bool>() && Q.IsReady())
             {
                 var fPredEnemy =
-                    HeroManager.Enemies.Where(e => e.IsValidTarget(Q.Range * 1.2f) && Q.IsKillable(e))
+                    GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(Q.Range * 1.2f) && Q.IsKillable(e))
                         .Select(enemy => Q.GetPrediction(enemy, true))
                         .FirstOrDefault(pred => pred.Hitchance >= Q.GetHitChance("harass"));
                 if (fPredEnemy != null)

@@ -23,7 +23,7 @@
     <AssemblyVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyVersionSettings>
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
-    <AssemblyVersion>0.8.3.5</AssemblyVersion>
+    <AssemblyVersion>0.8.3.13</AssemblyVersion>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -99,8 +99,8 @@
     <Compile Include="Classes\ImageLoader.cs" />
     <Compile Include="Classes\MDrawing.cs" />
     <Compile Include="Classes\Parent.cs" />
-    <Compile Include="Data\Relics.cs" />
     <Compile Include="Data\Items.cs" />
+    <Compile Include="Data\Relics.cs" />
     <Compile Include="Data\Jungle.cs" />
     <Compile Include="Classes\Spectator.cs" />
     <Compile Include="Data\Models.cs" />

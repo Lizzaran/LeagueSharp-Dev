@@ -28,6 +28,7 @@ using System.Drawing;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
 
@@ -115,7 +116,7 @@ namespace SFXUtility.Features.Drawings
             _cloneHeroes = new List<string> { "shaco", "leblanc", "monkeyking", "yorick" };
             _heroes = new List<Obj_AI_Hero>();
 
-            _heroes.AddRange(HeroManager.Enemies.Where(hero => _cloneHeroes.Contains(hero.ChampionName.ToLower())));
+            _heroes.AddRange(GameObjects.EnemyHeroes.Where(hero => _cloneHeroes.Contains(hero.ChampionName.ToLower())));
 
             if (!_heroes.Any())
             {

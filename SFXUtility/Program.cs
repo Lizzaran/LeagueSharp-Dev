@@ -111,6 +111,8 @@ namespace SFXUtility
                 Console.WriteLine(ex);
             }
 
+            GameObjects.Initialize();
+
             CustomEvents.Game.OnGameLoad += delegate
             {
                 var sfx = new SFXUtility();

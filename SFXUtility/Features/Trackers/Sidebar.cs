@@ -28,6 +28,7 @@ using System.Drawing;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Extensions.SharpDX;
 using SFXLibrary.Logger;
@@ -38,6 +39,7 @@ using SharpDX;
 using SharpDX.Direct3D9;
 using Color = SharpDX.Color;
 using Font = SharpDX.Direct3D9.Font;
+using Utils = LeagueSharp.Common.Utils;
 
 #endregion
 
@@ -59,6 +61,7 @@ namespace SFXUtility.Features.Trackers
         private Texture _invisibleTexture;
         private Line _line;
         private float _scale;
+        private Dictionary<int, List<SpellDataInst>> _spellDatas;
         private Sprite _sprite;
         private SpellSlot[] _summonerSpellSlots;
         private Dictionary<string, Texture> _summonerTextures;
@@ -143,10 +146,10 @@ namespace SFXUtility.Features.Trackers
                                 offsetTop + (float) (Math.Ceiling(1 * _scale)) + offset));
                         _sprite.End();
                     }
-
-                    for (var i = 0; _summonerSpellSlots.Length > i; i++)
+                    var spellData = _spellDatas[enemy.Unit.NetworkId];
+                    for (var i = 0; spellData.Count > i; i++)
                     {
-                        var spell = enemy.Unit.Spellbook.GetSpell(_summonerSpellSlots[i]);
+                        var spell = spellData[i];
                         if (spell != null && _summonerTextures.ContainsKey(FixSummonerName(spell.Name)))
                         {
                             _sprite.Begin(SpriteFlags.AlphaBlend);
@@ -185,11 +188,12 @@ namespace SFXUtility.Features.Trackers
 
                     _sprite.End();
 
-                    if (enemy.RSpell != null && enemy.RSpell.CooldownExpires - Game.Time > 0)
+                    if (enemy.RSpell != null && enemy.RSpell.CooldownExpires - Game.Time > 0 &&
+                        enemy.RSpell.CooldownExpires - Game.Time < 100)
                     {
                         _text12.DrawTextCentered(
                             ((int) (enemy.RSpell.CooldownExpires - Game.Time)).ToStringLookUp(),
-                            new Vector2(offsetRight + hudWidth * 0.45f, offsetTop - hudHeight * 0.37f + offset),
+                            new Vector2(offsetRight + hudWidth * 0.4555f, offsetTop - hudHeight * 0.365f + offset),
                             Color.White, true);
                     }
 
@@ -295,7 +299,7 @@ namespace SFXUtility.Features.Trackers
 
         protected override void OnInitialize()
         {
-            if (!HeroManager.Enemies.Any())
+            if (!GameObjects.EnemyHeroes.Any())
             {
                 OnUnload(null, new UnloadEventArgs(true));
                 return;
@@ -309,6 +313,7 @@ namespace SFXUtility.Features.Trackers
             _enemyObjects = new List<EnemyObject>();
             _summonerSpellSlots = new[] { SpellSlot.Summoner1, SpellSlot.Summoner2 };
             _summonerTextures = new Dictionary<string, Texture>();
+            _spellDatas = new Dictionary<int, List<SpellDataInst>>();
 
             if (Global.IoC.IsRegistered<Teleport>())
             {
@@ -324,7 +329,12 @@ namespace SFXUtility.Features.Trackers
             _text18 = MDrawing.GetFont((int) (Math.Ceiling(18 * _scale)));
             _text30 = MDrawing.GetFont((int) (Math.Ceiling(30 * _scale)));
 
-            foreach (var enemy in HeroManager.Enemies)
+            foreach (var enemy in GameObjects.EnemyHeroes)
+            {
+                _spellDatas.Add(enemy.NetworkId, _summonerSpellSlots.Select(slot => enemy.GetSpell(slot)).ToList());
+            }
+
+            foreach (var enemy in GameObjects.EnemyHeroes)
             {
                 _enemyObjects.Add(
                     new EnemyObject(
@@ -334,7 +344,7 @@ namespace SFXUtility.Features.Trackers
 
             foreach (var summonerSlot in _summonerSpellSlots)
             {
-                foreach (var enemy in HeroManager.Enemies)
+                foreach (var enemy in GameObjects.EnemyHeroes)
                 {
                     var spell = enemy.Spellbook.GetSpell(summonerSlot);
                     if (!_summonerTextures.ContainsKey(FixSummonerName(spell.Name)))
@@ -437,9 +447,10 @@ namespace SFXUtility.Features.Trackers
                     var offset = spacing * index;
                     if (args.Msg == (uint) WindowsMessages.WM_LBUTTONDBLCLCK)
                     {
-                        for (var i = 0; _summonerSpellSlots.Length > i; i++)
+                        var spellData = _spellDatas[enemy.Unit.NetworkId];
+                        for (var i = 0; spellData.Count > i; i++)
                         {
-                            var spell = enemy.Unit.Spellbook.GetSpell(_summonerSpellSlots[i]);
+                            var spell = spellData[i];
                             if (spell != null)
                             {
                                 if (Utils.IsUnderRectangle(
