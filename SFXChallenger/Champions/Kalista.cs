@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- kalista.cs is part of SFXChallenger.
+ Kalista.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -114,6 +114,8 @@ namespace SFXChallenger.Champions
                 new MenuItem(lasthitMenu.Name + ".e-big", "E " + Global.Lang.Get("G_Big")).SetValue(true));
             lasthitMenu.AddItem(
                 new MenuItem(lasthitMenu.Name + ".e-unkillable", "E " + Global.Lang.Get("G_Unkillable")).SetValue(true));
+            lasthitMenu.AddItem(
+                new MenuItem(lasthitMenu.Name + ".e-turret", "E " + Global.Lang.Get("G_Turret")).SetValue(true));
 
             var killstealMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Killsteal"), Menu.Name + ".killsteal"));
             killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
@@ -283,16 +285,29 @@ namespace SFXChallenger.Champions
             {
                 if (E.IsReady() && ManaManager.Check("lasthit"))
                 {
-                    var minions = GameObjects.Jungle.ToList();
-                    if (Menu.Item(Menu.Name + ".lasthit.e-big").GetValue<bool>() &&
-                        minions.Any(
-                            m =>
-                                m.IsValidTarget(E.Range) &&
-                                (m.BaseSkinName.Contains("MinionSiege") || m.BaseSkinName.StartsWith("SRU_Dragon") ||
-                                 m.BaseSkinName.StartsWith("SRU_Baron")) && Rend.IsKillable(m)))
-
+                    if (Menu.Item(Menu.Name + ".lasthit.e-big").GetValue<bool>())
                     {
-                        E.Cast();
+                        var creeps = GameObjects.Jungle.ToList();
+                        if (
+                            creeps.Any(
+                                m =>
+                                    m.IsValidTarget(E.Range) &&
+                                    (m.BaseSkinName.Contains("MinionSiege") || m.BaseSkinName.StartsWith("SRU_Dragon") ||
+                                     m.BaseSkinName.StartsWith("SRU_Baron")) && Rend.IsKillable(m)))
+                        {
+                            E.Cast();
+                        }
+                    }
+
+                    if (Menu.Item(Menu.Name + ".lasthit.e-turret").GetValue<bool>())
+                    {
+                        var minion =
+                            GameObjects.EnemyMinions.FirstOrDefault(
+                                m => Rend.IsKillable(m) && Utils.UnderAllyTurret(m.Position));
+                        if (minion != null)
+                        {
+                            E.Cast();
+                        }
                     }
                 }
 

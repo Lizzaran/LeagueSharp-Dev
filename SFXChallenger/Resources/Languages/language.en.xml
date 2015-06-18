@@ -58,6 +58,7 @@
 	<entry key="G_Slowed">Slowed</entry>
 	<entry key="G_Range">Range</entry>
 	<entry key="G_Jungle">Jungle</entry>
+	<entry key="G_Turret">Turret</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: Language -->

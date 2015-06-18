@@ -26,6 +26,7 @@ using System;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary;
 using SFXLibrary.Logger;
 using SharpDX;
 
@@ -40,7 +41,7 @@ namespace SFXChallenger.Helpers
             try
             {
                 return
-                    ObjectManager.Get<Obj_AI_Turret>()
+                    GameObjects.Turrets
                         .Any(turret => turret.IsValidTarget(900f + extraRange, true, target.Position));
             }
 
@@ -103,6 +104,11 @@ namespace SFXChallenger.Helpers
         private static float Magn(Vector2 a)
         {
             return (float) (Math.Sqrt(a.X * a.X + a.Y * a.Y));
+        }
+
+        public static bool UnderAllyTurret(Vector3 position)
+        {
+            return GameObjects.AllyTurrets.Any(t => t.Distance(position) < 950f);
         }
     }
 }
