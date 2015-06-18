@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Kalista.cs is part of SFXChallenger.
+ kalista.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -245,6 +245,7 @@ namespace SFXChallenger.Champions
 
         private void OnOrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
         {
+            Orbwalker.ForceTarget(null);
             if (unit.IsMe && Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
             {
                 var enemy = target as Obj_AI_Hero;
@@ -450,7 +451,7 @@ namespace SFXChallenger.Champions
             {
                 return;
             }
-            if (useQ && !Player.IsDashing() && Player.IsWindingUp && minions.Count >= minQ)
+            if (useQ && !Player.IsDashing() && !Player.IsWindingUp && minions.Count >= minQ)
             {
                 foreach (var minion in GameObjects.EnemyMinions.Where(m => m.Health < Q.GetDamage(m)))
                 {
@@ -477,10 +478,10 @@ namespace SFXChallenger.Champions
             }
             if (useE)
             {
-                var minionsInRange = minions.Where(m => E.IsInRange(m)).ToList();
-                var killCount = minionsInRange.Count(Rend.IsKillable);
-                if (killCount >= minE ||
-                    killCount >= 1 && Menu.Item(Menu.Name + ".lane-clear.e-jungle").GetValue<bool>())
+                var killable = minions.Where(m => E.IsInRange(m) && Rend.IsKillable(m)).ToList();
+                if (killable.Count >= minE ||
+                    (killable.Count >= 1 && Menu.Item(Menu.Name + ".lane-clear.e-jungle").GetValue<bool>() &&
+                     killable.Any(m => m.Team == GameObjectTeam.Neutral)))
                 {
                     E.Cast();
                 }
