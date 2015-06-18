@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Kalista.cs is part of SFXChallenger.
+ kalista.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -200,14 +200,14 @@ namespace SFXChallenger.Champions
                     }
                 }
                 if (!sender.IsEnemy || SoulBound.Unit == null || R.Level == 0 ||
-                    !Menu.Item(Menu.Name + ".miscellaneous.r").GetValue<bool>() || R.Level == 0)
+                    !Menu.Item(Menu.Name + ".miscellaneous.r").GetValue<bool>())
                 {
                     return;
                 }
                 if (args.Target != null && args.Target.NetworkId == SoulBound.Unit.NetworkId &&
                     (!(sender is Obj_AI_Hero) || args.SData.IsAutoAttack()))
                 {
-                    SoulBound.AddIncoming(
+                    SoulBound.Add(
                         SoulBound.Unit.ServerPosition.Distance(sender.ServerPosition) / args.SData.MissileSpeed +
                         Game.Time, (float) sender.GetAutoAttackDamage(SoulBound.Unit));
                 }
@@ -234,7 +234,10 @@ namespace SFXChallenger.Champions
                             {
                                 damage = (float) hero.GetSpellDamage(SoulBound.Unit, slot);
                             }
-                            SoulBound.AddInstant(Game.Time + 2, damage);
+                            if (damage > 0)
+                            {
+                                SoulBound.Add(Game.Time + 2, damage);
+                            }
                         }
                     }
                 }
@@ -321,18 +324,14 @@ namespace SFXChallenger.Champions
                     }
                 }
 
-                if (R.Level > 0)
+                if (Menu.Item(Menu.Name + ".miscellaneous.r").GetValue<bool>() && SoulBound.Unit != null && R.IsReady())
                 {
-                    if (Menu.Item(Menu.Name + ".miscellaneous.r").GetValue<bool>() && SoulBound.Unit != null &&
-                        R.IsReady())
-                    {
-                        if (SoulBound.Unit.HealthPercent <= 10 && SoulBound.Unit.CountEnemiesInRange(500) > 0 ||
-                            (SoulBound.Unit.HealthPercent <= 45 && SoulBound.TotalDamage * 1.1f > SoulBound.Unit.Health))
-                        {
-                            R.Cast();
-                        }
-                    }
                     SoulBound.Clean();
+                    if (SoulBound.Unit.HealthPercent <= 10 && SoulBound.Unit.CountEnemiesInRange(500) > 0 ||
+                        (SoulBound.Unit.HealthPercent <= 45 && SoulBound.TotalDamage * 1.1f > SoulBound.Unit.Health))
+                    {
+                        R.Cast();
+                    }
                 }
             }
             catch (Exception ex)
@@ -549,29 +548,20 @@ namespace SFXChallenger.Champions
 
         internal class SoulBound
         {
-            public static Dictionary<float, float> IncomingDamage = new Dictionary<float, float>();
-            public static Dictionary<float, float> InstantDamage = new Dictionary<float, float>();
+            public static Dictionary<float, float> Damages = new Dictionary<float, float>();
             public static Obj_AI_Hero Unit { get; set; }
 
             public static float TotalDamage
             {
                 get
                 {
-                    var sum = 0f;
                     try
                     {
-                        if (IncomingDamage.Count > 0)
+                        if (Damages.Count > 0)
                         {
-                            lock (IncomingDamage)
+                            lock (Damages)
                             {
-                                sum += IncomingDamage.Sum(e => e.Value);
-                            }
-                        }
-                        if (InstantDamage.Count > 0)
-                        {
-                            lock (InstantDamage)
-                            {
-                                sum += InstantDamage.Sum(e => e.Value);
+                                return Damages.Sum(e => e.Value);
                             }
                         }
                     }
@@ -579,7 +569,7 @@ namespace SFXChallenger.Champions
                     {
                         Global.Logger.AddItem(new LogItem(ex));
                     }
-                    return sum;
+                    return 0f;
                 }
             }
 
@@ -587,18 +577,11 @@ namespace SFXChallenger.Champions
             {
                 try
                 {
-                    lock (IncomingDamage)
+                    lock (Damages)
                     {
-                        foreach (var entry in IncomingDamage.Where(entry => entry.Key < Game.Time))
+                        foreach (var entry in Damages.Where(entry => Game.Time > entry.Key))
                         {
-                            IncomingDamage.Remove(entry.Key);
-                        }
-                    }
-                    lock (InstantDamage)
-                    {
-                        foreach (var entry in InstantDamage.Where(entry => entry.Key < Game.Time))
-                        {
-                            InstantDamage.Remove(entry.Key);
+                            Damages.Remove(entry.Key);
                         }
                     }
                 }
@@ -608,38 +591,15 @@ namespace SFXChallenger.Champions
                 }
             }
 
-            public static void AddInstant(float time, float damage)
+            public static void Add(float time, float damage)
             {
                 try
                 {
-                    lock (InstantDamage)
+                    lock (Damages)
                     {
                         float value;
-                        if (InstantDamage.TryGetValue(time, out value))
-                        {
-                            value += damage;
-                        }
-                        InstantDamage[time] = value;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Global.Logger.AddItem(new LogItem(ex));
-                }
-            }
-
-            public static void AddIncoming(float time, float damage)
-            {
-                try
-                {
-                    lock (IncomingDamage)
-                    {
-                        float value;
-                        if (IncomingDamage.TryGetValue(time, out value))
-                        {
-                            value += damage;
-                        }
-                        IncomingDamage[time] = value;
+                        Damages.TryGetValue(time, out value);
+                        Damages[time] = value + damage;
                     }
                 }
                 catch (Exception ex)
