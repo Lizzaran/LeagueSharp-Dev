@@ -49,6 +49,7 @@ namespace SFXUtility.Features.Trackers
 {
     internal class Sidebar : Child<Trackers>
     {
+        private const int TeleportCd = 240;
         private const float HudWidth = 95f;
         private const float HudHeight = 90f;
         private const float SummonerWidth = 22f;
@@ -67,6 +68,7 @@ namespace SFXUtility.Features.Trackers
         private Dictionary<string, Texture> _summonerTextures;
         private Texture _teleportAbortTexture;
         private Texture _teleportFinishTexture;
+        private Dictionary<int, float> _teleports;
         private Texture _teleportStartTexture;
         private Font _text12;
         private Font _text13;
@@ -152,6 +154,13 @@ namespace SFXUtility.Features.Trackers
                         var spell = spellData[i];
                         if (spell != null && _summonerTextures.ContainsKey(FixSummonerName(spell.Name)))
                         {
+                            var teleportCd = 0f;
+                            if (spell.Name.Contains("Teleport", StringComparison.OrdinalIgnoreCase) &&
+                                _teleports.ContainsKey(enemy.Unit.NetworkId))
+                            {
+                                _teleports.TryGetValue(enemy.Unit.NetworkId, out teleportCd);
+                            }
+                            var time = (teleportCd > 0.1f ? teleportCd : spell.CooldownExpires) - Game.Time;
                             _sprite.Begin(SpriteFlags.AlphaBlend);
                             _sprite.DrawCentered(
                                 _summonerTextures[FixSummonerName(spell.Name)],
@@ -159,10 +168,10 @@ namespace SFXUtility.Features.Trackers
                                     offsetRight - hudWidth * 0.23f,
                                     offsetTop - hudHeight * 0.3f + offset + ((float) (Math.Ceiling(24 * _scale)) * i)));
                             _sprite.End();
-                            if (spell.CooldownExpires - Game.Time > 0)
+                            if (time > 0)
                             {
                                 _text13.DrawTextCentered(
-                                    ((int) (spell.CooldownExpires - Game.Time)).ToStringLookUp(),
+                                    ((int) time).ToStringLookUp(),
                                     new Vector2(
                                         offsetRight - hudWidth * 0.23f,
                                         offsetTop - hudHeight * 0.3f + offset +
@@ -313,6 +322,7 @@ namespace SFXUtility.Features.Trackers
             _enemyObjects = new List<EnemyObject>();
             _summonerSpellSlots = new[] { SpellSlot.Summoner1, SpellSlot.Summoner2 };
             _summonerTextures = new Dictionary<string, Texture>();
+            _teleports = new Dictionary<int, float>();
             _spellDatas = new Dictionary<int, List<SpellDataInst>>();
 
             if (Global.IoC.IsRegistered<Teleport>())
@@ -417,6 +427,10 @@ namespace SFXUtility.Features.Trackers
             var enemyObject = _enemyObjects.FirstOrDefault(e => e.Unit.NetworkId == teleportEventArgs.UnitNetworkId);
             if (enemyObject != null)
             {
+                if (teleportEventArgs.Status == Packet.S2C.Teleport.Status.Finish)
+                {
+                    _teleports[teleportEventArgs.UnitNetworkId] = Game.Time + TeleportCd;
+                }
                 enemyObject.TeleportStatus = teleportEventArgs.Status;
             }
         }
