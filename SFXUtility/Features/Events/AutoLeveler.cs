@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- AutoLeveler.cs is part of SFXUtility.
+ autoleveler.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -181,12 +181,12 @@ namespace SFXUtility.Features.Events
 
                 var availablePoints = args.RemainingPoints;
 
-                if (ObjectManager.Player.Level - availablePoints <= 5)
+                if (ObjectManager.Player.Level <= 5)
                 {
                     var index =
                         Menu.Item(
                             Name + ObjectManager.Player.ChampionName + "Early" +
-                            (ObjectManager.Player.Level - availablePoints)).GetValue<StringList>().SelectedIndex;
+                            (ObjectManager.Player.Level)).GetValue<StringList>().SelectedIndex;
                     switch (index)
                     {
                         case 0:
