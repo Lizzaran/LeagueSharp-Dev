@@ -206,17 +206,16 @@
 
 	<!-- START: Trinket -->
 	<entry key="F_Trinket">Trinket</entry>
-	<entry key="Trinket_Timers">Timers</entry>
-	<entry key="Trinket_WardingTotem">Warding Totem @ Minute</entry>
-	<entry key="Trinket_SweepingLens">Sweeping Lens @ Minute</entry>
-	<entry key="Trinket_ScryingOrb">Scrying Orb @ Minute</entry>
+	<entry key="Trinket_Level">Level</entry>
+	<entry key="Trinket_WardingTotem">Warding Totem @ Level</entry>
+	<entry key="Trinket_SweepingLens">Sweeping Lens @ Level</entry>
+	<entry key="Trinket_ScryingOrb">Scrying Orb @ Level</entry>
 	<entry key="Trinket_WardingTotemBuy">Buy Warding Totem</entry>
 	<entry key="Trinket_SweepingLensBuy">Buy Sweeping Lens</entry>
 	<entry key="Trinket_ScryingOrbBuy">Buy Scrying Orb</entry>
 	<entry key="Trinket_Events">Events</entry>
 	<entry key="Trinket_Sightstone">Sightstone</entry>
 	<entry key="Trinket_RubySightstone">Ruby Sightstone</entry>
-	<entry key="Trinket_WrigglesLantern">Wriggle&apos;s Lantern</entry>
 	<entry key="Trinket_BuyTrinket">Buy Trinket</entry>
 	<entry key="Trinket_SellUpgraded">Sell Upgraded</entry>
 	<!-- END: Trinket -->

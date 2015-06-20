@@ -103,8 +103,12 @@ namespace SFXUtility.Features.Events
         {
             if (_onStartTriggerd)
             {
+                var map = Utility.Map.GetMap().Type;
                 if (Menu.Item(Name + "OnStartSayGreeting").GetValue<bool>() &&
-                    !GameObjects.Heroes.Any(h => h.Level >= 2))
+                    !GameObjects.Heroes.Any(
+                        h =>
+                            h.Level >=
+                            (map == Utility.Map.MapType.CrystalScar || map == Utility.Map.MapType.HowlingAbyss ? 3 : 1)))
                 {
                     Utility.DelayAction.Add(
                         Menu.Item(Name + "OnStartDelay").GetValue<Slider>().Value * 1000,

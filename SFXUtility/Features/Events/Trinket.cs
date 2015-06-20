@@ -38,7 +38,7 @@ namespace SFXUtility.Features.Events
 {
     internal class Trinket : Child<Events>
     {
-        private const float CheckInterval = 300f;
+        private const float CheckInterval = 333f;
         private float _lastCheck;
         public Trinket(SFXUtility sfx) : base(sfx) {}
 
@@ -64,27 +64,27 @@ namespace SFXUtility.Features.Events
             try
             {
                 Menu = new Menu(Name, Name);
-                var timersMenu = new Menu(Global.Lang.Get("Trinket_Timers"), Name + "Timers");
-                timersMenu.AddItem(
-                    new MenuItem(timersMenu.Name + "WardingTotem", Global.Lang.Get("Trinket_WardingTotem")).SetValue(
-                        new Slider(0, 0, 60)));
-                timersMenu.AddItem(
-                    new MenuItem(timersMenu.Name + "SweepingLens", Global.Lang.Get("Trinket_SweepingLens")).SetValue(
-                        new Slider(20, 0, 60)));
-                timersMenu.AddItem(
-                    new MenuItem(timersMenu.Name + "ScryingOrb", Global.Lang.Get("Trinket_ScryingOrb")).SetValue(
-                        new Slider(45, 0, 60)));
-                timersMenu.AddItem(
-                    new MenuItem(timersMenu.Name + "WardingTotemBuy", Global.Lang.Get("Trinket_WardingTotemBuy"))
+                var levelMenu = new Menu(Global.Lang.Get("Trinket_Level"), Name + "Level");
+                levelMenu.AddItem(
+                    new MenuItem(levelMenu.Name + "WardingTotem", Global.Lang.Get("Trinket_WardingTotem")).SetValue(
+                        new Slider(1, 1, 18)));
+                levelMenu.AddItem(
+                    new MenuItem(levelMenu.Name + "SweepingLens", Global.Lang.Get("Trinket_SweepingLens")).SetValue(
+                        new Slider(6, 1, 18)));
+                levelMenu.AddItem(
+                    new MenuItem(levelMenu.Name + "ScryingOrb", Global.Lang.Get("Trinket_ScryingOrb")).SetValue(
+                        new Slider(12, 1, 18)));
+                levelMenu.AddItem(
+                    new MenuItem(levelMenu.Name + "WardingTotemBuy", Global.Lang.Get("Trinket_WardingTotemBuy"))
                         .SetValue(false));
-                timersMenu.AddItem(
-                    new MenuItem(timersMenu.Name + "SweepingLensBuy", Global.Lang.Get("Trinket_SweepingLensBuy"))
+                levelMenu.AddItem(
+                    new MenuItem(levelMenu.Name + "SweepingLensBuy", Global.Lang.Get("Trinket_SweepingLensBuy"))
                         .SetValue(false));
-                timersMenu.AddItem(
-                    new MenuItem(timersMenu.Name + "ScryingOrbBuy", Global.Lang.Get("Trinket_ScryingOrbBuy")).SetValue(
+                levelMenu.AddItem(
+                    new MenuItem(levelMenu.Name + "ScryingOrbBuy", Global.Lang.Get("Trinket_ScryingOrbBuy")).SetValue(
                         false));
-                timersMenu.AddItem(
-                    new MenuItem(timersMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                levelMenu.AddItem(
+                    new MenuItem(levelMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 var eventsMenu = new Menu(Global.Lang.Get("Trinket_Events"), Name + "Events");
                 eventsMenu.AddItem(
@@ -92,9 +92,6 @@ namespace SFXUtility.Features.Events
                 eventsMenu.AddItem(
                     new MenuItem(eventsMenu.Name + "RubySightstone", Global.Lang.Get("Trinket_RubySightstone")).SetValue
                         (false));
-                eventsMenu.AddItem(
-                    new MenuItem(eventsMenu.Name + "WrigglesLantern", Global.Lang.Get("Trinket_WrigglesLantern"))
-                        .SetValue(false));
 
                 eventsMenu.AddItem(
                     new MenuItem(eventsMenu.Name + "BuyTrinket", Global.Lang.Get("Trinket_BuyTrinket")).SetValue(
@@ -103,7 +100,7 @@ namespace SFXUtility.Features.Events
                 eventsMenu.AddItem(
                     new MenuItem(eventsMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                Menu.AddSubMenu(timersMenu);
+                Menu.AddSubMenu(levelMenu);
                 Menu.AddSubMenu(eventsMenu);
 
                 Menu.AddItem(
@@ -200,47 +197,37 @@ namespace SFXUtility.Features.Events
                             }
                             return;
                         }
-                        if (ObjectManager.Player.HasItem(ItemId.Wriggles_Lantern) &&
-                            Menu.Item(Name + "EventsWrigglesLantern").GetValue<bool>())
-                        {
-                            if (!hasTrinket)
-                            {
-                                SwitchTrinket(trinketId);
-                            }
-                            return;
-                        }
                     }
 
-                    if (Menu.Item(Name + "TimersEnabled").GetValue<bool>())
+                    if (Menu.Item(Name + "LevelEnabled").GetValue<bool>())
                     {
-                        var time = (int) (LeagueSharp.Game.Time / 60f);
                         var tsList = new List<TrinketStruct>
                         {
                             new TrinketStruct(
                                 ItemId.Warding_Totem_Trinket, hasYellow,
-                                Menu.Item(Name + "TimersWardingTotemBuy").GetValue<bool>(),
-                                Menu.Item(Name + "TimersWardingTotem").GetValue<Slider>().Value),
+                                Menu.Item(Name + "LevelWardingTotemBuy").GetValue<bool>(),
+                                Menu.Item(Name + "LevelWardingTotem").GetValue<Slider>().Value),
                             new TrinketStruct(
                                 ItemId.Sweeping_Lens_Trinket, hasRed,
-                                Menu.Item(Name + "TimersSweepingLensBuy").GetValue<bool>(),
-                                Menu.Item(Name + "TimersSweepingLens").GetValue<Slider>().Value),
+                                Menu.Item(Name + "LevelSweepingLensBuy").GetValue<bool>(),
+                                Menu.Item(Name + "LevelSweepingLens").GetValue<Slider>().Value),
                             new TrinketStruct(
                                 ItemId.Scrying_Orb_Trinket, hasBlue,
-                                Menu.Item(Name + "TimersScryingOrbBuy").GetValue<bool>(),
-                                Menu.Item(Name + "TimersScryingOrb").GetValue<Slider>().Value)
+                                Menu.Item(Name + "LevelScryingOrbBuy").GetValue<bool>(),
+                                Menu.Item(Name + "LevelScryingOrb").GetValue<Slider>().Value)
                         };
-                        tsList = tsList.OrderBy(ts => ts.Time).ToList();
+                        tsList = tsList.OrderBy(ts => ts.Level).ToList();
 
                         for (int i = 0, l = tsList.Count; i < l; i++)
                         {
-                            if (time >= tsList[i].Time)
+                            if (ObjectManager.Player.Level >= tsList[i].Level)
                             {
                                 var hasHigher = false;
                                 if (i != l - 1)
                                 {
                                     for (var j = i + 1; j < l; j++)
                                     {
-                                        if (time >= tsList[j].Time && tsList[j].Buy)
+                                        if (ObjectManager.Player.Level >= tsList[i].Level && tsList[j].Buy)
                                         {
                                             hasHigher = true;
                                         }
@@ -292,14 +279,14 @@ namespace SFXUtility.Features.Events
             public readonly bool Buy;
             public readonly bool HasItem;
             public readonly ItemId ItemId;
-            public readonly int Time;
+            public readonly int Level;
 
-            public TrinketStruct(ItemId itemId, bool hasItem, bool buy, int time)
+            public TrinketStruct(ItemId itemId, bool hasItem, bool buy, int level)
             {
                 ItemId = itemId;
                 HasItem = hasItem;
                 Buy = buy;
-                Time = time;
+                Level = level;
             }
         }
     }

@@ -108,29 +108,73 @@ namespace SFXUtility.Features.Detectors
 
         private void OnGameUpdate(EventArgs args)
         {
-            if (ObjectManager.Player.IsDead || _lastCheck + CheckInterval > Environment.TickCount)
+            try
             {
-                return;
-            }
-
-            _lastCheck = Environment.TickCount;
-
-            var cooldown = Menu.Item(Name + "Cooldown").GetValue<Slider>().Value;
-            var range = Menu.Item(Name + "Range").GetValue<Slider>().Value;
-            var ping = Menu.Item(Name + "Ping").GetValue<bool>();
-
-            foreach (var obj in _championObjects.Where(c => c.Enabled && !c.Hero.IsDead && c.Hero.IsVisible))
-            {
-                var distance = obj.Hero.Distance(ObjectManager.Player);
-                if (obj.Distance > range && distance <= range && Game.Time > obj.LastTrigger + cooldown)
+                if (ObjectManager.Player.IsDead || _lastCheck + CheckInterval > Environment.TickCount)
                 {
-                    obj.LastTrigger = Game.Time;
-                    if (ping && obj.Hero.IsEnemy)
-                    {
-                        Game.ShowPing(PingCategory.Danger, obj.Hero, true);
-                    }
+                    return;
                 }
-                obj.Distance = distance;
+
+                _lastCheck = Environment.TickCount;
+
+                var cooldown = Menu.Item(Name + "Cooldown").GetValue<Slider>().Value;
+                var range = Menu.Item(Name + "Range").GetValue<Slider>().Value;
+                var ping = Menu.Item(Name + "Ping").GetValue<bool>();
+
+                foreach (var obj in _championObjects.Where(c => c.Enabled && !c.Hero.IsDead && c.Hero.IsVisible))
+                {
+                    var distance = obj.Hero.Distance(ObjectManager.Player);
+                    if (obj.Distance > range && distance <= range && Game.Time > obj.LastTrigger + cooldown)
+                    {
+                        obj.LastTrigger = Game.Time;
+                        if (ping && obj.Hero.IsEnemy)
+                        {
+                            Game.ShowPing(PingCategory.Danger, obj.Hero, true);
+                        }
+                    }
+                    obj.Distance = distance;
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void MenuValueChanged()
+        {
+            try
+            {
+                foreach (var obj in _championObjects)
+                {
+                    var hasSmite =
+                        obj.Hero.Spellbook.Spells.Any(
+                            spell => spell.Name.Contains("Smite", StringComparison.OrdinalIgnoreCase));
+                    var prefix = obj.Hero.IsAlly ? "Allies" : "Enemies";
+                    if (Menu.Item(Menu.Name + prefix + obj.Hero.ChampionName).GetValue<Circle>().Active)
+                    {
+                        if (!Menu.Item(Menu.Name + prefix + "Smite").GetValue<Circle>().Active || Menu.Item(Menu.Name + prefix + "Smite").GetValue<Circle>().Active && hasSmite)
+                        {
+                            obj.Enabled = true;
+                        }
+                        else
+                        {
+                            obj.Enabled = false;
+                        }
+                    }
+                    else
+                    {
+                        obj.Enabled = false;
+                    }
+                    var color = hasSmite
+                        ? Menu.Item(Menu.Name + prefix + "Smite").GetValue<Circle>().Color
+                        : Menu.Item(Menu.Name + prefix + obj.Hero.ChampionName).GetValue<Circle>().Color;
+                    obj.Color = new Color(color.R, color.G, color.B, color.A);
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -165,55 +209,13 @@ namespace SFXUtility.Features.Detectors
                 enemyMenu.AddItem(
                     new MenuItem(enemyMenu.Name + "Smite", Global.Lang.Get("Gank_OnlySmite")).SetValue(
                         new Circle(false, System.Drawing.Color.DarkViolet.ToArgb(125)))).ValueChanged +=
-                    delegate(object o, OnValueChangeEventArgs args)
-                    {
-                        if (_championObjects == null)
-                        {
-                            return;
-                        }
-                        foreach (var obj in _championObjects.Where(c => c.Hero.IsEnemy))
-                        {
-                            if (
-                                obj.Hero.Spellbook.Spells.Any(
-                                    spell => spell.Name.Contains("Smite", StringComparison.OrdinalIgnoreCase)))
-                            {
-                                if (args.GetNewValue<Circle>().Active)
-                                {
-                                    obj.Enabled = true;
-                                }
-                                var color = args.GetNewValue<Circle>().Color;
-                                obj.Color = new Color(color.R, color.G, color.B, color.A);
-                            }
-                            else
-                            {
-                                obj.Enabled = false;
-                            }
-                        }
-                    };
+                    delegate { Utility.DelayAction.Add(0, MenuValueChanged); };
                 foreach (var enemy in GameObjects.EnemyHeroes)
                 {
                     enemyMenu.AddItem(
                         new MenuItem(enemyMenu.Name + enemy.ChampionName, enemy.ChampionName).SetValue(
                             new Circle(true, System.Drawing.Color.Red.ToArgb(125)))).ValueChanged +=
-                        delegate(object o, OnValueChangeEventArgs args)
-                        {
-                            if (_championObjects == null)
-                            {
-                                return;
-                            }
-                            var obj = _championObjects.FirstOrDefault(c => c.Hero.NetworkId == enemy.NetworkId);
-                            if (obj != null)
-                            {
-                                obj.Enabled = (Menu.Item(Menu.Name + "EnemiesSmite").GetValue<bool>() &&
-                                               obj.Hero.Spellbook.Spells.Any(
-                                                   spell =>
-                                                       spell.Name.Contains("Smite", StringComparison.OrdinalIgnoreCase))) ||
-                                              (!Menu.Item(Menu.Name + "EnemiesSmite").GetValue<bool>() &&
-                                               args.GetNewValue<Circle>().Active);
-                                var color = args.GetNewValue<Circle>().Color;
-                                obj.Color = new Color(color.R, color.G, color.B, color.A);
-                            }
-                        };
+                        delegate { Utility.DelayAction.Add(0, MenuValueChanged); };
                 }
 
                 Menu.AddSubMenu(enemyMenu);
@@ -222,55 +224,13 @@ namespace SFXUtility.Features.Detectors
                 allyMenu.AddItem(
                     new MenuItem(allyMenu.Name + "Smite", Global.Lang.Get("Gank_OnlySmite")).SetValue(
                         new Circle(false, System.Drawing.Color.DodgerBlue.ToArgb(125)))).ValueChanged +=
-                    delegate(object o, OnValueChangeEventArgs args)
-                    {
-                        if (_championObjects == null)
-                        {
-                            return;
-                        }
-                        foreach (var obj in _championObjects.Where(c => c.Hero.IsAlly))
-                        {
-                            if (
-                                obj.Hero.Spellbook.Spells.Any(
-                                    spell => spell.Name.Contains("Smite", StringComparison.OrdinalIgnoreCase)))
-                            {
-                                if (args.GetNewValue<Circle>().Active)
-                                {
-                                    obj.Enabled = true;
-                                }
-                                var color = args.GetNewValue<Circle>().Color;
-                                obj.Color = new Color(color.R, color.G, color.B, color.A);
-                            }
-                            else
-                            {
-                                obj.Enabled = false;
-                            }
-                        }
-                    };
+                    delegate { Utility.DelayAction.Add(0, MenuValueChanged); };
                 foreach (var ally in GameObjects.AllyHeroes.Where(a => !a.IsMe))
                 {
                     allyMenu.AddItem(
                         new MenuItem(allyMenu.Name + ally.ChampionName, ally.ChampionName).SetValue(
                             new Circle(true, System.Drawing.Color.Green.ToArgb(125)))).ValueChanged +=
-                        delegate(object o, OnValueChangeEventArgs args)
-                        {
-                            if (_championObjects == null)
-                            {
-                                return;
-                            }
-                            var obj = _championObjects.FirstOrDefault(c => c.Hero.NetworkId == ally.NetworkId);
-                            if (obj != null)
-                            {
-                                obj.Enabled = (Menu.Item(Menu.Name + "AlliesSmite").GetValue<bool>() &&
-                                               obj.Hero.Spellbook.Spells.Any(
-                                                   spell =>
-                                                       spell.Name.Contains("Smite", StringComparison.OrdinalIgnoreCase))) ||
-                                              (!Menu.Item(Menu.Name + "AlliesSmite").GetValue<bool>() &&
-                                               args.GetNewValue<Circle>().Active);
-                                var color = args.GetNewValue<Circle>().Color;
-                                obj.Color = new Color(color.R, color.G, color.B, color.A);
-                            }
-                        };
+                        delegate { Utility.DelayAction.Add(0, MenuValueChanged); };
                 }
 
                 Menu.AddSubMenu(allyMenu);
@@ -301,26 +261,9 @@ namespace SFXUtility.Features.Detectors
             _championObjects = new List<ChampionObject>();
             foreach (var hero in GameObjects.Heroes.Where(h => !h.IsMe))
             {
-                var hasSmite =
-                    hero.Spellbook.Spells.Any(spell => spell.Name.Contains("Smite", StringComparison.OrdinalIgnoreCase));
-                var obj = new ChampionObject(hero)
-                {
-                    Enabled =
-                        (Menu.Item(Name + (hero.IsEnemy ? "Enemies" : "Allies") + "Smite").GetValue<Circle>().Active &&
-                         hasSmite) ||
-                        (!Menu.Item(Name + (hero.IsEnemy ? "Enemies" : "Allies") + "Smite").GetValue<Circle>().Active &&
-                         Menu.Item(Name + (hero.IsEnemy ? "Enemies" : "Allies") + hero.ChampionName)
-                             .GetValue<Circle>()
-                             .Active)
-                };
-                var color =
-                    Menu.Item(Name + (hero.IsEnemy ? "Enemies" : "Allies") + (hasSmite ? "Smite" : hero.ChampionName))
-                        .GetValue<Circle>()
-                        .Color;
-                obj.Color = new Color(color.R, color.G, color.B, color.A);
-                _championObjects.Add(obj);
+                _championObjects.Add(new ChampionObject(hero));
             }
-
+            MenuValueChanged();
             base.OnInitialize();
         }
 

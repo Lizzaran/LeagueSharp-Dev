@@ -155,7 +155,7 @@ namespace SFXUtility.Features.Events
             }
             _lastCheck = Environment.TickCount;
 
-            var availablePoints = ObjectManager.Player.Level - (_q.Level + _w.Level + _e.Level + _r.Level);
+            var availablePoints = ObjectManager.Player.Level - (_q.Level + _w.Level + _e.Level + GetRLevel());
 
             if (availablePoints > 0)
             {
@@ -181,12 +181,12 @@ namespace SFXUtility.Features.Events
 
                 var availablePoints = args.RemainingPoints;
 
-                if (ObjectManager.Player.Level <= 5)
+                if (ObjectManager.Player.Level - availablePoints <= 5)
                 {
                     var index =
-                        Menu.Item(Name + ObjectManager.Player.ChampionName + "Early" + ObjectManager.Player.Level)
-                            .GetValue<StringList>()
-                            .SelectedIndex;
+                        Menu.Item(
+                            Name + ObjectManager.Player.ChampionName + "Early" +
+                            (ObjectManager.Player.Level - availablePoints)).GetValue<StringList>().SelectedIndex;
                     switch (index)
                     {
                         case 0:
@@ -194,12 +194,24 @@ namespace SFXUtility.Features.Events
                         case 1:
                             break;
                         case 2:
+                            if (_q.Level >= MaxSpellLevel(SpellSlot.Q, ObjectManager.Player.Level - availablePoints))
+                            {
+                                break;
+                            }
                             ObjectManager.Player.Spellbook.LevelUpSpell(SpellSlot.Q);
                             return;
                         case 3:
+                            if (_w.Level >= MaxSpellLevel(SpellSlot.W, ObjectManager.Player.Level - availablePoints))
+                            {
+                                break;
+                            }
                             ObjectManager.Player.Spellbook.LevelUpSpell(SpellSlot.W);
                             return;
                         case 4:
+                            if (_e.Level >= MaxSpellLevel(SpellSlot.E, ObjectManager.Player.Level - availablePoints))
+                            {
+                                break;
+                            }
                             ObjectManager.Player.Spellbook.LevelUpSpell(SpellSlot.E);
                             return;
                     }
@@ -233,11 +245,44 @@ namespace SFXUtility.Features.Events
             }
         }
 
+        private int GetRLevel()
+        {
+            if (ObjectManager.Player.ChampionName.Equals("Karma", StringComparison.CurrentCultureIgnoreCase))
+            {
+                return _r.Level - 1;
+            }
+            if (ObjectManager.Player.ChampionName.Equals("Jayce", StringComparison.CurrentCultureIgnoreCase))
+            {
+                return _r.Level - 1;
+            }
+            if (ObjectManager.Player.ChampionName.Equals("Nidalee", StringComparison.CurrentCultureIgnoreCase))
+            {
+                return _r.Level - 1;
+            }
+            return _r.Level;
+        }
+
         private int MaxSpellLevel(SpellSlot slot, int level)
         {
-            return slot == SpellSlot.R
+            var l = slot == SpellSlot.R
                 ? (level >= 16 ? 3 : (level >= 11 ? 2 : (level >= 6 ? 1 : 0)))
                 : (level >= 9 ? 5 : (level >= 7 ? 4 : (level >= 5 ? 3 : (level >= 3 ? 2 : 1))));
+            if (slot == SpellSlot.R)
+            {
+                if (ObjectManager.Player.ChampionName.Equals("Karma", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    return l + 1;
+                }
+                if (ObjectManager.Player.ChampionName.Equals("Jayce", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    return l + 1;
+                }
+                if (ObjectManager.Player.ChampionName.Equals("Nidalee", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    return l + 1;
+                }
+            }
+            return l;
         }
 
         private struct SpellInfoStruct

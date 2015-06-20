@@ -38,6 +38,8 @@ namespace SFXUtility.Features.Others
     {
         public AutoLantern(SFXUtility sfx) : base(sfx) {}
 
+        private GameObject _lantern;
+
         public override string Name
         {
             get { return Global.Lang.Get("F_AutoLantern"); }
@@ -46,12 +48,16 @@ namespace SFXUtility.Features.Others
         protected override void OnEnable()
         {
             Game.OnUpdate += OnGameUpdate;
+            GameObject.OnCreate += OnGameObjectCreate;
+            GameObject.OnDelete += OnGameObjectDelete;
             base.OnEnable();
         }
 
         protected override void OnDisable()
         {
             Game.OnUpdate -= OnGameUpdate;
+            GameObject.OnCreate -= OnGameObjectCreate;
+            GameObject.OnDelete -= OnGameObjectDelete;
             base.OnDisable();
         }
 
@@ -70,10 +76,6 @@ namespace SFXUtility.Features.Others
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
-
-                if (
-                    GameObjects.AllyHeroes.Any(
-                        a => !a.IsMe && a.ChampionName.Equals("Thresh", StringComparison.OrdinalIgnoreCase))) {}
             }
             catch (Exception ex)
             {
@@ -81,24 +83,53 @@ namespace SFXUtility.Features.Others
             }
         }
 
+        protected override void OnInitialize()
+        {
+            if (!GameObjects.AllyHeroes.Any(a => !a.IsMe && a.ChampionName.Equals("Thresh", StringComparison.OrdinalIgnoreCase)))
+            {
+                OnUnload(null, new UnloadEventArgs(true));
+            }
+            base.OnInitialize();
+        }
+
+        private void OnGameObjectCreate(GameObject sender, EventArgs args)
+        {
+            if (!sender.IsValid || !sender.IsAlly || sender.Type != GameObjectType.obj_AI_Minion )
+            {
+                return;
+            }
+            if (sender.Name.Equals("ThreshLantern", StringComparison.OrdinalIgnoreCase))
+            {
+                _lantern = sender;
+            }
+        }
+
+        private void OnGameObjectDelete(GameObject sender, EventArgs args)
+        {
+            if (!sender.IsValid || _lantern == null)
+            {
+                return;
+            }
+            if (sender.NetworkId == _lantern.NetworkId)
+            {
+                _lantern = null;
+            }
+        }
+
         private void OnGameUpdate(EventArgs args)
         {
             try
             {
-                if (ObjectManager.Player.IsDead)
+                if (ObjectManager.Player.IsDead || _lantern == null || !_lantern.IsValid)
                 {
                     return;
                 }
-
                 if (ObjectManager.Player.HealthPercent <= Menu.Item(Name + "Percent").GetValue<Slider>().Value ||
                     Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active)
                 {
-                    var lantern =
-                        GameObjects.Ally.FirstOrDefault(
-                            obj => obj.Name.Equals("ThreshLantern", StringComparison.OrdinalIgnoreCase));
-                    if (lantern != null && lantern.Distance(ObjectManager.Player) <= 500)
+                    if (_lantern.Position.Distance(ObjectManager.Player.Position) <= 500)
                     {
-                        ObjectManager.Player.Spellbook.CastSpell((SpellSlot) 62, lantern);
+                        ObjectManager.Player.Spellbook.CastSpell((SpellSlot)62, _lantern);
                     }
                 }
             }

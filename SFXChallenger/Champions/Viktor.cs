@@ -63,6 +63,7 @@ namespace SFXChallenger.Champions
         {
             Core.OnPostUpdate += OnCorePostUpdate;
             Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
+            Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
             AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
             Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
             CustomEvents.Unit.OnDash += OnUnitDash;
@@ -73,6 +74,7 @@ namespace SFXChallenger.Champions
         {
             Core.OnPostUpdate -= OnCorePostUpdate;
             Orbwalking.BeforeAttack -= OnOrbwalkingBeforeAttack;
+            Orbwalking.AfterAttack -= OnOrbwalkingAfterAttack;
             AntiGapcloser.OnEnemyGapcloser -= OnEnemyGapcloser;
             Interrupter2.OnInterruptableTarget -= OnInterruptableTarget;
             CustomEvents.Unit.OnDash -= OnUnitDash;
@@ -303,6 +305,16 @@ namespace SFXChallenger.Champions
             {
                 if (Player.HasBuff("viktorpowertransferreturn"))
                 {
+                    if (args.Target.Type != GameObjectType.obj_AI_Hero)
+                    {
+                        var hero = Targets.FirstOrDefault(Orbwalking.InAutoAttackRange);
+                        if (hero != null)
+                        {
+                            args.Process = false;
+                            Orbwalker.ForceTarget(hero);
+                            return;
+                        }
+                    }
                     var target = args.Target as Obj_AI_Minion;
                     if (target != null)
                     {
@@ -353,12 +365,16 @@ namespace SFXChallenger.Champions
                     args.Process = (!Q.IsReady() || Player.Mana < Q.Instance.ManaCost) &&
                                    (!E.IsReady() || Player.Mana < E.Instance.ManaCost);
                 }
-                Orbwalker.ForceTarget(null);
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        private void OnOrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
+        {
+            Orbwalker.ForceTarget(null);
         }
 
         private void OnUnitDash(Obj_AI_Base sender, Dash.DashItem args)

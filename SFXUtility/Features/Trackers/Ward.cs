@@ -426,8 +426,10 @@ namespace SFXUtility.Features.Trackers
                 }
                 _lastCheck = Environment.TickCount;
 
-                _wardObjects.RemoveAll(w => w.EndTime <= Game.Time && w.Data.Duration != int.MaxValue);
-                _wardObjects.RemoveAll(w => w.Object != null && !w.Object.IsValid);
+                _wardObjects.RemoveAll(
+                    w =>
+                        (w.EndTime <= Game.Time && w.Data.Duration != int.MaxValue) ||
+                        (w.Object != null && !w.Object.IsValid));
             }
             catch (Exception ex)
             {
@@ -519,15 +521,12 @@ namespace SFXUtility.Features.Trackers
             {
                 if (end.IsWall())
                 {
-                    for (var i = 0; i < 1000; i = i + 2)
+                    for (var i = 0; i < 500; i = i + 5)
                     {
-                        var c = new Geometry.Polygon.Circle(end, i, 15).ToClipperPath();
-                        foreach (var item in c)
+                        var c = new Geometry.Polygon.Circle(end, i, 15).Points;
+                        foreach (var item in c.OrderBy(p => p.Distance(end)).Where(item => !(item.IsWall())))
                         {
-                            if (!(new Vector2(item.X, item.Y).To3D().IsWall()))
-                            {
-                                return new Vector3(item.X, item.Y, NavMesh.GetHeightForPosition(item.X, item.Y));
-                            }
+                            return new Vector3(item.X, item.Y, NavMesh.GetHeightForPosition(item.X, item.Y));
                         }
                     }
                 }

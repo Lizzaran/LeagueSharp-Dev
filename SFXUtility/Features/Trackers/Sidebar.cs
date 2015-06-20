@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Sidebar.cs is part of SFXUtility.
+ sidebar.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -472,16 +472,21 @@ namespace SFXUtility.Features.Trackers
                                     offsetTop - hudHeight * 0.3f + offset + ((float) (Math.Ceiling(24 * _scale)) * i) -
                                     SummonerHeight / 2f, SummonerWidth, SummonerHeight))
                                 {
-                                    if (!spell.IsReady() && spell.CooldownExpires - Game.Time > 0)
+                                    var teleportCd = 0f;
+                                    if (spell.Name.Contains("Teleport", StringComparison.OrdinalIgnoreCase) &&
+                                        _teleports.ContainsKey(enemy.Unit.NetworkId))
+                                    {
+                                        _teleports.TryGetValue(enemy.Unit.NetworkId, out teleportCd);
+                                    }
+                                    var time = (teleportCd > 0.1f ? teleportCd : spell.CooldownExpires) - Game.Time;
+                                    if (time > 0)
                                     {
                                         var sName = ReadableSummonerName(spell.Name);
                                         Game.Say(
                                             string.Format(
                                                 "{0} {1} {2}", enemy.Unit.ChampionName, sName,
-                                                ((float)
-                                                    (Math.Round(
-                                                        (spell.CooldownExpires - Game.Time) * 2f,
-                                                        MidpointRounding.AwayFromZero) / 2f)).FormatTime()));
+                                                ((float) (Math.Round(time * 2f, MidpointRounding.AwayFromZero) / 2f))
+                                                    .FormatTime()));
                                     }
                                 }
                             }
