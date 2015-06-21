@@ -775,7 +775,7 @@ namespace SFXChallenger.Champions
                 {
                     var buff = GetBuff(target);
                     var eLevel = ObjectManager.Player.GetSpell(SpellSlot.E).Level;
-                    if ((buff != null || customStacks > -1) && eLevel > 0)
+                    if (((buff != null && buff.Count > 0) || customStacks > -1) && eLevel > 0)
                     {
                         var damage = (Damage[eLevel - 1] +
                                       DamageMultiplier[eLevel - 1] * ObjectManager.Player.TotalAttackDamage()) +

@@ -227,7 +227,7 @@ namespace SFXUtility.Features.Events
                                 {
                                     for (var j = i + 1; j < l; j++)
                                     {
-                                        if (ObjectManager.Player.Level >= tsList[i].Level && tsList[j].Buy)
+                                        if (ObjectManager.Player.Level >= tsList[j].Level && tsList[j].Buy)
                                         {
                                             hasHigher = true;
                                         }
