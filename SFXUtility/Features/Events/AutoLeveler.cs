@@ -181,12 +181,14 @@ namespace SFXUtility.Features.Events
 
                 var availablePoints = args.RemainingPoints;
 
-                if (ObjectManager.Player.Level <= 5)
+                var pLevel = _q.Level + _w.Level + _e.Level + GetRLevel();
+
+                if (pLevel <= 5)
                 {
                     var index =
                         Menu.Item(
                             Name + ObjectManager.Player.ChampionName + "Early" +
-                            (ObjectManager.Player.Level)).GetValue<StringList>().SelectedIndex;
+                            (pLevel)).GetValue<StringList>().SelectedIndex;
                     switch (index)
                     {
                         case 0:
@@ -194,21 +196,21 @@ namespace SFXUtility.Features.Events
                         case 1:
                             break;
                         case 2:
-                            if (_q.Level >= MaxSpellLevel(SpellSlot.Q, ObjectManager.Player.Level - availablePoints))
+                            if (_q.Level >= MaxSpellLevel(SpellSlot.Q, pLevel))
                             {
                                 break;
                             }
                             ObjectManager.Player.Spellbook.LevelUpSpell(SpellSlot.Q);
                             return;
                         case 3:
-                            if (_w.Level >= MaxSpellLevel(SpellSlot.W, ObjectManager.Player.Level - availablePoints))
+                            if (_w.Level >= MaxSpellLevel(SpellSlot.W, pLevel))
                             {
                                 break;
                             }
                             ObjectManager.Player.Spellbook.LevelUpSpell(SpellSlot.W);
                             return;
                         case 4:
-                            if (_e.Level >= MaxSpellLevel(SpellSlot.E, ObjectManager.Player.Level - availablePoints))
+                            if (_e.Level >= MaxSpellLevel(SpellSlot.E, pLevel))
                             {
                                 break;
                             }
@@ -259,6 +261,10 @@ namespace SFXUtility.Features.Events
             {
                 return _r.Level - 1;
             }
+            if (ObjectManager.Player.ChampionName.Equals("Elise", StringComparison.CurrentCultureIgnoreCase))
+            {
+                return _r.Level - 1;
+            }
             return _r.Level;
         }
 
@@ -278,6 +284,10 @@ namespace SFXUtility.Features.Events
                     return l + 1;
                 }
                 if (ObjectManager.Player.ChampionName.Equals("Nidalee", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    return l + 1;
+                }
+                if (ObjectManager.Player.ChampionName.Equals("Elise", StringComparison.CurrentCultureIgnoreCase))
                 {
                     return l + 1;
                 }

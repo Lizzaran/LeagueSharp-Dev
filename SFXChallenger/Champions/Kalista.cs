@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Kalista.cs is part of SFXChallenger.
+ kalista.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -143,7 +143,7 @@ namespace SFXChallenger.Champions
 
         protected override void SetupSpells()
         {
-            Q = new Spell(SpellSlot.Q, 1150f);
+            Q = new Spell(SpellSlot.Q, 1200f);
             Q.SetSkillshot(0.35f, 40f, 2350f, true, SkillshotType.SkillshotLine);
 
             W = new Spell(SpellSlot.W, 5000f);
@@ -624,8 +624,14 @@ namespace SFXChallenger.Champions
 
             public static bool IsKillable(Obj_AI_Base target)
             {
-                return HealthPrediction.GetHealthPrediction(target, 200) > 0 &&
-                       GetDamage(target) > target.Health + target.AttackShield;
+                if (target.Health < 150 && target is Obj_AI_Minion)
+                {
+                    if (HealthPrediction.GetHealthPrediction(target, 250) <= 0)
+                    {
+                        return false;
+                    }
+                }
+                return GetDamage(target) > target.Health + target.AttackShield;
             }
 
             public static float GetDamage(Obj_AI_Hero target)
