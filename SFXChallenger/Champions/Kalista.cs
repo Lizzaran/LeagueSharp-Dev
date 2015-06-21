@@ -388,7 +388,8 @@ namespace SFXChallenger.Champions
 
         protected override void Combo()
         {
-            var useQ = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady();
+            var useQ = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady() &&
+                       Q.Instance.ManaCost + E.Instance.ManaCost > Player.Mana;
             var useE = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
 
             if (useQ)
@@ -730,10 +731,10 @@ namespace SFXChallenger.Champions
             {
                 return GetRealDamage(
                     target,
-                    ((float)
+                    (float)
                         ObjectManager.Player.CalcDamage(
                             target, LeagueSharp.Common.Damage.DamageType.Physical, GetRawDamage(target, customStacks)) -
-                     20) * 0.98f);
+                    20);
             }
 
             public static float GetRawDamage(Obj_AI_Base target, int customStacks = -1)

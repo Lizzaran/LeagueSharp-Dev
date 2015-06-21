@@ -43,13 +43,17 @@ namespace SFXChallenger.Wrappers
                 (target, type) =>
                     ObjectManager.Player.CountEnemiesInRange(Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)) >
                     1),
+            new InvulnerableStruct(
+                "MasterYi", "Meditate", null, false,
+                (target, type) =>
+                    ObjectManager.Player.CountEnemiesInRange(Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)) >
+                    1),
             new InvulnerableStruct("Tryndamere", "UndyingRage", null, false, (target, type) => target.HealthPercent < 5),
             new InvulnerableStruct("Kayle", "JudicatorIntervention", null, false),
             new InvulnerableStruct(null, "BlackShield", LeagueSharp.Common.TargetSelector.DamageType.Magical, true),
             new InvulnerableStruct(null, "BansheesVeil", LeagueSharp.Common.TargetSelector.DamageType.Magical, true),
             new InvulnerableStruct("Sivir", "SivirShield", LeagueSharp.Common.TargetSelector.DamageType.Magical, true),
-            new InvulnerableStruct(
-                "Nocturne", "ShroudofDarkness", LeagueSharp.Common.TargetSelector.DamageType.Magical, true)
+            new InvulnerableStruct("Nocturne", "ShroudofDarkness", LeagueSharp.Common.TargetSelector.DamageType.Magical, true)
         };
 
         // ReSharper restore StringLiteralTypo
