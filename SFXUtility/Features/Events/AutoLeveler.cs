@@ -181,14 +181,13 @@ namespace SFXUtility.Features.Events
 
                 var availablePoints = args.RemainingPoints;
 
-                var pLevel = _q.Level + _w.Level + _e.Level + GetRLevel();
+                var pLevel = _q.Level + _w.Level + _e.Level + GetRLevel() + 1;
 
                 if (pLevel <= 5)
                 {
                     var index =
                         Menu.Item(
-                            Name + ObjectManager.Player.ChampionName + "Early" +
-                            (pLevel)).GetValue<StringList>().SelectedIndex;
+                            Name + ObjectManager.Player.ChampionName + "Early" + pLevel).GetValue<StringList>().SelectedIndex;
                     switch (index)
                     {
                         case 0:
