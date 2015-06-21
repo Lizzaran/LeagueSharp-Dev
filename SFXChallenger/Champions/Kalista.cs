@@ -772,7 +772,7 @@ namespace SFXChallenger.Champions
                     target,
                     100 /
                     (100 + (target.Armor * ObjectManager.Player.PercentArmorPenetrationMod) -
-                     ObjectManager.Player.FlatArmorPenetrationMod) * GetRawDamage(target, customStacks) - 20);
+                     ObjectManager.Player.FlatArmorPenetrationMod) * GetRawDamage(target, customStacks) - 10);
             }
 
             public static float GetRawDamage(Obj_AI_Base target, int customStacks = -1)
@@ -787,7 +787,9 @@ namespace SFXChallenger.Champions
                                       DamageMultiplier[eLevel - 1] * ObjectManager.Player.TotalAttackDamage()) +
                                      ((customStacks < 0 && buff != null ? buff.Count : customStacks) - 1) *
                                      (DamagePerSpear[eLevel - 1] +
-                                      DamagePerSpearMultiplier[eLevel - 1] * ObjectManager.Player.TotalAttackDamage());
+                                      DamagePerSpearMultiplier[eLevel - 1] *
+                                      (ObjectManager.Player.BaseAttackDamage +
+                                       ObjectManager.Player.FlatPhysicalDamageMod));
                         return damage;
                     }
                 }
