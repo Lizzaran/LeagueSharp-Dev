@@ -62,6 +62,18 @@ namespace SFXChallenger.Champions
             Orbwalking.OnNonKillableMinion += OnOrbwalkingNonKillableMinion;
             Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
             Core.OnPreUpdate += OnCorePreUpdate;
+
+            var buffHero =
+                GameObjects.AllyHeroes.FirstOrDefault(
+                    a =>
+                        a.Buffs.Any(
+                            b =>
+                                b.Caster.IsMe &&
+                                b.Name.Equals("kalistacoopstrikeally", StringComparison.OrdinalIgnoreCase)));
+            if (buffHero != null)
+            {
+                SoulBound.Unit = buffHero;
+            }
         }
 
         protected override void OnUnload()
@@ -174,13 +186,19 @@ namespace SFXChallenger.Champions
                         SoulBound.Unit = hero;
                     }
                 }
-                if (SoulBound.Unit != null && sender is Obj_AI_Hero && args.Buff.Caster.NetworkId == SoulBound.Unit.NetworkId &&
-                    args.Buff.Name.Equals("rocketgrab2", StringComparison.OrdinalIgnoreCase) && R.IsReady() &&
-                    SoulBound.Unit.Distance(Player) <= R.Range)
+
+                if (SoulBound.Unit != null && sender.IsEnemy && sender is Obj_AI_Hero &&
+                    args.Buff.Caster.NetworkId == SoulBound.Unit.NetworkId &&
+                    args.Buff.Name.Equals("rocketgrab2", StringComparison.OrdinalIgnoreCase) && args.Buff.IsActive)
                 {
-                    if (Menu.Item(Menu.Name + ".miscellaneous.r-blitzcrank").GetValue<bool>())
+                    if (Menu.Item(Menu.Name + ".miscellaneous.r-blitzcrank").GetValue<bool>() && R.IsReady() &&
+                        SoulBound.Unit.Distance(Player) < R.Range)
                     {
-                        R.Cast();
+                        if (!SoulBound.Unit.UnderTurret(false) && SoulBound.Unit.Distance(sender) > 750f &&
+                            SoulBound.Unit.Distance(Player) > R.Range / 3f)
+                        {
+                            R.Cast();
+                        }
                     }
                 }
             }
@@ -350,6 +368,7 @@ namespace SFXChallenger.Champions
                         R.Cast();
                     }
                 }
+
                 if (Menu.Item(Menu.Name + ".miscellaneous.w-baron").GetValue<KeyBind>().Active && W.IsReady() &&
                     Player.Distance(SummonersRift.River.Baron) <= W.Range)
                 {
@@ -661,6 +680,44 @@ namespace SFXChallenger.Champions
                 return GetDamage(target) > target.Health + target.AttackShield;
             }
 
+            private static float GetRealDamage(Obj_AI_Base target, float damage)
+            {
+                if (target.BaseSkinName.StartsWith("SRU_Dragon"))
+                {
+                    var dragonBuff =
+                        ObjectManager.Player.Buffs.FirstOrDefault(
+                            b => b.Name.Equals("s5test_dragonslayerbuff", StringComparison.OrdinalIgnoreCase));
+                    if (dragonBuff != null)
+                    {
+                        if (dragonBuff.Count == 4)
+                        {
+                            damage *= 1.15f;
+                        }
+                        else if (dragonBuff.Count == 5)
+                        {
+                            damage *= 1.3f;
+                        }
+                        damage *= 1f - 0.07f * dragonBuff.Count;
+                    }
+                }
+                else if (target.BaseSkinName.StartsWith("SRU_Baron"))
+                {
+                    var baronBuff =
+                        ObjectManager.Player.Buffs.FirstOrDefault(
+                            b => b.Name.Equals("barontarget", StringComparison.OrdinalIgnoreCase));
+                    if (baronBuff != null)
+                    {
+                        damage *= 0.5f;
+                    }
+                }
+                damage -= target.HPRegenRate / 2f;
+                if (ObjectManager.Player.HasBuff("summonerexhaust"))
+                {
+                    damage *= 0.6f;
+                }
+                return damage;
+            }
+
             public static float GetDamage(Obj_AI_Hero target)
             {
                 return GetDamage(target, -1);
@@ -668,11 +725,12 @@ namespace SFXChallenger.Champions
 
             public static float GetDamage(Obj_AI_Base target, int customStacks = -1)
             {
-                return
+                return GetRealDamage(
+                    target,
                     ((float)
                         ObjectManager.Player.CalcDamage(
                             target, LeagueSharp.Common.Damage.DamageType.Physical, GetRawDamage(target, customStacks)) -
-                     20) * 0.98f;
+                     20) * 0.98f);
             }
 
             public static float GetRawDamage(Obj_AI_Base target, int customStacks = -1)
@@ -688,10 +746,6 @@ namespace SFXChallenger.Champions
                                      ((customStacks < 0 && buff != null ? buff.Count : customStacks) - 1) *
                                      (DamagePerSpear[eLevel - 1] +
                                       DamagePerSpearMultiplier[eLevel - 1] * ObjectManager.Player.TotalAttackDamage());
-                        if (ObjectManager.Player.HasBuff("summonerexhaust"))
-                        {
-                            damage *= 0.7f;
-                        }
                         return damage;
                     }
                 }

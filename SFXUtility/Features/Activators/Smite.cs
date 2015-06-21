@@ -586,7 +586,45 @@ namespace SFXUtility.Features.Activators
             {
                 return 0;
             }
-            return Spell.GetDamage(minion);
+            return GetRealDamage(minion, Spell.GetDamage(minion));
+        }
+
+        private double GetRealDamage(Obj_AI_Base target, double damage)
+        {
+            if (target.BaseSkinName.StartsWith("SRU_Dragon"))
+            {
+                var dragonBuff =
+                    ObjectManager.Player.Buffs.FirstOrDefault(
+                        b => b.Name.Equals("s5test_dragonslayerbuff", StringComparison.OrdinalIgnoreCase));
+                if (dragonBuff != null)
+                {
+                    if (dragonBuff.Count == 4)
+                    {
+                        damage *= 1.15f;
+                    }
+                    else if (dragonBuff.Count == 5)
+                    {
+                        damage *= 1.3f;
+                    }
+                    damage *= 1f - 0.07f * dragonBuff.Count;
+                }
+            }
+            else if (target.BaseSkinName.StartsWith("SRU_Baron"))
+            {
+                var baronBuff =
+                    ObjectManager.Player.Buffs.FirstOrDefault(
+                        b => b.Name.Equals("barontarget", StringComparison.OrdinalIgnoreCase));
+                if (baronBuff != null)
+                {
+                    damage *= 0.5f;
+                }
+            }
+            damage -= target.HPRegenRate / 2f;
+            if (ObjectManager.Player.HasBuff("summonerexhaust"))
+            {
+                damage *= 0.6f;
+            }
+            return damage;
         }
 
         public bool CanCast(Obj_AI_Minion minion)
