@@ -174,6 +174,15 @@ namespace SFXChallenger.Champions
                         SoulBound.Unit = hero;
                     }
                 }
+                if (sender.IsEnemy && SoulBound.Unit != null && args.Buff.Caster.NetworkId == SoulBound.Unit.NetworkId &&
+                    args.Buff.Name.Equals("rocketgrab2", StringComparison.OrdinalIgnoreCase) && R.IsReady() &&
+                    SoulBound.Unit.Distance(Player) <= R.Range)
+                {
+                    if (Menu.Item(Menu.Name + ".miscellaneous.r-blitzcrank").GetValue<bool>())
+                    {
+                        R.Cast();
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -337,15 +346,6 @@ namespace SFXChallenger.Champions
                     SoulBound.Clean();
                     if (SoulBound.Unit.HealthPercent <= 10 && SoulBound.Unit.CountEnemiesInRange(500) > 0 ||
                         (SoulBound.Unit.HealthPercent <= 45 && SoulBound.TotalDamage * 1.1f > SoulBound.Unit.Health))
-                    {
-                        R.Cast();
-                    }
-                }
-                if (Menu.Item(Menu.Name + ".miscellaneous.r-blitzcrank").GetValue<bool>() && SoulBound.Unit != null &&
-                    R.IsReady() && SoulBound.Unit.ChampionName == "Blitzcrank" &&
-                    SoulBound.Unit.Distance(Player) < R.Range)
-                {
-                    if (GameObjects.EnemyHeroes.Any(e => e.Buffs.Any(b => b.Name == "rocketgrab2" && b.IsActive)))
                     {
                         R.Cast();
                     }
