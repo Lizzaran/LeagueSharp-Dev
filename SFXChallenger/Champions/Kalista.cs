@@ -701,12 +701,6 @@ namespace SFXChallenger.Champions
             private static readonly float[] DamageMultiplier = { 0.6f, 0.6f, 0.6f, 0.6f, 0.6f };
             private static readonly float[] DamagePerSpear = { 10, 14, 19, 25, 32 };
             private static readonly float[] DamagePerSpearMultiplier = { 0.2f, 0.225f, 0.25f, 0.275f, 0.3f };
-            private static readonly SpellDataInst E;
-
-            static Rend()
-            {
-                E = ObjectManager.Player.GetSpell(SpellSlot.E);
-            }
 
             public static bool IsKillable(Obj_AI_Base target)
             {
@@ -780,8 +774,8 @@ namespace SFXChallenger.Champions
                 try
                 {
                     var buff = GetBuff(target);
-                    var eLevel = E.Level;
-                    if (buff != null || customStacks > -1)
+                    var eLevel = ObjectManager.Player.GetSpell(SpellSlot.E).Level;
+                    if ((buff != null || customStacks > -1) && eLevel > 0)
                     {
                         var damage = (Damage[eLevel - 1] +
                                       DamageMultiplier[eLevel - 1] * ObjectManager.Player.TotalAttackDamage()) +
