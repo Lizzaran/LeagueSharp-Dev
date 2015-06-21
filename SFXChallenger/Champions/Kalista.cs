@@ -111,8 +111,14 @@ namespace SFXChallenger.Champions
             ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".q-min", "Q " + Global.Lang.Get("G_Min")).SetValue(
+                new MenuItem(laneclearMenu.Name + ".q-min-1", "Q " + Global.Lang.Get("G_Min") + " <= 4").SetValue(
+                    new Slider(2, 1, 5)));
+            laneclearMenu.AddItem(
+                new MenuItem(laneclearMenu.Name + ".q-min-2", "Q " + Global.Lang.Get("G_Min") + " <= 7").SetValue(
                     new Slider(3, 1, 5)));
+            laneclearMenu.AddItem(
+                new MenuItem(laneclearMenu.Name + ".q-min-3", "Q " + Global.Lang.Get("G_Min") + " >= 10").SetValue(
+                    new Slider(5, 1, 5)));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(false));
             laneclearMenu.AddItem(
                 new MenuItem(laneclearMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(
@@ -135,13 +141,27 @@ namespace SFXChallenger.Champions
             var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Flee"), Menu.Name + ".flee"));
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".aa", Global.Lang.Get("G_UseAutoAttacks")).SetValue(true));
 
+            var ultiMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Ultimate"), Menu.Name + ".ultimate"));
+
+            var blitzMenu = ultiMenu.AddSubMenu(new Menu("Blitzcrank", ultiMenu.Name + ".blitzcrank"));
+
+            var excludeMenu =
+                blitzMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Blacklist"), blitzMenu.Name + ".blacklist"));
+            foreach (var enemy in GameObjects.EnemyHeroes)
+            {
+                excludeMenu.AddItem(
+                    new MenuItem(excludeMenu.Name + enemy.ChampionName, enemy.ChampionName).SetValue(false));
+            }
+
+            blitzMenu.AddItem(new MenuItem(blitzMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
+
+            ultiMenu.AddItem(new MenuItem(ultiMenu.Name + ".save", Global.Lang.Get("G_Save")).SetValue(true));
+
+
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
             ManaManager.AddToMenu(miscMenu, "misc", ManaCheckType.Minimum, ManaValueType.Percent);
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".e-reset", Global.Lang.Get("Kalista_EHarassReset")).SetValue(true));
-            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
-            miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".r-blitzcrank", Global.Lang.Get("G_UseR") + " Blitzcrank").SetValue(true));
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".w-baron", Global.Lang.Get("Kalista_WBaron")).SetValue(
                     new KeyBind('J', KeyBindType.Press)));
@@ -186,18 +206,22 @@ namespace SFXChallenger.Champions
                         SoulBound.Unit = hero;
                     }
                 }
-
-                if (SoulBound.Unit != null && sender.IsEnemy && sender is Obj_AI_Hero &&
-                    args.Buff.Caster.NetworkId == SoulBound.Unit.NetworkId &&
-                    args.Buff.Name.Equals("rocketgrab2", StringComparison.OrdinalIgnoreCase) && args.Buff.IsActive)
+                var target = sender as Obj_AI_Hero;
+                if (target != null)
                 {
-                    if (Menu.Item(Menu.Name + ".miscellaneous.r-blitzcrank").GetValue<bool>() && R.IsReady() &&
-                        SoulBound.Unit.Distance(Player) < R.Range)
+                    if (SoulBound.Unit != null && sender.IsEnemy &&
+                        args.Buff.Caster.NetworkId == SoulBound.Unit.NetworkId &&
+                        args.Buff.Name.Equals("rocketgrab2", StringComparison.OrdinalIgnoreCase) && args.Buff.IsActive)
                     {
-                        if (!SoulBound.Unit.UnderTurret(false) && SoulBound.Unit.Distance(sender) > 750f &&
-                            SoulBound.Unit.Distance(Player) > R.Range / 3f)
+                        if (Menu.Item(Menu.Name + ".ultimate.blitzcrank.r").GetValue<bool>() &&
+                            !Menu.Item(Menu.Name + ".ultimate.blitzcrank.blacklist." + target.ChampionName)
+                                .GetValue<bool>() && R.IsReady() && SoulBound.Unit.Distance(Player) < R.Range)
                         {
-                            R.Cast();
+                            if (!SoulBound.Unit.UnderTurret(false) && SoulBound.Unit.Distance(sender) > 750f &&
+                                SoulBound.Unit.Distance(Player) > R.Range / 3f)
+                            {
+                                R.Cast();
+                            }
                         }
                     }
                 }
@@ -235,7 +259,7 @@ namespace SFXChallenger.Champions
                     }
                 }
                 if (!sender.IsEnemy || SoulBound.Unit == null || R.Level == 0 ||
-                    !Menu.Item(Menu.Name + ".miscellaneous.r").GetValue<bool>())
+                    !Menu.Item(Menu.Name + ".ultimate.save").GetValue<bool>())
                 {
                     return;
                 }
@@ -359,7 +383,7 @@ namespace SFXChallenger.Champions
                     }
                 }
 
-                if (Menu.Item(Menu.Name + ".miscellaneous.r").GetValue<bool>() && SoulBound.Unit != null && R.IsReady())
+                if (Menu.Item(Menu.Name + ".ultimate.save").GetValue<bool>() && SoulBound.Unit != null && R.IsReady())
                 {
                     SoulBound.Clean();
                     if (SoulBound.Unit.HealthPercent <= 10 && SoulBound.Unit.CountEnemiesInRange(500) > 0 ||
@@ -498,19 +522,34 @@ namespace SFXChallenger.Champions
 
             var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
             var useE = Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady();
-            var minQ = Menu.Item(Menu.Name + ".lane-clear.q-min").GetValue<Slider>().Value;
-            var minE = Menu.Item(Menu.Name + ".lane-clear.e-min").GetValue<Slider>().Value;
 
             if (!useQ && !useE)
             {
                 return;
             }
 
+            var minQ1 = Menu.Item(Menu.Name + ".lane-clear.q-min-1").GetValue<Slider>().Value;
+            var minQ2 = Menu.Item(Menu.Name + ".lane-clear.q-min-2").GetValue<Slider>().Value;
+            var minQ3 = Menu.Item(Menu.Name + ".lane-clear.q-min-3").GetValue<Slider>().Value;
+            var minE = Menu.Item(Menu.Name + ".lane-clear.e-min").GetValue<Slider>().Value;
+            var minQ = 0;
             var minions = MinionManager.GetMinions(
                 Q.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
             if (minions.Count == 0)
             {
                 return;
+            }
+            if (minions.Count >= 10)
+            {
+                minQ = minQ3;
+            }
+            else if (minions.Count <= 7)
+            {
+                minQ = minQ2;
+            }
+            else if (minions.Count <= 4)
+            {
+                minQ = minQ1;
             }
             if (useQ && !Player.IsDashing() && !Player.IsWindingUp && minions.Count >= minQ)
             {
@@ -731,10 +770,9 @@ namespace SFXChallenger.Champions
             {
                 return GetRealDamage(
                     target,
-                    (float)
-                        ObjectManager.Player.CalcDamage(
-                            target, LeagueSharp.Common.Damage.DamageType.Physical, GetRawDamage(target, customStacks)) -
-                    20);
+                    100 /
+                    (100 + (target.Armor * ObjectManager.Player.PercentArmorPenetrationMod) -
+                     ObjectManager.Player.FlatArmorPenetrationMod) * GetRawDamage(target, customStacks) - 20);
             }
 
             public static float GetRawDamage(Obj_AI_Base target, int customStacks = -1)

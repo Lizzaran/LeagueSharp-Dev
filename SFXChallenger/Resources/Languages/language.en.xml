@@ -61,6 +61,8 @@
 	<entry key="G_Range">Range</entry>
 	<entry key="G_Jungle">Jungle</entry>
 	<entry key="G_Turret">Turret</entry>
+	<entry key="G_Save">Save</entry>
+	<entry key="G_Blacklist">Blacklist</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: Language -->
