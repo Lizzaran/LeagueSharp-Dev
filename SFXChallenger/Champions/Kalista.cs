@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- kalista.cs is part of SFXChallenger.
+ Kalista.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -626,7 +626,7 @@ namespace SFXChallenger.Champions
             {
                 if (target.Health < 150 && target is Obj_AI_Minion)
                 {
-                    if (HealthPrediction.GetHealthPrediction(target, 250) <= 0)
+                    if (HealthPrediction.GetHealthPrediction(target, 150) <= 0)
                     {
                         return false;
                     }

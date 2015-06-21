@@ -73,13 +73,13 @@ namespace SFXLibrary
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(ex.ToString());
+                            Console.WriteLine(ex);
                         }
                     }).Start();
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                Console.WriteLine(ex);
             }
         }
     }

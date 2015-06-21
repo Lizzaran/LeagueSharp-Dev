@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Ward.cs is part of SFXUtility.
+ ward.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -27,6 +27,8 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary;
+using SFXLibrary.Extensions.LeagueSharp;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Extensions.SharpDX;
 using SFXLibrary.Logger;
@@ -44,6 +46,7 @@ namespace SFXUtility.Features.Trackers
     {
         private const float CheckInterval = 300f;
         private Texture _greenWardTexture;
+        private List<HeroWard> _heroNoWards;
         private float _lastCheck;
         private Line _line;
         private Texture _pinkWardTexture;
@@ -66,6 +69,7 @@ namespace SFXUtility.Features.Trackers
             GameObject.OnDelete += OnGameObjectDelete;
             Drawing.OnEndScene += OnDrawingEndScene;
             Game.OnWndProc += OnGameWndProc;
+            AttackableUnit.OnEnterVisiblityClient += OnAttackableUnitEnterVisiblityClient;
 
             base.OnEnable();
         }
@@ -78,6 +82,7 @@ namespace SFXUtility.Features.Trackers
             GameObject.OnDelete -= OnGameObjectDelete;
             Drawing.OnEndScene -= OnDrawingEndScene;
             Game.OnWndProc += OnGameWndProc;
+            AttackableUnit.OnEnterVisiblityClient -= OnAttackableUnitEnterVisiblityClient;
 
             base.OnDisable();
         }
@@ -147,6 +152,7 @@ namespace SFXUtility.Features.Trackers
 
         protected override void OnInitialize()
         {
+            _heroNoWards = new List<HeroWard>();
             _wardObjects = new List<WardObject>();
             _wardStructs = new List<WardStruct>
             {
@@ -166,7 +172,6 @@ namespace SFXUtility.Features.Trackers
                 new WardStruct(60 * 10, 212, "Noxious_Trap", "BantamTrap", WardType.Trap)
             };
             _lastCheck = Environment.TickCount;
-
             _sprite = MDrawing.GetSprite();
             _greenWardTexture = Resources.WT_Green.ToTexture();
             _pinkWardTexture = Resources.WT_Pink.ToTexture();
@@ -174,6 +179,27 @@ namespace SFXUtility.Features.Trackers
             _line = MDrawing.GetLine(Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value);
 
             base.OnInitialize();
+        }
+
+        private void OnAttackableUnitEnterVisiblityClient(AttackableUnit sender, EventArgs args)
+        {
+            if (!sender.IsValid || sender.IsDead || !sender.IsEnemy)
+            {
+                return;
+            }
+            var hero = sender as Obj_AI_Hero;
+            if (hero != null)
+            {
+                if (hero.HasItem(ItemId.Sightstone) || hero.HasItem(ItemId.Ruby_Sightstone) ||
+                    hero.HasItem(ItemId.Vision_Ward))
+                {
+                    _heroNoWards.RemoveAll(h => h.Hero.NetworkId == hero.NetworkId);
+                }
+                else
+                {
+                    _heroNoWards.Add(new HeroWard(hero));
+                }
+            }
         }
 
         private void OnGameWndProc(WndEventArgs args)
@@ -295,7 +321,7 @@ namespace SFXUtility.Features.Trackers
                             var ePos = missile.EndPosition;
 
                             Utility.DelayAction.Add(
-                                500, delegate
+                                1000, delegate
                                 {
                                     if (
                                         !_wardObjects.Any(
@@ -304,7 +330,7 @@ namespace SFXUtility.Features.Trackers
                                                 ((int) Game.Time - w.StartT < 2)))
                                     {
                                         var wObj = new WardObject(
-                                            _wardStructs[3],
+                                            GetWardStructForInvisible(sPos, ePos),
                                             new Vector3(ePos.X, ePos.Y, NavMesh.GetHeightForPosition(ePos.X, ePos.Y)),
                                             (int) Game.Time, null, true,
                                             new Vector3(sPos.X, sPos.Y, NavMesh.GetHeightForPosition(sPos.X, sPos.Y)));
@@ -344,6 +370,16 @@ namespace SFXUtility.Features.Trackers
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        private WardStruct GetWardStructForInvisible(Vector3 start, Vector3 end)
+        {
+            return
+                GameObjects.EnemyHeroes.Where(hero => _heroNoWards.All(h => h.Hero.NetworkId != hero.NetworkId))
+                    .Any(hero => hero.Distance(start.Extend(end, start.Distance(end) / 2f)) <= 1500f) &&
+                GameObjects.EnemyHeroes.Any(e => e.Level > 3)
+                    ? _wardStructs[3]
+                    : _wardStructs[0];
         }
 
         private void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
@@ -430,11 +466,37 @@ namespace SFXUtility.Features.Trackers
                     w =>
                         (w.EndTime <= Game.Time && w.Data.Duration != int.MaxValue) ||
                         (w.Object != null && !w.Object.IsValid));
+                foreach (var hw in _heroNoWards.ToArray())
+                {
+                    if (hw.Hero.IsVisible)
+                    {
+                        hw.LastVisible = Game.Time;
+                    }
+                    else
+                    {
+                        if (Game.Time - hw.LastVisible >= 15)
+                        {
+                            _heroNoWards.Remove(hw);
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        private class HeroWard
+        {
+            public HeroWard(Obj_AI_Hero hero)
+            {
+                Hero = hero;
+                LastVisible = Game.Time;
+            }
+
+            public float LastVisible { get; set; }
+            public Obj_AI_Hero Hero { get; private set; }
         }
 
         private class WardObject
