@@ -128,6 +128,14 @@ namespace SFXChallenger.Champions
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".e-reset", Global.Lang.Get("Kalista_EHarassReset")).SetValue(true));
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
+            miscMenu.AddItem(
+                new MenuItem(miscMenu.Name + ".r-blitzcrank", Global.Lang.Get("G_UseR") + " Blitzcrank").SetValue(true));
+            miscMenu.AddItem(
+                new MenuItem(miscMenu.Name + ".w-baron", Global.Lang.Get("Kalista_WBaron")).SetValue(
+                    new KeyBind('J', KeyBindType.Press)));
+            miscMenu.AddItem(
+                new MenuItem(miscMenu.Name + ".w-dragon", Global.Lang.Get("Kalista_WDragon")).SetValue(
+                    new KeyBind('K', KeyBindType.Press)));
 
             DrawingManager.Add("E Damage", new Circle(true, DamageIndicator.DrawingColor)).ValueChanged +=
                 delegate(object sender, OnValueChangeEventArgs args)
@@ -290,7 +298,7 @@ namespace SFXChallenger.Champions
                 {
                     if (Menu.Item(Menu.Name + ".lasthit.e-big").GetValue<bool>())
                     {
-                        var creeps = GameObjects.Jungle.ToList();
+                        var creeps = GameObjects.Jungle.Concat(GameObjects.EnemyMinions).ToList();
                         if (
                             creeps.Any(
                                 m =>
@@ -332,6 +340,25 @@ namespace SFXChallenger.Champions
                     {
                         R.Cast();
                     }
+                }
+                if (Menu.Item(Menu.Name + ".miscellaneous.r-blitzcrank").GetValue<bool>() && SoulBound.Unit != null &&
+                    R.IsReady() && SoulBound.Unit.ChampionName == "Blitzcrank" &&
+                    SoulBound.Unit.Distance(Player) < R.Range)
+                {
+                    if (GameObjects.EnemyHeroes.Any(e => e.Buffs.Any(b => b.Name == "rocketgrab2" && b.IsActive)))
+                    {
+                        R.Cast();
+                    }
+                }
+                if (Menu.Item(Menu.Name + ".miscellaneous.w-baron").GetValue<KeyBind>().Active && W.IsReady() &&
+                    Player.Distance(SummonersRift.River.Baron) <= W.Range)
+                {
+                    W.Cast(SummonersRift.River.Baron);
+                }
+                if (Menu.Item(Menu.Name + ".miscellaneous.w-dragon").GetValue<KeyBind>().Active && W.IsReady() &&
+                    Player.Distance(SummonersRift.River.Dragon) <= W.Range)
+                {
+                    W.Cast(SummonersRift.River.Dragon);
                 }
             }
             catch (Exception ex)
