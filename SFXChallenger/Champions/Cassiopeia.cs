@@ -31,6 +31,7 @@ using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
+using SFXChallenger.Wrappers;
 using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
@@ -39,6 +40,7 @@ using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
 using MinionTeam = SFXLibrary.MinionTeam;
 using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
 #endregion
 
@@ -207,6 +209,9 @@ namespace SFXChallenger.Champions
             DrawingManager.Update(
                 "R " + Global.Lang.Get("G_Flash"),
                 Menu.Item(Menu.Name + ".ultimate.range").GetValue<Slider>().Value + SummonerManager.Flash.Range);
+            TargetSelector.AddWeightedItem(
+                new WeightedItem(
+                    "poison-time", Global.Lang.Get("Cassiopeia_PoisonTime"), 10, false, 500, GetPoisonBuffEndTime));
         }
 
         protected override void SetupSpells()
@@ -765,8 +770,8 @@ namespace SFXChallenger.Champions
             try
             {
                 var buffEndTime =
-                    target.Buffs.OrderByDescending(buff => buff.EndTime - Game.Time)
-                        .Where(buff => buff.Type == BuffType.Poison)
+                    target.Buffs.Where(buff => buff.Type == BuffType.Poison)
+                        .OrderByDescending(buff => buff.EndTime - Game.Time)
                         .Select(buff => buff.EndTime)
                         .FirstOrDefault();
                 return buffEndTime;
@@ -811,7 +816,6 @@ namespace SFXChallenger.Champions
                         .Where(e => GetPoisonBuffEndTime(e) < Q.Delay * 1.1)
                         .OrderByDescending(
                             m => m.BaseSkinName.Contains("MinionSiege", StringComparison.OrdinalIgnoreCase))
-                        .Cast<Obj_AI_Base>()
                         .ToList();
                 if (minions.Any())
                 {

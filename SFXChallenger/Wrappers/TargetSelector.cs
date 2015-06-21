@@ -62,6 +62,7 @@ namespace SFXChallenger.Wrappers
             new Dictionary<int, HashSet<DamageItem>>();
 
         private static TargetSelectorModeType _tsMode = TargetSelectorModeType.Weights;
+        private static Menu _weightsMenu;
 
         static TargetSelector()
         {
@@ -194,6 +195,27 @@ namespace SFXChallenger.Wrappers
                     ? _selectedTarget
                     : null);
             }
+        }
+
+        public static void AddWeightedItem(WeightedItem item)
+        {
+            WeightedItems.Add(item);
+
+            if (_weightsMenu != null)
+            {
+                _weightsMenu.AddItem(
+                        new MenuItem(_weightsMenu.Name + "." + item.Name, item.DisplayName).SetValue(
+                            new Slider(item.Weight, MinWeight, MaxWeight)));
+                _weightsMenu.Item(_weightsMenu.Name + "." + item.Name).ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        item.Weight = args.GetNewValue<Slider>().Value;
+                        _averageWeight = (float)WeightedItems.Average(w => w.Weight);
+                    };
+                item.Weight = _menu.Item(_weightsMenu.Name + "." + item.Name).GetValue<Slider>().Value;
+            }
+            
+            _averageWeight = (float)WeightedItems.Average(w => w.Weight);
         }
 
         private static void OnAttackableUnitDamage(AttackableUnit sender, AttackableUnitDamageEventArgs args)
@@ -611,10 +633,10 @@ namespace SFXChallenger.Wrappers
                         assassinManager.Name + ".enabled-" + ObjectManager.Player.ChampionName,
                         Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                var weightsMenu = _menu.AddSubMenu(new Menu(Global.Lang.Get("TS_Weights"), menu.Name + ".weights"));
+                _weightsMenu = _menu.AddSubMenu(new Menu(Global.Lang.Get("TS_Weights"), menu.Name + ".weights"));
 
                 var heroesMenu =
-                    weightsMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Heroes"), weightsMenu.Name + ".heroes"));
+                    _weightsMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Heroes"), _weightsMenu.Name + ".heroes"));
 
                 heroesMenu.AddItem(
                     new MenuItem(heroesMenu.Name + ".weight-multiplicator", Global.Lang.Get("TS_WeightMultiplicator"))
@@ -630,16 +652,16 @@ namespace SFXChallenger.Wrappers
                 foreach (var item in WeightedItems)
                 {
                     var localItem = item;
-                    weightsMenu.AddItem(
-                        new MenuItem(weightsMenu.Name + "." + item.Name, item.DisplayName).SetValue(
+                    _weightsMenu.AddItem(
+                        new MenuItem(_weightsMenu.Name + "." + item.Name, item.DisplayName).SetValue(
                             new Slider(localItem.Weight, MinWeight, MaxWeight)));
-                    weightsMenu.Item(weightsMenu.Name + "." + item.Name).ValueChanged +=
+                    _weightsMenu.Item(_weightsMenu.Name + "." + item.Name).ValueChanged +=
                         delegate(object sender, OnValueChangeEventArgs args)
                         {
                             localItem.Weight = args.GetNewValue<Slider>().Value;
                             _averageWeight = (float) WeightedItems.Average(w => w.Weight);
                         };
-                    item.Weight = _menu.Item(weightsMenu.Name + "." + item.Name).GetValue<Slider>().Value;
+                    item.Weight = _menu.Item(_weightsMenu.Name + "." + item.Name).GetValue<Slider>().Value;
                 }
 
 

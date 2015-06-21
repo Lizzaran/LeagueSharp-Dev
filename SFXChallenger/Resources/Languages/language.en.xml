@@ -7,10 +7,15 @@
 	<entry key="Viktor_AutoFollow">Auto Follow</entry>
 	<!-- START: Viktor -->
 
+	<!-- START: Cassiopeia -->
+	<entry key="Cassiopeia_PoisonTime">Poison Time</entry>
+	<!-- START: Cassio -->
+
 	<!-- START: Kalista -->
 	<entry key="Kalista_EHarassReset">E Harass Reset</entry>
 	<entry key="Kalista_WBaron">Hotkey W Baron</entry>
 	<entry key="Kalista_WDragon">Hotkey W Dragon</entry>
+	<entry key="Kalista_RendStacks">Rend Stacks</entry>
 	<!-- START: Kalista -->
 
 	<!-- START: GLOBAL -->

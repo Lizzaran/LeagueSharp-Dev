@@ -31,6 +31,7 @@ using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
+using SFXChallenger.Wrappers;
 using SFXLibrary;
 using SFXLibrary.Logger;
 using SharpDX;
@@ -179,6 +180,13 @@ namespace SFXChallenger.Champions
             DamageIndicator.Initialize(Rend.GetDamage);
             DamageIndicator.Enabled = DrawingManager.Get("E Damage").GetValue<Circle>().Active;
             DamageIndicator.DrawingColor = DrawingManager.Get("E Damage").GetValue<Circle>().Color;
+            TargetSelector.AddWeightedItem(
+                new WeightedItem(
+                    "rend-stacks", Global.Lang.Get("Kalista_RendStacks"), 10, false, 500, delegate(Obj_AI_Hero t)
+                    {
+                        var buff = Rend.GetBuff(t);
+                        return buff == null ? 0 : buff.Count;
+                    }));
         }
 
         protected override void SetupSpells()
