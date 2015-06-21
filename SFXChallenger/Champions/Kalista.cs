@@ -174,7 +174,7 @@ namespace SFXChallenger.Champions
                         SoulBound.Unit = hero;
                     }
                 }
-                if (sender.IsEnemy && SoulBound.Unit != null && args.Buff.Caster.NetworkId == SoulBound.Unit.NetworkId &&
+                if (SoulBound.Unit != null && sender is Obj_AI_Hero && args.Buff.Caster.NetworkId == SoulBound.Unit.NetworkId &&
                     args.Buff.Name.Equals("rocketgrab2", StringComparison.OrdinalIgnoreCase) && R.IsReady() &&
                     SoulBound.Unit.Distance(Player) <= R.Range)
                 {
