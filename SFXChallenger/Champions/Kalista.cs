@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- kalista.cs is part of SFXChallenger.
+ Kalista.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -329,7 +329,7 @@ namespace SFXChallenger.Champions
                     ManaManager.Check("lasthit"))
                 {
                     var target = unit as Obj_AI_Base;
-                    if (target != null && Rend.IsKillable(target))
+                    if (target != null && Rend.IsKillable(target, true))
                     {
                         E.Cast();
                     }
@@ -345,44 +345,58 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (E.IsReady() && ManaManager.Check("lasthit"))
+                if (Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.Combo &&
+                    Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.Flee)
                 {
-                    if (Menu.Item(Menu.Name + ".lasthit.e-big").GetValue<bool>())
+                    var eBig = Menu.Item(Menu.Name + ".lasthit.e-big").GetValue<bool>();
+                    var eTurret = Menu.Item(Menu.Name + ".lasthit.e-turret").GetValue<bool>();
+                    var eReset = Menu.Item(Menu.Name + ".miscellaneous.e-reset").GetValue<bool>();
+
+                    IEnumerable<Obj_AI_Minion> minions = new HashSet<Obj_AI_Minion>();
+                    if (eBig || eTurret || eReset)
                     {
-                        var creeps = GameObjects.Jungle.Concat(GameObjects.EnemyMinions).ToList();
-                        if (
-                            creeps.Any(
-                                m =>
-                                    m.IsValidTarget(E.Range) &&
-                                    (m.BaseSkinName.Contains("MinionSiege") || m.BaseSkinName.StartsWith("SRU_Dragon") ||
-                                     m.BaseSkinName.StartsWith("SRU_Baron")) && Rend.IsKillable(m)))
+                        minions =
+                            GameObjects.EnemyMinions.Where(e => e.IsValidTarget(E.Range) && Rend.IsKillable(e, true));
+                    }
+
+                    if (E.IsReady() && ManaManager.Check("lasthit"))
+                    {
+                        if (eBig)
                         {
-                            E.Cast();
+                            var creeps =
+                                GameObjects.Jungle.Where(e => e.IsValidTarget(E.Range) && Rend.IsKillable(e, false))
+                                    .Concat(minions)
+                                    .ToList();
+                            if (
+                                creeps.Any(
+                                    m =>
+                                        (m.BaseSkinName.Contains("MinionSiege") ||
+                                         m.BaseSkinName.StartsWith("SRU_Dragon") ||
+                                         m.BaseSkinName.StartsWith("SRU_Baron"))))
+                            {
+                                E.Cast();
+                            }
+                        }
+
+                        if (eTurret)
+                        {
+                            var minion = minions.FirstOrDefault();
+                            if (minion != null)
+                            {
+                                E.Cast();
+                            }
                         }
                     }
 
-                    if (Menu.Item(Menu.Name + ".lasthit.e-turret").GetValue<bool>())
+                    if (eReset && E.IsReady() && ManaManager.Check("misc") &&
+                        GameObjects.EnemyHeroes.Any(e => Rend.HasBuff(e) && e.IsValidTarget(E.Range)))
                     {
-                        var minion =
-                            GameObjects.EnemyMinions.FirstOrDefault(
-                                m => Rend.IsKillable(m) && Utils.UnderAllyTurret(m.Position));
-                        if (minion != null)
+                        if (minions.Any())
                         {
                             E.Cast();
                         }
                     }
                 }
-
-                if (Menu.Item(Menu.Name + ".miscellaneous.e-reset").GetValue<bool>() && E.IsReady() &&
-                    Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.Combo && ManaManager.Check("misc") &&
-                    GameObjects.EnemyHeroes.Any(e => Rend.HasBuff(e) && E.IsInRange(e)))
-                {
-                    if (GameObjects.EnemyMinions.Any(e => E.IsInRange(e) && Rend.IsKillable(e)))
-                    {
-                        E.Cast();
-                    }
-                }
-
                 if (Menu.Item(Menu.Name + ".ultimate.save").GetValue<bool>() && SoulBound.Unit != null && R.IsReady())
                 {
                     SoulBound.Clean();
@@ -392,7 +406,6 @@ namespace SFXChallenger.Champions
                         R.Cast();
                     }
                 }
-
                 if (Menu.Item(Menu.Name + ".miscellaneous.w-baron").GetValue<KeyBind>().Active && W.IsReady() &&
                     Player.Distance(SummonersRift.River.Baron) <= W.Range)
                 {
@@ -431,7 +444,7 @@ namespace SFXChallenger.Champions
                     {
                         var minion =
                             GameObjects.EnemyMinions.FirstOrDefault(
-                                m => m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)) && Rend.IsKillable(m));
+                                m => m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)) && Rend.IsKillable(m, true));
                         if (minion != null)
                         {
                             E.Cast();
@@ -439,7 +452,7 @@ namespace SFXChallenger.Champions
                     }
                     else if (E.IsInRange(target))
                     {
-                        if (Rend.IsKillable(target))
+                        if (Rend.IsKillable(target, false))
                         {
                             E.Cast();
                         }
@@ -474,7 +487,7 @@ namespace SFXChallenger.Champions
             {
                 foreach (var enemy in GameObjects.EnemyHeroes.Where(e => E.IsInRange(e)))
                 {
-                    if (Rend.IsKillable(enemy))
+                    if (Rend.IsKillable(enemy, true))
                     {
                         E.Cast();
                     }
@@ -578,7 +591,7 @@ namespace SFXChallenger.Champions
             }
             if (useE)
             {
-                var killable = minions.Where(m => E.IsInRange(m) && Rend.IsKillable(m)).ToList();
+                var killable = minions.Where(m => E.IsInRange(m) && Rend.IsKillable(m, false)).ToList();
                 if (killable.Count >= minE ||
                     (killable.Count >= 1 && Menu.Item(Menu.Name + ".lane-clear.e-jungle").GetValue<bool>() &&
                      killable.Any(m => m.Team == GameObjectTeam.Neutral)))
@@ -603,7 +616,7 @@ namespace SFXChallenger.Champions
         protected override void Killsteal()
         {
             if (Menu.Item(Menu.Name + ".killsteal.e").GetValue<bool>() && E.IsReady() &&
-                GameObjects.EnemyHeroes.Any(h => h.IsValidTarget(E.Range) && Rend.IsKillable(h)))
+                GameObjects.EnemyHeroes.Any(h => h.IsValidTarget(E.Range) && Rend.IsKillable(h, false)))
             {
                 E.Cast();
             }
@@ -702,13 +715,16 @@ namespace SFXChallenger.Champions
             private static readonly float[] DamagePerSpear = { 10, 14, 19, 25, 32 };
             private static readonly float[] DamagePerSpearMultiplier = { 0.2f, 0.225f, 0.25f, 0.275f, 0.3f };
 
-            public static bool IsKillable(Obj_AI_Base target)
+            public static bool IsKillable(Obj_AI_Base target, bool check)
             {
-                if (target.Health < 150 && target is Obj_AI_Minion)
+                if (check)
                 {
-                    if (HealthPrediction.GetHealthPrediction(target, 150) <= 0)
+                    if (target.Health < 150 && target is Obj_AI_Minion)
                     {
-                        return false;
+                        if (HealthPrediction.GetHealthPrediction(target, 150) <= 0)
+                        {
+                            return false;
+                        }
                     }
                 }
                 return GetDamage(target) > target.Health + target.AttackShield;
