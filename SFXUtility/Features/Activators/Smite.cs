@@ -591,32 +591,39 @@ namespace SFXUtility.Features.Activators
 
         private double GetRealDamage(Obj_AI_Base target, double damage)
         {
-            if (target.BaseSkinName.StartsWith("SRU_Dragon"))
+            if (DamageType == TargetSelector.DamageType.True)
             {
-                var dragonBuff =
-                    ObjectManager.Player.Buffs.FirstOrDefault(
-                        b => b.Name.Equals("s5test_dragonslayerbuff", StringComparison.OrdinalIgnoreCase));
-                if (dragonBuff != null)
-                {
-                    if (dragonBuff.Count == 4)
-                    {
-                        damage *= 1.15f;
-                    }
-                    else if (dragonBuff.Count == 5)
-                    {
-                        damage *= 1.3f;
-                    }
-                    damage *= 1f - 0.07f * dragonBuff.Count;
-                }
+                return damage;
             }
-            else if (target.BaseSkinName.StartsWith("SRU_Baron"))
+            if (target is Obj_AI_Minion)
             {
-                var baronBuff =
-                    ObjectManager.Player.Buffs.FirstOrDefault(
-                        b => b.Name.Equals("barontarget", StringComparison.OrdinalIgnoreCase));
-                if (baronBuff != null)
+                if (target.BaseSkinName.StartsWith("SRU_Dragon"))
                 {
-                    damage *= 0.5f;
+                    var dragonBuff =
+                        ObjectManager.Player.Buffs.FirstOrDefault(
+                            b => b.Name.Equals("s5test_dragonslayerbuff", StringComparison.OrdinalIgnoreCase));
+                    if (dragonBuff != null)
+                    {
+                        if (dragonBuff.Count == 4)
+                        {
+                            damage *= 1.15f;
+                        }
+                        else if (dragonBuff.Count == 5)
+                        {
+                            damage *= 1.3f;
+                        }
+                        damage *= 1f - 0.07f * dragonBuff.Count;
+                    }
+                }
+                else if (target.BaseSkinName.StartsWith("SRU_Baron"))
+                {
+                    var baronBuff =
+                        ObjectManager.Player.Buffs.FirstOrDefault(
+                            b => b.Name.Equals("barontarget", StringComparison.OrdinalIgnoreCase));
+                    if (baronBuff != null)
+                    {
+                        damage *= 0.5f;
+                    }
                 }
             }
             damage -= target.HPRegenRate / 2f;
