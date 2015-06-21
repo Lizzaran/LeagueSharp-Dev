@@ -597,25 +597,25 @@ namespace SFXUtility.Features.Activators
             }
             if (target is Obj_AI_Minion)
             {
-                if (target.BaseSkinName.StartsWith("SRU_Dragon"))
+                var dragonBuff =
+                    ObjectManager.Player.Buffs.FirstOrDefault(
+                        b => b.Name.Equals("s5test_dragonslayerbuff", StringComparison.OrdinalIgnoreCase));
+                if (dragonBuff != null)
                 {
-                    var dragonBuff =
-                        ObjectManager.Player.Buffs.FirstOrDefault(
-                            b => b.Name.Equals("s5test_dragonslayerbuff", StringComparison.OrdinalIgnoreCase));
-                    if (dragonBuff != null)
+                    if (dragonBuff.Count == 4)
                     {
-                        if (dragonBuff.Count == 4)
-                        {
-                            damage *= 1.15f;
-                        }
-                        else if (dragonBuff.Count == 5)
-                        {
-                            damage *= 1.3f;
-                        }
+                        damage *= 1.15f;
+                    }
+                    else if (dragonBuff.Count == 5)
+                    {
+                        damage *= 1.3f;
+                    }
+                    if (target.BaseSkinName.StartsWith("SRU_Dragon"))
+                    {
                         damage *= 1f - 0.07f * dragonBuff.Count;
                     }
                 }
-                else if (target.BaseSkinName.StartsWith("SRU_Baron"))
+                if (target.BaseSkinName.StartsWith("SRU_Baron"))
                 {
                     var baronBuff =
                         ObjectManager.Player.Buffs.FirstOrDefault(
