@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Kalista.cs is part of SFXChallenger.
+ kalista.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -413,7 +413,7 @@ namespace SFXChallenger.Champions
         protected override void Combo()
         {
             var useQ = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady() &&
-                       Q.Instance.ManaCost + E.Instance.ManaCost > Player.Mana;
+                       ((Q.Instance.ManaCost + E.Instance.ManaCost) < Player.Mana);
             var useE = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
 
             if (useQ)
