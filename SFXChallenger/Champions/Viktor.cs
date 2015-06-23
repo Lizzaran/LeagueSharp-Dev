@@ -169,6 +169,17 @@ namespace SFXChallenger.Champions
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-dash", "W " + Global.Lang.Get("G_Dash")).SetValue(true));
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".w-gapcloser", "W " + Global.Lang.Get("G_Gapcloser")).SetValue(true));
+
+            DrawingManager.Add("Combo Damage", new Circle(true, DamageIndicator.DrawingColor)).ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args)
+                {
+                    DamageIndicator.Enabled = args.GetNewValue<Circle>().Active;
+                    DamageIndicator.DrawingColor = args.GetNewValue<Circle>().Color;
+                };
+
+            DamageIndicator.Initialize(CalcComboDamage);
+            DamageIndicator.Enabled = DrawingManager.Get("Combo Damage").GetValue<Circle>().Active;
+            DamageIndicator.DrawingColor = DrawingManager.Get("Combo Damage").GetValue<Circle>().Color;
         }
 
         protected override void SetupSpells()
@@ -493,6 +504,11 @@ namespace SFXChallenger.Champions
                 ItemManager.UseComboItems(target);
                 SummonerManager.UseComboSummoners(target);
             }
+        }
+
+        private float CalcComboDamage(Obj_AI_Base target)
+        {
+            return CalcComboDamage(target, true, true, true, false);
         }
 
         private float CalcComboDamage(Obj_AI_Base target, bool q, bool e, bool r, bool extended)

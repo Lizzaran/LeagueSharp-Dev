@@ -218,6 +218,15 @@ namespace SFXChallenger.Wrappers
             _averageWeight = (float)WeightedItems.Average(w => w.Weight);
         }
 
+        public static void OverwriteWeightFunction(string name, Func<Obj_AI_Hero, float> func)
+        {
+            var item = WeightedItems.FirstOrDefault(w => w.Name.Equals(name));
+            if (item != null)
+            {
+                item.GetValueFunc = func;
+            }
+        }
+
         private static void OnAttackableUnitDamage(AttackableUnit sender, AttackableUnitDamageEventArgs args)
         {
             try
@@ -830,7 +839,7 @@ namespace SFXChallenger.Wrappers
 
     internal class WeightedItem
     {
-        private readonly Func<Obj_AI_Hero, float> _getValue;
+        public Func<Obj_AI_Hero, float> GetValueFunc { get; set; }
         private readonly Cache _maxCache = new Cache(0);
         private readonly Cache _minCache = new Cache(0);
         private readonly Dictionary<int, Cache> _valueCache = new Dictionary<int, Cache>();
@@ -843,7 +852,7 @@ namespace SFXChallenger.Wrappers
             int cacheTime,
             Func<Obj_AI_Hero, float> getValue)
         {
-            _getValue = getValue;
+            GetValueFunc = getValue;
             Name = name;
             DisplayName = displayName;
             Weight = weight;
@@ -924,7 +933,7 @@ namespace SFXChallenger.Wrappers
                 {
                     return cache.Value;
                 }
-                var value = _getValue(target);
+                var value = GetValueFunc(target);
                 if (cache == null)
                 {
                     _valueCache[target.NetworkId] = new Cache(value);

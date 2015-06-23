@@ -180,19 +180,13 @@ namespace SFXChallenger.Champions
             DamageIndicator.Initialize(Rend.GetDamage);
             DamageIndicator.Enabled = DrawingManager.Get("E Damage").GetValue<Circle>().Active;
             DamageIndicator.DrawingColor = DrawingManager.Get("E Damage").GetValue<Circle>().Color;
-            TargetSelector.AddWeightedItem(
-                new WeightedItem(
-                    "rend-stacks", Global.Lang.Get("Kalista_RendStacks"), 10, false, 500, delegate(Obj_AI_Hero t)
-                    {
-                        var buff = Rend.GetBuff(t);
-                        return buff == null ? 0 : buff.Count;
-                    }));
+            TargetSelector.OverwriteWeightFunction("low-health", hero => hero.Health - Rend.GetDamage(hero));
         }
 
         protected override void SetupSpells()
         {
             Q = new Spell(SpellSlot.Q, 1200f);
-            Q.SetSkillshot(0.35f, 40f, 2350f, true, SkillshotType.SkillshotLine);
+            Q.SetSkillshot(0.25f, 40f, 1650f, true, SkillshotType.SkillshotLine);
 
             W = new Spell(SpellSlot.W, 5000f);
 
@@ -367,7 +361,7 @@ namespace SFXChallenger.Champions
                             GameObjects.EnemyMinions.Where(e => e.IsValidTarget(E.Range) && Rend.IsKillable(e, true));
                     }
 
-                    if (E.IsReady() && ManaManager.Check("lasthit"))
+                    if (E.IsReady())
                     {
                         if (eBig)
                         {
@@ -379,19 +373,22 @@ namespace SFXChallenger.Champions
                                 creeps.Any(
                                     m =>
                                         (m.BaseSkinName.Contains("MinionSiege") ||
+                                         m.BaseSkinName.Contains("Super") ||
                                          m.BaseSkinName.StartsWith("SRU_Dragon") ||
                                          m.BaseSkinName.StartsWith("SRU_Baron"))))
                             {
                                 E.Cast();
+                                return;
                             }
                         }
 
-                        if (eTurret)
+                        if (eTurret && ManaManager.Check("lasthit"))
                         {
-                            var minion = minions.FirstOrDefault();
+                            var minion = minions.FirstOrDefault(m => Utils.UnderAllyTurret(m.Position));
                             if (minion != null)
                             {
                                 E.Cast();
+                                return;
                             }
                         }
                     }
@@ -402,6 +399,7 @@ namespace SFXChallenger.Champions
                         if (minions.Any())
                         {
                             E.Cast();
+                            return;
                         }
                     }
                 }
@@ -523,15 +521,9 @@ namespace SFXChallenger.Champions
                 Radius = Q.Width,
                 Delay = Q.Delay,
                 Speed = Q.Speed,
-                Range = Q.Range,
-                Type = SkillshotType.SkillshotLine,
-                CollisionObjects =
-                    new[] { CollisionableObjects.Minions, CollisionableObjects.Heroes, CollisionableObjects.YasuoWall }
             };
-            return
-                Collision.GetCollision(new List<Vector3> { targetposition }, input)
-                    .OrderBy(obj => obj.Distance(source))
-                    .ToList();
+            input.CollisionObjects[0] = CollisionableObjects.Minions;
+            return Collision.GetCollision(new List<Vector3> { targetposition }, input).OrderBy(obj => obj.Distance(source)).ToList();
         }
 
         protected override void LaneClear()
@@ -572,28 +564,27 @@ namespace SFXChallenger.Champions
             {
                 minQ = minQ1;
             }
-            if (useQ && !Player.IsDashing() && !Player.IsWindingUp && minions.Count >= minQ)
+            if (useQ && minions.Count >= minQ && !Player.IsWindingUp && !Player.IsDashing())
             {
-                foreach (var minion in GameObjects.EnemyMinions.Where(m => m.Health < Q.GetDamage(m)))
+                foreach (var minion in minions.Where(x => x.Health <= Q.GetDamage(x)))
                 {
-                    var kills = 0;
-                    foreach (
-                        var col in QGetCollisions(Player, Player.ServerPosition.Extend(minion.ServerPosition, Q.Range)))
+                    var killcount = 0;
+
+                    foreach (var colminion in QGetCollisions(Player, Player.ServerPosition.Extend(minion.ServerPosition, Q.Range)))
                     {
-                        if (col.Type == GameObjectType.obj_AI_Minion && col.Health <= Q.GetDamage(col))
+                        if (colminion.Health <= Q.GetDamage(colminion))
                         {
-                            kills++;
+                            killcount++;
                         }
                         else
                         {
                             break;
                         }
                     }
-
-                    if (kills >= minQ)
+                    if (killcount >= minQ)
                     {
                         Q.Cast(minion.ServerPosition);
-                        return;
+                        break;
                     }
                 }
             }
