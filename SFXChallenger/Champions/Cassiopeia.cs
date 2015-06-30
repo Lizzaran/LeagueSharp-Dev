@@ -800,7 +800,7 @@ namespace SFXChallenger.Champions
                                 (e.Team == GameObjectTeam.Neutral ||
                                  (e.Health > E.GetDamage(e) * 2 || e.Health < E.GetDamage(e) - 5)))
                         .OrderByDescending(
-                            m => m.BaseSkinName.Contains("MinionSiege", StringComparison.OrdinalIgnoreCase))
+                            m => m.CharData.BaseSkinName.Contains("MinionSiege", StringComparison.OrdinalIgnoreCase))
                         .FirstOrDefault();
                 if (minion != null)
                 {
@@ -815,7 +815,7 @@ namespace SFXChallenger.Champions
                     MinionManager.GetMinions(Player.ServerPosition, Q.Range + Q.Width)
                         .Where(e => GetPoisonBuffEndTime(e) < Q.Delay * 1.1)
                         .OrderByDescending(
-                            m => m.BaseSkinName.Contains("MinionSiege", StringComparison.OrdinalIgnoreCase))
+                            m => m.CharData.BaseSkinName.Contains("MinionSiege", StringComparison.OrdinalIgnoreCase))
                         .ToList();
                 if (minions.Any())
                 {

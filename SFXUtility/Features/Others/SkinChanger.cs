@@ -108,7 +108,7 @@ namespace SFXUtility.Features.Others
                     var changeSkin = champMenu.AddItem(new MenuItem(skinName, skinName).SetValue(false));
                     if (changeSkin.IsActive())
                     {
-                        modelUnit.SetModel(hero.BaseSkinName, (int) skin["num"]);
+                        modelUnit.SetModel(hero.CharData.BaseSkinName, (int) skin["num"]);
                     }
 
                     changeSkin.ValueChanged += (s, e) =>
@@ -154,7 +154,7 @@ namespace SFXUtility.Features.Others
             {
                 args.Process = false;
                 var skin = Convert.ToInt32(args.Input.Replace("/skin ", string.Empty));
-                _player.SetModel(_player.Unit.BaseSkinName, skin);
+                _player.SetModel(_player.Unit.CharData.BaseSkinName, skin);
             }
         }
 
@@ -186,7 +186,7 @@ namespace SFXUtility.Features.Others
         public ModelUnit(Obj_AI_Hero unit)
         {
             Unit = unit;
-            Model = unit.BaseSkinName;
+            Model = unit.CharData.BaseSkinName;
             SkinIndex = unit.BaseSkinId;
             UpdateAdditionalObjects();
         }
@@ -451,10 +451,10 @@ namespace SFXUtility.Features.Others
                 return;
             }
 
-            var model = IgnoredModels.Contains(Unit.BaseSkinName) ? Unit.BaseSkinName : Model;
+            var model = IgnoredModels.Contains(Unit.CharData.BaseSkinName) ? Unit.CharData.BaseSkinName : Model;
             var skin = SkinIndex;
 
-            if (!Unit.BaseSkinName.Equals(model) || !Unit.BaseSkinId.Equals(skin))
+            if (!Unit.CharData.BaseSkinName.Equals(model) || !Unit.BaseSkinId.Equals(skin))
             {
                 Unit.SetSkin(model, skin);
             }

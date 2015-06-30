@@ -348,7 +348,7 @@ namespace SFXUtility.Features.Trackers
                     {
                         foreach (var ward in _wardStructs)
                         {
-                            if (wardObject.BaseSkinName.Equals(
+                            if (wardObject.CharData.BaseSkinName.Equals(
                                 ward.ObjectBaseSkinName, StringComparison.OrdinalIgnoreCase))
                             {
                                 _wardObjects.RemoveAll(

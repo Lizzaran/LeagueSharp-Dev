@@ -31,7 +31,6 @@ using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
-using SFXChallenger.Wrappers;
 using SFXLibrary;
 using SFXLibrary.Logger;
 using SharpDX;
@@ -372,10 +371,10 @@ namespace SFXChallenger.Champions
                             if (
                                 creeps.Any(
                                     m =>
-                                        (m.BaseSkinName.Contains("MinionSiege") ||
-                                         m.BaseSkinName.Contains("Super") ||
-                                         m.BaseSkinName.StartsWith("SRU_Dragon") ||
-                                         m.BaseSkinName.StartsWith("SRU_Baron"))))
+                                        (m.CharData.BaseSkinName.Contains("MinionSiege") ||
+                                         m.CharData.BaseSkinName.Contains("Super") ||
+                                         m.CharData.BaseSkinName.StartsWith("SRU_Dragon") ||
+                                         m.CharData.BaseSkinName.StartsWith("SRU_Baron"))))
                             {
                                 E.Cast();
                                 return;
@@ -384,7 +383,9 @@ namespace SFXChallenger.Champions
 
                         if (eTurret && ManaManager.Check("lasthit"))
                         {
-                            var minion = minions.FirstOrDefault(m => Utils.UnderAllyTurret(m.Position));
+                            var minion =
+                                minions.FirstOrDefault(
+                                    m => Utils.UnderAllyTurret(m.Position) && Rend.IsKillable(m, false));
                             if (minion != null)
                             {
                                 E.Cast();
@@ -515,15 +516,12 @@ namespace SFXChallenger.Champions
 
         private List<Obj_AI_Base> QGetCollisions(Obj_AI_Hero source, Vector3 targetposition)
         {
-            var input = new PredictionInput
-            {
-                Unit = source,
-                Radius = Q.Width,
-                Delay = Q.Delay,
-                Speed = Q.Speed,
-            };
+            var input = new PredictionInput { Unit = source, Radius = Q.Width, Delay = Q.Delay, Speed = Q.Speed };
             input.CollisionObjects[0] = CollisionableObjects.Minions;
-            return Collision.GetCollision(new List<Vector3> { targetposition }, input).OrderBy(obj => obj.Distance(source)).ToList();
+            return
+                Collision.GetCollision(new List<Vector3> { targetposition }, input)
+                    .OrderBy(obj => obj.Distance(source))
+                    .ToList();
         }
 
         protected override void LaneClear()
@@ -570,7 +568,8 @@ namespace SFXChallenger.Champions
                 {
                     var killcount = 0;
 
-                    foreach (var colminion in QGetCollisions(Player, Player.ServerPosition.Extend(minion.ServerPosition, Q.Range)))
+                    foreach (var colminion in
+                        QGetCollisions(Player, Player.ServerPosition.Extend(minion.ServerPosition, Q.Range)))
                     {
                         if (colminion.Health <= Q.GetDamage(colminion))
                         {
@@ -746,12 +745,12 @@ namespace SFXChallenger.Champions
                         {
                             damage *= 1.3f;
                         }
-                        if (target.BaseSkinName.StartsWith("SRU_Dragon"))
+                        if (target.CharData.BaseSkinName.StartsWith("SRU_Dragon"))
                         {
                             damage *= 1f - 0.07f * dragonBuff.Count;
                         }
                     }
-                    if (target.BaseSkinName.StartsWith("SRU_Baron"))
+                    if (target.CharData.BaseSkinName.StartsWith("SRU_Baron"))
                     {
                         var baronBuff =
                             ObjectManager.Player.Buffs.FirstOrDefault(

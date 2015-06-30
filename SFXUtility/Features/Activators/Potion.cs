@@ -27,11 +27,11 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using LeagueSharp.Common.Data;
 using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
+using ItemData = LeagueSharp.Common.Data.ItemData;
 
 #endregion
 

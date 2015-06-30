@@ -610,12 +610,12 @@ namespace SFXUtility.Features.Activators
                     {
                         damage *= 1.3f;
                     }
-                    if (target.BaseSkinName.StartsWith("SRU_Dragon"))
+                    if (target.CharData.BaseSkinName.StartsWith("SRU_Dragon"))
                     {
                         damage *= 1f - 0.07f * dragonBuff.Count;
                     }
                 }
-                if (target.BaseSkinName.StartsWith("SRU_Baron"))
+                if (target.CharData.BaseSkinName.StartsWith("SRU_Baron"))
                 {
                     var baronBuff =
                         ObjectManager.Player.Buffs.FirstOrDefault(

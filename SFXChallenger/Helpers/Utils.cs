@@ -40,9 +40,7 @@ namespace SFXChallenger.Helpers
         {
             try
             {
-                return
-                    GameObjects.Turrets
-                        .Any(turret => turret.IsValidTarget(900f + extraRange, true, target.Position));
+                return GameObjects.Turrets.Any(turret => turret.IsValidTarget(900f + extraRange, true, target.Position));
             }
 
             catch (Exception ex)

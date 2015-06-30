@@ -53,7 +53,8 @@ namespace SFXChallenger.Wrappers
             new InvulnerableStruct(null, "BlackShield", LeagueSharp.Common.TargetSelector.DamageType.Magical, true),
             new InvulnerableStruct(null, "BansheesVeil", LeagueSharp.Common.TargetSelector.DamageType.Magical, true),
             new InvulnerableStruct("Sivir", "SivirShield", LeagueSharp.Common.TargetSelector.DamageType.Magical, true),
-            new InvulnerableStruct("Nocturne", "ShroudofDarkness", LeagueSharp.Common.TargetSelector.DamageType.Magical, true)
+            new InvulnerableStruct(
+                "Nocturne", "ShroudofDarkness", LeagueSharp.Common.TargetSelector.DamageType.Magical, true)
         };
 
         // ReSharper restore StringLiteralTypo

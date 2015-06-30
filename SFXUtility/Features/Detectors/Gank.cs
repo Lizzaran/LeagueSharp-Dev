@@ -153,7 +153,8 @@ namespace SFXUtility.Features.Detectors
                     var prefix = obj.Hero.IsAlly ? "Allies" : "Enemies";
                     if (Menu.Item(Menu.Name + prefix + obj.Hero.ChampionName).GetValue<Circle>().Active)
                     {
-                        if (!Menu.Item(Menu.Name + prefix + "Smite").GetValue<Circle>().Active || Menu.Item(Menu.Name + prefix + "Smite").GetValue<Circle>().Active && hasSmite)
+                        if (!Menu.Item(Menu.Name + prefix + "Smite").GetValue<Circle>().Active ||
+                            Menu.Item(Menu.Name + prefix + "Smite").GetValue<Circle>().Active && hasSmite)
                         {
                             obj.Enabled = true;
                         }

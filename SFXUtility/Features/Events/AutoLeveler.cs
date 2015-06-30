@@ -186,8 +186,9 @@ namespace SFXUtility.Features.Events
                 if (pLevel <= 5)
                 {
                     var index =
-                        Menu.Item(
-                            Name + ObjectManager.Player.ChampionName + "Early" + pLevel).GetValue<StringList>().SelectedIndex;
+                        Menu.Item(Name + ObjectManager.Player.ChampionName + "Early" + pLevel)
+                            .GetValue<StringList>()
+                            .SelectedIndex;
                     switch (index)
                     {
                         case 0:

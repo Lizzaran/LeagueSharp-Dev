@@ -260,8 +260,9 @@ namespace SFXUtility.Features.Events
                 var iItem =
                     ObjectManager.Player.InventoryItems.FirstOrDefault(
                         slot =>
-                            slot.IsValidSlot() && slot.Name.Contains("Trinket", StringComparison.OrdinalIgnoreCase) ||
-                            slot.DisplayName.Contains("Trinket", StringComparison.OrdinalIgnoreCase));
+                            slot.IsValidSlot() &&
+                            slot.IData.SpellName.Contains("Trinket", StringComparison.OrdinalIgnoreCase) ||
+                            slot.IData.DisplayName.Contains("Trinket", StringComparison.OrdinalIgnoreCase));
                 if (iItem != null)
                 {
                     ObjectManager.Player.SellItem(iItem.Slot);

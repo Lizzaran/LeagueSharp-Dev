@@ -27,13 +27,13 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using LeagueSharp.Common.Data;
 using SFXChallenger.Enumerations;
 using SFXLibrary;
 using SFXLibrary.Extensions.LeagueSharp;
 using SFXLibrary.Logger;
 using SharpDX;
 using Color = System.Drawing.Color;
+using ItemData = LeagueSharp.Common.Data.ItemData;
 
 #endregion
 
@@ -204,18 +204,18 @@ namespace SFXChallenger.Wrappers
             if (_weightsMenu != null)
             {
                 _weightsMenu.AddItem(
-                        new MenuItem(_weightsMenu.Name + "." + item.Name, item.DisplayName).SetValue(
-                            new Slider(item.Weight, MinWeight, MaxWeight)));
+                    new MenuItem(_weightsMenu.Name + "." + item.Name, item.DisplayName).SetValue(
+                        new Slider(item.Weight, MinWeight, MaxWeight)));
                 _weightsMenu.Item(_weightsMenu.Name + "." + item.Name).ValueChanged +=
                     delegate(object sender, OnValueChangeEventArgs args)
                     {
                         item.Weight = args.GetNewValue<Slider>().Value;
-                        _averageWeight = (float)WeightedItems.Average(w => w.Weight);
+                        _averageWeight = (float) WeightedItems.Average(w => w.Weight);
                     };
                 item.Weight = _menu.Item(_weightsMenu.Name + "." + item.Name).GetValue<Slider>().Value;
             }
-            
-            _averageWeight = (float)WeightedItems.Average(w => w.Weight);
+
+            _averageWeight = (float) WeightedItems.Average(w => w.Weight);
         }
 
         public static void OverwriteWeightFunction(string name, Func<Obj_AI_Hero, float> func)
@@ -839,7 +839,6 @@ namespace SFXChallenger.Wrappers
 
     internal class WeightedItem
     {
-        public Func<Obj_AI_Hero, float> GetValueFunc { get; set; }
         private readonly Cache _maxCache = new Cache(0);
         private readonly Cache _minCache = new Cache(0);
         private readonly Dictionary<int, Cache> _valueCache = new Dictionary<int, Cache>();
@@ -860,6 +859,7 @@ namespace SFXChallenger.Wrappers
             CacheTime = cacheTime;
         }
 
+        public Func<Obj_AI_Hero, float> GetValueFunc { get; set; }
         public string Name { get; set; }
         public string DisplayName { get; set; }
         public int Weight { get; set; }

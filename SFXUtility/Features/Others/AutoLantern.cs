@@ -36,9 +36,8 @@ namespace SFXUtility.Features.Others
 {
     internal class AutoLantern : Child<Others>
     {
-        public AutoLantern(SFXUtility sfx) : base(sfx) {}
-
         private GameObject _lantern;
+        public AutoLantern(SFXUtility sfx) : base(sfx) {}
 
         public override string Name
         {
@@ -85,7 +84,9 @@ namespace SFXUtility.Features.Others
 
         protected override void OnInitialize()
         {
-            if (!GameObjects.AllyHeroes.Any(a => !a.IsMe && a.ChampionName.Equals("Thresh", StringComparison.OrdinalIgnoreCase)))
+            if (
+                !GameObjects.AllyHeroes.Any(
+                    a => !a.IsMe && a.ChampionName.Equals("Thresh", StringComparison.OrdinalIgnoreCase)))
             {
                 OnUnload(null, new UnloadEventArgs(true));
             }
@@ -94,7 +95,7 @@ namespace SFXUtility.Features.Others
 
         private void OnGameObjectCreate(GameObject sender, EventArgs args)
         {
-            if (!sender.IsValid || !sender.IsAlly || sender.Type != GameObjectType.obj_AI_Minion )
+            if (!sender.IsValid || !sender.IsAlly || sender.Type != GameObjectType.obj_AI_Minion)
             {
                 return;
             }
@@ -129,7 +130,7 @@ namespace SFXUtility.Features.Others
                 {
                     if (_lantern.Position.Distance(ObjectManager.Player.Position) <= 500)
                     {
-                        ObjectManager.Player.Spellbook.CastSpell((SpellSlot)62, _lantern);
+                        ObjectManager.Player.Spellbook.CastSpell((SpellSlot) 62, _lantern);
                     }
                 }
             }

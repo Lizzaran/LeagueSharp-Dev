@@ -27,11 +27,11 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using LeagueSharp.Common.Data;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Wrappers;
 using SFXLibrary;
 using SFXLibrary.Logger;
+using ItemData = LeagueSharp.Common.Data.ItemData;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 
 #endregion
