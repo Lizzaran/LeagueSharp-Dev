@@ -31,6 +31,7 @@ using SFXLibrary;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
 using SharpDX;
+using SharpDX.Direct3D9;
 using Color = System.Drawing.Color;
 
 #endregion
@@ -41,7 +42,10 @@ namespace SFXUtility.Features.Trackers
 
     internal class Destination : Child<Trackers>
     {
+        private const float CheckInterval = 300f;
         private List<DestinationObject> _destinations;
+        private float _lastCheck;
+        private Line _line;
         public Destination(SFXUtility sfx) : base(sfx) {}
 
         public override string Name
@@ -53,8 +57,7 @@ namespace SFXUtility.Features.Trackers
         {
             Game.OnUpdate += OnGameUpdate;
             Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
-            GameObject.OnCreate += OnObjAiBaseCreate;
-            Drawing.OnDraw += OnDrawingDraw;
+            Drawing.OnEndScene += OnDrawingEndScene;
             base.OnEnable();
         }
 
@@ -62,8 +65,7 @@ namespace SFXUtility.Features.Trackers
         {
             Game.OnUpdate -= OnGameUpdate;
             Obj_AI_Base.OnProcessSpellCast -= OnObjAiBaseProcessSpellCast;
-            GameObject.OnCreate -= OnObjAiBaseCreate;
-            Drawing.OnDraw -= OnDrawingDraw;
+            Drawing.OnEndScene -= OnDrawingEndScene;
             base.OnDisable();
         }
 
@@ -108,6 +110,8 @@ namespace SFXUtility.Features.Trackers
                 OnUnload(null, new UnloadEventArgs(true));
                 return;
             }
+
+            _line = MDrawing.GetLine(2);
 
             base.OnInitialize();
         }
@@ -219,30 +223,26 @@ namespace SFXUtility.Features.Trackers
                         break;
                 }
             }
-            _destinations.RemoveAll(d => string.IsNullOrEmpty(d.SpellName));
+            _destinations.RemoveAll(d => string.IsNullOrWhiteSpace(d.SpellName));
         }
 
-        private void OnDrawingDraw(EventArgs args)
+        private void OnDrawingEndScene(EventArgs args)
         {
             var color = Menu.Item(Name + "DrawingColor").GetValue<Color>();
             var radius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value;
             var thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
 
             foreach (var destination in
-                _destinations.Where(destination => destination.Casted)
-                    .Where(destination => destination.EndPos.IsOnScreen() || destination.StartPos.IsOnScreen()))
+                _destinations.Where(
+                    destination =>
+                        destination.Casted && (destination.EndPos.IsOnScreen() || destination.StartPos.IsOnScreen())))
             {
-                if (destination.OutOfBush)
-                {
-                    Render.Circle.DrawCircle(destination.EndPos, destination.Range, color, thickness);
-                }
-                else
-                {
-                    Render.Circle.DrawCircle(destination.EndPos, radius, color, thickness);
-                    Drawing.DrawLine(
-                        Drawing.WorldToScreen(destination.StartPos), Drawing.WorldToScreen(destination.EndPos), 2f,
-                        color);
-                }
+                _line.Begin();
+                _line.Draw(
+                    new[] { Drawing.WorldToScreen(destination.EndPos), Drawing.WorldToScreen(destination.StartPos) },
+                    new ColorBGRA(color.R, color.G, color.B, color.A));
+                _line.End();
+                Render.Circle.DrawCircle(destination.EndPos, radius, color, thickness);
             }
         }
 
@@ -258,17 +258,11 @@ namespace SFXUtility.Features.Trackers
             foreach (var destination in _destinations.Where(destination => destination.Hero.NetworkId == hero.NetworkId)
                 )
             {
-                var target = args.Target as Obj_AI_Hero;
-                if (target != null && target.IsValid)
-                {
-                    destination.Target = target;
-                }
-
                 if (args.SData.Name.Equals("VayneInquisition", StringComparison.OrdinalIgnoreCase))
                 {
                     if (destination.ExtraTicks > 0)
                     {
-                        destination.ExtraTicks = (int) Game.Time + 6 + 2 * args.Level;
+                        destination.ExtraTicks = (int) Game.Time + 5 + 2 * args.Level;
                         return;
                     }
                 }
@@ -282,19 +276,18 @@ namespace SFXUtility.Features.Trackers
                                 return;
                             }
                             destination.StartPos = args.Start;
-                            destination.EndPos = CalculateEndPos(destination, args);
+                            destination.EndPos = CalculateEndPos(args.Start, args.End, destination.Range);
                             break;
 
                         case "deceive":
-                            destination.OutOfBush = false;
                             destination.StartPos = args.Start;
-                            destination.EndPos = CalculateEndPos(destination, args);
+                            destination.EndPos = CalculateEndPos(args.Start, args.End, destination.Range);
                             break;
 
                         case "leblancslidem":
                             _destinations[index - 2].Casted = false;
                             destination.StartPos = _destinations[index - 2].StartPos;
-                            destination.EndPos = CalculateEndPos(destination, args);
+                            destination.EndPos = CalculateEndPos(args.Start, args.End, destination.Range);
                             break;
 
                         case "leblancslidereturn":
@@ -323,7 +316,7 @@ namespace SFXUtility.Features.Trackers
 
                         default:
                             destination.StartPos = args.Start;
-                            destination.EndPos = CalculateEndPos(destination, args);
+                            destination.EndPos = CalculateEndPos(args.Start, args.End, destination.Range);
                             break;
                     }
                     destination.Casted = true;
@@ -335,70 +328,44 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private Vector3 CalculateEndPos(DestinationObject destination, GameObjectProcessSpellCastEventArgs args)
+        private Vector3 CalculateEndPos(Vector3 start, Vector3 end, float maxRange)
         {
-            var dist = Vector3.Distance(args.Start, args.End);
-            if (dist <= destination.Range)
+            var dist = start.Distance(end);
+            var endPos = end;
+            if (dist > maxRange)
             {
-                destination.EndPos = args.End;
+                endPos = start.Extend(end, maxRange);
             }
-            else
+            if (endPos.IsWall())
             {
-                var norm = args.Start - args.End;
-                norm.Normalize();
-                var endPos = args.Start - norm * destination.Range;
-                destination.EndPos = endPos;
-            }
-            return destination.EndPos;
-        }
-
-        private void OnObjAiBaseCreate(GameObject sender, EventArgs args)
-        {
-            foreach (var destination in _destinations)
-            {
-                if (destination.Hero.ChampionName.Equals("Shaco", StringComparison.OrdinalIgnoreCase))
+                for (var i = 0; i < 200; i = i + 10)
                 {
-                    if (sender.Type != GameObjectType.obj_LampBulb &&
-                        sender.Name.Equals("JackInTheBoxPoof2.troy", StringComparison.OrdinalIgnoreCase) &&
-                        !destination.Casted)
+                    var pos = start.Extend(endPos, dist + i);
+                    if (!pos.IsWall())
                     {
-                        destination.StartPos = sender.Position;
-                        destination.EndPos = sender.Position;
-                        destination.Casted = true;
-                        destination.TimeCasted = (int) Game.Time;
-                        destination.OutOfBush = true;
+                        return pos;
                     }
                 }
             }
+            return endPos;
         }
 
         private void OnGameUpdate(EventArgs args)
         {
+            if (_lastCheck + CheckInterval > Environment.TickCount)
+            {
+                return;
+            }
+
+            _lastCheck = Environment.TickCount;
+
             foreach (var destination in _destinations.Where(destination => destination.Casted))
             {
-                if (destination.SpellName.Equals("FioraDance", StringComparison.OrdinalIgnoreCase) ||
-                    destination.SpellName.Equals("AlphaStrike", StringComparison.OrdinalIgnoreCase) &&
-                    destination.Target != null && !destination.Target.IsDead)
-                {
-                    if (Game.Time > (destination.TimeCasted + destination.Delay + 0.2f))
-                    {
-                        destination.Casted = false;
-                    }
-                }
-                else if (destination.Target != null && destination.Target.IsDead)
-                {
-                    var temp = destination.EndPos;
-                    destination.EndPos = destination.StartPos;
-                    destination.StartPos = temp;
-                }
-                else if (destination.Hero.IsDead ||
-                         (!destination.Hero.IsValid && Game.Time > (destination.TimeCasted + 2)) ||
-                         Game.Time > (destination.TimeCasted + 5 + destination.Delay))
+                if (Game.Time > destination.TimeCasted + 5f || destination.Hero.IsDead)
                 {
                     destination.Casted = false;
                 }
-                else if (!destination.OutOfBush && destination.Hero.IsVisible &&
-                         Game.Time > (destination.TimeCasted + destination.Delay))
+                if (destination.Hero.IsVisible)
                 {
                     destination.EndPos = destination.Hero.Position;
                 }
@@ -407,28 +374,24 @@ namespace SFXUtility.Features.Trackers
 
         private class DestinationObject
         {
-            public readonly float Delay;
-            public readonly Obj_AI_Hero Hero;
-            public readonly float Range;
-            public readonly string SpellName;
-            public bool Casted;
-            public Vector3 EndPos;
-            public int ExtraTicks;
-            public bool OutOfBush;
-            public Vector3 StartPos;
-            public Obj_AI_Hero Target;
-            public int TimeCasted;
-
             public DestinationObject(Obj_AI_Hero hero, SpellDataInst spell)
             {
                 Hero = hero;
-                if (spell != null)
+                if (spell != null && spell.Slot != SpellSlot.Unknown)
                 {
                     SpellName = spell.SData.Name;
                     Range = spell.SData.CastRange;
-                    Delay = spell.SData.SpellCastTime;
                 }
             }
+
+            public Obj_AI_Hero Hero { get; private set; }
+            public float Range { get; private set; }
+            public string SpellName { get; private set; }
+            public bool Casted { get; set; }
+            public Vector3 EndPos { get; set; }
+            public int ExtraTicks { get; set; }
+            public Vector3 StartPos { get; set; }
+            public int TimeCasted { get; set; }
         }
     }
 }
