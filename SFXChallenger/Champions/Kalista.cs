@@ -717,9 +717,9 @@ namespace SFXChallenger.Champions
             {
                 if (check)
                 {
-                    if (target.Health < 150 && target is Obj_AI_Minion)
+                    if (target.Health < 100 && target is Obj_AI_Minion)
                     {
-                        if (HealthPrediction.GetHealthPrediction(target, 150) <= 0)
+                        if (HealthPrediction.GetHealthPrediction(target, 250) <= 0)
                         {
                             return false;
                         }
