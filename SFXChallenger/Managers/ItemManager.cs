@@ -85,7 +85,7 @@ namespace SFXChallenger.Managers
                     EffectFlags = EffectFlags.AttackSpeed | EffectFlags.MovementSpeed,
                     CastType = CastType.Self,
                     Range =
-                        ObjectManager.Player.IsMeele
+                        ObjectManager.Player.IsMelee
                             ? ObjectManager.Player.AttackRange * 3
                             : Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)
                 };
@@ -243,7 +243,7 @@ namespace SFXChallenger.Managers
                 foreach (var item in
                     Items.Where(
                         i =>
-                            i.CombatFlags.HasFlag(ObjectManager.Player.IsMeele ? CombatFlags.Melee : CombatFlags.Ranged) &&
+                            i.CombatFlags.HasFlag(ObjectManager.Player.IsMelee ? CombatFlags.Melee : CombatFlags.Ranged) &&
                             ((i.Flags & (_itemFlags)) != 0)))
                 {
                     if (item.Flags.HasFlag(ItemFlags.Offensive) || item.Flags.HasFlag(ItemFlags.Flee))

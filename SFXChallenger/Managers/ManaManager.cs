@@ -42,6 +42,7 @@ namespace SFXChallenger.Managers
             string uniqueId,
             ManaCheckType checkType,
             ManaValueType valueType,
+            string prefix = null,
             int value = 30,
             int minValue = 0,
             int maxValue = 100)
@@ -55,7 +56,7 @@ namespace SFXChallenger.Managers
 
                 menu.AddItem(
                     new MenuItem(
-                        menu.Name + ".mana-" + uniqueId,
+                        menu.Name + ".mana-" + uniqueId, (!string.IsNullOrEmpty(prefix) ? prefix + " " : string.Empty) +
                         (checkType == ManaCheckType.Minimum
                             ? Global.Lang.Get("MM_MinMana")
                             : Global.Lang.Get("MM_MaxMana")) +

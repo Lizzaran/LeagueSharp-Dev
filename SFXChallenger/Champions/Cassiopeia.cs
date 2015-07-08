@@ -95,13 +95,13 @@ namespace SFXChallenger.Champions
             HitchanceManager.AddToMenu(
                 harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
                 new Dictionary<string, int> { { "Q", 2 }, { "W", 1 } });
-            ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Total, 70, 0, 750);
+            ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Total, string.Empty, 70, 0, 750);
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
             var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LaneClear"), Menu.Name + ".lane-clear"));
-            ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Total, 90, 0, 750);
+            ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Total, string.Empty, 90, 0, 750);
             laneclearMenu.AddItem(
                 new MenuItem(laneclearMenu.Name + ".aa", Global.Lang.Get("G_UseAutoAttacks")).SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
@@ -109,7 +109,7 @@ namespace SFXChallenger.Champions
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
             var lasthitMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LastHit"), Menu.Name + ".lasthit"));
-            ManaManager.AddToMenu(lasthitMenu, "lasthit", ManaCheckType.Maximum, ManaValueType.Percent, 70);
+            ManaManager.AddToMenu(lasthitMenu, "lasthit", ManaCheckType.Maximum, ManaValueType.Percent, string.Empty, 70);
             lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
             lasthitMenu.AddItem(
                 new MenuItem(

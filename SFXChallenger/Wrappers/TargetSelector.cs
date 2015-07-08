@@ -52,6 +52,7 @@ namespace SFXChallenger.Wrappers
         private const float KillGold = 300.00f;
         private const float AssistGold = 95.00f;
         private static float _averageWeight;
+        private static float _debugRange;
         private static Menu _menu;
         private static Obj_AI_Hero _selectedTarget;
         private static readonly HashSet<Priority> Priorities;
@@ -185,6 +186,11 @@ namespace SFXChallenger.Wrappers
             Drawing.OnDraw += OnDrawingDraw;
             AttackableUnit.OnDamage += OnAttackableUnitDamage;
             Obj_AI_Base.OnAggro += OnObjAiBaseAggro;
+        }
+
+        public static void SetDebugRange(float range)
+        {
+            _debugRange = range > 1800 ? 1800 : range;
         }
 
         public static Obj_AI_Hero SelectedTarget
@@ -323,10 +329,13 @@ namespace SFXChallenger.Wrappers
                 if (_menu.Item(_menu.Name + ".drawing.debug").GetValue<bool>() &&
                     _tsMode == TargetSelectorModeType.Weights)
                 {
-                    foreach (var target in
-                        GameObjects.EnemyHeroes.Where(h => h.IsVisible && !h.IsDead && h.Position.IsOnScreen()))
+                    var enemies =
+                        GameObjects.EnemyHeroes.Where(
+                            h => !h.IsDead && h.Position.IsOnScreen() && h.Distance(ObjectManager.Player) <= _debugRange);
+                    foreach (var target in enemies)
                     {
                         var position = Drawing.WorldToScreen(target.Position);
+                        var totalWeight = 0f;
                         var offset = 0;
                         foreach (var weight in WeightedItems)
                         {
@@ -343,8 +352,15 @@ namespace SFXChallenger.Wrappers
                                 Drawing.DrawText(
                                     position.X + target.BoundingRadius, position.Y - 100 + offset, Color.White,
                                     string.Format("{0} - {1}", lastWeight.ToString("00.00"), weight.DisplayName));
+                                totalWeight += lastWeight;
                                 offset += 17;
                             }
+                        }
+                        if (totalWeight > 0f)
+                        {
+                            Drawing.DrawText(
+                                target.HPBarPosition.X + 55f, target.HPBarPosition.Y - 15f, Color.White,
+                                totalWeight.ToString("00.00"));
                         }
                     }
                 }

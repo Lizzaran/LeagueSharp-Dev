@@ -89,6 +89,7 @@ namespace SFXChallenger.Champions
         protected override void AddToMenu()
         {
             var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), Menu.Name + ".combo"));
+            ManaManager.AddToMenu(comboMenu, "combo-q", ManaCheckType.Minimum, ManaValueType.Percent, "Q");
             HitchanceManager.AddToMenu(
                 comboMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), comboMenu.Name + ".hitchance")), "combo",
                 new Dictionary<string, int> { { "Q", 2 } });
@@ -101,8 +102,9 @@ namespace SFXChallenger.Champions
             HitchanceManager.AddToMenu(
                 harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
                 new Dictionary<string, int> { { "Q", 2 } });
-            ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
+            ManaManager.AddToMenu(harassMenu, "harass-q", ManaCheckType.Minimum, ManaValueType.Percent, "Q");
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
+            ManaManager.AddToMenu(comboMenu, "harass-e", ManaCheckType.Minimum, ManaValueType.Percent, "E");
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
             harassMenu.AddItem(
                 new MenuItem(harassMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(new Slider(5, 1, 15)));
@@ -432,8 +434,7 @@ namespace SFXChallenger.Champions
 
         protected override void Combo()
         {
-            var useQ = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady() &&
-                       ((Q.Instance.ManaCost + E.Instance.ManaCost) < Player.Mana);
+            var useQ = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady() && ManaManager.Check("combo-q");
             var useE = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
 
             if (useQ)
@@ -482,15 +483,11 @@ namespace SFXChallenger.Champions
 
         protected override void Harass()
         {
-            if (!ManaManager.Check("harass"))
-            {
-                return;
-            }
-            if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && Q.IsReady())
+            if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && Q.IsReady() && ManaManager.Check("harass-q"))
             {
                 Casting.SkillShot(Q, Q.GetHitChance("harass"));
             }
-            if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>() && E.IsReady())
+            if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>() && E.IsReady() && ManaManager.Check("harass-e"))
             {
                 foreach (var enemy in GameObjects.EnemyHeroes.Where(e => E.IsInRange(e)))
                 {

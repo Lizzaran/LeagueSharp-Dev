@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- sidebar.cs is part of SFXUtility.
+ Sidebar.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -216,7 +216,10 @@ namespace SFXUtility.Features.Trackers
                             new[]
                             {
                                 new Vector2(offsetRight - hudWidth * 0.1f, offsetTop + hudHeight * 0.415f + offset),
-                                new Vector2(offsetRight + hudWidth * 0.51f, offsetTop + hudHeight * 0.415f + offset)
+                                new Vector2(
+                                    offsetRight - hudWidth * 0.1f +
+                                    (offsetRight + hudWidth * 0.51f - offsetRight - hudWidth * 0.1f) *
+                                    (enemy.Unit.ManaPercent * 0.01f), offsetTop + hudHeight * 0.41f + offset)
                             },
                             Enumerable.Contains(_champsEnergy, enemy.Unit.ChampionName)
                                 ? Color.Yellow
@@ -233,9 +236,13 @@ namespace SFXUtility.Features.Trackers
                         new[]
                         {
                             new Vector2(offsetRight - hudWidth * 0.1f, offsetTop + hudHeight * 0.265f + offset),
-                            new Vector2(offsetRight + hudWidth * 0.51f, offsetTop + hudHeight * 0.265f + offset)
+                            new Vector2(
+                                offsetRight - hudWidth * 0.1f +
+                                (offsetRight + hudWidth * 0.51f - offsetRight - hudWidth * 0.1f) *
+                                (enemy.Unit.HealthPercent * 0.01f), offsetTop + hudHeight * 0.265f + offset)
                         },
                         Color.Green);
+
                     _text13.DrawTextCentered(
                         (int) (enemy.Unit.Health) + " / " + (int) (enemy.Unit.MaxHealth),
                         new Vector2(offsetRight + hudWidth * 0.21f, offsetTop + hudHeight * 0.275f + offset),

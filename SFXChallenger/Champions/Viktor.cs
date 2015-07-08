@@ -104,7 +104,7 @@ namespace SFXChallenger.Champions
 
             var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LaneClear"), Menu.Name + ".lane-clear"));
             ManaManager.AddToMenu(
-                laneclearMenu, "lane-clear-q", ManaCheckType.Minimum, ManaValueType.Total, 200, 0, 750);
+                laneclearMenu, "lane-clear-q", ManaCheckType.Minimum, ManaValueType.Total, string.Empty, 200, 0, 750);
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             ManaManager.AddToMenu(laneclearMenu, "lane-clear-e", ManaCheckType.Minimum, ManaValueType.Percent);
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
