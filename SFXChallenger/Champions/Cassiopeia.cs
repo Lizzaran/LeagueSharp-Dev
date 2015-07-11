@@ -95,13 +95,15 @@ namespace SFXChallenger.Champions
             HitchanceManager.AddToMenu(
                 harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
                 new Dictionary<string, int> { { "Q", 2 }, { "W", 1 } });
-            ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Total, string.Empty, 70, 0, 750);
+            ManaManager.AddToMenu(
+                harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Total, string.Empty, 70, 0, 750);
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
             var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LaneClear"), Menu.Name + ".lane-clear"));
-            ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Total, string.Empty, 90, 0, 750);
+            ManaManager.AddToMenu(
+                laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Total, string.Empty, 90, 0, 750);
             laneclearMenu.AddItem(
                 new MenuItem(laneclearMenu.Name + ".aa", Global.Lang.Get("G_UseAutoAttacks")).SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
@@ -109,7 +111,8 @@ namespace SFXChallenger.Champions
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
             var lasthitMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LastHit"), Menu.Name + ".lasthit"));
-            ManaManager.AddToMenu(lasthitMenu, "lasthit", ManaCheckType.Maximum, ManaValueType.Percent, string.Empty, 70);
+            ManaManager.AddToMenu(
+                lasthitMenu, "lasthit", ManaCheckType.Maximum, ManaValueType.Percent, string.Empty, 70);
             lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
             lasthitMenu.AddItem(
                 new MenuItem(
@@ -209,9 +212,20 @@ namespace SFXChallenger.Champions
             DrawingManager.Update(
                 "R " + Global.Lang.Get("G_Flash"),
                 Menu.Item(Menu.Name + ".ultimate.range").GetValue<Slider>().Value + SummonerManager.Flash.Range);
+            DrawingManager.Add("Combo Damage", new Circle(true, DamageIndicator.DrawingColor)).ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args)
+                {
+                    DamageIndicator.Enabled = args.GetNewValue<Circle>().Active;
+                    DamageIndicator.DrawingColor = args.GetNewValue<Circle>().Color;
+                };
+
+            DamageIndicator.Initialize(DamageIndicatorFunc);
+            DamageIndicator.Enabled = DrawingManager.Get("Combo Damage").GetValue<Circle>().Active;
+            DamageIndicator.DrawingColor = DrawingManager.Get("Combo Damage").GetValue<Circle>().Color;
+
             TargetSelector.AddWeightedItem(
                 new WeightedItem(
-                    "poison-time", Global.Lang.Get("Cassiopeia_PoisonTime"), 10, false, 500, GetPoisonBuffEndTime));
+                    "poison-time", Global.Lang.Get("Cassiopeia_PoisonTime"), 10, true, 500, GetPoisonBuffEndTime));
         }
 
         protected override void SetupSpells()
@@ -583,14 +597,19 @@ namespace SFXChallenger.Champions
                 }
             }
             var target = Targets.FirstOrDefault(t => t.IsValidTarget(R.Range));
-            if (target != null && CalcComboDamage(target, q, w, e, r) * 1.3 > target.Health)
+            if (target != null && CalcComboDamage(target, q, w, e, r) > target.Health)
             {
                 ItemManager.UseComboItems(target);
                 SummonerManager.UseComboSummoners(target);
             }
         }
 
-        private float CalcComboDamage(Obj_AI_Base target, bool q, bool w, bool e, bool r)
+        private float DamageIndicatorFunc(Obj_AI_Hero target)
+        {
+            return CalcComboDamage(target, true, true, true, true);
+        }
+
+        private float CalcComboDamage(Obj_AI_Hero target, bool q, bool w, bool e, bool r)
         {
             try
             {
@@ -623,6 +642,8 @@ namespace SFXChallenger.Champions
                     }
                     return damage + (R.IsReady() ? R.GetDamage(target) : 0);
                 }
+                damage += ItemManager.CalculateComboDamage(target);
+                damage += SummonerManager.CalculateComboDamage(target);
                 return damage;
             }
             catch (Exception ex)
@@ -861,7 +882,7 @@ namespace SFXChallenger.Champions
 
         protected override void Flee()
         {
-            if (Menu.Item(Menu.Name + ".flee.w").GetValue<bool>() && E.IsReady())
+            if (Menu.Item(Menu.Name + ".flee.w").GetValue<bool>() && W.IsReady())
             {
                 var near = GameObjects.EnemyHeroes.OrderBy(e => e.Distance(Player.Position)).FirstOrDefault();
                 if (near != null)

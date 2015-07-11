@@ -68,6 +68,8 @@
 	<entry key="G_Turret">Turret</entry>
 	<entry key="G_Save">Save</entry>
 	<entry key="G_Blacklist">Blacklist</entry>
+	<entry key="G_Whitelist">Whitelist</entry>
+	<entry key="G_BlockMissing">Block Missing</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: Language -->

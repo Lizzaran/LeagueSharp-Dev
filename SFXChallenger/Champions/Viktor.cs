@@ -177,7 +177,7 @@ namespace SFXChallenger.Champions
                     DamageIndicator.DrawingColor = args.GetNewValue<Circle>().Color;
                 };
 
-            DamageIndicator.Initialize(CalcComboDamage);
+            DamageIndicator.Initialize(DamageIndicatorFunc);
             DamageIndicator.Enabled = DrawingManager.Get("Combo Damage").GetValue<Circle>().Active;
             DamageIndicator.DrawingColor = DrawingManager.Get("Combo Damage").GetValue<Circle>().Color;
         }
@@ -279,8 +279,7 @@ namespace SFXChallenger.Champions
             {
                 return
                     Player.Buffs.Select(b => b.Name.ToLower())
-                        .Where(b => b.Contains("viktor") && b.Contains("aug"))
-                        .Select(b => b.Replace("viktor", string.Empty).Replace("aug", string.Empty))
+                        .Where(b => b.StartsWith("viktor") && b.EndsWith("aug"))
                         .Any(
                             b =>
                                 spell.Slot == SpellSlot.R
@@ -499,19 +498,46 @@ namespace SFXChallenger.Champions
                 }
             }
             var target = Targets.FirstOrDefault(t => t.IsValidTarget(R.Range));
-            if (target != null && CalcComboDamage(target, q, e, r, extended) * 1.3 > target.Health)
+            if (target != null && CalcComboDamage(target, q, e, r, extended) > target.Health)
             {
                 ItemManager.UseComboItems(target);
                 SummonerManager.UseComboSummoners(target);
             }
         }
 
-        private float CalcComboDamage(Obj_AI_Base target)
+        private float DamageIndicatorFunc(Obj_AI_Base target)
         {
-            return CalcComboDamage(target, true, true, true, false);
+            try
+            {
+                var damage = 0f;
+                if (Q.IsReady())
+                {
+                    damage += Q.GetDamage(target);
+                    damage += CalcPassiveDamage(target);
+                }
+                else if (Player.HasBuff("viktorpowertransferreturn"))
+                {
+                    damage += CalcPassiveDamage(target);
+                }
+                if (E.IsReady())
+                {
+                    damage += E.GetDamage(target);
+                }
+                if (R.IsReady())
+                {
+                    damage += R.GetDamage(target);
+                    damage += (R.GetDamage(target, 1) * 12);
+                }
+                return damage;
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return 0;
         }
 
-        private float CalcComboDamage(Obj_AI_Base target, bool q, bool e, bool r, bool extended)
+        private float CalcComboDamage(Obj_AI_Hero target, bool q, bool e, bool r, bool extended)
         {
             try
             {
@@ -562,6 +588,8 @@ namespace SFXChallenger.Champions
 
                     damage += (R.GetDamage(target, 1) * stacks);
                 }
+                damage += ItemManager.CalculateComboDamage(target);
+                damage += SummonerManager.CalculateComboDamage(target);
                 return damage;
             }
             catch (Exception ex)
@@ -1000,27 +1028,26 @@ namespace SFXChallenger.Champions
             var center = Vector2.Zero;
             float radius = -1;
             var count = 0;
-            var range = (overrideRange > 0 ? overrideRange : R.Range);
-            var targets = Targets.Where(t => t.IsValidTarget(range)).ToList();
-            if (targets.Any())
+            var range = (overrideRange > 0 ? overrideRange : (R.Range * 1.3f));
+            var points = (from enemy in Targets.Where(t => t.IsValidTarget(range))
+                select Q.GetPrediction(enemy)
+                into prediction
+                where prediction.Hitchance >= HitChance.Medium
+                select prediction.UnitPosition.To2D()).ToList();
+            if (points.Any())
             {
-                var possiblities =
-                    ListExtensions.ProduceEnumeration(targets.Select(t => t.Position.To2D()).ToList())
-                        .Where(p => p.Count > 1)
-                        .ToList();
+                var possiblities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 1).ToList();
                 if (possiblities.Any())
                 {
                     foreach (var possibility in possiblities)
                     {
-                        Vector2 lCenter;
-                        float lRadius;
-                        ConvexHull.FindMinimalBoundingCircle(possibility, out lCenter, out lRadius);
-                        if (lRadius < (R.Width / 2) && Player.Distance(lCenter) < range)
+                        var mec = MEC.GetMec(possibility);
+                        if (mec.Radius < (R.Width / 2) && Player.Distance(mec.Center) < range)
                         {
-                            if (possibility.Count > count || possibility.Count == count && lRadius < radius)
+                            if (possibility.Count > count || possibility.Count == count && mec.Radius < radius)
                             {
-                                center = lCenter;
-                                radius = lRadius;
+                                center = mec.Center;
+                                radius = mec.Radius;
                                 count = possibility.Count;
                             }
                         }
@@ -1032,7 +1059,7 @@ namespace SFXChallenger.Champions
                         return;
                     }
                 }
-                var dTarget = targets.FirstOrDefault();
+                var dTarget = Targets.FirstOrDefault(t => t.IsValidTarget(range));
                 if (dTarget != null)
                 {
                     hits = 1;
@@ -1062,18 +1089,16 @@ namespace SFXChallenger.Champions
                 {
                     foreach (var possibility in possiblities)
                     {
-                        Vector2 lCenter;
-                        float lRadius;
-                        ConvexHull.FindMinimalBoundingCircle(possibility, out lCenter, out lRadius);
-                        var distance = position.Distance(lCenter.To3D());
-                        if (lRadius < (R.Width / 2) && distance < maxRelocation)
+                        var mec = MEC.GetMec(possibility);
+                        var distance = position.Distance(mec.Center.To3D());
+                        if (mec.Radius < (R.Width / 2) && distance < maxRelocation)
                         {
                             if (possibility.Count > count ||
-                                possibility.Count == count && (lRadius < radius || distance < moveDistance))
+                                possibility.Count == count && (mec.Radius < radius || distance < moveDistance))
                             {
-                                moveDistance = position.Distance(lCenter.To3D());
-                                center = lCenter;
-                                radius = lRadius;
+                                moveDistance = position.Distance(mec.Center.To3D());
+                                center = mec.Center;
+                                radius = mec.Radius;
                                 count = possibility.Count;
                             }
                         }

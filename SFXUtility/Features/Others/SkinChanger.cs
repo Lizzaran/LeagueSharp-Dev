@@ -24,7 +24,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXLibrary;
@@ -39,8 +38,6 @@ namespace SFXUtility.Features.Others
     // Credits: Tree
     internal class SkinChanger : Child<Others>
     {
-        private const float CheckInterval = 300f;
-        private float _lastCheck;
         private ModelUnit _player;
         private List<ModelUnit> _playerList;
         public SkinChanger(SFXUtility sfx) : base(sfx) {}
@@ -82,8 +79,6 @@ namespace SFXUtility.Features.Others
         protected override void OnInitialize()
         {
             _playerList = new List<ModelUnit>();
-            _lastCheck = Environment.TickCount;
-
 
             foreach (var hero in GameObjects.Heroes)
             {
@@ -135,38 +130,36 @@ namespace SFXUtility.Features.Others
 
         private void OnGameInput(GameInputEventArgs args)
         {
-            if (args.Input.StartsWith("/model"))
+            try
             {
-                args.Process = false;
-                var modelName = args.Input.Replace("/model ", string.Empty);
-                var model = modelName.GetValidModel();
-
-                if (model == "" || !model.IsValidModel())
+                if (args.Input.StartsWith("/model"))
                 {
+                    args.Process = false;
+                    var model = args.Input.Replace("/model ", string.Empty).GetValidModel();
+
+                    if (!model.IsValidModel())
+                    {
+                        return;
+                    }
+                    _player.SetModel(model);
                     return;
                 }
 
-                _player.SetModel(model);
-                return;
+                if (args.Input.StartsWith("/skin"))
+                {
+                    args.Process = false;
+                    var skin = Convert.ToInt32(args.Input.Replace("/skin ", string.Empty));
+                    _player.SetModel(_player.Unit.CharData.BaseSkinName, skin);
+                }
             }
-
-            if (args.Input.StartsWith("/skin"))
+            catch (Exception ex)
             {
-                args.Process = false;
-                var skin = Convert.ToInt32(args.Input.Replace("/skin ", string.Empty));
-                _player.SetModel(_player.Unit.CharData.BaseSkinName, skin);
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
         private void OnGameUpdate(EventArgs args)
         {
-            if (_lastCheck + CheckInterval > Environment.TickCount)
-            {
-                return;
-            }
-
-            _lastCheck = Environment.TickCount;
-
             foreach (var unit in _playerList)
             {
                 unit.OnUpdate();
@@ -186,9 +179,8 @@ namespace SFXUtility.Features.Others
         public ModelUnit(Obj_AI_Hero unit)
         {
             Unit = unit;
-            Model = unit.CharData.BaseSkinName;
+            Model = Unit.CharData.BaseSkinName;
             SkinIndex = unit.BaseSkinId;
-            UpdateAdditionalObjects();
         }
 
         #region UpdateAdditionalObjects
@@ -196,8 +188,11 @@ namespace SFXUtility.Features.Others
         private void UpdateAdditionalObjects()
         {
             var championName = Unit.ChampionName;
+            // these need testing
             if (championName.Equals("Lulu"))
             {
+                // not sure these are needed
+                // can just update RobotBuddy
                 AdditionalObjects.Add("LuluCupcake");
                 AdditionalObjects.Add("LuluDragon");
                 AdditionalObjects.Add("LuluFaerie");
@@ -208,12 +203,14 @@ namespace SFXUtility.Features.Others
                 AdditionalObjects.Add("LuluSquill");
                 return;
             }
+
             if (championName.Equals("Rammus"))
             {
-                AdditionalObjects.Add("RammusDBC");
+                AdditionalObjects.Add("RammusDBC"); // is this right?
                 IgnoredModels.Add("RammusPB");
                 return;
             }
+
             if (championName.Equals("Udyr"))
             {
                 IgnoredModels.Add("UdyrPhoenix");
@@ -225,11 +222,19 @@ namespace SFXUtility.Features.Others
                 IgnoredModels.Add("UdyrUlt");
                 return;
             }
+            //
 
             if (championName.Equals("Anivia"))
             {
                 IgnoredModels.Add("AniviaEgg");
                 AdditionalObjects.Add("AniviaIceblock");
+                return;
+            }
+
+            if (championName.Equals("Annie"))
+            {
+                //covered through pet
+                AdditionalObjects.Add("AnnieTibbers");
                 return;
             }
 
@@ -366,6 +371,7 @@ namespace SFXUtility.Features.Others
             if (championName.Equals("Syndra"))
             {
                 AdditionalObjects.Add("SyndraSphere");
+                AdditionalObjects.Add("SyndraOrbs"); // needs an update function
                 return;
             }
 
@@ -433,30 +439,30 @@ namespace SFXUtility.Features.Others
         private void UpdateSpawnedUnits()
         {
             SpawnedUnits.RemoveAll(obj => !obj.IsValid);
-
-            var unit = ObjectManager.GetUnitByNetworkId<GameObject>(Unit.AI_LastPetSpawnedID);
-
-            if (unit != null && unit.IsValid && !SpawnedUnits.Contains(unit) && !(unit is Obj_LampBulb))
+            if (Unit.AI_LastPetSpawnedID == 0)
             {
-                SpawnedUnits.Add((Obj_AI_Base) unit);
+                return;
+            }
+            var unit = ObjectManager.GetUnitByNetworkId<Obj_AI_Base>(Unit.AI_LastPetSpawnedID);
+            if (unit != null && unit.IsValid && !SpawnedUnits.Contains(unit))
+            {
+                SpawnedUnits.Add(unit);
             }
         }
 
         public void OnUpdate()
         {
-            UpdateSpawnedUnits();
-
             if (Unit.IsDead)
             {
                 return;
             }
 
-            var model = IgnoredModels.Contains(Unit.CharData.BaseSkinName) ? Unit.CharData.BaseSkinName : Model;
+            //var model = IgnoredModels.Contains(Unit.CharData.BaseSkinName) ? Unit.CharData.BaseSkinName : Model;
             var skin = SkinIndex;
 
-            if (!Unit.CharData.BaseSkinName.Equals(model) || !Unit.BaseSkinId.Equals(skin))
+            if (!Unit.CharData.BaseSkinName.Equals(Model) || !Unit.BaseSkinId.Equals(skin))
             {
-                Unit.SetSkin(model, skin);
+                Unit.SetSkin(Model, skin);
             }
         }
 
@@ -466,7 +472,6 @@ namespace SFXUtility.Features.Others
             {
                 return;
             }
-
             Model = model;
             SkinIndex = skin;
             OnUpdate();

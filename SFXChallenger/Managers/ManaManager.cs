@@ -56,7 +56,8 @@ namespace SFXChallenger.Managers
 
                 menu.AddItem(
                     new MenuItem(
-                        menu.Name + ".mana-" + uniqueId, (!string.IsNullOrEmpty(prefix) ? prefix + " " : string.Empty) +
+                        menu.Name + ".mana-" + uniqueId,
+                        (!string.IsNullOrEmpty(prefix) ? prefix + " " : string.Empty) +
                         (checkType == ManaCheckType.Minimum
                             ? Global.Lang.Get("MM_MinMana")
                             : Global.Lang.Get("MM_MaxMana")) +

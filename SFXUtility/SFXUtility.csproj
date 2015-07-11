@@ -23,7 +23,7 @@
     <AssemblyVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyVersionSettings>
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
-    <AssemblyVersion>0.8.3.20</AssemblyVersion>
+    <AssemblyVersion>0.8.3.21</AssemblyVersion>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -281,6 +281,7 @@
     <Content Include="Resources\Champions\Soraka.png" />
     <Content Include="Resources\Champions\Swain.png" />
     <Content Include="Resources\Champions\Syndra.png" />
+    <Content Include="Resources\Champions\TahmKench.png" />
     <Content Include="Resources\Champions\Talon.png" />
     <Content Include="Resources\Champions\Taric.png" />
     <Content Include="Resources\Champions\Teemo.png" />
@@ -345,9 +346,7 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Resources\GK\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5">
       <Visible>False</Visible>

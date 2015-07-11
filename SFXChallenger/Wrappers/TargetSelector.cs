@@ -188,11 +188,6 @@ namespace SFXChallenger.Wrappers
             Obj_AI_Base.OnAggro += OnObjAiBaseAggro;
         }
 
-        public static void SetDebugRange(float range)
-        {
-            _debugRange = range > 1800 ? 1800 : range;
-        }
-
         public static Obj_AI_Hero SelectedTarget
         {
             get
@@ -201,6 +196,11 @@ namespace SFXChallenger.Wrappers
                     ? _selectedTarget
                     : null);
             }
+        }
+
+        public static void SetDebugRange(float range)
+        {
+            _debugRange = range > 1800 ? 1800 : range;
         }
 
         public static void AddWeightedItem(WeightedItem item)
@@ -479,11 +479,20 @@ namespace SFXChallenger.Wrappers
                         .Value
                     : range;
 
+                if (_menu != null && SelectedTarget != null &&
+                    SelectedTarget.IsValidTarget(
+                        _menu.Item(_menu.Name + ".force-focus-selected").GetValue<bool>() ? float.MaxValue : aRange,
+                        true, from))
+                {
+                    return new List<Obj_AI_Hero> { SelectedTarget };
+                }
+
                 var targets =
                     GameObjects.EnemyHeroes.Where(
                         h => ignoredChampions == null || ignoredChampions.All(i => i.NetworkId != h.NetworkId))
                         .Where(h => IsValidTarget(h, aRange, damageType, ignoreShields, from))
                         .ToList();
+
                 if (targets.Count > 0)
                 {
                     if (assassin)
@@ -497,24 +506,7 @@ namespace SFXChallenger.Wrappers
                             targets = assassinTargets;
                         }
                     }
-
-
-                    targets = GetChampionsByMode(targets).ToList();
-                    if (_menu != null && SelectedTarget != null &&
-                        (SelectedTarget.IsValidTarget(
-                            _menu.Item(_menu.Name + ".force-focus-selected").GetValue<bool>() ? float.MaxValue : aRange,
-                            true, from) || targets.Any(t => t.NetworkId == SelectedTarget.NetworkId)))
-                    {
-                        var id = targets.FindIndex(x => x.NetworkId == SelectedTarget.NetworkId);
-                        if (id > 0)
-                        {
-                            var item = targets[id];
-                            targets.RemoveAt(id);
-                            targets.Insert(0, item);
-                        }
-                    }
-
-                    return targets;
+                    return GetChampionsByMode(targets).ToList();
                 }
             }
             catch (Exception ex)
