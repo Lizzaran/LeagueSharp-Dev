@@ -187,7 +187,7 @@ namespace SFXChallenger.Champions
         private void OnAllyInitiator(object sender, InitiatorArgs args)
         {
             if (!Menu.Item(Menu.Name + ".initiator.use-e").GetValue<bool>() || Ball.IsMoving || !E.IsReady() ||
-                Ball.Hero.NetworkId.Equals(args.Hero.NetworkId))
+                (Ball.Hero != null && Ball.Hero.NetworkId.Equals(args.Hero.NetworkId)))
             {
                 return;
             }
@@ -379,9 +379,15 @@ namespace SFXChallenger.Champions
                     Menu.Item(Menu.Name + ".ultimate.auto.interrupt." + sender.ChampionName).GetValue<bool>() &&
                     R.IsReady())
                 {
-                    var pos = Ball.Status == BallStatus.Fixed
-                        ? Ball.Position
-                        : Prediction.GetPrediction(Ball.Hero, R.Delay).UnitPosition;
+                    var pos = Ball.Position;
+                    if (Ball.Status != BallStatus.Fixed)
+                    {
+                        var pred = Prediction.GetPrediction(Ball.Hero, R.Delay);
+                        if (pred.Hitchance >= HitChance.Medium)
+                        {
+                            pos = pred.UnitPosition;
+                        }
+                    }
                     if (pos.Distance(sender.Position) <= R.Width)
                     {
                         R.Cast(Player.Position);
@@ -528,7 +534,7 @@ namespace SFXChallenger.Champions
                 foreach (var target in GameObjects.EnemyHeroes.Where(e => e.Distance(Ball.Position) < R.Range * 3))
                 {
                     var pred = R.GetPrediction(target);
-                    if (pred.UnitPosition.Distance(Ball.Position) <= R.Width)
+                    if (pred.Hitchance >= HitChance.Low && pred.UnitPosition.Distance(Ball.Position) <= R.Width)
                     {
                         hits++;
                         if (pred.Hitchance > chance)
@@ -540,6 +546,7 @@ namespace SFXChallenger.Champions
                 if (hits >= min && chance >= hitChance)
                 {
                     R.Cast(Player.Position);
+                    return true;
                 }
             }
             catch (Exception ex)
@@ -608,13 +615,16 @@ namespace SFXChallenger.Champions
                 {
                     var allyPred = E.GetPrediction(ally);
                     var cHits = 0;
-                    if (allyPred.UnitPosition.Distance(Player.Position) < _maxBallDistance)
+                    if (allyPred.Hitchance >= HitChance.Low &&
+                        allyPred.UnitPosition.Distance(Player.Position) < _maxBallDistance)
                     {
                         R.UpdateSourcePosition(allyPred.UnitPosition);
                         cHits =
                             GameObjects.EnemyHeroes.Where(e => e.Position.Distance(allyPred.UnitPosition) < R.Width * 3)
                                 .Select(enemy => E.GetPrediction(enemy))
-                                .Count(enemyPred => R.IsInRange(enemyPred.UnitPosition));
+                                .Count(
+                                    enemyPred =>
+                                        enemyPred.Hitchance >= HitChance.Medium && R.IsInRange(enemyPred.UnitPosition));
                     }
                     if (cHits > totalHits || cHits == totalHits)
                     {
@@ -718,13 +728,16 @@ namespace SFXChallenger.Champions
                 {
                     var allyPred = E.GetPrediction(ally);
                     var cHits = 0;
-                    if (allyPred.UnitPosition.Distance(Player.Position) < _maxBallDistance)
+                    if (allyPred.Hitchance >= HitChance.Low &&
+                        allyPred.UnitPosition.Distance(Player.Position) < _maxBallDistance)
                     {
                         W.UpdateSourcePosition(allyPred.UnitPosition);
                         cHits =
                             GameObjects.EnemyHeroes.Where(e => e.Position.Distance(allyPred.UnitPosition) < W.Width * 3)
                                 .Select(enemy => E.GetPrediction(enemy))
-                                .Count(enemyPred => W.IsInRange(enemyPred.UnitPosition));
+                                .Count(
+                                    enemyPred =>
+                                        enemyPred.Hitchance >= HitChance.Medium && W.IsInRange(enemyPred.UnitPosition));
                     }
                     if (cHits > totalHits || cHits == totalHits)
                     {
@@ -761,13 +774,16 @@ namespace SFXChallenger.Champions
                 {
                     var allyPred = E.GetPrediction(ally);
                     var cHits = 0;
-                    if (allyPred.UnitPosition.Distance(Player.Position) < _maxBallDistance)
+                    if (allyPred.Hitchance >= HitChance.Low &&
+                        allyPred.UnitPosition.Distance(Player.Position) < _maxBallDistance)
                     {
                         R.UpdateSourcePosition(allyPred.UnitPosition);
                         cHits =
                             GameObjects.EnemyHeroes.Where(e => e.Position.Distance(allyPred.UnitPosition) < R.Width * 3)
                                 .Select(enemy => E.GetPrediction(enemy))
-                                .Count(enemyPred => R.IsInRange(enemyPred.UnitPosition));
+                                .Count(
+                                    enemyPred =>
+                                        enemyPred.Hitchance >= HitChance.Medium && R.IsInRange(enemyPred.UnitPosition));
                     }
                     if (cHits > totalHits || cHits == totalHits)
                     {
@@ -805,26 +821,32 @@ namespace SFXChallenger.Champions
                     var cHits = 0;
                     var cChance = HitChance.Low;
                     var allyPred = E.GetPrediction(ally);
-                    foreach (var enemy in GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(2000)))
+                    if (allyPred.Hitchance >= HitChance.Low)
                     {
-                        var enemyPred = E.GetPrediction(enemy);
-                        var circle = new Geometry.Polygon.Circle(enemyPred.CastPosition, enemy.BoundingRadius);
-                        var rect = new Geometry.Polygon.Rectangle(
-                            allyPred.CastPosition, enemyPred.CastPosition, E.Width);
-                        if (circle.Points.Any(c => rect.IsInside(c)))
+                        foreach (var enemy in GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(2000)))
                         {
-                            cHits++;
-                            if (enemyPred.Hitchance > cChance)
+                            var enemyPred = E.GetPrediction(enemy);
+                            if (enemyPred.Hitchance >= HitChance.Low)
                             {
-                                cChance = enemyPred.Hitchance;
+                                var circle = new Geometry.Polygon.Circle(enemyPred.CastPosition, enemy.BoundingRadius);
+                                var rect = new Geometry.Polygon.Rectangle(
+                                    allyPred.CastPosition, enemyPred.CastPosition, E.Width);
+                                if (circle.Points.Any(c => rect.IsInside(c)))
+                                {
+                                    cHits++;
+                                    if (enemyPred.Hitchance > cChance)
+                                    {
+                                        cChance = enemyPred.Hitchance;
+                                    }
+                                }
                             }
                         }
-                    }
-                    if (cHits > totalHits || cHits == totalHits && cChance > chance)
-                    {
-                        totalHits = cHits;
-                        hero = ally;
-                        chance = cChance;
+                        if (cHits > totalHits || cHits == totalHits && cChance > chance)
+                        {
+                            totalHits = cHits;
+                            hero = ally;
+                            chance = cChance;
+                        }
                     }
                 }
                 if (totalHits > 0 && chance >= hitChance)
@@ -1001,11 +1023,12 @@ namespace SFXChallenger.Champions
 
         internal class Ball
         {
-            private static Vector3 _positon;
+            private static Vector3 _pos;
+            private static Obj_AI_Hero _hero;
 
             static Ball()
             {
-                _positon = ObjectManager.Player.Position;
+                Pos = ObjectManager.Player.Position;
                 GameObject.OnCreate += OnGameObjectCreate;
                 Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
                 Core.OnPreUpdate += OnCorePreUpdate;
@@ -1016,12 +1039,39 @@ namespace SFXChallenger.Champions
                 }
             }
 
-            public static Obj_AI_Hero Hero { get; private set; }
+            private static Vector3 Pos
+            {
+                get { return _pos; }
+                set
+                {
+                    var tmp = Position;
+                    _pos = value;
+                    if (!_pos.Equals(tmp))
+                    {
+                        OnPositionChange.RaiseEvent(null, null);
+                    }
+                }
+            }
+
+            public static Obj_AI_Hero Hero
+            {
+                get { return _hero; }
+                private set
+                {
+                    var tmp = Position;
+                    _hero = value;
+                    if (!_hero.Position.Equals(tmp))
+                    {
+                        OnPositionChange.RaiseEvent(null, null);
+                    }
+                }
+            }
+
             public static BallStatus Status { get; private set; }
 
             public static Vector3 Position
             {
-                get { return Hero != null ? Hero.ServerPosition : _positon; }
+                get { return Hero != null ? Hero.ServerPosition : Pos; }
             }
 
             public static bool IsMoving { get; private set; }
@@ -1031,28 +1081,18 @@ namespace SFXChallenger.Champions
             {
                 if (ObjectManager.Player.HasBuff("OrianaGhostSelf"))
                 {
-                    var changed = !Position.Equals(ObjectManager.Player.Position);
                     Status = BallStatus.Me;
                     Hero = ObjectManager.Player;
                     IsMoving = false;
-                    if (changed)
-                    {
-                        OnPositionChange.RaiseEvent(null, null);
-                    }
                     return;
                 }
                 foreach (var hero in
                     GameObjects.AllyHeroes.Where(x => x.IsAlly && !x.IsDead && !x.IsMe)
                         .Where(hero => hero.HasBuff("OrianaGhost")))
                 {
-                    var changed = !Position.Equals(hero.Position);
                     Status = BallStatus.Ally;
                     Hero = hero;
                     IsMoving = false;
-                    if (changed)
-                    {
-                        OnPositionChange.RaiseEvent(null, null);
-                    }
                     return;
                 }
             }
@@ -1075,16 +1115,10 @@ namespace SFXChallenger.Champions
                 if (sender.IsValid && !string.IsNullOrEmpty(sender.Name) &&
                     sender.Name.Equals("Orianna_Base_Q_yomu_ring_green.troy", StringComparison.OrdinalIgnoreCase))
                 {
-                    var changed = !Position.Equals(sender.Position);
                     Hero = null;
-                    _positon = sender.Position;
+                    Pos = sender.Position;
                     Status = BallStatus.Fixed;
                     IsMoving = false;
-                    OnPositionChange.RaiseEvent(null, null);
-                    if (changed)
-                    {
-                        OnPositionChange.RaiseEvent(null, null);
-                    }
                 }
             }
         }
