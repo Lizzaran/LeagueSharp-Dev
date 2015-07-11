@@ -36,6 +36,7 @@ using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
 using SharpDX;
+using Color = System.Drawing.Color;
 using MinionManager = SFXLibrary.MinionManager;
 using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
 using MinionTeam = SFXLibrary.MinionTeam;
@@ -58,16 +59,16 @@ namespace SFXChallenger.Champions
         protected override void OnLoad()
         {
             Core.OnPostUpdate += OnCorePostUpdate;
-            Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
             Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
             InitiatorManager.OnAllyInitiator += OnAllyInitiator;
             Spellbook.OnCastSpell += OnSpellbookCastSpell;
+
+            Drawing.OnDraw += delegate { Render.Circle.DrawCircle(Ball.Position, W.Width, Color.BlueViolet); };
         }
 
         protected override void OnUnload()
         {
             Core.OnPostUpdate -= OnCorePostUpdate;
-            Orbwalking.BeforeAttack -= OnOrbwalkingBeforeAttack;
             Interrupter2.OnInterruptableTarget -= OnInterruptableTarget;
             InitiatorManager.OnAllyInitiator -= OnAllyInitiator;
             Spellbook.OnCastSpell -= OnSpellbookCastSpell;
@@ -189,7 +190,7 @@ namespace SFXChallenger.Champions
 
         private void OnAllyInitiator(object sender, InitiatorArgs args)
         {
-            if (!Menu.Item(Menu.Name + ".initiator.use-r").GetValue<bool>() || !E.IsReady())
+            if (!Menu.Item(Menu.Name + ".initiator.use-r").GetValue<bool>() || Ball.IsMoving || !E.IsReady())
             {
                 return;
             }
@@ -197,7 +198,7 @@ namespace SFXChallenger.Champions
                 args.End.Distance(Player.Position) <= _maxBallDistance &&
                 GameObjects.EnemyHeroes.Any(e => !e.IsDead && e.Position.Distance(args.End) < 1000))
             {
-                E.Cast(args.Hero);
+                E.CastOnUnit(args.Hero);
             }
         }
 
@@ -232,8 +233,12 @@ namespace SFXChallenger.Champions
                     {
                         if (E.IsReady())
                         {
-                            E.Cast(Player);
+                            E.CastOnUnit(Player);
                         }
+                        return;
+                    }
+                    if (Ball.IsMoving)
+                    {
                         return;
                     }
                     var target = TargetSelector.GetTarget(
@@ -262,8 +267,7 @@ namespace SFXChallenger.Champions
                                 });
                         if (pred.Hitchance >= R.GetHitChance("combo"))
                         {
-                            R.From = flashPos;
-                            R.RangeCheckFrom = flashPos;
+                            R.UpdateSourcePosition(flashPos, flashPos);
                             if (GameObjects.EnemyHeroes.Count(x => R.WillHit(x, pred.CastPosition)) >= min)
                             {
                                 R.Cast();
@@ -287,7 +291,8 @@ namespace SFXChallenger.Champions
                 }
 
                 if (Menu.Item(Menu.Name + ".ultimate.assisted.enabled").GetValue<bool>() &&
-                    Menu.Item(Menu.Name + ".ultimate.assisted.hotkey").GetValue<KeyBind>().Active && R.IsReady())
+                    Menu.Item(Menu.Name + ".ultimate.assisted.hotkey").GetValue<KeyBind>().Active && R.IsReady() &&
+                    !Ball.IsMoving)
                 {
                     if (Menu.Item(Menu.Name + ".ultimate.assisted.move-cursor").GetValue<bool>())
                     {
@@ -315,7 +320,7 @@ namespace SFXChallenger.Champions
                                 var hero = AssistedELogic(out hits);
                                 if (hero != null && hits >= 1)
                                 {
-                                    E.Cast(hero);
+                                    E.CastOnUnit(hero);
                                     return;
                                 }
                             }
@@ -333,7 +338,7 @@ namespace SFXChallenger.Champions
                     }
                 }
 
-                if (Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() && R.IsReady())
+                if (Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() && R.IsReady() && !Ball.IsMoving)
                 {
                     if (
                         !RLogic(
@@ -349,22 +354,6 @@ namespace SFXChallenger.Champions
                                 Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
                         }
                     }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnOrbwalkingBeforeAttack(Orbwalking.BeforeAttackEventArgs args)
-        {
-            try
-            {
-                if ((Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
-                     Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed) && args.Target is Obj_AI_Hero)
-                {
-                    args.Process = Player.Mana > Q.Instance.ManaCost && Q.IsReady();
                 }
             }
             catch (Exception ex)
@@ -399,6 +388,10 @@ namespace SFXChallenger.Champions
 
         protected override void Combo()
         {
+            if (Ball.IsMoving)
+            {
+                return;
+            }
             var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>();
             var w = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>();
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>();
@@ -491,6 +484,10 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                if (Ball.IsMoving)
+                {
+                    return false;
+                }
                 if ((from target in
                     GameObjects.EnemyHeroes.Where(t => t.HealthPercent > 25 && t.Distance(Ball.Position) < R.Width * 3)
                     let cDmg = CalcComboDamage(target, q, w, e, true)
@@ -514,6 +511,10 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                if (Ball.IsMoving)
+                {
+                    return false;
+                }
                 var chance = HitChance.Low;
                 var hits = 0;
                 R.UpdateSourcePosition(Ball.Position, Ball.Position);
@@ -736,7 +737,7 @@ namespace SFXChallenger.Champions
                 E.UpdateSourcePosition();
                 if (totalHits > 0)
                 {
-                    E.Cast(hero);
+                    E.CastOnUnit(hero);
                 }
             }
             catch (Exception ex)
@@ -781,7 +782,7 @@ namespace SFXChallenger.Champions
                 E.UpdateSourcePosition();
                 if (totalHits >= minHits)
                 {
-                    E.Cast(hero);
+                    E.CastOnUnit(hero);
                 }
             }
             catch (Exception ex)
@@ -833,7 +834,7 @@ namespace SFXChallenger.Champions
                 }
                 if (totalHits > 0 && chance >= hitChance)
                 {
-                    E.Cast(hero);
+                    E.CastOnUnit(hero);
                 }
                 E.UpdateSourcePosition();
             }
@@ -845,7 +846,7 @@ namespace SFXChallenger.Champions
 
         protected override void Harass()
         {
-            if (!ManaManager.Check("harass"))
+            if (!ManaManager.Check("harass") || Ball.IsMoving)
             {
                 return;
             }
@@ -878,6 +879,10 @@ namespace SFXChallenger.Champions
 
         public Vector3 GetBestQLocation(Obj_AI_Hero target, HitChance hitChance)
         {
+            if (Ball.IsMoving)
+            {
+                return Vector3.Zero;
+            }
             var pred = Q.GetPrediction(target);
             if (pred.Hitchance >= hitChance)
             {
@@ -913,7 +918,7 @@ namespace SFXChallenger.Champions
 
         protected override void LaneClear()
         {
-            if (!ManaManager.Check("lane-clear"))
+            if (!ManaManager.Check("lane-clear") || Ball.IsMoving)
             {
                 return;
             }
@@ -981,13 +986,17 @@ namespace SFXChallenger.Champions
 
         protected override void Flee()
         {
+            if (Ball.IsMoving)
+            {
+                return;
+            }
             if (Menu.Item(Menu.Name + ".flee.w").GetValue<bool>() && Ball.Status == BallStatus.Me && W.IsReady())
             {
                 W.Cast();
             }
             if (Menu.Item(Menu.Name + ".flee.e").GetValue<bool>() && E.IsReady())
             {
-                E.Cast(Player);
+                E.CastOnUnit(Player);
             }
         }
 
@@ -1008,8 +1017,8 @@ namespace SFXChallenger.Champions
             {
                 _positon = ObjectManager.Player.Position;
                 GameObject.OnCreate += OnGameObjectCreate;
-                Obj_AI_Base.OnBuffAdd += OnObjAiBaseBuffAdd;
                 Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
+                Core.OnPreUpdate += OnCorePreUpdate;
 
                 var ball =
                     GameObjects.AllGameObjects.FirstOrDefault(
@@ -1018,19 +1027,18 @@ namespace SFXChallenger.Champions
                 {
                     _positon = ball.Position;
                     Status = BallStatus.Fixed;
+                    return;
                 }
-                else
+                foreach (var hero in from hero in GameObjects.AllyHeroes
+                    from buff in hero.Buffs
+                    where
+                        buff.Name.Equals(
+                            "OrianaGhost" + (hero.IsMe ? "Self" : string.Empty), StringComparison.OrdinalIgnoreCase)
+                    select hero)
                 {
-                    foreach (var hero in from hero in GameObjects.AllyHeroes
-                        from buff in hero.Buffs
-                        where
-                            buff.Name.Equals(
-                                "OrianaGhost" + (hero.IsMe ? "Self" : string.Empty), StringComparison.OrdinalIgnoreCase)
-                        select hero)
-                    {
-                        Hero = hero;
-                        Status = Hero.IsMe ? BallStatus.Me : BallStatus.Ally;
-                    }
+                    Hero = hero;
+                    Status = Hero.IsMe ? BallStatus.Me : BallStatus.Ally;
+                    return;
                 }
             }
 
@@ -1043,6 +1051,27 @@ namespace SFXChallenger.Champions
             }
 
             public static bool IsMoving { get; private set; }
+
+            private static void OnCorePreUpdate(EventArgs args)
+            {
+                if (ObjectManager.Player.HasBuff("OrianaGhostSelf"))
+                {
+                    Status = BallStatus.Me;
+                    Hero = ObjectManager.Player;
+                    IsMoving = false;
+                    return;
+                }
+                foreach (
+                    var hero in
+                        GameObjects.AllyHeroes.Where(x => x.IsAlly && !x.IsMe)
+                            .Where(hero => hero.HasBuff("OrianaGhost")))
+                {
+                    Status = BallStatus.Ally;
+                    Hero = hero;
+                    IsMoving = false;
+                    return;
+                }
+            }
 
             private static void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
             {
@@ -1057,24 +1086,11 @@ namespace SFXChallenger.Champions
                 }
             }
 
-            private static void OnObjAiBaseBuffAdd(Obj_AI_Base sender, Obj_AI_BaseBuffAddEventArgs args)
-            {
-                var hero = sender as Obj_AI_Hero;
-                if (hero == null || !hero.IsAlly ||
-                    !args.Buff.Name.Equals(
-                        "OrianaGhost" + (hero.IsMe ? "Self" : string.Empty), StringComparison.OrdinalIgnoreCase))
-                {
-                    return;
-                }
-                Hero = hero;
-                Status = Hero.IsMe ? BallStatus.Me : BallStatus.Ally;
-                IsMoving = false;
-            }
-
             private static void OnGameObjectCreate(GameObject sender, EventArgs args)
             {
                 if (sender.Name.Equals("Orianna_Base_Q_yomu_ring_green.troy", StringComparison.OrdinalIgnoreCase))
                 {
+                    Hero = null;
                     _positon = sender.Position;
                     Status = BallStatus.Fixed;
                     IsMoving = false;

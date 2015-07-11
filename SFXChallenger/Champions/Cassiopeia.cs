@@ -317,8 +317,7 @@ namespace SFXChallenger.Champions
                                 });
                         if (pred.Hitchance >= R.GetHitChance("combo"))
                         {
-                            R.From = flashPos;
-                            R.RangeCheckFrom = flashPos;
+                            R.UpdateSourcePosition(flashPos, flashPos);
                             if (GameObjects.EnemyHeroes.Count(x => R.WillHit(x, pred.CastPosition)) >= min)
                             {
                                 R.Cast(
@@ -338,8 +337,6 @@ namespace SFXChallenger.Champions
                                         Player.Position.Extend(
                                             pred.CastPosition, -(Player.Position.Distance(pred.CastPosition) * 2)), true);
                                     Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
-                                    R.UpdateSourcePosition();
-                                    return;
                                 }
                             }
                             R.UpdateSourcePosition();
