@@ -98,6 +98,10 @@
 	<!-- END: Hitchance -->
 
 	<!-- START: SummonerManager -->
+	<entry key="F_IM">Initiator</entry>
+	<!-- END: SummonerManager -->
+
+	<!-- START: SummonerManager -->
 	<entry key="F_MS">Summoners</entry>
 	<entry key="MS_UseIgnite">Use Ignite</entry>
 	<entry key="MS_UseSmite">Use Smite</entry>

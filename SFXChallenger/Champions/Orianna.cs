@@ -61,6 +61,7 @@ namespace SFXChallenger.Champions
             Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
             InitiatorManager.OnAllyInitiator += OnAllyInitiator;
             Spellbook.OnCastSpell += OnSpellbookCastSpell;
+            Ball.OnPositionChange += OnBallPositionChange;
         }
 
         protected override void OnUnload()
@@ -148,14 +149,14 @@ namespace SFXChallenger.Champions
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
-            var initiatorMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Initiator"), Menu.Name + ".initiator"));
+            var initiatorMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("F_IM"), Menu.Name + ".initiator"));
             InitiatorManager.AddToMenu(
                 initiatorMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Whitelist"), initiatorMenu.Name + ".whitelist")));
             initiatorMenu.AddItem(new MenuItem(initiatorMenu.Name + ".use-e", Global.Lang.Get("G_UseE")).SetValue(true));
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
             miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".block-r", Global.Lang.Get("G_BLockMissing") + " R").SetValue(true));
+                new MenuItem(miscMenu.Name + ".block-r", Global.Lang.Get("G_BlockMissing") + " R").SetValue(true));
 
             DrawingManager.Add("R " + Global.Lang.Get("G_Flash"), R.Range + SummonerManager.Flash.Range);
             DrawingManager.Add("Combo Damage", new Circle(true, DamageIndicator.DrawingColor)).ValueChanged +=
@@ -175,12 +176,10 @@ namespace SFXChallenger.Champions
             {
                 if (Ball.IsMoving || Menu.Item(Menu.Name + ".miscellaneous.block-r").GetValue<bool>())
                 {
-                    R.UpdateSourcePosition(Ball.Position, Ball.Position);
                     args.Process =
                         GameObjects.EnemyHeroes.Where(e => e.Distance(Ball.Position) < R.Range * 3)
                             .Select(target => R.GetPrediction(target))
                             .Any(pred => pred.Hitchance >= HitChance.Medium);
-                    R.UpdateSourcePosition();
                 }
             }
         }
@@ -200,6 +199,14 @@ namespace SFXChallenger.Champions
                         (e.Position.Distance(args.End) < 600 || e.Position.Distance(args.Start) < args.Range + 300)))
             {
                 E.CastOnUnit(args.Hero);
+            }
+        }
+
+        private void OnBallPositionChange(object sender, EventArgs e)
+        {
+            foreach (var spell in Spells)
+            {
+                spell.UpdateSourcePosition(Ball.Position, Ball.Position);
             }
         }
 
@@ -271,7 +278,7 @@ namespace SFXChallenger.Champions
                             R.UpdateSourcePosition(flashPos, flashPos);
                             if (GameObjects.EnemyHeroes.Count(x => R.WillHit(x, pred.CastPosition)) >= min)
                             {
-                                R.Cast();
+                                R.Cast(Player.Position);
                                 Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
                             }
                             else if (Menu.Item(Menu.Name + ".ultimate.flash.1v1").GetValue<bool>())
@@ -282,11 +289,11 @@ namespace SFXChallenger.Champions
                                     Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true);
                                 if (cDmg - 20 >= target.Health)
                                 {
-                                    R.Cast();
+                                    R.Cast(Player.Position);
                                     Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
                                 }
                             }
-                            R.UpdateSourcePosition();
+                            R.UpdateSourcePosition(Ball.Position, Ball.Position);
                         }
                     }
                 }
@@ -377,7 +384,7 @@ namespace SFXChallenger.Champions
                         : Prediction.GetPrediction(Ball.Hero, R.Delay).UnitPosition;
                     if (pos.Distance(sender.Position) <= R.Width)
                     {
-                        R.Cast();
+                        R.Cast(Player.Position);
                     }
                 }
             }
@@ -518,7 +525,6 @@ namespace SFXChallenger.Champions
                 }
                 var chance = HitChance.Low;
                 var hits = 0;
-                R.UpdateSourcePosition(Ball.Position, Ball.Position);
                 foreach (var target in GameObjects.EnemyHeroes.Where(e => e.Distance(Ball.Position) < R.Range * 3))
                 {
                     var pred = R.GetPrediction(target);
@@ -533,9 +539,8 @@ namespace SFXChallenger.Champions
                 }
                 if (hits >= min && chance >= hitChance)
                 {
-                    R.Cast();
+                    R.Cast(Player.Position);
                 }
-                R.UpdateSourcePosition();
             }
             catch (Exception ex)
             {
@@ -552,13 +557,11 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
-                Q.UpdateSourcePosition(Ball.Position, Ball.Position);
                 var pos = GetBestQLocation(target, hitChance);
                 if (!pos.Equals(Vector3.Zero))
                 {
                     Q.Cast(pos);
                 }
-                Q.UpdateSourcePosition();
             }
             catch (Exception ex)
             {
@@ -574,15 +577,13 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
-                W.UpdateSourcePosition(Ball.Position, Ball.Position);
                 if (
                     GameObjects.EnemyHeroes.Where(e => e.Distance(Ball.Position) < W.Width * 3)
                         .Select(enemy => W.GetPrediction(enemy))
                         .Any(pred => pred.Hitchance >= hitChance))
                 {
-                    W.Cast();
+                    W.Cast(Player.Position);
                 }
-                W.UpdateSourcePosition();
             }
             catch (Exception ex)
             {
@@ -601,7 +602,6 @@ namespace SFXChallenger.Champions
                 }
                 Obj_AI_Hero hero = null;
                 var totalHits = 0;
-                E.UpdateSourcePosition(Ball.Position, Ball.Position);
                 foreach (var ally in
                     GameObjects.AllyHeroes.Where(
                         a => (Ball.Hero == null || Ball.Hero.NetworkId != a.NetworkId) && E.IsInRange(a.Position)))
@@ -611,19 +611,18 @@ namespace SFXChallenger.Champions
                     if (allyPred.UnitPosition.Distance(Player.Position) < _maxBallDistance)
                     {
                         R.UpdateSourcePosition(allyPred.UnitPosition);
-                        cHits +=
+                        cHits =
                             GameObjects.EnemyHeroes.Where(e => e.Position.Distance(allyPred.UnitPosition) < R.Width * 3)
                                 .Select(enemy => E.GetPrediction(enemy))
-                                .Count(enemyPred => enemyPred.UnitPosition.Distance(Ball.Position) < (R.Width - 50));
-                        R.UpdateSourcePosition(allyPred.UnitPosition);
+                                .Count(enemyPred => R.IsInRange(enemyPred.UnitPosition));
                     }
                     if (cHits > totalHits || cHits == totalHits)
                     {
-                        totalHits++;
+                        totalHits = cHits;
                         hero = ally;
                     }
                 }
-                E.UpdateSourcePosition();
+                R.UpdateSourcePosition(Ball.Position, Ball.Position);
                 hits = totalHits;
                 return hero;
             }
@@ -713,7 +712,6 @@ namespace SFXChallenger.Champions
                 }
                 Obj_AI_Hero hero = null;
                 var totalHits = 0;
-                E.UpdateSourcePosition(Ball.Position, Ball.Position);
                 foreach (var ally in
                     GameObjects.AllyHeroes.Where(
                         a => (Ball.Hero == null || Ball.Hero.NetworkId != a.NetworkId) && E.IsInRange(a.Position)))
@@ -723,23 +721,22 @@ namespace SFXChallenger.Champions
                     if (allyPred.UnitPosition.Distance(Player.Position) < _maxBallDistance)
                     {
                         W.UpdateSourcePosition(allyPred.UnitPosition);
-                        cHits +=
+                        cHits =
                             GameObjects.EnemyHeroes.Where(e => e.Position.Distance(allyPred.UnitPosition) < W.Width * 3)
                                 .Select(enemy => E.GetPrediction(enemy))
                                 .Count(enemyPred => W.IsInRange(enemyPred.UnitPosition));
-                        W.UpdateSourcePosition(allyPred.UnitPosition);
                     }
                     if (cHits > totalHits || cHits == totalHits)
                     {
-                        totalHits++;
+                        totalHits = cHits;
                         hero = ally;
                     }
                 }
-                E.UpdateSourcePosition();
                 if (totalHits > 0)
                 {
                     E.CastOnUnit(hero);
                 }
+                W.UpdateSourcePosition(Ball.Position, Ball.Position);
             }
             catch (Exception ex)
             {
@@ -758,7 +755,6 @@ namespace SFXChallenger.Champions
                 }
                 Obj_AI_Hero hero = null;
                 var totalHits = 0;
-                E.UpdateSourcePosition(Ball.Position, Ball.Position);
                 foreach (var ally in
                     GameObjects.AllyHeroes.Where(
                         a => (Ball.Hero == null || Ball.Hero.NetworkId != a.NetworkId) && E.IsInRange(a.Position)))
@@ -768,23 +764,22 @@ namespace SFXChallenger.Champions
                     if (allyPred.UnitPosition.Distance(Player.Position) < _maxBallDistance)
                     {
                         R.UpdateSourcePosition(allyPred.UnitPosition);
-                        cHits +=
+                        cHits =
                             GameObjects.EnemyHeroes.Where(e => e.Position.Distance(allyPred.UnitPosition) < R.Width * 3)
                                 .Select(enemy => E.GetPrediction(enemy))
                                 .Count(enemyPred => R.IsInRange(enemyPred.UnitPosition));
-                        R.UpdateSourcePosition(allyPred.UnitPosition);
                     }
                     if (cHits > totalHits || cHits == totalHits)
                     {
-                        totalHits++;
+                        totalHits = cHits;
                         hero = ally;
                     }
                 }
-                E.UpdateSourcePosition();
                 if (totalHits >= minHits)
                 {
                     E.CastOnUnit(hero);
                 }
+                R.UpdateSourcePosition(Ball.Position, Ball.Position);
             }
             catch (Exception ex)
             {
@@ -803,7 +798,6 @@ namespace SFXChallenger.Champions
                 var chance = HitChance.Low;
                 Obj_AI_Hero hero = null;
                 var totalHits = 0;
-                E.UpdateSourcePosition(Ball.Position, Ball.Position);
                 foreach (var ally in
                     GameObjects.AllyHeroes.Where(
                         a => (Ball.Hero == null || Ball.Hero.NetworkId != a.NetworkId) && E.IsInRange(a.Position)))
@@ -828,7 +822,7 @@ namespace SFXChallenger.Champions
                     }
                     if (cHits > totalHits || cHits == totalHits && cChance > chance)
                     {
-                        totalHits++;
+                        totalHits = cHits;
                         hero = ally;
                         chance = cChance;
                     }
@@ -837,7 +831,6 @@ namespace SFXChallenger.Champions
                 {
                     E.CastOnUnit(hero);
                 }
-                E.UpdateSourcePosition();
             }
             catch (Exception ex)
             {
@@ -931,24 +924,19 @@ namespace SFXChallenger.Champions
                 return;
             }
             var minions = MinionManager.GetMinions(
-                Q.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+                Q.Range + W.Width, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
             var minHits = minions.Any(m => m.Team == GameObjectTeam.Neutral)
                 ? 1
                 : Menu.Item(Menu.Name + ".lane-clear.min").GetValue<Slider>().Value;
             if (q && w)
             {
-                var curPrediction = W.GetCircularFarmLocation(minions);
-                if (curPrediction.MinionsHit < minHits)
+                var wMinions = MinionManager.GetMinions(
+                    Ball.Position, W.Width, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+                if (wMinions.Count < minHits)
                 {
-                    W.Range = Q.Range + W.Width;
                     var prediction1 = W.GetCircularFarmLocation(minions);
-                    W.Range = W.Width;
-                    var prediction2 = Q.GetLineFarmLocation(minions);
-
-                    Q.UpdateSourcePosition(Ball.Position, Ball.Position);
+                    var prediction2 = Q.GetCircularFarmLocation(minions);
                     var qCount = minions.Count(minion => Q.WillHit(minion, prediction1.Position.To3D()));
-                    Q.UpdateSourcePosition();
-
 
                     if (qCount > minHits && prediction1.MinionsHit >= minHits &&
                         qCount + prediction1.MinionsHit > prediction2.MinionsHit)
@@ -965,12 +953,12 @@ namespace SFXChallenger.Champions
                 }
                 else
                 {
-                    W.Cast();
+                    W.Cast(Player.Position);
                 }
             }
             else if (q)
             {
-                var prediction = Q.GetLineFarmLocation(minions);
+                var prediction = Q.GetCircularFarmLocation(minions);
                 if (prediction.MinionsHit >= minHits)
                 {
                     Q.Cast(prediction.Position);
@@ -978,9 +966,10 @@ namespace SFXChallenger.Champions
             }
             else
             {
+                Console.WriteLine(minions.Count(m => W.IsInRange(m)));
                 if (minions.Count(m => W.IsInRange(m)) >= minHits)
                 {
-                    W.Cast();
+                    W.Cast(Player.Position);
                 }
             }
         }
@@ -993,7 +982,7 @@ namespace SFXChallenger.Champions
             }
             if (Menu.Item(Menu.Name + ".flee.w").GetValue<bool>() && Ball.Status == BallStatus.Me && W.IsReady())
             {
-                W.Cast();
+                W.Cast(Player.Position);
             }
             if (Menu.Item(Menu.Name + ".flee.e").GetValue<bool>() && E.IsReady())
             {
@@ -1021,27 +1010,9 @@ namespace SFXChallenger.Champions
                 Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
                 Core.OnPreUpdate += OnCorePreUpdate;
 
-                var ball =
-                    GameObjects.AllGameObjects.FirstOrDefault(
-                        s =>
-                            s.IsValid && !string.IsNullOrEmpty(s.Name) &&
-                            s.Name.Equals("Orianna_Base_Q_yomu_ring_green.troy", StringComparison.OrdinalIgnoreCase));
-                if (ball != null)
+                foreach (var obj in GameObjects.AllGameObjects)
                 {
-                    _positon = ball.Position;
-                    Status = BallStatus.Fixed;
-                    return;
-                }
-                foreach (var hero in from hero in GameObjects.AllyHeroes
-                    from buff in hero.Buffs
-                    where
-                        buff.Name.Equals(
-                            "OrianaGhost" + (hero.IsMe ? "Self" : string.Empty), StringComparison.OrdinalIgnoreCase)
-                    select hero)
-                {
-                    Hero = hero;
-                    Status = Hero.IsMe ? BallStatus.Me : BallStatus.Ally;
-                    return;
+                    OnGameObjectCreate(obj, null);
                 }
             }
 
@@ -1054,23 +1025,34 @@ namespace SFXChallenger.Champions
             }
 
             public static bool IsMoving { get; private set; }
+            public static event EventHandler OnPositionChange;
 
             private static void OnCorePreUpdate(EventArgs args)
             {
                 if (ObjectManager.Player.HasBuff("OrianaGhostSelf"))
                 {
+                    var changed = !Position.Equals(ObjectManager.Player.Position);
                     Status = BallStatus.Me;
                     Hero = ObjectManager.Player;
                     IsMoving = false;
+                    if (changed)
+                    {
+                        OnPositionChange.RaiseEvent(null, null);
+                    }
                     return;
                 }
                 foreach (var hero in
                     GameObjects.AllyHeroes.Where(x => x.IsAlly && !x.IsDead && !x.IsMe)
                         .Where(hero => hero.HasBuff("OrianaGhost")))
                 {
+                    var changed = !Position.Equals(hero.Position);
                     Status = BallStatus.Ally;
                     Hero = hero;
                     IsMoving = false;
+                    if (changed)
+                    {
+                        OnPositionChange.RaiseEvent(null, null);
+                    }
                     return;
                 }
             }
@@ -1093,10 +1075,16 @@ namespace SFXChallenger.Champions
                 if (sender.IsValid && !string.IsNullOrEmpty(sender.Name) &&
                     sender.Name.Equals("Orianna_Base_Q_yomu_ring_green.troy", StringComparison.OrdinalIgnoreCase))
                 {
+                    var changed = !Position.Equals(sender.Position);
                     Hero = null;
                     _positon = sender.Position;
                     Status = BallStatus.Fixed;
                     IsMoving = false;
+                    OnPositionChange.RaiseEvent(null, null);
+                    if (changed)
+                    {
+                        OnPositionChange.RaiseEvent(null, null);
+                    }
                 }
             }
         }
