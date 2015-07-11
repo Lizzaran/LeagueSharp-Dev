@@ -36,7 +36,6 @@ using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
 using SharpDX;
-using Color = System.Drawing.Color;
 using MinionManager = SFXLibrary.MinionManager;
 using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
 using MinionTeam = SFXLibrary.MinionTeam;
@@ -62,8 +61,6 @@ namespace SFXChallenger.Champions
             Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
             InitiatorManager.OnAllyInitiator += OnAllyInitiator;
             Spellbook.OnCastSpell += OnSpellbookCastSpell;
-
-            Drawing.OnDraw += delegate { Render.Circle.DrawCircle(Ball.Position, W.Width, Color.BlueViolet); };
         }
 
         protected override void OnUnload()
@@ -1061,10 +1058,8 @@ namespace SFXChallenger.Champions
                     IsMoving = false;
                     return;
                 }
-                foreach (
-                    var hero in
-                        GameObjects.AllyHeroes.Where(x => x.IsAlly && !x.IsMe)
-                            .Where(hero => hero.HasBuff("OrianaGhost")))
+                foreach (var hero in
+                    GameObjects.AllyHeroes.Where(x => x.IsAlly && !x.IsMe).Where(hero => hero.HasBuff("OrianaGhost")))
                 {
                     Status = BallStatus.Ally;
                     Hero = hero;
