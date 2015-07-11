@@ -32,12 +32,15 @@ namespace SFXChallenger.Events
 {
     public class InitiatorArgs : EventArgs
     {
-        public InitiatorArgs(Obj_AI_Hero hero, Vector3 start, Vector3 end)
+        public InitiatorArgs(Obj_AI_Hero hero, Vector3 start, Vector3 end, float range)
         {
             Hero = hero;
             Start = start;
             End = end;
+            Range = range;
         }
+
+        public float Range { get; set; }
 
         public Obj_AI_Hero Hero { get; private set; }
         public Vector3 Start { get; private set; }

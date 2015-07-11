@@ -187,13 +187,17 @@ namespace SFXChallenger.Champions
 
         private void OnAllyInitiator(object sender, InitiatorArgs args)
         {
-            if (!Menu.Item(Menu.Name + ".initiator.use-r").GetValue<bool>() || Ball.IsMoving || !E.IsReady())
+            if (!Menu.Item(Menu.Name + ".initiator.use-e").GetValue<bool>() || Ball.IsMoving || !E.IsReady() ||
+                Ball.Hero.NetworkId.Equals(args.Hero.NetworkId))
             {
                 return;
             }
             if (args.Start.Distance(Player.Position) <= E.Range &&
                 args.End.Distance(Player.Position) <= _maxBallDistance &&
-                GameObjects.EnemyHeroes.Any(e => !e.IsDead && e.Position.Distance(args.End) < 1000))
+                GameObjects.EnemyHeroes.Any(
+                    e =>
+                        !e.IsDead &&
+                        (e.Position.Distance(args.End) < 600 || e.Position.Distance(args.Start) < args.Range + 300)))
             {
                 E.CastOnUnit(args.Hero);
             }
@@ -1019,7 +1023,9 @@ namespace SFXChallenger.Champions
 
                 var ball =
                     GameObjects.AllGameObjects.FirstOrDefault(
-                        s => s.Name.Equals("Orianna_Base_Q_yomu_ring_green.troy", StringComparison.OrdinalIgnoreCase));
+                        s =>
+                            s.IsValid && !string.IsNullOrEmpty(s.Name) &&
+                            s.Name.Equals("Orianna_Base_Q_yomu_ring_green.troy", StringComparison.OrdinalIgnoreCase));
                 if (ball != null)
                 {
                     _positon = ball.Position;
@@ -1059,7 +1065,8 @@ namespace SFXChallenger.Champions
                     return;
                 }
                 foreach (var hero in
-                    GameObjects.AllyHeroes.Where(x => x.IsAlly && !x.IsMe).Where(hero => hero.HasBuff("OrianaGhost")))
+                    GameObjects.AllyHeroes.Where(x => x.IsAlly && !x.IsDead && !x.IsMe)
+                        .Where(hero => hero.HasBuff("OrianaGhost")))
                 {
                     Status = BallStatus.Ally;
                     Hero = hero;
@@ -1083,7 +1090,8 @@ namespace SFXChallenger.Champions
 
             private static void OnGameObjectCreate(GameObject sender, EventArgs args)
             {
-                if (sender.Name.Equals("Orianna_Base_Q_yomu_ring_green.troy", StringComparison.OrdinalIgnoreCase))
+                if (sender.IsValid && !string.IsNullOrEmpty(sender.Name) &&
+                    sender.Name.Equals("Orianna_Base_Q_yomu_ring_green.troy", StringComparison.OrdinalIgnoreCase))
                 {
                     Hero = null;
                     _positon = sender.Position;

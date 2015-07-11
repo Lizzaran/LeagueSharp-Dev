@@ -92,7 +92,8 @@ namespace SFXChallenger.Managers
                     new SpellData("Volibear", SpellSlot.Q),
                     new SpellData("Warwick", SpellSlot.R),
                     new SpellData("Yasuo", SpellSlot.R),
-                    new SpellData("Zac", SpellSlot.E)
+                    new SpellData("Zac", SpellSlot.E),
+                    new SpellData("Flash", SpellSlot.Unknown, SummonerManager.Flash.Name, true)
                 };
                 Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
             }
@@ -108,24 +109,33 @@ namespace SFXChallenger.Managers
 
         private static void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            var hero = sender as Obj_AI_Hero;
-            if (hero == null || hero.IsMe)
+            try
             {
-                return;
-            }
-            var initiator =
-                Initiators.FirstOrDefault(
-                    i => i.Name.ToLower().Equals(args.SData.Name.ToLower(), StringComparison.OrdinalIgnoreCase));
-            if (initiator != null)
-            {
-                var eventArgs = new InitiatorArgs(
-                    hero, args.Start, args.Target != null ? args.Target.Position : args.End);
-                if (_menu == null ||
-                    _menu.Item(_menu.Name + "." + initiator.Hero + "." + initiator.Slot).GetValue<bool>())
+                var hero = sender as Obj_AI_Hero;
+                if (hero == null || hero.IsMe)
                 {
-                    OnInitiator.RaiseEvent(null, eventArgs);
-                    (hero.IsAlly ? OnAllyInitiator : OnEnemyInitiator).RaiseEvent(null, eventArgs);
+                    return;
                 }
+                var initiator =
+                    Initiators.FirstOrDefault(
+                        i =>
+                            !string.IsNullOrEmpty(i.Name) &&
+                            i.Name.ToLower().Equals(args.SData.Name.ToLower(), StringComparison.OrdinalIgnoreCase));
+                if (initiator != null)
+                {
+                    if (_menu == null ||
+                        _menu.Item(_menu.Name + "." + initiator.Hero + "." + initiator.Slot).GetValue<bool>())
+                    {
+                        var eventArgs = new InitiatorArgs(
+                            hero, args.Start, args.Target != null ? args.Target.Position : args.End, initiator.Range);
+                        OnInitiator.RaiseEvent(null, eventArgs);
+                        (hero.IsAlly ? OnAllyInitiator : OnEnemyInitiator).RaiseEvent(null, eventArgs);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -136,14 +146,22 @@ namespace SFXChallenger.Managers
                 _menu = menu;
 
                 foreach (var initiator in
-                    Initiators.Where(i => !string.IsNullOrEmpty(i.Name))
+                    Initiators.Where(
+                        i =>
+                            !string.IsNullOrEmpty(i.Name) &&
+                            (i.Custom ||
+                             GameObjects.Heroes.Any(
+                                 h => h.ChampionName.Equals(i.Hero, StringComparison.OrdinalIgnoreCase))))
                         .GroupBy(i => new { i.Hero, i.Slot })
                         .Select(i => i.Key))
                 {
                     menu.AddItem(
                         new MenuItem(
                             menu.Name + "." + initiator.Hero + "." + initiator.Slot,
-                            initiator.Hero + " " + initiator.Slot.ToString().ToUpper()).SetValue(true));
+                            initiator.Hero +
+                            (initiator.Slot != SpellSlot.Unknown
+                                ? " " + initiator.Slot.ToString().ToUpper()
+                                : string.Empty)).SetValue(true));
                 }
             }
             catch (Exception ex)
@@ -154,15 +172,17 @@ namespace SFXChallenger.Managers
 
         internal class SpellData
         {
-            public SpellData(string hero, SpellSlot slot, string name = null)
+            public SpellData(string hero, SpellSlot slot, string name = null, bool custom = false)
             {
                 Hero = hero;
                 Slot = slot;
+                Custom = custom;
+                Range = 500;
                 if (name != null)
                 {
                     Name = name;
                 }
-                else
+                else if (slot != SpellSlot.Unknown)
                 {
                     var champ =
                         GameObjects.Heroes.FirstOrDefault(
@@ -173,13 +193,20 @@ namespace SFXChallenger.Managers
                         if (spell != null)
                         {
                             Name = spell.Name;
+                            Range =
+                                Range =
+                                    (spell.SData.CastRange > spell.SData.CastRangeDisplayOverride + 1000
+                                        ? spell.SData.CastRangeDisplayOverride
+                                        : spell.SData.CastRange);
                         }
                     }
                 }
             }
 
+            public float Range { get; set; }
             public string Hero { get; private set; }
             public SpellSlot Slot { get; private set; }
+            public bool Custom { get; set; }
             public string Name { get; private set; }
         }
     }
