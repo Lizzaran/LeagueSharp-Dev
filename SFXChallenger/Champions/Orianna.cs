@@ -113,7 +113,7 @@ namespace SFXChallenger.Champions
             foreach (var enemy in GameObjects.EnemyHeroes)
             {
                 autoInterruptMenu.AddItem(
-                    new MenuItem(autoInterruptMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(true));
+                    new MenuItem(autoInterruptMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(false));
             }
 
             uAutoMenu.AddItem(
@@ -151,7 +151,8 @@ namespace SFXChallenger.Champions
 
             var initiatorMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("F_IM"), Menu.Name + ".initiator"));
             InitiatorManager.AddToMenu(
-                initiatorMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Whitelist"), initiatorMenu.Name + ".whitelist")));
+                initiatorMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Whitelist"), initiatorMenu.Name + ".whitelist")),
+                true, false);
             initiatorMenu.AddItem(new MenuItem(initiatorMenu.Name + ".use-e", Global.Lang.Get("G_UseE")).SetValue(true));
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
@@ -219,7 +220,7 @@ namespace SFXChallenger.Champions
             W.SetSkillshot(0.25f, 230f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E, 1095f);
-            E.SetSkillshot(0.25f, 80f, 1700f, false, SkillshotType.SkillshotLine);
+            E.SetSkillshot(0.25f, 80f, 2000f, false, SkillshotType.SkillshotLine);
 
             R = new Spell(SpellSlot.R, 375f);
             R.SetSkillshot(0.6f, 375f, float.MaxValue, false, SkillshotType.SkillshotCircle);
@@ -324,22 +325,15 @@ namespace SFXChallenger.Champions
                         {
                             if (E.IsReady())
                             {
-                                int hits;
-                                var hero = AssistedELogic(out hits);
-                                if (hero != null && hits >= 1)
-                                {
-                                    E.CastOnUnit(hero);
-                                    return;
-                                }
+                                EComboLogic(R);
                             }
-                            else if (Q.IsReady())
+                            if (Q.IsReady())
                             {
                                 int hits;
-                                var pos = AssistedQLogic(R.GetHitChance("combo"), out hits);
+                                var pos = AssistedQLogic(out hits);
                                 if (!pos.Equals(Vector3.Zero) && hits >= 1)
                                 {
                                     Q.Cast(pos);
-                                    return;
                                 }
                             }
                         }
@@ -420,7 +414,7 @@ namespace SFXChallenger.Champions
             }
             if (w && e && W.IsReady() && E.IsReady())
             {
-                EWLogic();
+                EComboLogic(W);
             }
             if (r && R.IsReady())
             {
@@ -437,12 +431,16 @@ namespace SFXChallenger.Champions
                 {
                     if (e && E.IsReady())
                     {
-                        ERLogic(Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value);
+                        EComboLogic(W);
                     }
                 }
             }
             if (q && Q.IsReady())
             {
+                if (e && E.IsReady())
+                {
+                    EQLogic(target);
+                }
                 QLogic(target, Q.GetHitChance("combo"));
             }
             if (e && E.IsReady())
@@ -598,121 +596,94 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private Obj_AI_Hero AssistedELogic(out int hits)
+        private Vector3 AssistedQLogic(out int hits)
         {
-            hits = 0;
-            try
+            var center = Vector2.Zero;
+            float radius = -1;
+            var count = 0;
+            var range = (Q.Range + R.Width) * 1.5f;
+            var input = new PredictionInput
             {
-                if (Ball.IsMoving)
+                Collision = false,
+                From = Ball.Position,
+                RangeCheckFrom = Ball.Position,
+                Delay = (Q.Delay + R.Delay) - 0.1f,
+                Range = Q.Range,
+                Speed = Q.Speed,
+                Radius = R.Width,
+                Type = R.Type
+            };
+            var points = new List<Vector2>();
+            foreach (var enemy in GameObjects.EnemyHeroes.Where(t => t.IsValidTarget(range)))
+            {
+                input.Unit = enemy;
+                var pred = Prediction.GetPrediction(input);
+                if (pred.Hitchance >= HitChance.Low)
                 {
-                    return null;
+                    points.Add(pred.UnitPosition.To2D());
                 }
-                Obj_AI_Hero hero = null;
-                var totalHits = 0;
-                foreach (var ally in
-                    GameObjects.AllyHeroes.Where(
-                        a => (Ball.Hero == null || Ball.Hero.NetworkId != a.NetworkId) && E.IsInRange(a.Position)))
-                {
-                    var allyPred = E.GetPrediction(ally);
-                    var cHits = 0;
-                    if (allyPred.Hitchance >= HitChance.Low &&
-                        allyPred.UnitPosition.Distance(Player.Position) < _maxBallDistance)
-                    {
-                        R.UpdateSourcePosition(allyPred.UnitPosition);
-                        cHits =
-                            GameObjects.EnemyHeroes.Where(e => e.Position.Distance(allyPred.UnitPosition) < R.Width * 3)
-                                .Select(enemy => E.GetPrediction(enemy))
-                                .Count(
-                                    enemyPred =>
-                                        enemyPred.Hitchance >= HitChance.Medium && R.IsInRange(enemyPred.UnitPosition));
-                    }
-                    if (cHits > totalHits || cHits == totalHits)
-                    {
-                        totalHits = cHits;
-                        hero = ally;
-                    }
-                }
-                R.UpdateSourcePosition(Ball.Position, Ball.Position);
-                hits = totalHits;
-                return hero;
             }
-            catch (Exception ex)
+            if (points.Any())
             {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return null;
-        }
-
-        private Vector3 AssistedQLogic(HitChance hitChance, out int hits)
-        {
-            hits = 0;
-            try
-            {
-                if (Ball.IsMoving)
-                {
-                    return Vector3.Zero;
-                }
-                var input = new PredictionInput
-                {
-                    Collision = false,
-                    From = Ball.Position,
-                    RangeCheckFrom = Ball.Position,
-                    Delay = Q.Delay + R.Delay,
-                    Range = Q.Range,
-                    Speed = Q.Speed,
-                    Radius = R.Width,
-                    Type = R.Type
-                };
-
-                var points = new List<Vector2>();
-                var enemies = GameObjects.EnemyHeroes.Where(h => h.IsValidTarget((Q.Range + R.Range) * 1.5f)).ToList();
-                foreach (var enemy in enemies)
-                {
-                    input.Unit = enemy;
-                    var pred = Prediction.GetPrediction(input);
-                    if (pred.Hitchance >= hitChance - 1)
-                    {
-                        points.Add(pred.UnitPosition.To2D());
-                    }
-                }
-                var possiblities =
-                    ListExtensions.ProduceEnumeration(points)
-                        .Where(p => p.Count > 0)
-                        .OrderByDescending(p => p.Count)
-                        .ToList();
-                var totalHits = 0;
-                var center = Vector2.Zero;
+                Console.WriteLine(points.Count);
+                var possiblities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 1).ToList();
                 if (possiblities.Any())
                 {
                     foreach (var possibility in possiblities)
                     {
                         var mec = MEC.GetMec(possibility);
-                        if (mec.Radius < (R.Range - 50))
+                        if (mec.Radius < R.Width && Player.Distance(mec.Center) < range)
                         {
-                            if (possibility.Count > totalHits)
+                            if (possibility.Count > count || possibility.Count == count && mec.Radius < radius)
                             {
-                                totalHits = hits;
                                 center = mec.Center;
-                                if (hits >= enemies.Count)
-                                {
-                                    break;
-                                }
+                                radius = mec.Radius;
+                                count = possibility.Count;
                             }
                         }
                     }
+                    if (!center.Equals(Vector2.Zero))
+                    {
+                        hits = count;
+                        return center.To3D();
+                    }
                 }
-                hits = totalHits;
-                return center.To3D();
+                var dTarget = GameObjects.EnemyHeroes.FirstOrDefault(t => t.IsValidTarget(range));
+                if (dTarget != null)
+                {
+                    hits = 1;
+                    return dTarget.Position;
+                }
             }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
+            hits = 0;
             return Vector3.Zero;
         }
 
         // ReSharper disable once InconsistentNaming
-        private void EWLogic()
+        private void EQLogic(Obj_AI_Hero target)
+        {
+            Obj_AI_Hero newTarget = null;
+            foreach (var hero in GameObjects.AllyHeroes.Where(x => !x.IsDead && Player.Distance(x.Position) <= E.Range))
+            {
+                if (target.Distance(Ball.Position) - target.Distance(hero.Position) > 150)
+                {
+                    if (newTarget == null)
+                    {
+                        newTarget = hero;
+                    }
+                    else if (Player.Distance(hero.Position) < Player.Distance(newTarget.Position))
+                    {
+                        newTarget = hero;
+                    }
+                }
+            }
+            if (newTarget != null)
+            {
+                E.CastOnUnit(newTarget);
+            }
+        }
+
+        private void EComboLogic(Spell spell)
         {
             try
             {
@@ -724,24 +695,13 @@ namespace SFXChallenger.Champions
                 var totalHits = 0;
                 foreach (var ally in
                     GameObjects.AllyHeroes.Where(
-                        a => (Ball.Hero == null || Ball.Hero.NetworkId != a.NetworkId) && E.IsInRange(a.Position)))
+                        a => (Ball.Hero == null || Ball.Hero.NetworkId != a.NetworkId) && a.Distance(Player) <= E.Range)
+                    )
                 {
-                    var allyPred = E.GetPrediction(ally);
-                    var cHits = 0;
-                    if (allyPred.Hitchance >= HitChance.Low &&
-                        allyPred.UnitPosition.Distance(Player.Position) < _maxBallDistance)
+                    var hits = GameObjects.EnemyHeroes.Count(e => e.Distance(ally) < spell.Range);
+                    if (hits > totalHits)
                     {
-                        W.UpdateSourcePosition(allyPred.UnitPosition);
-                        cHits =
-                            GameObjects.EnemyHeroes.Where(e => e.Position.Distance(allyPred.UnitPosition) < W.Width * 3)
-                                .Select(enemy => E.GetPrediction(enemy))
-                                .Count(
-                                    enemyPred =>
-                                        enemyPred.Hitchance >= HitChance.Medium && W.IsInRange(enemyPred.UnitPosition));
-                    }
-                    if (cHits > totalHits || cHits == totalHits)
-                    {
-                        totalHits = cHits;
+                        totalHits = hits;
                         hero = ally;
                     }
                 }
@@ -749,53 +709,6 @@ namespace SFXChallenger.Champions
                 {
                     E.CastOnUnit(hero);
                 }
-                W.UpdateSourcePosition(Ball.Position, Ball.Position);
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        // ReSharper disable once InconsistentNaming
-        private void ERLogic(int minHits)
-        {
-            try
-            {
-                if (Ball.IsMoving)
-                {
-                    return;
-                }
-                Obj_AI_Hero hero = null;
-                var totalHits = 0;
-                foreach (var ally in
-                    GameObjects.AllyHeroes.Where(
-                        a => (Ball.Hero == null || Ball.Hero.NetworkId != a.NetworkId) && E.IsInRange(a.Position)))
-                {
-                    var allyPred = E.GetPrediction(ally);
-                    var cHits = 0;
-                    if (allyPred.Hitchance >= HitChance.Low &&
-                        allyPred.UnitPosition.Distance(Player.Position) < _maxBallDistance)
-                    {
-                        R.UpdateSourcePosition(allyPred.UnitPosition);
-                        cHits =
-                            GameObjects.EnemyHeroes.Where(e => e.Position.Distance(allyPred.UnitPosition) < R.Width * 3)
-                                .Select(enemy => E.GetPrediction(enemy))
-                                .Count(
-                                    enemyPred =>
-                                        enemyPred.Hitchance >= HitChance.Medium && R.IsInRange(enemyPred.UnitPosition));
-                    }
-                    if (cHits > totalHits || cHits == totalHits)
-                    {
-                        totalHits = cHits;
-                        hero = ally;
-                    }
-                }
-                if (totalHits >= minHits)
-                {
-                    E.CastOnUnit(hero);
-                }
-                R.UpdateSourcePosition(Ball.Position, Ball.Position);
             }
             catch (Exception ex)
             {
@@ -880,10 +793,14 @@ namespace SFXChallenger.Champions
                 }
                 if (w && e && W.IsReady() && E.IsReady())
                 {
-                    EWLogic();
+                    EComboLogic(W);
                 }
                 if (q && Q.IsReady())
                 {
+                    if (e && E.IsReady())
+                    {
+                        EQLogic(target);
+                    }
                     QLogic(target, Q.GetHitChance("harass"));
                 }
             }
@@ -1046,7 +963,7 @@ namespace SFXChallenger.Champions
                 {
                     var tmp = Position;
                     _pos = value;
-                    if (!_pos.Equals(tmp))
+                    if (_pos != null && !_pos.Equals(tmp))
                     {
                         OnPositionChange.RaiseEvent(null, null);
                     }
@@ -1060,7 +977,7 @@ namespace SFXChallenger.Champions
                 {
                     var tmp = Position;
                     _hero = value;
-                    if (!_hero.Position.Equals(tmp))
+                    if (_hero != null && !_hero.Position.Equals(tmp))
                     {
                         OnPositionChange.RaiseEvent(null, null);
                     }

@@ -127,7 +127,7 @@ namespace SFXChallenger.Champions
             foreach (var enemy in GameObjects.EnemyHeroes)
             {
                 autoInterruptMenu.AddItem(
-                    new MenuItem(autoInterruptMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(true));
+                    new MenuItem(autoInterruptMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(false));
             }
 
             uAutoMenu.AddItem(
@@ -313,6 +313,11 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Flee)
+                {
+                    args.Process = false;
+                    return;
+                }
                 if (Player.HasBuff("viktorpowertransferreturn"))
                 {
                     if (args.Target.Type != GameObjectType.obj_AI_Hero)

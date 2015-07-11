@@ -146,7 +146,7 @@ namespace SFXChallenger.Champions
             foreach (var enemy in GameObjects.EnemyHeroes)
             {
                 autoInterruptMenu.AddItem(
-                    new MenuItem(autoInterruptMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(true));
+                    new MenuItem(autoInterruptMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(false));
             }
 
             uAutoMenu.AddItem(

@@ -75,6 +75,7 @@ namespace SFXChallenger.Managers
                     new SpellData("Nocturne", SpellSlot.R),
                     new SpellData("Olaf", SpellSlot.R),
                     new SpellData("Poppy", SpellSlot.E),
+                    new SpellData("Rammus", SpellSlot.Q),
                     new SpellData("RekSai", SpellSlot.E, "RekSaiEBurrowed"),
                     new SpellData("Renekton", SpellSlot.E),
                     new SpellData("Rengar", SpellSlot.R),
@@ -139,7 +140,7 @@ namespace SFXChallenger.Managers
             }
         }
 
-        public static void AddToMenu(Menu menu)
+        public static void AddToMenu(Menu menu, bool ally, bool enemy)
         {
             try
             {
@@ -151,7 +152,9 @@ namespace SFXChallenger.Managers
                             !string.IsNullOrEmpty(i.Name) &&
                             (i.Custom ||
                              GameObjects.Heroes.Any(
-                                 h => h.ChampionName.Equals(i.Hero, StringComparison.OrdinalIgnoreCase))))
+                                 h =>
+                                     (ally && h.IsAlly || enemy && h.IsEnemy) &&
+                                     h.ChampionName.Equals(i.Hero, StringComparison.OrdinalIgnoreCase))))
                         .GroupBy(i => new { i.Hero, i.Slot })
                         .Select(i => i.Key))
                 {
