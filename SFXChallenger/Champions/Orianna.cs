@@ -77,7 +77,7 @@ namespace SFXChallenger.Champions
             var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), Menu.Name + ".combo"));
             HitchanceManager.AddToMenu(
                 comboMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), comboMenu.Name + ".hitchance")), "combo",
-                new Dictionary<string, int> { { "Q", 2 }, { "W", 1 }, { "E", 2 }, { "R", 2 } });
+                new Dictionary<string, int> { { "Q", 2 }, { "E", 2 }, { "R", 2 } });
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
@@ -85,7 +85,7 @@ namespace SFXChallenger.Champions
             var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Harass"), Menu.Name + ".harass"));
             HitchanceManager.AddToMenu(
                 harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
-                new Dictionary<string, int> { { "Q", 2 }, { "W", 1 }, { "E", 2 } });
+                new Dictionary<string, int> { { "Q", 2 }, { "E", 2 } });
             ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
@@ -214,16 +214,16 @@ namespace SFXChallenger.Champions
         protected override void SetupSpells()
         {
             Q = new Spell(SpellSlot.Q, 825f);
-            Q.SetSkillshot(0f, 130f, 1325f, false, SkillshotType.SkillshotCircle);
+            Q.SetSkillshot(0.125f, 110f, 1300f, false, SkillshotType.SkillshotLine);
 
-            W = new Spell(SpellSlot.W, 230f);
-            W.SetSkillshot(0.25f, 230f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            W = new Spell(SpellSlot.W, 240f);
+            W.SetSkillshot(0.25f, 240f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E, 1095f);
-            E.SetSkillshot(0.25f, 80f, 2000f, false, SkillshotType.SkillshotLine);
+            E.SetSkillshot(0.25f, 100f, 1800f, false, SkillshotType.SkillshotLine);
 
-            R = new Spell(SpellSlot.R, 375f);
-            R.SetSkillshot(0.6f, 375f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            R = new Spell(SpellSlot.R, 370f);
+            R.SetSkillshot(0.6f, 370f, float.MaxValue, false, SkillshotType.SkillshotCircle);
         }
 
         private void OnCorePostUpdate(EventArgs args)
@@ -410,7 +410,7 @@ namespace SFXChallenger.Champions
 
             if (w && W.IsReady())
             {
-                WLogic(W.GetHitChance("combo"));
+                WLogic();
             }
             if (w && e && W.IsReady() && E.IsReady())
             {
@@ -567,6 +567,14 @@ namespace SFXChallenger.Champions
                 {
                     Q.Cast(pos);
                 }
+                else
+                {
+                    var pred = Q.GetPrediction(target);
+                    if (pred.Hitchance >= hitChance)
+                    {
+                        Q.Cast(pred.CastPosition);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -574,7 +582,7 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private void WLogic(HitChance hitChance)
+        private void WLogic()
         {
             try
             {
@@ -582,10 +590,7 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
-                if (
-                    GameObjects.EnemyHeroes.Where(e => e.Distance(Ball.Position) < W.Width * 3)
-                        .Select(enemy => W.GetPrediction(enemy))
-                        .Any(pred => pred.Hitchance >= hitChance))
+                if (GameObjects.EnemyHeroes.Any(e => e.Distance(Ball.Position) < W.Width))
                 {
                     W.Cast(Player.Position);
                 }
@@ -662,24 +667,28 @@ namespace SFXChallenger.Champions
         // ReSharper disable once InconsistentNaming
         private void EQLogic(Obj_AI_Hero target)
         {
-            Obj_AI_Hero newTarget = null;
-            foreach (var hero in GameObjects.AllyHeroes.Where(x => !x.IsDead && Player.Distance(x.Position) <= E.Range))
+            var qPrediction = Q.GetPrediction(target);
+            if (qPrediction.Hitchance < HitChance.High)
             {
-                if (target.Distance(Ball.Position) - target.Distance(hero.Position) > 150)
+                return;
+            }
+            var directTravelTime = Ball.Position.Distance(qPrediction.CastPosition) / Q.Speed;
+            var bestEqTravelTime = float.MaxValue;
+            Obj_AI_Hero eqTarget = null;
+            foreach (var ally in HeroManager.Allies.Where(h => h.IsValidTarget(E.Range, false)))
+            {
+                var t = Ball.Position.Distance(ally.ServerPosition) / E.Speed +
+                        ally.Distance(qPrediction.CastPosition) / Q.Speed;
+                if (t < bestEqTravelTime)
                 {
-                    if (newTarget == null)
-                    {
-                        newTarget = hero;
-                    }
-                    else if (Player.Distance(hero.Position) < Player.Distance(newTarget.Position))
-                    {
-                        newTarget = hero;
-                    }
+                    eqTarget = ally;
+                    bestEqTravelTime = t;
                 }
             }
-            if (newTarget != null)
+            if (eqTarget != null && bestEqTravelTime < directTravelTime * 1.3f &&
+                (Ball.Position.Distance(eqTarget.ServerPosition, true) > 10000))
             {
-                E.CastOnUnit(newTarget);
+                E.CastOnUnit(eqTarget, true);
             }
         }
 
@@ -789,7 +798,7 @@ namespace SFXChallenger.Champions
                     (q && e ? Math.Max(Q.Range, E.Range) : (e ? E.Range : Q.Range)), TargetSelector.DamageType.Magical);
                 if (w && W.IsReady())
                 {
-                    WLogic(W.GetHitChance("harass"));
+                    WLogic();
                 }
                 if (w && e && W.IsReady() && E.IsReady())
                 {
@@ -817,9 +826,9 @@ namespace SFXChallenger.Champions
                 return Vector3.Zero;
             }
             var pred = Q.GetPrediction(target);
-            if (pred.Hitchance >= hitChance)
+            if (pred.Hitchance < hitChance)
             {
-                return pred.CastPosition;
+                return Vector3.Zero;
             }
             var points = (from enemy in GameObjects.EnemyHeroes.Where(h => h.IsValidTarget(Q.Range + R.Range))
                 select Q.GetPrediction(enemy)
@@ -846,7 +855,7 @@ namespace SFXChallenger.Champions
                     }
                 }
             }
-            return points.Count > 0 ? points.FirstOrDefault().To3D() : Vector3.Zero;
+            return Vector3.Zero;
         }
 
         protected override void LaneClear()
@@ -905,7 +914,6 @@ namespace SFXChallenger.Champions
             }
             else
             {
-                Console.WriteLine(minions.Count(m => W.IsInRange(m)));
                 if (minions.Count(m => W.IsInRange(m)) >= minHits)
                 {
                     W.Cast(Player.Position);
