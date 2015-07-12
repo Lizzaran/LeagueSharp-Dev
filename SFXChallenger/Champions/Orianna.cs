@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Orianna.cs is part of SFXChallenger.
+ orianna.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -210,13 +210,13 @@ namespace SFXChallenger.Champions
         protected override void SetupSpells()
         {
             Q = new Spell(SpellSlot.Q, 825f);
-            Q.SetSkillshot(0.25f, 80f, 1300f, false, SkillshotType.SkillshotCircle);
+            Q.SetSkillshot(0.25f, 110f, 1350f, false, SkillshotType.SkillshotCircle);
 
             W = new Spell(SpellSlot.W, 240f);
-            W.SetSkillshot(0f, 250f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            W.SetSkillshot(0.1f, 250f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E, 1095f);
-            E.SetSkillshot(0.25f, 145f, 1700f, false, SkillshotType.SkillshotLine);
+            E.SetSkillshot(0.25f, 125f, 1700f, false, SkillshotType.SkillshotLine);
 
             R = new Spell(SpellSlot.R, 370f);
             R.SetSkillshot(0.60f, 350f, float.MaxValue, false, SkillshotType.SkillshotCircle);
@@ -490,10 +490,10 @@ namespace SFXChallenger.Champions
             {
                 if (Utility.CountEnemiesInRange((int) (Q.Range + R.Width)) > 1)
                 {
-                    var qLoc = GetBestQLocation(target);
+                    var qLoc = GetBestQLocation(target, hitChance);
                     if (qLoc.Item1 > 1)
                     {
-                        Q.Cast(qLoc.Item2, true);
+                        Q.Cast(qLoc.Item2);
                         return;
                     }
                 }
@@ -520,7 +520,7 @@ namespace SFXChallenger.Champions
                     if (eqTarget != null && bestEqTravelTime < directTravelTime * 1.3f &&
                         (Ball.Position.Distance(eqTarget.ServerPosition, true) > 10000))
                     {
-                        E.CastOnUnit(eqTarget, true);
+                        E.CastOnUnit(eqTarget);
                         return;
                     }
                 }
@@ -552,6 +552,10 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                if (Ball.IsMoving)
+                {
+                    return;
+                }
                 Obj_AI_Hero target = null;
                 var minHits = 1;
                 if (Utility.CountEnemiesInRange((int) (Q.Range + R.Width)) <= 1)
@@ -640,7 +644,7 @@ namespace SFXChallenger.Champions
         {
             var hits =
                 GameObjects.EnemyHeroes.Where(
-                    h => h.IsValidTarget() && Ball.Position.Distance(h.ServerPosition, true) < spell.Range * spell.Range)
+                    h => h.IsValidTarget() && Ball.Position.Distance(h.Position, true) < spell.Range * spell.Range)
                     .Where(
                         enemy =>
                             spell.WillHit(enemy, Ball.Position) &&
@@ -651,8 +655,17 @@ namespace SFXChallenger.Champions
 
         public Tuple<int, List<Obj_AI_Hero>> GetEHits(Vector3 to)
         {
-            var hits =
-                GameObjects.EnemyHeroes.Where(h => h.IsValidTarget(2000)).Where(enemy => E.WillHit(enemy, to)).ToList();
+            var hits = new List<Obj_AI_Hero>();
+            foreach (var enemy in GameObjects.EnemyHeroes.Where(h => h.IsValidTarget(2000)))
+            {
+                var pos = Ball.Position.Extend(enemy.Position, E.Width * 0.3f);
+                E.UpdateSourcePosition(pos, pos);
+                if (E.WillHit(enemy, to))
+                {
+                    hits.Add(enemy);
+                }
+                E.UpdateSourcePosition(Ball.Position, Ball.Position);
+            }
             return new Tuple<int, List<Obj_AI_Hero>>(hits.Count, hits);
         }
 
@@ -752,54 +765,55 @@ namespace SFXChallenger.Champions
             }
         }
 
-        public Tuple<int, Vector3> GetBestQLocation(Obj_AI_Hero target)
+        public Tuple<int, Vector3> GetBestQLocation(Obj_AI_Hero target, HitChance hitChance)
         {
-            var points = new List<Vector2>();
-            var qPrediction = Q.GetPrediction(target);
-            if (qPrediction.Hitchance < HitChance.VeryHigh)
+            var pred = Q.GetPrediction(target);
+            if (pred.Hitchance < hitChance)
             {
-                return new Tuple<int, Vector3>(1, Vector3.Zero);
+                return new Tuple<int, Vector3>(0, Vector3.Zero);
             }
-            points.Add(qPrediction.UnitPosition.To2D());
-            points.AddRange(
-                from enemy in HeroManager.Enemies.Where(h => h.IsValidTarget(Q.Range + R.Range))
+            var points = (from enemy in GameObjects.EnemyHeroes.Where(h => h.IsValidTarget((Q.Range + R.Range * 1.2f)))
                 select Q.GetPrediction(enemy)
-                into prediction
-                where prediction.Hitchance >= HitChance.High
-                select prediction.UnitPosition.To2D());
-            for (var j = 0; j < 5; j++)
+                into ePred
+                where ePred.Hitchance >= (hitChance - 1)
+                select ePred.UnitPosition.To2D()).ToList();
+            if (points.Any())
             {
-                var mecResult = MEC.GetMec(points);
-                if (mecResult.Radius < (R.Range - 75) && points.Count >= 3 && R.IsReady())
+                var possiblities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 0).ToList();
+                if (possiblities.Any())
                 {
-                    return new Tuple<int, Vector3>(3, mecResult.Center.To3D());
-                }
-                if (mecResult.Radius < (W.Range - 75) && points.Count >= 2 && W.IsReady())
-                {
-                    return new Tuple<int, Vector3>(2, mecResult.Center.To3D());
-                }
-                if (points.Count == 1)
-                {
-                    return new Tuple<int, Vector3>(1, mecResult.Center.To3D());
-                }
-                if (mecResult.Radius < Q.Width && points.Count == 2)
-                {
-                    return new Tuple<int, Vector3>(2, mecResult.Center.To3D());
-                }
-                float maxdist = -1;
-                var maxdistindex = 1;
-                for (var i = 1; i < points.Count; i++)
-                {
-                    var distance = Vector2.DistanceSquared(points[i], points[0]);
-                    if (distance > maxdist || maxdist.CompareTo(-1) == 0)
+                    var hits = 0;
+                    var radius = float.MaxValue;
+                    var pos = Vector3.Zero;
+                    var rReady = R.IsReady();
+                    var wReady = R.IsReady();
+                    foreach (var possibility in possiblities)
                     {
-                        maxdistindex = i;
-                        maxdist = distance;
+                        var check = false;
+                        var mec = MEC.GetMec(possibility);
+                        if (mec.Radius < R.Range * 0.85f && possibility.Count >= 3 && rReady)
+                        {
+                            check = true;
+                        }
+                        if (mec.Radius < W.Range * 0.9f && points.Count >= 2 && wReady)
+                        {
+                            check = true;
+                        }
+                        if (mec.Radius < Q.Width * 0.9f && points.Count >= 1)
+                        {
+                            check = true;
+                        }
+                        if (check && possibility.Count > hits || possibility.Count == hits && radius > mec.Radius)
+                        {
+                            hits = possibility.Count;
+                            radius = mec.Radius;
+                            pos = mec.Center.To3D();
+                        }
                     }
+                    return new Tuple<int, Vector3>(hits, pos);
                 }
-                points.RemoveAt(maxdistindex);
             }
-            return new Tuple<int, Vector3>(1, points[0].To3D());
+            return new Tuple<int, Vector3>(0, Vector3.Zero);
         }
 
         protected override void LaneClear()
