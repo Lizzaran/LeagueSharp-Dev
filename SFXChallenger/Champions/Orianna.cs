@@ -37,8 +37,6 @@ using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
 using SharpDX;
 using MinionManager = SFXLibrary.MinionManager;
-using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
-using MinionTeam = SFXLibrary.MinionTeam;
 using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 
@@ -96,8 +94,6 @@ namespace SFXChallenger.Champions
             ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
-            laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".min", Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
 
             var ultimateMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Ultimate"), Menu.Name + ".ultimate"));
 
@@ -399,14 +395,6 @@ namespace SFXChallenger.Champions
             {
                 WLogic(1);
             }
-            if (q && Q.IsReady())
-            {
-                QLogic(target, Q.GetHitChance("combo"), e);
-            }
-            if (e && E.IsReady())
-            {
-                ELogic();
-            }
             if (r && R.IsReady())
             {
                 if (!RLogic(Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value))
@@ -416,6 +404,14 @@ namespace SFXChallenger.Champions
                         RLogic1V1(q, w, e);
                     }
                 }
+            }
+            if (q && Q.IsReady())
+            {
+                QLogic(target, Q.GetHitChance("combo"), e);
+            }
+            if (e && E.IsReady())
+            {
+                ELogic();
             }
             if (target != null && CalcComboDamage(target, q, w, e, r) > target.Health)
             {
@@ -810,57 +806,64 @@ namespace SFXChallenger.Champions
             {
                 return;
             }
-            var q = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
-            var w = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>() && W.IsReady();
+            var q = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>();
+            var w = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>();
 
             if (!q && !w)
             {
                 return;
             }
-            var minions = MinionManager.GetMinions(
-                Q.Range + W.Width, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
-            var minHits = minions.Any(m => m.Team == GameObjectTeam.Neutral)
-                ? 1
-                : Menu.Item(Menu.Name + ".lane-clear.min").GetValue<Slider>().Value;
-            if (q && w)
-            {
-                var wMinions = MinionManager.GetMinions(
-                    Ball.Position, W.Width, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
-                if (wMinions.Count < minHits)
-                {
-                    var prediction1 = W.GetCircularFarmLocation(minions);
-                    var prediction2 = Q.GetCircularFarmLocation(minions);
-                    var qCount = minions.Count(minion => Q.WillHit(minion, prediction1.Position.To3D()));
 
-                    if (qCount > minHits && prediction1.MinionsHit >= minHits &&
-                        qCount + prediction1.MinionsHit > prediction2.MinionsHit)
+            var allMinions = MinionManager.GetMinions(ObjectManager.Player.Position, Q.Range + W.Width);
+            var rangedMinions = MinionManager.GetMinions(
+                ObjectManager.Player.Position, Q.Range + W.Width, MinionTypes.Ranged);
+
+            if (q && Q.IsReady())
+            {
+                if (w)
+                {
+                    var qLocation = Q.GetCircularFarmLocation(allMinions, W.Range);
+                    var q2Location = Q.GetCircularFarmLocation(rangedMinions, W.Range);
+                    var bestLocation = (qLocation.MinionsHit > q2Location.MinionsHit + 1) ? qLocation : q2Location;
+
+                    if (bestLocation.MinionsHit > 0)
                     {
-                        Q.Cast(prediction1.Position);
-                    }
-                    else
-                    {
-                        if (prediction2.MinionsHit >= minHits)
-                        {
-                            Q.Cast(prediction2.Position);
-                        }
+                        Q.Cast(bestLocation.Position);
+                        return;
                     }
                 }
                 else
                 {
-                    W.Cast(Player.Position);
+                    foreach (var minion in allMinions.FindAll(m => !Orbwalking.InAutoAttackRange(m)))
+                    {
+                        if (
+                            HealthPrediction.GetHealthPrediction(
+                                minion,
+                                Math.Max((int) (minion.Position.Distance(Ball.Position) / Q.Speed * 1000) - 100, 0)) <
+                            50)
+                        {
+                            Q.Cast(minion.Position);
+                            return;
+                        }
+                    }
                 }
             }
-            else if (q)
+            if (w && W.IsReady())
             {
-                var prediction = Q.GetCircularFarmLocation(minions);
-                if (prediction.MinionsHit >= minHits)
+                var n = 0;
+                var d = 0;
+                foreach (var m in allMinions)
                 {
-                    Q.Cast(prediction.Position);
+                    if (m.Distance(Ball.Position) <= W.Range)
+                    {
+                        n++;
+                        if (W.GetDamage(m) > m.Health)
+                        {
+                            d++;
+                        }
+                    }
                 }
-            }
-            else
-            {
-                if (minions.Count(m => W.IsInRange(m)) >= minHits)
+                if (n >= 3 || d >= 2)
                 {
                     W.Cast(Player.Position);
                 }

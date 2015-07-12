@@ -86,6 +86,7 @@
     <Compile Include="Champions\Graves.cs" />
     <Compile Include="Champions\Kalista.cs" />
     <Compile Include="Champions\Orianna.cs" />
+    <Compile Include="Champions\Varus.cs" />
     <Compile Include="Champions\Viktor.cs" />
     <Compile Include="Enumerations\CastType.cs" />
     <Compile Include="Enumerations\CombatFlags.cs" />

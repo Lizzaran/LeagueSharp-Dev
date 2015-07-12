@@ -352,6 +352,19 @@ namespace SFXChallenger.Managers
             }
         }
 
+        public static void Muramana(bool activate)
+        {
+            var hasBuff = ObjectManager.Player.HasBuff("Muramana");
+            if (activate && !hasBuff || !activate && hasBuff)
+            {
+                var muramana = ItemData.Muramana.GetItem();
+                if (muramana.IsOwned(ObjectManager.Player))
+                {
+                    muramana.Cast();
+                }
+            }
+        }
+
         public static void UseFleeItems()
         {
             if (_menu == null || !_menu.Item(_menu.Name + ".enabled").GetValue<bool>())

@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Graves.cs is part of SFXChallenger.
+ Varus.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
 namespace SFXChallenger.Champions
 {
-    internal class Graves : Champion
+    internal class Varus : Champion
     {
         protected override ItemFlags ItemFlags
         {
@@ -64,24 +64,25 @@ namespace SFXChallenger.Champions
             var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), Menu.Name + ".combo"));
             HitchanceManager.AddToMenu(
                 comboMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), comboMenu.Name + ".hitchance")), "combo",
-                new Dictionary<string, int> { { "Q", 2 }, { "W", 1 }, { "R", 2 } });
+                new Dictionary<string, int> { { "E", 1 }, { "R", 2 } });
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
 
             var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Harass"), Menu.Name + ".harass"));
             HitchanceManager.AddToMenu(
                 harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
-                new Dictionary<string, int> { { "Q", 2 } });
+                new Dictionary<string, int> { { "E", 2 } });
             ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
             var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LaneClear"), Menu.Name + ".lane-clear"));
             ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
             laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".q-min", "Q " + Global.Lang.Get("G_Min")).SetValue(
+                new MenuItem(laneclearMenu.Name + ".min", Global.Lang.Get("G_Min")).SetValue(
                     new Slider(3, 1, 5)));
 
             var killstealMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Killsteal"), Menu.Name + ".killsteal"));
@@ -92,23 +93,22 @@ namespace SFXChallenger.Champions
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
             miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".w-gapcloser", "W " + Global.Lang.Get("G_Gapcloser")).SetValue(false));
-            miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".e-gapcloser", "E " + Global.Lang.Get("G_Gapcloser")).SetValue(false));
         }
 
         protected override void SetupSpells()
         {
-            Q = new Spell(SpellSlot.Q, 850f);
-            Q.SetSkillshot(0.25f, 15f * (float) Math.PI / 180, 2000f, false, SkillshotType.SkillshotCone);
+            Q = new Spell(SpellSlot.Q, 925f);
+            Q.SetSkillshot(0.25f, 70f, 1650f, false, SkillshotType.SkillshotLine);
+            Q.SetCharged("VarusQ", "VarusQ", 250, 1600, 1.2f);
 
-            W = new Spell(SpellSlot.W, 900f);
-            W.SetSkillshot(0.35f, 250f, 1650f, false, SkillshotType.SkillshotCircle);
+            W = new Spell(SpellSlot.W, 0f);
 
-            E = new Spell(SpellSlot.E, 425f);
+            E = new Spell(SpellSlot.E, 925f);
+            E.SetSkillshot(0.50f, 250f, 1400f, false, SkillshotType.SkillshotCircle);
 
-            R = new Spell(SpellSlot.R, 1100f);
-            R.SetSkillshot(0.25f, 110f, 2100f, false, SkillshotType.SkillshotLine);
+            R = new Spell(SpellSlot.R, 1075f);
+            R.SetSkillshot(0.25f, 120f, 1950f, false, SkillshotType.SkillshotLine);
         }
 
         private void OnEnemyGapcloser(ActiveGapcloser args)
@@ -126,16 +126,9 @@ namespace SFXChallenger.Champions
                     endPos = args.Start.Extend(endPos, 550);
                 }
 
-                if (Menu.Item(Menu.Name + ".miscellaneous.w-gapcloser").GetValue<bool>())
+                if (Menu.Item(Menu.Name + ".miscellaneous.w-gapcloser").GetValue<bool>() && endPos.Distance(Player.Position) < W.Range)
                 {
-                    if (endPos.Distance(Player.Position) < W.Range)
-                    {
-                        W.Cast(endPos);
-                    }
-                }
-                if (Menu.Item(Menu.Name + ".miscellaneous.e-gapcloser").GetValue<bool>())
-                {
-                    E.Cast(endPos.Extend(Player.Position, E.Range));
+                    W.Cast(endPos);
                 }
             }
             catch (Exception ex)
@@ -167,42 +160,30 @@ namespace SFXChallenger.Champions
 
         protected override void Combo()
         {
-            var useQ = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady();
-            var useW = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady();
-            var useE = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
-            var useR = Menu.Item(Menu.Name + ".combo.r").GetValue<bool>() && R.IsReady();
-
-            if (useQ)
+            if (Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady())
             {
-                Casting.SkillShot(Q, Q.GetHitChance("combo"));
-            }
-            if (useW)
-            {
-                Casting.SkillShot(W, W.GetHitChance("combo"));
-            }
-            if (useE)
-            {
-                var target = TargetSelector.GetTarget(
-                    (E.Range + Player.AttackRange) * 0.9f, LeagueSharp.Common.TargetSelector.DamageType.Physical);
-                if (target != null)
+                if (!Q.IsCharging)
                 {
-                    var pos = Player.Position.Extend(target.Position, E.Range);
-                    if (!pos.UnderTurret(true))
+                    Q.StartCharging();
+                }
+                if (Q.IsCharging)
+                {
+                    var target = TargetSelector.GetTarget(Q.ChargedMaxRange, LeagueSharp.Common.TargetSelector.DamageType.Physical);
+                    var pred = Q.GetPrediction(target);
+                    var distance = Player.ServerPosition.Distance(pred.UnitPosition + 200 * (pred.UnitPosition - Player.ServerPosition).Normalized(), true);
+                    if (distance < Q.RangeSqr)
                     {
-                        E.Cast(pos);
+                        Q.Cast(pred.CastPosition);
                     }
                 }
             }
-            if (useR)
+            if (!Q.IsCharging && Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady())
             {
-                var target = TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical);
-                if (R.GetDamage(target) * 0.9f > target.Health || Orbwalking.InAutoAttackRange(target))
+                var target = TargetSelector.GetTarget(E.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical);
+                var pred = E.GetPrediction(target);
+                if (pred.Hitchance >= E.GetHitChance("combo"))
                 {
-                    var pred = R.GetPrediction(target);
-                    if (pred.Hitchance >= R.GetHitChance("combo"))
-                    {
-                        R.Cast(pred.CastPosition);
-                    }
+                    E.Cast(pred.CastPosition);
                 }
             }
         }
@@ -213,10 +194,31 @@ namespace SFXChallenger.Champions
             {
                 return;
             }
-
             if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && Q.IsReady())
             {
-                Casting.SkillShot(Q, Q.GetHitChance("harass"));
+                if (!Q.IsCharging)
+                {
+                    Q.StartCharging();
+                }
+                if (Q.IsCharging)
+                {
+                    var target = TargetSelector.GetTarget(Q.ChargedMaxRange, LeagueSharp.Common.TargetSelector.DamageType.Physical);
+                    var pred = Q.GetPrediction(target);
+                    var distance = Player.ServerPosition.Distance(pred.UnitPosition + 200 * (pred.UnitPosition - Player.ServerPosition).Normalized(), true);
+                    if (distance < Q.RangeSqr)
+                    {
+                        Q.Cast(pred.CastPosition);
+                    }
+                }
+            }
+            if (!Q.IsCharging && Menu.Item(Menu.Name + ".harass.e").GetValue<bool>() && E.IsReady())
+            {
+                var target = TargetSelector.GetTarget(E.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical);
+                var pred = E.GetPrediction(target);
+                if (pred.Hitchance >= E.GetHitChance("harass"))
+                {
+                    E.Cast(pred.CastPosition);
+                }
             }
         }
 

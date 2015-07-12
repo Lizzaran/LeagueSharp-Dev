@@ -313,13 +313,21 @@ namespace SFXChallenger.Champions
         private void OnOrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
         {
             Orbwalker.ForceTarget(null);
-            if (unit.IsMe && Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
+            if (unit.IsMe)
             {
-                var enemy = target as Obj_AI_Hero;
-                if (enemy != null)
+                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
                 {
-                    ItemManager.UseComboItems(enemy);
-                    SummonerManager.UseComboSummoners(enemy);
+                    var enemy = target as Obj_AI_Hero;
+                    if (enemy != null)
+                    {
+                        ItemManager.Muramana(true);
+                        ItemManager.UseComboItems(enemy);
+                        SummonerManager.UseComboSummoners(enemy);
+                    }
+                }
+                else
+                {
+                    ItemManager.Muramana(false);
                 }
             }
         }
