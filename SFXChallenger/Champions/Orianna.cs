@@ -37,6 +37,8 @@ using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
 using SharpDX;
 using MinionManager = SFXLibrary.MinionManager;
+using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
+using MinionTeam = SFXLibrary.MinionTeam;
 using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 
@@ -814,9 +816,23 @@ namespace SFXChallenger.Champions
                 return;
             }
 
-            var allMinions = MinionManager.GetMinions(ObjectManager.Player.Position, Q.Range + W.Width);
-            var rangedMinions = MinionManager.GetMinions(
-                ObjectManager.Player.Position, Q.Range + W.Width, MinionTypes.Ranged);
+            var mobs = MinionManager.GetMinions(
+                Player.Position, Q.Range, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth);
+            if (mobs.Count > 0)
+            {
+                var mob = mobs.First();
+                if (w && W.IsReady() && W.WillHit(mob.ServerPosition, Ball.Position))
+                {
+                    W.Cast(Player.Position);
+                }
+                else if (q && Q.IsReady())
+                {
+                    Q.Cast(mob, true);
+                }
+                return;
+            }
+            var allMinions = MinionManager.GetMinions(Player.Position, Q.Range + W.Width);
+            var rangedMinions = MinionManager.GetMinions(Player.Position, Q.Range + W.Width, MinionTypes.Ranged);
 
             if (q && Q.IsReady())
             {
