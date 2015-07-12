@@ -550,6 +550,9 @@ namespace SFXChallenger.Wrappers
                     new MenuItem("Orbwalk", "Combo").SetShared().SetValue(new KeyBind(32, KeyBindType.Press)));
 
                 _config.AddItem(
+                    new MenuItem("Orbwalk2", "Combo Alternate").SetShared().SetValue(new KeyBind(32, KeyBindType.Press)));
+
+                _config.AddItem(
                     new MenuItem("Freeze", "Lane Freeze (Toggle)").SetShared()
                         .SetValue(new KeyBind('H', KeyBindType.Toggle)));
 
@@ -587,7 +590,8 @@ namespace SFXChallenger.Wrappers
                         return _mode;
                     }
 
-                    if (_config.Item("Orbwalk").GetValue<KeyBind>().Active)
+                    if (_config.Item("Orbwalk").GetValue<KeyBind>().Active ||
+                        _config.Item("Orbwalk2").GetValue<KeyBind>().Active)
                     {
                         return OrbwalkingMode.Combo;
                     }

@@ -490,7 +490,7 @@ namespace SFXChallenger.Champions
             {
                 if (Utility.CountEnemiesInRange((int) (Q.Range + R.Width)) > 1)
                 {
-                    var qLoc = GetBestQLocation(target, hitChance);
+                    var qLoc = GetBestQLocation(target);
                     if (qLoc.Item1 > 1)
                     {
                         Q.Cast(qLoc.Item2, true);
@@ -752,11 +752,11 @@ namespace SFXChallenger.Champions
             }
         }
 
-        public Tuple<int, Vector3> GetBestQLocation(Obj_AI_Hero target, HitChance hitChance)
+        public Tuple<int, Vector3> GetBestQLocation(Obj_AI_Hero target)
         {
             var points = new List<Vector2>();
             var qPrediction = Q.GetPrediction(target);
-            if (qPrediction.Hitchance < hitChance)
+            if (qPrediction.Hitchance < HitChance.VeryHigh)
             {
                 return new Tuple<int, Vector3>(1, Vector3.Zero);
             }
