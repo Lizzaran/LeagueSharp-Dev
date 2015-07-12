@@ -995,6 +995,14 @@ namespace SFXChallenger.Champions
                 {
                     Casting.TargetSkill(near, Q);
                 }
+                else
+                {
+                    var mobs = MinionManager.GetMinions(Q.Range, MinionTypes.All, MinionTeam.NotAlly);
+                    if (mobs.Any())
+                    {
+                        Casting.TargetSkill(mobs.First(), Q);
+                    }
+                }
             }
         }
 
