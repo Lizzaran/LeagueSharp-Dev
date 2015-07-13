@@ -78,10 +78,16 @@ namespace SFXUtility.Features.Timers
                     return;
                 }
 
-                foreach (var relic in _relicObjs.Where(h => !h.Picked && h.Position.Distance(sender.Position) < 300f))
+                foreach (
+                    var relic in
+                        _relicObjs.Where(
+                            h =>
+                                !h.Picked && sender.Name.Equals(h.ObjectName, StringComparison.OrdinalIgnoreCase) &&
+                                h.Position.Distance(sender.Position) < 300f))
                 {
                     relic.Picked = true;
                     relic.NextRespawnTime = (int) Game.Time + relic.RespawnTime;
+                    return;
                 }
             }
             catch (Exception ex)
@@ -99,7 +105,12 @@ namespace SFXUtility.Features.Timers
                     return;
                 }
 
-                foreach (var relic in _relicObjs.Where(h => h.Picked && h.Position.Distance(sender.Position) < 300f))
+                foreach (
+                    var relic in
+                        _relicObjs.Where(
+                            h =>
+                                h.Picked && sender.Name.Equals(h.ObjectName, StringComparison.OrdinalIgnoreCase) &&
+                                h.Position.Distance(sender.Position) < 300f))
                 {
                     relic.Picked = false;
                 }

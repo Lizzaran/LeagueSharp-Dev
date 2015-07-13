@@ -822,7 +822,9 @@ namespace SFXChallenger.Champions
             {
                 return
                     target.Buffs.FirstOrDefault(
-                        b => b.Caster.IsMe && b.IsValidBuff() && b.DisplayName == "KalistaExpungeMarker");
+                        b =>
+                            b.Caster.IsMe && b.IsValidBuff() &&
+                            b.DisplayName.Equals("kalistaexpungemarker", StringComparison.OrdinalIgnoreCase));
             }
         }
     }

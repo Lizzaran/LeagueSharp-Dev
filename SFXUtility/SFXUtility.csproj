@@ -99,6 +99,7 @@
     <Compile Include="Classes\ImageLoader.cs" />
     <Compile Include="Classes\MDrawing.cs" />
     <Compile Include="Classes\Parent.cs" />
+    <Compile Include="Data\Altars.cs" />
     <Compile Include="Data\Items.cs" />
     <Compile Include="Data\Relics.cs" />
     <Compile Include="Data\Jungle.cs" />

@@ -63,7 +63,7 @@ namespace SFXUtility.Features.Events
         {
             try
             {
-                Menu = new Menu(Name, Name);
+                Menu = new Menu(Name, Name + ObjectManager.Player.ChampionName);
                 var levelMenu = new Menu(Global.Lang.Get("Trinket_Level"), Name + "Level");
                 levelMenu.AddItem(
                     new MenuItem(levelMenu.Name + "WardingTotem", Global.Lang.Get("Trinket_WardingTotem")).SetValue(
@@ -104,8 +104,8 @@ namespace SFXUtility.Features.Events
                 Menu.AddSubMenu(eventsMenu);
 
                 Menu.AddItem(
-                    new MenuItem(Name + "SellUpgraded", Global.Lang.Get("Trinket_SellUpgraded")).SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                    new MenuItem(Menu.Name + "SellUpgraded", Global.Lang.Get("Trinket_SellUpgraded")).SetValue(false));
+                Menu.AddItem(new MenuItem(Menu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
             }
@@ -134,7 +134,7 @@ namespace SFXUtility.Features.Events
 
                 if (ObjectManager.Player.IsDead || ObjectManager.Player.InShop())
                 {
-                    if (!Menu.Item(Name + "SellUpgraded").GetValue<bool>())
+                    if (!Menu.Item(Menu.Name + "SellUpgraded").GetValue<bool>())
                     {
                         if (ObjectManager.Player.HasItem(ItemId.Greater_Vision_Totem_Trinket) ||
                             ObjectManager.Player.HasItem(ItemId.Greater_Stealth_Totem_Trinket) ||
@@ -153,11 +153,11 @@ namespace SFXUtility.Features.Events
                     var hasRed = ObjectManager.Player.HasItem(ItemId.Sweeping_Lens_Trinket) ||
                                  ObjectManager.Player.HasItem(ItemId.Oracles_Lens_Trinket);
 
-                    if (Menu.Item(Name + "EventsEnabled").GetValue<bool>())
+                    if (Menu.Item(Menu.Name + "EventsEnabled").GetValue<bool>())
                     {
                         bool hasTrinket;
                         var trinketId = (ItemId) 0;
-                        switch (Menu.Item(Name + "EventsBuyTrinket").GetValue<StringList>().SelectedIndex)
+                        switch (Menu.Item(Menu.Name + "EventsBuyTrinket").GetValue<StringList>().SelectedIndex)
                         {
                             case 0:
                                 hasTrinket = hasYellow;
@@ -180,7 +180,7 @@ namespace SFXUtility.Features.Events
                         }
 
                         if (ObjectManager.Player.HasItem(ItemId.Sightstone) &&
-                            Menu.Item(Name + "EventsSightstone").GetValue<bool>())
+                            Menu.Item(Menu.Name + "EventsSightstone").GetValue<bool>())
                         {
                             if (!hasTrinket)
                             {
@@ -189,7 +189,7 @@ namespace SFXUtility.Features.Events
                             return;
                         }
                         if (ObjectManager.Player.HasItem(ItemId.Ruby_Sightstone) &&
-                            Menu.Item(Name + "EventsRubySightstone").GetValue<bool>())
+                            Menu.Item(Menu.Name + "EventsRubySightstone").GetValue<bool>())
                         {
                             if (!hasTrinket)
                             {
@@ -199,22 +199,22 @@ namespace SFXUtility.Features.Events
                         }
                     }
 
-                    if (Menu.Item(Name + "LevelEnabled").GetValue<bool>())
+                    if (Menu.Item(Menu.Name + "LevelEnabled").GetValue<bool>())
                     {
                         var tsList = new List<TrinketStruct>
                         {
                             new TrinketStruct(
                                 ItemId.Warding_Totem_Trinket, hasYellow,
-                                Menu.Item(Name + "LevelWardingTotemBuy").GetValue<bool>(),
-                                Menu.Item(Name + "LevelWardingTotem").GetValue<Slider>().Value),
+                                Menu.Item(Menu.Name + "LevelWardingTotemBuy").GetValue<bool>(),
+                                Menu.Item(Menu.Name + "LevelWardingTotem").GetValue<Slider>().Value),
                             new TrinketStruct(
                                 ItemId.Sweeping_Lens_Trinket, hasRed,
-                                Menu.Item(Name + "LevelSweepingLensBuy").GetValue<bool>(),
-                                Menu.Item(Name + "LevelSweepingLens").GetValue<Slider>().Value),
+                                Menu.Item(Menu.Name + "LevelSweepingLensBuy").GetValue<bool>(),
+                                Menu.Item(Menu.Name + "LevelSweepingLens").GetValue<Slider>().Value),
                             new TrinketStruct(
                                 ItemId.Scrying_Orb_Trinket, hasBlue,
-                                Menu.Item(Name + "LevelScryingOrbBuy").GetValue<bool>(),
-                                Menu.Item(Name + "LevelScryingOrb").GetValue<Slider>().Value)
+                                Menu.Item(Menu.Name + "LevelScryingOrbBuy").GetValue<bool>(),
+                                Menu.Item(Menu.Name + "LevelScryingOrb").GetValue<Slider>().Value)
                         };
                         tsList = tsList.OrderBy(ts => ts.Level).ToList();
 

@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- altar.cs is part of SFXUtility.
+ Altar.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@ using SFXLibrary.Extensions.NET;
 using SFXLibrary.Extensions.SharpDX;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
+using SFXUtility.Data;
 using SharpDX;
 using SharpDX.Direct3D9;
 
@@ -40,7 +41,7 @@ namespace SFXUtility.Features.Timers
 {
     internal class Altar : Child<Timers>
     {
-        private List<AltarObject> _altars;
+        private List<AltarObj> _altarObjs;
         private Font _mapText;
         private Font _minimapText;
         public Altar(SFXUtility sfx) : base(sfx) {}
@@ -52,8 +53,7 @@ namespace SFXUtility.Features.Timers
 
         protected override void OnEnable()
         {
-            Obj_AI_Base.OnBuffAdd += OnObjAiBaseBuffAdd;
-            Obj_AI_Base.OnBuffRemove += OnObjAiBaseBuffRemove;
+            GameObject.OnCreate += OnGameObjectCreate;
             Drawing.OnEndScene += OnDrawingEndScene;
 
             base.OnEnable();
@@ -61,37 +61,37 @@ namespace SFXUtility.Features.Timers
 
         protected override void OnDisable()
         {
-            Obj_AI_Base.OnBuffAdd -= OnObjAiBaseBuffAdd;
-            Obj_AI_Base.OnBuffRemove -= OnObjAiBaseBuffRemove;
+            GameObject.OnCreate -= OnGameObjectCreate;
             Drawing.OnEndScene -= OnDrawingEndScene;
 
             base.OnDisable();
         }
 
-        private void OnObjAiBaseBuffAdd(Obj_AI_Base sender, Obj_AI_BaseBuffAddEventArgs args)
+        private void OnGameObjectCreate(GameObject sender, EventArgs args)
         {
-            if (sender.IsValid && sender is Obj_AI_Minion &&
-                args.Buff.Name.Equals("treelinelanternlock", StringComparison.OrdinalIgnoreCase))
+            try
             {
-                var altar = _altars.FirstOrDefault(a => a.Object.NetworkId == sender.NetworkId);
-                if (altar != null)
+                if (!sender.IsValid)
                 {
-                    altar.Locked = true;
-                    altar.NextRespawnTime = (int) Game.Time + altar.RespawnTime;
+                    return;
+                }
+
+                foreach (
+                    var altar in
+                        _altarObjs.Where(
+                            h =>
+                                h.Picked &&
+                                (sender.Name.Equals(h.ObjectNameAlly, StringComparison.OrdinalIgnoreCase) ||
+                                 sender.Name.Equals(h.ObjectNameEnemy, StringComparison.OrdinalIgnoreCase))))
+                {
+                    altar.Picked = true;
+                    altar.NextRespawnTime = (int)Game.Time + altar.RespawnTime;
+                    return;
                 }
             }
-        }
-
-        private void OnObjAiBaseBuffRemove(Obj_AI_Base sender, Obj_AI_BaseBuffRemoveEventArgs args)
-        {
-            if (sender.IsValid && sender is Obj_AI_Minion &&
-                args.Buff.Name.Equals("treelinelanternlock", StringComparison.OrdinalIgnoreCase))
+            catch (Exception ex)
             {
-                var altar = _altars.FirstOrDefault(a => a.Object.NetworkId == sender.NetworkId);
-                if (altar != null)
-                {
-                    altar.Locked = false;
-                }
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -115,19 +115,25 @@ namespace SFXUtility.Features.Timers
                     return;
                 }
 
-                foreach (var altar in _altars.Where(i => i != null && i.Locked && i.NextRespawnTime > Game.Time))
+                foreach (var altar in _altarObjs.Where(h => h.Picked))
                 {
-                    if (mapEnabled && altar.Object.Position.IsOnScreen())
+                    if (altar.NextRespawnTime - Game.Time <= 0)
+                    {
+                        altar.Picked = false;
+                        continue;
+                    }
+
+                    if (mapEnabled && altar.Position.IsOnScreen())
                     {
                         _mapText.DrawTextCentered(
                             (altar.NextRespawnTime - (int) Game.Time).FormatTime(mapTotalSeconds),
-                            Drawing.WorldToScreen(altar.Object.Position), Color.White);
+                            Drawing.WorldToScreen(altar.Position), Color.White, true);
                     }
                     if (minimapEnabled)
                     {
                         _minimapText.DrawTextCentered(
                             (altar.NextRespawnTime - (int) Game.Time).FormatTime(minimapTotalSeconds),
-                            Drawing.WorldToMinimap(altar.Object.Position), Color.White);
+                            altar.MinimapPosition, Color.White);
                     }
                 }
             }
@@ -181,23 +187,16 @@ namespace SFXUtility.Features.Timers
 
         protected override void OnInitialize()
         {
-            _altars = new List<AltarObject>();
+            _altarObjs = new List<AltarObj>();
 
-            if (Utility.Map.GetMap().Type != Utility.Map.MapType.TwistedTreeline)
-            {
-                OnUnload(null, new UnloadEventArgs(true));
-                return;
-            }
+            _altarObjs.AddRange(
+                Altars.Objects.Where(c => c.MapType == Utility.Map.GetMap().Type)
+                    .Select(
+                        c =>
+                            new AltarObj(
+                                c.SpawnTime, c.RespawnTime, c.Position, c.ObjectNameAlly, c.ObjectNameEnemy, c.MapType)));
 
-            foreach (var altar in ObjectManager.Get<Obj_AI_Minion>())
-            {
-                if (altar.Name.Contains("Buffplat", StringComparison.OrdinalIgnoreCase))
-                {
-                    _altars.Add(new AltarObject(altar));
-                }
-            }
-
-            if (!_altars.Any())
+            if (!_altarObjs.Any())
             {
                 OnUnload(null, new UnloadEventArgs(true));
                 return;
@@ -209,20 +208,21 @@ namespace SFXUtility.Features.Timers
             base.OnInitialize();
         }
 
-        private class AltarObject
+        public class AltarObj : Altars.AltarObject
         {
-            public AltarObject(Obj_AI_Minion obj)
+            public AltarObj(float spawnTime,
+                float respawnTime,
+                Vector3 position,
+                string objectNameAlly,
+                string objectNameEnemy,
+                Utility.Map.MapType mapType,
+                bool picked = false) : base(spawnTime, respawnTime, position, objectNameAlly, objectNameEnemy, mapType)
             {
-                Object = obj;
-                Locked = false;
-                NextRespawnTime = -1;
-                RespawnTime = 90;
+                Picked = picked;
             }
 
-            public Obj_AI_Minion Object { get; private set; }
-            public bool Locked { get; set; }
-            public int RespawnTime { get; private set; }
-            public int NextRespawnTime { get; set; }
+            public float NextRespawnTime { get; set; }
+            public bool Picked { get; set; }
         }
     }
 }

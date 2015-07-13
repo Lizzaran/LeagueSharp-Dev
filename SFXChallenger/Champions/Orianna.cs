@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- orianna.cs is part of SFXChallenger.
+ Orianna.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -910,7 +910,8 @@ namespace SFXChallenger.Champions
             {
                 W.Cast(Player.Position);
             }
-            if (Menu.Item(Menu.Name + ".flee.e").GetValue<bool>() && E.IsReady())
+            if (Menu.Item(Menu.Name + ".flee.e").GetValue<bool>() && E.IsReady() &&
+                (Ball.Status != BallStatus.Me || Player.CountEnemiesInRange(500) > 0))
             {
                 E.CastOnUnit(Player);
             }
