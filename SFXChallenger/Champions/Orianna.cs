@@ -144,13 +144,15 @@ namespace SFXChallenger.Champions
             uAssistedMenu.AddItem(
                 new MenuItem(uAssistedMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
 
-            var uBlacklistMenu =
-                ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Blacklist"), ultimateMenu.Name + ".blacklist"));
-
+            var uWhitelistMenu =
+                ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Whitelist"), ultimateMenu.Name + ".whitelist"));
+            uWhitelistMenu.AddItem(
+                new MenuItem(uWhitelistMenu.Name + ".additional", Global.Lang.Get("G_Additional")).SetValue(
+                    new Slider(0, 0, 4)));
             foreach (var enemy in GameObjects.EnemyHeroes)
             {
-                uBlacklistMenu.AddItem(
-                    new MenuItem(uBlacklistMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(false));
+                uWhitelistMenu.AddItem(
+                    new MenuItem(uWhitelistMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(false));
             }
 
             var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Flee"), Menu.Name + ".flee"));
@@ -283,18 +285,19 @@ namespace SFXChallenger.Champions
                         {
                             R.UpdateSourcePosition(flashPos, flashPos);
                             var hits = GameObjects.EnemyHeroes.Where(x => R.WillHit(x, pred.CastPosition)).ToList();
-                            if (hits.Count >= min &&
-                                hits.Any(
+                            if (hits.Count >= min ||
+                                (hits.Any(
                                     hit =>
-                                        !Menu.Item(Menu.Name + ".ultimate.blacklist." + hit.ChampionName)
-                                            .GetValue<bool>()))
+                                        Menu.Item(Menu.Name + ".ultimate.whitelist." + hit.ChampionName)
+                                            .GetValue<bool>())) &&
+                                hits.Count >=
+                                (Menu.Item(Menu.Name + ".ultimate.whitelist.additional").GetValue<Slider>().Value + 1))
                             {
                                 R.Cast(Player.Position);
                                 Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
                             }
                             else if (Menu.Item(Menu.Name + ".ultimate.flash.1v1").GetValue<bool>() &&
-                                     !Menu.Item(Menu.Name + ".ultimate.blacklist." + target.ChampionName)
-                                         .GetValue<bool>())
+                                     Menu.Item(Menu.Name + ".ultimate.whitelist." + target.ChampionName).GetValue<bool>())
                             {
                                 var cDmg = CalcComboDamage(
                                     target, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
@@ -378,9 +381,7 @@ namespace SFXChallenger.Champions
                     R.IsReady())
                 {
                     var hits = GetHits(R);
-                    if (hits.Item2.Any(i => i.NetworkId.Equals(sender.NetworkId)) &&
-                        hits.Item2.Any(
-                            hit => !Menu.Item(Menu.Name + ".ultimate.blacklist." + hit.ChampionName).GetValue<bool>()))
+                    if (hits.Item2.Any(i => i.NetworkId.Equals(sender.NetworkId)))
                     {
                         R.Cast(Player.Position);
                     }
@@ -615,9 +616,10 @@ namespace SFXChallenger.Champions
             try
             {
                 var hits = GetHits(R);
-                if (hits.Item1 >= min &&
-                    hits.Item2.Any(
-                        hit => !Menu.Item(Menu.Name + ".ultimate.blacklist." + hit.ChampionName).GetValue<bool>()))
+                if (hits.Item1 >= min ||
+                    (hits.Item2.Any(
+                        hit => Menu.Item(Menu.Name + ".ultimate.whitelist." + hit.ChampionName).GetValue<bool>())) &&
+                    hits.Item1 >= (Menu.Item(Menu.Name + ".ultimate.whitelist.additional").GetValue<Slider>().Value + 1))
                 {
                     R.Cast(Player.Position);
                     return true;

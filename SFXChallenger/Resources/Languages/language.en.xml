@@ -70,6 +70,7 @@
 	<entry key="G_Blacklist">Blacklist</entry>
 	<entry key="G_Whitelist">Whitelist</entry>
 	<entry key="G_BlockMissing">Block Missing</entry>
+	<entry key="G_Additional">Additional</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: Language -->
