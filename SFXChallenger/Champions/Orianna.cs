@@ -146,13 +146,20 @@ namespace SFXChallenger.Champions
 
             var uWhitelistMenu =
                 ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Whitelist"), ultimateMenu.Name + ".whitelist"));
-            uWhitelistMenu.AddItem(
-                new MenuItem(uWhitelistMenu.Name + ".additional", Global.Lang.Get("G_Additional")).SetValue(
-                    new Slider(0, 0, 4)));
             foreach (var enemy in GameObjects.EnemyHeroes)
             {
                 uWhitelistMenu.AddItem(
-                    new MenuItem(uWhitelistMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(false));
+                    new MenuItem(uWhitelistMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(true));
+            }
+
+            var uForceMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Force"), ultimateMenu.Name + ".force"));
+            uForceMenu.AddItem(
+                new MenuItem(uForceMenu.Name + ".additional", Global.Lang.Get("G_Additional")).SetValue(
+                    new Slider(0, 0, 4)));
+            foreach (var enemy in GameObjects.EnemyHeroes)
+            {
+                uForceMenu.AddItem(
+                    new MenuItem(uForceMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(false));
             }
 
             var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Flee"), Menu.Name + ".flee"));
@@ -285,13 +292,15 @@ namespace SFXChallenger.Champions
                         {
                             R.UpdateSourcePosition(flashPos, flashPos);
                             var hits = GameObjects.EnemyHeroes.Where(x => R.WillHit(x, pred.CastPosition)).ToList();
-                            if (hits.Count >= min ||
-                                (hits.Any(
+                            if (hits.Count >= min &&
+                                hits.Any(
                                     hit =>
                                         Menu.Item(Menu.Name + ".ultimate.whitelist." + hit.ChampionName)
-                                            .GetValue<bool>())) &&
+                                            .GetValue<bool>()) ||
+                                hits.Any(
+                                    hit => Menu.Item(Menu.Name + ".ultimate.force." + hit.ChampionName).GetValue<bool>()) &&
                                 hits.Count >=
-                                (Menu.Item(Menu.Name + ".ultimate.whitelist.additional").GetValue<Slider>().Value + 1))
+                                (Menu.Item(Menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1))
                             {
                                 R.Cast(Player.Position);
                                 Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
@@ -616,10 +625,11 @@ namespace SFXChallenger.Champions
             try
             {
                 var hits = GetHits(R);
-                if (hits.Item1 >= min ||
-                    (hits.Item2.Any(
-                        hit => Menu.Item(Menu.Name + ".ultimate.whitelist." + hit.ChampionName).GetValue<bool>())) &&
-                    hits.Item1 >= (Menu.Item(Menu.Name + ".ultimate.whitelist.additional").GetValue<Slider>().Value + 1))
+                if (hits.Item1 >= min &&
+                    hits.Item2.Any(
+                        hit => Menu.Item(Menu.Name + ".ultimate.whitelist." + hit.ChampionName).GetValue<bool>()) ||
+                    hits.Item2.Any(hit => Menu.Item(Menu.Name + ".ultimate.force." + hit.ChampionName).GetValue<bool>()) &&
+                    hits.Item1 >= (Menu.Item(Menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1))
                 {
                     R.Cast(Player.Position);
                     return true;
