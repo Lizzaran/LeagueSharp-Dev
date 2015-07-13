@@ -144,6 +144,15 @@ namespace SFXChallenger.Champions
             uAssistedMenu.AddItem(
                 new MenuItem(uAssistedMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
 
+            var uBlacklistMenu =
+                ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Blacklist"), ultimateMenu.Name + ".blacklist"));
+
+            foreach (var enemy in GameObjects.EnemyHeroes)
+            {
+                uBlacklistMenu.AddItem(
+                    new MenuItem(uBlacklistMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(false));
+            }
+
             var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Flee"), Menu.Name + ".flee"));
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
@@ -273,12 +282,19 @@ namespace SFXChallenger.Champions
                         if (pred.Hitchance >= R.GetHitChance("combo"))
                         {
                             R.UpdateSourcePosition(flashPos, flashPos);
-                            if (GameObjects.EnemyHeroes.Count(x => R.WillHit(x, pred.CastPosition)) >= min)
+                            var hits = GameObjects.EnemyHeroes.Where(x => R.WillHit(x, pred.CastPosition)).ToList();
+                            if (hits.Count >= min &&
+                                hits.Any(
+                                    hit =>
+                                        !Menu.Item(Menu.Name + ".ultimate.blacklist." + hit.ChampionName)
+                                            .GetValue<bool>()))
                             {
                                 R.Cast(Player.Position);
                                 Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
                             }
-                            else if (Menu.Item(Menu.Name + ".ultimate.flash.1v1").GetValue<bool>())
+                            else if (Menu.Item(Menu.Name + ".ultimate.flash.1v1").GetValue<bool>() &&
+                                     !Menu.Item(Menu.Name + ".ultimate.blacklist." + target.ChampionName)
+                                         .GetValue<bool>())
                             {
                                 var cDmg = CalcComboDamage(
                                     target, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
@@ -361,16 +377,10 @@ namespace SFXChallenger.Champions
                     Menu.Item(Menu.Name + ".ultimate.auto.interrupt." + sender.ChampionName).GetValue<bool>() &&
                     R.IsReady())
                 {
-                    var pos = Ball.Position;
-                    if (Ball.Status != BallStatus.Fixed)
-                    {
-                        var pred = Prediction.GetPrediction(Ball.Hero, R.Delay);
-                        if (pred.Hitchance >= HitChance.Medium)
-                        {
-                            pos = pred.UnitPosition;
-                        }
-                    }
-                    if (pos.Distance(sender.Position) <= R.Width)
+                    var hits = GetHits(R);
+                    if (hits.Item2.Any(i => i.NetworkId.Equals(sender.NetworkId)) &&
+                        hits.Item2.Any(
+                            hit => !Menu.Item(Menu.Name + ".ultimate.blacklist." + hit.ChampionName).GetValue<bool>()))
                     {
                         R.Cast(Player.Position);
                     }
@@ -604,7 +614,10 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (GetHits(R).Item1 >= min)
+                var hits = GetHits(R);
+                if (hits.Item1 >= min &&
+                    hits.Item2.Any(
+                        hit => !Menu.Item(Menu.Name + ".ultimate.blacklist." + hit.ChampionName).GetValue<bool>()))
                 {
                     R.Cast(Player.Position);
                     return true;
@@ -640,7 +653,7 @@ namespace SFXChallenger.Champions
             return false;
         }
 
-        public static Tuple<int, List<Obj_AI_Hero>> GetHits(Spell spell)
+        private Tuple<int, List<Obj_AI_Hero>> GetHits(Spell spell)
         {
             var hits =
                 GameObjects.EnemyHeroes.Where(
@@ -653,7 +666,7 @@ namespace SFXChallenger.Champions
             return new Tuple<int, List<Obj_AI_Hero>>(hits.Count, hits);
         }
 
-        public Tuple<int, List<Obj_AI_Hero>> GetEHits(Vector3 to)
+        private Tuple<int, List<Obj_AI_Hero>> GetEHits(Vector3 to)
         {
             var hits = new List<Obj_AI_Hero>();
             foreach (var enemy in GameObjects.EnemyHeroes.Where(h => h.IsValidTarget(2000)))
