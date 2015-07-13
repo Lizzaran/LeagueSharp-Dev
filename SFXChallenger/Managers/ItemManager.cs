@@ -267,6 +267,13 @@ namespace SFXChallenger.Managers
                     }
                 }
 
+                var muramanaMenu = _menu.AddSubMenu(new Menu(Global.Lang.Get("MI_Muramana"), _menu.Name + ".muramana"));
+                muramanaMenu.AddItem(
+                    new MenuItem(muramanaMenu.Name + ".min-enemies-range", Global.Lang.Get("MI_MinEnemiesRange"))
+                        .SetValue(new Slider(1, 0, 5)));
+                muramanaMenu.AddItem(
+                    new MenuItem(muramanaMenu.Name + ".combo", Global.Lang.Get("MI_UseCombo")).SetValue(true));
+
                 menu.AddItem(new MenuItem(menu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
             }
             catch (Exception ex)
@@ -355,7 +362,12 @@ namespace SFXChallenger.Managers
         public static void Muramana(bool activate)
         {
             var hasBuff = ObjectManager.Player.HasBuff("Muramana");
-            if (activate && !hasBuff || !activate && hasBuff)
+            if ((activate && !hasBuff &&
+                 (_menu == null ||
+                  _menu.Item(_menu.Name + ".muramana.combo").GetValue<bool>() &&
+                  ObjectManager.Player.CountEnemiesInRange(Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)) >=
+                  _menu.Item(_menu.Name + ".muramana.min-enemies-range").GetValue<Slider>().Value)) ||
+                !activate && hasBuff)
             {
                 var muramana = ItemData.Muramana.GetItem();
                 if (muramana.IsOwned(ObjectManager.Player))
