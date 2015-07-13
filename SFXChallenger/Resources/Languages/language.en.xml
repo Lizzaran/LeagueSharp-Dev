@@ -72,6 +72,8 @@
 	<entry key="G_BlockMissing">Block Missing</entry>
 	<entry key="G_Additional">Additional</entry>
 	<entry key="G_Force">Force</entry>
+	<entry key="G_Always">Always</entry>
+	<entry key="G_StacksIsOrMore">Stacks >=</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: Language -->

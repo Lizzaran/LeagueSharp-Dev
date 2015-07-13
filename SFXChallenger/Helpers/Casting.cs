@@ -103,6 +103,8 @@ namespace SFXChallenger.Helpers
                 return;
             }
 
+            minHit = minions.Any(m => m.Team == GameObjectTeam.Neutral) ? 1 : minHit;
+
             if (spell.Type == SkillshotType.SkillshotCircle)
             {
                 spell.UpdateSourcePosition();
