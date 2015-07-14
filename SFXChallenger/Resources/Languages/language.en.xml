@@ -74,6 +74,7 @@
 	<entry key="G_Force">Force</entry>
 	<entry key="G_Always">Always</entry>
 	<entry key="G_StacksIsOrMore">Stacks >=</entry>
+	<entry key="G_OutOfRange">Out of Range</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: Language -->

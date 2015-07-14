@@ -87,7 +87,7 @@ namespace SFXChallenger.Helpers
             spell.Cast(target, packet);
         }
 
-        public static void Farm(Spell spell, int minHit = 2, float overrideWidth = -1f)
+        public static void Farm(Spell spell, int minHit = 3, float overrideWidth = -1f)
         {
             if (!spell.IsReady())
             {
