@@ -81,6 +81,10 @@ namespace SFXChallenger.Champions
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q-stacks", "Q " + Global.Lang.Get("G_StacksIsOrMore")))
                 .SetValue(new Slider(3, 1, 3));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
+            comboMenu.AddItem(
+                new MenuItem(comboMenu.Name + ".e-always", "E " + Global.Lang.Get("G_Always")).SetValue(true));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e-stacks", "E " + Global.Lang.Get("G_StacksIsOrMore")))
+                .SetValue(new Slider(3, 1, 3));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
 
@@ -96,6 +100,10 @@ namespace SFXChallenger.Champions
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q-stacks", "Q " + Global.Lang.Get("G_StacksIsOrMore")))
                 .SetValue(new Slider(3, 1, 3));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
+            harassMenu.AddItem(
+                new MenuItem(harassMenu.Name + ".e-always", "E " + Global.Lang.Get("G_Always")).SetValue(false));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e-stacks", "E " + Global.Lang.Get("G_StacksIsOrMore")))
+                .SetValue(new Slider(3, 1, 3));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
             var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LaneClear"), Menu.Name + ".lane-clear"));
@@ -110,6 +118,7 @@ namespace SFXChallenger.Champions
             var uComboMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), ultimateMenu.Name + ".combo"));
             uComboMenu.AddItem(
                 new MenuItem(uComboMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(new Slider(2, 1, 5)));
+            uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".1v1", "R 1v1").SetValue(true));
             uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
 
             var uAutoMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Auto"), ultimateMenu.Name + ".auto"));
@@ -136,12 +145,14 @@ namespace SFXChallenger.Champions
 
             uAutoMenu.AddItem(
                 new MenuItem(uAutoMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
+            uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".1v1", "R 1v1").SetValue(false));
             uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
 
             var uAssistedMenu =
                 ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Assisted"), ultimateMenu.Name + ".assisted"));
             uAssistedMenu.AddItem(
                 new MenuItem(uAssistedMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(new Slider(2, 1, 5)));
+            uAssistedMenu.AddItem(new MenuItem(uAssistedMenu.Name + ".1v1", "R 1v1").SetValue(true));
             uAssistedMenu.AddItem(
                 new MenuItem(uAssistedMenu.Name + ".hotkey", Global.Lang.Get("G_Hotkey")).SetValue(
                     new KeyBind('R', KeyBindType.Press)));
@@ -208,17 +219,30 @@ namespace SFXChallenger.Champions
                         Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
                     }
 
-                    RLogic(
-                        TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical),
-                        R.GetHitChance("combo"),
-                        Menu.Item(Menu.Name + ".ultimate.assisted.min").GetValue<Slider>().Value);
+                    if (
+                        !RLogic(
+                            TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical),
+                            R.GetHitChance("combo"),
+                            Menu.Item(Menu.Name + ".ultimate.assisted.min").GetValue<Slider>().Value))
+                    {
+                        RLogic1V1(
+                            Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
+                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
+                    }
                 }
 
                 if (Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() && R.IsReady())
                 {
-                    RLogic(
-                        TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical),
-                        R.GetHitChance("combo"), Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value);
+                    if (
+                        !RLogic(
+                            TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical),
+                            R.GetHitChance("combo"),
+                            Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value))
+                    {
+                        RLogic1V1(
+                            Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
+                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
+                    }
                 }
             }
             catch (Exception ex)
@@ -299,7 +323,11 @@ namespace SFXChallenger.Champions
 
         protected override void Combo()
         {
-            if (Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady())
+            var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>();
+            var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>();
+            var r = Menu.Item(Menu.Name + ".ultimate.combo.enabled").GetValue<bool>();
+
+            if (q && Q.IsReady())
             {
                 var target = TargetSelector.GetTarget(
                     Q.ChargedMaxRange, LeagueSharp.Common.TargetSelector.DamageType.Physical);
@@ -311,17 +339,28 @@ namespace SFXChallenger.Champions
                     QLogic(target, Q.GetHitChance("combo"));
                 }
             }
-            if (Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady())
+            if (e && E.IsReady())
             {
-                ELogic(
-                    TargetSelector.GetTarget(E.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical),
-                    E.GetHitChance("combo"));
+                var target = TargetSelector.GetTarget(E.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical);
+                if (Menu.Item(Menu.Name + ".combo.e-always").GetValue<bool>() ||
+                    GetWStacks(target) >= Menu.Item(Menu.Name + ".combo.e-stacks").GetValue<Slider>().Value)
+                {
+                    ELogic(target, E.GetHitChance("combo"));
+                }
             }
-            if (Menu.Item(Menu.Name + ".ultimate.combo.enabled").GetValue<bool>() && R.IsReady())
+            if (r && R.IsReady())
             {
-                RLogic(
-                    TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical),
-                    R.GetHitChance("combo"), Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value);
+                var target = TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical);
+                if (
+                    !RLogic(
+                        target, R.GetHitChance("combo"),
+                        Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value))
+                {
+                    if (Menu.Item(Menu.Name + ".ultimate.combo.1v1").GetValue<bool>())
+                    {
+                        RLogic1V1(q, e);
+                    }
+                }
             }
         }
 
@@ -345,9 +384,12 @@ namespace SFXChallenger.Champions
             }
             if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>() && E.IsReady())
             {
-                ELogic(
-                    TargetSelector.GetTarget(E.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical),
-                    E.GetHitChance("harass"));
+                var target = TargetSelector.GetTarget(E.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical);
+                if (Menu.Item(Menu.Name + ".harass.e-always").GetValue<bool>() ||
+                    GetWStacks(target) >= Menu.Item(Menu.Name + ".harass.e-stacks").GetValue<Slider>().Value)
+                {
+                    ELogic(target, E.GetHitChance("harass"));
+                }
             }
         }
 
@@ -381,7 +423,6 @@ namespace SFXChallenger.Champions
                         Q.StartCharging();
                     }
                 }
-                
             }
             if (Q.IsCharging)
             {
@@ -406,17 +447,78 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private void RLogic(Obj_AI_Hero target, HitChance hitChance, int min)
+        private bool RLogic(Obj_AI_Hero target, HitChance hitChance, int min)
         {
             if (Q.IsCharging)
             {
-                return;
+                return false;
             }
             var pred = R.GetPrediction(target);
             if (pred.Hitchance >= hitChance && target.CountEnemiesInRange(_rSpreadRadius) >= min)
             {
                 R.Cast(pred.CastPosition);
+                return true;
             }
+            return false;
+        }
+
+        private void RLogic1V1(bool q, bool e)
+        {
+            try
+            {
+                foreach (var t in GameObjects.EnemyHeroes)
+                {
+                    if (t.HealthPercent > 25)
+                    {
+                        var cDmg = CalcComboDamage(t, q, e, true);
+                        if (cDmg - 10 >= t.Health)
+                        {
+                            if (
+                                GameObjects.EnemyHeroes.Count(
+                                    em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) == 1)
+                            {
+                                if (RLogic(t, R.GetHitChance("combo"), 1))
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private float CalcComboDamage(Obj_AI_Hero target, bool q, bool e, bool r)
+        {
+            try
+            {
+                float damage = 0;
+                if (q)
+                {
+                    damage += Q.GetDamage(target);
+                }
+                if (e && E.IsReady())
+                {
+                    damage += E.GetDamage(target);
+                }
+                if (r && R.IsReady())
+                {
+                    damage += R.GetDamage(target);
+                }
+                damage += 5f * (float) Player.GetAutoAttackDamage(target);
+                damage += ItemManager.CalculateComboDamage(target);
+                damage += SummonerManager.CalculateComboDamage(target);
+                return damage;
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return 0;
         }
 
         protected override void LaneClear()

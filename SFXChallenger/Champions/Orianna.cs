@@ -30,7 +30,6 @@ using LeagueSharp.Common;
 using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Events;
-using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
 using SFXLibrary;
 using SFXLibrary.Extensions.NET;
@@ -117,7 +116,7 @@ namespace SFXChallenger.Champions
 
             uAutoMenu.AddItem(
                 new MenuItem(uAutoMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
-            uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".1v1", "R 1v1").SetValue(true));
+            uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".1v1", "R 1v1").SetValue(false));
             uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
 
             var uFlashMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Flash"), ultimateMenu.Name + ".flash"));

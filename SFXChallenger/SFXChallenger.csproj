@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.5.2.45</AssemblyVersion>
+    <AssemblyVersion>0.5.2.47</AssemblyVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -97,7 +97,6 @@
     <Compile Include="Enumerations\TargetSelectorPriorityType.cs" />
     <Compile Include="Events\InitiatorArgs.cs" />
     <Compile Include="Global.cs" />
-    <Compile Include="Helpers\DamageIndicator.cs" />
     <Compile Include="Helpers\DynamicInitializer.cs" />
     <Compile Include="Helpers\Utils.cs" />
     <Compile Include="Managers\DrawingManager.cs" />

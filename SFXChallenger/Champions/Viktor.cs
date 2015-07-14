@@ -132,7 +132,7 @@ namespace SFXChallenger.Champions
 
             uAutoMenu.AddItem(
                 new MenuItem(uAutoMenu.Name + ".min", Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
-            uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".1v1", "R 1v1").SetValue(true));
+            uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".1v1", "R 1v1").SetValue(false));
             uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
 
             var uAssistedMenu =
@@ -169,31 +169,33 @@ namespace SFXChallenger.Champions
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-dash", "W " + Global.Lang.Get("G_Dash")).SetValue(true));
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".w-gapcloser", "W " + Global.Lang.Get("G_Gapcloser")).SetValue(true));
-            
+
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
-            IndicatorManager.Add("Q", delegate(Obj_AI_Hero hero)
-            {
-                var damage = 0f;
-                if (Q.IsReady())
+            IndicatorManager.Add(
+                "Q", delegate(Obj_AI_Hero hero)
                 {
-                    damage += Q.GetDamage(hero);
-                    damage += CalcPassiveDamage(hero);
-                }
-                else if (Player.HasBuff("viktorpowertransferreturn"))
-                {
-                    damage += CalcPassiveDamage(hero);
-                }
-                return damage;
-            });
+                    var damage = 0f;
+                    if (Q.IsReady())
+                    {
+                        damage += Q.GetDamage(hero);
+                        damage += CalcPassiveDamage(hero);
+                    }
+                    else if (Player.HasBuff("viktorpowertransferreturn"))
+                    {
+                        damage += CalcPassiveDamage(hero);
+                    }
+                    return damage;
+                });
             IndicatorManager.Add(E);
-            IndicatorManager.Add("R", delegate(Obj_AI_Hero hero)
-            {
-                if (R.IsReady())
+            IndicatorManager.Add(
+                "R", delegate(Obj_AI_Hero hero)
                 {
-                    return R.GetDamage(hero) + (R.GetDamage(hero, 1) * 10);
-                }
-                return 0;
-            });
+                    if (R.IsReady())
+                    {
+                        return R.GetDamage(hero) + (R.GetDamage(hero, 1) * 10);
+                    }
+                    return 0;
+                });
             IndicatorManager.Finale();
         }
 

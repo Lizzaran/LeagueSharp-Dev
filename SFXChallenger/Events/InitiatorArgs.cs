@@ -41,7 +41,6 @@ namespace SFXChallenger.Events
         }
 
         public float Range { get; set; }
-
         public Obj_AI_Hero Hero { get; private set; }
         public Vector3 Start { get; private set; }
         public Vector3 End { get; private set; }
