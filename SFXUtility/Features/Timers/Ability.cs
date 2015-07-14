@@ -200,28 +200,27 @@ namespace SFXUtility.Features.Timers
             {
                 { "nunu_base_r_indicator_blue.troy", new AbilityItem("nunu", "R", 3f) },
                 { "nunu_base_r_indicator_red.troy", new AbilityItem("nunu", "R", 3f) },
-                {
-                    "akali_base_smoke_bomb_tar_team_green.troy",
-                    new AbilityItem("akali", "W", 8f)
-                },
-                {
-                    "akali_base_smoke_bomb_tar_team_red.troy",
-                    new AbilityItem("akali", "W", 8f)
-                },
+                { "akali_base_smoke_bomb_tar_team_green.troy", new AbilityItem("akali", "W", 8f) },
+                { "akali_base_smoke_bomb_tar_team_red.troy", new AbilityItem("akali", "W", 8f) },
                 { "azir_base_w_sandbib.troy", new AbilityItem("azir", "W", 9f) },
                 { "azir_base_w_sandbib_enemy.troy", new AbilityItem("azir", "W", 9f) },
-                { "azir_base_w_towersandbib.troy", new AbilityItem("azir", "W2", 4.5f) },
-                {
-                    "azir_base_w_towersandbib_enemy.troy",
-                    new AbilityItem("azir", "W2", 4.5f)
-                },
+                { "azir_base_w_towersandbib.troy", new AbilityItem("azir", "W", 4.5f) },
+                { "azir_base_w_towersandbib_enemy.troy", new AbilityItem("azir", "W", 4.5f) },
                 { "azir_base_r_soldiercape.troy", new AbilityItem("azir", "R", 5f) },
                 { "azir_base_r_soldiercape_enemy.troy", new AbilityItem("azir", "R", 5f) },
                 { "bard_base_e_door.troy", new AbilityItem("bard", "E", 10f) },
                 { "bard_base_r_stasis_skin_full.troy", new AbilityItem("bard", "R", 2.5f) },
-                { "twistedfate_base_w_bluecard.troy", new AbilityItem("twistedfate", "W " + Global.Lang.Get("G_Blue"), 6f) },
-                { "twistedfate_base_w_redcard.troy", new AbilityItem("twistedfate", "W " + Global.Lang.Get("G_Red"), 6f) },
-                { "twistedfate_base_w_goldcard.troy", new AbilityItem("twistedfate", "W " + Global.Lang.Get("G_Yellow"), 6f) },
+                {
+                    "twistedfate_base_w_bluecard.troy",
+                    new AbilityItem("twistedfate", "W " + Global.Lang.Get("G_Blue"), 6f)
+                },
+                {
+                    "twistedfate_base_w_redcard.troy", new AbilityItem("twistedfate", "W " + Global.Lang.Get("G_Red"), 6f)
+                },
+                {
+                    "twistedfate_base_w_goldcard.troy",
+                    new AbilityItem("twistedfate", "W " + Global.Lang.Get("G_Yellow"), 6f)
+                },
                 { "counterstrike_cas.troy", new AbilityItem("jax", "R", 2f) },
                 { "ekko_base_w_indicator.troy", new AbilityItem("ekko", "W", 3f) },
                 { "diplomaticimmunity_buf.troy", new AbilityItem("poppy", "R", 8f) },
@@ -232,8 +231,8 @@ namespace SFXUtility.Features.Timers
                 { "galio_talion_channel.troy", new AbilityItem("galio", "R", 2f) },
                 { "viktor_catalyst_green.troy", new AbilityItem("viktor", "W", 4f) },
                 { "viktor_catalyst_red.troy", new AbilityItem("viktor", "W", 4f) },
-                { "viktor_base_w_aug_green.troy", new AbilityItem("viktor", "W+", 4f) },
-                { "viktor_base_w_aug_red.troy", new AbilityItem("viktor", "W+", 4f) },
+                { "viktor_base_w_aug_green.troy", new AbilityItem("viktor", "W", 4f) },
+                { "viktor_base_w_aug_red.troy", new AbilityItem("viktor", "W", 4f) },
                 { "viktor_chaosstorm_green.troy", new AbilityItem("viktor", "R", 7f) },
                 { "viktor_chaosstorm_red.troy", new AbilityItem("viktor", "R", 7f) },
                 { "infiniteduress_tar.troy", new AbilityItem("warwick", "R", 1.8f) },
@@ -244,28 +243,14 @@ namespace SFXUtility.Features.Timers
                 { "kennen_lr_buf.troy", new AbilityItem("kennen", "E", 2f) },
                 { "kennen_ss_aoe_green.troy", new AbilityItem("kennen", "R", 3f) },
                 { "kennen_ss_aoe_red.troy", new AbilityItem("kennen", "R", 3f) },
-                {
-                    "rumble_ult_impact_burn_teamid_green.troy",
-                    new AbilityItem("rumble", "R", 5f)
-                },
-                {
-                    "rumble_ult_impact_burn_teamid_red.troy",
-                    new AbilityItem("rumble", "R", 5f)
-                },
+                { "rumble_ult_impact_burn_teamid_green.troy", new AbilityItem("rumble", "R", 5f) },
+                { "rumble_ult_impact_burn_teamid_red.troy", new AbilityItem("rumble", "R", 5f) },
                 { "leblanc_base_rw_return_indicator.troy", new AbilityItem("leblanc", "R W", 4f) },
                 { "leblanc_base_w_return_indicator.troy", new AbilityItem("leblanc", "W", 4f) },
                 { "lifeaura.troy", new AbilityItem("items", Global.Lang.Get("Ability_Guardian"), 4f) },
-                {
-                    "lissandra_base_r_iceblock.troy", new AbilityItem("lissandra", "R", 2.5f)
-                },
-                {
-                    "lissandra_base_r_ring_green.troy",
-                    new AbilityItem("lissandra", "R", 1.5f)
-                },
-                {
-                    "lissandra_base_r_ring_red.troy",
-                    new AbilityItem("lissandra", "R", 1.5f)
-                },
+                { "lissandra_base_r_iceblock.troy", new AbilityItem("lissandra", "R", 2.5f) },
+                { "lissandra_base_r_ring_green.troy", new AbilityItem("lissandra", "R", 1.5f) },
+                { "lissandra_base_r_ring_red.troy", new AbilityItem("lissandra", "R", 1.5f) },
                 { "malzahar_base_r_tar.troy", new AbilityItem("malzahar", "R", 3f) },
                 { "maokai_base_r_aura.troy", new AbilityItem("maokai", "R", 10f) },
                 { "masteryi_base_w_buf.troy", new AbilityItem("masteryi", "W", 4f) },
@@ -275,24 +260,12 @@ namespace SFXUtility.Features.Timers
                 { "ziggs_base_w_aoe_red.troy", new AbilityItem("ziggs", "W", 4f) },
                 { "nickoftime_tar.troy", new AbilityItem("zilean", "R", 5f) },
                 { "olaf_ragnorok_enraged.troy", new AbilityItem("olaf", "R", 6f) },
-                { "pantheon_base_r_cas.troy", new AbilityItem("pantheon", "R 1", 2f) },
-                {
-                    "pantheon_base_r_indicator_green.troy",
-                    new AbilityItem("pantheon", "R 2", 4.5f)
-                },
-                {
-                    "pantheon_base_r_indicator_red.troy",
-                    new AbilityItem("pantheon", "R 2", 4.5f)
-                },
+                { "pantheon_base_r_cas.troy", new AbilityItem("pantheon", "R", 2f) },
+                { "pantheon_base_r_indicator_green.troy", new AbilityItem("pantheon", "R", 4.5f) },
+                { "pantheon_base_r_indicator_red.troy", new AbilityItem("pantheon", "R", 4.5f) },
                 { "passive_death_activate.troy", new AbilityItem("aatrox", Global.Lang.Get("Ability_Passive"), 3f) },
-                {
-                    "pirate_cannonbarrage_aoe_indicator_green.troy",
-                    new AbilityItem("gangplank", "R", 7f)
-                },
-                {
-                    "pirate_cannonbarrage_aoe_indicator_red.troy",
-                    new AbilityItem("gangplank", "R", 7f)
-                },
+                { "pirate_cannonbarrage_aoe_indicator_green.troy", new AbilityItem("gangplank", "R", 7f) },
+                { "pirate_cannonbarrage_aoe_indicator_red.troy", new AbilityItem("gangplank", "R", 7f) },
                 { "reapthewhirlwind_green_cas.troy", new AbilityItem("janna", "R", 3f) },
                 { "reapthewhirlwind_red_cas.troy", new AbilityItem("janna", "R", 3f) },
                 { "shen_standunited_shield_v2.troy", new AbilityItem("shen", "R", 3f) },
@@ -312,26 +285,11 @@ namespace SFXUtility.Features.Timers
                 { "yasuo_base_w_windwall3.troy", new AbilityItem("yasuo", "W", 4f) },
                 { "yasuo_base_w_windwall4.troy", new AbilityItem("yasuo", "W", 4f) },
                 { "yasuo_base_w_windwall5.troy", new AbilityItem("yasuo", "W", 4f) },
-                {
-                    "yasuo_base_w_windwall_enemy_01.troy",
-                    new AbilityItem("yasuo", "W1", 4f)
-                },
-                {
-                    "yasuo_base_w_windwall_enemy_02.troy",
-                    new AbilityItem("yasuo", "W2", 4f)
-                },
-                {
-                    "yasuo_base_w_windwall_enemy_03.troy",
-                    new AbilityItem("yasuo", "W3", 4f)
-                },
-                {
-                    "yasuo_base_w_windwall_enemy_04.troy",
-                    new AbilityItem("yasuo", "W4", 4f)
-                },
-                {
-                    "yasuo_base_w_windwall_enemy_05.troy",
-                    new AbilityItem("yasuo", "W5", 4f)
-                },
+                { "yasuo_base_w_windwall_enemy_01.troy", new AbilityItem("yasuo", "W", 4f) },
+                { "yasuo_base_w_windwall_enemy_02.troy", new AbilityItem("yasuo", "W", 4f) },
+                { "yasuo_base_w_windwall_enemy_03.troy", new AbilityItem("yasuo", "W", 4f) },
+                { "yasuo_base_w_windwall_enemy_04.troy", new AbilityItem("yasuo", "W", 4f) },
+                { "yasuo_base_w_windwall_enemy_05.troy", new AbilityItem("yasuo", "W", 4f) },
                 { "zac_r_tar.troy", new AbilityItem("zac", "R", 4f) },
                 { "zed_base_r_cloneswap_buf.troy", new AbilityItem("zed", "R", 7f) },
                 { "zed_base_w_cloneswap_buf.troy", new AbilityItem("zed", "W", 4.5f) },
@@ -348,12 +306,16 @@ namespace SFXUtility.Features.Timers
             var counter = 0;
 
             var spellMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Spell") + " " + group, Name + "Spell" + group));
-            var listItems = _abilities.GroupBy(a => new { a.Value.Champ, a.Value.Name }).ToList();
+            var listItems = _abilities.OrderBy(a => a.Value.Champ).GroupBy(a => a.Value.Champ).ToList();
             foreach (var items in listItems)
             {
-                var champMenu = new Menu(items.Key.Champ.FirstCharToUpper(), spellMenu + items.Key.Champ);
+                var champMenu = new Menu(items.Key.FirstCharToUpper(), spellMenu + items.Key);
                 foreach (var item in items)
                 {
+                    if (champMenu.Item(champMenu.Name + item.Value.Name) != null)
+                    {
+                        continue;
+                    }
                     var localItem = item;
                     var mItem =
                         new MenuItem(champMenu.Name + item.Value.Name, item.Value.Name.FirstCharToUpper()).SetValue(
