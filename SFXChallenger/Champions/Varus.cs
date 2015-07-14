@@ -545,7 +545,7 @@ namespace SFXChallenger.Champions
             if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady())
             {
                 var pos = GetBestEMinionLocation(min);
-                if (pos.Item1 >= min)
+                if (pos.Item1 >= (pos.Item3 ? 1 : min))
                 {
                     E.Cast(pos.Item2);
                 }
@@ -617,7 +617,7 @@ namespace SFXChallenger.Champions
             return Vector3.Zero;
         }
 
-        private Tuple<int, Vector3> GetBestEMinionLocation(int min)
+        private Tuple<int, Vector3, bool> GetBestEMinionLocation(int min)
         {
             var minions = MinionManager.GetMinions(
                 (E.Range + E.Range * 1.3f), MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
@@ -647,10 +647,10 @@ namespace SFXChallenger.Champions
                             }
                         }
                     }
-                    return new Tuple<int, Vector3>(hits, pos);
+                    return new Tuple<int, Vector3, bool>(hits, pos, minions.Any(m => m.Team == GameObjectTeam.Neutral));
                 }
             }
-            return new Tuple<int, Vector3>(0, Vector3.Zero);
+            return new Tuple<int, Vector3, bool>(0, Vector3.Zero, false);
         }
 
         private int GetWStacks(Obj_AI_Base target)
