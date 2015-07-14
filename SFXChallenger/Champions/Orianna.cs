@@ -790,7 +790,7 @@ namespace SFXChallenger.Champions
             }
         }
 
-        public Tuple<int, Vector3> GetBestQLocation(Obj_AI_Hero target, HitChance hitChance)
+        private Tuple<int, Vector3> GetBestQLocation(Obj_AI_Hero target, HitChance hitChance)
         {
             var pred = Q.GetPrediction(target);
             if (pred.Hitchance < hitChance)

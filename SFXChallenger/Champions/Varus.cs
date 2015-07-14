@@ -33,7 +33,9 @@ using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
 using SFXChallenger.Wrappers;
 using SFXLibrary;
+using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
+using SharpDX;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
@@ -382,10 +384,10 @@ namespace SFXChallenger.Champions
             {
                 return;
             }
-            var pred = E.GetPrediction(target);
-            if (pred.Hitchance >= hitChance)
+            var pos = GetBestELocation(target, hitChance);
+            if (!pos.Equals(Vector3.Zero))
             {
-                E.Cast(pred.CastPosition);
+                E.Cast(pos);
             }
         }
 
@@ -443,6 +445,45 @@ namespace SFXChallenger.Champions
                     QLogic(killable, HitChance.High);
                 }
             }
+        }
+
+        private Vector3 GetBestELocation(Obj_AI_Hero target, HitChance hitChance)
+        {
+            var pred = E.GetPrediction(target);
+            if (pred.Hitchance < hitChance)
+            {
+                return Vector3.Zero;
+            }
+            var points = (from enemy in GameObjects.EnemyHeroes.Where(h => h.IsValidTarget((E.Range + E.Range * 1.3f)))
+                select E.GetPrediction(enemy)
+                into ePred
+                where ePred.Hitchance >= (hitChance - 1)
+                select ePred.UnitPosition.To2D()).ToList();
+            if (points.Any())
+            {
+                var possiblities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 0).ToList();
+                if (possiblities.Any())
+                {
+                    var hits = 0;
+                    var radius = float.MaxValue;
+                    var pos = Vector3.Zero;
+                    foreach (var possibility in possiblities)
+                    {
+                        var mec = MEC.GetMec(possibility);
+                        if (mec.Radius < E.Range * 0.95f)
+                        {
+                            if (possibility.Count > hits || possibility.Count == hits && radius > mec.Radius)
+                            {
+                                hits = possibility.Count;
+                                radius = mec.Radius;
+                                pos = mec.Center.To3D();
+                            }
+                        }
+                    }
+                    return pos;
+                }
+            }
+            return Vector3.Zero;
         }
 
         private int GetWStacks(Obj_AI_Base target)
