@@ -37,6 +37,10 @@ using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
 using SharpDX;
 using Color = System.Drawing.Color;
+using MinionManager = SFXLibrary.MinionManager;
+using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
+using MinionTeam = SFXLibrary.MinionTeam;
+using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
@@ -540,7 +544,11 @@ namespace SFXChallenger.Champions
             }
             if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady())
             {
-                Casting.Farm(E, min);
+                var pos = GetBestEMinionLocation(min);
+                if (pos.Item1 >= min)
+                {
+                    E.Cast(pos.Item2);
+                }
             }
         }
 
@@ -607,6 +615,42 @@ namespace SFXChallenger.Champions
                 }
             }
             return Vector3.Zero;
+        }
+
+        private Tuple<int, Vector3> GetBestEMinionLocation(int min)
+        {
+            var minions = MinionManager.GetMinions(
+                (E.Range + E.Range * 1.3f), MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+            var points = (from minion in minions
+                select E.GetPrediction(minion)
+                into ePred
+                where ePred.Hitchance >= HitChance.Medium
+                select ePred.UnitPosition.To2D()).ToList();
+            if (points.Any())
+            {
+                var possibilities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count >= min).ToList();
+                if (possibilities.Any())
+                {
+                    var hits = 0;
+                    var radius = float.MaxValue;
+                    var pos = Vector3.Zero;
+                    foreach (var possibility in possibilities)
+                    {
+                        var mec = MEC.GetMec(possibility);
+                        if (mec.Radius < E.Width * 0.95f)
+                        {
+                            if (possibility.Count > hits || possibility.Count == hits && radius > mec.Radius)
+                            {
+                                hits = possibility.Count;
+                                radius = mec.Radius;
+                                pos = mec.Center.To3D();
+                            }
+                        }
+                    }
+                    return new Tuple<int, Vector3>(hits, pos);
+                }
+            }
+            return new Tuple<int, Vector3>(0, Vector3.Zero);
         }
 
         private int GetWStacks(Obj_AI_Base target)
