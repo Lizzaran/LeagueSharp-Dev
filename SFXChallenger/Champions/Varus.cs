@@ -36,6 +36,7 @@ using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
 using SharpDX;
+using Color = System.Drawing.Color;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
@@ -46,6 +47,7 @@ namespace SFXChallenger.Champions
     internal class Varus : Champion
     {
         private float _rSpreadRadius = 450f;
+        private MenuItem _wStacks;
 
         protected override ItemFlags ItemFlags
         {
@@ -58,6 +60,7 @@ namespace SFXChallenger.Champions
             Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
             AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
             Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
+            Drawing.OnDraw += OnDrawingDraw;
         }
 
         protected override void OnUnload()
@@ -66,6 +69,7 @@ namespace SFXChallenger.Champions
             Orbwalking.AfterAttack -= OnOrbwalkingAfterAttack;
             AntiGapcloser.OnEnemyGapcloser -= OnEnemyGapcloser;
             Interrupter2.OnInterruptableTarget -= OnInterruptableTarget;
+            Drawing.OnDraw -= OnDrawingDraw;
         }
 
         protected override void AddToMenu()
@@ -190,6 +194,8 @@ namespace SFXChallenger.Champions
             IndicatorManager.Add(E);
             IndicatorManager.Add(R);
             IndicatorManager.Finale();
+
+            _wStacks = DrawingManager.Add("W " + Global.Lang.Get("Stacks"), true);
         }
 
         protected override void SetupSpells()
@@ -606,6 +612,26 @@ namespace SFXChallenger.Champions
         private int GetWStacks(Obj_AI_Base target)
         {
             return target.GetBuffCount("varuswdebuff");
+        }
+
+        private void OnDrawingDraw(EventArgs args)
+        {
+            if (W.Level > 0 && _wStacks != null && _wStacks.GetValue<bool>())
+            {
+                foreach (var enemy in
+                    GameObjects.EnemyHeroes.Where(
+                        e => e.IsHPBarRendered && e.Position.IsOnScreen() && e.IsValidTarget()))
+                {
+                    var stacks = GetWStacks(enemy) - 1;
+                    var x = enemy.HPBarPosition.X + 45;
+                    var y = enemy.HPBarPosition.Y - 20;
+                    for (var i = 0; 3 > i; i++)
+                    {
+                        Drawing.DrawLine(
+                            x + (i * 20), y, x + (i * 20) + 10, y, 10, (i > stacks ? Color.DarkGray : Color.Orange));
+                    }
+                }
+            }
         }
     }
 }

@@ -40,7 +40,7 @@ namespace SFXChallenger.Managers
     {
         private static Menu _menu;
         private static IChampion _champion;
-        private static bool _seperator;
+        private static bool _separator;
         private static readonly Dictionary<string, float> Customs = new Dictionary<string, float>();
         private static readonly Dictionary<string, MenuItem> Others = new Dictionary<string, MenuItem>();
 
@@ -78,10 +78,10 @@ namespace SFXChallenger.Managers
         {
             try
             {
-                if (!_seperator)
+                if (!_separator)
                 {
-                    _menu.AddItem(new MenuItem(_menu.Name + ".seperator", string.Empty));
-                    _seperator = true;
+                    _menu.AddItem(new MenuItem(_menu.Name + ".separator", string.Empty));
+                    _separator = true;
                 }
                 var key = name.Trim().ToLower();
                 if (Customs.ContainsKey(key))
@@ -103,10 +103,10 @@ namespace SFXChallenger.Managers
         {
             try
             {
-                if (!_seperator)
+                if (!_separator)
                 {
-                    _menu.AddItem(new MenuItem(_menu.Name + ".seperator", string.Empty));
-                    _seperator = true;
+                    _menu.AddItem(new MenuItem(_menu.Name + ".separator", string.Empty));
+                    _separator = true;
                 }
                 var key = name.Trim().ToLower();
                 if (Others.ContainsKey(key))
