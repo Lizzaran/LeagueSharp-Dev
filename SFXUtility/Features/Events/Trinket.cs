@@ -64,7 +64,7 @@ namespace SFXUtility.Features.Events
             try
             {
                 Menu = new Menu(Name, Name + ObjectManager.Player.ChampionName);
-                var levelMenu = new Menu(Global.Lang.Get("Trinket_Level"), Name + "Level");
+                var levelMenu = new Menu(Global.Lang.Get("Trinket_Level"), Menu.Name + "Level");
                 levelMenu.AddItem(
                     new MenuItem(levelMenu.Name + "WardingTotem", Global.Lang.Get("Trinket_WardingTotem")).SetValue(
                         new Slider(1, 1, 18)));
@@ -86,7 +86,7 @@ namespace SFXUtility.Features.Events
                 levelMenu.AddItem(
                     new MenuItem(levelMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                var eventsMenu = new Menu(Global.Lang.Get("Trinket_Events"), Name + "Events");
+                var eventsMenu = new Menu(Global.Lang.Get("Trinket_Events"), Menu.Name + "Events");
                 eventsMenu.AddItem(
                     new MenuItem(eventsMenu.Name + "Sightstone", Global.Lang.Get("Trinket_Sightstone")).SetValue(false));
                 eventsMenu.AddItem(
