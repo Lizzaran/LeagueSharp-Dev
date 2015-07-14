@@ -623,12 +623,15 @@ namespace SFXChallenger.Champions
                         e => e.IsHPBarRendered && e.Position.IsOnScreen() && e.IsValidTarget()))
                 {
                     var stacks = GetWStacks(enemy) - 1;
-                    var x = enemy.HPBarPosition.X + 45;
-                    var y = enemy.HPBarPosition.Y - 20;
-                    for (var i = 0; 3 > i; i++)
+                    if (stacks > -1)
                     {
-                        Drawing.DrawLine(
-                            x + (i * 20), y, x + (i * 20) + 10, y, 10, (i > stacks ? Color.DarkGray : Color.Orange));
+                        var x = enemy.HPBarPosition.X + 45;
+                        var y = enemy.HPBarPosition.Y - 20;
+                        for (var i = 0; 3 > i; i++)
+                        {
+                            Drawing.DrawLine(
+                                x + (i * 20), y, x + (i * 20) + 10, y, 10, (i > stacks ? Color.DarkGray : Color.Orange));
+                        }
                     }
                 }
             }
