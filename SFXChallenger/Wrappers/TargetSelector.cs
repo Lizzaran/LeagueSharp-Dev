@@ -295,8 +295,7 @@ namespace SFXChallenger.Wrappers
                 {
                     return;
                 }
-                if (_selectedTarget != null &&
-                    IsValidTarget(_selectedTarget, -1, LeagueSharp.Common.TargetSelector.DamageType.True) &&
+                if (_selectedTarget != null && _selectedTarget.IsValidTarget() &&
                     _menu.Item(_menu.Name + ".focus-selected").GetValue<bool>() &&
                     _menu.Item(_menu.Name + ".drawing.selected-color").GetValue<Circle>().Active)
                 {
@@ -405,16 +404,14 @@ namespace SFXChallenger.Wrappers
 
             _selectedTarget =
                 GameObjects.EnemyHeroes.Where(
-                    h =>
-                        IsValidTarget(h, -1, LeagueSharp.Common.TargetSelector.DamageType.True) &&
-                        h.Distance(Game.CursorPos) < h.BoundingRadius + SelectClickBuffer)
+                    h => h.IsValidTarget() && h.Distance(Game.CursorPos) < h.BoundingRadius + SelectClickBuffer)
                     .OrderBy(h => h.Distance(Game.CursorPos))
                     .FirstOrDefault();
         }
 
         public static void SetTarget(Obj_AI_Hero hero)
         {
-            if (IsValidTarget(hero, -1, LeagueSharp.Common.TargetSelector.DamageType.True))
+            if (hero.IsValidTarget())
             {
                 _selectedTarget = hero;
             }
