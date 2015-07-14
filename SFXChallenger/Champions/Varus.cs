@@ -353,20 +353,29 @@ namespace SFXChallenger.Champions
             }
             if (!Q.IsCharging)
             {
-                var input = new PredictionInput
+                var pred = Q.GetPrediction(target);
+                if (pred.Hitchance >= hitChance)
                 {
-                    Range = Q.ChargedMaxRange,
-                    Collision = false,
-                    Delay = 1f,
-                    Radius = Q.Width,
-                    Speed = Q.Speed,
-                    Type = Q.Type,
-                    Unit = target
-                };
-                if (Prediction.GetPrediction(input).Hitchance >= (hitChance - 1))
-                {
-                    Q.StartCharging();
+                    Q.Cast(target);
                 }
+                else
+                {
+                    var input = new PredictionInput
+                    {
+                        Range = Q.ChargedMaxRange,
+                        Collision = false,
+                        Delay = 1f,
+                        Radius = Q.Width,
+                        Speed = Q.Speed,
+                        Type = Q.Type,
+                        Unit = target
+                    };
+                    if (Prediction.GetPrediction(input).Hitchance >= (hitChance - 1))
+                    {
+                        Q.StartCharging();
+                    }
+                }
+                
             }
             if (Q.IsCharging)
             {
@@ -461,16 +470,16 @@ namespace SFXChallenger.Champions
                 select ePred.UnitPosition.To2D()).ToList();
             if (points.Any())
             {
-                var possiblities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 0).ToList();
-                if (possiblities.Any())
+                var possibilities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 0).ToList();
+                if (possibilities.Any())
                 {
                     var hits = 0;
                     var radius = float.MaxValue;
                     var pos = Vector3.Zero;
-                    foreach (var possibility in possiblities)
+                    foreach (var possibility in possibilities)
                     {
                         var mec = MEC.GetMec(possibility);
-                        if (mec.Radius < E.Range * 0.95f)
+                        if (mec.Radius < E.Width * 0.95f)
                         {
                             if (possibility.Count > hits || possibility.Count == hits && radius > mec.Radius)
                             {

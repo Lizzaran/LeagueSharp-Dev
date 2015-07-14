@@ -1049,10 +1049,10 @@ namespace SFXChallenger.Champions
                 select prediction.UnitPosition.To2D()).ToList();
             if (points.Any())
             {
-                var possiblities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 1).ToList();
-                if (possiblities.Any())
+                var possibilities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 1).ToList();
+                if (possibilities.Any())
                 {
-                    foreach (var possibility in possiblities)
+                    foreach (var possibility in possibilities)
                     {
                         var mec = MEC.GetMec(possibility);
                         if (mec.Radius < (R.Width / 2) && Player.Distance(mec.Center) < range)
@@ -1094,13 +1094,13 @@ namespace SFXChallenger.Champions
             var targets = Targets.Where(t => t.IsValidTarget()).ToList();
             if (targets.Any())
             {
-                var possiblities =
+                var possibilities =
                     ListExtensions.ProduceEnumeration(targets.Select(t => t.Position.To2D()).ToList())
                         .Where(p => p.Count > 1)
                         .ToList();
-                if (possiblities.Any())
+                if (possibilities.Any())
                 {
-                    foreach (var possibility in possiblities)
+                    foreach (var possibility in possibilities)
                     {
                         var mec = MEC.GetMec(possibility);
                         var distance = position.Distance(mec.Center.To3D());

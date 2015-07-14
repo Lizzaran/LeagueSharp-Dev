@@ -728,10 +728,10 @@ namespace SFXChallenger.Champions
             }
             if (points.Any())
             {
-                var possiblities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 1).ToList();
-                if (possiblities.Any())
+                var possibilities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 1).ToList();
+                if (possibilities.Any())
                 {
-                    foreach (var possibility in possiblities)
+                    foreach (var possibility in possibilities)
                     {
                         var mec = MEC.GetMec(possibility);
                         if (mec.Radius < R.Width && Player.Distance(mec.Center) < range)
@@ -804,15 +804,15 @@ namespace SFXChallenger.Champions
                 select ePred.UnitPosition.To2D()).ToList();
             if (points.Any())
             {
-                var possiblities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 0).ToList();
-                if (possiblities.Any())
+                var possibilities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 0).ToList();
+                if (possibilities.Any())
                 {
                     var hits = 0;
                     var radius = float.MaxValue;
                     var pos = Vector3.Zero;
                     var rReady = R.IsReady();
                     var wReady = R.IsReady();
-                    foreach (var possibility in possiblities)
+                    foreach (var possibility in possibilities)
                     {
                         var check = false;
                         var mec = MEC.GetMec(possibility);
