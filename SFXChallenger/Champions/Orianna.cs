@@ -177,15 +177,13 @@ namespace SFXChallenger.Champions
                 new MenuItem(miscMenu.Name + ".block-r", Global.Lang.Get("G_BlockMissing") + " R").SetValue(true));
 
             DrawingManager.Add("R " + Global.Lang.Get("G_Flash"), R.Range + SummonerManager.Flash.Range);
-            DrawingManager.Add("Combo Damage", new Circle(true, DamageIndicator.DrawingColor)).ValueChanged +=
-                delegate(object sender, OnValueChangeEventArgs args)
-                {
-                    DamageIndicator.Enabled = args.GetNewValue<Circle>().Active;
-                    DamageIndicator.DrawingColor = args.GetNewValue<Circle>().Color;
-                };
-            DamageIndicator.Initialize(DamageIndicatorFunc);
-            DamageIndicator.Enabled = DrawingManager.Get("Combo Damage").GetValue<Circle>().Active;
-            DamageIndicator.DrawingColor = DrawingManager.Get("Combo Damage").GetValue<Circle>().Color;
+
+            IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
+            IndicatorManager.Add(Q);
+            IndicatorManager.Add(W);
+            IndicatorManager.Add(E);
+            IndicatorManager.Add(R);
+            IndicatorManager.Finale();
         }
 
         private void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
@@ -464,11 +462,6 @@ namespace SFXChallenger.Champions
             {
                 ELogic();
             }
-        }
-
-        private float DamageIndicatorFunc(Obj_AI_Hero target)
-        {
-            return CalcComboDamage(target, true, true, true, true);
         }
 
         private float CalcComboDamage(Obj_AI_Hero target, bool q, bool w, bool e, bool r)

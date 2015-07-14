@@ -75,6 +75,8 @@
 	<entry key="G_Always">Always</entry>
 	<entry key="G_StacksIsOrMore">Stacks >=</entry>
 	<entry key="G_OutOfRange">Out of Range</entry>
+	<entry key="G_Color">Color</entry>
+	<entry key="G_Opacity">Opacity</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: Language -->
@@ -102,9 +104,13 @@
 	<entry key="MH_VeryHigh">Very High</entry>
 	<!-- END: Hitchance -->
 
-	<!-- START: SummonerManager -->
+	<!-- START: InitiatorManager -->
 	<entry key="F_IM">Initiator</entry>
-	<!-- END: SummonerManager -->
+	<!-- END: InitiatorManager -->
+
+	<!-- START: IndicatorManager -->
+	<entry key="F_IDM">Damage Indicator</entry>
+	<!-- END: IndicatorManager -->
 
 	<!-- START: SummonerManager -->
 	<entry key="F_MS">Summoners</entry>

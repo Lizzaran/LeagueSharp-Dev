@@ -295,8 +295,8 @@ namespace SFXChallenger.Wrappers
                 {
                     return;
                 }
-
-                if (_selectedTarget != null && _selectedTarget.IsValidTarget() &&
+                if (_selectedTarget != null &&
+                    IsValidTarget(_selectedTarget, -1, LeagueSharp.Common.TargetSelector.DamageType.True) &&
                     _menu.Item(_menu.Name + ".focus-selected").GetValue<bool>() &&
                     _menu.Item(_menu.Name + ".drawing.selected-color").GetValue<Circle>().Active)
                 {
@@ -405,14 +405,16 @@ namespace SFXChallenger.Wrappers
 
             _selectedTarget =
                 GameObjects.EnemyHeroes.Where(
-                    h => h.IsValidTarget() && h.Distance(Game.CursorPos) < h.BoundingRadius + SelectClickBuffer)
+                    h =>
+                        IsValidTarget(h, -1, LeagueSharp.Common.TargetSelector.DamageType.True) &&
+                        h.Distance(Game.CursorPos) < h.BoundingRadius + SelectClickBuffer)
                     .OrderBy(h => h.Distance(Game.CursorPos))
                     .FirstOrDefault();
         }
 
         public static void SetTarget(Obj_AI_Hero hero)
         {
-            if (hero.IsValidTarget())
+            if (IsValidTarget(hero, -1, LeagueSharp.Common.TargetSelector.DamageType.True))
             {
                 _selectedTarget = hero;
             }
@@ -480,9 +482,10 @@ namespace SFXChallenger.Wrappers
                     : range;
 
                 if (_menu != null && SelectedTarget != null &&
-                    SelectedTarget.IsValidTarget(
+                    IsValidTarget(
+                        SelectedTarget,
                         _menu.Item(_menu.Name + ".force-focus-selected").GetValue<bool>() ? float.MaxValue : aRange,
-                        true, from))
+                        LeagueSharp.Common.TargetSelector.DamageType.True, true, from))
                 {
                     return new List<Obj_AI_Hero> { SelectedTarget };
                 }
@@ -592,7 +595,7 @@ namespace SFXChallenger.Wrappers
         {
             if (_menu != null)
             {
-                var item = _menu.Item(_menu.Name + ".priorites." + name);
+                var item = _menu.Item(_menu.Name + ".priorities." + name);
                 if (item != null)
                 {
                     return item.GetValue<Slider>().Value;
@@ -603,10 +606,10 @@ namespace SFXChallenger.Wrappers
 
         private static TargetSelectorPriorityType GetDefaultPriorityByName(string name)
         {
-            var pirority = Priorities.FirstOrDefault(m => m.Champions.Contains(name));
-            if (pirority != null)
+            var priority = Priorities.FirstOrDefault(m => m.Champions.Contains(name));
+            if (priority != null)
             {
-                return pirority.Type;
+                return priority.Type;
             }
             return TargetSelectorPriorityType.Low;
         }
@@ -683,7 +686,7 @@ namespace SFXChallenger.Wrappers
 
 
                 var prioritiesMenu =
-                    _menu.AddSubMenu(new Menu(Global.Lang.Get("TS_Priorities"), menu.Name + ".priorites"));
+                    _menu.AddSubMenu(new Menu(Global.Lang.Get("TS_Priorities"), menu.Name + ".priorities"));
                 prioritiesMenu.AddItem(
                     new MenuItem(prioritiesMenu.Name + ".auto", Global.Lang.Get("TS_AutoPriority")).SetValue(false))
                     .ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
@@ -704,7 +707,7 @@ namespace SFXChallenger.Wrappers
                         new MenuItem(prioritiesMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(
                             new Slider(1, 1, 5));
                     prioritiesMenu.AddItem(item);
-                    if (_menu.Item(menu.Name + ".priorites.auto").GetValue<bool>())
+                    if (_menu.Item(menu.Name + ".priorities.auto").GetValue<bool>())
                     {
                         item.SetValue(new Slider(Convert.ToInt32(GetDefaultPriorityByName(enemy.ChampionName)), 1, 5));
                     }

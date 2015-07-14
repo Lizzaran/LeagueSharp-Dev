@@ -173,6 +173,12 @@ namespace SFXChallenger.Champions
 
             TargetSelector.AddWeightedItem(
                 new WeightedItem("w-stacks", "W " + Global.Lang.Get("G_Stacks"), 13, true, 500, t => GetWStacks(t)));
+
+            IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
+            IndicatorManager.Add(Q);
+            IndicatorManager.Add(E);
+            IndicatorManager.Add(R);
+            IndicatorManager.Finale();
         }
 
         protected override void SetupSpells()

@@ -69,6 +69,11 @@ namespace SFXChallenger.Managers
             }
         }
 
+        public static Menu GetMenu()
+        {
+            return _menu;
+        }
+
         public static void Add(string name, float range)
         {
             try

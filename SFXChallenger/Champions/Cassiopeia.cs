@@ -212,16 +212,13 @@ namespace SFXChallenger.Champions
             DrawingManager.Update(
                 "R " + Global.Lang.Get("G_Flash"),
                 Menu.Item(Menu.Name + ".ultimate.range").GetValue<Slider>().Value + SummonerManager.Flash.Range);
-            DrawingManager.Add("Combo Damage", new Circle(true, DamageIndicator.DrawingColor)).ValueChanged +=
-                delegate(object sender, OnValueChangeEventArgs args)
-                {
-                    DamageIndicator.Enabled = args.GetNewValue<Circle>().Active;
-                    DamageIndicator.DrawingColor = args.GetNewValue<Circle>().Color;
-                };
 
-            DamageIndicator.Initialize(DamageIndicatorFunc);
-            DamageIndicator.Enabled = DrawingManager.Get("Combo Damage").GetValue<Circle>().Active;
-            DamageIndicator.DrawingColor = DrawingManager.Get("Combo Damage").GetValue<Circle>().Color;
+            IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
+            IndicatorManager.Add(Q);
+            IndicatorManager.Add(W);
+            IndicatorManager.Add("E", hero => E.GetDamage(hero) * 5);
+            IndicatorManager.Add(R);
+            IndicatorManager.Finale();
 
             TargetSelector.AddWeightedItem(
                 new WeightedItem(
@@ -599,11 +596,6 @@ namespace SFXChallenger.Champions
                 ItemManager.UseComboItems(target);
                 SummonerManager.UseComboSummoners(target);
             }
-        }
-
-        private float DamageIndicatorFunc(Obj_AI_Hero target)
-        {
-            return CalcComboDamage(target, true, true, true, true);
         }
 
         private float CalcComboDamage(Obj_AI_Hero target, bool q, bool w, bool e, bool r)

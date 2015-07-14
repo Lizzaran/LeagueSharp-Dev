@@ -171,16 +171,11 @@ namespace SFXChallenger.Champions
                 new MenuItem(miscMenu.Name + ".w-dragon", Global.Lang.Get("Kalista_WDragon")).SetValue(
                     new KeyBind('K', KeyBindType.Press)));
 
-            DrawingManager.Add("E Damage", new Circle(true, DamageIndicator.DrawingColor)).ValueChanged +=
-                delegate(object sender, OnValueChangeEventArgs args)
-                {
-                    DamageIndicator.Enabled = args.GetNewValue<Circle>().Active;
-                    DamageIndicator.DrawingColor = args.GetNewValue<Circle>().Color;
-                };
+            IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
+            IndicatorManager.Add(Q);
+            IndicatorManager.Add("E", Rend.GetDamage);
+            IndicatorManager.Finale();
 
-            DamageIndicator.Initialize(Rend.GetDamage);
-            DamageIndicator.Enabled = DrawingManager.Get("E Damage").GetValue<Circle>().Active;
-            DamageIndicator.DrawingColor = DrawingManager.Get("E Damage").GetValue<Circle>().Color;
             TargetSelector.OverwriteWeightFunction("low-health", hero => hero.Health - Rend.GetDamage(hero));
         }
 

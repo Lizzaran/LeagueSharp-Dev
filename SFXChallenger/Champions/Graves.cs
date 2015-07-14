@@ -95,6 +95,12 @@ namespace SFXChallenger.Champions
                 new MenuItem(miscMenu.Name + ".w-gapcloser", "W " + Global.Lang.Get("G_Gapcloser")).SetValue(false));
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".e-gapcloser", "E " + Global.Lang.Get("G_Gapcloser")).SetValue(false));
+
+            IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
+            IndicatorManager.Add(Q);
+            IndicatorManager.Add(W);
+            IndicatorManager.Add(R);
+            IndicatorManager.Finale();
         }
 
         protected override void SetupSpells()

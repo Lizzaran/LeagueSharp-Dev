@@ -169,17 +169,32 @@ namespace SFXChallenger.Champions
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-dash", "W " + Global.Lang.Get("G_Dash")).SetValue(true));
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".w-gapcloser", "W " + Global.Lang.Get("G_Gapcloser")).SetValue(true));
-
-            DrawingManager.Add("Combo Damage", new Circle(true, DamageIndicator.DrawingColor)).ValueChanged +=
-                delegate(object sender, OnValueChangeEventArgs args)
+            
+            IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
+            IndicatorManager.Add("Q", delegate(Obj_AI_Hero hero)
+            {
+                var damage = 0f;
+                if (Q.IsReady())
                 {
-                    DamageIndicator.Enabled = args.GetNewValue<Circle>().Active;
-                    DamageIndicator.DrawingColor = args.GetNewValue<Circle>().Color;
-                };
-
-            DamageIndicator.Initialize(DamageIndicatorFunc);
-            DamageIndicator.Enabled = DrawingManager.Get("Combo Damage").GetValue<Circle>().Active;
-            DamageIndicator.DrawingColor = DrawingManager.Get("Combo Damage").GetValue<Circle>().Color;
+                    damage += Q.GetDamage(hero);
+                    damage += CalcPassiveDamage(hero);
+                }
+                else if (Player.HasBuff("viktorpowertransferreturn"))
+                {
+                    damage += CalcPassiveDamage(hero);
+                }
+                return damage;
+            });
+            IndicatorManager.Add(E);
+            IndicatorManager.Add("R", delegate(Obj_AI_Hero hero)
+            {
+                if (R.IsReady())
+                {
+                    return R.GetDamage(hero) + (R.GetDamage(hero, 1) * 10);
+                }
+                return 0;
+            });
+            IndicatorManager.Finale();
         }
 
         protected override void SetupSpells()
@@ -508,38 +523,6 @@ namespace SFXChallenger.Champions
                 ItemManager.UseComboItems(target);
                 SummonerManager.UseComboSummoners(target);
             }
-        }
-
-        private float DamageIndicatorFunc(Obj_AI_Base target)
-        {
-            try
-            {
-                var damage = 0f;
-                if (Q.IsReady())
-                {
-                    damage += Q.GetDamage(target);
-                    damage += CalcPassiveDamage(target);
-                }
-                else if (Player.HasBuff("viktorpowertransferreturn"))
-                {
-                    damage += CalcPassiveDamage(target);
-                }
-                if (E.IsReady())
-                {
-                    damage += E.GetDamage(target);
-                }
-                if (R.IsReady())
-                {
-                    damage += R.GetDamage(target);
-                    damage += (R.GetDamage(target, 1) * 12);
-                }
-                return damage;
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return 0;
         }
 
         private float CalcComboDamage(Obj_AI_Hero target, bool q, bool e, bool r, bool extended)
