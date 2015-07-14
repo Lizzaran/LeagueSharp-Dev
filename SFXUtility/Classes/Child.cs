@@ -45,7 +45,7 @@ namespace SFXUtility.Classes
             get
             {
                 return !Unloaded && Parent != null && Parent.Enabled && Menu != null &&
-                       Menu.Item(Name + "Enabled").GetValue<bool>();
+                       Menu.Item(Menu.Name + "Enabled").GetValue<bool>();
             }
         }
 
@@ -108,7 +108,7 @@ namespace SFXUtility.Classes
                     {
                         if (!Unloaded && args.GetNewValue<bool>())
                         {
-                            if (Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>())
+                            if (Menu != null && Menu.Item(Menu.Name + "Enabled").GetValue<bool>())
                             {
                                 OnEnable();
                             }
@@ -118,7 +118,7 @@ namespace SFXUtility.Classes
                             OnDisable();
                         }
                     };
-                Menu.Item(Name + "Enabled").ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
+                Menu.Item(Menu.Name + "Enabled").ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
                 {
                     if (!Unloaded && args.GetNewValue<bool>())
                     {
