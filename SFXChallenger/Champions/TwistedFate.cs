@@ -180,7 +180,7 @@ namespace SFXChallenger.Champions
             Q = new Spell(SpellSlot.Q, 1450f);
             Q.SetSkillshot(0.25f, 40f, 1000f, false, SkillshotType.SkillshotLine);
 
-            W = new Spell(SpellSlot.W, (Player.AttackRange + Player.BoundingRadius) * 1.05f);
+            W = new Spell(SpellSlot.W, (Player.AttackRange + Player.BoundingRadius) * 1.3f);
             W.SetSkillshot(0.5f, 100f, Player.BasicAttack.MissileSpeed, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E);
