@@ -491,10 +491,6 @@ namespace SFXChallenger.Champions
             var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>();
             var w = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>();
 
-            if (q && Q.IsReady())
-            {
-                QLogic(Q.GetHitChance("harass"));
-            }
             if (w && W.IsReady())
             {
                 var target = TargetSelector.GetTarget(
@@ -505,10 +501,39 @@ namespace SFXChallenger.Champions
                     Cards.Select(best);
                 }
             }
+            if (q && Q.IsReady())
+            {
+                QLogic(Q.GetHitChance("harass"));
+            }
+        }
+
+        protected override void Harass()
+        {
+            var q = Menu.Item(Menu.Name + ".harass.q").GetValue<bool>();
+            var w = Menu.Item(Menu.Name + ".harass.w").GetValue<bool>();
+
+            if (ManaManager.Check("harass") && w && W.IsReady())
+            {
+                var target = TargetSelector.GetTarget(
+                    W.Range * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+                var best = GetBestCard(target, "harass");
+                if (best.Any())
+                {
+                    Cards.Select(best);
+                }
+            }
+            if (q && Q.IsReady())
+            {
+                QLogic(Q.GetHitChance("harass"));
+            }
         }
 
         private void QLogic(HitChance hitChance)
         {
+            if ((Cards.Has() || HasEBuff()) && !GameObjects.EnemyHeroes.Any(Orbwalking.InAutoAttackRange))
+            {
+                return;
+            }
             var target = TargetSelector.GetTarget(Q.Range, LeagueSharp.Common.TargetSelector.DamageType.Magical);
             var cd = W.Instance.CooldownExpires - Game.Time;
             var dist = target.Distance(Player);
@@ -521,38 +546,8 @@ namespace SFXChallenger.Champions
             }
         }
 
-        protected override void Harass()
-        {
-            if (!ManaManager.Check("harass"))
-            {
-                return;
-            }
-            var q = Menu.Item(Menu.Name + ".harass.q").GetValue<bool>();
-            var w = Menu.Item(Menu.Name + ".harass.w").GetValue<bool>();
-
-            if (q && Q.IsReady())
-            {
-                QLogic(Q.GetHitChance("harass"));
-            }
-            if (w && W.IsReady())
-            {
-                var target = TargetSelector.GetTarget(
-                    W.Range * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical);
-                var best = GetBestCard(target, "harass");
-                if (best.Any())
-                {
-                    Cards.Select(best);
-                }
-            }
-        }
-
         protected override void LaneClear()
         {
-            if (!ManaManager.Check("lane-clear"))
-            {
-                return;
-            }
-
             var q = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>();
             var qMin = Menu.Item(Menu.Name + ".lane-clear.q-min").GetValue<Slider>().Value;
             var w = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>();
@@ -567,7 +562,7 @@ namespace SFXChallenger.Champions
                     Q.Cast(best.Item2);
                 }
             }
-            if (w && W.IsReady())
+            if (ManaManager.Check("lane-clear") && w && W.IsReady())
             {
                 var best = GetBestLaneClearTargetCard();
                 if (best.Item1 != null && best.Item2.Any())
