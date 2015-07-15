@@ -802,7 +802,7 @@ namespace SFXChallenger.Champions
                 if (mode == "combo" && !cards.Any())
                 {
                     var distance = target.Distance(ObjectManager.Player);
-                    var damage = ItemManager.CalculateComboDamage(target) - target.HPRegenRate / 2f;
+                    var damage = ItemManager.CalculateComboDamage(target) - target.HPRegenRate * 2f - 10;
                     if (HasEBuff())
                     {
                         damage += E.GetDamage(target);
@@ -812,11 +812,11 @@ namespace SFXChallenger.Champions
                     {
                         damage += Q.GetDamage(target) * 0.9f;
                     }
-                    if (W.GetDamage(target, 2) + damage - 20 > target.Health)
+                    if (W.GetDamage(target, 2) + damage > target.Health)
                     {
                         cards.Add(CardColor.Gold);
                     }
-                    else if (W.GetDamage(target) + damage - 20 > target.Health)
+                    else if (W.GetDamage(target) + damage > target.Health)
                     {
                         cards.Add(CardColor.Blue);
                     }
