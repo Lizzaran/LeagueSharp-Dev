@@ -22,8 +22,6 @@
 
 #region
 
-#region
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,8 +46,6 @@ using Utils = SFXChallenger.Helpers.Utils;
 #endregion
 
 #pragma warning disable 618
-
-#endregion
 
 namespace SFXChallenger.Champions
 {

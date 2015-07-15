@@ -384,13 +384,10 @@ namespace SFXChallenger.Managers
             {
                 return ObjectManager.Player.BaseAttackDamage * 0.75f + ObjectManager.Player.FlatMagicDamageMod * 0.5f;
             }
-            else
+            var sheen = ItemData.Sheen.GetItem();
+            if (sheen.IsOwned())
             {
-                var sheen = ItemData.Sheen.GetItem();
-                if (sheen.IsOwned())
-                {
-                    return ObjectManager.Player.BaseAttackDamage;
-                }
+                return ObjectManager.Player.BaseAttackDamage;
             }
             return 0;
         }
