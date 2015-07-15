@@ -143,6 +143,10 @@ namespace SFXChallenger.Champions
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
             miscMenu.AddItem(
+                new MenuItem(miscMenu.Name + ".w-range", "W " + Global.Lang.Get("G_Range")).SetValue(
+                    new Slider((int) W.Range, 500, 1000))).ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { W.Range = args.GetNewValue<Slider>().Value; };
+            miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".mode", Global.Lang.Get("G_Mode")).SetValue(
                     new StringList(Global.Lang.GetList("TF_Modes"))));
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r-card", Global.Lang.Get("TF_RCard")).SetValue(true));
@@ -165,6 +169,8 @@ namespace SFXChallenger.Champions
                 new MenuItem(manualMenu.Name + ".gold", Global.Lang.Get("G_Hotkey") + " " + Global.Lang.Get("TF_Gold"))
                     .SetValue(new KeyBind('I', KeyBindType.Press)));
 
+            W.Range = Menu.Item(Menu.Name + ".miscellaneous.w-range").GetValue<Slider>().Value;
+
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
             IndicatorManager.Add(Q);
             IndicatorManager.Add(W);
@@ -180,7 +186,7 @@ namespace SFXChallenger.Champions
             Q = new Spell(SpellSlot.Q, 1450f);
             Q.SetSkillshot(0.25f, 40f, 1000f, false, SkillshotType.SkillshotLine);
 
-            W = new Spell(SpellSlot.W, (Player.AttackRange + Player.BoundingRadius * 2f) * 1.18f);
+            W = new Spell(SpellSlot.W, 785f);
             W.SetSkillshot(0.5f, 100f, Player.BasicAttack.MissileSpeed, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E);
@@ -823,7 +829,7 @@ namespace SFXChallenger.Champions
                     if (!cards.Any())
                     {
                         if (ObjectManager.Player.HealthPercent <=
-                             Menu.Item(Menu.Name + ".combo.gold-percent").GetValue<Slider>().Value)
+                            Menu.Item(Menu.Name + ".combo.gold-percent").GetValue<Slider>().Value)
                         {
                             cards.Add(CardColor.Gold);
                         }
