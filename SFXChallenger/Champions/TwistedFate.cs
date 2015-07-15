@@ -530,7 +530,8 @@ namespace SFXChallenger.Champions
 
         private void QLogic(HitChance hitChance)
         {
-            if ((Cards.Has() || HasEBuff()) && !GameObjects.EnemyHeroes.Any(Orbwalking.InAutoAttackRange))
+            if ((Cards.Has() || HasEBuff()) &&
+                !GameObjects.EnemyHeroes.Any(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget()))
             {
                 return;
             }
@@ -919,30 +920,13 @@ namespace SFXChallenger.Champions
 
             public static void Select(CardColor card)
             {
-                if (ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Name == "PickACard" &&
-                    Status == SelectStatus.Ready)
+                try
                 {
-                    ShouldSelect.Clear();
-                    ShouldSelect = new List<CardColor> { card };
-                    if (Utils.TickCount - LastWSent > 200)
+                    if (ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Name == "PickACard" &&
+                        Status == SelectStatus.Ready)
                     {
-                        if (ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, ObjectManager.Player))
-                        {
-                            LastWSent = Utils.TickCount;
-                        }
-                    }
-                }
-            }
-
-            public static void Select(List<CardColor> cards)
-            {
-                if (ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Name == "PickACard" &&
-                    Status == SelectStatus.Ready)
-                {
-                    ShouldSelect.Clear();
-                    ShouldSelect = cards;
-                    if (cards.Any())
-                    {
+                        ShouldSelect.Clear();
+                        ShouldSelect = new List<CardColor> { card };
                         if (Utils.TickCount - LastWSent > 200)
                         {
                             if (ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, ObjectManager.Player))
@@ -952,55 +936,100 @@ namespace SFXChallenger.Champions
                         }
                     }
                 }
+                catch (Exception ex)
+                {
+                    Global.Logger.AddItem(new LogItem(ex));
+                }
+            }
+
+            public static void Select(List<CardColor> cards)
+            {
+                try
+                {
+                    if (ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Name == "PickACard" &&
+                        Status == SelectStatus.Ready)
+                    {
+                        ShouldSelect.Clear();
+                        ShouldSelect = cards;
+                        if (cards.Any())
+                        {
+                            if (Utils.TickCount - LastWSent > 200)
+                            {
+                                if (ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, ObjectManager.Player))
+                                {
+                                    LastWSent = Utils.TickCount;
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Global.Logger.AddItem(new LogItem(ex));
+                }
             }
 
             private static void OnGameUpdate(EventArgs args)
             {
-                var wName = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Name;
-                var wState = ObjectManager.Player.Spellbook.CanUseSpell(SpellSlot.W);
+                try
+                {
+                    var wName = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Name;
+                    var wState = ObjectManager.Player.Spellbook.CanUseSpell(SpellSlot.W);
 
-                if ((wState == SpellState.Ready && wName == "PickACard" &&
-                     (Status != SelectStatus.Selecting || Utils.TickCount - LastWSent > 500)) ||
-                    ObjectManager.Player.IsDead)
-                {
-                    Status = SelectStatus.Ready;
+                    if ((wState == SpellState.Ready && wName == "PickACard" &&
+                         (Status != SelectStatus.Selecting || Utils.TickCount - LastWSent > 500)) ||
+                        ObjectManager.Player.IsDead)
+                    {
+                        Status = SelectStatus.Ready;
+                    }
+                    else if (wState == SpellState.Cooldown && wName == "PickACard")
+                    {
+                        ShouldSelect.Clear();
+                        Status = SelectStatus.Cooldown;
+                    }
+                    else if (wState == SpellState.Surpressed && !ObjectManager.Player.IsDead)
+                    {
+                        Status = SelectStatus.Selected;
+                    }
+                    if (
+                        ShouldSelect.Any(
+                            s =>
+                                s == CardColor.Blue && wName == "bluecardlock" ||
+                                s == CardColor.Gold && wName == "goldcardlock" ||
+                                s == CardColor.Red && wName == "redcardlock"))
+                    {
+                        SendWPacket();
+                    }
                 }
-                else if (wState == SpellState.Cooldown && wName == "PickACard")
+                catch (Exception ex)
                 {
-                    ShouldSelect.Clear();
-                    Status = SelectStatus.Cooldown;
-                }
-                else if (wState == SpellState.Surpressed && !ObjectManager.Player.IsDead)
-                {
-                    Status = SelectStatus.Selected;
-                }
-                if (
-                    ShouldSelect.Any(
-                        s =>
-                            s == CardColor.Blue && wName == "bluecardlock" ||
-                            s == CardColor.Gold && wName == "goldcardlock" ||
-                            s == CardColor.Red && wName == "redcardlock"))
-                {
-                    SendWPacket();
+                    Global.Logger.AddItem(new LogItem(ex));
                 }
             }
 
             private static void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
             {
-                if (!sender.IsMe)
+                try
                 {
-                    return;
-                }
+                    if (!sender.IsMe)
+                    {
+                        return;
+                    }
 
-                if (args.SData.Name == "PickACard")
-                {
-                    Status = SelectStatus.Selecting;
-                }
+                    if (args.SData.Name == "PickACard")
+                    {
+                        Status = SelectStatus.Selecting;
+                    }
 
-                if (args.SData.Name == "goldcardlock" || args.SData.Name == "bluecardlock" ||
-                    args.SData.Name == "redcardlock")
+                    if (args.SData.Name == "goldcardlock" || args.SData.Name == "bluecardlock" ||
+                        args.SData.Name == "redcardlock")
+                    {
+                        Status = SelectStatus.Selected;
+                    }
+                }
+                catch (Exception ex)
                 {
-                    Status = SelectStatus.Selected;
+                    Global.Logger.AddItem(new LogItem(ex));
                 }
             }
         }
