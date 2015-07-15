@@ -286,7 +286,7 @@ namespace SFXChallenger.Managers
         {
             if (_menu == null || !_menu.Item(_menu.Name + ".enabled").GetValue<bool>())
             {
-                return 0f;
+                return CalculateLichBaneDamage(target);
             }
             try
             {
