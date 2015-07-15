@@ -282,7 +282,7 @@ namespace SFXChallenger.Managers
             }
         }
 
-        public static float CalculateComboDamage(Obj_AI_Hero target)
+        public static float CalculateComboDamage(Obj_AI_Hero target, bool rangeCheck = true)
         {
             if (_menu == null || !_menu.Item(_menu.Name + ".enabled").GetValue<bool>())
             {
@@ -291,7 +291,7 @@ namespace SFXChallenger.Managers
             try
             {
                 var distance = target.Distance(ObjectManager.Player.Position, true);
-                if (distance >= Math.Pow(MaxRange, 2))
+                if (rangeCheck && distance >= Math.Pow(MaxRange, 2))
                 {
                     return 0f;
                 }
@@ -301,9 +301,11 @@ namespace SFXChallenger.Managers
                             i =>
                                 i.EffectFlags.HasFlag(EffectFlags.Damage) && ((i.Flags & (_itemFlags)) != 0) &&
                                 _menu.Item(_menu.Name + "." + i.Name + ".combo").GetValue<bool>() && i.Item.IsOwned() &&
-                                i.Item.IsReady() && distance <= Math.Pow(i.Range, 2) &&
-                                ObjectManager.Player.CountEnemiesInRange(i.Range) >=
-                                _menu.Item(_menu.Name + "." + i.Name + ".min-enemies-range").GetValue<Slider>().Value)
+                                i.Item.IsReady() &&
+                                (!rangeCheck ||
+                                 distance <= Math.Pow(i.Range, 2) &&
+                                 ObjectManager.Player.CountEnemiesInRange(i.Range) >=
+                                 _menu.Item(_menu.Name + "." + i.Name + ".min-enemies-range").GetValue<Slider>().Value))
                             .Sum(item => ObjectManager.Player.GetItemDamage(target, item.Damage)) +
                     CalculateLichBaneDamage(target);
             }

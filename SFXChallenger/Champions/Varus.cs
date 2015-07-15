@@ -396,9 +396,9 @@ namespace SFXChallenger.Champions
                 if (target != null)
                 {
                     if (Q.IsCharging || W.Level == 0 || Menu.Item(Menu.Name + ".harass.q-always").GetValue<bool>() ||
-                    Menu.Item(Menu.Name + ".harass.q-range").GetValue<bool>() &&
-                    Player.CountEnemiesInRange(Player.AttackRange * 1.075f) == 0 ||
-                    GetWStacks(target) >= Menu.Item(Menu.Name + ".harass.q-stacks").GetValue<Slider>().Value)
+                        Menu.Item(Menu.Name + ".harass.q-range").GetValue<bool>() &&
+                        Player.CountEnemiesInRange(Player.AttackRange * 1.075f) == 0 ||
+                        GetWStacks(target) >= Menu.Item(Menu.Name + ".harass.q-stacks").GetValue<Slider>().Value)
                     {
                         QLogic(target, Q.GetHitChance("harass"));
                     }

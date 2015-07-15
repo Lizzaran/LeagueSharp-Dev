@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- TwistedFate.cs is part of SFXChallenger.
+ twistedfate.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -168,7 +168,7 @@ namespace SFXChallenger.Champions
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
             IndicatorManager.Add(Q);
             IndicatorManager.Add(W);
-            IndicatorManager.Add(E);
+            IndicatorManager.Add(E, false);
             IndicatorManager.Finale();
 
             _eStacks = DrawingManager.Add("E " + Global.Lang.Get("G_Stacks"), true);
@@ -184,6 +184,7 @@ namespace SFXChallenger.Champions
             W.SetSkillshot(0.5f, 100f, Player.BasicAttack.MissileSpeed, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E);
+
             R = new Spell(SpellSlot.R, 5500f);
         }
 

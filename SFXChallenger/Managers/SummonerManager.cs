@@ -155,7 +155,7 @@ namespace SFXChallenger.Managers
             return 54 + ObjectManager.Player.Level * 6;
         }
 
-        public static float CalculateComboDamage(Obj_AI_Hero target)
+        public static float CalculateComboDamage(Obj_AI_Hero target, bool rangeCheck = true)
         {
             if (_menu == null || !_menu.Item(_menu.Name + ".enabled").GetValue<bool>())
             {
@@ -174,17 +174,17 @@ namespace SFXChallenger.Managers
                 var distance = target.Position.Distance(ObjectManager.Player.Position, true);
 
                 var damage = 0f;
-                if (ignite && distance <= Math.Pow(Ignite.Range, 2))
+                if (ignite && (!rangeCheck || distance <= Math.Pow(Ignite.Range, 2)))
                 {
                     damage += (float) ObjectManager.Player.GetSummonerSpellDamage(target, Damage.SummonerSpell.Ignite);
                 }
                 if (smite)
                 {
-                    if (distance <= Math.Pow(BlueSmite.Range, 2))
+                    if (!rangeCheck || distance <= Math.Pow(BlueSmite.Range, 2))
                     {
                         damage += CalculateBlueSmiteDamage();
                     }
-                    else if (distance <= Math.Pow(RedSmite.Range, 2))
+                    if (!rangeCheck || distance <= Math.Pow(RedSmite.Range, 2))
                     {
                         damage += CalculateRedSmiteDamage();
                     }

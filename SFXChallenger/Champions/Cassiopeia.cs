@@ -41,6 +41,7 @@ using MinionTeam = SFXLibrary.MinionTeam;
 using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
+using Utils = SFXChallenger.Helpers.Utils;
 
 #endregion
 
@@ -385,7 +386,7 @@ namespace SFXChallenger.Champions
 
                 if (Menu.Item(Menu.Name + ".miscellaneous.w-stunned").GetValue<bool>() && W.IsReady())
                 {
-                    var target = Targets.FirstOrDefault(Helpers.Utils.IsStunned);
+                    var target = Targets.FirstOrDefault(Utils.IsStunned);
                     if (target != null)
                     {
                         Casting.SkillShot(target, W, W.GetHitChance("harass"));

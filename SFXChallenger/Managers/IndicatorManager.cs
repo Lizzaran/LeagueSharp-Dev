@@ -63,8 +63,8 @@ namespace SFXChallenger.Managers
                     new MenuItem(_menu.Name + ".attacks", Global.Lang.Get("G_UseAutoAttacks")).SetValue(
                         new Slider(2, 0, 10)));
 
-                Add(Global.Lang.Get("IDM_Items"), ItemManager.CalculateComboDamage);
-                Add(Global.Lang.Get("IDM_Summoners"), SummonerManager.CalculateComboDamage);
+                Add(Global.Lang.Get("IDM_Items"), hero => ItemManager.CalculateComboDamage(hero, false));
+                Add(Global.Lang.Get("IDM_Summoners"), hero => SummonerManager.CalculateComboDamage(hero, false));
             }
             catch (Exception ex)
             {
@@ -98,7 +98,7 @@ namespace SFXChallenger.Managers
             }
         }
 
-        public static void Add(Spell spell)
+        public static void Add(Spell spell, bool readyCheck = true)
         {
             try
             {
@@ -108,7 +108,14 @@ namespace SFXChallenger.Managers
                 }
                 _menu.AddItem(
                     new MenuItem(_menu.Name + "." + spell.Slot, spell.Slot.ToString().ToUpper()).SetValue(false));
-                Functions.Add(spell.Slot.ToString(), hero => spell.IsReady() ? spell.GetDamage(hero) : 0);
+                if (readyCheck)
+                {
+                    Functions.Add(spell.Slot.ToString(), hero => spell.IsReady() ? spell.GetDamage(hero) : 0);
+                }
+                else
+                {
+                    Functions.Add(spell.Slot.ToString(), hero => spell.GetDamage(hero));
+                }
             }
             catch (Exception ex)
             {
