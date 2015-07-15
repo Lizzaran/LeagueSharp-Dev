@@ -210,17 +210,6 @@ namespace SFXUtility.Features.Timers
                 { "azir_base_r_soldiercape_enemy.troy", new AbilityItem("azir", "R", 5f) },
                 { "bard_base_e_door.troy", new AbilityItem("bard", "E", 10f) },
                 { "bard_base_r_stasis_skin_full.troy", new AbilityItem("bard", "R", 2.5f) },
-                {
-                    "twistedfate_base_w_bluecard.troy",
-                    new AbilityItem("twistedfate", "W " + Global.Lang.Get("G_Blue"), 6f)
-                },
-                {
-                    "twistedfate_base_w_redcard.troy", new AbilityItem("twistedfate", "W " + Global.Lang.Get("G_Red"), 6f)
-                },
-                {
-                    "twistedfate_base_w_goldcard.troy",
-                    new AbilityItem("twistedfate", "W " + Global.Lang.Get("G_Yellow"), 6f)
-                },
                 { "counterstrike_cas.troy", new AbilityItem("jax", "R", 2f) },
                 { "ekko_base_w_indicator.troy", new AbilityItem("ekko", "W", 3f) },
                 { "diplomaticimmunity_buf.troy", new AbilityItem("poppy", "R", 8f) },
@@ -296,10 +285,14 @@ namespace SFXUtility.Features.Timers
                 { "zilean_base_r_buf.troy", new AbilityItem("zilean", "R " + Global.Lang.Get("Ability_Revive"), 3f) },
                 { "zyra_r_cast_green_team.troy", new AbilityItem("zyra", "R", 2f) },
                 { "zyra_r_cast_red_team.troy", new AbilityItem("zyra", "R", 2f) },
-                { "zhonyas_ring_activate.troy", new AbilityItem("items", Global.Lang.Get("Ability_Zhonyas"), 2.5f) },
                 { "jester_copy.troy", new AbilityItem("shaco", "R", 18f) },
                 { "fizz_ring_green.troy", new AbilityItem("fizz", "R", 1.5f) },
                 { "fizz_ring_red.troy", new AbilityItem("fizz", "R", 1.5f) }
+
+                //TWISTED FATE W
+                //Zohnyas
+                //Alistar
+                //Guardiang Angle
             };
 
             var group = 1;

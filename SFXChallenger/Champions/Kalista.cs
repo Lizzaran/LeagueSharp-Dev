@@ -337,7 +337,7 @@ namespace SFXChallenger.Champions
                     var target = unit as Obj_AI_Base;
                     if (target != null && Rend.IsKillable(target, true))
                     {
-                        E.Cast();
+                        E.Cast(Player.Position);
                     }
                 }
             }
@@ -381,7 +381,7 @@ namespace SFXChallenger.Champions
                                          m.CharData.BaseSkinName.StartsWith("SRU_Dragon") ||
                                          m.CharData.BaseSkinName.StartsWith("SRU_Baron"))))
                             {
-                                E.Cast();
+                                E.Cast(Player.Position);
                                 return;
                             }
                         }
@@ -393,7 +393,7 @@ namespace SFXChallenger.Champions
                                     m => Utils.UnderAllyTurret(m.Position) && Rend.IsKillable(m, false));
                             if (minion != null)
                             {
-                                E.Cast();
+                                E.Cast(Player.Position);
                                 return;
                             }
                         }
@@ -404,7 +404,7 @@ namespace SFXChallenger.Champions
                     {
                         if (minions.Any())
                         {
-                            E.Cast();
+                            E.Cast(Player.Position);
                             return;
                         }
                     }
@@ -458,14 +458,14 @@ namespace SFXChallenger.Champions
                                 m => m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)) && Rend.IsKillable(m, true));
                         if (minion != null)
                         {
-                            E.Cast();
+                            E.Cast(Player.Position);
                         }
                     }
                     else if (E.IsInRange(target))
                     {
                         if (Rend.IsKillable(target, false))
                         {
-                            E.Cast();
+                            E.Cast(Player.Position);
                         }
                         else
                         {
@@ -475,7 +475,7 @@ namespace SFXChallenger.Champions
                             {
                                 if (target.Distance(Player) > E.Range * 0.8 || buff.EndTime - Game.Time < 0.3)
                                 {
-                                    E.Cast();
+                                    E.Cast(Player.Position);
                                 }
                             }
                         }
@@ -496,7 +496,7 @@ namespace SFXChallenger.Champions
                 {
                     if (Rend.IsKillable(enemy, true))
                     {
-                        E.Cast();
+                        E.Cast(Player.Position);
                     }
                     else
                     {
@@ -506,7 +506,7 @@ namespace SFXChallenger.Champions
                         {
                             if (enemy.Distance(Player) > E.Range * 0.8 || buff.EndTime - Game.Time < 0.3)
                             {
-                                E.Cast();
+                                E.Cast(Player.Position);
                             }
                         }
                     }
@@ -594,7 +594,7 @@ namespace SFXChallenger.Champions
                     (killable.Count >= 1 && Menu.Item(Menu.Name + ".lane-clear.e-jungle").GetValue<bool>() &&
                      killable.Any(m => m.Team == GameObjectTeam.Neutral)))
                 {
-                    E.Cast();
+                    E.Cast(Player.Position);
                 }
             }
         }
@@ -616,7 +616,7 @@ namespace SFXChallenger.Champions
             if (Menu.Item(Menu.Name + ".killsteal.e").GetValue<bool>() && E.IsReady() &&
                 GameObjects.EnemyHeroes.Any(h => h.IsValidTarget(E.Range) && Rend.IsKillable(h, false)))
             {
-                E.Cast();
+                E.Cast(Player.Position);
             }
         }
 
@@ -819,7 +819,7 @@ namespace SFXChallenger.Champions
                     target.Buffs.FirstOrDefault(
                         b =>
                             b.Caster.IsMe && b.IsValidBuff() &&
-                            b.DisplayName.Equals("kalistaexpungemarker", StringComparison.OrdinalIgnoreCase));
+                            b.Name.Equals("kalistaexpungemarker", StringComparison.OrdinalIgnoreCase));
             }
         }
     }

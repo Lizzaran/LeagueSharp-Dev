@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Orianna.cs is part of SFXChallenger.
+ orianna.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -572,7 +572,7 @@ namespace SFXChallenger.Champions
                 var minHits = 1;
                 if (Utility.CountEnemiesInRange((int) (Q.Range + R.Width)) <= 1)
                 {
-                    foreach (var ally in HeroManager.Allies.Where(h => h.IsValidTarget(E.Range, false)))
+                    foreach (var ally in GameObjects.AllyHeroes.Where(h => h.IsValidTarget(E.Range, false)))
                     {
                         if (ally.Position.CountEnemiesInRange(300) >= 1)
                         {
@@ -598,7 +598,7 @@ namespace SFXChallenger.Champions
                         return;
                     }
                     foreach (var ally in
-                        HeroManager.Allies.Where(h => h.IsValidTarget(E.Range, false))
+                        GameObjects.AllyHeroes.Where(h => h.IsValidTarget(E.Range, false))
                             .Where(ally => ally.Position.CountEnemiesInRange(300) >= 2))
                     {
                         E.CastOnUnit(ally);

@@ -18,6 +18,17 @@
 	<entry key="Kalista_RendStacks">Rend Stacks</entry>
 	<!-- START: Kalista -->
 
+	<!-- START: Twisted Fate -->
+	<entry key="TF_Red">Red</entry>
+	<entry key="TF_Gold">Gold</entry>
+	<entry key="TF_Blue">Blue</entry>
+	<entry key="TF_Card">Card</entry>
+	<entry key="TF_Cards">Gold|Red|Blue</entry>
+	<entry key="TF_RCard">Pick Card on R</entry>
+	<entry key="TF_Modes">Burst|Team</entry>
+	<entry key="TF_AutoSelect">Auto Select</entry>
+	<!-- START: Twisted Fate -->
+
 	<!-- START: GLOBAL -->
 	<entry key="G_UpdateAvailable">Update available</entry>
 	<entry key="G_Enabled">Enabled</entry>
@@ -77,6 +88,10 @@
 	<entry key="G_OutOfRange">Out of Range</entry>
 	<entry key="G_Color">Color</entry>
 	<entry key="G_Opacity">Opacity</entry>
+	<entry key="G_None">None</entry>
+	<entry key="G_Delay">Delay</entry>
+	<entry key="G_Bug">Bug</entry>
+	<entry key="G_Mode">Mode</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: Language -->

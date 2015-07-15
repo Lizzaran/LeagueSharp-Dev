@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Varus.cs is part of SFXChallenger.
+ varus.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -341,34 +341,43 @@ namespace SFXChallenger.Champions
             {
                 var target = TargetSelector.GetTarget(
                     Q.ChargedMaxRange, LeagueSharp.Common.TargetSelector.DamageType.Physical);
-                if (Q.IsCharging || W.Level == 0 || Menu.Item(Menu.Name + ".combo.q-always").GetValue<bool>() ||
-                    Menu.Item(Menu.Name + ".combo.q-range").GetValue<bool>() &&
-                    Player.CountEnemiesInRange(Player.AttackRange * 1.075f) == 0 ||
-                    GetWStacks(target) >= Menu.Item(Menu.Name + ".combo.q-stacks").GetValue<Slider>().Value)
+                if (target != null)
                 {
-                    QLogic(target, Q.GetHitChance("combo"));
+                    if (Q.IsCharging || W.Level == 0 || Menu.Item(Menu.Name + ".combo.q-always").GetValue<bool>() ||
+                        Menu.Item(Menu.Name + ".combo.q-range").GetValue<bool>() &&
+                        Player.CountEnemiesInRange(Player.AttackRange * 1.075f) == 0 ||
+                        GetWStacks(target) >= Menu.Item(Menu.Name + ".combo.q-stacks").GetValue<Slider>().Value)
+                    {
+                        QLogic(target, Q.GetHitChance("combo"));
+                    }
                 }
             }
             if (e && E.IsReady())
             {
                 var target = TargetSelector.GetTarget(E.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical);
-                if (Menu.Item(Menu.Name + ".combo.e-always").GetValue<bool>() ||
-                    GetWStacks(target) >= Menu.Item(Menu.Name + ".combo.e-stacks").GetValue<Slider>().Value)
+                if (target != null)
                 {
-                    ELogic(target, E.GetHitChance("combo"));
+                    if (Menu.Item(Menu.Name + ".combo.e-always").GetValue<bool>() ||
+                        GetWStacks(target) >= Menu.Item(Menu.Name + ".combo.e-stacks").GetValue<Slider>().Value)
+                    {
+                        ELogic(target, E.GetHitChance("combo"));
+                    }
                 }
             }
             if (r && R.IsReady())
             {
                 var target = TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical);
-                if (
-                    !RLogic(
-                        target, R.GetHitChance("combo"),
-                        Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value))
+                if (target != null)
                 {
-                    if (Menu.Item(Menu.Name + ".ultimate.combo.1v1").GetValue<bool>())
+                    if (
+                        !RLogic(
+                            target, R.GetHitChance("combo"),
+                            Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value))
                     {
-                        RLogic1V1(q, e);
+                        if (Menu.Item(Menu.Name + ".ultimate.combo.1v1").GetValue<bool>())
+                        {
+                            RLogic1V1(q, e);
+                        }
                     }
                 }
             }
@@ -384,21 +393,27 @@ namespace SFXChallenger.Champions
             {
                 var target = TargetSelector.GetTarget(
                     Q.ChargedMaxRange, LeagueSharp.Common.TargetSelector.DamageType.Physical);
-                if (Q.IsCharging || W.Level == 0 || Menu.Item(Menu.Name + ".harass.q-always").GetValue<bool>() ||
+                if (target != null)
+                {
+                    if (Q.IsCharging || W.Level == 0 || Menu.Item(Menu.Name + ".harass.q-always").GetValue<bool>() ||
                     Menu.Item(Menu.Name + ".harass.q-range").GetValue<bool>() &&
                     Player.CountEnemiesInRange(Player.AttackRange * 1.075f) == 0 ||
                     GetWStacks(target) >= Menu.Item(Menu.Name + ".harass.q-stacks").GetValue<Slider>().Value)
-                {
-                    QLogic(target, Q.GetHitChance("harass"));
+                    {
+                        QLogic(target, Q.GetHitChance("harass"));
+                    }
                 }
             }
             if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>() && E.IsReady())
             {
                 var target = TargetSelector.GetTarget(E.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical);
-                if (Menu.Item(Menu.Name + ".harass.e-always").GetValue<bool>() ||
-                    GetWStacks(target) >= Menu.Item(Menu.Name + ".harass.e-stacks").GetValue<Slider>().Value)
+                if (target != null)
                 {
-                    ELogic(target, E.GetHitChance("harass"));
+                    if (Menu.Item(Menu.Name + ".harass.e-always").GetValue<bool>() ||
+                        GetWStacks(target) >= Menu.Item(Menu.Name + ".harass.e-stacks").GetValue<Slider>().Value)
+                    {
+                        ELogic(target, E.GetHitChance("harass"));
+                    }
                 }
             }
         }
@@ -660,7 +675,7 @@ namespace SFXChallenger.Champions
 
         private void OnDrawingDraw(EventArgs args)
         {
-            if (W.Level > 0 && _wStacks != null && _wStacks.GetValue<bool>())
+            if (W.Level > 0 && _wStacks != null && _wStacks.GetValue<bool>() && !Player.IsDead)
             {
                 foreach (var enemy in
                     GameObjects.EnemyHeroes.Where(
@@ -670,7 +685,7 @@ namespace SFXChallenger.Champions
                     if (stacks > -1)
                     {
                         var x = enemy.HPBarPosition.X + 45;
-                        var y = enemy.HPBarPosition.Y - 20;
+                        var y = enemy.HPBarPosition.Y - 25;
                         for (var i = 0; 3 > i; i++)
                         {
                             Drawing.DrawLine(
