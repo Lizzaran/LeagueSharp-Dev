@@ -195,6 +195,11 @@ namespace SFXChallenger.Champions
             }
         }
 
+        private bool IsWKillable(Obj_AI_Base target, int stage = 0)
+        {
+            return W.GetDamage(target, stage) - 5 > target.Health + target.HPRegenRate;
+        }
+
         private void OnCorePostUpdate(EventArgs args)
         {
             try
@@ -568,8 +573,9 @@ namespace SFXChallenger.Champions
             {
                 if (Cards.Has())
                 {
-                    var target = GameObjects.EnemyHeroes.OrderBy(e => e.Distance(Player)).FirstOrDefault(
-                        e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget());
+                    var target =
+                        GameObjects.EnemyHeroes.OrderBy(e => e.Distance(Player))
+                            .FirstOrDefault(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget());
                     if (target != null)
                     {
                         Orbwalking.Orbwalk(target, Game.CursorPos);
@@ -578,7 +584,7 @@ namespace SFXChallenger.Champions
                 else
                 {
                     var target = TargetSelector.GetTarget(
-                    W.Range * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+                        W.Range * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical);
                     var best = GetBestCard(target, "flee");
                     if (best.Any())
                     {
@@ -588,6 +594,7 @@ namespace SFXChallenger.Champions
                 }
             }
         }
+
         protected override void Killsteal() {}
 
         private void OnDrawingDraw(EventArgs args)
@@ -720,15 +727,15 @@ namespace SFXChallenger.Champions
                     return cards;
                 }
 
-                if (W.IsKillable(target, 1))
+                if (IsWKillable(target, 1))
                 {
                     cards.Add(CardColor.Red);
                 }
-                if (W.IsKillable(target, 2))
+                if (IsWKillable(target, 2))
                 {
                     cards.Add(CardColor.Gold);
                 }
-                if (W.IsKillable(target))
+                if (IsWKillable(target))
                 {
                     cards.Add(CardColor.Blue);
                 }
