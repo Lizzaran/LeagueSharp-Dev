@@ -52,7 +52,7 @@ namespace SFXChallenger.Champions
     internal class TwistedFate : Champion
     {
         private readonly float _qAngle = 28 * (float) Math.PI / 180;
-        private readonly float _wRedRadius = 100f;
+        private readonly float _wRedRadius = 110f;
         private MenuItem _eStacks;
         private MenuItem _rMinimap;
 
@@ -495,7 +495,7 @@ namespace SFXChallenger.Champions
             {
                 QLogic(Q.GetHitChance("harass"));
             }
-            if (w && W.IsReady() && Cards.Status == SelectStatus.None)
+            if (w && W.IsReady())
             {
                 var target = TargetSelector.GetTarget(
                     W.Range * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical);
@@ -534,7 +534,7 @@ namespace SFXChallenger.Champions
             {
                 QLogic(Q.GetHitChance("harass"));
             }
-            if (w && W.IsReady() && Cards.Status == SelectStatus.None)
+            if (w && W.IsReady())
             {
                 var target = TargetSelector.GetTarget(
                     W.Range * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical);
@@ -614,7 +614,8 @@ namespace SFXChallenger.Champions
 
         private void OnDrawingEndScene(EventArgs args)
         {
-            if (_rMinimap.GetValue<bool>() && (R.Instance.CooldownExpires - Game.Time) < 3 && !Player.IsDead)
+            if (_rMinimap.GetValue<bool>() && R.Level > 0 && (R.Instance.CooldownExpires - Game.Time) < 3 &&
+                !Player.IsDead)
             {
                 Utility.DrawCircle(Player.Position, R.Range, Color.White, 1, 30, true);
             }
