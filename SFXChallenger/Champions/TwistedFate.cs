@@ -96,6 +96,10 @@ namespace SFXChallenger.Champions
                     comboMenu.Name + ".gold-percent",
                     "W " + Global.Lang.Get("TF_Gold") + " " + Global.Lang.Get("G_HealthPercent")).SetValue(
                         new Slider(20, 5, 75)));
+            comboMenu.AddItem(
+                new MenuItem(
+                    comboMenu.Name + ".red-min", "W " + Global.Lang.Get("TF_Red") + " " + Global.Lang.Get("G_Min"))
+                    .SetValue(new Slider(3, 1, 5)));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
 
@@ -120,10 +124,14 @@ namespace SFXChallenger.Champions
             ManaManager.AddToMenu(
                 laneclearMenu, "lane-clear-blue", ManaCheckType.Minimum, ManaValueType.Percent,
                 "W " + Global.Lang.Get("TF_Blue"));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             laneclearMenu.AddItem(
                 new MenuItem(laneclearMenu.Name + ".q-min", "Q " + Global.Lang.Get("G_Min")).SetValue(
                     new Slider(3, 1, 5)));
+            laneclearMenu.AddItem(
+                new MenuItem(
+                    laneclearMenu.Name + ".red-min", "W " + Global.Lang.Get("TF_Red") + " " + Global.Lang.Get("G_Min"))
+                    .SetValue(new Slider(3, 1, 5)));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
 
             var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Flee"), Menu.Name + ".flee"));
@@ -143,6 +151,17 @@ namespace SFXChallenger.Champions
                 new MenuItem(miscMenu.Name + ".q-gap", "Q " + Global.Lang.Get("G_Gapcloser")).SetValue(true));
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".w-interrupt", "W " + Global.Lang.Get("G_InterruptSpell")).SetValue(true));
+
+            var manualMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Manual"), Menu.Name + ".manual"));
+            manualMenu.AddItem(
+                new MenuItem(manualMenu.Name + ".blue", Global.Lang.Get("G_Hotkey") + " " + Global.Lang.Get("TF_Blue"))
+                    .SetValue(new KeyBind('Z', KeyBindType.Press)));
+            manualMenu.AddItem(
+                new MenuItem(manualMenu.Name + ".red", Global.Lang.Get("G_Hotkey") + " " + Global.Lang.Get("TF_Red"))
+                    .SetValue(new KeyBind('U', KeyBindType.Press)));
+            manualMenu.AddItem(
+                new MenuItem(manualMenu.Name + ".gold", Global.Lang.Get("G_Hotkey") + " " + Global.Lang.Get("TF_Gold"))
+                    .SetValue(new KeyBind('I', KeyBindType.Press)));
 
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
             IndicatorManager.Add(
@@ -187,9 +206,9 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
+                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear && Cards.Status == SelectStatus.Selected)
                 {
-                    if (Cards.Has() && Cards.Status != SelectStatus.Selecting)
+                    if (Cards.Has(CardColor.Red) || Cards.Has(CardColor.Blue))
                     {
                         var best = GetBestLaneClearTargetCard();
                         if (best.Item1 != null && best.Item2.Any())
@@ -200,6 +219,21 @@ namespace SFXChallenger.Champions
                     else
                     {
                         Orbwalker.ForceTarget(null);
+                    }
+                }
+                if (Cards.Status != SelectStatus.Selected)
+                {
+                    if (Menu.Item(Menu.Name + ".manual.blue").GetValue<KeyBind>().Active)
+                    {
+                        Cards.Select(CardColor.Blue);
+                    }
+                    if (Menu.Item(Menu.Name + ".manual.red").GetValue<KeyBind>().Active)
+                    {
+                        Cards.Select(CardColor.Red);
+                    }
+                    if (Menu.Item(Menu.Name + ".manual.gold").GetValue<KeyBind>().Active)
+                    {
+                        Cards.Select(CardColor.Gold);
                     }
                 }
             }
@@ -470,7 +504,7 @@ namespace SFXChallenger.Champions
             var dist = target.Distance(Player);
             var best = BestQPosition(target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), hitChance);
             if (!best.Item2.Equals(Vector3.Zero) &&
-                (best.Item1 > 2 || dist <= 600 && cd <= 2 && Utils.IsStunned(target) || dist > 600 || cd > 2 ||
+                (best.Item1 >= 2 || dist <= 600 && cd <= 2 && Utils.IsStunned(target) || dist > 600 || cd > 2 ||
                  Q.IsKillable(target)))
             {
                 Q.Cast(best.Item2);
@@ -634,7 +668,13 @@ namespace SFXChallenger.Champions
                 {
                     var minions = MinionManager.GetMinions(
                         W.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
-                    var minHits = minions.Any(m => m.Team == GameObjectTeam.Neutral) ? 3 : 2;
+                    var minHits = minions.Any(m => m.Team == GameObjectTeam.Neutral)
+                        ? Menu.Item(Menu.Name + ".lane-clear.red-min").GetValue<Slider>().Value
+                        : 2;
+                    if (Cards.Has(CardColor.Red))
+                    {
+                        minHits = 1;
+                    }
                     var best = GetBestRedMinion(minions);
                     if (best.Item2 != null && best.Item1 >= minHits)
                     {
@@ -697,8 +737,10 @@ namespace SFXChallenger.Champions
                     {
                         blue = 4;
                     }
-                    red += GetWHits(target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), CardColor.Red);
-                    if (red > blue && red > gold)
+                    var minRed = Menu.Item(Menu.Name + ".lane-clear.red-min").GetValue<Slider>().Value;
+                    var redHits = GetWHits(target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), CardColor.Red);
+                    red += redHits;
+                    if (red > blue && red > gold && redHits >= minRed)
                     {
                         cards.Add(CardColor.Red);
                         if (red == blue)
@@ -717,7 +759,7 @@ namespace SFXChallenger.Champions
                         {
                             cards.Add(CardColor.Blue);
                         }
-                        if (gold == red)
+                        if (gold == red && redHits >= minRed)
                         {
                             cards.Add(CardColor.Red);
                         }
@@ -725,7 +767,7 @@ namespace SFXChallenger.Champions
                     else if (blue > red && blue > gold)
                     {
                         cards.Add(CardColor.Blue);
-                        if (blue == red)
+                        if (blue == red && redHits >= minRed)
                         {
                             cards.Add(CardColor.Red);
                         }
@@ -840,7 +882,6 @@ namespace SFXChallenger.Champions
             {
                 Spell = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W);
                 Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
-                GameObject.OnCreate += OnGameObjectCreate;
                 Game.OnUpdate += OnGameUpdate;
                 Status = SelectStatus.None;
                 LastCard = CardColor.None;
@@ -881,6 +922,19 @@ namespace SFXChallenger.Champions
                     {
                         Status = SelectStatus.None;
                     }
+
+                    if (
+                        ShouldSelect.Any(
+                            card =>
+                                card == CardColor.Blue &&
+                                Spell.Name.Equals("bluecardlock", StringComparison.OrdinalIgnoreCase) ||
+                                card == CardColor.Red &&
+                                Spell.Name.Equals("redcardlock", StringComparison.OrdinalIgnoreCase) ||
+                                card == CardColor.Gold &&
+                                Spell.Name.Equals("goldcardlock", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        ObjectManager.Player.Spellbook.CastSpell(Spell.Slot);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -914,37 +968,6 @@ namespace SFXChallenger.Champions
                             Status = SelectStatus.Selected;
                             ShouldSelect.Clear();
                         }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Global.Logger.AddItem(new LogItem(ex));
-                }
-            }
-
-            private static void OnGameObjectCreate(GameObject sender, EventArgs args)
-            {
-                try
-                {
-                    if (!sender.IsValid || sender.Type != GameObjectType.obj_GeneralParticleEmitter ||
-                        Status != SelectStatus.Selecting)
-                    {
-                        return;
-                    }
-                    if (
-                        ShouldSelect.Any(
-                            card =>
-                                card == CardColor.Blue &&
-                                sender.Name.Equals(
-                                    "twistedfate_base_w_bluecard.troy", StringComparison.OrdinalIgnoreCase) ||
-                                card == CardColor.Red &&
-                                sender.Name.Equals(
-                                    "twistedfate_base_w_redcard.troy", StringComparison.OrdinalIgnoreCase) ||
-                                card == CardColor.Gold &&
-                                sender.Name.Equals(
-                                    "twistedfate_base_w_goldcard.troy", StringComparison.OrdinalIgnoreCase)))
-                    {
-                        ObjectManager.Player.Spellbook.CastSpell(Spell.Slot);
                     }
                 }
                 catch (Exception ex)

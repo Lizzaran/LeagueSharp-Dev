@@ -95,6 +95,7 @@
 	<entry key="G_Bug">Bug</entry>
 	<entry key="G_Mode">Mode</entry>
 	<entry key="G_HealthPercent">Health Percent</entry>
+	<entry key="G_Manual">Manual</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: Language -->
