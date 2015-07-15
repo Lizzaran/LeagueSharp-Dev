@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- twistedfate.cs is part of SFXChallenger.
+ TwistedFate.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -180,7 +180,7 @@ namespace SFXChallenger.Champions
             Q = new Spell(SpellSlot.Q, 1450f);
             Q.SetSkillshot(0.25f, 40f, 1000f, false, SkillshotType.SkillshotLine);
 
-            W = new Spell(SpellSlot.W, (Player.AttackRange + Player.BoundingRadius * 2f) * 1.3f);
+            W = new Spell(SpellSlot.W, (Player.AttackRange + Player.BoundingRadius * 2f) * 1.18f);
             W.SetSkillshot(0.5f, 100f, Player.BasicAttack.MissileSpeed, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E);
@@ -529,7 +529,7 @@ namespace SFXChallenger.Champions
             var dist = target.Distance(Player);
             var best = BestQPosition(target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), hitChance);
             if (!best.Item2.Equals(Vector3.Zero) &&
-                (best.Item1 >= 2 || dist <= 600 && cd <= 2 && Helpers.Utils.IsStunned(target) || dist > 600 || cd > 2 ||
+                (best.Item1 >= 2 || dist <= 550 && cd <= 2 && Helpers.Utils.IsStunned(target) || dist > 550 || cd > 2 ||
                  Q.IsKillable(target)))
             {
                 Q.Cast(best.Item2);
@@ -875,6 +875,10 @@ namespace SFXChallenger.Champions
                     {
                         cards.Add(CardColor.Gold);
                     }
+                }
+                if (!cards.Any())
+                {
+                    cards.Add(CardColor.Gold);
                 }
             }
             catch (Exception ex)
