@@ -41,7 +41,7 @@ using MinionTeam = SFXLibrary.MinionTeam;
 using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
-using Utils = SFXChallenger.Helpers.Utils;
+using Utils = LeagueSharp.Common.Utils;
 
 #endregion
 
@@ -70,6 +70,7 @@ namespace SFXChallenger.Champions
             Drawing.OnDraw += OnDrawingDraw;
             Drawing.OnEndScene += OnDrawingEndScene;
             Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
+            Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
         }
 
         protected override void OnUnload()
@@ -81,6 +82,7 @@ namespace SFXChallenger.Champions
             Drawing.OnDraw -= OnDrawingDraw;
             Drawing.OnEndScene -= OnDrawingEndScene;
             Obj_AI_Base.OnProcessSpellCast -= OnObjAiBaseProcessSpellCast;
+            Orbwalking.BeforeAttack -= OnOrbwalkingBeforeAttack;
         }
 
         protected override void AddToMenu()
@@ -200,6 +202,14 @@ namespace SFXChallenger.Champions
 
             E = new Spell(SpellSlot.E);
             R = new Spell(SpellSlot.R, 5500f);
+        }
+
+        private void OnOrbwalkingBeforeAttack(Orbwalking.BeforeAttackEventArgs args)
+        {
+            if (args.Target is Obj_AI_Hero)
+            {
+                args.Process = Cards.Status != SelectStatus.Selecting && Utils.TickCount - Cards.LastWSent > 300;
+            }
         }
 
         private void OnCorePostUpdate(EventArgs args)
@@ -504,7 +514,7 @@ namespace SFXChallenger.Champions
             var dist = target.Distance(Player);
             var best = BestQPosition(target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), hitChance);
             if (!best.Item2.Equals(Vector3.Zero) &&
-                (best.Item1 >= 2 || dist <= 600 && cd <= 2 && Utils.IsStunned(target) || dist > 600 || cd > 2 ||
+                (best.Item1 >= 2 || dist <= 600 && cd <= 2 && Helpers.Utils.IsStunned(target) || dist > 600 || cd > 2 ||
                  Q.IsKillable(target)))
             {
                 Q.Cast(best.Item2);
@@ -604,7 +614,7 @@ namespace SFXChallenger.Champions
 
         private void OnDrawingEndScene(EventArgs args)
         {
-            if (_rMinimap.GetValue<bool>() && R.IsReady() && !Player.IsDead)
+            if (_rMinimap.GetValue<bool>() && (R.Instance.CooldownExpires - Game.Time) < 3 && !Player.IsDead)
             {
                 Utility.DrawCircle(Player.Position, R.Range, Color.White, 1, 30, true);
             }
@@ -659,8 +669,8 @@ namespace SFXChallenger.Champions
                         W.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
                     if (minions.Any())
                     {
-                        var killable = minions.FirstOrDefault(m => W.IsKillable(m));
-                        target = killable ?? minions.First();
+                        var best = minions.FirstOrDefault(m => W.IsKillable(m) || m.Health > W.GetDamage(m) * 2);
+                        target = best ?? minions.First();
                         cards.Add(CardColor.Blue);
                     }
                 }
@@ -785,7 +795,8 @@ namespace SFXChallenger.Champions
                     {
                         damage += E.GetDamage(target);
                     }
-                    if (Q.IsReady() && Utils.IsStunned(target) && distance < Q.Range / 3f || distance < Q.Range / 5f)
+                    if (Q.IsReady() && Helpers.Utils.IsStunned(target) && distance < Q.Range / 3f ||
+                        distance < Q.Range / 5f)
                     {
                         damage += Q.GetDamage(target) * 0.9f;
                     }
@@ -870,24 +881,24 @@ namespace SFXChallenger.Champions
         {
             Selecting,
             Selected,
+            Ready,
+            Cooldown,
             None
         }
 
-        internal static class Cards
+        public static class Cards
         {
-            private static readonly SpellDataInst Spell;
-            private static readonly List<CardColor> ShouldSelect = new List<CardColor>();
+            public static List<CardColor> ShouldSelect;
+            public static int LastWSent;
+            public static int LastSendWSent;
 
             static Cards()
             {
-                Spell = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W);
+                ShouldSelect = new List<CardColor>();
                 Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
                 Game.OnUpdate += OnGameUpdate;
-                Status = SelectStatus.None;
-                LastCard = CardColor.None;
             }
 
-            public static CardColor LastCard { get; set; }
             public static SelectStatus Status { get; set; }
 
             public static bool Has(CardColor color)
@@ -904,117 +915,96 @@ namespace SFXChallenger.Champions
                        ObjectManager.Player.HasBuff("bluecardpreattack");
             }
 
-            private static void OnGameUpdate(EventArgs args)
+            private static void SendWPacket()
             {
-                try
-                {
-                    if (ObjectManager.Player.HasBuff("pickacard_tracker"))
-                    {
-                        Status = SelectStatus.Selecting;
-                    }
-                    else if (ObjectManager.Player.HasBuff("goldcardpreattack") ||
-                             ObjectManager.Player.HasBuff("redcardpreattack") ||
-                             ObjectManager.Player.HasBuff("bluecardpreattack"))
-                    {
-                        Status = SelectStatus.Selected;
-                    }
-                    else
-                    {
-                        Status = SelectStatus.None;
-                    }
-
-                    if (
-                        ShouldSelect.Any(
-                            card =>
-                                card == CardColor.Blue &&
-                                Spell.Name.Equals("bluecardlock", StringComparison.OrdinalIgnoreCase) ||
-                                card == CardColor.Red &&
-                                Spell.Name.Equals("redcardlock", StringComparison.OrdinalIgnoreCase) ||
-                                card == CardColor.Gold &&
-                                Spell.Name.Equals("goldcardlock", StringComparison.OrdinalIgnoreCase)))
-                    {
-                        ObjectManager.Player.Spellbook.CastSpell(Spell.Slot);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Global.Logger.AddItem(new LogItem(ex));
-                }
-            }
-
-            private static void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
-            {
-                try
-                {
-                    if (sender.IsMe)
-                    {
-                        if (args.SData.Name.Equals("goldcardlock", StringComparison.OrdinalIgnoreCase))
-                        {
-                            LastCard = CardColor.Gold;
-                            Status = SelectStatus.Selected;
-                            ShouldSelect.Clear();
-                        }
-
-                        if (args.SData.Name.Equals("redcardlock", StringComparison.OrdinalIgnoreCase))
-                        {
-                            LastCard = CardColor.Red;
-                            Status = SelectStatus.Selected;
-                            ShouldSelect.Clear();
-                        }
-
-                        if (args.SData.Name.Equals("bluecardlock", StringComparison.OrdinalIgnoreCase))
-                        {
-                            LastCard = CardColor.Blue;
-                            Status = SelectStatus.Selected;
-                            ShouldSelect.Clear();
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Global.Logger.AddItem(new LogItem(ex));
-                }
+                LastSendWSent = Utils.TickCount;
+                ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, false);
             }
 
             public static void Select(CardColor card)
             {
-                try
+                if (ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Name == "PickACard" &&
+                    Status == SelectStatus.Ready)
                 {
-                    if (Spell.IsReady())
+                    ShouldSelect.Clear();
+                    ShouldSelect = new List<CardColor> { card };
+                    if (Utils.TickCount - LastWSent > 200)
                     {
-                        ShouldSelect.Clear();
-                        ShouldSelect.Add(card);
-                        if (ObjectManager.Player.HasBuff("pickacard_tracker") ||
-                            ObjectManager.Player.Spellbook.CastSpell(Spell.Slot, ObjectManager.Player.Position))
+                        if (ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, ObjectManager.Player))
                         {
-                            Status = SelectStatus.Selecting;
+                            LastWSent = Utils.TickCount;
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Global.Logger.AddItem(new LogItem(ex));
                 }
             }
 
             public static void Select(List<CardColor> cards)
             {
-                try
+                if (ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Name == "PickACard" &&
+                    Status == SelectStatus.Ready)
                 {
-                    if (Spell.IsReady())
+                    ShouldSelect.Clear();
+                    ShouldSelect = cards;
+                    if (cards.Any())
                     {
-                        ShouldSelect.Clear();
-                        ShouldSelect.AddRange(cards);
-                        if (ObjectManager.Player.HasBuff("pickacard_tracker") ||
-                            ObjectManager.Player.Spellbook.CastSpell(Spell.Slot, ObjectManager.Player.Position))
+                        if (Utils.TickCount - LastWSent > 200)
                         {
-                            Status = SelectStatus.Selecting;
+                            if (ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, ObjectManager.Player))
+                            {
+                                LastWSent = Utils.TickCount;
+                            }
                         }
                     }
                 }
-                catch (Exception ex)
+            }
+
+            private static void OnGameUpdate(EventArgs args)
+            {
+                var wName = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Name;
+                var wState = ObjectManager.Player.Spellbook.CanUseSpell(SpellSlot.W);
+
+                if ((wState == SpellState.Ready && wName == "PickACard" &&
+                     (Status != SelectStatus.Selecting || Utils.TickCount - LastWSent > 500)) ||
+                    ObjectManager.Player.IsDead)
                 {
-                    Global.Logger.AddItem(new LogItem(ex));
+                    Status = SelectStatus.Ready;
+                }
+                else if (wState == SpellState.Cooldown && wName == "PickACard")
+                {
+                    ShouldSelect.Clear();
+                    Status = SelectStatus.Cooldown;
+                }
+                else if (wState == SpellState.Surpressed && !ObjectManager.Player.IsDead)
+                {
+                    Status = SelectStatus.Selected;
+                }
+                if (
+                    ShouldSelect.Any(
+                        s =>
+                            s == CardColor.Blue && wName == "bluecardlock" ||
+                            s == CardColor.Gold && wName == "goldcardlock" ||
+                            s == CardColor.Red && wName == "redcardlock"))
+                {
+                    SendWPacket();
+                }
+            }
+
+            private static void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
+            {
+                if (!sender.IsMe)
+                {
+                    return;
+                }
+
+                if (args.SData.Name == "PickACard")
+                {
+                    Status = SelectStatus.Selecting;
+                }
+
+                if (args.SData.Name == "goldcardlock" || args.SData.Name == "bluecardlock" ||
+                    args.SData.Name == "redcardlock")
+                {
+                    Status = SelectStatus.Selected;
                 }
             }
         }
