@@ -303,46 +303,60 @@ namespace SFXChallenger.Champions
 
         private int GetWHits(Obj_AI_Base target, List<Obj_AI_Base> targets = null, CardColor color = CardColor.Gold)
         {
-            if (targets != null && color == CardColor.Red)
+            try
             {
-                targets = targets.Where(t => t.IsValidTarget(W.Range)).ToList();
-                var enemyPositions = (from h in targets
-                    let wPred = W.GetPrediction(h)
-                    where wPred.Hitchance >= HitChance.Medium
-                    select new Tuple<Obj_AI_Base, Vector3>(h, wPred.UnitPosition)).ToList();
-                if (enemyPositions.Any())
+                if (targets != null && color == CardColor.Red)
                 {
-                    var enemy = enemyPositions.FirstOrDefault(e => e.Item1.NetworkId.Equals(target.NetworkId));
-                    if (enemy != null)
+                    targets = targets.Where(t => t.IsValidTarget(W.Range)).ToList();
+                    var enemyPositions = (from h in targets
+                        let wPred = W.GetPrediction(h)
+                        where wPred.Hitchance >= HitChance.Medium
+                        select new Tuple<Obj_AI_Base, Vector3>(h, wPred.UnitPosition)).ToList();
+                    if (enemyPositions.Any())
                     {
-                        return enemyPositions.Count(e => e.Item2.Distance(enemy.Item2) < _wRedRadius);
+                        var enemy = enemyPositions.FirstOrDefault(e => e.Item1.NetworkId.Equals(target.NetworkId));
+                        if (enemy != null)
+                        {
+                            return enemyPositions.Count(e => e.Item2.Distance(enemy.Item2) < _wRedRadius);
+                        }
+                    }
+                }
+                var pred = W.GetPrediction(target);
+                if (pred.Hitchance >= HitChance.Medium)
+                {
+                    if (Player.Distance(pred.UnitPosition) <
+                        Player.AttackRange + Player.BoundingRadius + target.BoundingRadius)
+                    {
+                        return 1;
                     }
                 }
             }
-            var pred = W.GetPrediction(target);
-            if (pred.Hitchance >= HitChance.Medium)
+            catch (Exception ex)
             {
-                if (Player.Distance(pred.UnitPosition) <
-                    Player.AttackRange + Player.BoundingRadius + target.BoundingRadius)
-                {
-                    return 1;
-                }
+                Global.Logger.AddItem(new LogItem(ex));
             }
             return 0;
         }
 
         private void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            if (!sender.IsMe || !Menu.Item(Menu.Name + ".miscellaneous.r-card").GetValue<bool>())
+            try
             {
-                return;
-            }
-            if (args.SData.Name.Equals("gate", StringComparison.OrdinalIgnoreCase) && W.IsReady())
-            {
-                if (Cards.Status != SelectStatus.Selected)
+                if (!sender.IsMe || !Menu.Item(Menu.Name + ".miscellaneous.r-card").GetValue<bool>())
                 {
-                    Cards.Select(CardColor.Gold);
+                    return;
                 }
+                if (args.SData.Name.Equals("gate", StringComparison.OrdinalIgnoreCase) && W.IsReady())
+                {
+                    if (Cards.Status != SelectStatus.Selected)
+                    {
+                        Cards.Select(CardColor.Gold);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -534,20 +548,27 @@ namespace SFXChallenger.Champions
 
         private void OnDrawingDraw(EventArgs args)
         {
-            if (E.Level > 0 && _eStacks != null && _eStacks.GetValue<bool>() && !Player.IsDead &&
-                Player.Position.IsOnScreen())
+            try
             {
-                var stacks = HasEBuff() ? 3 : Player.GetBuffCount("cardmasterstackholder") - 1;
-                if (stacks > -1)
+                if (E.Level > 0 && _eStacks != null && _eStacks.GetValue<bool>() && !Player.IsDead &&
+                    Player.Position.IsOnScreen())
                 {
-                    var x = Player.HPBarPosition.X + 45;
-                    var y = Player.HPBarPosition.Y - 25;
-                    for (var i = 0; 3 > i; i++)
+                    var stacks = HasEBuff() ? 3 : Player.GetBuffCount("cardmasterstackholder") - 1;
+                    if (stacks > -1)
                     {
-                        Drawing.DrawLine(
-                            x + (i * 20), y, x + (i * 20) + 10, y, 10, (i > stacks ? Color.DarkGray : Color.Orange));
+                        var x = Player.HPBarPosition.X + 45;
+                        var y = Player.HPBarPosition.Y - 25;
+                        for (var i = 0; 3 > i; i++)
+                        {
+                            Drawing.DrawLine(
+                                x + (i * 20), y, x + (i * 20) + 10, y, 10, (i > stacks ? Color.DarkGray : Color.Orange));
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -577,14 +598,21 @@ namespace SFXChallenger.Champions
         {
             var totalHits = 0;
             Obj_AI_Base target = null;
-            foreach (var minion in minions)
+            try
             {
-                var redHits = GetWHits(minion, minions, CardColor.Red);
-                if (redHits > totalHits)
+                foreach (var minion in minions)
                 {
-                    totalHits = redHits;
-                    target = minion;
+                    var redHits = GetWHits(minion, minions, CardColor.Red);
+                    if (redHits > totalHits)
+                    {
+                        totalHits = redHits;
+                        target = minion;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
             return new Tuple<int, Obj_AI_Base>(totalHits, target);
         }
@@ -593,33 +621,40 @@ namespace SFXChallenger.Champions
         {
             var cards = new List<CardColor>();
             Obj_AI_Base target = null;
-            if (!ManaManager.Check("lane-clear-blue"))
+            try
             {
-                var minions = MinionManager.GetMinions(
-                    W.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
-                if (minions.Any())
+                if (!ManaManager.Check("lane-clear-blue"))
                 {
-                    var killable = minions.FirstOrDefault(m => W.IsKillable(m));
-                    target = killable ?? minions.First();
-                    cards.Add(CardColor.Blue);
-                }
-            }
-            else
-            {
-                var minions = MinionManager.GetMinions(
-                    W.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
-                var minHits = minions.Any(m => m.Team == GameObjectTeam.Neutral) ? 3 : 2;
-                var best = GetBestRedMinion(minions);
-                if (best.Item2 != null && best.Item1 >= minHits)
-                {
-                    cards.Add(CardColor.Red);
-                    target = best.Item2;
+                    var minions = MinionManager.GetMinions(
+                        W.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+                    if (minions.Any())
+                    {
+                        var killable = minions.FirstOrDefault(m => W.IsKillable(m));
+                        target = killable ?? minions.First();
+                        cards.Add(CardColor.Blue);
+                    }
                 }
                 else
                 {
-                    cards.Add(CardColor.Blue);
-                    target = best.Item2;
+                    var minions = MinionManager.GetMinions(
+                        W.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+                    var minHits = minions.Any(m => m.Team == GameObjectTeam.Neutral) ? 3 : 2;
+                    var best = GetBestRedMinion(minions);
+                    if (best.Item2 != null && best.Item1 >= minHits)
+                    {
+                        cards.Add(CardColor.Red);
+                        target = best.Item2;
+                    }
+                    else
+                    {
+                        cards.Add(CardColor.Blue);
+                        target = best.Item2;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
             return new Tuple<Obj_AI_Base, List<CardColor>>(target, cards);
         }
@@ -627,153 +662,160 @@ namespace SFXChallenger.Champions
         private List<CardColor> GetBestCard(Obj_AI_Hero target, string mode)
         {
             var cards = new List<CardColor>();
-            if (GetWHits(target) <= 0)
+            try
             {
-                return cards;
-            }
+                if (GetWHits(target) <= 0)
+                {
+                    return cards;
+                }
 
-            if (W.IsKillable(target, 1))
-            {
-                cards.Add(CardColor.Red);
-            }
-            if (W.IsKillable(target, 2))
-            {
-                cards.Add(CardColor.Gold);
-            }
-            if (W.IsKillable(target))
-            {
-                cards.Add(CardColor.Blue);
-            }
-            if (cards.Any())
-            {
-                return cards;
-            }
-            var burst = Menu.Item(Menu.Name + ".miscellaneous.mode").GetValue<StringList>().SelectedIndex == 0;
-            var red = 0;
-            var blue = 0;
-            var gold = 0;
-            if (!burst &&
-                (mode == "combo" || mode == "harass" && Menu.Item(Menu.Name + ".harass.w-auto").GetValue<bool>()))
-            {
-                gold++;
-                if (target.Distance(Player) > W.Range * 0.8f)
+                if (W.IsKillable(target, 1))
+                {
+                    cards.Add(CardColor.Red);
+                }
+                if (W.IsKillable(target, 2))
+                {
+                    cards.Add(CardColor.Gold);
+                }
+                if (W.IsKillable(target))
+                {
+                    cards.Add(CardColor.Blue);
+                }
+                if (cards.Any())
+                {
+                    return cards;
+                }
+                var burst = Menu.Item(Menu.Name + ".miscellaneous.mode").GetValue<StringList>().SelectedIndex == 0;
+                var red = 0;
+                var blue = 0;
+                var gold = 0;
+                if (!burst &&
+                    (mode == "combo" || mode == "harass" && Menu.Item(Menu.Name + ".harass.w-auto").GetValue<bool>()))
                 {
                     gold++;
+                    if (target.Distance(Player) > W.Range * 0.8f)
+                    {
+                        gold++;
+                    }
+                    if (!ManaManager.Check(mode + "-blue"))
+                    {
+                        blue = 4;
+                    }
+                    red += GetWHits(target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), CardColor.Red);
+                    if (red > blue && red > gold)
+                    {
+                        cards.Add(CardColor.Red);
+                        if (red == blue)
+                        {
+                            cards.Add(CardColor.Blue);
+                        }
+                        if (red == gold)
+                        {
+                            cards.Add(CardColor.Gold);
+                        }
+                    }
+                    else if (gold > blue && gold > red)
+                    {
+                        cards.Add(CardColor.Gold);
+                        if (gold == blue)
+                        {
+                            cards.Add(CardColor.Blue);
+                        }
+                        if (gold == red)
+                        {
+                            cards.Add(CardColor.Red);
+                        }
+                    }
+                    else if (blue > red && blue > gold)
+                    {
+                        cards.Add(CardColor.Blue);
+                        if (blue == red)
+                        {
+                            cards.Add(CardColor.Red);
+                        }
+                        if (blue == gold)
+                        {
+                            cards.Add(CardColor.Gold);
+                        }
+                    }
                 }
-                if (!ManaManager.Check(mode + "-blue"))
+                if (mode == "combo" && !cards.Any())
                 {
-                    blue = 4;
-                }
-                red += GetWHits(target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), CardColor.Red);
-                if (red > blue && red > gold)
-                {
-                    cards.Add(CardColor.Red);
-                    if (red == blue)
+                    var distance = target.Distance(ObjectManager.Player);
+                    var damage = ItemManager.CalculateComboDamage(target) - target.HPRegenRate / 2f;
+                    if (HasEBuff())
+                    {
+                        damage += E.GetDamage(target);
+                    }
+                    if (Q.IsReady() && Utils.IsStunned(target) && distance < Q.Range / 3f || distance < Q.Range / 5f)
+                    {
+                        damage += Q.GetDamage(target) * 0.9f;
+                    }
+                    if (W.GetDamage(target, 2) + damage - 20 > target.Health)
+                    {
+                        cards.Add(CardColor.Gold);
+                    }
+                    else if (W.GetDamage(target) + damage - 20 > target.Health)
                     {
                         cards.Add(CardColor.Blue);
                     }
-                    if (red == gold)
+                    else if (ObjectManager.Player.HealthPercent <=
+                             Menu.Item(Menu.Name + ".combo.gold-percent").GetValue<Slider>().Value)
+                    {
+                        cards.Add(CardColor.Gold);
+                    }
+                    else if (!ManaManager.Check("combo-blue"))
+                    {
+                        cards.Add(CardColor.Blue);
+                    }
+                    else
+                    {
+                        var redHits = GetWHits(
+                            target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), CardColor.Red);
+                        if (redHits >= 3)
+                        {
+                            cards.Add(CardColor.Red);
+                        }
+                    }
+                    if (!cards.Any())
                     {
                         cards.Add(CardColor.Gold);
                     }
                 }
-                else if (gold > blue && gold > red)
+                else if (mode == "harass" && !cards.Any())
                 {
-                    cards.Add(CardColor.Gold);
-                    if (gold == blue)
+                    if (Menu.Item(Menu.Name + ".harass.w-auto").GetValue<bool>() && burst)
                     {
-                        cards.Add(CardColor.Blue);
+                        cards.Add(target.Distance(Player) > W.Range * 0.8f ? CardColor.Gold : CardColor.Blue);
                     }
-                    if (gold == red)
+                    else
                     {
-                        cards.Add(CardColor.Red);
+                        var card = !ManaManager.Check("harass-blue")
+                            ? CardColor.Blue
+                            : GetSelectedCardColor(
+                                Menu.Item(Menu.Name + ".harass.w-card").GetValue<StringList>().SelectedIndex);
+                        if (card != CardColor.None)
+                        {
+                            cards.Add(card);
+                        }
                     }
                 }
-                else if (blue > red && blue > gold)
+                else if (mode == "flee")
                 {
-                    cards.Add(CardColor.Blue);
-                    if (blue == red)
+                    red += GetWHits(target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), CardColor.Red);
+                    if (red > gold || red == gold)
                     {
                         cards.Add(CardColor.Red);
                     }
-                    if (blue == gold)
+                    else if (gold > red || red == gold)
                     {
                         cards.Add(CardColor.Gold);
                     }
                 }
             }
-            if (mode == "combo" && !cards.Any())
+            catch (Exception ex)
             {
-                var distance = target.Distance(ObjectManager.Player);
-                var damage = ItemManager.CalculateComboDamage(target) - target.HPRegenRate / 2f;
-                if (HasEBuff())
-                {
-                    damage += E.GetDamage(target);
-                }
-                if (Q.IsReady() && Utils.IsStunned(target) && distance < Q.Range / 3f || distance < Q.Range / 5f)
-                {
-                    damage += Q.GetDamage(target) * 0.9f;
-                }
-                if (W.GetDamage(target, 2) + damage - 20 > target.Health)
-                {
-                    cards.Add(CardColor.Gold);
-                }
-                else if (W.GetDamage(target) + damage - 20 > target.Health)
-                {
-                    cards.Add(CardColor.Blue);
-                }
-                else if (ObjectManager.Player.HealthPercent <=
-                         Menu.Item(Menu.Name + ".combo.gold-percent").GetValue<Slider>().Value)
-                {
-                    cards.Add(CardColor.Gold);
-                }
-                else if (!ManaManager.Check("combo-blue"))
-                {
-                    cards.Add(CardColor.Blue);
-                }
-                else
-                {
-                    var redHits = GetWHits(
-                        target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), CardColor.Red);
-                    if (redHits >= 3)
-                    {
-                        cards.Add(CardColor.Red);
-                    }
-                }
-                if (!cards.Any())
-                {
-                    cards.Add(CardColor.Gold);
-                }
-            }
-            else if (mode == "harass" && !cards.Any())
-            {
-                if (Menu.Item(Menu.Name + ".harass.w-auto").GetValue<bool>() && burst)
-                {
-                    cards.Add(target.Distance(Player) > W.Range * 0.8f ? CardColor.Gold : CardColor.Blue);
-                }
-                else
-                {
-                    var card = !ManaManager.Check("harass-blue")
-                        ? CardColor.Blue
-                        : GetSelectedCardColor(
-                            Menu.Item(Menu.Name + ".harass.w-card").GetValue<StringList>().SelectedIndex);
-                    if (card != CardColor.None)
-                    {
-                        cards.Add(card);
-                    }
-                }
-            }
-            else if (mode == "flee")
-            {
-                red += GetWHits(target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), CardColor.Red);
-                if (red > gold || red == gold)
-                {
-                    cards.Add(CardColor.Red);
-                }
-                else if (gold > red || red == gold)
-                {
-                    cards.Add(CardColor.Gold);
-                }
+                Global.Logger.AddItem(new LogItem(ex));
             }
             return cards;
         }
@@ -827,46 +869,60 @@ namespace SFXChallenger.Champions
 
             private static void OnGameUpdate(EventArgs args)
             {
-                if (ObjectManager.Player.HasBuff("pickacard_tracker"))
+                try
                 {
-                    Status = SelectStatus.Selecting;
+                    if (ObjectManager.Player.HasBuff("pickacard_tracker"))
+                    {
+                        Status = SelectStatus.Selecting;
+                    }
+                    else if (ObjectManager.Player.HasBuff("goldcardpreattack") ||
+                             ObjectManager.Player.HasBuff("redcardpreattack") ||
+                             ObjectManager.Player.HasBuff("bluecardpreattack"))
+                    {
+                        Status = SelectStatus.Selected;
+                    }
+                    else
+                    {
+                        Status = SelectStatus.None;
+                    }
                 }
-                else if (ObjectManager.Player.HasBuff("goldcardpreattack") ||
-                         ObjectManager.Player.HasBuff("redcardpreattack") ||
-                         ObjectManager.Player.HasBuff("bluecardpreattack"))
+                catch (Exception ex)
                 {
-                    Status = SelectStatus.Selected;
-                }
-                else
-                {
-                    Status = SelectStatus.None;
+                    Global.Logger.AddItem(new LogItem(ex));
                 }
             }
 
             private static void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
             {
-                if (sender.IsMe)
+                try
                 {
-                    if (args.SData.Name.Equals("goldcardlock", StringComparison.OrdinalIgnoreCase))
+                    if (sender.IsMe)
                     {
-                        LastCard = CardColor.Gold;
-                        Status = SelectStatus.Selected;
-                        ShouldSelect.Clear();
-                    }
+                        if (args.SData.Name.Equals("goldcardlock", StringComparison.OrdinalIgnoreCase))
+                        {
+                            LastCard = CardColor.Gold;
+                            Status = SelectStatus.Selected;
+                            ShouldSelect.Clear();
+                        }
 
-                    if (args.SData.Name.Equals("redcardlock", StringComparison.OrdinalIgnoreCase))
-                    {
-                        LastCard = CardColor.Red;
-                        Status = SelectStatus.Selected;
-                        ShouldSelect.Clear();
-                    }
+                        if (args.SData.Name.Equals("redcardlock", StringComparison.OrdinalIgnoreCase))
+                        {
+                            LastCard = CardColor.Red;
+                            Status = SelectStatus.Selected;
+                            ShouldSelect.Clear();
+                        }
 
-                    if (args.SData.Name.Equals("bluecardlock", StringComparison.OrdinalIgnoreCase))
-                    {
-                        LastCard = CardColor.Blue;
-                        Status = SelectStatus.Selected;
-                        ShouldSelect.Clear();
+                        if (args.SData.Name.Equals("bluecardlock", StringComparison.OrdinalIgnoreCase))
+                        {
+                            LastCard = CardColor.Blue;
+                            Status = SelectStatus.Selected;
+                            ShouldSelect.Clear();
+                        }
                     }
+                }
+                catch (Exception ex)
+                {
+                    Global.Logger.AddItem(new LogItem(ex));
                 }
             }
 
@@ -903,29 +959,43 @@ namespace SFXChallenger.Champions
 
             public static void Select(CardColor card)
             {
-                if (Spell.IsReady())
+                try
                 {
-                    ShouldSelect.Clear();
-                    ShouldSelect.Add(card);
-                    if (ObjectManager.Player.HasBuff("pickacard_tracker") ||
-                        ObjectManager.Player.Spellbook.CastSpell(Spell.Slot, ObjectManager.Player.Position))
+                    if (Spell.IsReady())
                     {
-                        Status = SelectStatus.Selecting;
+                        ShouldSelect.Clear();
+                        ShouldSelect.Add(card);
+                        if (ObjectManager.Player.HasBuff("pickacard_tracker") ||
+                            ObjectManager.Player.Spellbook.CastSpell(Spell.Slot, ObjectManager.Player.Position))
+                        {
+                            Status = SelectStatus.Selecting;
+                        }
                     }
+                }
+                catch (Exception ex)
+                {
+                    Global.Logger.AddItem(new LogItem(ex));
                 }
             }
 
             public static void Select(List<CardColor> cards)
             {
-                if (Spell.IsReady())
+                try
                 {
-                    ShouldSelect.Clear();
-                    ShouldSelect.AddRange(cards);
-                    if (ObjectManager.Player.HasBuff("pickacard_tracker") ||
-                        ObjectManager.Player.Spellbook.CastSpell(Spell.Slot, ObjectManager.Player.Position))
+                    if (Spell.IsReady())
                     {
-                        Status = SelectStatus.Selecting;
+                        ShouldSelect.Clear();
+                        ShouldSelect.AddRange(cards);
+                        if (ObjectManager.Player.HasBuff("pickacard_tracker") ||
+                            ObjectManager.Player.Spellbook.CastSpell(Spell.Slot, ObjectManager.Player.Position))
+                        {
+                            Status = SelectStatus.Selecting;
+                        }
                     }
+                }
+                catch (Exception ex)
+                {
+                    Global.Logger.AddItem(new LogItem(ex));
                 }
             }
         }
