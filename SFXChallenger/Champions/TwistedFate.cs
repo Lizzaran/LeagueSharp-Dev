@@ -531,7 +531,7 @@ namespace SFXChallenger.Champions
         private void QLogic(HitChance hitChance)
         {
             if ((Cards.Has() || HasEBuff()) &&
-                !GameObjects.EnemyHeroes.Any(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget()))
+                GameObjects.EnemyHeroes.Any(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget()))
             {
                 return;
             }
