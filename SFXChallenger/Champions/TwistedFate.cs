@@ -812,26 +812,33 @@ namespace SFXChallenger.Champions
                     {
                         cards.Add(CardColor.Gold);
                     }
-                    else if (W.GetDamage(target) + damage > target.Health)
+                    if (W.GetDamage(target, 1) + damage > target.Health)
+                    {
+                        cards.Add(CardColor.Red);
+                    }
+                    if (W.GetDamage(target) + damage > target.Health)
                     {
                         cards.Add(CardColor.Blue);
                     }
-                    else if (ObjectManager.Player.HealthPercent <=
+                    if (!cards.Any())
+                    {
+                        if (ObjectManager.Player.HealthPercent <=
                              Menu.Item(Menu.Name + ".combo.gold-percent").GetValue<Slider>().Value)
-                    {
-                        cards.Add(CardColor.Gold);
-                    }
-                    else if (!ManaManager.Check("combo-blue"))
-                    {
-                        cards.Add(CardColor.Blue);
-                    }
-                    else
-                    {
-                        var redHits = GetWHits(
-                            target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), CardColor.Red);
-                        if (redHits >= 3)
                         {
-                            cards.Add(CardColor.Red);
+                            cards.Add(CardColor.Gold);
+                        }
+                        else if (!ManaManager.Check("combo-blue"))
+                        {
+                            cards.Add(CardColor.Blue);
+                        }
+                        else
+                        {
+                            var redHits = GetWHits(
+                                target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), CardColor.Red);
+                            if (redHits >= 3)
+                            {
+                                cards.Add(CardColor.Red);
+                            }
                         }
                     }
                     if (!cards.Any())
