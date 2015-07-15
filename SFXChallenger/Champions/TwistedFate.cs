@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- twistedfate.cs is part of SFXChallenger.
+ TwistedFate.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -166,26 +166,9 @@ namespace SFXChallenger.Champions
                     .SetValue(new KeyBind('I', KeyBindType.Press)));
 
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
-            IndicatorManager.Add(
-                "Combo", delegate(Obj_AI_Hero target)
-                {
-                    float damage = 0;
-                    if (Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady())
-                    {
-                        damage += Q.GetDamage(target);
-                    }
-                    if (Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady())
-                    {
-                        damage += W.GetDamage(target);
-                    }
-                    if (HasEBuff())
-                    {
-                        damage += E.GetDamage(target);
-                    }
-                    damage += ItemManager.CalculateComboDamage(target);
-                    damage += SummonerManager.CalculateComboDamage(target);
-                    return damage;
-                });
+            IndicatorManager.Add(Q);
+            IndicatorManager.Add(W);
+            IndicatorManager.Add(E);
             IndicatorManager.Finale();
 
             _eStacks = DrawingManager.Add("E " + Global.Lang.Get("G_Stacks"), true);
@@ -579,7 +562,32 @@ namespace SFXChallenger.Champions
             return Player.HasBuff("cardmasterstackparticle");
         }
 
-        protected override void Flee() {}
+        protected override void Flee()
+        {
+            if (Menu.Item(Menu.Name + ".flee.w").GetValue<bool>() && W.IsReady())
+            {
+                if (Cards.Has())
+                {
+                    var target = GameObjects.EnemyHeroes.OrderBy(e => e.Distance(Player)).FirstOrDefault(
+                        e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget());
+                    if (target != null)
+                    {
+                        Orbwalking.Orbwalk(target, Game.CursorPos);
+                    }
+                }
+                else
+                {
+                    var target = TargetSelector.GetTarget(
+                    W.Range * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+                    var best = GetBestCard(target, "flee");
+                    if (best.Any())
+                    {
+                        Cards.Select(best);
+                        Orbwalker.ForceTarget(target);
+                    }
+                }
+            }
+        }
         protected override void Killsteal() {}
 
         private void OnDrawingDraw(EventArgs args)

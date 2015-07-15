@@ -173,6 +173,7 @@ namespace SFXChallenger.Champions
 
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
             IndicatorManager.Add(Q);
+            IndicatorManager.Add(W);
             IndicatorManager.Add("E", Rend.GetDamage);
             IndicatorManager.Finale();
 

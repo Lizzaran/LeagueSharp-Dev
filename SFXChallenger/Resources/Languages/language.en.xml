@@ -129,6 +129,8 @@
 
 	<!-- START: IndicatorManager -->
 	<entry key="F_IDM">Damage Indicator</entry>
+	<entry key="IDM_Items">Items</entry>
+	<entry key="IDM_Summoners">Summoners</entry>
 	<!-- END: IndicatorManager -->
 
 	<!-- START: SummonerManager -->

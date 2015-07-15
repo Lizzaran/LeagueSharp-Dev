@@ -62,6 +62,9 @@ namespace SFXChallenger.Managers
                 _menu.AddItem(
                     new MenuItem(_menu.Name + ".attacks", Global.Lang.Get("G_UseAutoAttacks")).SetValue(
                         new Slider(2, 0, 10)));
+
+                Add(Global.Lang.Get("IDM_Items"), ItemManager.CalculateComboDamage);
+                Add(Global.Lang.Get("IDM_Summoners"), SummonerManager.CalculateComboDamage);
             }
             catch (Exception ex)
             {
