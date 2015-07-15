@@ -84,6 +84,8 @@
 	<entry key="G_Additional">Additional</entry>
 	<entry key="G_Force">Force</entry>
 	<entry key="G_Always">Always</entry>
+	<entry key="G_Minimap">Minimap</entry>
+	<entry key="G_Stacks">Stacks</entry>
 	<entry key="G_StacksIsOrMore">Stacks >=</entry>
 	<entry key="G_OutOfRange">Out of Range</entry>
 	<entry key="G_Color">Color</entry>
@@ -92,6 +94,7 @@
 	<entry key="G_Delay">Delay</entry>
 	<entry key="G_Bug">Bug</entry>
 	<entry key="G_Mode">Mode</entry>
+	<entry key="G_HealthPercent">Health Percent</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: Language -->

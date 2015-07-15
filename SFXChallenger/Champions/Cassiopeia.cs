@@ -385,15 +385,7 @@ namespace SFXChallenger.Champions
 
                 if (Menu.Item(Menu.Name + ".miscellaneous.w-stunned").GetValue<bool>() && W.IsReady())
                 {
-                    var target =
-                        Targets.FirstOrDefault(
-                            t =>
-                                t.IsValidTarget(W.Range) &&
-                                (t.HasBuffOfType(BuffType.Charm) || t.HasBuffOfType(BuffType.Snare) ||
-                                 t.HasBuffOfType(BuffType.Knockup) || t.HasBuffOfType(BuffType.Polymorph) ||
-                                 t.HasBuffOfType(BuffType.Fear) || t.HasBuffOfType(BuffType.Taunt) ||
-                                 t.HasBuffOfType(BuffType.Stun) || t.IsStunned ||
-                                 W.GetPrediction(t).Hitchance == HitChance.Immobile));
+                    var target = Targets.FirstOrDefault(Helpers.Utils.IsStunned);
                     if (target != null)
                     {
                         Casting.SkillShot(target, W, W.GetHitChance("harass"));

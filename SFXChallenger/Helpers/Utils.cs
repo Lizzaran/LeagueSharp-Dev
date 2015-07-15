@@ -108,5 +108,13 @@ namespace SFXChallenger.Helpers
         {
             return GameObjects.AllyTurrets.Any(t => t.Distance(position) < 925f);
         }
+
+        public static bool IsStunned(Obj_AI_Base t)
+        {
+            return t.HasBuffOfType(BuffType.Charm) || t.HasBuffOfType(BuffType.Snare) ||
+                   t.HasBuffOfType(BuffType.Knockup) || t.HasBuffOfType(BuffType.Polymorph) ||
+                   t.HasBuffOfType(BuffType.Fear) || t.HasBuffOfType(BuffType.Taunt) || t.HasBuffOfType(BuffType.Stun) ||
+                   t.IsStunned;
+        }
     }
 }

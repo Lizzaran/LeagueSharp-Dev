@@ -26,6 +26,7 @@ namespace SFXChallenger.Enumerations
     {
         Position,
         Target,
-        Self
+        Self,
+        None
     }
 }
