@@ -304,7 +304,8 @@ namespace SFXChallenger.Managers
                                 i.Item.IsReady() && distance <= Math.Pow(i.Range, 2) &&
                                 ObjectManager.Player.CountEnemiesInRange(i.Range) >=
                                 _menu.Item(_menu.Name + "." + i.Name + ".min-enemies-range").GetValue<Slider>().Value)
-                            .Sum(item => ObjectManager.Player.GetItemDamage(target, item.Damage)) + CalculateLichBaneDamage(target);
+                            .Sum(item => ObjectManager.Player.GetItemDamage(target, item.Damage)) +
+                    CalculateLichBaneDamage(target);
             }
             catch (Exception ex)
             {
@@ -382,12 +383,20 @@ namespace SFXChallenger.Managers
             var lichBane = ItemData.Lich_Bane.GetItem();
             if (lichBane.IsOwned(ObjectManager.Player))
             {
-                return ObjectManager.Player.BaseAttackDamage * 0.75f + ObjectManager.Player.FlatMagicDamageMod * 0.5f;
+                return
+                    (float)
+                        (ObjectManager.Player.CalcDamage(
+                            target, Damage.DamageType.Physical, ObjectManager.Player.BaseAttackDamage * 0.75f) +
+                         ObjectManager.Player.CalcDamage(
+                             target, Damage.DamageType.Magical, ObjectManager.Player.FlatMagicDamageMod * 0.5f));
             }
             var sheen = ItemData.Sheen.GetItem();
             if (sheen.IsOwned())
             {
-                return ObjectManager.Player.BaseAttackDamage;
+                return
+                    (float)
+                        ObjectManager.Player.CalcDamage(
+                            target, Damage.DamageType.Physical, ObjectManager.Player.BaseAttackDamage);
             }
             return 0;
         }
