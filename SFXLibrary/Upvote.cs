@@ -58,7 +58,7 @@ namespace SFXLibrary
                 {
                     return;
                 }
-                var error = false;
+
                 var count = 1;
                 try
                 {
@@ -75,7 +75,6 @@ namespace SFXLibrary
                         else
                         {
                             File.WriteAllText(file, count.ToString());
-                            error = true;
                         }
                     }
                     else
@@ -86,11 +85,8 @@ namespace SFXLibrary
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex);
-                    error = true;
                 }
-
-                var day = DateTime.Now.DayOfWeek;
-                if ((error && day != DayOfWeek.Wednesday) || (!error && count < maxGames))
+                if (count < maxGames)
                 {
                     return;
                 }
