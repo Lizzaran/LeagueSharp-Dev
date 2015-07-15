@@ -501,7 +501,7 @@ namespace SFXChallenger.Champions
             var q = Menu.Item(Menu.Name + ".harass.q").GetValue<bool>();
             var w = Menu.Item(Menu.Name + ".harass.w").GetValue<bool>();
 
-            if (ManaManager.Check("harass") && w && W.IsReady())
+            if (w && W.IsReady())
             {
                 var target = TargetSelector.GetTarget(
                     W.Range * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical);
@@ -511,7 +511,7 @@ namespace SFXChallenger.Champions
                     Cards.Select(best);
                 }
             }
-            if (q && Q.IsReady())
+            if (ManaManager.Check("harass") && q && Q.IsReady())
             {
                 QLogic(Q.GetHitChance("harass"));
             }
@@ -542,7 +542,7 @@ namespace SFXChallenger.Champions
             var qMin = Menu.Item(Menu.Name + ".lane-clear.q-min").GetValue<Slider>().Value;
             var w = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>();
 
-            if (q && Q.IsReady())
+            if (ManaManager.Check("lane-clear") && q && Q.IsReady())
             {
                 var minions = MinionManager.GetMinions(
                     Q.Range * 1.2f, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
@@ -552,7 +552,7 @@ namespace SFXChallenger.Champions
                     Q.Cast(best.Item2);
                 }
             }
-            if (ManaManager.Check("lane-clear") && w && W.IsReady())
+            if (w && W.IsReady())
             {
                 var best = GetBestLaneClearTargetCard();
                 if (best.Item1 != null && best.Item2.Any())
