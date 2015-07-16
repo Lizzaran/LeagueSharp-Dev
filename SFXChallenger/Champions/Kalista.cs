@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- kalista.cs is part of SFXChallenger.
+ Kalista.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -565,28 +565,7 @@ namespace SFXChallenger.Champions
             }
             if (useQ && minions.Count >= minQ && !Player.IsWindingUp && !Player.IsDashing())
             {
-                foreach (var minion in minions.Where(x => x.Health <= Q.GetDamage(x)))
-                {
-                    var killcount = 0;
-
-                    foreach (var colminion in
-                        QGetCollisions(Player, Player.ServerPosition.Extend(minion.ServerPosition, Q.Range)))
-                    {
-                        if (colminion.Health <= Q.GetDamage(colminion))
-                        {
-                            killcount++;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                    if (killcount >= minQ)
-                    {
-                        Q.Cast(minion.ServerPosition);
-                        break;
-                    }
-                }
+                Casting.Farm(Q, minQ);
             }
             if (useE)
             {

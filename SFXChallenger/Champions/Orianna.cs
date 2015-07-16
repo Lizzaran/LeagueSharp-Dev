@@ -858,7 +858,7 @@ namespace SFXChallenger.Champions
                 }
                 else if (q && Q.IsReady())
                 {
-                    Q.Cast(mob, true);
+                    Q.Cast(mob.Position);
                 }
                 return;
             }

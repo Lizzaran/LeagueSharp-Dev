@@ -22,9 +22,12 @@
 
 #region
 
+using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXLibrary.Extensions.NET;
+using SharpDX;
 using MinionManager = SFXLibrary.MinionManager;
 using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
 using MinionTeam = SFXLibrary.MinionTeam;
@@ -93,10 +96,9 @@ namespace SFXChallenger.Helpers
             {
                 return;
             }
-            var minions =
-                MinionManager.GetMinions(
-                    ObjectManager.Player.ServerPosition, spell.Range, MinionTypes.All, MinionTeam.NotAlly,
-                    MinionOrderTypes.MaxHealth).ToList();
+            var spellWidth = overrideWidth > 0 ? overrideWidth : spell.Width;
+            var minions = MinionManager.GetMinions(
+                ((spell.Range + spellWidth) * 1.5f), MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
 
             if (minions.Count == 0)
             {
@@ -107,22 +109,100 @@ namespace SFXChallenger.Helpers
 
             if (spell.Type == SkillshotType.SkillshotCircle)
             {
-                spell.UpdateSourcePosition();
-
-                var prediction = spell.GetCircularFarmLocation(minions, overrideWidth);
-                if (prediction.MinionsHit >= minHit)
-                {
-                    spell.Cast(prediction.Position);
-                }
+                CircleFarm(spell, minions, minHit, overrideWidth);
             }
             else if (spell.Type == SkillshotType.SkillshotLine)
             {
-                spell.UpdateSourcePosition();
+                LineFarm(spell, minions, minHit, overrideWidth);
+            }
+            else if (spell.Type == SkillshotType.SkillshotCone)
+            {
+                ConeFarm(spell, minions, minHit, overrideWidth);
+            }
+        }
 
-                var prediction = spell.GetLineFarmLocation(minions, overrideWidth);
-                if (prediction.MinionsHit >= minHit)
+        private static void ConeFarm(Spell spell, List<Obj_AI_Base> minions, int min, float overrideWidth = -1f)
+        {
+            var spellWidth = overrideWidth > 0 ? overrideWidth : spell.Width;
+            var pred = spell.GetCircularFarmLocation(minions, spellWidth);
+            if (pred.MinionsHit >= min)
+            {
+                spell.Cast(pred.Position);
+            }
+        }
+
+        private static void CircleFarm(Spell spell, List<Obj_AI_Base> minions, int min, float overrideWidth = -1f)
+        {
+            var spellWidth = overrideWidth > 0 ? overrideWidth : spell.Width;
+            var points = (from minion in minions
+                select spell.GetPrediction(minion)
+                into pred
+                where pred.Hitchance >= HitChance.Medium
+                select pred.UnitPosition.To2D()).ToList();
+            if (points.Any())
+            {
+                var possibilities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count >= min).ToList();
+                if (possibilities.Any())
                 {
-                    spell.Cast(prediction.Position);
+                    var hits = 0;
+                    var radius = float.MaxValue;
+                    var pos = Vector3.Zero;
+                    foreach (var possibility in possibilities)
+                    {
+                        var mec = MEC.GetMec(possibility);
+                        if (mec.Radius < spellWidth * 0.95f)
+                        {
+                            if (possibility.Count > hits || possibility.Count == hits && radius > mec.Radius)
+                            {
+                                hits = possibility.Count;
+                                radius = mec.Radius;
+                                pos = mec.Center.To3D();
+                            }
+                        }
+                    }
+                    if (hits >= min && !pos.Equals(Vector3.Zero))
+                    {
+                        spell.Cast(pos);
+                    }
+                }
+            }
+        }
+
+        private static void LineFarm(Spell spell, List<Obj_AI_Base> minions, int min, float overrideWidth = -1f)
+        {
+            var spellWidth = overrideWidth > 0 ? overrideWidth : spell.Width;
+            var totalHits = 0;
+            var castPos = Vector3.Zero;
+            foreach (var minion in minions)
+            {
+                var lMinion = minion;
+                var pred = spell.GetPrediction(minion);
+                if (pred.Hitchance < HitChance.Medium)
+                {
+                    continue;
+                }
+                var rect = new Geometry.Polygon.Rectangle(
+                    ObjectManager.Player.Position.To2D(),
+                    pred.CastPosition.Extend(pred.CastPosition, spell.Range).To2D(), spellWidth);
+                var count = 1 + (from minion2 in minions.Where(m => m.NetworkId != lMinion.NetworkId)
+                    let pred2 = spell.GetPrediction(minion2)
+                    where pred.Hitchance >= HitChance.Medium
+                    where
+                        new Geometry.Polygon.Circle(pred2.UnitPosition, minion.BoundingRadius * 0.8f).Points.Any(
+                            p => rect.IsInside(p))
+                    select 1).Sum();
+                if (count > totalHits)
+                {
+                    totalHits = count;
+                    castPos = pred.CastPosition;
+                }
+                if (totalHits == minions.Count)
+                {
+                    break;
+                }
+                if (!castPos.Equals(Vector3.Zero) && totalHits >= min)
+                {
+                    spell.Cast(castPos);
                 }
             }
         }

@@ -556,53 +556,10 @@ namespace SFXChallenger.Champions
             if (Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady())
             {
                 Casting.Farm(Q, min);
-
-                var totalHits = 0;
-                var castPos = Vector3.Zero;
-                var minions =
-                    MinionManager.GetMinions(
-                        Q.Range * 1.3f, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
-                        .Concat(GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(Q.Range * 1.3f)))
-                        .ToList();
-                foreach (var minion in minions)
-                {
-                    var lMinion = minion;
-                    var pred = Q.GetPrediction(minion);
-                    if (pred.Hitchance < HitChance.Medium)
-                    {
-                        continue;
-                    }
-                    var rect = new Geometry.Polygon.Rectangle(
-                        pred.CastPosition.To2D(), pred.CastPosition.Extend(pred.CastPosition, Q.Range).To2D(), Q.Width);
-                    var count = 1 + (from minion2 in minions.Where(m => m.NetworkId != lMinion.NetworkId)
-                        let pred2 = Q.GetPrediction(minion2)
-                        where pred.Hitchance >= HitChance.Medium
-                        where
-                            new Geometry.Polygon.Circle(pred2.UnitPosition, minion.BoundingRadius * 0.8f).Points.Any(
-                                p => rect.IsInside(p))
-                        select (minion2.Type == GameObjectType.obj_AI_Hero ? 2 : 1)).Sum();
-                    if (count > totalHits)
-                    {
-                        totalHits = count;
-                        castPos = pred.CastPosition;
-                    }
-                    if (totalHits == minions.Count)
-                    {
-                        break;
-                    }
-                }
-                if (!castPos.Equals(Vector3.Zero) && totalHits >= min)
-                {
-                    Q.Cast(castPos);
-                }
             }
             if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady())
             {
-                var pos = GetBestEMinionLocation(min);
-                if (pos.Item1 >= (pos.Item3 ? 1 : min))
-                {
-                    E.Cast(pos.Item2);
-                }
+                Casting.Farm(E, min);
             }
         }
 
@@ -630,42 +587,6 @@ namespace SFXChallenger.Champions
                     QLogic(killable, HitChance.High);
                 }
             }
-        }
-
-        private Tuple<int, Vector3, bool> GetBestEMinionLocation(int min)
-        {
-            var minions = MinionManager.GetMinions(
-                (E.Range + E.Range * 1.3f), MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
-            var points = (from minion in minions
-                select E.GetPrediction(minion)
-                into ePred
-                where ePred.Hitchance >= HitChance.Medium
-                select ePred.UnitPosition.To2D()).ToList();
-            if (points.Any())
-            {
-                var possibilities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count >= min).ToList();
-                if (possibilities.Any())
-                {
-                    var hits = 0;
-                    var radius = float.MaxValue;
-                    var pos = Vector3.Zero;
-                    foreach (var possibility in possibilities)
-                    {
-                        var mec = MEC.GetMec(possibility);
-                        if (mec.Radius < E.Width * 0.95f)
-                        {
-                            if (possibility.Count > hits || possibility.Count == hits && radius > mec.Radius)
-                            {
-                                hits = possibility.Count;
-                                radius = mec.Radius;
-                                pos = mec.Center.To3D();
-                            }
-                        }
-                    }
-                    return new Tuple<int, Vector3, bool>(hits, pos, minions.Any(m => m.Team == GameObjectTeam.Neutral));
-                }
-            }
-            return new Tuple<int, Vector3, bool>(0, Vector3.Zero, false);
         }
 
         private int GetWStacks(Obj_AI_Base target)
