@@ -540,8 +540,7 @@ namespace SFXChallenger.Champions
             var dist = target.Distance(Player);
             var best = BestQPosition(target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), hitChance);
             if (!best.Item2.Equals(Vector3.Zero) &&
-                (best.Item1 >= 2 || dist <= 550 && cd <= 2 && Helpers.Utils.IsStunned(target) || dist > 550 || cd > 2 ||
-                 Q.IsKillable(target)))
+                (best.Item1 >= 2 || dist <= 550 && cd <= 2 && Helpers.Utils.IsStunned(target) || dist > 550 || cd > 2))
             {
                 Q.Cast(best.Item2);
             }
