@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Kalista.cs is part of SFXChallenger.
+ kalista.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -726,7 +726,7 @@ namespace SFXChallenger.Champions
                         }
                     }
                 }
-                return GetDamage(target) > target.Health + target.AttackShield;
+                return GetDamage(target) > target.Health; // + target.AttackShield;
             }
 
             private static float GetRealDamage(Obj_AI_Base target, float damage)
@@ -790,7 +790,7 @@ namespace SFXChallenger.Champions
                 {
                     var buff = GetBuff(target);
                     var eLevel = ObjectManager.Player.GetSpell(SpellSlot.E).Level;
-                    if (((buff != null && buff.Count > 0) || customStacks > -1) && eLevel > 0)
+                    if (buff != null || customStacks > -1)
                     {
                         var damage = (Damage[eLevel - 1] +
                                       DamageMultiplier[eLevel - 1] * ObjectManager.Player.TotalAttackDamage()) +
@@ -817,10 +817,10 @@ namespace SFXChallenger.Champions
             public static BuffInstance GetBuff(Obj_AI_Base target)
             {
                 return
-                    target.Buffs.FirstOrDefault(
+                    target.Buffs.Find(
                         b =>
-                            b.Caster.IsMe && b.IsValidBuff() &&
-                            b.Name.Equals("kalistaexpungemarker", StringComparison.OrdinalIgnoreCase));
+                            b.Caster.IsMe && b.IsValid &&
+                            b.DisplayName.Equals("KalistaExpungeMarker", StringComparison.OrdinalIgnoreCase));
             }
         }
     }

@@ -112,7 +112,7 @@ namespace SFXChallenger.Champions
             ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
             ManaManager.AddToMenu(
                 harassMenu, "harass-blue", ManaCheckType.Minimum, ManaValueType.Percent,
-                "W " + Global.Lang.Get("TF_Blue"));
+                "W " + Global.Lang.Get("TF_Blue"), 50);
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             harassMenu.AddItem(
                 new MenuItem(harassMenu.Name + ".w-card", "W " + Global.Lang.Get("TF_Card")).SetValue(
@@ -125,7 +125,7 @@ namespace SFXChallenger.Champions
             ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
             ManaManager.AddToMenu(
                 laneclearMenu, "lane-clear-blue", ManaCheckType.Minimum, ManaValueType.Percent,
-                "W " + Global.Lang.Get("TF_Blue"));
+                "W " + Global.Lang.Get("TF_Blue"), 50);
             laneclearMenu.AddItem(
                 new MenuItem(laneclearMenu.Name + ".q-min", "Q " + Global.Lang.Get("G_Min")).SetValue(
                     new Slider(3, 1, 5)));
@@ -142,6 +142,10 @@ namespace SFXChallenger.Champions
                     .SetValue(true));
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
+            miscMenu.AddItem(
+                new MenuItem(miscMenu.Name + ".q-range", "Q " + Global.Lang.Get("G_Range")).SetValue(
+                    new Slider((int)Q.Range, 950, 1450))).ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { Q.Range = args.GetNewValue<Slider>().Value; };
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".w-range", "W " + Global.Lang.Get("G_Range")).SetValue(
                     new Slider((int) W.Range, 500, 1000))).ValueChanged +=
@@ -169,6 +173,7 @@ namespace SFXChallenger.Champions
                 new MenuItem(manualMenu.Name + ".gold", Global.Lang.Get("G_Hotkey") + " " + Global.Lang.Get("TF_Gold"))
                     .SetValue(new KeyBind('I', KeyBindType.Press)));
 
+            Q.Range = Menu.Item(Menu.Name + ".miscellaneous.q-range").GetValue<Slider>().Value;
             W.Range = Menu.Item(Menu.Name + ".miscellaneous.w-range").GetValue<Slider>().Value;
 
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
