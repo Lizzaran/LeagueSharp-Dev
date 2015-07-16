@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Varus.cs is part of SFXChallenger.
+ varus.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -205,12 +205,12 @@ namespace SFXChallenger.Champions
         protected override void SetupSpells()
         {
             Q = new Spell(SpellSlot.Q, 925f);
-            Q.SetSkillshot(0.25f, 70f, 1650f, false, SkillshotType.SkillshotLine);
-            Q.SetCharged("VarusQ", "VarusQ", 250, 1600, 1.2f);
+            Q.SetSkillshot(0.25f, 70f, 1800f, false, SkillshotType.SkillshotLine);
+            Q.SetCharged("VarusQ", "VarusQ", 925, 1600, 1.5f);
 
             W = new Spell(SpellSlot.W, 0f);
 
-            E = new Spell(SpellSlot.E, 925f);
+            E = new Spell(SpellSlot.E, 950f);
             E.SetSkillshot(0.50f, 250f, 1400f, false, SkillshotType.SkillshotCircle);
 
             R = new Spell(SpellSlot.R, 1075f);
@@ -465,10 +465,10 @@ namespace SFXChallenger.Champions
             {
                 return;
             }
-            var pos = GetBestELocation(target, hitChance);
-            if (!pos.Equals(Vector3.Zero))
+            var pred = E.GetPrediction(target);
+            if (pred.Hitchance >= hitChance)
             {
-                E.Cast(pos);
+                E.Cast(pred.CastPosition);
             }
         }
 
@@ -556,6 +556,45 @@ namespace SFXChallenger.Champions
             if (Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady())
             {
                 Casting.Farm(Q, min);
+
+                var totalHits = 0;
+                var castPos = Vector3.Zero;
+                var minions =
+                    MinionManager.GetMinions(
+                        Q.Range * 1.3f, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
+                        .Concat(GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(Q.Range * 1.3f)))
+                        .ToList();
+                foreach (var minion in minions)
+                {
+                    var lMinion = minion;
+                    var pred = Q.GetPrediction(minion);
+                    if (pred.Hitchance < HitChance.Medium)
+                    {
+                        continue;
+                    }
+                    var rect = new Geometry.Polygon.Rectangle(
+                        pred.CastPosition.To2D(), pred.CastPosition.Extend(pred.CastPosition, Q.Range).To2D(), Q.Width);
+                    var count = 1 + (from minion2 in minions.Where(m => m.NetworkId != lMinion.NetworkId)
+                        let pred2 = Q.GetPrediction(minion2)
+                        where pred.Hitchance >= HitChance.Medium
+                        where
+                            new Geometry.Polygon.Circle(pred2.UnitPosition, minion.BoundingRadius * 0.8f).Points.Any(
+                                p => rect.IsInside(p))
+                        select (minion2.Type == GameObjectType.obj_AI_Hero ? 2 : 1)).Sum();
+                    if (count > totalHits)
+                    {
+                        totalHits = count;
+                        castPos = pred.CastPosition;
+                    }
+                    if (totalHits == minions.Count)
+                    {
+                        break;
+                    }
+                }
+                if (!castPos.Equals(Vector3.Zero) && totalHits >= min)
+                {
+                    Q.Cast(castPos);
+                }
             }
             if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady())
             {
@@ -591,45 +630,6 @@ namespace SFXChallenger.Champions
                     QLogic(killable, HitChance.High);
                 }
             }
-        }
-
-        private Vector3 GetBestELocation(Obj_AI_Hero target, HitChance hitChance)
-        {
-            var pred = E.GetPrediction(target);
-            if (pred.Hitchance < hitChance)
-            {
-                return Vector3.Zero;
-            }
-            var points = (from enemy in GameObjects.EnemyHeroes.Where(h => h.IsValidTarget((E.Range + E.Range * 1.3f)))
-                select E.GetPrediction(enemy)
-                into ePred
-                where ePred.Hitchance >= (hitChance - 1)
-                select ePred.UnitPosition.To2D()).ToList();
-            if (points.Any())
-            {
-                var possibilities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 0).ToList();
-                if (possibilities.Any())
-                {
-                    var hits = 0;
-                    var radius = float.MaxValue;
-                    var pos = Vector3.Zero;
-                    foreach (var possibility in possibilities)
-                    {
-                        var mec = MEC.GetMec(possibility);
-                        if (mec.Radius < E.Width * 0.95f)
-                        {
-                            if (possibility.Count > hits || possibility.Count == hits && radius > mec.Radius)
-                            {
-                                hits = possibility.Count;
-                                radius = mec.Radius;
-                                pos = mec.Center.To3D();
-                            }
-                        }
-                    }
-                    return pos;
-                }
-            }
-            return Vector3.Zero;
         }
 
         private Tuple<int, Vector3, bool> GetBestEMinionLocation(int min)
