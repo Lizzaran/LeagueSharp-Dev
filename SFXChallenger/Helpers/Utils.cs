@@ -54,7 +54,7 @@ namespace SFXChallenger.Helpers
         {
             try
             {
-                if (target is Obj_AI_Hero)
+                if (target is Obj_AI_Hero && target.IsMoving)
                 {
                     var predTarget = Prediction.GetPrediction(
                         target,
@@ -68,6 +68,32 @@ namespace SFXChallenger.Helpers
                 return spell.Delay +
                        (ObjectManager.Player.ServerPosition.Distance(target.ServerPosition) / (spell.Speed)) +
                        (Game.Ping / 2000f) + 0.1f;
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return 0;
+        }
+
+        public static float GetSpellDelay(Obj_AI_Base sender,
+            Obj_AI_Base target,
+            float delay,
+            float speed,
+            bool prediction = false)
+        {
+            try
+            {
+                var additional = sender.IsMe ? (Game.Ping / 2000f) + 0.1f : 0f;
+                if (prediction && target is Obj_AI_Hero && target.IsMoving)
+                {
+                    var predTarget = Prediction.GetPrediction(
+                        target,
+                        delay + (sender.ServerPosition.Distance(target.ServerPosition) * 1.1f / (speed)) + additional);
+                    return delay +
+                           (sender.ServerPosition.Distance(predTarget.UnitPosition) * 1.1f / (speed) + additional);
+                }
+                return delay + (sender.ServerPosition.Distance(target.ServerPosition) / (speed) + additional);
             }
             catch (Exception ex)
             {

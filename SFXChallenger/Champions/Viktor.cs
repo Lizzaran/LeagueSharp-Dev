@@ -1023,47 +1023,54 @@ namespace SFXChallenger.Champions
 
         private void BestRCastLocation(out Vector3 pos, out int hits, float overrideRange = -1)
         {
-            var center = Vector2.Zero;
-            float radius = -1;
-            var count = 0;
-            var range = (overrideRange > 0 ? overrideRange : (R.Range * 1.3f));
-            var points = (from enemy in Targets.Where(t => t.IsValidTarget(range))
-                select Q.GetPrediction(enemy)
-                into prediction
-                where prediction.Hitchance >= HitChance.Medium
-                select prediction.UnitPosition.To2D()).ToList();
-            if (points.Any())
+            try
             {
-                var possibilities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 1).ToList();
-                if (possibilities.Any())
+                var center = Vector2.Zero;
+                float radius = -1;
+                var count = 0;
+                var range = (overrideRange > 0 ? overrideRange : (R.Range * 1.3f));
+                var points = (from enemy in Targets.Where(t => t.IsValidTarget(range))
+                    select Q.GetPrediction(enemy)
+                    into prediction
+                    where prediction.Hitchance >= HitChance.Medium
+                    select prediction.UnitPosition.To2D()).ToList();
+                if (points.Any())
                 {
-                    foreach (var possibility in possibilities)
+                    var possibilities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 1).ToList();
+                    if (possibilities.Any())
                     {
-                        var mec = MEC.GetMec(possibility);
-                        if (mec.Radius < (R.Width / 2) && Player.Distance(mec.Center) < range)
+                        foreach (var possibility in possibilities)
                         {
-                            if (possibility.Count > count || possibility.Count == count && mec.Radius < radius)
+                            var mec = MEC.GetMec(possibility);
+                            if (mec.Radius < (R.Width / 2) && Player.Distance(mec.Center) < range)
                             {
-                                center = mec.Center;
-                                radius = mec.Radius;
-                                count = possibility.Count;
+                                if (possibility.Count > count || possibility.Count == count && mec.Radius < radius)
+                                {
+                                    center = mec.Center;
+                                    radius = mec.Radius;
+                                    count = possibility.Count;
+                                }
                             }
                         }
+                        if (!center.Equals(Vector2.Zero))
+                        {
+                            hits = count;
+                            pos = center.To3D();
+                            return;
+                        }
                     }
-                    if (!center.Equals(Vector2.Zero))
+                    var dTarget = Targets.FirstOrDefault(t => t.IsValidTarget(range));
+                    if (dTarget != null)
                     {
-                        hits = count;
-                        pos = center.To3D();
+                        hits = 1;
+                        pos = dTarget.Position;
                         return;
                     }
                 }
-                var dTarget = Targets.FirstOrDefault(t => t.IsValidTarget(range));
-                if (dTarget != null)
-                {
-                    hits = 1;
-                    pos = dTarget.Position;
-                    return;
-                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
             hits = 0;
             pos = Vector3.Zero;
@@ -1071,46 +1078,53 @@ namespace SFXChallenger.Champions
 
         private Vector3 BestRFollowLocation(Vector3 position)
         {
-            var center = Vector2.Zero;
-            float radius = -1;
-            var count = 0;
-            var moveDistance = -1f;
-            var maxRelocation = IsSpellUpgraded(R) ? R.Width * 1.2f : R.Width * 0.8f;
-            var targets = Targets.Where(t => t.IsValidTarget()).ToList();
-            if (targets.Any())
+            try
             {
-                var possibilities =
-                    ListExtensions.ProduceEnumeration(targets.Select(t => t.Position.To2D()).ToList())
-                        .Where(p => p.Count > 1)
-                        .ToList();
-                if (possibilities.Any())
+                var center = Vector2.Zero;
+                float radius = -1;
+                var count = 0;
+                var moveDistance = -1f;
+                var maxRelocation = IsSpellUpgraded(R) ? R.Width * 1.2f : R.Width * 0.8f;
+                var targets = Targets.Where(t => t.IsValidTarget()).ToList();
+                if (targets.Any())
                 {
-                    foreach (var possibility in possibilities)
+                    var possibilities =
+                        ListExtensions.ProduceEnumeration(targets.Select(t => t.Position.To2D()).ToList())
+                            .Where(p => p.Count > 1)
+                            .ToList();
+                    if (possibilities.Any())
                     {
-                        var mec = MEC.GetMec(possibility);
-                        var distance = position.Distance(mec.Center.To3D());
-                        if (mec.Radius < (R.Width / 2) && distance < maxRelocation)
+                        foreach (var possibility in possibilities)
                         {
-                            if (possibility.Count > count ||
-                                possibility.Count == count && (mec.Radius < radius || distance < moveDistance))
+                            var mec = MEC.GetMec(possibility);
+                            var distance = position.Distance(mec.Center.To3D());
+                            if (mec.Radius < (R.Width / 2) && distance < maxRelocation)
                             {
-                                moveDistance = position.Distance(mec.Center.To3D());
-                                center = mec.Center;
-                                radius = mec.Radius;
-                                count = possibility.Count;
+                                if (possibility.Count > count ||
+                                    possibility.Count == count && (mec.Radius < radius || distance < moveDistance))
+                                {
+                                    moveDistance = position.Distance(mec.Center.To3D());
+                                    center = mec.Center;
+                                    radius = mec.Radius;
+                                    count = possibility.Count;
+                                }
                             }
                         }
+                        if (!center.Equals(Vector2.Zero))
+                        {
+                            return center.To3D();
+                        }
                     }
-                    if (!center.Equals(Vector2.Zero))
+                    var dTarget = targets.OrderBy(t => t.Distance(position)).FirstOrDefault();
+                    if (dTarget != null)
                     {
-                        return center.To3D();
+                        return dTarget.Position;
                     }
                 }
-                var dTarget = targets.OrderBy(t => t.Distance(position)).FirstOrDefault();
-                if (dTarget != null)
-                {
-                    return dTarget.Position;
-                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
             return Vector3.Zero;
         }

@@ -187,38 +187,59 @@ namespace SFXChallenger.Champions
 
         private void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
         {
-            if (sender.Owner.IsMe && args.Slot == SpellSlot.R)
+            try
             {
-                if (Ball.IsMoving || Menu.Item(Menu.Name + ".miscellaneous.block-r").GetValue<bool>())
+                if (sender.Owner.IsMe && args.Slot == SpellSlot.R)
                 {
-                    args.Process = GameObjects.EnemyHeroes.Any(e => e.Distance(Ball.Position) < R.Width * 2);
+                    if (Ball.IsMoving || Menu.Item(Menu.Name + ".miscellaneous.block-r").GetValue<bool>())
+                    {
+                        args.Process = GameObjects.EnemyHeroes.Any(e => e.Distance(Ball.Position) < R.Width * 2);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
         private void OnAllyInitiator(object sender, InitiatorArgs args)
         {
-            if (!Menu.Item(Menu.Name + ".initiator.use-e").GetValue<bool>() || Ball.IsMoving || !E.IsReady() ||
-                (Ball.Hero != null && Ball.Hero.NetworkId.Equals(args.Hero.NetworkId)))
+            try
             {
-                return;
+                if (!Menu.Item(Menu.Name + ".initiator.use-e").GetValue<bool>() || Ball.IsMoving || !E.IsReady() ||
+                    (Ball.Hero != null && Ball.Hero.NetworkId.Equals(args.Hero.NetworkId)))
+                {
+                    return;
+                }
+                if (args.Start.Distance(Player.Position) <= E.Range &&
+                    args.End.Distance(Player.Position) <= _maxBallDistance &&
+                    GameObjects.EnemyHeroes.Any(
+                        e =>
+                            !e.IsDead &&
+                            (e.Position.Distance(args.End) < 600 || e.Position.Distance(args.Start) < args.Range + 300)))
+                {
+                    E.CastOnUnit(args.Hero);
+                }
             }
-            if (args.Start.Distance(Player.Position) <= E.Range &&
-                args.End.Distance(Player.Position) <= _maxBallDistance &&
-                GameObjects.EnemyHeroes.Any(
-                    e =>
-                        !e.IsDead &&
-                        (e.Position.Distance(args.End) < 600 || e.Position.Distance(args.Start) < args.Range + 300)))
+            catch (Exception ex)
             {
-                E.CastOnUnit(args.Hero);
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
         private void OnBallPositionChange(object sender, EventArgs e)
         {
-            foreach (var spell in Spells)
+            try
             {
-                spell.UpdateSourcePosition(Ball.Position, Ball.Position);
+                foreach (var spell in Spells)
+                {
+                    spell.UpdateSourcePosition(Ball.Position, Ball.Position);
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -659,95 +680,118 @@ namespace SFXChallenger.Champions
 
         private Tuple<int, List<Obj_AI_Hero>> GetHits(Spell spell)
         {
-            var hits =
-                GameObjects.EnemyHeroes.Where(
-                    h => h.IsValidTarget() && Ball.Position.Distance(h.Position, true) < spell.Range * spell.Range)
-                    .Where(
-                        enemy =>
-                            spell.WillHit(enemy, Ball.Position) &&
-                            Ball.Position.Distance(enemy.ServerPosition, true) < spell.Width * spell.Width)
-                    .ToList();
-            return new Tuple<int, List<Obj_AI_Hero>>(hits.Count, hits);
+            try
+            {
+                var hits =
+                    GameObjects.EnemyHeroes.Where(
+                        h => h.IsValidTarget() && Ball.Position.Distance(h.Position, true) < spell.Range * spell.Range)
+                        .Where(
+                            enemy =>
+                                spell.WillHit(enemy, Ball.Position) &&
+                                Ball.Position.Distance(enemy.ServerPosition, true) < spell.Width * spell.Width)
+                        .ToList();
+                return new Tuple<int, List<Obj_AI_Hero>>(hits.Count, hits);
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return new Tuple<int, List<Obj_AI_Hero>>(0, null);
         }
 
         private Tuple<int, List<Obj_AI_Hero>> GetEHits(Vector3 to)
         {
-            var hits = new List<Obj_AI_Hero>();
-            foreach (var enemy in GameObjects.EnemyHeroes.Where(h => h.IsValidTarget(2000)))
+            try
             {
-                var pos = Ball.Position.Extend(enemy.Position, E.Width * 0.3f);
-                E.UpdateSourcePosition(pos, pos);
-                if (E.WillHit(enemy, to))
+                var hits = new List<Obj_AI_Hero>();
+                foreach (var enemy in GameObjects.EnemyHeroes.Where(h => h.IsValidTarget(2000)))
                 {
-                    hits.Add(enemy);
+                    var pos = Ball.Position.Extend(enemy.Position, E.Width * 0.3f);
+                    E.UpdateSourcePosition(pos, pos);
+                    if (E.WillHit(enemy, to))
+                    {
+                        hits.Add(enemy);
+                    }
+                    E.UpdateSourcePosition(Ball.Position, Ball.Position);
                 }
-                E.UpdateSourcePosition(Ball.Position, Ball.Position);
+                return new Tuple<int, List<Obj_AI_Hero>>(hits.Count, hits);
             }
-            return new Tuple<int, List<Obj_AI_Hero>>(hits.Count, hits);
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return new Tuple<int, List<Obj_AI_Hero>>(0, null);
         }
 
         private Vector3 AssistedQLogic(out int hits)
         {
-            if (Ball.IsMoving)
+            try
             {
-                hits = 0;
-                return Vector3.Zero;
-            }
-            var center = Vector2.Zero;
-            float radius = -1;
-            var count = 0;
-            var range = (Q.Range + R.Width) * 1.5f;
-            var input = new PredictionInput
-            {
-                Collision = false,
-                From = Ball.Position,
-                RangeCheckFrom = Ball.Position,
-                Delay = (Q.Delay + R.Delay) - 0.1f,
-                Range = Q.Range + R.Width / 2f,
-                Speed = Q.Speed,
-                Radius = R.Width,
-                Type = R.Type
-            };
-            var points = new List<Vector2>();
-            foreach (var enemy in GameObjects.EnemyHeroes.Where(t => t.IsValidTarget(range)))
-            {
-                input.Unit = enemy;
-                var pred = Prediction.GetPrediction(input);
-                if (pred.Hitchance >= HitChance.Low)
+                if (Ball.IsMoving)
                 {
-                    points.Add(pred.UnitPosition.To2D());
+                    hits = 0;
+                    return Vector3.Zero;
                 }
-            }
-            if (points.Any())
-            {
-                var possibilities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 1).ToList();
-                if (possibilities.Any())
+                var center = Vector2.Zero;
+                float radius = -1;
+                var count = 0;
+                var range = (Q.Range + R.Width) * 1.5f;
+                var input = new PredictionInput
                 {
-                    foreach (var possibility in possibilities)
+                    Collision = false,
+                    From = Ball.Position,
+                    RangeCheckFrom = Ball.Position,
+                    Delay = (Q.Delay + R.Delay) - 0.1f,
+                    Range = Q.Range + R.Width / 2f,
+                    Speed = Q.Speed,
+                    Radius = R.Width,
+                    Type = R.Type
+                };
+                var points = new List<Vector2>();
+                foreach (var enemy in GameObjects.EnemyHeroes.Where(t => t.IsValidTarget(range)))
+                {
+                    input.Unit = enemy;
+                    var pred = Prediction.GetPrediction(input);
+                    if (pred.Hitchance >= HitChance.Low)
                     {
-                        var mec = MEC.GetMec(possibility);
-                        if (mec.Radius < R.Width && Player.Distance(mec.Center) < range)
+                        points.Add(pred.UnitPosition.To2D());
+                    }
+                }
+                if (points.Any())
+                {
+                    var possibilities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 1).ToList();
+                    if (possibilities.Any())
+                    {
+                        foreach (var possibility in possibilities)
                         {
-                            if (possibility.Count > count || possibility.Count == count && mec.Radius < radius)
+                            var mec = MEC.GetMec(possibility);
+                            if (mec.Radius < R.Width && Player.Distance(mec.Center) < range)
                             {
-                                center = mec.Center;
-                                radius = mec.Radius;
-                                count = possibility.Count;
+                                if (possibility.Count > count || possibility.Count == count && mec.Radius < radius)
+                                {
+                                    center = mec.Center;
+                                    radius = mec.Radius;
+                                    count = possibility.Count;
+                                }
                             }
                         }
+                        if (!center.Equals(Vector2.Zero))
+                        {
+                            hits = count;
+                            return center.To3D();
+                        }
                     }
-                    if (!center.Equals(Vector2.Zero))
+                    var dTarget = GameObjects.EnemyHeroes.FirstOrDefault(t => t.IsValidTarget(range));
+                    if (dTarget != null)
                     {
-                        hits = count;
-                        return center.To3D();
+                        hits = 1;
+                        return dTarget.Position;
                     }
                 }
-                var dTarget = GameObjects.EnemyHeroes.FirstOrDefault(t => t.IsValidTarget(range));
-                if (dTarget != null)
-                {
-                    hits = 1;
-                    return dTarget.Position;
-                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
             hits = 0;
             return Vector3.Zero;
@@ -784,51 +828,59 @@ namespace SFXChallenger.Champions
 
         private Tuple<int, Vector3> GetBestQLocation(Obj_AI_Hero target, HitChance hitChance)
         {
-            var pred = Q.GetPrediction(target);
-            if (pred.Hitchance < hitChance)
+            try
             {
-                return new Tuple<int, Vector3>(0, Vector3.Zero);
-            }
-            var points = (from enemy in GameObjects.EnemyHeroes.Where(h => h.IsValidTarget((Q.Range + R.Range * 1.2f)))
-                select Q.GetPrediction(enemy)
-                into ePred
-                where ePred.Hitchance >= (hitChance - 1)
-                select ePred.UnitPosition.To2D()).ToList();
-            if (points.Any())
-            {
-                var possibilities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 0).ToList();
-                if (possibilities.Any())
+                var pred = Q.GetPrediction(target);
+                if (pred.Hitchance < hitChance)
                 {
-                    var hits = 0;
-                    var radius = float.MaxValue;
-                    var pos = Vector3.Zero;
-                    var rReady = R.IsReady();
-                    var wReady = R.IsReady();
-                    foreach (var possibility in possibilities)
-                    {
-                        var check = false;
-                        var mec = MEC.GetMec(possibility);
-                        if (mec.Radius < R.Range * 0.85f && possibility.Count >= 3 && rReady)
-                        {
-                            check = true;
-                        }
-                        if (mec.Radius < W.Range * 0.9f && points.Count >= 2 && wReady)
-                        {
-                            check = true;
-                        }
-                        if (mec.Radius < Q.Width * 0.9f && points.Count >= 1)
-                        {
-                            check = true;
-                        }
-                        if (check && possibility.Count > hits || possibility.Count == hits && radius > mec.Radius)
-                        {
-                            hits = possibility.Count;
-                            radius = mec.Radius;
-                            pos = mec.Center.To3D();
-                        }
-                    }
-                    return new Tuple<int, Vector3>(hits, pos);
+                    return new Tuple<int, Vector3>(0, Vector3.Zero);
                 }
+                var points =
+                    (from enemy in GameObjects.EnemyHeroes.Where(h => h.IsValidTarget((Q.Range + R.Range * 1.2f)))
+                        select Q.GetPrediction(enemy)
+                        into ePred
+                        where ePred.Hitchance >= (hitChance - 1)
+                        select ePred.UnitPosition.To2D()).ToList();
+                if (points.Any())
+                {
+                    var possibilities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 0).ToList();
+                    if (possibilities.Any())
+                    {
+                        var hits = 0;
+                        var radius = float.MaxValue;
+                        var pos = Vector3.Zero;
+                        var rReady = R.IsReady();
+                        var wReady = R.IsReady();
+                        foreach (var possibility in possibilities)
+                        {
+                            var check = false;
+                            var mec = MEC.GetMec(possibility);
+                            if (mec.Radius < R.Range * 0.85f && possibility.Count >= 3 && rReady)
+                            {
+                                check = true;
+                            }
+                            if (mec.Radius < W.Range * 0.9f && points.Count >= 2 && wReady)
+                            {
+                                check = true;
+                            }
+                            if (mec.Radius < Q.Width * 0.9f && points.Count >= 1)
+                            {
+                                check = true;
+                            }
+                            if (check && possibility.Count > hits || possibility.Count == hits && radius > mec.Radius)
+                            {
+                                hits = possibility.Count;
+                                radius = mec.Radius;
+                                pos = mec.Center.To3D();
+                            }
+                        }
+                        return new Tuple<int, Vector3>(hits, pos);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
             return new Tuple<int, Vector3>(0, Vector3.Zero);
         }
@@ -1001,46 +1053,67 @@ namespace SFXChallenger.Champions
 
             private static void OnCorePreUpdate(EventArgs args)
             {
-                if (ObjectManager.Player.HasBuff("OrianaGhostSelf"))
+                try
                 {
-                    Status = BallStatus.Me;
-                    Hero = ObjectManager.Player;
-                    IsMoving = false;
-                    return;
+                    if (ObjectManager.Player.HasBuff("OrianaGhostSelf"))
+                    {
+                        Status = BallStatus.Me;
+                        Hero = ObjectManager.Player;
+                        IsMoving = false;
+                        return;
+                    }
+                    foreach (var hero in
+                        GameObjects.AllyHeroes.Where(x => x.IsAlly && !x.IsDead && !x.IsMe)
+                            .Where(hero => hero.HasBuff("OrianaGhost")))
+                    {
+                        Status = BallStatus.Ally;
+                        Hero = hero;
+                        IsMoving = false;
+                        return;
+                    }
                 }
-                foreach (var hero in
-                    GameObjects.AllyHeroes.Where(x => x.IsAlly && !x.IsDead && !x.IsMe)
-                        .Where(hero => hero.HasBuff("OrianaGhost")))
+                catch (Exception ex)
                 {
-                    Status = BallStatus.Ally;
-                    Hero = hero;
-                    IsMoving = false;
-                    return;
+                    Global.Logger.AddItem(new LogItem(ex));
                 }
             }
 
             private static void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
             {
-                if (!sender.IsMe)
+                try
                 {
-                    return;
+                    if (!sender.IsMe)
+                    {
+                        return;
+                    }
+                    if (args.SData.Name.Equals("OrianaIzunaCommand", StringComparison.OrdinalIgnoreCase) ||
+                        args.SData.Name.Equals("OrianaRedactCommand", StringComparison.OrdinalIgnoreCase))
+                    {
+                        IsMoving = true;
+                    }
                 }
-                if (args.SData.Name.Equals("OrianaIzunaCommand", StringComparison.OrdinalIgnoreCase) ||
-                    args.SData.Name.Equals("OrianaRedactCommand", StringComparison.OrdinalIgnoreCase))
+                catch (Exception ex)
                 {
-                    IsMoving = true;
+                    Global.Logger.AddItem(new LogItem(ex));
                 }
             }
 
             private static void OnGameObjectCreate(GameObject sender, EventArgs args)
             {
-                if (sender.IsValid && !string.IsNullOrEmpty(sender.Name) &&
-                    sender.Name.Equals("Orianna_Base_Q_yomu_ring_green.troy", StringComparison.OrdinalIgnoreCase))
+                try
                 {
-                    Hero = null;
-                    Pos = sender.Position;
-                    Status = BallStatus.Fixed;
-                    IsMoving = false;
+                    if (sender.IsValid && !string.IsNullOrEmpty(sender.Name) &&
+                        sender.Name.Equals("Orianna_Base_Q_yomu_ring_green.troy", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Hero = null;
+                        Pos = sender.Position;
+                        Status = BallStatus.Fixed;
+                        IsMoving = false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Global.Logger.AddItem(new LogItem(ex));
                 }
             }
         }

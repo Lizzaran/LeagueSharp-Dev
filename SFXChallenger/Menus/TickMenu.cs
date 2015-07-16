@@ -22,7 +22,9 @@
 
 #region
 
+using System;
 using LeagueSharp.Common;
+using SFXLibrary.Logger;
 
 #endregion
 
@@ -32,13 +34,21 @@ namespace SFXChallenger.Menus
     {
         public static void AddToMenu(Menu menu)
         {
-            menu.AddItem(new MenuItem(menu.Name + ".tick", Global.Lang.Get("F_Tick")).SetValue(new Slider(100, 1, 300)))
-                .ValueChanged +=
-                delegate(object sender, OnValueChangeEventArgs args)
-                {
-                    Core.SetInterval(args.GetNewValue<Slider>().Value);
-                };
-            Core.SetInterval(menu.Item(menu.Name + ".tick").GetValue<Slider>().Value);
+            try
+            {
+                menu.AddItem(
+                    new MenuItem(menu.Name + ".tick", Global.Lang.Get("F_Tick")).SetValue(new Slider(100, 1, 300)))
+                    .ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        Core.SetInterval(args.GetNewValue<Slider>().Value);
+                    };
+                Core.SetInterval(menu.Item(menu.Name + ".tick").GetValue<Slider>().Value);
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
     }
 }

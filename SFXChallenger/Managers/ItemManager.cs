@@ -364,41 +364,55 @@ namespace SFXChallenger.Managers
 
         public static void Muramana(bool activate)
         {
-            var hasBuff = ObjectManager.Player.HasBuff("Muramana");
-            if ((activate && !hasBuff &&
-                 (_menu == null ||
-                  _menu.Item(_menu.Name + ".muramana.combo").GetValue<bool>() &&
-                  ObjectManager.Player.CountEnemiesInRange(Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)) >=
-                  _menu.Item(_menu.Name + ".muramana.min-enemies-range").GetValue<Slider>().Value)) ||
-                !activate && hasBuff)
+            try
             {
-                var muramana = ItemData.Muramana.GetItem();
-                if (muramana.IsOwned(ObjectManager.Player))
+                var hasBuff = ObjectManager.Player.HasBuff("Muramana");
+                if ((activate && !hasBuff &&
+                     (_menu == null ||
+                      _menu.Item(_menu.Name + ".muramana.combo").GetValue<bool>() &&
+                      ObjectManager.Player.CountEnemiesInRange(Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)) >=
+                      _menu.Item(_menu.Name + ".muramana.min-enemies-range").GetValue<Slider>().Value)) ||
+                    !activate && hasBuff)
                 {
-                    muramana.Cast();
+                    var muramana = ItemData.Muramana.GetItem();
+                    if (muramana.IsOwned(ObjectManager.Player))
+                    {
+                        muramana.Cast();
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
         public static float CalculateLichBaneDamage(Obj_AI_Hero target)
         {
-            var lichBane = ItemData.Lich_Bane.GetItem();
-            if (lichBane.IsOwned(ObjectManager.Player))
+            try
             {
-                return
-                    (float)
-                        (ObjectManager.Player.CalcDamage(
-                            target, Damage.DamageType.Physical, ObjectManager.Player.BaseAttackDamage * 0.75f) +
-                         ObjectManager.Player.CalcDamage(
-                             target, Damage.DamageType.Magical, ObjectManager.Player.FlatMagicDamageMod * 0.5f));
+                var lichBane = ItemData.Lich_Bane.GetItem();
+                if (lichBane.IsOwned(ObjectManager.Player))
+                {
+                    return
+                        (float)
+                            (ObjectManager.Player.CalcDamage(
+                                target, Damage.DamageType.Physical, ObjectManager.Player.BaseAttackDamage * 0.75f) +
+                             ObjectManager.Player.CalcDamage(
+                                 target, Damage.DamageType.Magical, ObjectManager.Player.FlatMagicDamageMod * 0.5f));
+                }
+                var sheen = ItemData.Sheen.GetItem();
+                if (sheen.IsOwned())
+                {
+                    return
+                        (float)
+                            ObjectManager.Player.CalcDamage(
+                                target, Damage.DamageType.Physical, ObjectManager.Player.BaseAttackDamage);
+                }
             }
-            var sheen = ItemData.Sheen.GetItem();
-            if (sheen.IsOwned())
+            catch (Exception ex)
             {
-                return
-                    (float)
-                        ObjectManager.Player.CalcDamage(
-                            target, Damage.DamageType.Physical, ObjectManager.Player.BaseAttackDamage);
+                Global.Logger.AddItem(new LogItem(ex));
             }
             return 0;
         }

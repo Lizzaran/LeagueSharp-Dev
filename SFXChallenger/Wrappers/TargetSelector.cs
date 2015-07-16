@@ -205,31 +205,45 @@ namespace SFXChallenger.Wrappers
 
         public static void AddWeightedItem(WeightedItem item)
         {
-            WeightedItems.Add(item);
-
-            if (_weightsMenu != null)
+            try
             {
-                _weightsMenu.AddItem(
-                    new MenuItem(_weightsMenu.Name + "." + item.Name, item.DisplayName).SetValue(
-                        new Slider(item.Weight, MinWeight, MaxWeight)));
-                _weightsMenu.Item(_weightsMenu.Name + "." + item.Name).ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        item.Weight = args.GetNewValue<Slider>().Value;
-                        _averageWeight = (float) WeightedItems.Average(w => w.Weight);
-                    };
-                item.Weight = _menu.Item(_weightsMenu.Name + "." + item.Name).GetValue<Slider>().Value;
-            }
+                WeightedItems.Add(item);
 
-            _averageWeight = (float) WeightedItems.Average(w => w.Weight);
+                if (_weightsMenu != null)
+                {
+                    _weightsMenu.AddItem(
+                        new MenuItem(_weightsMenu.Name + "." + item.Name, item.DisplayName).SetValue(
+                            new Slider(item.Weight, MinWeight, MaxWeight)));
+                    _weightsMenu.Item(_weightsMenu.Name + "." + item.Name).ValueChanged +=
+                        delegate(object sender, OnValueChangeEventArgs args)
+                        {
+                            item.Weight = args.GetNewValue<Slider>().Value;
+                            _averageWeight = (float) WeightedItems.Average(w => w.Weight);
+                        };
+                    item.Weight = _menu.Item(_weightsMenu.Name + "." + item.Name).GetValue<Slider>().Value;
+                }
+
+                _averageWeight = (float) WeightedItems.Average(w => w.Weight);
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         public static void OverwriteWeightFunction(string name, Func<Obj_AI_Hero, float> func)
         {
-            var item = WeightedItems.FirstOrDefault(w => w.Name.Equals(name));
-            if (item != null)
+            try
             {
-                item.GetValueFunc = func;
+                var item = WeightedItems.FirstOrDefault(w => w.Name.Equals(name));
+                if (item != null)
+                {
+                    item.GetValueFunc = func;
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -397,16 +411,23 @@ namespace SFXChallenger.Wrappers
 
         private static void OnGameWndProc(WndEventArgs args)
         {
-            if (args.Msg != (ulong) WindowsMessages.WM_LBUTTONDOWN)
+            try
             {
-                return;
-            }
+                if (args.Msg != (ulong) WindowsMessages.WM_LBUTTONDOWN)
+                {
+                    return;
+                }
 
-            _selectedTarget =
-                GameObjects.EnemyHeroes.Where(
-                    h => h.IsValidTarget() && h.Distance(Game.CursorPos) < h.BoundingRadius + SelectClickBuffer)
-                    .OrderBy(h => h.Distance(Game.CursorPos))
-                    .FirstOrDefault();
+                _selectedTarget =
+                    GameObjects.EnemyHeroes.Where(
+                        h => h.IsValidTarget() && h.Distance(Game.CursorPos) < h.BoundingRadius + SelectClickBuffer)
+                        .OrderBy(h => h.Distance(Game.CursorPos))
+                        .FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         public static void SetTarget(Obj_AI_Hero hero)
@@ -523,36 +544,43 @@ namespace SFXChallenger.Wrappers
 
         private static IEnumerable<Obj_AI_Hero> GetChampionsByMode(List<Obj_AI_Hero> heroes)
         {
-            switch (_tsMode)
+            try
             {
-                case TargetSelectorModeType.Weights:
-                    return TargetWeights(heroes);
+                switch (_tsMode)
+                {
+                    case TargetSelectorModeType.Weights:
+                        return TargetWeights(heroes);
 
-                case TargetSelectorModeType.LessAttacksToKill:
-                    return heroes.OrderBy(x => x.Health / ObjectManager.Player.TotalAttackDamage);
+                    case TargetSelectorModeType.LessAttacksToKill:
+                        return heroes.OrderBy(x => x.Health / ObjectManager.Player.TotalAttackDamage);
 
-                case TargetSelectorModeType.MostAbilityPower:
-                    return heroes.OrderByDescending(x => x.TotalMagicalDamage);
+                    case TargetSelectorModeType.MostAbilityPower:
+                        return heroes.OrderByDescending(x => x.TotalMagicalDamage);
 
-                case TargetSelectorModeType.MostAttackDamage:
-                    return heroes.OrderByDescending(x => x.TotalAttackDamage);
+                    case TargetSelectorModeType.MostAttackDamage:
+                        return heroes.OrderByDescending(x => x.TotalAttackDamage);
 
-                case TargetSelectorModeType.Closest:
-                    return heroes.OrderBy(x => x.Distance(ObjectManager.Player));
+                    case TargetSelectorModeType.Closest:
+                        return heroes.OrderBy(x => x.Distance(ObjectManager.Player));
 
-                case TargetSelectorModeType.NearMouse:
-                    return heroes.OrderBy(x => x.Distance(Game.CursorPos));
+                    case TargetSelectorModeType.NearMouse:
+                        return heroes.OrderBy(x => x.Distance(Game.CursorPos));
 
-                case TargetSelectorModeType.LessCastPriority:
-                    return heroes.OrderBy(x => x.Health / ObjectManager.Player.TotalMagicalDamage);
+                    case TargetSelectorModeType.LessCastPriority:
+                        return heroes.OrderBy(x => x.Health / ObjectManager.Player.TotalMagicalDamage);
 
-                case TargetSelectorModeType.Priorities:
-                    return heroes.OrderByDescending(x => GetPriorityByName(x.ChampionName));
+                    case TargetSelectorModeType.Priorities:
+                        return heroes.OrderByDescending(x => GetPriorityByName(x.ChampionName));
 
-                case TargetSelectorModeType.LeastHealth:
-                    return heroes.OrderBy(x => x.Health);
+                    case TargetSelectorModeType.LeastHealth:
+                        return heroes.OrderBy(x => x.Health);
+                }
             }
-            return null;
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return new List<Obj_AI_Hero>();
         }
 
         private static IEnumerable<Obj_AI_Hero> TargetWeights(List<Obj_AI_Hero> targets)
@@ -590,23 +618,37 @@ namespace SFXChallenger.Wrappers
 
         private static int GetPriorityByName(string name)
         {
-            if (_menu != null)
+            try
             {
-                var item = _menu.Item(_menu.Name + ".priorities." + name);
-                if (item != null)
+                if (_menu != null)
                 {
-                    return item.GetValue<Slider>().Value;
+                    var item = _menu.Item(_menu.Name + ".priorities." + name);
+                    if (item != null)
+                    {
+                        return item.GetValue<Slider>().Value;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
             return 1;
         }
 
         private static TargetSelectorPriorityType GetDefaultPriorityByName(string name)
         {
-            var priority = Priorities.FirstOrDefault(m => m.Champions.Contains(name));
-            if (priority != null)
+            try
             {
-                return priority.Type;
+                var priority = Priorities.FirstOrDefault(m => m.Champions.Contains(name));
+                if (priority != null)
+                {
+                    return priority.Type;
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
             return TargetSelectorPriorityType.Low;
         }
@@ -744,41 +786,48 @@ namespace SFXChallenger.Wrappers
 
         private static TargetSelectorModeType GetPriorityByMenuValue(string value)
         {
-            if (value.Equals(Global.Lang.Get("TS_Weights")))
+            try
             {
-                _tsMode = TargetSelectorModeType.Weights;
+                if (value.Equals(Global.Lang.Get("TS_Weights")))
+                {
+                    _tsMode = TargetSelectorModeType.Weights;
+                }
+                else if (value.Equals(Global.Lang.Get("TS_Priorities")))
+                {
+                    _tsMode = TargetSelectorModeType.Priorities;
+                }
+                else if (value.Equals(Global.Lang.Get("TS_LessAttacksToKill")))
+                {
+                    _tsMode = TargetSelectorModeType.LessAttacksToKill;
+                }
+                else if (value.Equals(Global.Lang.Get("TS_MostAbilityPower")))
+                {
+                    _tsMode = TargetSelectorModeType.MostAbilityPower;
+                }
+                else if (value.Equals(Global.Lang.Get("TS_MostAttackDamage")))
+                {
+                    _tsMode = TargetSelectorModeType.MostAttackDamage;
+                }
+                else if (value.Equals(Global.Lang.Get("TS_Closest")))
+                {
+                    _tsMode = TargetSelectorModeType.Closest;
+                }
+                else if (value.Equals(Global.Lang.Get("TS_NearMouse")))
+                {
+                    _tsMode = TargetSelectorModeType.NearMouse;
+                }
+                else if (value.Equals(Global.Lang.Get("TS_LessCastPriority")))
+                {
+                    _tsMode = TargetSelectorModeType.LessCastPriority;
+                }
+                else if (value.Equals(Global.Lang.Get("TS_LeastHealth")))
+                {
+                    _tsMode = TargetSelectorModeType.LeastHealth;
+                }
             }
-            else if (value.Equals(Global.Lang.Get("TS_Priorities")))
+            catch (Exception ex)
             {
-                _tsMode = TargetSelectorModeType.Priorities;
-            }
-            else if (value.Equals(Global.Lang.Get("TS_LessAttacksToKill")))
-            {
-                _tsMode = TargetSelectorModeType.LessAttacksToKill;
-            }
-            else if (value.Equals(Global.Lang.Get("TS_MostAbilityPower")))
-            {
-                _tsMode = TargetSelectorModeType.MostAbilityPower;
-            }
-            else if (value.Equals(Global.Lang.Get("TS_MostAttackDamage")))
-            {
-                _tsMode = TargetSelectorModeType.MostAttackDamage;
-            }
-            else if (value.Equals(Global.Lang.Get("TS_Closest")))
-            {
-                _tsMode = TargetSelectorModeType.Closest;
-            }
-            else if (value.Equals(Global.Lang.Get("TS_NearMouse")))
-            {
-                _tsMode = TargetSelectorModeType.NearMouse;
-            }
-            else if (value.Equals(Global.Lang.Get("TS_LessCastPriority")))
-            {
-                _tsMode = TargetSelectorModeType.LessCastPriority;
-            }
-            else if (value.Equals(Global.Lang.Get("TS_LeastHealth")))
-            {
-                _tsMode = TargetSelectorModeType.LeastHealth;
+                Global.Logger.AddItem(new LogItem(ex));
             }
             return TargetSelectorModeType.Priorities;
         }
@@ -876,20 +925,34 @@ namespace SFXChallenger.Wrappers
 
         public float LastWeight(Obj_AI_Hero target)
         {
-            Cache cache;
-            if (_weightCache.TryGetValue(target.NetworkId, out cache))
+            try
             {
-                return cache.Value;
+                Cache cache;
+                if (_weightCache.TryGetValue(target.NetworkId, out cache))
+                {
+                    return cache.Value;
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
             return 0f;
         }
 
         public float LastValue(Obj_AI_Hero target)
         {
-            Cache cache;
-            if (_valueCache.TryGetValue(target.NetworkId, out cache))
+            try
             {
-                return cache.Value;
+                Cache cache;
+                if (_valueCache.TryGetValue(target.NetworkId, out cache))
+                {
+                    return cache.Value;
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
             return 0f;
         }
@@ -906,29 +969,46 @@ namespace SFXChallenger.Wrappers
 
         public float CalculatedWeight(Obj_AI_Hero target)
         {
-            Cache cache;
-            if (_weightCache.TryGetValue(target.NetworkId, out cache) && cache.Time + CacheTime > Environment.TickCount)
+            try
             {
-                return cache.Value;
+                Cache cache;
+                if (_weightCache.TryGetValue(target.NetworkId, out cache) &&
+                    cache.Time + CacheTime > Environment.TickCount)
+                {
+                    return cache.Value;
+                }
+                var weight = CalculatedWeight(
+                    GetValue(target), LastMin(), LastMax(), Inverted ? Weight : TargetSelector.MinWeight,
+                    Inverted ? TargetSelector.MinWeight : Weight);
+                if (cache == null)
+                {
+                    _weightCache[target.NetworkId] = new Cache(weight);
+                }
+                else
+                {
+                    _weightCache[target.NetworkId].Value = weight;
+                }
+                return weight;
             }
-            var weight = CalculatedWeight(
-                GetValue(target), LastMin(), LastMax(), Inverted ? Weight : TargetSelector.MinWeight,
-                Inverted ? TargetSelector.MinWeight : Weight);
-            if (cache == null)
+            catch (Exception ex)
             {
-                _weightCache[target.NetworkId] = new Cache(weight);
+                Global.Logger.AddItem(new LogItem(ex));
             }
-            else
-            {
-                _weightCache[target.NetworkId].Value = weight;
-            }
-            return weight;
+            return 0;
         }
 
         public float CalculatedWeight(float currentValue, float currentMin, float currentMax, float newMin, float newMax)
         {
-            var weight = (((currentValue - currentMin) * (newMax - newMin)) / (currentMax - currentMin)) + newMin;
-            return !float.IsNaN(weight) && !float.IsInfinity(weight) ? weight : 0;
+            try
+            {
+                var weight = (((currentValue - currentMin) * (newMax - newMin)) / (currentMax - currentMin)) + newMin;
+                return !float.IsNaN(weight) && !float.IsInfinity(weight) ? weight : 0;
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return 0;
         }
 
         public float GetValue(Obj_AI_Hero target)
@@ -960,30 +1040,37 @@ namespace SFXChallenger.Wrappers
 
         public void UpdateMinMax(List<Obj_AI_Hero> targets)
         {
-            if (_minCache.Time + CacheTime > Environment.TickCount || targets.Count == 0)
+            try
             {
-                return;
-            }
-            var min = float.MaxValue;
-            var max = float.MinValue;
-            foreach (var target in targets)
-            {
-                var value = GetValue(target);
-                if (value < min)
+                if (_minCache.Time + CacheTime > Environment.TickCount || targets.Count == 0)
                 {
-                    min = value;
+                    return;
                 }
-                if (value > max)
+                var min = float.MaxValue;
+                var max = float.MinValue;
+                foreach (var target in targets)
                 {
-                    max = value;
+                    var value = GetValue(target);
+                    if (value < min)
+                    {
+                        min = value;
+                    }
+                    if (value > max)
+                    {
+                        max = value;
+                    }
                 }
+                _minCache.Value = min;
+                if (min > max)
+                {
+                    max = min + 1;
+                }
+                _maxCache.Value = max;
             }
-            _minCache.Value = min;
-            if (min > max)
+            catch (Exception ex)
             {
-                max = min + 1;
+                Global.Logger.AddItem(new LogItem(ex));
             }
-            _maxCache.Value = max;
         }
     }
 

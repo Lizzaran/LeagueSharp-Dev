@@ -183,12 +183,12 @@ namespace SFXChallenger.Helpers
                 }
                 var rect = new Geometry.Polygon.Rectangle(
                     ObjectManager.Player.Position.To2D(),
-                    pred.CastPosition.Extend(pred.CastPosition, spell.Range).To2D(), spellWidth);
+                    ObjectManager.Player.Position.Extend(pred.CastPosition, spell.Range).To2D(), spellWidth);
                 var count = 1 + (from minion2 in minions.Where(m => m.NetworkId != lMinion.NetworkId)
                     let pred2 = spell.GetPrediction(minion2)
-                    where pred.Hitchance >= HitChance.Medium
+                    where pred2.Hitchance >= HitChance.Medium
                     where
-                        new Geometry.Polygon.Circle(pred2.UnitPosition, minion.BoundingRadius * 0.8f).Points.Any(
+                        new Geometry.Polygon.Circle(pred2.UnitPosition, minion2.BoundingRadius * 0.8f).Points.Any(
                             p => rect.IsInside(p))
                     select 1).Sum();
                 if (count > totalHits)

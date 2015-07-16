@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Graves.cs is part of SFXChallenger.
+ Sivir.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -24,24 +24,26 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
+using SFXChallenger.Events;
 using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
-using SFXLibrary;
 using SFXLibrary.Logger;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
+using Utils = SFXChallenger.Helpers.Utils;
 
 #endregion
 
 namespace SFXChallenger.Champions
 {
-    internal class Graves : Champion
+    internal class Sivir : Champion
     {
+        private const float ShieldTime = 1.5f;
+
         protected override ItemFlags ItemFlags
         {
             get { return ItemFlags.Offensive | ItemFlags.Defensive | ItemFlags.Flee; }
@@ -49,14 +51,14 @@ namespace SFXChallenger.Champions
 
         protected override void OnLoad()
         {
+            TargetSpellManager.OnEnemyTargetCast += OnEnemyTargetCast;
             Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
-            AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
         }
 
         protected override void OnUnload()
         {
+            TargetSpellManager.OnEnemyTargetCast -= OnEnemyTargetCast;
             Orbwalking.AfterAttack -= OnOrbwalkingAfterAttack;
-            AntiGapcloser.OnEnemyGapcloser -= OnEnemyGapcloser;
         }
 
         protected override void AddToMenu()
@@ -64,11 +66,9 @@ namespace SFXChallenger.Champions
             var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), Menu.Name + ".combo"));
             HitchanceManager.AddToMenu(
                 comboMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), comboMenu.Name + ".hitchance")), "combo",
-                new Dictionary<string, int> { { "Q", 2 }, { "W", 1 }, { "R", 2 } });
+                new Dictionary<string, int> { { "Q", 2 } });
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
 
             var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Harass"), Menu.Name + ".harass"));
             HitchanceManager.AddToMenu(
@@ -76,25 +76,32 @@ namespace SFXChallenger.Champions
                 new Dictionary<string, int> { { "Q", 2 } });
             ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
             var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LaneClear"), Menu.Name + ".lane-clear"));
-            ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
+            ManaManager.AddToMenu(laneclearMenu, "lane-clear-q", ManaCheckType.Minimum, ManaValueType.Percent, "Q");
+            ManaManager.AddToMenu(laneclearMenu, "lane-clear-e", ManaCheckType.Minimum, ManaValueType.Percent, "E");
             laneclearMenu.AddItem(
                 new MenuItem(laneclearMenu.Name + ".q-min", "Q " + Global.Lang.Get("G_Min")).SetValue(
                     new Slider(3, 1, 5)));
+            laneclearMenu.AddItem(
+                new MenuItem(laneclearMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(
+                    new Slider(3, 1, 5)));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
-
-            var killstealMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Killsteal"), Menu.Name + ".killsteal"));
-            killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
             var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Flee"), Menu.Name + ".flee"));
-            fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
+            fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(false));
+
+            var shieldMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("Sivir_Shield"), Menu.Name + ".shield"));
+            TargetSpellManager.AddToMenu(
+                shieldMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Whitelist"), shieldMenu.Name + ".whitelist")), false,
+                true);
+            shieldMenu.AddItem(new MenuItem(shieldMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
             miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".w-gapcloser", "W " + Global.Lang.Get("G_Gapcloser")).SetValue(false));
-            miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".e-gapcloser", "E " + Global.Lang.Get("G_Gapcloser")).SetValue(false));
+                new MenuItem(miscMenu.Name + ".q-stun", "Q " + Global.Lang.Get("G_Stunned")).SetValue(false));
 
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
             IndicatorManager.Add(Q);
@@ -117,31 +124,40 @@ namespace SFXChallenger.Champions
             R.SetSkillshot(0.25f, 110f, 2100f, false, SkillshotType.SkillshotLine);
         }
 
-        private void OnEnemyGapcloser(ActiveGapcloser args)
+        private void OnEnemyTargetCast(object sender, TargetCastArgs args)
         {
             try
             {
-                if (!args.Sender.IsEnemy)
+                if (Menu.Item(Menu.Name + ".shield.enabled").GetValue<bool>() &&
+                    (args.Target == null || args.Target.IsMe))
                 {
-                    return;
-                }
-
-                var endPos = args.End;
-                if (args.Sender.ChampionName.Equals("Fizz", StringComparison.OrdinalIgnoreCase))
-                {
-                    endPos = args.Start.Extend(endPos, 550);
-                }
-
-                if (Menu.Item(Menu.Name + ".miscellaneous.w-gapcloser").GetValue<bool>())
-                {
-                    if (endPos.Distance(Player.Position) < W.Range)
+                    if (args.Type == SpellDataTargetType.SelfAoe &&
+                        args.Sender.Distance(Player.Position) <=
+                        args.SData.CastRadius + args.Sender.BoundingRadius + Player.BoundingRadius && E.IsReady())
                     {
-                        W.Cast(endPos);
+                        E.Cast();
                     }
-                }
-                if (Menu.Item(Menu.Name + ".miscellaneous.e-gapcloser").GetValue<bool>())
-                {
-                    E.Cast(endPos.Extend(Player.Position, E.Range));
+                    if (args.Type == SpellDataTargetType.Unit && args.Target != null && args.Target.IsMe)
+                    {
+                        var delay = (int) (Utils.GetSpellDelay(args.Sender, Player, args.Delay, args.Speed, true)) *
+                                    1000;
+                        var ping = Game.Ping / 2000;
+                        if (delay - 200 - ping > 0)
+                        {
+                            Utility.DelayAction.Add(
+                                delay - 100 - ping, delegate
+                                {
+                                    if (E.IsReady())
+                                    {
+                                        E.Cast();
+                                    }
+                                });
+                        }
+                        else if (E.IsReady())
+                        {
+                            E.Cast();
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -245,31 +261,18 @@ namespace SFXChallenger.Champions
 
             if (useQ)
             {
-                Casting.Farm(Q, minQ, 200f);
+                Casting.Farm(Q, minQ);
             }
         }
 
         protected override void Flee()
         {
-            if (Menu.Item(Menu.Name + ".flee.e").GetValue<bool>() && E.IsReady())
+            if (Menu.Item(Menu.Name + ".flee.r").GetValue<bool>() && R.IsReady())
             {
-                E.Cast(Player.Position.Extend(Game.CursorPos, E.Range));
+                R.Cast();
             }
         }
 
-        protected override void Killsteal()
-        {
-            if (Menu.Item(Menu.Name + ".killsteal.q").GetValue<bool>() && Q.IsReady())
-            {
-                var fPredEnemy =
-                    GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(Q.Range * 1.2f) && Q.IsKillable(e))
-                        .Select(enemy => Q.GetPrediction(enemy, true))
-                        .FirstOrDefault(pred => pred.Hitchance >= Q.GetHitChance("harass"));
-                if (fPredEnemy != null)
-                {
-                    Q.Cast(fPredEnemy.CastPosition);
-                }
-            }
-        }
+        protected override void Killsteal() {}
     }
 }

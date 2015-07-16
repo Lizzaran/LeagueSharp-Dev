@@ -37,41 +37,48 @@ namespace SFXChallenger.Menus
     {
         public static void AddToMenu(Menu menu)
         {
-            menu.AddItem(
-                new MenuItem(menu.Name + ".language", Global.Lang.Get("F_Language")).SetValue(
-                    new StringList(
-                        new[] { Global.Lang.Get("Language_Auto") }.Concat(Global.Lang.Languages.ToArray()).ToArray())))
-                .ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
-                {
-                    try
+            try
+            {
+                menu.AddItem(
+                    new MenuItem(menu.Name + ".language", Global.Lang.Get("F_Language")).SetValue(
+                        new StringList(
+                            new[] { Global.Lang.Get("Language_Auto") }.Concat(Global.Lang.Languages.ToArray()).ToArray())))
+                    .ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
                     {
-                        var preName = string.Format("{0}.language.", Global.Name.ToLower());
-                        var autoName = Global.Lang.Get("Language_Auto");
-                        var files = Directory.GetFiles(
-                            AppDomain.CurrentDomain.BaseDirectory, preName + "*", SearchOption.TopDirectoryOnly);
-                        var selectedLanguage = args.GetNewValue<StringList>().SelectedValue;
-                        foreach (var file in files)
+                        try
                         {
-                            try
+                            var preName = string.Format("{0}.language.", Global.Name.ToLower());
+                            var autoName = Global.Lang.Get("Language_Auto");
+                            var files = Directory.GetFiles(
+                                AppDomain.CurrentDomain.BaseDirectory, preName + "*", SearchOption.TopDirectoryOnly);
+                            var selectedLanguage = args.GetNewValue<StringList>().SelectedValue;
+                            foreach (var file in files)
                             {
-                                File.Delete(file);
+                                try
+                                {
+                                    File.Delete(file);
+                                }
+                                catch
+                                {
+                                    // ignored
+                                }
                             }
-                            catch
+                            if (!selectedLanguage.Equals(autoName, StringComparison.OrdinalIgnoreCase))
                             {
-                                // ignored
+                                File.Create(
+                                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, preName + selectedLanguage));
                             }
                         }
-                        if (!selectedLanguage.Equals(autoName, StringComparison.OrdinalIgnoreCase))
+                        catch (Exception ex)
                         {
-                            File.Create(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, preName + selectedLanguage));
+                            Global.Logger.AddItem(new LogItem(ex));
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        Global.Logger.AddItem(new LogItem(ex));
-                    }
-                };
-
+                    };
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
             try
             {
                 var file =

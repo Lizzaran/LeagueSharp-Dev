@@ -144,7 +144,7 @@ namespace SFXChallenger.Champions
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".q-range", "Q " + Global.Lang.Get("G_Range")).SetValue(
-                    new Slider((int)Q.Range, 950, 1450))).ValueChanged +=
+                    new Slider((int) Q.Range, 950, 1450))).ValueChanged +=
                 delegate(object sender, OnValueChangeEventArgs args) { Q.Range = args.GetNewValue<Slider>().Value; };
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".w-range", "W " + Global.Lang.Get("G_Range")).SetValue(
@@ -201,9 +201,16 @@ namespace SFXChallenger.Champions
 
         private void OnOrbwalkingBeforeAttack(Orbwalking.BeforeAttackEventArgs args)
         {
-            if (args.Target is Obj_AI_Hero)
+            try
             {
-                args.Process = Cards.Status != SelectStatus.Selecting && Utils.TickCount - Cards.LastWSent > 300;
+                if (args.Target is Obj_AI_Hero)
+                {
+                    args.Process = Cards.Status != SelectStatus.Selecting && Utils.TickCount - Cards.LastWSent > 300;
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -537,10 +544,10 @@ namespace SFXChallenger.Champions
             }
             var target = TargetSelector.GetTarget(Q.Range, LeagueSharp.Common.TargetSelector.DamageType.Magical);
             var cd = W.Instance.CooldownExpires - Game.Time;
-            var dist = target.Distance(Player);
+            var inRange = Orbwalking.InAutoAttackRange(target);
             var best = BestQPosition(target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), hitChance);
             if (!best.Item2.Equals(Vector3.Zero) &&
-                (best.Item1 >= 2 || dist <= 550 && cd <= 2 && Helpers.Utils.IsStunned(target) || dist > 550 || cd > 2))
+                (best.Item1 >= 2 || inRange && cd <= 2 || !inRange || cd > 2 || Helpers.Utils.IsStunned(target)))
             {
                 Q.Cast(best.Item2);
             }
@@ -636,10 +643,17 @@ namespace SFXChallenger.Champions
 
         private void OnDrawingEndScene(EventArgs args)
         {
-            if (_rMinimap.GetValue<bool>() && R.Level > 0 && (R.Instance.CooldownExpires - Game.Time) < 3 &&
-                !Player.IsDead)
+            try
             {
-                Utility.DrawCircle(Player.Position, R.Range, Color.White, 1, 30, true);
+                if (_rMinimap.GetValue<bool>() && R.Level > 0 && (R.Instance.CooldownExpires - Game.Time) < 3 &&
+                    !Player.IsDead)
+                {
+                    Utility.DrawCircle(Player.Position, R.Range, Color.White, 1, 30, true);
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 

@@ -11,6 +11,10 @@
 	<entry key="Cassiopeia_PoisonTime">Poison Time</entry>
 	<!-- START: Cassio -->
 
+	<!-- START: Sivir -->
+	<entry key="Sivir_Shield">Shield</entry>
+	<!-- START: Sivir -->
+
 	<!-- START: Kalista -->
 	<entry key="Kalista_EHarassReset">E Harass Reset</entry>
 	<entry key="Kalista_WBaron">Hotkey W Baron</entry>

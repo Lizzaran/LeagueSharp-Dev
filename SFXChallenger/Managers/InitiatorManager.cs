@@ -177,32 +177,39 @@ namespace SFXChallenger.Managers
         {
             public SpellData(string hero, SpellSlot slot, string name = null, bool custom = false)
             {
-                Hero = hero;
-                Slot = slot;
-                Custom = custom;
-                Range = 500;
-                if (name != null)
+                try
                 {
-                    Name = name;
-                }
-                else if (slot != SpellSlot.Unknown)
-                {
-                    var champ =
-                        GameObjects.Heroes.FirstOrDefault(
-                            h => h.ChampionName.Equals(hero, StringComparison.OrdinalIgnoreCase));
-                    if (champ != null)
+                    Hero = hero;
+                    Slot = slot;
+                    Custom = custom;
+                    Range = 500;
+                    if (name != null)
                     {
-                        var spell = champ.GetSpell(Slot);
-                        if (spell != null)
+                        Name = name;
+                    }
+                    else if (slot != SpellSlot.Unknown)
+                    {
+                        var champ =
+                            GameObjects.Heroes.FirstOrDefault(
+                                h => h.ChampionName.Equals(hero, StringComparison.OrdinalIgnoreCase));
+                        if (champ != null)
                         {
-                            Name = spell.Name;
-                            Range =
+                            var spell = champ.GetSpell(Slot);
+                            if (spell != null)
+                            {
+                                Name = spell.Name;
                                 Range =
-                                    (spell.SData.CastRange > spell.SData.CastRangeDisplayOverride + 1000
-                                        ? spell.SData.CastRangeDisplayOverride
-                                        : spell.SData.CastRange);
+                                    Range =
+                                        (spell.SData.CastRange > spell.SData.CastRangeDisplayOverride + 1000
+                                            ? spell.SData.CastRangeDisplayOverride
+                                            : spell.SData.CastRange);
+                            }
                         }
                     }
+                }
+                catch (Exception ex)
+                {
+                    Global.Logger.AddItem(new LogItem(ex));
                 }
             }
 

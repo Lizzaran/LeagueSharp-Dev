@@ -55,12 +55,28 @@ namespace SFXChallenger.Managers
                     new MenuItem(_menu.Name + ".circle-thickness", Global.Lang.Get("G_CircleThickness")).SetValue(
                         new Slider(2, 0, 10)));
 
-                foreach (var spell in _champion.Spells.Where(s => s != null))
+                foreach (var spell in _champion.Spells.Where(s => s != null && s.Range > 0))
                 {
-                    _menu.AddItem(
-                        new MenuItem(
-                            _menu.Name + "." + spell.Slot.ToString().ToLower(), spell.Slot.ToString().ToUpper())
-                            .SetValue(new Circle(false, Color.White)));
+                    if (spell.IsChargedSpell)
+                    {
+                        _menu.AddItem(
+                            new MenuItem(
+                                _menu.Name + "." + spell.Slot.ToString().ToLower() + "-min",
+                                spell.Slot.ToString().ToUpper() + " " + Global.Lang.Get("G_Min")).SetValue(
+                                    new Circle(false, Color.White)));
+                        _menu.AddItem(
+                            new MenuItem(
+                                _menu.Name + "." + spell.Slot.ToString().ToLower() + "-max",
+                                spell.Slot.ToString().ToUpper() + " " + Global.Lang.Get("G_Max")).SetValue(
+                                    new Circle(false, Color.White)));
+                    }
+                    else
+                    {
+                        _menu.AddItem(
+                            new MenuItem(
+                                _menu.Name + "." + spell.Slot.ToString().ToLower(), spell.Slot.ToString().ToUpper())
+                                .SetValue(new Circle(false, Color.White)));
+                    }
                 }
             }
             catch (Exception ex)
@@ -129,13 +145,21 @@ namespace SFXChallenger.Managers
 
         public static MenuItem Get(string name)
         {
-            var key = name.Trim().ToLower();
-            MenuItem value;
-            if (!Others.TryGetValue(key, out value))
+            try
             {
-                throw new ArgumentException(string.Format("DrawingManager: Name \"{0}\" not found.", name));
+                var key = name.Trim().ToLower();
+                MenuItem value;
+                if (!Others.TryGetValue(key, out value))
+                {
+                    throw new ArgumentException(string.Format("DrawingManager: Name \"{0}\" not found.", name));
+                }
+                return value;
             }
-            return value;
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return null;
         }
 
         public static void Update(string name, float range)
@@ -165,13 +189,33 @@ namespace SFXChallenger.Managers
                 }
 
                 var circleThickness = _menu.Item(_menu.Name + ".circle-thickness").GetValue<Slider>().Value;
-                foreach (var spell in _champion.Spells)
+                foreach (var spell in _champion.Spells.Where(s => s != null && s.Range > 0 && s.Level > 0))
                 {
-                    var item = _menu.Item(_menu.Name + "." + spell.Slot.ToString().ToLower()).GetValue<Circle>();
-                    if (item.Active && ObjectManager.Player.Position.IsOnScreen(spell.Range))
+                    if (spell.IsChargedSpell)
                     {
-                        Render.Circle.DrawCircle(
-                            ObjectManager.Player.Position, spell.Range, item.Color, circleThickness);
+                        var min =
+                            _menu.Item(_menu.Name + "." + spell.Slot.ToString().ToLower() + "-min").GetValue<Circle>();
+                        var max =
+                            _menu.Item(_menu.Name + "." + spell.Slot.ToString().ToLower() + "-max").GetValue<Circle>();
+                        if (min.Active && ObjectManager.Player.Position.IsOnScreen(spell.ChargedMinRange))
+                        {
+                            Render.Circle.DrawCircle(
+                                ObjectManager.Player.Position, spell.ChargedMinRange, min.Color, circleThickness);
+                        }
+                        if (max.Active && ObjectManager.Player.Position.IsOnScreen(spell.ChargedMaxRange))
+                        {
+                            Render.Circle.DrawCircle(
+                                ObjectManager.Player.Position, spell.ChargedMaxRange, max.Color, circleThickness);
+                        }
+                    }
+                    else
+                    {
+                        var item = _menu.Item(_menu.Name + "." + spell.Slot.ToString().ToLower()).GetValue<Circle>();
+                        if (item.Active && ObjectManager.Player.Position.IsOnScreen(spell.Range))
+                        {
+                            Render.Circle.DrawCircle(
+                                ObjectManager.Player.Position, spell.Range, item.Color, circleThickness);
+                        }
                     }
                 }
 

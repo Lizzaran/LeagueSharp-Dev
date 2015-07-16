@@ -308,23 +308,30 @@ namespace SFXChallenger.Champions
 
         private void OnOrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
         {
-            Orbwalker.ForceTarget(null);
-            if (unit.IsMe)
+            try
             {
-                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
+                Orbwalker.ForceTarget(null);
+                if (unit.IsMe)
                 {
-                    var enemy = target as Obj_AI_Hero;
-                    if (enemy != null)
+                    if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
                     {
-                        ItemManager.Muramana(true);
-                        ItemManager.UseComboItems(enemy);
-                        SummonerManager.UseComboSummoners(enemy);
+                        var enemy = target as Obj_AI_Hero;
+                        if (enemy != null)
+                        {
+                            ItemManager.Muramana(true);
+                            ItemManager.UseComboItems(enemy);
+                            SummonerManager.UseComboSummoners(enemy);
+                        }
+                    }
+                    else
+                    {
+                        ItemManager.Muramana(false);
                     }
                 }
-                else
-                {
-                    ItemManager.Muramana(false);
-                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -517,12 +524,20 @@ namespace SFXChallenger.Champions
 
         private List<Obj_AI_Base> QGetCollisions(Obj_AI_Hero source, Vector3 targetposition)
         {
-            var input = new PredictionInput { Unit = source, Radius = Q.Width, Delay = Q.Delay, Speed = Q.Speed };
-            input.CollisionObjects[0] = CollisionableObjects.Minions;
-            return
-                Collision.GetCollision(new List<Vector3> { targetposition }, input)
-                    .OrderBy(obj => obj.Distance(source))
-                    .ToList();
+            try
+            {
+                var input = new PredictionInput { Unit = source, Radius = Q.Width, Delay = Q.Delay, Speed = Q.Speed };
+                input.CollisionObjects[0] = CollisionableObjects.Minions;
+                return
+                    Collision.GetCollision(new List<Vector3> { targetposition }, input)
+                        .OrderBy(obj => obj.Distance(source))
+                        .ToList();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return new List<Obj_AI_Base>();
         }
 
         protected override void LaneClear()
@@ -655,12 +670,9 @@ namespace SFXChallenger.Champions
                 {
                     try
                     {
-                        if (Damages.Count > 0)
+                        lock (Damages)
                         {
-                            lock (Damages)
-                            {
-                                return Damages.Sum(e => e.Value);
-                            }
+                            return Damages.Sum(e => e.Value);
                         }
                     }
                     catch (Exception ex)
@@ -716,58 +728,74 @@ namespace SFXChallenger.Champions
 
             public static bool IsKillable(Obj_AI_Base target, bool check)
             {
-                if (check)
+                try
                 {
-                    if (target.Health < 100 && target is Obj_AI_Minion)
+                    if (check)
                     {
-                        if (HealthPrediction.GetHealthPrediction(target, 250) <= 0)
+                        if (target.Health < 100 && target is Obj_AI_Minion)
                         {
-                            return false;
+                            if (HealthPrediction.GetHealthPrediction(target, 250) <= 0)
+                            {
+                                return false;
+                            }
                         }
                     }
+                    return GetDamage(target) > target.Health; // + target.AttackShield;
                 }
-                return GetDamage(target) > target.Health; // + target.AttackShield;
+                catch (Exception ex)
+                {
+                    Global.Logger.AddItem(new LogItem(ex));
+                }
+                return false;
             }
 
             private static float GetRealDamage(Obj_AI_Base target, float damage)
             {
-                if (target is Obj_AI_Minion)
+                try
                 {
-                    var dragonBuff =
-                        ObjectManager.Player.Buffs.FirstOrDefault(
-                            b => b.Name.Equals("s5test_dragonslayerbuff", StringComparison.OrdinalIgnoreCase));
-                    if (dragonBuff != null)
+                    if (target is Obj_AI_Minion)
                     {
-                        if (dragonBuff.Count == 4)
-                        {
-                            damage *= 1.15f;
-                        }
-                        else if (dragonBuff.Count == 5)
-                        {
-                            damage *= 1.3f;
-                        }
-                        if (target.CharData.BaseSkinName.StartsWith("SRU_Dragon"))
-                        {
-                            damage *= 1f - 0.07f * dragonBuff.Count;
-                        }
-                    }
-                    if (target.CharData.BaseSkinName.StartsWith("SRU_Baron"))
-                    {
-                        var baronBuff =
+                        var dragonBuff =
                             ObjectManager.Player.Buffs.FirstOrDefault(
-                                b => b.Name.Equals("barontarget", StringComparison.OrdinalIgnoreCase));
-                        if (baronBuff != null)
+                                b => b.Name.Equals("s5test_dragonslayerbuff", StringComparison.OrdinalIgnoreCase));
+                        if (dragonBuff != null)
                         {
-                            damage *= 0.5f;
+                            if (dragonBuff.Count == 4)
+                            {
+                                damage *= 1.15f;
+                            }
+                            else if (dragonBuff.Count == 5)
+                            {
+                                damage *= 1.3f;
+                            }
+                            if (target.CharData.BaseSkinName.StartsWith("SRU_Dragon"))
+                            {
+                                damage *= 1f - 0.07f * dragonBuff.Count;
+                            }
+                        }
+                        if (target.CharData.BaseSkinName.StartsWith("SRU_Baron"))
+                        {
+                            var baronBuff =
+                                ObjectManager.Player.Buffs.FirstOrDefault(
+                                    b => b.Name.Equals("barontarget", StringComparison.OrdinalIgnoreCase));
+                            if (baronBuff != null)
+                            {
+                                damage *= 0.5f;
+                            }
                         }
                     }
+                    damage -= target.HPRegenRate / 2f;
+                    if (ObjectManager.Player.HasBuff("summonerexhaust"))
+                    {
+                        damage *= 0.6f;
+                    }
+                    return damage;
                 }
-                damage -= target.HPRegenRate / 2f;
-                if (ObjectManager.Player.HasBuff("summonerexhaust"))
+                catch (Exception ex)
                 {
-                    damage *= 0.6f;
+                    Global.Logger.AddItem(new LogItem(ex));
                 }
-                return damage;
+                return 0;
             }
 
             public static float GetDamage(Obj_AI_Hero target)

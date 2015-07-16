@@ -99,57 +99,72 @@ namespace SFXChallenger
 
         private static IChampion LoadChampion()
         {
-            var type =
-                Assembly.GetAssembly(typeof(IChampion))
-                    .GetTypes()
-                    .Where(t => t.IsClass && !t.IsAbstract && typeof(IChampion).IsAssignableFrom(t))
-                    .FirstOrDefault(
-                        t => t.Name.Equals(ObjectManager.Player.ChampionName, StringComparison.OrdinalIgnoreCase));
+            try
+            {
+                var type =
+                    Assembly.GetAssembly(typeof(IChampion))
+                        .GetTypes()
+                        .Where(t => t.IsClass && !t.IsAbstract && typeof(IChampion).IsAssignableFrom(t))
+                        .FirstOrDefault(
+                            t => t.Name.Equals(ObjectManager.Player.ChampionName, StringComparison.OrdinalIgnoreCase));
 
-            return type != null ? (IChampion) DynamicInitializer.NewInstance(type) : null;
+                return type != null ? (IChampion) DynamicInitializer.NewInstance(type) : null;
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return null;
         }
 
         private static void SetupLanguage()
         {
-            Global.Lang.Default = "en";
-
-            var currentAsm = Assembly.GetExecutingAssembly();
-            foreach (var resName in currentAsm.GetManifestResourceNames())
+            try
             {
-                ResourceReader resReader = null;
-                using (var stream = currentAsm.GetManifestResourceStream(resName))
+                Global.Lang.Default = "en";
+
+                var currentAsm = Assembly.GetExecutingAssembly();
+                foreach (var resName in currentAsm.GetManifestResourceNames())
                 {
-                    if (stream != null)
+                    ResourceReader resReader = null;
+                    using (var stream = currentAsm.GetManifestResourceStream(resName))
                     {
-                        resReader = new ResourceReader(stream);
-                    }
-
-                    if (resReader != null)
-                    {
-                        var en = resReader.GetEnumerator();
-
-                        while (en.MoveNext())
+                        if (stream != null)
                         {
-                            if (en.Key.ToString().StartsWith("language_"))
+                            resReader = new ResourceReader(stream);
+                        }
+
+                        if (resReader != null)
+                        {
+                            var en = resReader.GetEnumerator();
+
+                            while (en.MoveNext())
                             {
-                                Global.Lang.Parse(en.Value.ToString());
+                                if (en.Key.ToString().StartsWith("language_"))
+                                {
+                                    Global.Lang.Parse(en.Value.ToString());
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            var lang =
-                Directory.GetFiles(
-                    AppDomain.CurrentDomain.BaseDirectory, string.Format(@"{0}.language.*", Global.Name.ToLower()),
-                    SearchOption.TopDirectoryOnly).Select(Path.GetExtension).FirstOrDefault();
-            if (lang != null && Global.Lang.Languages.Any(l => l.Equals(lang.Substring(1))))
-            {
-                Global.Lang.Current = lang.Substring(1);
+                var lang =
+                    Directory.GetFiles(
+                        AppDomain.CurrentDomain.BaseDirectory, string.Format(@"{0}.language.*", Global.Name.ToLower()),
+                        SearchOption.TopDirectoryOnly).Select(Path.GetExtension).FirstOrDefault();
+                if (lang != null && Global.Lang.Languages.Any(l => l.Equals(lang.Substring(1))))
+                {
+                    Global.Lang.Current = lang.Substring(1);
+                }
+                else
+                {
+                    Global.Lang.Current = CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Global.Lang.Current = CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
     }

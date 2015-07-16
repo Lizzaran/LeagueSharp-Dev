@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- varus.cs is part of SFXChallenger.
+ Varus.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
@@ -33,14 +34,7 @@ using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
 using SFXChallenger.Wrappers;
 using SFXLibrary;
-using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
-using SharpDX;
-using Color = System.Drawing.Color;
-using MinionManager = SFXLibrary.MinionManager;
-using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
-using MinionTeam = SFXLibrary.MinionTeam;
-using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
@@ -88,11 +82,15 @@ namespace SFXChallenger.Champions
                 new MenuItem(comboMenu.Name + ".q-always", "Q " + Global.Lang.Get("G_Always")).SetValue(false));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q-stacks", "Q " + Global.Lang.Get("G_StacksIsOrMore")))
                 .SetValue(new Slider(3, 1, 3));
+            comboMenu.AddItem(
+                new MenuItem(comboMenu.Name + ".q-min", "Q " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 3)));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             comboMenu.AddItem(
                 new MenuItem(comboMenu.Name + ".e-always", "E " + Global.Lang.Get("G_Always")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e-stacks", "E " + Global.Lang.Get("G_StacksIsOrMore")))
                 .SetValue(new Slider(3, 1, 3));
+            comboMenu.AddItem(
+                new MenuItem(comboMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 3)));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
 
@@ -107,11 +105,15 @@ namespace SFXChallenger.Champions
                 new MenuItem(harassMenu.Name + ".q-always", "Q " + Global.Lang.Get("G_Always")).SetValue(false));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q-stacks", "Q " + Global.Lang.Get("G_StacksIsOrMore")))
                 .SetValue(new Slider(3, 1, 3));
+            harassMenu.AddItem(
+                new MenuItem(harassMenu.Name + ".q-min", "Q " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 3)));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             harassMenu.AddItem(
                 new MenuItem(harassMenu.Name + ".e-always", "E " + Global.Lang.Get("G_Always")).SetValue(false));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e-stacks", "E " + Global.Lang.Get("G_StacksIsOrMore")))
                 .SetValue(new Slider(3, 1, 3));
+            harassMenu.AddItem(
+                new MenuItem(harassMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 3)));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
             var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LaneClear"), Menu.Name + ".lane-clear"));
@@ -199,7 +201,7 @@ namespace SFXChallenger.Champions
             IndicatorManager.Add(R);
             IndicatorManager.Finale();
 
-            _wStacks = DrawingManager.Add("W " + Global.Lang.Get("Stacks"), true);
+            _wStacks = DrawingManager.Add("W " + Global.Lang.Get("G_Stacks"), true);
         }
 
         protected override void SetupSpells()
@@ -312,22 +314,29 @@ namespace SFXChallenger.Champions
 
         private void OnOrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
         {
-            if (unit.IsMe)
+            try
             {
-                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
+                if (unit.IsMe)
                 {
-                    var enemy = target as Obj_AI_Hero;
-                    if (enemy != null)
+                    if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
                     {
-                        ItemManager.Muramana(true);
-                        ItemManager.UseComboItems(enemy);
-                        SummonerManager.UseComboSummoners(enemy);
+                        var enemy = target as Obj_AI_Hero;
+                        if (enemy != null)
+                        {
+                            ItemManager.Muramana(true);
+                            ItemManager.UseComboItems(enemy);
+                            SummonerManager.UseComboSummoners(enemy);
+                        }
+                    }
+                    else
+                    {
+                        ItemManager.Muramana(false);
                     }
                 }
-                else
-                {
-                    ItemManager.Muramana(false);
-                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -343,10 +352,14 @@ namespace SFXChallenger.Champions
                     Q.ChargedMaxRange, LeagueSharp.Common.TargetSelector.DamageType.Physical);
                 if (target != null)
                 {
-                    if (Q.IsCharging || W.Level == 0 || Menu.Item(Menu.Name + ".combo.q-always").GetValue<bool>() ||
+                    var stacks = W.Level == 0 && Menu.Item(Menu.Name + ".combo.q-stacks").GetValue<Slider>().Value > 0;
+                    if (Q.IsCharging || Menu.Item(Menu.Name + ".combo.q-always").GetValue<bool>() ||
                         Menu.Item(Menu.Name + ".combo.q-range").GetValue<bool>() &&
-                        Player.CountEnemiesInRange(Player.AttackRange * 1.075f) == 0 ||
-                        GetWStacks(target) >= Menu.Item(Menu.Name + ".combo.q-stacks").GetValue<Slider>().Value)
+                        Player.CountEnemiesInRange(Player.AttackRange * 1.075f) == 0 || stacks ||
+                        GetWStacks(target) >= Menu.Item(Menu.Name + ".combo.q-stacks").GetValue<Slider>().Value ||
+                        Q.IsKillable(target) ||
+                        GetQHits(target, Q.GetHitChance("combo")) >=
+                        Menu.Item(Menu.Name + ".combo.q-min").GetValue<Slider>().Value)
                     {
                         QLogic(target, Q.GetHitChance("combo"));
                     }
@@ -357,8 +370,12 @@ namespace SFXChallenger.Champions
                 var target = TargetSelector.GetTarget(E.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical);
                 if (target != null)
                 {
-                    if (Menu.Item(Menu.Name + ".combo.e-always").GetValue<bool>() ||
-                        GetWStacks(target) >= Menu.Item(Menu.Name + ".combo.e-stacks").GetValue<Slider>().Value)
+                    var stacks = W.Level == 0 && Menu.Item(Menu.Name + ".combo.e-stacks").GetValue<Slider>().Value > 0;
+                    if (Menu.Item(Menu.Name + ".combo.e-always").GetValue<bool>() || stacks ||
+                        GetWStacks(target) >= Menu.Item(Menu.Name + ".combo.e-stacks").GetValue<Slider>().Value ||
+                        E.IsKillable(target) ||
+                        GetEHits(target, E.GetHitChance("combo")) >=
+                        Menu.Item(Menu.Name + ".combo.e-min").GetValue<Slider>().Value)
                     {
                         ELogic(target, E.GetHitChance("combo"));
                     }
@@ -395,10 +412,14 @@ namespace SFXChallenger.Champions
                     Q.ChargedMaxRange, LeagueSharp.Common.TargetSelector.DamageType.Physical);
                 if (target != null)
                 {
+                    var stacks = W.Level == 0 && Menu.Item(Menu.Name + ".harass.q-stacks").GetValue<Slider>().Value > 0;
                     if (Q.IsCharging || W.Level == 0 || Menu.Item(Menu.Name + ".harass.q-always").GetValue<bool>() ||
                         Menu.Item(Menu.Name + ".harass.q-range").GetValue<bool>() &&
-                        Player.CountEnemiesInRange(Player.AttackRange * 1.075f) == 0 ||
-                        GetWStacks(target) >= Menu.Item(Menu.Name + ".harass.q-stacks").GetValue<Slider>().Value)
+                        Player.CountEnemiesInRange(Player.AttackRange * 1.075f) == 0 || stacks ||
+                        GetWStacks(target) >= Menu.Item(Menu.Name + ".harass.q-stacks").GetValue<Slider>().Value ||
+                        Q.IsKillable(target) ||
+                        GetQHits(target, Q.GetHitChance("harass")) >=
+                        Menu.Item(Menu.Name + ".harass.q-min").GetValue<Slider>().Value)
                     {
                         QLogic(target, Q.GetHitChance("harass"));
                     }
@@ -409,8 +430,12 @@ namespace SFXChallenger.Champions
                 var target = TargetSelector.GetTarget(E.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical);
                 if (target != null)
                 {
-                    if (Menu.Item(Menu.Name + ".harass.e-always").GetValue<bool>() ||
-                        GetWStacks(target) >= Menu.Item(Menu.Name + ".harass.e-stacks").GetValue<Slider>().Value)
+                    var stacks = W.Level == 0 && Menu.Item(Menu.Name + ".harass.e-stacks").GetValue<Slider>().Value > 0;
+                    if (Menu.Item(Menu.Name + ".harass.e-always").GetValue<bool>() || stacks ||
+                        GetWStacks(target) >= Menu.Item(Menu.Name + ".harass.e-stacks").GetValue<Slider>().Value ||
+                        E.IsKillable(target) ||
+                        GetEHits(target, E.GetHitChance("harass")) >=
+                        Menu.Item(Menu.Name + ".harass.e-min").GetValue<Slider>().Value)
                     {
                         ELogic(target, E.GetHitChance("harass"));
                     }
@@ -420,69 +445,147 @@ namespace SFXChallenger.Champions
 
         private void QLogic(Obj_AI_Hero target, HitChance hitChance)
         {
-            if (target == null)
+            try
             {
-                return;
-            }
-            if (!Q.IsCharging)
-            {
-                var pred = Q.GetPrediction(target);
-                if (pred.Hitchance >= hitChance)
+                if (target == null)
                 {
-                    Q.Cast(target);
+                    return;
                 }
-                else
+                if (!Q.IsCharging)
                 {
-                    var input = new PredictionInput
+                    var pred = Q.GetPrediction(target);
+                    if (pred.Hitchance >= hitChance)
                     {
-                        Range = Q.ChargedMaxRange,
-                        Collision = false,
-                        Delay = 1f,
-                        Radius = Q.Width,
-                        Speed = Q.Speed,
-                        Type = Q.Type,
-                        Unit = target
-                    };
-                    if (Prediction.GetPrediction(input).Hitchance >= (hitChance - 1))
+                        Q.Cast(target);
+                    }
+                    else
                     {
-                        Q.StartCharging();
+                        var input = new PredictionInput
+                        {
+                            Range = Q.ChargedMaxRange,
+                            Collision = false,
+                            Delay = 1f,
+                            Radius = Q.Width,
+                            Speed = Q.Speed,
+                            Type = Q.Type,
+                            Unit = target
+                        };
+                        if (Prediction.GetPrediction(input).Hitchance >= (hitChance - 1))
+                        {
+                            Q.StartCharging();
+                        }
+                    }
+                }
+                if (Q.IsCharging)
+                {
+                    var pred = Q.GetPrediction(target);
+                    if (pred.Hitchance >= hitChance)
+                    {
+                        Q.Cast(pred.CastPosition);
                     }
                 }
             }
-            if (Q.IsCharging)
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private int GetEHits(Obj_AI_Hero target, HitChance hitChance)
+        {
+            try
+            {
+                if (Q.IsCharging)
+                {
+                    return 0;
+                }
+                var pred = E.GetPrediction(target);
+                if (pred.Hitchance >= hitChance)
+                {
+                    var points =
+                        (from enemy in GameObjects.EnemyHeroes.Where(e => e.IsValidTarget((E.Range + E.Width) * 1.2f))
+                            select E.GetPrediction(target)
+                            into pred2
+                            where pred2.Hitchance >= (hitChance - 1)
+                            select pred2.UnitPosition).ToList();
+                    return points.Count(p => p.Distance(pred.CastPosition) < E.Width * 0.9f);
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return 0;
+        }
+
+        private int GetQHits(Obj_AI_Hero target, HitChance hitChance)
+        {
+            var totalHits = 0;
+            try
             {
                 var pred = Q.GetPrediction(target);
                 if (pred.Hitchance >= hitChance)
                 {
-                    Q.Cast(pred.CastPosition);
+                    var enemies =
+                        GameObjects.EnemyHeroes.Where(e => e.IsValidTarget((Q.Range + Q.Width) * 1.2f)).ToList();
+                    var rect = new Geometry.Polygon.Rectangle(
+                        ObjectManager.Player.Position.To2D(),
+                        ObjectManager.Player.Position.Extend(pred.CastPosition, Q.ChargedMaxRange * 0.85f).To2D(),
+                        Q.Width);
+                    totalHits = 1 + (from enemy in enemies.Where(e => e.NetworkId != target.NetworkId)
+                        let pred2 = Q.GetPrediction(enemy)
+                        where pred2.Hitchance >= (hitChance - 1)
+                        where
+                            new Geometry.Polygon.Circle(pred2.UnitPosition, enemy.BoundingRadius * 0.9f).Points.Any(
+                                p => rect.IsInside(p))
+                        select enemy).Count();
                 }
             }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return totalHits;
         }
 
         private void ELogic(Obj_AI_Hero target, HitChance hitChance)
         {
-            if (Q.IsCharging)
+            try
             {
-                return;
+                if (Q.IsCharging)
+                {
+                    return;
+                }
+                var pred = E.GetPrediction(target);
+                if (pred.Hitchance >= hitChance)
+                {
+                    E.Cast(pred.CastPosition);
+                }
             }
-            var pred = E.GetPrediction(target);
-            if (pred.Hitchance >= hitChance)
+            catch (Exception ex)
             {
-                E.Cast(pred.CastPosition);
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
         private bool RLogic(Obj_AI_Hero target, HitChance hitChance, int min)
         {
-            if (Q.IsCharging)
+            try
             {
-                return false;
+                if (Q.IsCharging)
+                {
+                    return false;
+                }
+                var pred = R.GetPrediction(target);
+                if (pred.Hitchance >= hitChance && target.CountEnemiesInRange(_rSpreadRadius) >= min)
+                {
+                    R.Cast(pred.CastPosition);
+                    return true;
+                }
             }
-            var pred = R.GetPrediction(target);
-            if (pred.Hitchance >= hitChance && target.CountEnemiesInRange(_rSpreadRadius) >= min)
+            catch (Exception ex)
             {
-                R.Cast(pred.CastPosition);
-                return true;
+                Global.Logger.AddItem(new LogItem(ex));
             }
             return false;
         }
@@ -596,24 +699,32 @@ namespace SFXChallenger.Champions
 
         private void OnDrawingDraw(EventArgs args)
         {
-            if (W.Level > 0 && _wStacks != null && _wStacks.GetValue<bool>() && !Player.IsDead)
+            try
             {
-                foreach (var enemy in
-                    GameObjects.EnemyHeroes.Where(
-                        e => e.IsHPBarRendered && e.Position.IsOnScreen() && e.IsValidTarget()))
+                if (W.Level > 0 && _wStacks != null && _wStacks.GetValue<bool>() && !Player.IsDead)
                 {
-                    var stacks = GetWStacks(enemy) - 1;
-                    if (stacks > -1)
+                    foreach (var enemy in
+                        GameObjects.EnemyHeroes.Where(
+                            e => e.IsHPBarRendered && e.Position.IsOnScreen() && e.IsValidTarget()))
                     {
-                        var x = enemy.HPBarPosition.X + 45;
-                        var y = enemy.HPBarPosition.Y - 25;
-                        for (var i = 0; 3 > i; i++)
+                        var stacks = GetWStacks(enemy) - 1;
+                        if (stacks > -1)
                         {
-                            Drawing.DrawLine(
-                                x + (i * 20), y, x + (i * 20) + 10, y, 10, (i > stacks ? Color.DarkGray : Color.Orange));
+                            var x = enemy.HPBarPosition.X + 45;
+                            var y = enemy.HPBarPosition.Y - 25;
+                            for (var i = 0; 3 > i; i++)
+                            {
+                                Drawing.DrawLine(
+                                    x + (i * 20), y, x + (i * 20) + 10, y, 10,
+                                    (i > stacks ? Color.DarkGray : Color.Orange));
+                            }
                         }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
     }

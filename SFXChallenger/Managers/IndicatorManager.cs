@@ -74,10 +74,17 @@ namespace SFXChallenger.Managers
 
         public static void Finale()
         {
-            if (_menu != null)
+            try
             {
-                _menu.AddItem(new MenuItem(_menu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
-                Drawing.OnDraw += OnDrawingDraw;
+                if (_menu != null)
+                {
+                    _menu.AddItem(new MenuItem(_menu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
+                    Drawing.OnDraw += OnDrawingDraw;
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
