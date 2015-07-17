@@ -198,11 +198,9 @@ namespace SFXChallenger.Managers
                             if (spell != null)
                             {
                                 Name = spell.Name;
-                                Range =
-                                    Range =
-                                        (spell.SData.CastRange > spell.SData.CastRangeDisplayOverride + 1000
-                                            ? spell.SData.CastRangeDisplayOverride
-                                            : spell.SData.CastRange);
+                                Range = (spell.SData.CastRange > spell.SData.CastRangeDisplayOverride + 1000
+                                    ? spell.SData.CastRangeDisplayOverride
+                                    : spell.SData.CastRange);
                             }
                         }
                     }

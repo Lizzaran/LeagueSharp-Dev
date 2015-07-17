@@ -712,7 +712,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                var ts = Targets.FirstOrDefault(t => Q.CanCast(t));
+                var ts = Targets.FirstOrDefault(t => t.Distance(Player) < Q.Range);
                 if (ts != null)
                 {
                     Casting.TargetSkill(ts, Q);

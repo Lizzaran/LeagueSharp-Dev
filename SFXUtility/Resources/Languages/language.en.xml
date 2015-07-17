@@ -100,6 +100,12 @@
 	<entry key="F_Potion">Potion</entry>
 	<!-- END: Potion -->
 
+	<!-- START: Revealer -->
+	<entry key="F_Revealer">Revealer</entry>
+	<entry key="Revealer_Bush">Bush</entry>
+	<entry key="Revealer_Invisible">Invisible</entry>
+	<!-- END: Revealer -->
+
 	<!-- START: Smite -->
 	<entry key="F_Smite">Smite</entry>
 	<entry key="Smite_SmallCamps">Small Camps</entry>

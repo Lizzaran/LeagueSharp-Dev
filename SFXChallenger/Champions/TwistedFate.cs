@@ -745,6 +745,10 @@ namespace SFXChallenger.Champions
         private List<CardColor> GetBestCard(Obj_AI_Hero target, string mode)
         {
             var cards = new List<CardColor>();
+            if (target == null || !target.IsValid)
+            {
+                return cards;
+            }
             try
             {
                 if (IsWKillable(target, 1))

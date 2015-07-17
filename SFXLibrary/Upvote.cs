@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using LeagueSharp;
+using LeagueSharp.Common;
 using SFXLibrary.Extensions.SharpDX;
 using SharpDX;
 using SharpDX.Direct3D9;
@@ -50,53 +51,55 @@ namespace SFXLibrary
             Drawing.OnPostReset += OnDrawingPostReset;
         }
 
-        public static void Initialize(string name, int maxGames)
+        public static MenuItem Initialize(string name, int maxGames)
         {
+            var menuItem = new MenuItem(name + "Upvoted", "Upvoted?").SetValue(false);
             try
             {
                 if (ObjectManager.Get<Obj_AI_Hero>().Any())
                 {
-                    return;
+                    return menuItem;
                 }
-
-                var count = 1;
-                try
+                if (!menuItem.GetValue<bool>())
                 {
-                    var file = Path.Combine(
-                        AppDomain.CurrentDomain.BaseDirectory, string.Format("{0}.upvote", name.ToLower()));
-                    if (File.Exists(file))
+                    var count = 1;
+                    try
                     {
-                        var content = File.ReadAllText(file);
-                        if (int.TryParse(content, out count))
+                        var file = Path.Combine(
+                            AppDomain.CurrentDomain.BaseDirectory, string.Format("{0}.upvote", name.ToLower()));
+                        if (File.Exists(file))
                         {
-                            count++;
-                            File.WriteAllText(file, count >= maxGames ? "0" : count.ToString());
+                            var content = File.ReadAllText(file);
+                            if (int.TryParse(content, out count))
+                            {
+                                count++;
+                                File.WriteAllText(file, count >= maxGames ? "0" : count.ToString());
+                            }
+                            else
+                            {
+                                File.WriteAllText(file, count.ToString());
+                            }
                         }
                         else
                         {
                             File.WriteAllText(file, count.ToString());
                         }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        File.WriteAllText(file, count.ToString());
+                        Console.WriteLine(ex);
+                    }
+                    if (count >= maxGames)
+                    {
+                        UpvoteItems.Add(new UpvoteItem(name));
                     }
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex);
-                }
-                if (count < maxGames)
-                {
-                    return;
-                }
-
-                UpvoteItems.Add(new UpvoteItem(name));
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
             }
+            return menuItem;
         }
 
         private static void OnDrawingPostReset(EventArgs args)

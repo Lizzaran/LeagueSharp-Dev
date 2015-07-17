@@ -76,16 +76,15 @@ namespace SFXUtility.Features.Timers
                     return;
                 }
 
-                foreach (
-                    var altar in
-                        _altarObjs.Where(
-                            h =>
-                                h.Picked &&
-                                (sender.Name.Equals(h.ObjectNameAlly, StringComparison.OrdinalIgnoreCase) ||
-                                 sender.Name.Equals(h.ObjectNameEnemy, StringComparison.OrdinalIgnoreCase))))
+                foreach (var altar in
+                    _altarObjs.Where(
+                        h =>
+                            h.Picked &&
+                            (sender.Name.Equals(h.ObjectNameAlly, StringComparison.OrdinalIgnoreCase) ||
+                             sender.Name.Equals(h.ObjectNameEnemy, StringComparison.OrdinalIgnoreCase))))
                 {
                     altar.Picked = true;
-                    altar.NextRespawnTime = (int)Game.Time + altar.RespawnTime;
+                    altar.NextRespawnTime = (int) Game.Time + altar.RespawnTime;
                     return;
                 }
             }

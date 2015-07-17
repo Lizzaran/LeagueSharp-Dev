@@ -24,7 +24,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Enumerations;
@@ -199,7 +198,6 @@ namespace SFXChallenger.Abstracts
                 TargetSelector.AddToMenu(
                     SFXMenu.AddSubMenu(
                         new Menu(Global.Lang.Get("F_TargetSelector"), SFXMenu.Name + ".ts." + Player.ChampionName)));
-                TargetSelector.SetDebugRange(Spells.Select(s => s.Range).Max());
 
                 Orbwalker =
                     new Orbwalking.Orbwalker(

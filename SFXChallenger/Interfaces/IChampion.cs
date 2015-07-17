@@ -32,6 +32,7 @@ namespace SFXChallenger.Interfaces
 {
     internal interface IChampion
     {
+        Menu SFXMenu { get; }
         Menu Menu { get; }
         Orbwalking.Orbwalker Orbwalker { get; }
         List<Spell> Spells { get; }

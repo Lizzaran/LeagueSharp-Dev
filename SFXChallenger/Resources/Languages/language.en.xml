@@ -100,6 +100,8 @@
 	<entry key="G_Mode">Mode</entry>
 	<entry key="G_HealthPercent">Health Percent</entry>
 	<entry key="G_Manual">Manual</entry>
+	<entry key="G_Simple">Simple</entry>
+	<entry key="G_Advanced">Advanced</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: Language -->
@@ -180,9 +182,9 @@
 
 	<!-- START: TargetSelector -->
 	<entry key="F_TargetSelector">Target Selector</entry>
-	<entry key="TS_SelectedTargetColor">Selected Target Color</entry>
-	<entry key="TS_AssassinTargetColor">Assasin Target Color</entry>
-	<entry key="TS_BestTargetColor">Best Target Color</entry>
+	<entry key="TS_SelectedTarget">Selected Target</entry>
+	<entry key="TS_AssassinTarget">Assasin Target</entry>
+	<entry key="TS_LastTarget">Last Target</entry>
 	<entry key="TS_AssassinMode">Assassin Mode</entry>
 	<entry key="TS_Priorities">Priorities</entry>
 	<entry key="TS_AutoPriority">Auto Priority</entry>

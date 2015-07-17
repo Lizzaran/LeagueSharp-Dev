@@ -59,7 +59,7 @@ namespace SFXUtility.Features.Timers
         private Dictionary<string, Texture> _summonerTextures;
         private Dictionary<int, float> _teleports;
         private Font _text;
-        public Cooldown(SFXUtility sfx) : base(sfx) { }
+        public Cooldown(SFXUtility sfx) : base(sfx) {}
 
         public override string Name
         {
@@ -244,7 +244,7 @@ namespace SFXUtility.Features.Timers
                             .Where(sName => !_summonerTextures.ContainsKey(FixSummonerName(sName)))))
             {
                 _summonerTextures[FixSummonerName(sName)] =
-                    ((Bitmap)Resources.ResourceManager.GetObject(string.Format("CD_{0}", FixSummonerName(sName))) ??
+                    ((Bitmap) Resources.ResourceManager.GetObject(string.Format("CD_{0}", FixSummonerName(sName))) ??
                      Resources.CD_summonerbarrier).ToTexture();
             }
 
@@ -304,8 +304,8 @@ namespace SFXUtility.Features.Timers
                             return;
                         }
 
-                        var x = (int)hero.HPBarPosition.X - (hero.IsMe ? -10 : 8);
-                        var y = (int)hero.HPBarPosition.Y + (hero.IsEnemy ? 17 : (hero.IsMe ? 6 : 14));
+                        var x = (int) hero.HPBarPosition.X - (hero.IsMe ? -10 : 8);
+                        var y = (int) hero.HPBarPosition.Y + (hero.IsEnemy ? 17 : (hero.IsMe ? 6 : 14));
 
                         _sprite.Begin(SpriteFlags.AlphaBlend);
                         var summonerData = _summonerDatas[hero.NetworkId];
@@ -325,7 +325,7 @@ namespace SFXUtility.Features.Timers
                                     : (spell.IsReady() ? 0 : spell.CooldownExpires - Game.Time);
                                 var sCd = teleportCd > 0.1f ? TeleportCd : spell.Cooldown;
                                 var percent = (Math.Abs(sCd) > float.Epsilon) ? t / sCd : 1f;
-                                var n = (t > 0) ? (int)(19 * (1f - percent)) : 19;
+                                var n = (t > 0) ? (int) (19 * (1f - percent)) : 19;
                                 if (t > 0)
                                 {
                                     _text.DrawTextCentered(

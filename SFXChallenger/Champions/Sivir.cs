@@ -235,6 +235,7 @@ namespace SFXChallenger.Champions
                             if (targets.Any(Orbwalking.InAutoAttackRange) && targets.Count >= wMin)
                             {
                                 W.Cast();
+                                Orbwalking.ResetAutoAttackTimer();
                             }
                         }
                     }
@@ -248,7 +249,9 @@ namespace SFXChallenger.Champions
 
         protected override void Combo()
         {
-            if (Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady())
+            if (Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady() &&
+                (!Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() ||
+                 (W.Level == 0 || !W.IsReady() || !GameObjects.EnemyHeroes.Any(Orbwalking.InAutoAttackRange))))
             {
                 Casting.SkillShot(Q, Q.GetHitChance("combo"));
             }
@@ -261,7 +264,9 @@ namespace SFXChallenger.Champions
                 return;
             }
 
-            if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && Q.IsReady())
+            if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && Q.IsReady() &&
+                (!Menu.Item(Menu.Name + ".harass.w").GetValue<bool>() ||
+                 (W.Level == 0 || !W.IsReady() || !GameObjects.EnemyHeroes.Any(Orbwalking.InAutoAttackRange))))
             {
                 Casting.SkillShot(Q, Q.GetHitChance("harass"));
             }

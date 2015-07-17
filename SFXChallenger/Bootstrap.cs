@@ -47,7 +47,7 @@ namespace SFXChallenger
         {
             try
             {
-                Upvote.Initialize(Global.Name, 7);
+                var upvoteItem = Upvote.Initialize(Global.Name, 7);
 
                 AppDomain.CurrentDomain.UnhandledException +=
                     delegate(object sender, UnhandledExceptionEventArgs eventArgs)
@@ -83,6 +83,11 @@ namespace SFXChallenger
 
                             Core.Init(_champion, 50);
                             Core.Boot();
+
+                            if (_champion.SFXMenu != null && upvoteItem != null)
+                            {
+                                _champion.SFXMenu.AddItem(upvoteItem);
+                            }
                         }
                     }
                     catch (Exception ex)

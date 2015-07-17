@@ -248,7 +248,7 @@ namespace SFXChallenger.Champions
             Q = new Spell(SpellSlot.Q, 825f);
             Q.SetSkillshot(0.25f, 110f, 1350f, false, SkillshotType.SkillshotCircle);
 
-            W = new Spell(SpellSlot.W, 240f);
+            W = new Spell(SpellSlot.W, 220f);
             W.SetSkillshot(0.1f, 250f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E, 1095f);

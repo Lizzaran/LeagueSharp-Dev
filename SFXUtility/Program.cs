@@ -48,10 +48,9 @@ namespace SFXUtility
         // ReSharper disable once UnusedParameter.Local
         private static void Main(string[] args)
         {
+            var upvoteItem = Upvote.Initialize(Global.Name, 7);
             try
             {
-                Upvote.Initialize(Global.Name, 7);
-
                 AppDomain.CurrentDomain.UnhandledException +=
                     delegate(object sender, UnhandledExceptionEventArgs eventArgs)
                     {
@@ -116,12 +115,14 @@ namespace SFXUtility
             CustomEvents.Game.OnGameLoad += delegate
             {
                 var sfx = new SFXUtility();
+                sfx.Menu.AddItem(upvoteItem);
+
                 Global.IoC.Register(() => sfx, true, true);
 
                 Global.IoC.Register(() => new Activators(sfx), true, true);
                 Global.IoC.Register(() => new KillSteal(sfx), true, true);
                 Global.IoC.Register(() => new Potion(sfx), true, true);
-                //Global.IoC.Register(() => new Revealer(sfx), true, true);
+                Global.IoC.Register(() => new Revealer(sfx), true, true);
                 Global.IoC.Register(() => new Smite(sfx), true, true);
 
                 Global.IoC.Register(() => new Detectors(sfx), true, true);

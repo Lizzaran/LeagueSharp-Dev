@@ -26,7 +26,6 @@ using System;
 using System.IO;
 using System.Linq;
 using LeagueSharp.Common;
-using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
 
 #endregion
@@ -88,17 +87,21 @@ namespace SFXChallenger.Menus
                         .FirstOrDefault();
                 if (!string.IsNullOrEmpty(file))
                 {
-                    var ext = Path.GetExtension(file);
+                    string ext = null;
+                    var splitted = file.Split('.');
+                    if (splitted.Any())
+                    {
+                        ext = splitted.Last();
+                    }
                     if (!string.IsNullOrEmpty(ext))
                     {
-                        ext = ext.RightSubstring(ext.Length - 1);
                         menu.Item(menu.Name + ".language")
                             .SetValue(
                                 new StringList(
                                     new[] { ext }.Concat(
                                         menu.Item(menu.Name + ".language")
                                             .GetValue<StringList>()
-                                            .SList.Where(val => val != ext)
+                                            .SList.Where(val => !val.Equals(ext, StringComparison.OrdinalIgnoreCase))
                                             .ToArray()).ToArray()));
                     }
                 }
