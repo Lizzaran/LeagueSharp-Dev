@@ -273,7 +273,10 @@ namespace SFXUtility.Features.Timers
 
         private void TeleportFinish(object sender, TeleportEventArgs e)
         {
-            _teleports[e.UnitNetworkId] = Game.Time + TeleportCd;
+            if (e.Type == Packet.S2C.Teleport.Type.Teleport)
+            {
+                _teleports[e.UnitNetworkId] = Game.Time + TeleportCd;
+            }
         }
 
         private string FixSummonerName(string name)

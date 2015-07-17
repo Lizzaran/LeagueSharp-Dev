@@ -434,7 +434,8 @@ namespace SFXUtility.Features.Trackers
             var enemyObject = _enemyObjects.FirstOrDefault(e => e.Unit.NetworkId == teleportEventArgs.UnitNetworkId);
             if (enemyObject != null)
             {
-                if (teleportEventArgs.Status == Packet.S2C.Teleport.Status.Finish)
+                if (teleportEventArgs.Status == Packet.S2C.Teleport.Status.Finish &&
+                    teleportEventArgs.Type == Packet.S2C.Teleport.Type.Teleport)
                 {
                     _teleports[teleportEventArgs.UnitNetworkId] = Game.Time + TeleportCd;
                 }

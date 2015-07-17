@@ -354,19 +354,23 @@ namespace SFXUtility.Features.Detectors
                     switch (packet.Status)
                     {
                         case Packet.S2C.Teleport.Status.Start:
-                            OnStart.RaiseEvent(null, new TeleportEventArgs(packet.UnitNetworkId, packet.Status));
+                            OnStart.RaiseEvent(
+                                null, new TeleportEventArgs(packet.UnitNetworkId, packet.Status, packet.Type));
                             break;
 
                         case Packet.S2C.Teleport.Status.Finish:
-                            OnFinish.RaiseEvent(null, new TeleportEventArgs(packet.UnitNetworkId, packet.Status));
+                            OnFinish.RaiseEvent(
+                                null, new TeleportEventArgs(packet.UnitNetworkId, packet.Status, packet.Type));
                             break;
 
                         case Packet.S2C.Teleport.Status.Abort:
-                            OnAbort.RaiseEvent(null, new TeleportEventArgs(packet.UnitNetworkId, packet.Status));
+                            OnAbort.RaiseEvent(
+                                null, new TeleportEventArgs(packet.UnitNetworkId, packet.Status, packet.Type));
                             break;
 
                         case Packet.S2C.Teleport.Status.Unknown:
-                            OnUnknown.RaiseEvent(null, new TeleportEventArgs(packet.UnitNetworkId, packet.Status));
+                            OnUnknown.RaiseEvent(
+                                null, new TeleportEventArgs(packet.UnitNetworkId, packet.Status, packet.Type));
                             break;
                     }
                 }
@@ -544,17 +548,24 @@ namespace SFXUtility.Features.Detectors
     public class TeleportEventArgs : EventArgs
     {
         private readonly Packet.S2C.Teleport.Status _status;
+        private readonly Packet.S2C.Teleport.Type _type;
         private readonly int _unitNetworkId;
 
-        public TeleportEventArgs(int unitNetworkId, Packet.S2C.Teleport.Status status)
+        public TeleportEventArgs(int unitNetworkId, Packet.S2C.Teleport.Status status, Packet.S2C.Teleport.Type type)
         {
             _unitNetworkId = unitNetworkId;
             _status = status;
+            _type = type;
         }
 
         public Packet.S2C.Teleport.Status Status
         {
             get { return _status; }
+        }
+
+        public Packet.S2C.Teleport.Type Type
+        {
+            get { return _type; }
         }
 
         public int UnitNetworkId
