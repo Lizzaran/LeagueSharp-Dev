@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Abstracts;
@@ -31,9 +32,13 @@ using SFXChallenger.Enumerations;
 using SFXChallenger.Events;
 using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
+using SFXLibrary;
 using SFXLibrary.Logger;
+using MinionManager = SFXLibrary.MinionManager;
+using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
+using MinionTeam = SFXLibrary.MinionTeam;
+using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
-using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 using Utils = SFXChallenger.Helpers.Utils;
 
 #endregion
@@ -42,8 +47,6 @@ namespace SFXChallenger.Champions
 {
     internal class Sivir : Champion
     {
-        private const float ShieldTime = 1.5f;
-
         protected override ItemFlags ItemFlags
         {
             get { return ItemFlags.Offensive | ItemFlags.Defensive | ItemFlags.Flee; }
@@ -51,12 +54,14 @@ namespace SFXChallenger.Champions
 
         protected override void OnLoad()
         {
+            Core.OnPostUpdate += OnCorePostUpdate;
             TargetSpellManager.OnEnemyTargetCast += OnEnemyTargetCast;
             Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
         }
 
         protected override void OnUnload()
         {
+            Core.OnPostUpdate -= OnCorePostUpdate;
             TargetSpellManager.OnEnemyTargetCast -= OnEnemyTargetCast;
             Orbwalking.AfterAttack -= OnOrbwalkingAfterAttack;
         }
@@ -76,19 +81,19 @@ namespace SFXChallenger.Champions
                 new Dictionary<string, int> { { "Q", 2 } });
             ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
-            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
 
             var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LaneClear"), Menu.Name + ".lane-clear"));
             ManaManager.AddToMenu(laneclearMenu, "lane-clear-q", ManaCheckType.Minimum, ManaValueType.Percent, "Q");
-            ManaManager.AddToMenu(laneclearMenu, "lane-clear-e", ManaCheckType.Minimum, ManaValueType.Percent, "E");
+            ManaManager.AddToMenu(laneclearMenu, "lane-clear-w", ManaCheckType.Minimum, ManaValueType.Percent, "W");
             laneclearMenu.AddItem(
                 new MenuItem(laneclearMenu.Name + ".q-min", "Q " + Global.Lang.Get("G_Min")).SetValue(
                     new Slider(3, 1, 5)));
             laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(
+                new MenuItem(laneclearMenu.Name + ".w-min", "W " + Global.Lang.Get("G_Min")).SetValue(
                     new Slider(3, 1, 5)));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
 
             var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Flee"), Menu.Name + ".flee"));
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(false));
@@ -97,6 +102,7 @@ namespace SFXChallenger.Champions
             TargetSpellManager.AddToMenu(
                 shieldMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Whitelist"), shieldMenu.Name + ".whitelist")), false,
                 true);
+            ManaManager.AddToMenu(shieldMenu, "shield", ManaCheckType.Minimum, ManaValueType.Percent, null, 0);
             shieldMenu.AddItem(new MenuItem(shieldMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
@@ -106,22 +112,17 @@ namespace SFXChallenger.Champions
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
             IndicatorManager.Add(Q);
             IndicatorManager.Add(W);
-            IndicatorManager.Add(R);
             IndicatorManager.Finale();
         }
 
         protected override void SetupSpells()
         {
             Q = new Spell(SpellSlot.Q, 850f);
-            Q.SetSkillshot(0.25f, 15f * (float) Math.PI / 180, 2000f, false, SkillshotType.SkillshotCone);
+            Q.SetSkillshot(0.25f, 90f, 1350f, false, SkillshotType.SkillshotLine);
 
-            W = new Spell(SpellSlot.W, 900f);
-            W.SetSkillshot(0.35f, 250f, 1650f, false, SkillshotType.SkillshotCircle);
-
-            E = new Spell(SpellSlot.E, 425f);
-
+            W = new Spell(SpellSlot.W, 800f);
+            E = new Spell(SpellSlot.E);
             R = new Spell(SpellSlot.R, 1100f);
-            R.SetSkillshot(0.25f, 110f, 2100f, false, SkillshotType.SkillshotLine);
         }
 
         private void OnEnemyTargetCast(object sender, TargetCastArgs args)
@@ -129,7 +130,7 @@ namespace SFXChallenger.Champions
             try
             {
                 if (Menu.Item(Menu.Name + ".shield.enabled").GetValue<bool>() &&
-                    (args.Target == null || args.Target.IsMe))
+                    (args.Target == null || args.Target.IsMe) && ManaManager.Check("shield"))
                 {
                     if (args.Type == SpellDataTargetType.SelfAoe &&
                         args.Sender.Distance(Player.Position) <=
@@ -166,6 +167,26 @@ namespace SFXChallenger.Champions
             }
         }
 
+        private void OnCorePostUpdate(EventArgs args)
+        {
+            try
+            {
+                if (Menu.Item(Menu.Name + ".miscellaneous.q-stun").GetValue<bool>() && Q.IsReady())
+                {
+                    var target = GameObjects.EnemyHeroes.OrderBy(e => e.Distance(Player))
+                        .FirstOrDefault(Utils.IsStunned);
+                    if (target != null)
+                    {
+                        Q.Cast(target.Position);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
         private void OnOrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
         {
             try
@@ -186,6 +207,37 @@ namespace SFXChallenger.Champions
                     {
                         ItemManager.Muramana(false);
                     }
+                    if (W.IsReady())
+                    {
+                        var useW = false;
+                        var wMin = 1;
+                        var laneclear = false;
+                        switch (Orbwalker.ActiveMode)
+                        {
+                            case Orbwalking.OrbwalkingMode.Combo:
+                                useW = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>();
+                                break;
+                            case Orbwalking.OrbwalkingMode.Mixed:
+                                useW = Menu.Item(Menu.Name + ".harass.w").GetValue<bool>();
+                                break;
+                            case Orbwalking.OrbwalkingMode.LaneClear:
+                                useW = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>();
+                                wMin = Menu.Item(Menu.Name + ".lane-clear.w-min").GetValue<Slider>().Value;
+                                laneclear = true;
+                                break;
+                        }
+                        if (useW && (!laneclear || ManaManager.Check("lane-clear-w")))
+                        {
+                            var targets = laneclear
+                                ? MinionManager.GetMinions(
+                                    800f, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
+                                : GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(800f)).Cast<Obj_AI_Base>().ToList();
+                            if (targets.Any(Orbwalking.InAutoAttackRange) && targets.Count >= wMin)
+                            {
+                                W.Cast();
+                            }
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -196,43 +248,9 @@ namespace SFXChallenger.Champions
 
         protected override void Combo()
         {
-            var useQ = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady();
-            var useW = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady();
-            var useE = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
-            var useR = Menu.Item(Menu.Name + ".combo.r").GetValue<bool>() && R.IsReady();
-
-            if (useQ)
+            if (Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady())
             {
                 Casting.SkillShot(Q, Q.GetHitChance("combo"));
-            }
-            if (useW)
-            {
-                Casting.SkillShot(W, W.GetHitChance("combo"));
-            }
-            if (useE)
-            {
-                var target = TargetSelector.GetTarget(
-                    (E.Range + Player.AttackRange) * 0.9f, LeagueSharp.Common.TargetSelector.DamageType.Physical);
-                if (target != null)
-                {
-                    var pos = Player.Position.Extend(target.Position, E.Range);
-                    if (!pos.UnderTurret(true))
-                    {
-                        E.Cast(pos);
-                    }
-                }
-            }
-            if (useR)
-            {
-                var target = TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical);
-                if (R.GetDamage(target) * 0.9f > target.Health || Orbwalking.InAutoAttackRange(target))
-                {
-                    var pred = R.GetPrediction(target);
-                    if (pred.Hitchance >= R.GetHitChance("combo"))
-                    {
-                        R.Cast(pred.CastPosition);
-                    }
-                }
             }
         }
 
@@ -251,7 +269,7 @@ namespace SFXChallenger.Champions
 
         protected override void LaneClear()
         {
-            if (!ManaManager.Check("lane-clear"))
+            if (!ManaManager.Check("lane-clear-q"))
             {
                 return;
             }

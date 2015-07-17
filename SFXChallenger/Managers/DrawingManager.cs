@@ -55,7 +55,7 @@ namespace SFXChallenger.Managers
                     new MenuItem(_menu.Name + ".circle-thickness", Global.Lang.Get("G_CircleThickness")).SetValue(
                         new Slider(2, 0, 10)));
 
-                foreach (var spell in _champion.Spells.Where(s => s != null && s.Range > 0))
+                foreach (var spell in _champion.Spells.Where(s => s != null && s.Range > 0 && s.Range < 5000))
                 {
                     if (spell.IsChargedSpell)
                     {
@@ -189,7 +189,7 @@ namespace SFXChallenger.Managers
                 }
 
                 var circleThickness = _menu.Item(_menu.Name + ".circle-thickness").GetValue<Slider>().Value;
-                foreach (var spell in _champion.Spells.Where(s => s != null && s.Range > 0 && s.Level > 0))
+                foreach (var spell in _champion.Spells.Where(s => s != null && s.Range > 0 && s.Range < 5000 && s.Level > 0))
                 {
                     if (spell.IsChargedSpell)
                     {
