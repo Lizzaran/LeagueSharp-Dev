@@ -49,7 +49,6 @@ namespace SFXUtility.Features.Trackers
 {
     internal class Sidebar : Child<Trackers>
     {
-        private const int TeleportCd = 240;
         private const float HudWidth = 95f;
         private const float HudHeight = 90f;
         private const float SummonerWidth = 22f;
@@ -429,17 +428,29 @@ namespace SFXUtility.Features.Trackers
             return null;
         }
 
-        private void TeleportHandle(object sender, TeleportEventArgs teleportEventArgs)
+        private void TeleportHandle(object sender, TeleportEventArgs args)
         {
-            var enemyObject = _enemyObjects.FirstOrDefault(e => e.Unit.NetworkId == teleportEventArgs.UnitNetworkId);
+            var enemyObject = _enemyObjects.FirstOrDefault(e => e.Unit.NetworkId == args.UnitNetworkId);
             if (enemyObject != null)
             {
-                if (teleportEventArgs.Status == Packet.S2C.Teleport.Status.Finish &&
-                    teleportEventArgs.Type == Packet.S2C.Teleport.Type.Teleport)
+                if (args.Status == Packet.S2C.Teleport.Status.Finish && args.Type == Packet.S2C.Teleport.Type.Teleport)
                 {
-                    _teleports[teleportEventArgs.UnitNetworkId] = Game.Time + TeleportCd;
+                    var time = Game.Time;
+                    Utility.DelayAction.Add(
+                        250,
+                        delegate
+                        {
+                            _teleports[args.UnitNetworkId] = time +
+                                                             (GameObjects.EnemyHeroes.Any(
+                                                                 e =>
+                                                                     e.NetworkId == args.UnitNetworkId &&
+                                                                     GameObjects.EnemyTurrets.Any(
+                                                                         t => e.Distance(t) < 400))
+                                                                 ? 240
+                                                                 : 300);
+                        });
                 }
-                enemyObject.TeleportStatus = teleportEventArgs.Status;
+                enemyObject.TeleportStatus = args.Status;
             }
         }
 

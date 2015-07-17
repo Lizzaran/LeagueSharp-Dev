@@ -46,7 +46,7 @@ namespace SFXUtility.Features.Timers
 {
     internal class Cooldown : Child<Timers>
     {
-        private const int TeleportCd = 240;
+        private const float TeleportCd = 300f;
         private List<Obj_AI_Hero> _heroes;
         private Texture _hudSelfTexture;
         private Texture _hudTexture;
@@ -271,11 +271,23 @@ namespace SFXUtility.Features.Timers
             base.OnInitialize();
         }
 
-        private void TeleportFinish(object sender, TeleportEventArgs e)
+        private void TeleportFinish(object sender, TeleportEventArgs args)
         {
-            if (e.Type == Packet.S2C.Teleport.Type.Teleport)
+            if (args.Type == Packet.S2C.Teleport.Type.Teleport)
             {
-                _teleports[e.UnitNetworkId] = Game.Time + TeleportCd;
+                var time = Game.Time;
+                Utility.DelayAction.Add(
+                    250,
+                    delegate
+                    {
+                        _teleports[args.UnitNetworkId] = time +
+                                                         (GameObjects.EnemyHeroes.Any(
+                                                             e =>
+                                                                 e.NetworkId == args.UnitNetworkId &&
+                                                                 GameObjects.EnemyTurrets.Any(t => e.Distance(t) < 400))
+                                                             ? TeleportCd - 60f
+                                                             : TeleportCd);
+                    });
             }
         }
 
