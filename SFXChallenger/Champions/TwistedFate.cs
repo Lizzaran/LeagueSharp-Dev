@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- TwistedFate.cs is part of SFXChallenger.
+ twistedfate.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -225,18 +225,19 @@ namespace SFXChallenger.Champions
             {
                 if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear && Cards.Status == SelectStatus.Selected)
                 {
-                    if (Cards.Has(CardColor.Red) || Cards.Has(CardColor.Blue))
+                    if (Cards.Has(CardColor.Red))
                     {
-                        var best = GetBestLaneClearTargetCard();
+                        var best = GetBestLaneClearTargetCard(true);
                         if (best.Item1 != null && best.Item2.Any())
                         {
                             Orbwalker.ForceTarget(best.Item1);
                         }
                     }
-                    else
-                    {
-                        Orbwalker.ForceTarget(null);
-                    }
+                }
+                if (Utils.TickCount - Cards.LastWSent > 300 && Cards.Status != SelectStatus.Selecting &&
+                    Cards.Status != SelectStatus.Selected)
+                {
+                    Orbwalker.ForceTarget(null);
                 }
                 if (Cards.Status != SelectStatus.Selected)
                 {
@@ -544,10 +545,16 @@ namespace SFXChallenger.Champions
             }
             var target = TargetSelector.GetTarget(Q.Range, LeagueSharp.Common.TargetSelector.DamageType.Magical);
             var cd = W.Instance.CooldownExpires - Game.Time;
-            var inRange = Orbwalking.InAutoAttackRange(target);
+            var range = W.Range;
+            if (W.Range < (target.BoundingRadius + Player.BoundingRadius + Player.AttackRange) &&
+                Player.MoveSpeed > target.MoveSpeed)
+            {
+                range *= 1.2f;
+            }
+            var inRange = target.Distance(Player) < range;
             var best = BestQPosition(target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), hitChance);
             if (!best.Item2.Equals(Vector3.Zero) &&
-                (best.Item1 >= 2 || inRange && cd <= 2 || !inRange || cd > 2 || Helpers.Utils.IsStunned(target)))
+                (best.Item1 >= 2 || !inRange || cd >= 3 || Helpers.Utils.IsStunned(target)))
             {
                 Q.Cast(best.Item2);
             }
@@ -563,6 +570,10 @@ namespace SFXChallenger.Champions
             {
                 var minions = MinionManager.GetMinions(
                     Q.Range * 1.2f, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+                if (minions.Any(m => m.Team == GameObjectTeam.Neutral))
+                {
+                    qMin = 1;
+                }
                 var best = BestQPosition(null, minions, HitChance.High);
                 if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= qMin)
                 {
@@ -575,7 +586,6 @@ namespace SFXChallenger.Champions
                 if (best.Item1 != null && best.Item2.Any())
                 {
                     Cards.Select(best.Item2);
-                    Orbwalker.ForceTarget(best.Item1);
                 }
             }
         }
@@ -694,27 +704,30 @@ namespace SFXChallenger.Champions
             return new Tuple<int, Obj_AI_Base>(totalHits, target);
         }
 
-        private Tuple<Obj_AI_Base, List<CardColor>> GetBestLaneClearTargetCard()
+        private Tuple<Obj_AI_Base, List<CardColor>> GetBestLaneClearTargetCard(bool forceRed = false)
         {
             var cards = new List<CardColor>();
             Obj_AI_Base target = null;
             try
             {
-                if (!ManaManager.Check("lane-clear-blue"))
+                if (!ManaManager.Check("lane-clear-blue") && !forceRed)
                 {
                     var minions = MinionManager.GetMinions(
                         W.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
-                    if (minions.Any())
+                    if (minions.Any() && (Player.ManaPercent < 95 || minions.Any(m => m.Team == GameObjectTeam.Neutral)))
                     {
-                        var best = minions.FirstOrDefault(m => W.IsKillable(m) || m.Health > W.GetDamage(m) * 2);
+                        var best = minions.FirstOrDefault(m => W.IsKillable(m) || m.Health > W.GetDamage(m) * 2.2);
                         target = best ?? minions.First();
                         cards.Add(CardColor.Blue);
                     }
                 }
                 else
                 {
-                    var minions = MinionManager.GetMinions(
-                        W.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+                    var minions =
+                        MinionManager.GetMinions(
+                            W.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
+                            .Where(m => W.IsKillable(m, 1) || m.Health > W.GetDamage(m) * 2.2)
+                            .ToList();
                     var minHits = minions.Any(m => m.Team == GameObjectTeam.Neutral)
                         ? Menu.Item(Menu.Name + ".lane-clear.red-min").GetValue<Slider>().Value
                         : 2;
@@ -728,7 +741,7 @@ namespace SFXChallenger.Champions
                         cards.Add(CardColor.Red);
                         target = best.Item2;
                     }
-                    else
+                    else if (!forceRed)
                     {
                         cards.Add(CardColor.Blue);
                         target = best.Item2;
@@ -751,10 +764,6 @@ namespace SFXChallenger.Champions
             }
             try
             {
-                if (IsWKillable(target, 1))
-                {
-                    cards.Add(CardColor.Red);
-                }
                 if (IsWKillable(target, 2))
                 {
                     cards.Add(CardColor.Gold);
@@ -762,6 +771,10 @@ namespace SFXChallenger.Champions
                 if (IsWKillable(target))
                 {
                     cards.Add(CardColor.Blue);
+                }
+                if (IsWKillable(target, 1))
+                {
+                    cards.Add(CardColor.Red);
                 }
                 if (cards.Any())
                 {
