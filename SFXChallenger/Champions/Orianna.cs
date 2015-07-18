@@ -232,10 +232,10 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                foreach (var spell in Spells)
-                {
-                    spell.UpdateSourcePosition(Ball.Position, Ball.Position);
-                }
+                Q.UpdateSourcePosition(Ball.Position);
+                W.UpdateSourcePosition(Ball.Position, Ball.Position);
+                E.UpdateSourcePosition(Ball.Position);
+                R.UpdateSourcePosition(Ball.Position, Ball.Position);
             }
             catch (Exception ex)
             {

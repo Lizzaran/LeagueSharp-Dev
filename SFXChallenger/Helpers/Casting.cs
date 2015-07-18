@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Casting.cs is part of SFXChallenger.
+ casting.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -51,17 +51,10 @@ namespace SFXChallenger.Helpers
             bool aoe = false,
             bool towerCheck = false)
         {
-            if (!spell.IsReady())
+            if (!spell.IsReady() || target == null || towerCheck && target.UnderTurret(true))
             {
                 return;
             }
-
-            if (target == null || towerCheck && target.UnderTurret(true))
-            {
-                return;
-            }
-
-            spell.UpdateSourcePosition();
 
             var prediction = spell.GetPrediction(target, aoe);
             if (prediction.Hitchance >= hitChance)
@@ -77,15 +70,11 @@ namespace SFXChallenger.Helpers
 
         public static void TargetSkill(Obj_AI_Base target, Spell spell, bool packet = false, bool towerCheck = false)
         {
-            if (!spell.IsReady())
+            if (!spell.IsReady() || target == null || towerCheck && target.UnderTurret(true))
             {
                 return;
             }
 
-            if (target == null || towerCheck && target.UnderTurret(true))
-            {
-                return;
-            }
             spell.CastOnUnit(target, packet);
         }
 

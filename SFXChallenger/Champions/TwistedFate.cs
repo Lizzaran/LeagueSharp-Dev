@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- twistedfate.cs is part of SFXChallenger.
+ TwistedFate.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@ namespace SFXChallenger.Champions
     internal class TwistedFate : Champion
     {
         private readonly float _qAngle = 28 * (float) Math.PI / 180;
-        private readonly float _wRedRadius = 110f;
+        private readonly float _wRedRadius = 100f;
         private MenuItem _eStacks;
         private MenuItem _rMinimap;
 
@@ -145,6 +145,11 @@ namespace SFXChallenger.Champions
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".q-range", "Q " + Global.Lang.Get("G_Range")).SetValue(
                     new Slider((int) Q.Range, 950, 1450))).ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { Q.Range = args.GetNewValue<Slider>().Value; };
+            miscMenu.AddItem(
+                new MenuItem(
+                    miscMenu.Name + ".q-min-range", "Q " + Global.Lang.Get("G_Min") + " " + Global.Lang.Get("G_Range"))
+                    .SetValue(new Slider(800, 600, 1000))).ValueChanged +=
                 delegate(object sender, OnValueChangeEventArgs args) { Q.Range = args.GetNewValue<Slider>().Value; };
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".w-range", "W " + Global.Lang.Get("G_Range")).SetValue(
@@ -355,28 +360,21 @@ namespace SFXChallenger.Champions
             {
                 if (targets != null && color == CardColor.Red)
                 {
-                    targets = targets.Where(t => t.IsValidTarget(W.Range)).ToList();
-                    var enemyPositions = (from h in targets
-                        let wPred = W.GetPrediction(h)
-                        where wPred.Hitchance >= HitChance.Medium
-                        select new Tuple<Obj_AI_Base, Vector3>(h, wPred.UnitPosition)).ToList();
-                    if (enemyPositions.Any())
+                    targets = targets.Where(t => t.IsValidTarget((W.Range + W.Width) * 1.5f)).ToList();
+                    var pred = W.GetPrediction(target);
+                    if (pred.Hitchance >= HitChance.Medium)
                     {
-                        var enemy = enemyPositions.FirstOrDefault(e => e.Item1.NetworkId.Equals(target.NetworkId));
-                        if (enemy != null)
-                        {
-                            return enemyPositions.Count(e => e.Item2.Distance(enemy.Item2) < _wRedRadius);
-                        }
+                        var circle = new Geometry.Polygon.Circle(pred.UnitPosition, _wRedRadius);
+                        return 1 + (from t in targets.Where(x => x.NetworkId != target.NetworkId)
+                            let pred2 = W.GetPrediction(t)
+                            where pred2.Hitchance >= HitChance.Medium
+                            select new Geometry.Polygon.Circle(pred2.UnitPosition, t.BoundingRadius * 0.9f)).Count(
+                                circle2 => circle2.Points.Any(p => circle.IsInside(p)));
                     }
                 }
-                var pred = W.GetPrediction(target);
-                if (pred.Hitchance >= HitChance.Medium)
+                if (W.IsInRange(target))
                 {
-                    if (Player.Distance(pred.UnitPosition) <
-                        Player.AttackRange + Player.BoundingRadius + target.BoundingRadius)
-                    {
-                        return 1;
-                    }
+                    return 1;
                 }
             }
             catch (Exception ex)
@@ -413,7 +411,8 @@ namespace SFXChallenger.Champions
             try
             {
                 if (sender.IsEnemy && args.DangerLevel == Interrupter2.DangerLevel.High &&
-                    Menu.Item(Menu.Name + ".miscellaneous.w-interrupt").GetValue<bool>())
+                    Menu.Item(Menu.Name + ".miscellaneous.w-interrupt").GetValue<bool>() &&
+                    sender.Distance(Player) < W.Range)
                 {
                     if (Cards.Status != SelectStatus.Selected && W.IsReady())
                     {
@@ -545,13 +544,8 @@ namespace SFXChallenger.Champions
             }
             var target = TargetSelector.GetTarget(Q.Range, LeagueSharp.Common.TargetSelector.DamageType.Magical);
             var cd = W.Instance.CooldownExpires - Game.Time;
-            var range = W.Range;
-            if (W.Range < (target.BoundingRadius + Player.BoundingRadius + Player.AttackRange) &&
-                Player.MoveSpeed > target.MoveSpeed)
-            {
-                range *= 1.2f;
-            }
-            var inRange = target.Distance(Player) < range;
+            var inRange = target.Distance(Player) <
+                          Menu.Item(Menu.Name + ".miscellaneous.q-min-range").GetValue<Slider>().Value;
             var best = BestQPosition(target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), hitChance);
             if (!best.Item2.Equals(Vector3.Zero) &&
                 (best.Item1 >= 2 || !inRange || cd >= 3 || Helpers.Utils.IsStunned(target)))
@@ -729,8 +723,8 @@ namespace SFXChallenger.Champions
                             .Where(m => W.IsKillable(m, 1) || m.Health > W.GetDamage(m) * 2.2)
                             .ToList();
                     var minHits = minions.Any(m => m.Team == GameObjectTeam.Neutral)
-                        ? Menu.Item(Menu.Name + ".lane-clear.red-min").GetValue<Slider>().Value
-                        : 2;
+                        ? 1
+                        : Menu.Item(Menu.Name + ".lane-clear.red-min").GetValue<Slider>().Value;
                     if (Cards.Has(CardColor.Red))
                     {
                         minHits = 1;
