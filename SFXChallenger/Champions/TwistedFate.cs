@@ -221,7 +221,7 @@ namespace SFXChallenger.Champions
 
         private bool IsWKillable(Obj_AI_Base target, int stage = 0)
         {
-            return W.GetDamage(target, stage) - 5 > target.Health + target.HPRegenRate;
+            return target != null && W.GetDamage(target, stage) - 5 > target.Health + target.HPRegenRate;
         }
 
         private void OnCorePostUpdate(EventArgs args)
@@ -502,10 +502,13 @@ namespace SFXChallenger.Champions
             {
                 var target = TargetSelector.GetTarget(
                     W.Range * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical);
-                var best = GetBestCard(target, "combo");
-                if (best.Any())
+                if (target != null)
                 {
-                    Cards.Select(best);
+                    var best = GetBestCard(target, "combo");
+                    if (best.Any())
+                    {
+                        Cards.Select(best);
+                    }
                 }
             }
             if (q && Q.IsReady())
@@ -523,10 +526,13 @@ namespace SFXChallenger.Champions
             {
                 var target = TargetSelector.GetTarget(
                     W.Range * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical);
-                var best = GetBestCard(target, "harass");
-                if (best.Any())
+                if (target != null)
                 {
-                    Cards.Select(best);
+                    var best = GetBestCard(target, "harass");
+                    if (best.Any())
+                    {
+                        Cards.Select(best);
+                    }
                 }
             }
             if (ManaManager.Check("harass") && q && Q.IsReady())
@@ -537,20 +543,30 @@ namespace SFXChallenger.Champions
 
         private void QLogic(HitChance hitChance)
         {
-            if ((Cards.Has() || HasEBuff()) &&
-                GameObjects.EnemyHeroes.Any(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget()))
+            try
             {
-                return;
+                if ((Cards.Has() || HasEBuff()) &&
+                    GameObjects.EnemyHeroes.Any(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget()))
+                {
+                    return;
+                }
+                var target = TargetSelector.GetTarget(Q.Range, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+                if (target != null)
+                {
+                    var cd = W.Instance.CooldownExpires - Game.Time;
+                    var outRange = Menu.Item(Menu.Name + ".miscellaneous.q-min-range").GetValue<Slider>().Value >
+                                   target.Distance(Player);
+                    var best = BestQPosition(target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), hitChance);
+                    if (!best.Item2.Equals(Vector3.Zero) &&
+                        (best.Item1 >= 1 || outRange || cd >= 3 || Helpers.Utils.IsStunned(target)))
+                    {
+                        Q.Cast(best.Item2);
+                    }
+                }
             }
-            var target = TargetSelector.GetTarget(Q.Range, LeagueSharp.Common.TargetSelector.DamageType.Magical);
-            var cd = W.Instance.CooldownExpires - Game.Time;
-            var inRange = target.Distance(Player) <
-                          Menu.Item(Menu.Name + ".miscellaneous.q-min-range").GetValue<Slider>().Value;
-            var best = BestQPosition(target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), hitChance);
-            if (!best.Item2.Equals(Vector3.Zero) &&
-                (best.Item1 >= 2 || !inRange || cd >= 3 || Helpers.Utils.IsStunned(target)))
+            catch (Exception ex)
             {
-                Q.Cast(best.Item2);
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -607,11 +623,14 @@ namespace SFXChallenger.Champions
                 {
                     var target = TargetSelector.GetTarget(
                         W.Range * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical);
-                    var best = GetBestCard(target, "flee");
-                    if (best.Any())
+                    if (target != null)
                     {
-                        Cards.Select(best);
-                        Orbwalker.ForceTarget(target);
+                        var best = GetBestCard(target, "flee");
+                        if (best.Any())
+                        {
+                            Cards.Select(best);
+                            Orbwalker.ForceTarget(target);
+                        }
                     }
                 }
             }
@@ -838,8 +857,7 @@ namespace SFXChallenger.Champions
                     {
                         damage += E.GetDamage(target);
                     }
-                    if (Q.IsReady() && Helpers.Utils.IsStunned(target) && distance < Q.Range / 3f ||
-                        distance < Q.Range / 5f)
+                    if (Q.IsReady() && Helpers.Utils.GetStunTime(target) > 0.5f && distance < Q.Range / 3f)
                     {
                         damage += Q.GetDamage(target) * 0.9f;
                     }
@@ -847,13 +865,13 @@ namespace SFXChallenger.Champions
                     {
                         cards.Add(CardColor.Gold);
                     }
-                    if (W.GetDamage(target, 1) + damage > target.Health)
-                    {
-                        cards.Add(CardColor.Red);
-                    }
                     if (W.GetDamage(target) + damage > target.Health)
                     {
                         cards.Add(CardColor.Blue);
+                    }
+                    if (W.GetDamage(target, 1) + damage > target.Health)
+                    {
+                        cards.Add(CardColor.Red);
                     }
                     if (!cards.Any())
                     {

@@ -121,14 +121,21 @@ namespace SFXUtility.Classes
 
         protected virtual void OnUnload(object sender, UnloadEventArgs args)
         {
-            if (Unloaded)
+            try
             {
-                return;
+                if (Unloaded)
+                {
+                    return;
+                }
+                OnDisable();
+                if (args != null && args.Final)
+                {
+                    Unloaded = true;
+                }
             }
-            OnDisable();
-            if (args != null && args.Final)
+            catch (Exception ex)
             {
-                Unloaded = true;
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
     }

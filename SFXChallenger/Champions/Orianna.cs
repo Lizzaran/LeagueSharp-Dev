@@ -469,14 +469,15 @@ namespace SFXChallenger.Champions
             var q = Menu.Item(Menu.Name + ".harass.q").GetValue<bool>();
             var w = Menu.Item(Menu.Name + ".harass.w").GetValue<bool>();
             var e = Menu.Item(Menu.Name + ".harass.e").GetValue<bool>();
-            var target = TargetSelector.GetTarget(Q.Range + Q.Width, TargetSelector.DamageType.Magical);
             if (w && W.IsReady())
             {
                 WLogic(1);
             }
             if (q && Q.IsReady())
             {
-                QLogic(target, Q.GetHitChance("combo"), e);
+                QLogic(
+                    TargetSelector.GetTarget(Q.Range + Q.Width, TargetSelector.DamageType.Magical),
+                    Q.GetHitChance("combo"), e);
             }
             if (e && E.IsReady())
             {
@@ -488,6 +489,10 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                if (target == null)
+                {
+                    return 0;
+                }
                 float damage = 0;
                 if (q)
                 {
@@ -521,6 +526,10 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                if (target == null)
+                {
+                    return;
+                }
                 if (Utility.CountEnemiesInRange((int) (Q.Range + R.Width)) > 1)
                 {
                     var qLoc = GetBestQLocation(target, hitChance);
@@ -830,6 +839,10 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                if (target == null)
+                {
+                    return new Tuple<int, Vector3>(0, Vector3.Zero);
+                }
                 var pred = Q.GetPrediction(target);
                 if (pred.Hitchance < hitChance)
                 {

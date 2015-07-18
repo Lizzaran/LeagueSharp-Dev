@@ -84,8 +84,15 @@ namespace SFXUtility.Features.Others
 
         protected override void OnInitialize()
         {
-            _lastSpell = new Dictionary<SpellSlot, float>();
-            base.OnInitialize();
+            try
+            {
+                _lastSpell = new Dictionary<SpellSlot, float>();
+                base.OnInitialize();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)

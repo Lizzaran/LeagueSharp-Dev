@@ -186,9 +186,16 @@ namespace SFXUtility.Features.Drawings
 
         protected override void OnInitialize()
         {
-            _waypoints = new Dictionary<int, List<Vector2>>();
-            _lastCheck = Environment.TickCount;
-            base.OnInitialize();
+            try
+            {
+                _waypoints = new Dictionary<int, List<Vector2>>();
+                _lastCheck = Environment.TickCount;
+                base.OnInitialize();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
     }
 }

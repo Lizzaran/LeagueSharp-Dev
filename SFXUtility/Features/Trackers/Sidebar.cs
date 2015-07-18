@@ -314,76 +314,84 @@ namespace SFXUtility.Features.Trackers
 
         protected override void OnInitialize()
         {
-            if (!GameObjects.EnemyHeroes.Any())
+            try
             {
-                OnUnload(null, new UnloadEventArgs(true));
-                return;
-            }
+                if (!GameObjects.EnemyHeroes.Any())
+                {
+                    OnUnload(null, new UnloadEventArgs(true));
+                    return;
+                }
 
-            _champsEnergy = new[] { "Akali", "Kennen", "LeeSin", "Shen", "Zed", "Gnar", "Rengar" };
+                _champsEnergy = new[] { "Akali", "Kennen", "LeeSin", "Shen", "Zed", "Gnar", "Rengar" };
 
-            _champsNoEnergy = new[] { "Aatrox", "DrMundo", "Vladimir", "Zac", "Katarina", "Garen", "Riven" };
+                _champsNoEnergy = new[] { "Aatrox", "DrMundo", "Vladimir", "Zac", "Katarina", "Garen", "Riven" };
 
-            _champsRage = new[] { "Shyvana", "RekSai", "Renekton", "Rumble" };
-            _enemyObjects = new List<EnemyObject>();
-            _summonerSpellSlots = new[] { SpellSlot.Summoner1, SpellSlot.Summoner2 };
-            _summonerTextures = new Dictionary<string, Texture>();
-            _teleports = new Dictionary<int, float>();
-            _spellDatas = new Dictionary<int, List<SpellDataInst>>();
+                _champsRage = new[] { "Shyvana", "RekSai", "Renekton", "Rumble" };
+                _enemyObjects = new List<EnemyObject>();
+                _summonerSpellSlots = new[] { SpellSlot.Summoner1, SpellSlot.Summoner2 };
+                _summonerTextures = new Dictionary<string, Texture>();
+                _teleports = new Dictionary<int, float>();
+                _spellDatas = new Dictionary<int, List<SpellDataInst>>();
 
-            if (Global.IoC.IsRegistered<Teleport>())
-            {
-                var rt = Global.IoC.Resolve<Teleport>();
-                rt.OnFinish += TeleportHandle;
-                rt.OnStart += TeleportHandle;
-                rt.OnAbort += TeleportHandle;
-                rt.OnUnknown += TeleportHandle;
-            }
+                if (Global.IoC.IsRegistered<Teleport>())
+                {
+                    var rt = Global.IoC.Resolve<Teleport>();
+                    rt.OnFinish += TeleportHandle;
+                    rt.OnStart += TeleportHandle;
+                    rt.OnAbort += TeleportHandle;
+                    rt.OnUnknown += TeleportHandle;
+                }
 
-            _text12 = MDrawing.GetFont((int) (Math.Ceiling(12 * _scale)));
-            _text13 = MDrawing.GetFont((int) (Math.Ceiling(13 * _scale)));
-            _text18 = MDrawing.GetFont((int) (Math.Ceiling(18 * _scale)));
-            _text30 = MDrawing.GetFont((int) (Math.Ceiling(30 * _scale)));
+                _text12 = MDrawing.GetFont((int) (Math.Ceiling(12 * _scale)));
+                _text13 = MDrawing.GetFont((int) (Math.Ceiling(13 * _scale)));
+                _text18 = MDrawing.GetFont((int) (Math.Ceiling(18 * _scale)));
+                _text30 = MDrawing.GetFont((int) (Math.Ceiling(30 * _scale)));
 
-            foreach (var enemy in GameObjects.EnemyHeroes)
-            {
-                _spellDatas.Add(enemy.NetworkId, _summonerSpellSlots.Select(slot => enemy.GetSpell(slot)).ToList());
-            }
-
-            foreach (var enemy in GameObjects.EnemyHeroes)
-            {
-                _enemyObjects.Add(
-                    new EnemyObject(
-                        enemy,
-                        ((ImageLoader.Load("SB", enemy.ChampionName) ?? Resources.SB_Default).Scale(_scale)).ToTexture()));
-            }
-
-            foreach (var summonerSlot in _summonerSpellSlots)
-            {
                 foreach (var enemy in GameObjects.EnemyHeroes)
                 {
-                    var spell = enemy.Spellbook.GetSpell(summonerSlot);
-                    if (!_summonerTextures.ContainsKey(FixSummonerName(spell.Name)))
+                    _spellDatas.Add(enemy.NetworkId, _summonerSpellSlots.Select(slot => enemy.GetSpell(slot)).ToList());
+                }
+
+                foreach (var enemy in GameObjects.EnemyHeroes)
+                {
+                    _enemyObjects.Add(
+                        new EnemyObject(
+                            enemy,
+                            ((ImageLoader.Load("SB", enemy.ChampionName) ?? Resources.SB_Default).Scale(_scale))
+                                .ToTexture()));
+                }
+
+                foreach (var summonerSlot in _summonerSpellSlots)
+                {
+                    foreach (var enemy in GameObjects.EnemyHeroes)
                     {
-                        _summonerTextures[FixSummonerName(spell.Name)] =
-                            (((Bitmap)
-                                Resources.ResourceManager.GetObject(
-                                    string.Format("SB_{0}", FixSummonerName(spell.Name)))) ??
-                             Resources.SB_summonerbarrier).Scale(_scale).ToTexture();
+                        var spell = enemy.Spellbook.GetSpell(summonerSlot);
+                        if (!_summonerTextures.ContainsKey(FixSummonerName(spell.Name)))
+                        {
+                            _summonerTextures[FixSummonerName(spell.Name)] =
+                                (((Bitmap)
+                                    Resources.ResourceManager.GetObject(
+                                        string.Format("SB_{0}", FixSummonerName(spell.Name)))) ??
+                                 Resources.SB_summonerbarrier).Scale(_scale).ToTexture();
+                        }
                     }
                 }
+
+                _hudTexture = Resources.SB_Hud.Scale(_scale).ToTexture();
+                _invisibleTexture = Resources.SB_Invisible.Scale(_scale).ToTexture();
+                _teleportAbortTexture = Resources.SB_RecallAbort.Scale(_scale).ToTexture();
+                _teleportFinishTexture = Resources.SB_RecallFinish.Scale(_scale).ToTexture();
+                _teleportStartTexture = Resources.SB_RecallStart.Scale(_scale).ToTexture();
+                _ultimateTexture = Resources.SB_Ultimate.Scale(_scale).ToTexture();
+                _line = MDrawing.GetLine((int) (Math.Ceiling(9 * _scale)));
+                _sprite = MDrawing.GetSprite();
+
+                base.OnInitialize();
             }
-
-            _hudTexture = Resources.SB_Hud.Scale(_scale).ToTexture();
-            _invisibleTexture = Resources.SB_Invisible.Scale(_scale).ToTexture();
-            _teleportAbortTexture = Resources.SB_RecallAbort.Scale(_scale).ToTexture();
-            _teleportFinishTexture = Resources.SB_RecallFinish.Scale(_scale).ToTexture();
-            _teleportStartTexture = Resources.SB_RecallStart.Scale(_scale).ToTexture();
-            _ultimateTexture = Resources.SB_Ultimate.Scale(_scale).ToTexture();
-            _line = MDrawing.GetLine((int) (Math.Ceiling(9 * _scale)));
-            _sprite = MDrawing.GetSprite();
-
-            base.OnInitialize();
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private string FixSummonerName(string name)
@@ -430,99 +438,116 @@ namespace SFXUtility.Features.Trackers
 
         private void TeleportHandle(object sender, TeleportEventArgs args)
         {
-            var enemyObject = _enemyObjects.FirstOrDefault(e => e.Unit.NetworkId == args.UnitNetworkId);
-            if (enemyObject != null)
+            try
             {
-                if (args.Status == Packet.S2C.Teleport.Status.Finish && args.Type == Packet.S2C.Teleport.Type.Teleport)
+                var enemyObject = _enemyObjects.FirstOrDefault(e => e.Unit.NetworkId == args.UnitNetworkId);
+                if (enemyObject != null)
                 {
-                    var time = Game.Time;
-                    Utility.DelayAction.Add(
-                        250,
-                        delegate
-                        {
-                            _teleports[args.UnitNetworkId] = time +
-                                                             (GameObjects.EnemyHeroes.Any(
-                                                                 e =>
-                                                                     e.NetworkId == args.UnitNetworkId &&
-                                                                     GameObjects.EnemyTurrets.Any(
-                                                                         t => e.Distance(t) < 400))
-                                                                 ? 240
-                                                                 : 300);
-                        });
+                    if (args.Status == Packet.S2C.Teleport.Status.Finish &&
+                        args.Type == Packet.S2C.Teleport.Type.Teleport)
+                    {
+                        var time = Game.Time;
+                        Utility.DelayAction.Add(
+                            250,
+                            delegate
+                            {
+                                _teleports[args.UnitNetworkId] = time +
+                                                                 (GameObjects.EnemyHeroes.Any(
+                                                                     e =>
+                                                                         e.NetworkId == args.UnitNetworkId &&
+                                                                         GameObjects.EnemyTurrets.Any(
+                                                                             t => e.Distance(t) < 400))
+                                                                     ? 240
+                                                                     : 300);
+                            });
+                    }
+                    enemyObject.TeleportStatus = args.Status;
                 }
-                enemyObject.TeleportStatus = args.Status;
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
         private void OnGameWndProc(WndEventArgs args)
         {
-            if (!Menu.Item(Name + "Clickable").GetValue<bool>())
+            try
             {
-                return;
-            }
-
-            var index = 0;
-
-            var hudWidth = (float) (Math.Ceiling(HudWidth * _scale));
-            var hudHeight = (float) (Math.Ceiling(HudHeight * _scale));
-
-            var spacing = (float) (Math.Ceiling(20f * _scale)) + hudHeight;
-
-            var offsetTop = Menu.Item(Menu.Name + "DrawingOffsetTop").GetValue<Slider>().Value + hudHeight / 2;
-            var offsetRight = Drawing.Width - Menu.Item(Menu.Name + "DrawingOffsetRight").GetValue<Slider>().Value -
-                              hudWidth / 2;
-
-            if (args.Msg == (uint) WindowsMessages.WM_RBUTTONUP || args.Msg == (uint) WindowsMessages.WM_LBUTTONDBLCLCK)
-            {
-                var pos = Utils.GetCursorPos();
-                foreach (var enemy in _enemyObjects)
+                if (!Menu.Item(Name + "Clickable").GetValue<bool>())
                 {
-                    var offset = spacing * index;
-                    if (args.Msg == (uint) WindowsMessages.WM_LBUTTONDBLCLCK)
+                    return;
+                }
+
+                var index = 0;
+
+                var hudWidth = (float) (Math.Ceiling(HudWidth * _scale));
+                var hudHeight = (float) (Math.Ceiling(HudHeight * _scale));
+
+                var spacing = (float) (Math.Ceiling(20f * _scale)) + hudHeight;
+
+                var offsetTop = Menu.Item(Menu.Name + "DrawingOffsetTop").GetValue<Slider>().Value + hudHeight / 2;
+                var offsetRight = Drawing.Width - Menu.Item(Menu.Name + "DrawingOffsetRight").GetValue<Slider>().Value -
+                                  hudWidth / 2;
+
+                if (args.Msg == (uint) WindowsMessages.WM_RBUTTONUP ||
+                    args.Msg == (uint) WindowsMessages.WM_LBUTTONDBLCLCK)
+                {
+                    var pos = Utils.GetCursorPos();
+                    foreach (var enemy in _enemyObjects)
                     {
-                        var spellData = _spellDatas[enemy.Unit.NetworkId];
-                        for (var i = 0; spellData.Count > i; i++)
+                        var offset = spacing * index;
+                        if (args.Msg == (uint) WindowsMessages.WM_LBUTTONDBLCLCK)
                         {
-                            var spell = spellData[i];
-                            if (spell != null)
+                            var spellData = _spellDatas[enemy.Unit.NetworkId];
+                            for (var i = 0; spellData.Count > i; i++)
                             {
-                                if (Utils.IsUnderRectangle(
-                                    pos, offsetRight - hudWidth * 0.23f - SummonerWidth / 2f,
-                                    offsetTop - hudHeight * 0.3f + offset + ((float) (Math.Ceiling(24 * _scale)) * i) -
-                                    SummonerHeight / 2f, SummonerWidth, SummonerHeight))
+                                var spell = spellData[i];
+                                if (spell != null)
                                 {
-                                    var teleportCd = 0f;
-                                    if (spell.Name.Contains("Teleport", StringComparison.OrdinalIgnoreCase) &&
-                                        _teleports.ContainsKey(enemy.Unit.NetworkId))
+                                    if (Utils.IsUnderRectangle(
+                                        pos, offsetRight - hudWidth * 0.23f - SummonerWidth / 2f,
+                                        offsetTop - hudHeight * 0.3f + offset +
+                                        ((float) (Math.Ceiling(24 * _scale)) * i) - SummonerHeight / 2f, SummonerWidth,
+                                        SummonerHeight))
                                     {
-                                        _teleports.TryGetValue(enemy.Unit.NetworkId, out teleportCd);
-                                    }
-                                    var time = (teleportCd > 0.1f ? teleportCd : spell.CooldownExpires) - Game.Time;
-                                    if (time > 0)
-                                    {
-                                        var sName = ReadableSummonerName(spell.Name);
-                                        Game.Say(
-                                            string.Format(
-                                                "{0} {1} {2}", enemy.Unit.ChampionName, sName,
-                                                ((float) (Math.Round(time * 2f, MidpointRounding.AwayFromZero) / 2f))
-                                                    .FormatTime()));
+                                        var teleportCd = 0f;
+                                        if (spell.Name.Contains("Teleport", StringComparison.OrdinalIgnoreCase) &&
+                                            _teleports.ContainsKey(enemy.Unit.NetworkId))
+                                        {
+                                            _teleports.TryGetValue(enemy.Unit.NetworkId, out teleportCd);
+                                        }
+                                        var time = (teleportCd > 0.1f ? teleportCd : spell.CooldownExpires) - Game.Time;
+                                        if (time > 0)
+                                        {
+                                            var sName = ReadableSummonerName(spell.Name);
+                                            Game.Say(
+                                                string.Format(
+                                                    "{0} {1} {2}", enemy.Unit.ChampionName, sName,
+                                                    ((float) (Math.Round(time * 2f, MidpointRounding.AwayFromZero) / 2f))
+                                                        .FormatTime()));
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                    else
-                    {
-                        if (enemy.Unit.IsVisible && !enemy.Unit.IsDead &&
-                            Utils.IsUnderRectangle(
-                                pos, offsetRight + (float) (Math.Ceiling(3 * _scale)) - hudWidth / 2f,
-                                offsetTop + offset - hudHeight / 2f, hudWidth, hudHeight))
+                        else
                         {
-                            ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, enemy.Unit);
+                            if (enemy.Unit.IsVisible && !enemy.Unit.IsDead &&
+                                Utils.IsUnderRectangle(
+                                    pos, offsetRight + (float) (Math.Ceiling(3 * _scale)) - hudWidth / 2f,
+                                    offsetTop + offset - hudHeight / 2f, hudWidth, hudHeight))
+                            {
+                                ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, enemy.Unit);
+                            }
                         }
+                        index++;
                     }
-                    index++;
                 }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 

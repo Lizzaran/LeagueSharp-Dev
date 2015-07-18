@@ -186,25 +186,33 @@ namespace SFXUtility.Features.Timers
 
         protected override void OnInitialize()
         {
-            _altarObjs = new List<AltarObj>();
-
-            _altarObjs.AddRange(
-                Altars.Objects.Where(c => c.MapType == Utility.Map.GetMap().Type)
-                    .Select(
-                        c =>
-                            new AltarObj(
-                                c.SpawnTime, c.RespawnTime, c.Position, c.ObjectNameAlly, c.ObjectNameEnemy, c.MapType)));
-
-            if (!_altarObjs.Any())
+            try
             {
-                OnUnload(null, new UnloadEventArgs(true));
-                return;
+                _altarObjs = new List<AltarObj>();
+
+                _altarObjs.AddRange(
+                    Altars.Objects.Where(c => c.MapType == Utility.Map.GetMap().Type)
+                        .Select(
+                            c =>
+                                new AltarObj(
+                                    c.SpawnTime, c.RespawnTime, c.Position, c.ObjectNameAlly, c.ObjectNameEnemy,
+                                    c.MapType)));
+
+                if (!_altarObjs.Any())
+                {
+                    OnUnload(null, new UnloadEventArgs(true));
+                    return;
+                }
+
+                _minimapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMinimapFontSize").GetValue<Slider>().Value);
+                _mapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMapFontSize").GetValue<Slider>().Value);
+
+                base.OnInitialize();
             }
-
-            _minimapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMinimapFontSize").GetValue<Slider>().Value);
-            _mapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMapFontSize").GetValue<Slider>().Value);
-
-            base.OnInitialize();
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         public class AltarObj : Altars.AltarObject

@@ -117,8 +117,15 @@ namespace SFXUtility.Features.Events
 
         protected override void OnInitialize()
         {
-            _lastCheck = Environment.TickCount;
-            base.OnInitialize();
+            try
+            {
+                _lastCheck = Environment.TickCount;
+                base.OnInitialize();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnGameUpdate(EventArgs args)

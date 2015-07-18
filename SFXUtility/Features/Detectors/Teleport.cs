@@ -292,30 +292,38 @@ namespace SFXUtility.Features.Detectors
 
         protected override void OnInitialize()
         {
-            _teleportObjects = new List<TeleportObject>();
-            _teleportObjects =
-                GameObjects.Heroes.Select(
-                    hero =>
-                        new TeleportObject(hero)
-                        {
-                            AdditionalTextTime =
-                                Menu.Item(Menu.Name + "DrawingTextAdditionalTime").GetValue<Slider>().Value,
-                            AdditionalBarTime =
-                                Menu.Item(Menu.Name + "DrawingBarAdditionalTime").GetValue<Slider>().Value
-                        }).ToList();
+            try
+            {
+                _teleportObjects = new List<TeleportObject>();
+                _teleportObjects =
+                    GameObjects.Heroes.Select(
+                        hero =>
+                            new TeleportObject(hero)
+                            {
+                                AdditionalTextTime =
+                                    Menu.Item(Menu.Name + "DrawingTextAdditionalTime").GetValue<Slider>().Value,
+                                AdditionalBarTime =
+                                    Menu.Item(Menu.Name + "DrawingBarAdditionalTime").GetValue<Slider>().Value
+                            })
+                        .ToList();
 
-            Obj_AI_Base.OnTeleport += OnObjAiBaseTeleport;
+                Obj_AI_Base.OnTeleport += OnObjAiBaseTeleport;
 
-            _text = MDrawing.GetFont(Menu.Item(Name + "DrawingTextFontSize").GetValue<Slider>().Value);
-            _barText =
-                MDrawing.GetFont(
-                    (int)
-                        (Math.Ceiling(
-                            Menu.Item(Name + "DrawingBarFontSize").GetValue<Slider>().Value *
-                            (Menu.Item(Menu.Name + "DrawingBarScale").GetValue<Slider>().Value / 10d))));
-            _line = MDrawing.GetLine(1);
+                _text = MDrawing.GetFont(Menu.Item(Name + "DrawingTextFontSize").GetValue<Slider>().Value);
+                _barText =
+                    MDrawing.GetFont(
+                        (int)
+                            (Math.Ceiling(
+                                Menu.Item(Name + "DrawingBarFontSize").GetValue<Slider>().Value *
+                                (Menu.Item(Menu.Name + "DrawingBarScale").GetValue<Slider>().Value / 10d))));
+                _line = MDrawing.GetLine(1);
 
-            base.OnInitialize();
+                base.OnInitialize();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnObjAiBaseTeleport(GameObject sender, GameObjectTeleportEventArgs args)

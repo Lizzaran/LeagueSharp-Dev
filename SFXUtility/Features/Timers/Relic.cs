@@ -211,22 +211,29 @@ namespace SFXUtility.Features.Timers
 
         protected override void OnInitialize()
         {
-            _relicObjs = new List<RelicObj>();
-
-            _relicObjs.AddRange(
-                Relics.Objects.Where(c => c.MapType == Utility.Map.GetMap().Type)
-                    .Select(c => new RelicObj(c.SpawnTime, c.RespawnTime, c.Position, c.ObjectName, c.MapType)));
-
-            if (!_relicObjs.Any())
+            try
             {
-                OnUnload(null, new UnloadEventArgs(true));
-                return;
+                _relicObjs = new List<RelicObj>();
+
+                _relicObjs.AddRange(
+                    Relics.Objects.Where(c => c.MapType == Utility.Map.GetMap().Type)
+                        .Select(c => new RelicObj(c.SpawnTime, c.RespawnTime, c.Position, c.ObjectName, c.MapType)));
+
+                if (!_relicObjs.Any())
+                {
+                    OnUnload(null, new UnloadEventArgs(true));
+                    return;
+                }
+
+                _minimapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMinimapFontSize").GetValue<Slider>().Value);
+                _mapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMapFontSize").GetValue<Slider>().Value);
+
+                base.OnInitialize();
             }
-
-            _minimapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMinimapFontSize").GetValue<Slider>().Value);
-            _mapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMapFontSize").GetValue<Slider>().Value);
-
-            base.OnInitialize();
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private class RelicObj : Relics.RelicObject

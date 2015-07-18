@@ -71,18 +71,25 @@ namespace SFXUtility.Features.Others
 
         private void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
         {
-            if (sender == null || !sender.Owner.IsMe ||
-                !ObjectManager.Player.Spellbook.Spells.Any(
-                    s => s.Slot == args.Slot && s.Name.Equals("SummonerFlash", StringComparison.OrdinalIgnoreCase)))
+            try
             {
-                return;
-            }
+                if (sender == null || !sender.Owner.IsMe ||
+                    !ObjectManager.Player.Spellbook.Spells.Any(
+                        s => s.Slot == args.Slot && s.Name.Equals("SummonerFlash", StringComparison.OrdinalIgnoreCase)))
+                {
+                    return;
+                }
 
-            if (ObjectManager.Player.ServerPosition.To2D().Distance(args.StartPosition) < 390f)
+                if (ObjectManager.Player.ServerPosition.To2D().Distance(args.StartPosition) < 390f)
+                {
+                    args.Process = false;
+                    ObjectManager.Player.Spellbook.CastSpell(
+                        args.Slot, ObjectManager.Player.ServerPosition.Extend(args.StartPosition, 400f));
+                }
+            }
+            catch (Exception ex)
             {
-                args.Process = false;
-                ObjectManager.Player.Spellbook.CastSpell(
-                    args.Slot, ObjectManager.Player.ServerPosition.Extend(args.StartPosition, 400f));
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
     }

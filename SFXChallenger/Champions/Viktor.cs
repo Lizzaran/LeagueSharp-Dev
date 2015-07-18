@@ -531,6 +531,10 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                if (target == null)
+                {
+                    return 0;
+                }
                 var damage = 0f;
                 if (Player.HasBuff("viktorpowertransferreturn") && Orbwalking.InAutoAttackRange(target))
                 {

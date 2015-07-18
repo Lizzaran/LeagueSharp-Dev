@@ -151,8 +151,15 @@ namespace SFXUtility.Features.Drawings
 
         protected override void OnInitialize()
         {
-            _minions = new List<Obj_AI_Minion>();
-            base.OnInitialize();
+            try
+            {
+                _minions = new List<Obj_AI_Minion>();
+                base.OnInitialize();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         protected override void OnEnable()

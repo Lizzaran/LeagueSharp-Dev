@@ -27,6 +27,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Web.Script.Serialization;
+using SFXLibrary.Logger;
 
 #endregion
 
@@ -575,14 +576,21 @@ namespace SFXUtility.Data
 
         static ModelManager()
         {
-            using (var client = new WebClient())
+            try
             {
-                var versionJson = client.DownloadString(DataDragonBase + "realms/na.json");
-                GameVersion =
-                    (string)
-                        ((Dictionary<string, object>)
-                            new JavaScriptSerializer().Deserialize<Dictionary<string, object>>(versionJson)["n"])[
-                                "champion"];
+                using (var client = new WebClient())
+                {
+                    var versionJson = client.DownloadString(DataDragonBase + "realms/na.json");
+                    GameVersion =
+                        (string)
+                            ((Dictionary<string, object>)
+                                new JavaScriptSerializer().Deserialize<Dictionary<string, object>>(versionJson)["n"])[
+                                    "champion"];
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -599,18 +607,26 @@ namespace SFXUtility.Data
 
         public static ArrayList GetSkins(string model)
         {
-            using (var client = new WebClient())
+            try
             {
-                var champJson =
-                    client.DownloadString(
-                        DataDragonBase + "cdn/" + GameVersion + "/data/en_US/champion/" + model + ".json");
-                return
-                    (ArrayList)
-                        ((Dictionary<string, object>)
+                using (var client = new WebClient())
+                {
+                    var champJson =
+                        client.DownloadString(
+                            DataDragonBase + "cdn/" + GameVersion + "/data/en_US/champion/" + model + ".json");
+                    return
+                        (ArrayList)
                             ((Dictionary<string, object>)
-                                new JavaScriptSerializer().Deserialize<Dictionary<string, object>>(champJson)["data"])[
-                                    model])["skins"];
+                                ((Dictionary<string, object>)
+                                    new JavaScriptSerializer().Deserialize<Dictionary<string, object>>(champJson)["data"
+                                        ])[model])["skins"];
+                }
             }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return new ArrayList();
         }
     }
 }

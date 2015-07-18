@@ -109,27 +109,34 @@ namespace SFXUtility.Features.Drawings
 
         protected override void OnInitialize()
         {
-            if (Utility.Map.GetMap().Type != Utility.Map.MapType.SummonersRift)
+            try
             {
-                OnUnload(null, new UnloadEventArgs(true));
-                return;
-            }
+                if (Utility.Map.GetMap().Type != Utility.Map.MapType.SummonersRift)
+                {
+                    OnUnload(null, new UnloadEventArgs(true));
+                    return;
+                }
 
-            _jungleSpots = new List<Vector3>
+                _jungleSpots = new List<Vector3>
+                {
+                    new Vector3(7600f, 3140f, 60f),
+                    new Vector3(7160, 4600f, 60f),
+                    new Vector3(4570f, 6170f, 60f),
+                    new Vector3(3370f, 8610f, 60f),
+                    new Vector3(7650f, 2120f, 60f),
+                    new Vector3(7320f, 11610f, 60f),
+                    new Vector3(7290f, 10090f, 60f),
+                    new Vector3(10220f, 9000f, 60f),
+                    new Vector3(11550f, 6230f, 60f),
+                    new Vector3(7120f, 12800f, 60f),
+                    new Vector3(10930f, 5400f, 60f)
+                };
+                base.OnInitialize();
+            }
+            catch (Exception ex)
             {
-                new Vector3(7600f, 3140f, 60f),
-                new Vector3(7160, 4600f, 60f),
-                new Vector3(4570f, 6170f, 60f),
-                new Vector3(3370f, 8610f, 60f),
-                new Vector3(7650f, 2120f, 60f),
-                new Vector3(7320f, 11610f, 60f),
-                new Vector3(7290f, 10090f, 60f),
-                new Vector3(10220f, 9000f, 60f),
-                new Vector3(11550f, 6230f, 60f),
-                new Vector3(7120f, 12800f, 60f),
-                new Vector3(10930f, 5400f, 60f)
-            };
-            base.OnInitialize();
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
     }
 }

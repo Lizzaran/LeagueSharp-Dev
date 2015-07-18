@@ -132,22 +132,29 @@ namespace SFXUtility.Features.Drawings
 
         protected override void OnInitialize()
         {
-            _inhibs = new List<Obj_BarracksDampener>();
-            _turrets = new List<Obj_AI_Turret>();
-
-            _turrets.AddRange(
-                GameObjects.Turrets.Where(t => t.IsValid && !t.IsDead && t.Health > 1f && t.Health < 9999f));
-            _inhibs.AddRange(GameObjects.Inhibitors);
-
-            if (!_turrets.Any() || !_inhibs.Any())
+            try
             {
-                OnUnload(null, new UnloadEventArgs(true));
-                return;
+                _inhibs = new List<Obj_BarracksDampener>();
+                _turrets = new List<Obj_AI_Turret>();
+
+                _turrets.AddRange(
+                    GameObjects.Turrets.Where(t => t.IsValid && !t.IsDead && t.Health > 1f && t.Health < 9999f));
+                _inhibs.AddRange(GameObjects.Inhibitors);
+
+                if (!_turrets.Any() || !_inhibs.Any())
+                {
+                    OnUnload(null, new UnloadEventArgs(true));
+                    return;
+                }
+
+                _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
+
+                base.OnInitialize();
             }
-
-            _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
-
-            base.OnInitialize();
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
     }
 }

@@ -118,22 +118,29 @@ namespace SFXUtility.Features.Drawings
 
         protected override void OnInitialize()
         {
-            if (Utility.Map.GetMap().Type != Utility.Map.MapType.SummonersRift)
+            try
             {
-                OnUnload(null, new UnloadEventArgs(true));
-                return;
+                if (Utility.Map.GetMap().Type != Utility.Map.MapType.SummonersRift)
+                {
+                    OnUnload(null, new UnloadEventArgs(true));
+                    return;
+                }
+
+                _walljumpSpots = new List<PositionStruct>();
+                SetupPositions();
+
+                if (_walljumpSpots.Count <= 0)
+                {
+                    OnUnload(null, new UnloadEventArgs(true));
+                    return;
+                }
+
+                base.OnInitialize();
             }
-
-            _walljumpSpots = new List<PositionStruct>();
-            SetupPositions();
-
-            if (_walljumpSpots.Count <= 0)
+            catch (Exception ex)
             {
-                OnUnload(null, new UnloadEventArgs(true));
-                return;
+                Global.Logger.AddItem(new LogItem(ex));
             }
-
-            base.OnInitialize();
         }
 
         private void SetupPositions()

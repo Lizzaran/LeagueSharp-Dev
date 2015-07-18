@@ -58,29 +58,53 @@ namespace SFXUtility.Features.Trackers
 
         private void TeleportAbort(object sender, TeleportEventArgs teleportEventArgs)
         {
-            var lastPosition = _lastPositions.FirstOrDefault(e => e.Hero.NetworkId == teleportEventArgs.UnitNetworkId);
-            if (lastPosition != null)
+            try
             {
-                lastPosition.IsTeleporting = false;
+                var lastPosition =
+                    _lastPositions.FirstOrDefault(e => e.Hero.NetworkId == teleportEventArgs.UnitNetworkId);
+                if (lastPosition != null)
+                {
+                    lastPosition.IsTeleporting = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
         private void TeleportFinish(object sender, TeleportEventArgs teleportEventArgs)
         {
-            var lastPosition = _lastPositions.FirstOrDefault(e => e.Hero.NetworkId == teleportEventArgs.UnitNetworkId);
-            if (lastPosition != null)
+            try
             {
-                lastPosition.Teleported = true;
-                lastPosition.IsTeleporting = false;
+                var lastPosition =
+                    _lastPositions.FirstOrDefault(e => e.Hero.NetworkId == teleportEventArgs.UnitNetworkId);
+                if (lastPosition != null)
+                {
+                    lastPosition.Teleported = true;
+                    lastPosition.IsTeleporting = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
         private void TeleportStart(object sender, TeleportEventArgs teleportEventArgs)
         {
-            var lastPosition = _lastPositions.FirstOrDefault(e => e.Hero.NetworkId == teleportEventArgs.UnitNetworkId);
-            if (lastPosition != null)
+            try
             {
-                lastPosition.IsTeleporting = true;
+                var lastPosition =
+                    _lastPositions.FirstOrDefault(e => e.Hero.NetworkId == teleportEventArgs.UnitNetworkId);
+                if (lastPosition != null)
+                {
+                    lastPosition.IsTeleporting = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -180,33 +204,40 @@ namespace SFXUtility.Features.Trackers
 
         protected override void OnInitialize()
         {
-            _heroTextures = new Dictionary<int, Texture>();
-            _lastPositions = new List<LastPositionStruct>();
-
-            if (Global.IoC.IsRegistered<Teleport>())
+            try
             {
-                var rt = Global.IoC.Resolve<Teleport>();
-                rt.OnFinish += TeleportFinish;
-                rt.OnStart += TeleportStart;
-                rt.OnAbort += TeleportAbort;
-                rt.OnUnknown += TeleportAbort;
+                _heroTextures = new Dictionary<int, Texture>();
+                _lastPositions = new List<LastPositionStruct>();
+
+                if (Global.IoC.IsRegistered<Teleport>())
+                {
+                    var rt = Global.IoC.Resolve<Teleport>();
+                    rt.OnFinish += TeleportFinish;
+                    rt.OnStart += TeleportStart;
+                    rt.OnAbort += TeleportAbort;
+                    rt.OnUnknown += TeleportAbort;
+                }
+
+                var spawn = GameObjects.EnemySpawnPoints.FirstOrDefault();
+                _spawnPoint = spawn != null ? Drawing.WorldToMinimap(spawn.Position) : Vector2.Zero;
+
+                foreach (var enemy in GameObjects.EnemyHeroes)
+                {
+                    _heroTextures[enemy.NetworkId] =
+                        (ImageLoader.Load("LP", enemy.ChampionName) ?? Resources.LP_Default).ToTexture();
+                    _lastPositions.Add(new LastPositionStruct(enemy));
+                }
+
+                _sprite = MDrawing.GetSprite();
+                _teleportTexture = Resources.LP_Teleport.ToTexture();
+                _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
+
+                base.OnInitialize();
             }
-
-            var spawn = GameObjects.EnemySpawnPoints.FirstOrDefault();
-            _spawnPoint = spawn != null ? Drawing.WorldToMinimap(spawn.Position) : Vector2.Zero;
-
-            foreach (var enemy in GameObjects.EnemyHeroes)
+            catch (Exception ex)
             {
-                _heroTextures[enemy.NetworkId] =
-                    (ImageLoader.Load("LP", enemy.ChampionName) ?? Resources.LP_Default).ToTexture();
-                _lastPositions.Add(new LastPositionStruct(enemy));
+                Global.Logger.AddItem(new LogItem(ex));
             }
-
-            _sprite = MDrawing.GetSprite();
-            _teleportTexture = Resources.LP_Teleport.ToTexture();
-            _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
-
-            base.OnInitialize();
         }
 
         internal class LastPositionStruct

@@ -284,6 +284,10 @@ namespace SFXChallenger.Managers
 
         public static float CalculateComboDamage(Obj_AI_Hero target, bool rangeCheck = true)
         {
+            if (target == null)
+            {
+                return 0;
+            }
             if (_menu == null || !_menu.Item(_menu.Name + ".enabled").GetValue<bool>())
             {
                 return CalculateLichBaneDamage(target);
@@ -324,7 +328,7 @@ namespace SFXChallenger.Managers
             }
             try
             {
-                var distance = target.Distance(ObjectManager.Player.Position, true);
+                var distance = target == null ? 0 : target.Distance(ObjectManager.Player.Position, true);
                 if (distance >= Math.Pow(MaxRange, 2))
                 {
                     return;
@@ -391,6 +395,10 @@ namespace SFXChallenger.Managers
         {
             try
             {
+                if (target == null)
+                {
+                    return 0;
+                }
                 var lichBane = ItemData.Lich_Bane.GetItem();
                 if (lichBane.IsOwned(ObjectManager.Player))
                 {

@@ -134,15 +134,22 @@ namespace SFXUtility.Features.Detectors
 
         protected override void OnInitialize()
         {
-            _timer = new Timer();
-            _sprite = MDrawing.GetSprite();
-            _recordTexture = Resources.RC_On.ToTexture();
+            try
+            {
+                _timer = new Timer();
+                _sprite = MDrawing.GetSprite();
+                _recordTexture = Resources.RC_On.ToTexture();
 
-            _timer.Enabled = false;
-            _timer.Interval = Menu.Item(Name + "CheckInterval").GetValue<Slider>().Value * 60 * 1000;
-            _timer.Elapsed += OnTimerElapsed;
+                _timer.Enabled = false;
+                _timer.Interval = Menu.Item(Name + "CheckInterval").GetValue<Slider>().Value * 60 * 1000;
+                _timer.Elapsed += OnTimerElapsed;
 
-            base.OnInitialize();
+                base.OnInitialize();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnTimerElapsed(object sender, ElapsedEventArgs elapsedEventArgs)

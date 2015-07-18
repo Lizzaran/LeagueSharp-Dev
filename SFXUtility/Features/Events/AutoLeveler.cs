@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- autoleveler.cs is part of SFXUtility.
+ AutoLeveler.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -139,33 +139,47 @@ namespace SFXUtility.Features.Events
 
         protected override void OnInitialize()
         {
-            _lastCheck = Environment.TickCount;
-            _q = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.Q);
-            _w = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W);
-            _e = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E);
-            _r = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.R);
-            base.OnInitialize();
+            try
+            {
+                _lastCheck = Environment.TickCount;
+                _q = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.Q);
+                _w = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W);
+                _e = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E);
+                _r = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.R);
+                base.OnInitialize();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnGameUpdate(EventArgs args)
         {
-            if (_lastCheck + CheckInterval > Environment.TickCount)
+            try
             {
-                return;
+                if (_lastCheck + CheckInterval > Environment.TickCount)
+                {
+                    return;
+                }
+                _lastCheck = Environment.TickCount;
+
+                var availablePoints = ObjectManager.Player.Level - (_q.Level + _w.Level + _e.Level + GetRLevel());
+
+                if (availablePoints > 0)
+                {
+                    OnUnitLevelUp(
+                        ObjectManager.Player,
+                        new CustomEvents.Unit.OnLevelUpEventArgs
+                        {
+                            NewLevel = ObjectManager.Player.Level,
+                            RemainingPoints = availablePoints
+                        });
+                }
             }
-            _lastCheck = Environment.TickCount;
-
-            var availablePoints = ObjectManager.Player.Level - (_q.Level + _w.Level + _e.Level + GetRLevel());
-
-            if (availablePoints > 0)
+            catch (Exception ex)
             {
-                OnUnitLevelUp(
-                    ObjectManager.Player,
-                    new CustomEvents.Unit.OnLevelUpEventArgs
-                    {
-                        NewLevel = ObjectManager.Player.Level,
-                        RemainingPoints = availablePoints
-                    });
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -249,23 +263,31 @@ namespace SFXUtility.Features.Events
 
         private int GetRLevel()
         {
-            if (ObjectManager.Player.ChampionName.Equals("Karma", StringComparison.CurrentCultureIgnoreCase))
+            try
             {
-                return _r.Level - 1;
+                if (ObjectManager.Player.ChampionName.Equals("Karma", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    return _r.Level - 1;
+                }
+                if (ObjectManager.Player.ChampionName.Equals("Jayce", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    return _r.Level - 1;
+                }
+                if (ObjectManager.Player.ChampionName.Equals("Nidalee", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    return _r.Level - 1;
+                }
+                if (ObjectManager.Player.ChampionName.Equals("Elise", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    return _r.Level - 1;
+                }
+                return _r.Level;
             }
-            if (ObjectManager.Player.ChampionName.Equals("Jayce", StringComparison.CurrentCultureIgnoreCase))
+            catch (Exception ex)
             {
-                return _r.Level - 1;
+                Global.Logger.AddItem(new LogItem(ex));
             }
-            if (ObjectManager.Player.ChampionName.Equals("Nidalee", StringComparison.CurrentCultureIgnoreCase))
-            {
-                return _r.Level - 1;
-            }
-            if (ObjectManager.Player.ChampionName.Equals("Elise", StringComparison.CurrentCultureIgnoreCase))
-            {
-                return _r.Level - 1;
-            }
-            return _r.Level;
+            return 1;
         }
 
         private int MaxSpellLevel(SpellSlot slot, int level)
@@ -273,24 +295,31 @@ namespace SFXUtility.Features.Events
             var l = slot == SpellSlot.R
                 ? (level >= 16 ? 3 : (level >= 11 ? 2 : (level >= 6 ? 1 : 0)))
                 : (level >= 9 ? 5 : (level >= 7 ? 4 : (level >= 5 ? 3 : (level >= 3 ? 2 : 1))));
-            if (slot == SpellSlot.R)
+            try
             {
-                if (ObjectManager.Player.ChampionName.Equals("Karma", StringComparison.CurrentCultureIgnoreCase))
+                if (slot == SpellSlot.R)
                 {
-                    return l + 1;
+                    if (ObjectManager.Player.ChampionName.Equals("Karma", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        return l + 1;
+                    }
+                    if (ObjectManager.Player.ChampionName.Equals("Jayce", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        return l + 1;
+                    }
+                    if (ObjectManager.Player.ChampionName.Equals("Nidalee", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        return l + 1;
+                    }
+                    if (ObjectManager.Player.ChampionName.Equals("Elise", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        return l + 1;
+                    }
                 }
-                if (ObjectManager.Player.ChampionName.Equals("Jayce", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    return l + 1;
-                }
-                if (ObjectManager.Player.ChampionName.Equals("Nidalee", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    return l + 1;
-                }
-                if (ObjectManager.Player.ChampionName.Equals("Elise", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    return l + 1;
-                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
             return l;
         }

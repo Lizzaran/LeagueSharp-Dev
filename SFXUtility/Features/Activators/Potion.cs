@@ -100,26 +100,33 @@ namespace SFXUtility.Features.Activators
 
         protected override void OnInitialize()
         {
-            _potions =
-                new List<PotionStruct>
-                {
-                    new PotionStruct(
-                        "ItemCrystalFlask", (ItemId) ItemData.Crystalline_Flask.Id, 1, 1,
-                        new[] { PotionType.Health, PotionType.Mana }),
-                    new PotionStruct(
-                        "RegenerationPotion", (ItemId) ItemData.Health_Potion.Id, 0, 2, new[] { PotionType.Health }),
-                    new PotionStruct(
-                        "ItemMiniRegenPotion", (ItemId) ItemData.Total_Biscuit_of_Rejuvenation.Id, 0, 3,
-                        new[] { PotionType.Health }),
-                    new PotionStruct(
-                        "ItemMiniRegenPotion", (ItemId) ItemData.Total_Biscuit_of_Rejuvenation2.Id, 0, 4,
-                        new[] { PotionType.Health }),
-                    new PotionStruct(
-                        "FlaskOfCrystalWater", (ItemId) ItemData.Mana_Potion.Id, 0, 5, new[] { PotionType.Mana })
-                }
-                    .OrderBy(x => x.Priority).ToList();
+            try
+            {
+                _potions =
+                    new List<PotionStruct>
+                    {
+                        new PotionStruct(
+                            "ItemCrystalFlask", (ItemId) ItemData.Crystalline_Flask.Id, 1, 1,
+                            new[] { PotionType.Health, PotionType.Mana }),
+                        new PotionStruct(
+                            "RegenerationPotion", (ItemId) ItemData.Health_Potion.Id, 0, 2, new[] { PotionType.Health }),
+                        new PotionStruct(
+                            "ItemMiniRegenPotion", (ItemId) ItemData.Total_Biscuit_of_Rejuvenation.Id, 0, 3,
+                            new[] { PotionType.Health }),
+                        new PotionStruct(
+                            "ItemMiniRegenPotion", (ItemId) ItemData.Total_Biscuit_of_Rejuvenation2.Id, 0, 4,
+                            new[] { PotionType.Health }),
+                        new PotionStruct(
+                            "FlaskOfCrystalWater", (ItemId) ItemData.Mana_Potion.Id, 0, 5, new[] { PotionType.Mana })
+                    }
+                        .OrderBy(x => x.Priority).ToList();
 
-            base.OnInitialize();
+                base.OnInitialize();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private InventorySlot GetPotionSlot(PotionType type)

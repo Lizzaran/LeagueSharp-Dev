@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- ward.cs is part of SFXUtility.
+ Ward.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -152,66 +152,87 @@ namespace SFXUtility.Features.Trackers
 
         protected override void OnInitialize()
         {
-            _heroNoWards = new List<HeroWard>();
-            _wardObjects = new List<WardObject>();
-            _wardStructs = new List<WardStruct>
+            try
             {
-                new WardStruct(60, 1100, "YellowTrinket", "TrinketTotemLvl1", WardType.Green),
-                new WardStruct(60 * 3, 1100, "YellowTrinketUpgrade", "TrinketTotemLvl2", WardType.Green),
-                new WardStruct(60 * 3, 1100, "SightWard", "TrinketTotemLvl3", WardType.Green),
-                new WardStruct(60 * 3, 1100, "SightWard", "SightWard", WardType.Green),
-                new WardStruct(60 * 3, 1100, "SightWard", "ItemGhostWard", WardType.Green),
-                new WardStruct(60 * 3, 1100, "SightWard", "wrigglelantern", WardType.Green),
-                new WardStruct(60 * 3, 1100, "SightWard", "ItemFeralFlare", WardType.Green),
-                new WardStruct(int.MaxValue, 1100, "VisionWard", "TrinketTotemLvl3B", WardType.Pink),
-                new WardStruct(int.MaxValue, 1100, "VisionWard", "VisionWard", WardType.Pink),
-                new WardStruct(60 * 4, 212, "CaitlynTrap", "CaitlynYordleTrap", WardType.Trap),
-                new WardStruct(60 * 10, 212, "TeemoMushroom", "BantamTrap", WardType.Trap),
-                new WardStruct(60 * 1, 212, "ShacoBox", "JackInTheBox", WardType.Trap),
-                new WardStruct(60 * 2, 212, "Nidalee_Spear", "Bushwhack", WardType.Trap),
-                new WardStruct(60 * 10, 212, "Noxious_Trap", "BantamTrap", WardType.Trap)
-            };
-            _lastCheck = Environment.TickCount;
-            _sprite = MDrawing.GetSprite();
-            _greenWardTexture = Resources.WT_Green.ToTexture();
-            _pinkWardTexture = Resources.WT_Pink.ToTexture();
-            _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
-            _line = MDrawing.GetLine(Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value);
+                _heroNoWards = new List<HeroWard>();
+                _wardObjects = new List<WardObject>();
+                _wardStructs = new List<WardStruct>
+                {
+                    new WardStruct(60, 1100, "YellowTrinket", "TrinketTotemLvl1", WardType.Green),
+                    new WardStruct(60 * 3, 1100, "YellowTrinketUpgrade", "TrinketTotemLvl2", WardType.Green),
+                    new WardStruct(60 * 3, 1100, "SightWard", "TrinketTotemLvl3", WardType.Green),
+                    new WardStruct(60 * 3, 1100, "SightWard", "SightWard", WardType.Green),
+                    new WardStruct(60 * 3, 1100, "SightWard", "ItemGhostWard", WardType.Green),
+                    new WardStruct(60 * 3, 1100, "SightWard", "wrigglelantern", WardType.Green),
+                    new WardStruct(60 * 3, 1100, "SightWard", "ItemFeralFlare", WardType.Green),
+                    new WardStruct(int.MaxValue, 1100, "VisionWard", "TrinketTotemLvl3B", WardType.Pink),
+                    new WardStruct(int.MaxValue, 1100, "VisionWard", "VisionWard", WardType.Pink),
+                    new WardStruct(60 * 4, 212, "CaitlynTrap", "CaitlynYordleTrap", WardType.Trap),
+                    new WardStruct(60 * 10, 212, "TeemoMushroom", "BantamTrap", WardType.Trap),
+                    new WardStruct(60 * 1, 212, "ShacoBox", "JackInTheBox", WardType.Trap),
+                    new WardStruct(60 * 2, 212, "Nidalee_Spear", "Bushwhack", WardType.Trap),
+                    new WardStruct(60 * 10, 212, "Noxious_Trap", "BantamTrap", WardType.Trap)
+                };
+                _lastCheck = Environment.TickCount;
+                _sprite = MDrawing.GetSprite();
+                _greenWardTexture = Resources.WT_Green.ToTexture();
+                _pinkWardTexture = Resources.WT_Pink.ToTexture();
+                _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
+                _line = MDrawing.GetLine(Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value);
 
-            base.OnInitialize();
+                base.OnInitialize();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnAttackableUnitEnterVisiblityClient(AttackableUnit sender, EventArgs args)
         {
-            if (!sender.IsValid || sender.IsDead || !sender.IsEnemy)
+            try
             {
-                return;
+                if (!sender.IsValid || sender.IsDead || !sender.IsEnemy)
+                {
+                    return;
+                }
+                var hero = sender as Obj_AI_Hero;
+                if (hero != null)
+                {
+                    if (hero.HasItem(ItemId.Sightstone) || hero.HasItem(ItemId.Ruby_Sightstone) ||
+                        hero.HasItem(ItemId.Vision_Ward))
+                    {
+                        _heroNoWards.RemoveAll(h => h.Hero.NetworkId == hero.NetworkId);
+                    }
+                    else
+                    {
+                        _heroNoWards.Add(new HeroWard(hero));
+                    }
+                }
             }
-            var hero = sender as Obj_AI_Hero;
-            if (hero != null)
+            catch (Exception ex)
             {
-                if (hero.HasItem(ItemId.Sightstone) || hero.HasItem(ItemId.Ruby_Sightstone) ||
-                    hero.HasItem(ItemId.Vision_Ward))
-                {
-                    _heroNoWards.RemoveAll(h => h.Hero.NetworkId == hero.NetworkId);
-                }
-                else
-                {
-                    _heroNoWards.Add(new HeroWard(hero));
-                }
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
         private void OnGameWndProc(WndEventArgs args)
         {
-            if (args.Msg == (ulong) WindowsMessages.WM_LBUTTONDBLCLCK &&
-                Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active)
+            try
             {
-                var ward = _wardObjects.OrderBy(w => Game.CursorPos.Distance(w.Position)).FirstOrDefault();
-                if (ward != null && Game.CursorPos.Distance(ward.Position) <= 300)
+                if (args.Msg == (ulong) WindowsMessages.WM_LBUTTONDBLCLCK &&
+                    Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active)
                 {
-                    _wardObjects.Remove(ward);
+                    var ward = _wardObjects.OrderBy(w => Game.CursorPos.Distance(w.Position)).FirstOrDefault();
+                    if (ward != null && Game.CursorPos.Distance(ward.Position) <= 300)
+                    {
+                        _wardObjects.Remove(ward);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -295,13 +316,20 @@ namespace SFXUtility.Features.Trackers
 
         private void OnGameObjectDelete(GameObject sender, EventArgs args)
         {
-            var ward = sender as Obj_AI_Base;
-            if (ward != null && sender.Name.Contains("Ward", StringComparison.OrdinalIgnoreCase))
+            try
             {
-                _wardObjects.RemoveAll(
-                    w =>
-                        (Math.Abs(w.Position.X - ward.Position.X) <= (w.IsFromMissile ? 25 : 10)) &&
-                        (Math.Abs(w.Position.Y - ward.Position.Y) <= (w.IsFromMissile ? 25 : 10)));
+                var ward = sender as Obj_AI_Base;
+                if (ward != null && sender.Name.Contains("Ward", StringComparison.OrdinalIgnoreCase))
+                {
+                    _wardObjects.RemoveAll(
+                        w =>
+                            (Math.Abs(w.Position.X - ward.Position.X) <= (w.IsFromMissile ? 25 : 10)) &&
+                            (Math.Abs(w.Position.Y - ward.Position.Y) <= (w.IsFromMissile ? 25 : 10)));
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -516,30 +544,37 @@ namespace SFXUtility.Features.Trackers
                 bool isFromMissile = false,
                 Vector3 startPosition = default(Vector3))
             {
-                var pos = position;
-                if (isFromMissile)
+                try
                 {
-                    var newPos = GuessPosition(startPosition, position);
-                    if (!position.X.Equals(newPos.X) || !position.Y.Equals(newPos.Y))
+                    var pos = position;
+                    if (isFromMissile)
                     {
-                        pos = newPos;
-                        Corrected = true;
+                        var newPos = GuessPosition(startPosition, position);
+                        if (!position.X.Equals(newPos.X) || !position.Y.Equals(newPos.Y))
+                        {
+                            pos = newPos;
+                            Corrected = true;
+                        }
+                        if (!Corrected)
+                        {
+                            pos = startPosition;
+                        }
                     }
-                    if (!Corrected)
-                    {
-                        pos = startPosition;
-                    }
+                    IsFromMissile = isFromMissile;
+                    Data = data;
+                    Position = RealPosition(pos);
+                    EndPosition = Position.Equals(position) || Corrected ? position : RealPosition(position);
+                    MinimapPosition = Drawing.WorldToMinimap(Position).To3D();
+                    StartT = startT;
+                    StartPosition = startPosition.Equals(default(Vector3)) || Corrected
+                        ? startPosition
+                        : RealPosition(startPosition);
+                    Object = wardObject;
                 }
-                IsFromMissile = isFromMissile;
-                Data = data;
-                Position = RealPosition(pos);
-                EndPosition = Position.Equals(position) || Corrected ? position : RealPosition(position);
-                MinimapPosition = Drawing.WorldToMinimap(Position).To3D();
-                StartT = startT;
-                StartPosition = startPosition.Equals(default(Vector3)) || Corrected
-                    ? startPosition
-                    : RealPosition(startPosition);
-                Object = wardObject;
+                catch (Exception ex)
+                {
+                    Global.Logger.AddItem(new LogItem(ex));
+                }
             }
 
             public Vector3 Position
@@ -566,31 +601,48 @@ namespace SFXUtility.Features.Trackers
 
             private Vector3 GuessPosition(Vector3 start, Vector3 end)
             {
-                var grass = new List<Vector3>();
-                var distance = start.Distance(end);
-                for (var i = 0; i < distance; i++)
+                try
                 {
-                    var pos = start.Extend(end, i);
-                    if (NavMesh.IsWallOfGrass(pos, 1))
+                    var grass = new List<Vector3>();
+                    var distance = start.Distance(end);
+                    for (var i = 0; i < distance; i++)
                     {
-                        grass.Add(pos);
+                        var pos = start.Extend(end, i);
+                        if (NavMesh.IsWallOfGrass(pos, 1))
+                        {
+                            grass.Add(pos);
+                        }
                     }
+                    return grass.Count > 0
+                        ? grass[(int) ((grass.Count / 2d) + 0.5d * Math.Sign(grass.Count / 2d))]
+                        : end;
                 }
-                return grass.Count > 0 ? grass[(int) ((grass.Count / 2d) + 0.5d * Math.Sign(grass.Count / 2d))] : end;
+                catch (Exception ex)
+                {
+                    Global.Logger.AddItem(new LogItem(ex));
+                }
+                return end;
             }
 
             private Vector3 RealPosition(Vector3 end)
             {
-                if (end.IsWall())
+                try
                 {
-                    for (var i = 0; i < 500; i = i + 5)
+                    if (end.IsWall())
                     {
-                        var c = new Geometry.Polygon.Circle(end, i, 15).Points;
-                        foreach (var item in c.OrderBy(p => p.Distance(end)).Where(item => !(item.IsWall())))
+                        for (var i = 0; i < 500; i = i + 5)
                         {
-                            return new Vector3(item.X, item.Y, NavMesh.GetHeightForPosition(item.X, item.Y));
+                            var c = new Geometry.Polygon.Circle(end, i, 15).Points;
+                            foreach (var item in c.OrderBy(p => p.Distance(end)).Where(item => !(item.IsWall())))
+                            {
+                                return new Vector3(item.X, item.Y, NavMesh.GetHeightForPosition(item.X, item.Y));
+                            }
                         }
                     }
+                }
+                catch (Exception ex)
+                {
+                    Global.Logger.AddItem(new LogItem(ex));
                 }
                 return end;
             }

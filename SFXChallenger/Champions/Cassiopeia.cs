@@ -595,6 +595,10 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                if (target == null)
+                {
+                    return 0;
+                }
                 var manaCost = (w && W.IsReady() ? W.Instance.ManaCost : (q ? Q.Instance.ManaCost : 0)) * 2;
                 var damage = (w && W.IsReady() ? W.GetDamage(target) : (q ? Q.GetDamage(target) : 0)) * 2;
 

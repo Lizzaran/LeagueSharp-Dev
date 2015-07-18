@@ -123,46 +123,58 @@ namespace SFXUtility.Features.Drawings
 
         protected override void OnInitialize()
         {
-            _spells = new List<Spell>
+            try
             {
-                new Spell(SpellSlot.Q),
-                new Spell(SpellSlot.W),
-                new Spell(SpellSlot.E),
-                new Spell(SpellSlot.R)
-            };
-            base.OnInitialize();
+                _spells = new List<Spell>
+                {
+                    new Spell(SpellSlot.Q),
+                    new Spell(SpellSlot.W),
+                    new Spell(SpellSlot.E),
+                    new Spell(SpellSlot.R)
+                };
+                base.OnInitialize();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private double CalculateComboDamage(Obj_AI_Hero enemy)
         {
             var damage = 0d;
-
-            foreach (var spell in _spells.Where(spell => spell.IsReady()))
+            try
             {
-                switch (spell.DamageType)
+                foreach (var spell in _spells.Where(spell => spell.IsReady()))
                 {
-                    case TargetSelector.DamageType.Physical:
-                        damage += ObjectManager.Player.CalcDamage(
-                            enemy, Damage.DamageType.Physical,
-                            ObjectManager.Player.GetSpellDamage(enemy, spell.Slot) *
-                            ObjectManager.Player.PercentArmorPenetrationMod);
-                        break;
-                    case TargetSelector.DamageType.Magical:
-                        damage += ObjectManager.Player.CalcDamage(
-                            enemy, Damage.DamageType.Magical,
-                            ObjectManager.Player.GetSpellDamage(enemy, spell.Slot) *
-                            ObjectManager.Player.PercentMagicPenetrationMod);
-                        break;
-                    case TargetSelector.DamageType.True:
-                        damage += ObjectManager.Player.CalcDamage(
-                            enemy, Damage.DamageType.True, ObjectManager.Player.GetSpellDamage(enemy, spell.Slot));
-                        break;
+                    switch (spell.DamageType)
+                    {
+                        case TargetSelector.DamageType.Physical:
+                            damage += ObjectManager.Player.CalcDamage(
+                                enemy, Damage.DamageType.Physical,
+                                ObjectManager.Player.GetSpellDamage(enemy, spell.Slot) *
+                                ObjectManager.Player.PercentArmorPenetrationMod);
+                            break;
+                        case TargetSelector.DamageType.Magical:
+                            damage += ObjectManager.Player.CalcDamage(
+                                enemy, Damage.DamageType.Magical,
+                                ObjectManager.Player.GetSpellDamage(enemy, spell.Slot) *
+                                ObjectManager.Player.PercentMagicPenetrationMod);
+                            break;
+                        case TargetSelector.DamageType.True:
+                            damage += ObjectManager.Player.CalcDamage(
+                                enemy, Damage.DamageType.True, ObjectManager.Player.GetSpellDamage(enemy, spell.Slot));
+                            break;
+                    }
                 }
+
+                damage += ObjectManager.Player.GetAutoAttackDamage(enemy) *
+                          Menu.Item(Name + "AutoAttacks").GetValue<Slider>().Value;
             }
-
-            damage += ObjectManager.Player.GetAutoAttackDamage(enemy) *
-                      Menu.Item(Name + "AutoAttacks").GetValue<Slider>().Value;
-
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
             return damage;
         }
     }

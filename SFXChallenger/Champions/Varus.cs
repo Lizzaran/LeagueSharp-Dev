@@ -495,7 +495,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (Q.IsCharging)
+                if (Q.IsCharging || target == null)
                 {
                     return 0;
                 }
@@ -520,6 +520,10 @@ namespace SFXChallenger.Champions
 
         private int GetQHits(Obj_AI_Hero target, HitChance hitChance)
         {
+            if (target == null)
+            {
+                return 0;
+            }
             var totalHits = 0;
             try
             {
@@ -552,7 +556,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (Q.IsCharging)
+                if (Q.IsCharging || target == null)
                 {
                     return;
                 }
@@ -572,7 +576,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (Q.IsCharging)
+                if (Q.IsCharging || target == null)
                 {
                     return false;
                 }
@@ -624,6 +628,10 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                if (target == null)
+                {
+                    return 0;
+                }
                 float damage = 0;
                 if (q)
                 {

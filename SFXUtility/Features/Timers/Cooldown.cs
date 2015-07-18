@@ -42,6 +42,8 @@ using Rectangle = SharpDX.Rectangle;
 
 #endregion
 
+#pragma warning disable 618
+
 namespace SFXUtility.Features.Timers
 {
     internal class Cooldown : Child<Timers>
@@ -84,25 +86,32 @@ namespace SFXUtility.Features.Timers
 
         private void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            var hero = sender as Obj_AI_Hero;
-            if (hero != null)
+            try
             {
-                var data = hero.IsAlly
-                    ? _manualAllySpells.FirstOrDefault(
-                        m => m.Spell.Equals(args.SData.Name, StringComparison.OrdinalIgnoreCase))
-                    : _manualEnemySpells.FirstOrDefault(
-                        m => m.Spell.Equals(args.SData.Name, StringComparison.OrdinalIgnoreCase));
-                if (data != null && data.CooldownExpires - Game.Time < 0.5)
+                var hero = sender as Obj_AI_Hero;
+                if (hero != null)
                 {
-                    var spell = hero.GetSpell(data.Slot);
-                    if (spell != null)
+                    var data = hero.IsAlly
+                        ? _manualAllySpells.FirstOrDefault(
+                            m => m.Spell.Equals(args.SData.Name, StringComparison.OrdinalIgnoreCase))
+                        : _manualEnemySpells.FirstOrDefault(
+                            m => m.Spell.Equals(args.SData.Name, StringComparison.OrdinalIgnoreCase));
+                    if (data != null && data.CooldownExpires - Game.Time < 0.5)
                     {
-                        var cooldown = data.Cooldowns[spell.Level - 1];
-                        var cdr = hero.PercentCooldownMod * -1 * 100;
-                        data.Cooldown = cooldown - (cooldown / 100 * (cdr > 40 ? 40 : cdr)) + data.Additional;
-                        data.CooldownExpires = Game.Time + data.Cooldown;
+                        var spell = hero.GetSpell(data.Slot);
+                        if (spell != null)
+                        {
+                            var cooldown = data.Cooldowns[spell.Level - 1];
+                            var cdr = hero.PercentCooldownMod * -1 * 100;
+                            data.Cooldown = cooldown - (cooldown / 100 * (cdr > 40 ? 40 : cdr)) + data.Additional;
+                            data.CooldownExpires = Game.Time + data.Cooldown;
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -217,77 +226,92 @@ namespace SFXUtility.Features.Timers
 
         protected override void OnInitialize()
         {
-            _spellSlots = new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R };
-            _summonerSlots = new[] { SpellSlot.Summoner1, SpellSlot.Summoner2 };
-            _summonerTextures = new Dictionary<string, Texture>();
-            _teleports = new Dictionary<int, float>();
-            _heroes = new List<Obj_AI_Hero>();
-            _spellDatas = new Dictionary<int, List<SpellDataInst>>();
-            _summonerDatas = new Dictionary<int, List<SpellDataInst>>();
-
-            if (Global.IoC.IsRegistered<Teleport>())
+            try
             {
-                var rt = Global.IoC.Resolve<Teleport>();
-                rt.OnFinish += TeleportFinish;
-            }
+                _spellSlots = new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R };
+                _summonerSlots = new[] { SpellSlot.Summoner1, SpellSlot.Summoner2 };
+                _summonerTextures = new Dictionary<string, Texture>();
+                _teleports = new Dictionary<int, float>();
+                _heroes = new List<Obj_AI_Hero>();
+                _spellDatas = new Dictionary<int, List<SpellDataInst>>();
+                _summonerDatas = new Dictionary<int, List<SpellDataInst>>();
 
-            foreach (var enemy in GameObjects.Heroes)
+                if (Global.IoC.IsRegistered<Teleport>())
+                {
+                    var rt = Global.IoC.Resolve<Teleport>();
+                    rt.OnFinish += TeleportFinish;
+                }
+
+                foreach (var enemy in GameObjects.Heroes)
+                {
+                    _spellDatas.Add(enemy.NetworkId, _spellSlots.Select(slot => enemy.GetSpell(slot)).ToList());
+                    _summonerDatas.Add(enemy.NetworkId, _summonerSlots.Select(slot => enemy.GetSpell(slot)).ToList());
+                }
+
+                foreach (var sName in
+                    GameObjects.Heroes.SelectMany(
+                        h =>
+                            _summonerSlots.Select(summoner => h.Spellbook.GetSpell(summoner).Name.ToLower())
+                                .Where(sName => !_summonerTextures.ContainsKey(FixSummonerName(sName)))))
+                {
+                    _summonerTextures[FixSummonerName(sName)] =
+                        ((Bitmap) Resources.ResourceManager.GetObject(string.Format("CD_{0}", FixSummonerName(sName))) ??
+                         Resources.CD_summonerbarrier).ToTexture();
+                }
+
+                _sprite = MDrawing.GetSprite();
+                _hudTexture = Resources.CD_Hud.ToTexture();
+                _hudSelfTexture = Resources.CD_HudSelf.ToTexture();
+                _line = MDrawing.GetLine(4);
+                _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
+
+                _heroes = Menu.Item(Name + "DrawingAlly").GetValue<bool>() &&
+                          Menu.Item(Name + "DrawingEnemy").GetValue<bool>()
+                    ? GameObjects.Heroes.ToList()
+                    : (Menu.Item(Name + "DrawingAlly").GetValue<bool>()
+                        ? GameObjects.AllyHeroes
+                        : (Menu.Item(Name + "DrawingEnemy").GetValue<bool>()
+                            ? GameObjects.EnemyHeroes
+                            : new List<Obj_AI_Hero>())).ToList();
+
+                if (!Menu.Item(Name + "DrawingSelf").GetValue<bool>())
+                {
+                    _heroes.RemoveAll(h => h.NetworkId == ObjectManager.Player.NetworkId);
+                }
+
+                base.OnInitialize();
+            }
+            catch (Exception ex)
             {
-                _spellDatas.Add(enemy.NetworkId, _spellSlots.Select(slot => enemy.GetSpell(slot)).ToList());
-                _summonerDatas.Add(enemy.NetworkId, _summonerSlots.Select(slot => enemy.GetSpell(slot)).ToList());
+                Global.Logger.AddItem(new LogItem(ex));
             }
-
-            foreach (var sName in
-                GameObjects.Heroes.SelectMany(
-                    h =>
-                        _summonerSlots.Select(summoner => h.Spellbook.GetSpell(summoner).Name.ToLower())
-                            .Where(sName => !_summonerTextures.ContainsKey(FixSummonerName(sName)))))
-            {
-                _summonerTextures[FixSummonerName(sName)] =
-                    ((Bitmap) Resources.ResourceManager.GetObject(string.Format("CD_{0}", FixSummonerName(sName))) ??
-                     Resources.CD_summonerbarrier).ToTexture();
-            }
-
-            _sprite = MDrawing.GetSprite();
-            _hudTexture = Resources.CD_Hud.ToTexture();
-            _hudSelfTexture = Resources.CD_HudSelf.ToTexture();
-            _line = MDrawing.GetLine(4);
-            _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
-
-            _heroes = Menu.Item(Name + "DrawingAlly").GetValue<bool>() &&
-                      Menu.Item(Name + "DrawingEnemy").GetValue<bool>()
-                ? GameObjects.Heroes.ToList()
-                : (Menu.Item(Name + "DrawingAlly").GetValue<bool>()
-                    ? GameObjects.AllyHeroes
-                    : (Menu.Item(Name + "DrawingEnemy").GetValue<bool>()
-                        ? GameObjects.EnemyHeroes
-                        : new List<Obj_AI_Hero>())).ToList();
-
-            if (!Menu.Item(Name + "DrawingSelf").GetValue<bool>())
-            {
-                _heroes.RemoveAll(h => h.NetworkId == ObjectManager.Player.NetworkId);
-            }
-
-            base.OnInitialize();
         }
 
         private void TeleportFinish(object sender, TeleportEventArgs args)
         {
-            if (args.Type == Packet.S2C.Teleport.Type.Teleport)
+            try
             {
-                var time = Game.Time;
-                Utility.DelayAction.Add(
-                    250,
-                    delegate
-                    {
-                        _teleports[args.UnitNetworkId] = time +
-                                                         (GameObjects.EnemyHeroes.Any(
-                                                             e =>
-                                                                 e.NetworkId == args.UnitNetworkId &&
-                                                                 GameObjects.EnemyTurrets.Any(t => e.Distance(t) < 400))
-                                                             ? TeleportCd - 60f
-                                                             : TeleportCd);
-                    });
+                if (args.Type == Packet.S2C.Teleport.Type.Teleport)
+                {
+                    var time = Game.Time;
+                    Utility.DelayAction.Add(
+                        250,
+                        delegate
+                        {
+                            _teleports[args.UnitNetworkId] = time +
+                                                             (GameObjects.EnemyHeroes.Any(
+                                                                 e =>
+                                                                     e.NetworkId == args.UnitNetworkId &&
+                                                                     GameObjects.EnemyTurrets.Any(
+                                                                         t => e.Distance(t) < 400))
+                                                                 ? TeleportCd - 60f
+                                                                 : TeleportCd);
+                        });
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 

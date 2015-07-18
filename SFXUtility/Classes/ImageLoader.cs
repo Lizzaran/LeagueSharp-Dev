@@ -58,9 +58,6 @@ namespace SFXUtility.Classes
                         case "SB":
                             bitmap = CreateSidebarImage(bitmap);
                             break;
-                        case "GK":
-                            bitmap = CreateGankImage(bitmap);
-                            break;
                     }
                     if (bitmap != null)
                     {
@@ -78,55 +75,66 @@ namespace SFXUtility.Classes
 
         private static string GetCachePath(string uniqueId, string name)
         {
-            if (!Directory.Exists(Global.CacheDir))
+            try
             {
-                Directory.CreateDirectory(Global.CacheDir);
+                if (!Directory.Exists(Global.CacheDir))
+                {
+                    Directory.CreateDirectory(Global.CacheDir);
+                }
+                var path = Path.Combine(Global.CacheDir, Game.Version);
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path);
+                }
+                path = Path.Combine(path, uniqueId);
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path);
+                }
+                return Path.Combine(path, string.Format("{0}.png", name));
             }
-            var path = Path.Combine(Global.CacheDir, Game.Version);
-            if (!Directory.Exists(path))
+            catch (Exception ex)
             {
-                Directory.CreateDirectory(path);
+                Global.Logger.AddItem(new LogItem(ex));
             }
-            path = Path.Combine(path, uniqueId);
-            if (!Directory.Exists(path))
-            {
-                Directory.CreateDirectory(path);
-            }
-            return Path.Combine(path, string.Format("{0}.png", name));
+            return null;
         }
 
         private static Bitmap CreateLastPositionImage(Bitmap source)
         {
-            var img = new Bitmap(source.Width, source.Width);
-            var cropRect = new Rectangle(0, 0, source.Width, source.Width);
-
-            using (var sourceImage = source)
+            try
             {
-                using (var croppedImage = sourceImage.Clone(cropRect, sourceImage.PixelFormat))
+                var img = new Bitmap(source.Width, source.Width);
+                var cropRect = new Rectangle(0, 0, source.Width, source.Width);
+
+                using (var sourceImage = source)
                 {
-                    using (var tb = new TextureBrush(croppedImage))
+                    using (var croppedImage = sourceImage.Clone(cropRect, sourceImage.PixelFormat))
                     {
-                        using (var g = Graphics.FromImage(img))
+                        using (var tb = new TextureBrush(croppedImage))
                         {
-                            g.FillEllipse(tb, 0, 0, source.Width, source.Width);
-                            g.DrawEllipse(
-                                new Pen(Color.FromArgb(86, 86, 86), 6) { Alignment = PenAlignment.Inset }, 0, 0,
-                                source.Width, source.Width);
+                            using (var g = Graphics.FromImage(img))
+                            {
+                                g.FillEllipse(tb, 0, 0, source.Width, source.Width);
+                                g.DrawEllipse(
+                                    new Pen(Color.FromArgb(86, 86, 86), 6) { Alignment = PenAlignment.Inset }, 0, 0,
+                                    source.Width, source.Width);
+                            }
                         }
                     }
                 }
+                return img.Resize(24, 24).Grayscale();
             }
-            return img.Resize(24, 24).Grayscale();
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return null;
         }
 
         private static Bitmap CreateSidebarImage(Bitmap source)
         {
             return source.Resize(62, 62);
-        }
-
-        private static Bitmap CreateGankImage(Bitmap source)
-        {
-            return source.Resize(24, 24);
         }
     }
 }

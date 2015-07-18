@@ -87,22 +87,36 @@ namespace SFXUtility.Features.Others
 
         protected override void OnInitialize()
         {
-            _pingItems = new List<PingItem>();
+            try
+            {
+                _pingItems = new List<PingItem>();
 
-            _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
+                _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
 
-            base.OnInitialize();
+                base.OnInitialize();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnGamePing(GamePingEventArgs args)
         {
-            var hero = args.Source as Obj_AI_Hero;
-            if (hero != null && hero.IsValid && args.PingType != PingCategory.OnMyWay)
+            try
             {
-                _pingItems.Add(
-                    new PingItem(
-                        hero.ChampionName, Game.Time + (args.PingType == PingCategory.Danger ? 1f : 1.8f), args.Position,
-                        args.Target));
+                var hero = args.Source as Obj_AI_Hero;
+                if (hero != null && hero.IsValid && args.PingType != PingCategory.OnMyWay)
+                {
+                    _pingItems.Add(
+                        new PingItem(
+                            hero.ChampionName, Game.Time + (args.PingType == PingCategory.Danger ? 1f : 1.8f),
+                            args.Position, args.Target));
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 

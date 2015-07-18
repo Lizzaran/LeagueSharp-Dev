@@ -113,18 +113,26 @@ namespace SFXUtility.Features.Drawings
 
         protected override void OnInitialize()
         {
-            _cloneHeroes = new List<string> { "shaco", "leblanc", "monkeyking", "yorick" };
-            _heroes = new List<Obj_AI_Hero>();
-
-            _heroes.AddRange(GameObjects.EnemyHeroes.Where(hero => _cloneHeroes.Contains(hero.ChampionName.ToLower())));
-
-            if (!_heroes.Any())
+            try
             {
-                OnUnload(null, new UnloadEventArgs(true));
-                return;
-            }
+                _cloneHeroes = new List<string> { "shaco", "leblanc", "monkeyking", "yorick" };
+                _heroes = new List<Obj_AI_Hero>();
 
-            base.OnInitialize();
+                _heroes.AddRange(
+                    GameObjects.EnemyHeroes.Where(hero => _cloneHeroes.Contains(hero.ChampionName.ToLower())));
+
+                if (!_heroes.Any())
+                {
+                    OnUnload(null, new UnloadEventArgs(true));
+                    return;
+                }
+
+                base.OnInitialize();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
     }
 }

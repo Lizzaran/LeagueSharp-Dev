@@ -91,11 +91,18 @@ namespace SFXUtility.Features.Trackers
 
         protected override void OnInitialize()
         {
-            _goldEfficiencies = new Dictionary<Obj_AI_Hero, string>();
-            _lastCheck = Environment.TickCount;
-            _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
+            try
+            {
+                _goldEfficiencies = new Dictionary<Obj_AI_Hero, string>();
+                _lastCheck = Environment.TickCount;
+                _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
 
-            base.OnInitialize();
+                base.OnInitialize();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnDrawingEndScene(EventArgs args)
@@ -124,40 +131,47 @@ namespace SFXUtility.Features.Trackers
 
         private void OnGameUpdate(EventArgs args)
         {
-            if (_lastCheck + CheckInterval > Environment.TickCount)
+            try
             {
-                return;
+                if (_lastCheck + CheckInterval > Environment.TickCount)
+                {
+                    return;
+                }
+                _lastCheck = Environment.TickCount;
+
+                foreach (var hero in GameObjects.Heroes.Where(h => h.IsValid && h.IsVisible))
+                {
+                    var value = (hero.BaseAttackDamage + hero.FlatPhysicalDamageMod) * Data.AttackDamage;
+                    value += (hero.BaseAbilityDamage + hero.FlatMagicDamageMod) * Data.AbilityPower;
+                    value += hero.Armor * Data.Armor;
+                    value += hero.SpellBlock * Data.MagicResistance;
+                    value += hero.MaxHealth * Data.Health;
+                    value += hero.MaxMana * Data.Mana;
+                    value += hero.HPRegenRate + hero.FlatHPRegenMod * Data.HealthRegeneration;
+                    value += hero.PARRegenRate * Data.ManaRegeneration;
+                    value += hero.Crit * 100 * Data.CritChance;
+                    value += hero.MoveSpeed * Data.MoveSpeed;
+                    value += ((hero.FlatArmorPenetrationMod - 1) + ((1 - hero.PercentArmorPenetrationMod) * 100)) *
+                             Data.ArmorPenetration;
+                    value += ObjectManager.Player.PercentCooldownMod * -1 * 100 * Data.CooldownReduction;
+                    value += hero.PercentLifeStealMod * 100 * Data.LifeSteal;
+                    value += ((hero.FlatMagicPenetrationMod - 1) +
+                              ((hero.CombatType == GameObjectCombatType.Ranged ? 30 : 50) +
+                               10 / 100f * ((1 - hero.PercentMagicPenetrationMod) * 100))) * Data.MagicPenetration;
+                    value += hero.PercentSpellVampMod * 100 * Data.SpellVamp;
+
+                    var attackSpeed =
+                        (~(int)
+                            ((1 / ObjectManager.Player.AttackSpeedMod * 100) -
+                             (1 / ObjectManager.Player.AttackDelay * 100)) + 1) * Data.AttackSpeed;
+                    value += attackSpeed > 0 ? attackSpeed : 0;
+
+                    _goldEfficiencies[hero] = string.Format("{0:0.0}k", value / 1000);
+                }
             }
-            _lastCheck = Environment.TickCount;
-
-            foreach (var hero in GameObjects.Heroes.Where(h => h.IsValid && h.IsVisible))
+            catch (Exception ex)
             {
-                var value = (hero.BaseAttackDamage + hero.FlatPhysicalDamageMod) * Data.AttackDamage;
-                value += (hero.BaseAbilityDamage + hero.FlatMagicDamageMod) * Data.AbilityPower;
-                value += hero.Armor * Data.Armor;
-                value += hero.SpellBlock * Data.MagicResistance;
-                value += hero.MaxHealth * Data.Health;
-                value += hero.MaxMana * Data.Mana;
-                value += hero.HPRegenRate + hero.FlatHPRegenMod * Data.HealthRegeneration;
-                value += hero.PARRegenRate * Data.ManaRegeneration;
-                value += hero.Crit * 100 * Data.CritChance;
-                value += hero.MoveSpeed * Data.MoveSpeed;
-                value += ((hero.FlatArmorPenetrationMod - 1) + ((1 - hero.PercentArmorPenetrationMod) * 100)) *
-                         Data.ArmorPenetration;
-                value += ObjectManager.Player.PercentCooldownMod * -1 * 100 * Data.CooldownReduction;
-                value += hero.PercentLifeStealMod * 100 * Data.LifeSteal;
-                value += ((hero.FlatMagicPenetrationMod - 1) +
-                          ((hero.CombatType == GameObjectCombatType.Ranged ? 30 : 50) +
-                           10 / 100f * ((1 - hero.PercentMagicPenetrationMod) * 100))) * Data.MagicPenetration;
-                value += hero.PercentSpellVampMod * 100 * Data.SpellVamp;
-
-                var attackSpeed =
-                    (~(int)
-                        ((1 / ObjectManager.Player.AttackSpeedMod * 100) - (1 / ObjectManager.Player.AttackDelay * 100)) +
-                     1) * Data.AttackSpeed;
-                value += attackSpeed > 0 ? attackSpeed : 0;
-
-                _goldEfficiencies[hero] = string.Format("{0:0.0}k", value / 1000);
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
     }

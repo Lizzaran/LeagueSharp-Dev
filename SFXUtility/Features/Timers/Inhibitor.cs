@@ -71,30 +71,37 @@ namespace SFXUtility.Features.Timers
 
         private void OnGameUpdate(EventArgs args)
         {
-            if (_lastCheck + CheckInterval > Environment.TickCount)
+            try
             {
-                return;
-            }
-
-            _lastCheck = Environment.TickCount;
-
-            if (_inhibs == null)
-            {
-                return;
-            }
-
-            foreach (var inhib in _inhibs)
-            {
-                if (inhib.Object.Health > 0)
+                if (_lastCheck + CheckInterval > Environment.TickCount)
                 {
-                    inhib.LastHealth = inhib.Object.Health;
-                    inhib.Destroyed = false;
+                    return;
                 }
-                else if (!inhib.Destroyed && inhib.LastHealth > 0 && inhib.Object.Health <= 0)
+
+                _lastCheck = Environment.TickCount;
+
+                if (_inhibs == null)
                 {
-                    inhib.Destroyed = true;
-                    inhib.NextRespawnTime = (int) Game.ClockTime + inhib.RespawnTime;
+                    return;
                 }
+
+                foreach (var inhib in _inhibs)
+                {
+                    if (inhib.Object.Health > 0)
+                    {
+                        inhib.LastHealth = inhib.Object.Health;
+                        inhib.Destroyed = false;
+                    }
+                    else if (!inhib.Destroyed && inhib.LastHealth > 0 && inhib.Object.Health <= 0)
+                    {
+                        inhib.Destroyed = true;
+                        inhib.NextRespawnTime = (int) Game.ClockTime + inhib.RespawnTime;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -184,23 +191,30 @@ namespace SFXUtility.Features.Timers
 
         protected override void OnInitialize()
         {
-            _inhibs = new List<InhibitorObject>();
-
-            foreach (var inhib in GameObjects.Inhibitors)
+            try
             {
-                _inhibs.Add(new InhibitorObject(inhib));
-            }
+                _inhibs = new List<InhibitorObject>();
 
-            if (!_inhibs.Any())
+                foreach (var inhib in GameObjects.Inhibitors)
+                {
+                    _inhibs.Add(new InhibitorObject(inhib));
+                }
+
+                if (!_inhibs.Any())
+                {
+                    OnUnload(null, new UnloadEventArgs(true));
+                    return;
+                }
+
+                _minimapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMinimapFontSize").GetValue<Slider>().Value);
+                _mapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMapFontSize").GetValue<Slider>().Value);
+
+                base.OnInitialize();
+            }
+            catch (Exception ex)
             {
-                OnUnload(null, new UnloadEventArgs(true));
-                return;
+                Global.Logger.AddItem(new LogItem(ex));
             }
-
-            _minimapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMinimapFontSize").GetValue<Slider>().Value);
-            _mapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMapFontSize").GetValue<Slider>().Value);
-
-            base.OnInitialize();
         }
 
         private class InhibitorObject

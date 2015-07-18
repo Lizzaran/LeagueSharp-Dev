@@ -142,5 +142,20 @@ namespace SFXChallenger.Helpers
                    t.HasBuffOfType(BuffType.Fear) || t.HasBuffOfType(BuffType.Taunt) || t.HasBuffOfType(BuffType.Stun) ||
                    t.IsStunned;
         }
+
+        public static float GetStunTime(Obj_AI_Base target)
+        {
+            var buffs =
+                target.Buffs.Where(
+                    t =>
+                        t.Type == BuffType.Charm || t.Type == BuffType.Snare || t.Type == BuffType.Knockback ||
+                        t.Type == BuffType.Polymorph || t.Type == BuffType.Fear || t.Type == BuffType.Taunt ||
+                        t.Type == BuffType.Stun).ToList();
+            if (buffs.Any())
+            {
+                return buffs.Select(t => t.EndTime).Max() - Game.Time;
+            }
+            return 0f;
+        }
     }
 }

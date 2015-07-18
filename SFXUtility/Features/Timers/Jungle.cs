@@ -135,51 +135,58 @@ namespace SFXUtility.Features.Timers
 
         private void OnGameUpdate(EventArgs args)
         {
-            if (_lastCheck + CheckInterval > Environment.TickCount)
+            try
             {
-                return;
-            }
-
-            _lastCheck = Environment.TickCount;
-
-
-            var dragonStacks = 0;
-            foreach (var enemy in GameObjects.EnemyHeroes)
-            {
-                var buff =
-                    enemy.Buffs.FirstOrDefault(
-                        b => b.Name.Equals("s5test_dragonslayerbuff", StringComparison.OrdinalIgnoreCase));
-                if (buff != null && buff.Count > dragonStacks)
+                if (_lastCheck + CheckInterval > Environment.TickCount)
                 {
-                    dragonStacks = buff.Count;
+                    return;
                 }
-            }
-            if (dragonStacks > _dragonStacks)
-            {
-                var dCamp = _camps.FirstOrDefault(c => c.Mobs.Any(m => m.Name.Contains("Dragon")));
-                if (dCamp != null && !dCamp.Dead)
-                {
-                    dCamp.Dead = true;
-                    dCamp.NextRespawnTime = (int) Game.Time + dCamp.RespawnTime;
-                }
-            }
-            _dragonStacks = dragonStacks;
 
-            var bCamp = _camps.FirstOrDefault(c => c.Mobs.Any(m => m.Name.Contains("Baron")));
-            if (bCamp != null && !bCamp.Dead)
-            {
-                var heroes = GameObjects.EnemyHeroes.Where(e => e.IsVisible);
-                foreach (var hero in heroes)
+                _lastCheck = Environment.TickCount;
+
+
+                var dragonStacks = 0;
+                foreach (var enemy in GameObjects.EnemyHeroes)
                 {
                     var buff =
-                        hero.Buffs.FirstOrDefault(
-                            b => b.Name.Equals("exaltedwithbaronnashor", StringComparison.OrdinalIgnoreCase));
-                    if (buff != null)
+                        enemy.Buffs.FirstOrDefault(
+                            b => b.Name.Equals("s5test_dragonslayerbuff", StringComparison.OrdinalIgnoreCase));
+                    if (buff != null && buff.Count > dragonStacks)
                     {
-                        bCamp.Dead = true;
-                        bCamp.NextRespawnTime = (int) buff.StartTime + bCamp.RespawnTime;
+                        dragonStacks = buff.Count;
                     }
                 }
+                if (dragonStacks > _dragonStacks)
+                {
+                    var dCamp = _camps.FirstOrDefault(c => c.Mobs.Any(m => m.Name.Contains("Dragon")));
+                    if (dCamp != null && !dCamp.Dead)
+                    {
+                        dCamp.Dead = true;
+                        dCamp.NextRespawnTime = (int) Game.Time + dCamp.RespawnTime;
+                    }
+                }
+                _dragonStacks = dragonStacks;
+
+                var bCamp = _camps.FirstOrDefault(c => c.Mobs.Any(m => m.Name.Contains("Baron")));
+                if (bCamp != null && !bCamp.Dead)
+                {
+                    var heroes = GameObjects.EnemyHeroes.Where(e => e.IsVisible);
+                    foreach (var hero in heroes)
+                    {
+                        var buff =
+                            hero.Buffs.FirstOrDefault(
+                                b => b.Name.Equals("exaltedwithbaronnashor", StringComparison.OrdinalIgnoreCase));
+                        if (buff != null)
+                        {
+                            bCamp.Dead = true;
+                            bCamp.NextRespawnTime = (int) buff.StartTime + bCamp.RespawnTime;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -275,23 +282,31 @@ namespace SFXUtility.Features.Timers
 
         protected override void OnInitialize()
         {
-            _camps = new List<Camp>();
-            _lastCheck = Environment.TickCount;
-
-            _camps.AddRange(
-                Data.Jungle.Camps.Where(c => c.MapType == Utility.Map.GetMap().Type)
-                    .Select(c => new Camp(c.SpawnTime, c.RespawnTime, c.Position, c.Mobs, c.IsBig, c.MapType, c.Team)));
-
-            if (!_camps.Any())
+            try
             {
-                OnUnload(null, new UnloadEventArgs(true));
-                return;
+                _camps = new List<Camp>();
+                _lastCheck = Environment.TickCount;
+
+                _camps.AddRange(
+                    Data.Jungle.Camps.Where(c => c.MapType == Utility.Map.GetMap().Type)
+                        .Select(
+                            c => new Camp(c.SpawnTime, c.RespawnTime, c.Position, c.Mobs, c.IsBig, c.MapType, c.Team)));
+
+                if (!_camps.Any())
+                {
+                    OnUnload(null, new UnloadEventArgs(true));
+                    return;
+                }
+
+                _minimapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMinimapFontSize").GetValue<Slider>().Value);
+                _mapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMapFontSize").GetValue<Slider>().Value);
+
+                base.OnInitialize();
             }
-
-            _minimapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMinimapFontSize").GetValue<Slider>().Value);
-            _mapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMapFontSize").GetValue<Slider>().Value);
-
-            base.OnInitialize();
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private class Camp : Data.Jungle.Camp

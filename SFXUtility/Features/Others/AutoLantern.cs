@@ -84,36 +84,57 @@ namespace SFXUtility.Features.Others
 
         protected override void OnInitialize()
         {
-            if (
-                !GameObjects.AllyHeroes.Any(
-                    a => !a.IsMe && a.ChampionName.Equals("Thresh", StringComparison.OrdinalIgnoreCase)))
+            try
             {
-                OnUnload(null, new UnloadEventArgs(true));
+                if (
+                    !GameObjects.AllyHeroes.Any(
+                        a => !a.IsMe && a.ChampionName.Equals("Thresh", StringComparison.OrdinalIgnoreCase)))
+                {
+                    OnUnload(null, new UnloadEventArgs(true));
+                }
+                base.OnInitialize();
             }
-            base.OnInitialize();
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnGameObjectCreate(GameObject sender, EventArgs args)
         {
-            if (!sender.IsValid || !sender.IsAlly || sender.Type != GameObjectType.obj_AI_Minion)
+            try
             {
-                return;
+                if (!sender.IsValid || !sender.IsAlly || sender.Type != GameObjectType.obj_AI_Minion)
+                {
+                    return;
+                }
+                if (sender.Name.Equals("ThreshLantern", StringComparison.OrdinalIgnoreCase))
+                {
+                    _lantern = sender;
+                }
             }
-            if (sender.Name.Equals("ThreshLantern", StringComparison.OrdinalIgnoreCase))
+            catch (Exception ex)
             {
-                _lantern = sender;
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
         private void OnGameObjectDelete(GameObject sender, EventArgs args)
         {
-            if (!sender.IsValid || _lantern == null)
+            try
             {
-                return;
+                if (!sender.IsValid || _lantern == null)
+                {
+                    return;
+                }
+                if (sender.NetworkId == _lantern.NetworkId)
+                {
+                    _lantern = null;
+                }
             }
-            if (sender.NetworkId == _lantern.NetworkId)
+            catch (Exception ex)
             {
-                _lantern = null;
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 

@@ -157,7 +157,7 @@ namespace SFXChallenger.Managers
 
         public static float CalculateComboDamage(Obj_AI_Hero target, bool rangeCheck = true)
         {
-            if (_menu == null || !_menu.Item(_menu.Name + ".enabled").GetValue<bool>())
+            if (_menu == null || target == null || !_menu.Item(_menu.Name + ".enabled").GetValue<bool>())
             {
                 return 0f;
             }
@@ -200,7 +200,7 @@ namespace SFXChallenger.Managers
 
         public static void UseComboSummoners(Obj_AI_Hero target)
         {
-            if (_menu == null || !_menu.Item(_menu.Name + ".enabled").GetValue<bool>())
+            if (_menu == null || target == null || !_menu.Item(_menu.Name + ".enabled").GetValue<bool>())
             {
                 return;
             }

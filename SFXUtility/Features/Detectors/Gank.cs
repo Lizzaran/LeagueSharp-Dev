@@ -256,16 +256,23 @@ namespace SFXUtility.Features.Detectors
 
         protected override void OnInitialize()
         {
-            _line = MDrawing.GetLine(Menu.Item(Name + "DrawingThickness").GetValue<Slider>().Value);
-            _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
-
-            _championObjects = new List<ChampionObject>();
-            foreach (var hero in GameObjects.Heroes.Where(h => !h.IsMe))
+            try
             {
-                _championObjects.Add(new ChampionObject(hero));
+                _line = MDrawing.GetLine(Menu.Item(Name + "DrawingThickness").GetValue<Slider>().Value);
+                _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
+
+                _championObjects = new List<ChampionObject>();
+                foreach (var hero in GameObjects.Heroes.Where(h => !h.IsMe))
+                {
+                    _championObjects.Add(new ChampionObject(hero));
+                }
+                MenuValueChanged();
+                base.OnInitialize();
             }
-            MenuValueChanged();
-            base.OnInitialize();
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         internal class ChampionObject

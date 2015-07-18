@@ -78,54 +78,61 @@ namespace SFXUtility.Features.Others
 
         protected override void OnInitialize()
         {
-            _playerList = new List<ModelUnit>();
-
-            foreach (var hero in GameObjects.Heroes)
+            try
             {
-                var localHero = hero;
-                var champMenu = new Menu(
-                    (hero.IsAlly ? "A: " : "E: ") + hero.ChampionName, (hero.IsAlly ? "a" : "e") + hero.ChampionName);
-                var modelUnit = new ModelUnit(hero);
+                _playerList = new List<ModelUnit>();
 
-                _playerList.Add(modelUnit);
-
-                if (hero.IsMe)
+                foreach (var hero in GameObjects.Heroes)
                 {
-                    _player = modelUnit;
-                }
+                    var localHero = hero;
+                    var champMenu = new Menu(
+                        (hero.IsAlly ? "A: " : "E: ") + hero.ChampionName, (hero.IsAlly ? "a" : "e") + hero.ChampionName);
+                    var modelUnit = new ModelUnit(hero);
 
-                foreach (Dictionary<string, object> skin in ModelManager.GetSkins(hero.ChampionName))
-                {
-                    var localSkin = skin;
-                    var skinName = skin["name"].ToString().Equals("default")
-                        ? hero.ChampionName
-                        : skin["name"].ToString();
-                    var changeSkin = champMenu.AddItem(new MenuItem(skinName, skinName).SetValue(false));
-                    if (changeSkin.IsActive())
+                    _playerList.Add(modelUnit);
+
+                    if (hero.IsMe)
                     {
-                        modelUnit.SetModel(hero.CharData.BaseSkinName, (int) skin["num"]);
+                        _player = modelUnit;
                     }
 
-                    changeSkin.ValueChanged += (s, e) =>
+                    foreach (Dictionary<string, object> skin in ModelManager.GetSkins(hero.ChampionName))
                     {
-                        if (e.GetNewValue<bool>())
+                        var localSkin = skin;
+                        var skinName = skin["name"].ToString().Equals("default")
+                            ? hero.ChampionName
+                            : skin["name"].ToString();
+                        var changeSkin = champMenu.AddItem(new MenuItem(skinName, skinName).SetValue(false));
+                        if (changeSkin.IsActive())
                         {
-                            champMenu.Items.ForEach(
-                                p =>
-                                {
-                                    if (p.GetValue<bool>() && p.Name != skinName)
-                                    {
-                                        p.SetValue(false);
-                                    }
-                                });
-                            modelUnit.SetModel(localHero.ChampionName, (int) localSkin["num"]);
+                            modelUnit.SetModel(hero.CharData.BaseSkinName, (int) skin["num"]);
                         }
-                    };
-                }
-                Menu.AddSubMenu(champMenu);
-            }
 
-            base.OnInitialize();
+                        changeSkin.ValueChanged += (s, e) =>
+                        {
+                            if (e.GetNewValue<bool>())
+                            {
+                                champMenu.Items.ForEach(
+                                    p =>
+                                    {
+                                        if (p.GetValue<bool>() && p.Name != skinName)
+                                        {
+                                            p.SetValue(false);
+                                        }
+                                    });
+                                modelUnit.SetModel(localHero.ChampionName, (int) localSkin["num"]);
+                            }
+                        };
+                    }
+                    Menu.AddSubMenu(champMenu);
+                }
+
+                base.OnInitialize();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnGameInput(GameInputEventArgs args)
@@ -160,9 +167,16 @@ namespace SFXUtility.Features.Others
 
         private void OnGameUpdate(EventArgs args)
         {
-            foreach (var unit in _playerList)
+            try
             {
-                unit.OnUpdate();
+                foreach (var unit in _playerList)
+                {
+                    unit.OnUpdate();
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
     }

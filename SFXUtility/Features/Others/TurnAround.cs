@@ -140,19 +140,26 @@ namespace SFXUtility.Features.Others
 
         protected override void OnInitialize()
         {
-            _spellInfos = new List<SpellInfo>
+            try
             {
-                new SpellInfo("Cassiopeia", "CassiopeiaPetrifyingGaze", 1000f, false, true, 0.85f),
-                new SpellInfo("Tryndamere", "MockingShout", 900f, false, false, 0.65f)
-            };
+                _spellInfos = new List<SpellInfo>
+                {
+                    new SpellInfo("Cassiopeia", "CassiopeiaPetrifyingGaze", 1000f, false, true, 0.85f),
+                    new SpellInfo("Tryndamere", "MockingShout", 900f, false, false, 0.65f)
+                };
 
-            if (!GameObjects.EnemyHeroes.Any(h => _spellInfos.Any(i => i.Owner == h.ChampionName)))
-            {
-                OnUnload(null, new UnloadEventArgs(true));
-                return;
+                if (!GameObjects.EnemyHeroes.Any(h => _spellInfos.Any(i => i.Owner == h.ChampionName)))
+                {
+                    OnUnload(null, new UnloadEventArgs(true));
+                    return;
+                }
+
+                base.OnInitialize();
             }
-
-            base.OnInitialize();
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private class SpellInfo

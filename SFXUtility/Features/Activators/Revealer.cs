@@ -129,12 +129,13 @@ namespace SFXUtility.Features.Activators
                 _leBlanc =
                     GameObjects.EnemyHeroes.FirstOrDefault(
                         e => e.ChampionName.Equals("Leblanc", StringComparison.OrdinalIgnoreCase));
+
+                base.OnInitialize();
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
-            base.OnInitialize();
         }
 
         private void OnAttackableUnitLeaveTeamVisiblity(AttackableUnit sender, EventArgs args)

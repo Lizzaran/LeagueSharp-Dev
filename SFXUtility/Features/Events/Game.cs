@@ -101,25 +101,34 @@ namespace SFXUtility.Features.Events
 
         protected override void OnInitialize()
         {
-            if (_onStartTriggerd)
+            try
             {
-                var map = Utility.Map.GetMap().Type;
-                if (Menu.Item(Name + "OnStartSayGreeting").GetValue<bool>() &&
-                    !GameObjects.Heroes.Any(
-                        h =>
-                            h.Level >=
-                            (map == Utility.Map.MapType.CrystalScar || map == Utility.Map.MapType.HowlingAbyss ? 3 : 1)))
+                if (_onStartTriggerd)
                 {
-                    Utility.DelayAction.Add(
-                        Menu.Item(Name + "OnStartDelay").GetValue<Slider>().Value * 1000,
-                        delegate
-                        {
-                            LeagueSharp.Game.Say(
-                                "/all " + Menu.Item(Name + "OnStartGreeting").GetValue<StringList>().SelectedValue);
-                        });
+                    var map = Utility.Map.GetMap().Type;
+                    if (Menu.Item(Name + "OnStartSayGreeting").GetValue<bool>() &&
+                        !GameObjects.Heroes.Any(
+                            h =>
+                                h.Level >=
+                                (map == Utility.Map.MapType.CrystalScar || map == Utility.Map.MapType.HowlingAbyss
+                                    ? 3
+                                    : 1)))
+                    {
+                        Utility.DelayAction.Add(
+                            Menu.Item(Name + "OnStartDelay").GetValue<Slider>().Value * 1000,
+                            delegate
+                            {
+                                LeagueSharp.Game.Say(
+                                    "/all " + Menu.Item(Name + "OnStartGreeting").GetValue<StringList>().SelectedValue);
+                            });
+                    }
                 }
+                base.OnInitialize();
             }
-            base.OnInitialize();
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnGameNotify(GameNotifyEventArgs args)

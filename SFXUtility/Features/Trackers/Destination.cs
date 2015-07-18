@@ -101,274 +101,323 @@ namespace SFXUtility.Features.Trackers
 
         protected override void OnInitialize()
         {
-            _destinations = new List<DestinationObject>();
-
-            SetupDestinations();
-
-            if (_destinations.Count == 0)
+            try
             {
-                OnUnload(null, new UnloadEventArgs(true));
-                return;
+                _destinations = new List<DestinationObject>();
+
+                SetupDestinations();
+
+                if (_destinations.Count == 0)
+                {
+                    OnUnload(null, new UnloadEventArgs(true));
+                    return;
+                }
+
+                _line = MDrawing.GetLine(2);
+
+                base.OnInitialize();
             }
-
-            _line = MDrawing.GetLine(2);
-
-            base.OnInitialize();
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void SetupDestinations()
         {
-            foreach (var hero in GameObjects.EnemyHeroes)
+            try
             {
-                foreach (var spell in
-                    hero.Spellbook.Spells.Where(
-                        spell => spell.Name.Equals("SummonerFlash", StringComparison.OrdinalIgnoreCase)))
+                foreach (var hero in GameObjects.EnemyHeroes)
                 {
-                    _destinations.Add(new DestinationObject(hero, spell));
-                }
+                    foreach (var spell in
+                        hero.Spellbook.Spells.Where(
+                            spell => spell.Name.Equals("SummonerFlash", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        _destinations.Add(new DestinationObject(hero, spell));
+                    }
 
-                switch (hero.ChampionName)
-                {
-                    case "Ezreal":
-                        _destinations.Add(
-                            new DestinationObject(
-                                hero,
-                                hero.Spellbook.Spells.FirstOrDefault(
-                                    s => s.SData.Name.Equals("EzrealArcaneShift", StringComparison.OrdinalIgnoreCase))));
-                        break;
-                    case "Fiora":
-                        _destinations.Add(
-                            new DestinationObject(
-                                hero,
-                                hero.Spellbook.Spells.FirstOrDefault(
-                                    s => s.SData.Name.Equals("FioraDance", StringComparison.OrdinalIgnoreCase))));
-                        break;
-                    case "Kassadin":
-                        _destinations.Add(
-                            new DestinationObject(
-                                hero,
-                                hero.Spellbook.Spells.FirstOrDefault(
-                                    s => s.SData.Name.Equals("RiftWalk", StringComparison.OrdinalIgnoreCase))));
-                        break;
-                    case "Katarina":
-                        _destinations.Add(
-                            new DestinationObject(
-                                hero,
-                                hero.Spellbook.Spells.FirstOrDefault(
-                                    s => s.SData.Name.Equals("KatarinaE", StringComparison.OrdinalIgnoreCase))));
-                        break;
-                    case "Leblanc":
-                        _destinations.Add(
-                            new DestinationObject(
-                                hero,
-                                hero.Spellbook.Spells.FirstOrDefault(
-                                    s => s.SData.Name.Equals("LeblancSlide", StringComparison.OrdinalIgnoreCase))));
-                        _destinations.Add(
-                            new DestinationObject(
-                                hero,
-                                hero.Spellbook.Spells.FirstOrDefault(
-                                    s => s.SData.Name.Equals("LeblancSlideReturn", StringComparison.OrdinalIgnoreCase))));
-                        _destinations.Add(
-                            new DestinationObject(
-                                hero,
-                                hero.Spellbook.Spells.FirstOrDefault(
-                                    s => s.SData.Name.Equals("LeblancSlideM", StringComparison.OrdinalIgnoreCase))));
-                        _destinations.Add(
-                            new DestinationObject(
-                                hero,
-                                hero.Spellbook.Spells.FirstOrDefault(
-                                    s => s.SData.Name.Equals("LeblancSlideReturnM", StringComparison.OrdinalIgnoreCase))));
-                        break;
-                    case "Lissandra":
-                        _destinations.Add(
-                            new DestinationObject(
-                                hero,
-                                hero.Spellbook.Spells.FirstOrDefault(
-                                    s => s.SData.Name.Equals("LissandraE", StringComparison.OrdinalIgnoreCase))));
-                        break;
-                    case "MasterYi":
-                        _destinations.Add(
-                            new DestinationObject(
-                                hero,
-                                hero.Spellbook.Spells.FirstOrDefault(
-                                    s => s.SData.Name.Equals("AlphaStrike", StringComparison.OrdinalIgnoreCase))));
-                        break;
-                    case "Shaco":
-                        _destinations.Add(
-                            new DestinationObject(
-                                hero,
-                                hero.Spellbook.Spells.FirstOrDefault(
-                                    s => s.SData.Name.Equals("Deceive", StringComparison.OrdinalIgnoreCase))));
-                        break;
-                    case "Talon":
-                        _destinations.Add(
-                            new DestinationObject(
-                                hero,
-                                hero.Spellbook.Spells.FirstOrDefault(
-                                    s => s.SData.Name.Equals("TalonCutthroat", StringComparison.OrdinalIgnoreCase))));
-                        break;
-                    case "Vayne":
-                        _destinations.Add(
-                            new DestinationObject(
-                                hero,
-                                hero.Spellbook.Spells.FirstOrDefault(
-                                    s => s.SData.Name.Equals("VayneTumble", StringComparison.OrdinalIgnoreCase))));
-                        break;
-                    case "Zed":
-                        _destinations.Add(
-                            new DestinationObject(
-                                hero,
-                                hero.Spellbook.Spells.FirstOrDefault(
-                                    s => s.SData.Name.Equals("ZedShadowDash", StringComparison.OrdinalIgnoreCase))));
-                        break;
+                    switch (hero.ChampionName)
+                    {
+                        case "Ezreal":
+                            _destinations.Add(
+                                new DestinationObject(
+                                    hero,
+                                    hero.Spellbook.Spells.FirstOrDefault(
+                                        s =>
+                                            s.SData.Name.Equals("EzrealArcaneShift", StringComparison.OrdinalIgnoreCase))));
+                            break;
+                        case "Fiora":
+                            _destinations.Add(
+                                new DestinationObject(
+                                    hero,
+                                    hero.Spellbook.Spells.FirstOrDefault(
+                                        s => s.SData.Name.Equals("FioraDance", StringComparison.OrdinalIgnoreCase))));
+                            break;
+                        case "Kassadin":
+                            _destinations.Add(
+                                new DestinationObject(
+                                    hero,
+                                    hero.Spellbook.Spells.FirstOrDefault(
+                                        s => s.SData.Name.Equals("RiftWalk", StringComparison.OrdinalIgnoreCase))));
+                            break;
+                        case "Katarina":
+                            _destinations.Add(
+                                new DestinationObject(
+                                    hero,
+                                    hero.Spellbook.Spells.FirstOrDefault(
+                                        s => s.SData.Name.Equals("KatarinaE", StringComparison.OrdinalIgnoreCase))));
+                            break;
+                        case "Leblanc":
+                            _destinations.Add(
+                                new DestinationObject(
+                                    hero,
+                                    hero.Spellbook.Spells.FirstOrDefault(
+                                        s => s.SData.Name.Equals("LeblancSlide", StringComparison.OrdinalIgnoreCase))));
+                            _destinations.Add(
+                                new DestinationObject(
+                                    hero,
+                                    hero.Spellbook.Spells.FirstOrDefault(
+                                        s =>
+                                            s.SData.Name.Equals(
+                                                "LeblancSlideReturn", StringComparison.OrdinalIgnoreCase))));
+                            _destinations.Add(
+                                new DestinationObject(
+                                    hero,
+                                    hero.Spellbook.Spells.FirstOrDefault(
+                                        s => s.SData.Name.Equals("LeblancSlideM", StringComparison.OrdinalIgnoreCase))));
+                            _destinations.Add(
+                                new DestinationObject(
+                                    hero,
+                                    hero.Spellbook.Spells.FirstOrDefault(
+                                        s =>
+                                            s.SData.Name.Equals(
+                                                "LeblancSlideReturnM", StringComparison.OrdinalIgnoreCase))));
+                            break;
+                        case "Lissandra":
+                            _destinations.Add(
+                                new DestinationObject(
+                                    hero,
+                                    hero.Spellbook.Spells.FirstOrDefault(
+                                        s => s.SData.Name.Equals("LissandraE", StringComparison.OrdinalIgnoreCase))));
+                            break;
+                        case "MasterYi":
+                            _destinations.Add(
+                                new DestinationObject(
+                                    hero,
+                                    hero.Spellbook.Spells.FirstOrDefault(
+                                        s => s.SData.Name.Equals("AlphaStrike", StringComparison.OrdinalIgnoreCase))));
+                            break;
+                        case "Shaco":
+                            _destinations.Add(
+                                new DestinationObject(
+                                    hero,
+                                    hero.Spellbook.Spells.FirstOrDefault(
+                                        s => s.SData.Name.Equals("Deceive", StringComparison.OrdinalIgnoreCase))));
+                            break;
+                        case "Talon":
+                            _destinations.Add(
+                                new DestinationObject(
+                                    hero,
+                                    hero.Spellbook.Spells.FirstOrDefault(
+                                        s => s.SData.Name.Equals("TalonCutthroat", StringComparison.OrdinalIgnoreCase))));
+                            break;
+                        case "Vayne":
+                            _destinations.Add(
+                                new DestinationObject(
+                                    hero,
+                                    hero.Spellbook.Spells.FirstOrDefault(
+                                        s => s.SData.Name.Equals("VayneTumble", StringComparison.OrdinalIgnoreCase))));
+                            break;
+                        case "Zed":
+                            _destinations.Add(
+                                new DestinationObject(
+                                    hero,
+                                    hero.Spellbook.Spells.FirstOrDefault(
+                                        s => s.SData.Name.Equals("ZedShadowDash", StringComparison.OrdinalIgnoreCase))));
+                            break;
+                    }
                 }
+                _destinations.RemoveAll(d => string.IsNullOrWhiteSpace(d.SpellName));
             }
-            _destinations.RemoveAll(d => string.IsNullOrWhiteSpace(d.SpellName));
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnDrawingEndScene(EventArgs args)
         {
-            var color = Menu.Item(Name + "DrawingColor").GetValue<Color>();
-            var radius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value;
-            var thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
-
-            foreach (var destination in
-                _destinations.Where(
-                    destination =>
-                        destination.Casted && (destination.EndPos.IsOnScreen() || destination.StartPos.IsOnScreen())))
+            try
             {
-                _line.Begin();
-                _line.Draw(
-                    new[] { Drawing.WorldToScreen(destination.EndPos), Drawing.WorldToScreen(destination.StartPos) },
-                    new ColorBGRA(color.R, color.G, color.B, color.A));
-                _line.End();
-                Render.Circle.DrawCircle(destination.EndPos, radius, color, thickness);
+                var color = Menu.Item(Name + "DrawingColor").GetValue<Color>();
+                var radius = Menu.Item(Name + "DrawingCircleRadius").GetValue<Slider>().Value;
+                var thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
+
+                foreach (var destination in
+                    _destinations.Where(
+                        destination =>
+                            destination.Casted && (destination.EndPos.IsOnScreen() || destination.StartPos.IsOnScreen()))
+                    )
+                {
+                    _line.Begin();
+                    _line.Draw(
+                        new[] { Drawing.WorldToScreen(destination.EndPos), Drawing.WorldToScreen(destination.StartPos) },
+                        new ColorBGRA(color.R, color.G, color.B, color.A));
+                    _line.End();
+                    Render.Circle.DrawCircle(destination.EndPos, radius, color, thickness);
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
         private void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            var hero = sender as Obj_AI_Hero;
-            if (hero == null || !hero.IsValid || !hero.IsEnemy)
+            try
             {
-                return;
-            }
-
-            var index = 0;
-            foreach (var destination in _destinations.Where(destination => destination.Hero.NetworkId == hero.NetworkId)
-                )
-            {
-                if (args.SData.Name.Equals("VayneInquisition", StringComparison.OrdinalIgnoreCase))
+                var hero = sender as Obj_AI_Hero;
+                if (hero == null || !hero.IsValid || !hero.IsEnemy)
                 {
-                    if (destination.ExtraTicks > 0)
-                    {
-                        destination.ExtraTicks = (int) Game.Time + 5 + 2 * args.Level;
-                        return;
-                    }
-                }
-                if (args.SData.Name.Equals(destination.SpellName, StringComparison.OrdinalIgnoreCase))
-                {
-                    switch (destination.SpellName.ToLower())
-                    {
-                        case "vaynetumble":
-                            if (Game.Time >= destination.ExtraTicks)
-                            {
-                                return;
-                            }
-                            destination.StartPos = args.Start;
-                            destination.EndPos = CalculateEndPos(args.Start, args.End, destination.Range);
-                            break;
-
-                        case "deceive":
-                            destination.StartPos = args.Start;
-                            destination.EndPos = CalculateEndPos(args.Start, args.End, destination.Range);
-                            break;
-
-                        case "leblancslidem":
-                            _destinations[index - 2].Casted = false;
-                            destination.StartPos = _destinations[index - 2].StartPos;
-                            destination.EndPos = CalculateEndPos(args.Start, args.End, destination.Range);
-                            break;
-
-                        case "leblancslidereturn":
-                        case "leblancslidereturnm":
-                            if (destination.SpellName == "leblancslidereturn")
-                            {
-                                _destinations[index - 1].Casted = false;
-                                _destinations[index + 1].Casted = false;
-                                _destinations[index + 2].Casted = false;
-                            }
-                            else
-                            {
-                                _destinations[index - 3].Casted = false;
-                                _destinations[index - 2].Casted = false;
-                                _destinations[index - 1].Casted = false;
-                            }
-                            destination.StartPos = args.Start;
-                            destination.EndPos = _destinations[index - 1].StartPos;
-                            break;
-
-                        case "fioraDance":
-                        case "alphaStrike":
-                            destination.StartPos = args.Start;
-                            destination.EndPos = args.Target.Position;
-                            break;
-
-                        default:
-                            destination.StartPos = args.Start;
-                            destination.EndPos = CalculateEndPos(args.Start, args.End, destination.Range);
-                            break;
-                    }
-                    destination.Casted = true;
-                    destination.TimeCasted = (int) Game.Time;
                     return;
                 }
 
-                index++;
+                var index = 0;
+                foreach (
+                    var destination in _destinations.Where(destination => destination.Hero.NetworkId == hero.NetworkId))
+                {
+                    if (args.SData.Name.Equals("VayneInquisition", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (destination.ExtraTicks > 0)
+                        {
+                            destination.ExtraTicks = (int) Game.Time + 5 + 2 * args.Level;
+                            return;
+                        }
+                    }
+                    if (args.SData.Name.Equals(destination.SpellName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        switch (destination.SpellName.ToLower())
+                        {
+                            case "vaynetumble":
+                                if (Game.Time >= destination.ExtraTicks)
+                                {
+                                    return;
+                                }
+                                destination.StartPos = args.Start;
+                                destination.EndPos = CalculateEndPos(args.Start, args.End, destination.Range);
+                                break;
+
+                            case "deceive":
+                                destination.StartPos = args.Start;
+                                destination.EndPos = CalculateEndPos(args.Start, args.End, destination.Range);
+                                break;
+
+                            case "leblancslidem":
+                                _destinations[index - 2].Casted = false;
+                                destination.StartPos = _destinations[index - 2].StartPos;
+                                destination.EndPos = CalculateEndPos(args.Start, args.End, destination.Range);
+                                break;
+
+                            case "leblancslidereturn":
+                            case "leblancslidereturnm":
+                                if (destination.SpellName == "leblancslidereturn")
+                                {
+                                    _destinations[index - 1].Casted = false;
+                                    _destinations[index + 1].Casted = false;
+                                    _destinations[index + 2].Casted = false;
+                                }
+                                else
+                                {
+                                    _destinations[index - 3].Casted = false;
+                                    _destinations[index - 2].Casted = false;
+                                    _destinations[index - 1].Casted = false;
+                                }
+                                destination.StartPos = args.Start;
+                                destination.EndPos = _destinations[index - 1].StartPos;
+                                break;
+
+                            case "fioraDance":
+                            case "alphaStrike":
+                                destination.StartPos = args.Start;
+                                destination.EndPos = args.Target.Position;
+                                break;
+
+                            default:
+                                destination.StartPos = args.Start;
+                                destination.EndPos = CalculateEndPos(args.Start, args.End, destination.Range);
+                                break;
+                        }
+                        destination.Casted = true;
+                        destination.TimeCasted = (int) Game.Time;
+                        return;
+                    }
+
+                    index++;
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
         private Vector3 CalculateEndPos(Vector3 start, Vector3 end, float maxRange)
         {
-            var dist = start.Distance(end);
-            var endPos = end;
-            if (dist > maxRange)
+            try
             {
-                endPos = start.Extend(end, maxRange);
-            }
-            if (endPos.IsWall())
-            {
-                for (var i = 0; i < 200; i = i + 10)
+                var dist = start.Distance(end);
+                var endPos = end;
+                if (dist > maxRange)
                 {
-                    var pos = start.Extend(endPos, dist + i);
-                    if (!pos.IsWall())
+                    endPos = start.Extend(end, maxRange);
+                }
+                if (endPos.IsWall())
+                {
+                    for (var i = 0; i < 200; i = i + 10)
                     {
-                        return pos;
+                        var pos = start.Extend(endPos, dist + i);
+                        if (!pos.IsWall())
+                        {
+                            return pos;
+                        }
                     }
                 }
+                return endPos;
             }
-            return endPos;
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return end;
         }
 
         private void OnGameUpdate(EventArgs args)
         {
-            if (_lastCheck + CheckInterval > Environment.TickCount)
+            try
             {
-                return;
+                if (_lastCheck + CheckInterval > Environment.TickCount)
+                {
+                    return;
+                }
+
+                _lastCheck = Environment.TickCount;
+
+                foreach (var destination in _destinations.Where(destination => destination.Casted))
+                {
+                    if (Game.Time > destination.TimeCasted + 5f || destination.Hero.IsDead)
+                    {
+                        destination.Casted = false;
+                    }
+                    if (destination.Hero.IsVisible)
+                    {
+                        destination.EndPos = destination.Hero.Position;
+                    }
+                }
             }
-
-            _lastCheck = Environment.TickCount;
-
-            foreach (var destination in _destinations.Where(destination => destination.Casted))
+            catch (Exception ex)
             {
-                if (Game.Time > destination.TimeCasted + 5f || destination.Hero.IsDead)
-                {
-                    destination.Casted = false;
-                }
-                if (destination.Hero.IsVisible)
-                {
-                    destination.EndPos = destination.Hero.Position;
-                }
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
