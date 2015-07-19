@@ -149,8 +149,7 @@ namespace SFXChallenger.Champions
             miscMenu.AddItem(
                 new MenuItem(
                     miscMenu.Name + ".q-min-range", "Q " + Global.Lang.Get("G_Min") + " " + Global.Lang.Get("G_Range"))
-                    .SetValue(new Slider(800, 600, 1000))).ValueChanged +=
-                delegate(object sender, OnValueChangeEventArgs args) { Q.Range = args.GetNewValue<Slider>().Value; };
+                    .SetValue(new Slider(800, 600, 1000)));
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".w-range", "W " + Global.Lang.Get("G_Range")).SetValue(
                     new Slider((int) W.Range, 500, 1000))).ValueChanged +=
