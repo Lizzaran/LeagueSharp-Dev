@@ -54,6 +54,9 @@ namespace SFXChallenger.Champions
         private readonly float _qAngle = 28 * (float) Math.PI / 180;
         private readonly float _wRedRadius = 100f;
         private MenuItem _eStacks;
+        private MenuItem _nextCard;
+        private float _qDelay;
+        private Obj_AI_Hero _qTarget;
         private MenuItem _rMinimap;
 
         protected override ItemFlags ItemFlags
@@ -186,6 +189,7 @@ namespace SFXChallenger.Champions
             IndicatorManager.Add(E, false);
             IndicatorManager.Finale();
 
+            _nextCard = DrawingManager.Add(Global.Lang.Get("TF_NextCard"), false);
             _eStacks = DrawingManager.Add("E " + Global.Lang.Get("G_Stacks"), true);
             _rMinimap = DrawingManager.Add("R " + Global.Lang.Get("G_Minimap"), true);
         }
@@ -207,9 +211,18 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (args.Target is Obj_AI_Hero)
+                var hero = args.Target as Obj_AI_Hero;
+                if (hero != null)
                 {
                     args.Process = Cards.Status != SelectStatus.Selecting && Utils.TickCount - Cards.LastWSent > 300;
+                    if (args.Process)
+                    {
+                        if (Cards.Has(CardColor.Gold))
+                        {
+                            _qDelay = Game.Time + hero.Distance(Player) * 1.2f / Player.BasicAttack.MissileSpeed;
+                            _qTarget = hero;
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -273,7 +286,7 @@ namespace SFXChallenger.Champions
             {
                 var enemies = targets.Where(e => e.IsValidTarget(Q.Range * 1.5f)).ToList();
                 var enemyPositions = new List<Tuple<Obj_AI_Base, Vector3>>();
-                var circle = new Geometry.Polygon.Circle(Player.Position, Player.BoundingRadius, 30).Points;
+                var circle = new Geometry.Polygon.Circle(Player.Position, Player.BoundingRadius / 2f, 30).Points;
 
                 foreach (var h in enemies)
                 {
@@ -325,7 +338,7 @@ namespace SFXChallenger.Champions
                         Player.Position.Extend(Player.Position + direction.Rotated(-_qAngle).To3D(), Q.Range), Q.Width);
                     foreach (var enemy in enemyPositions)
                     {
-                        var bounding = new Geometry.Polygon.Circle(enemy.Item2, enemy.Item1.BoundingRadius);
+                        var bounding = new Geometry.Polygon.Circle(enemy.Item2, enemy.Item1.BoundingRadius * 0.85f);
                         if (bounding.Points.Any(p => rect1.IsInside(p) || rect2.IsInside(p) || rect3.IsInside(p)))
                         {
                             hits++;
@@ -550,16 +563,19 @@ namespace SFXChallenger.Champions
                     return;
                 }
                 var target = TargetSelector.GetTarget(Q.Range, LeagueSharp.Common.TargetSelector.DamageType.Magical);
-                if (target != null)
+                if (target != null && (!target.NetworkId.Equals(_qTarget.NetworkId) || Game.Time > _qDelay))
                 {
                     var cd = W.Instance.CooldownExpires - Game.Time;
-                    var outRange = Menu.Item(Menu.Name + ".miscellaneous.q-min-range").GetValue<Slider>().Value >
-                                   target.Distance(Player);
-                    var best = BestQPosition(target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), hitChance);
-                    if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1 &&
-                        (outRange || cd >= 3 || Helpers.Utils.IsStunned(target)))
+                    var outOfRange = target.Distance(Player) >=
+                                     Menu.Item(Menu.Name + ".miscellaneous.q-min-range").GetValue<Slider>().Value;
+                    if (outOfRange || (cd >= 3 || W.Level == 0) || Helpers.Utils.IsStunned(target))
                     {
-                        Q.Cast(best.Item2);
+                        var best = BestQPosition(
+                            target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), hitChance);
+                        if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
+                        {
+                            Q.Cast(best.Item2);
+                        }
                     }
                 }
             }
@@ -641,20 +657,33 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (E.Level > 0 && _eStacks != null && _eStacks.GetValue<bool>() && !Player.IsDead &&
-                    Player.Position.IsOnScreen())
+                if (Player.IsDead || !Player.Position.IsOnScreen())
+                {
+                    return;
+                }
+
+                var x = Player.HPBarPosition.X + 45;
+                var y = Player.HPBarPosition.Y - 25;
+
+                if (E.Level > 0 && _eStacks != null && _eStacks.GetValue<bool>())
                 {
                     var stacks = HasEBuff() ? 3 : Player.GetBuffCount("cardmasterstackholder") - 1;
                     if (stacks > -1)
                     {
-                        var x = Player.HPBarPosition.X + 45;
-                        var y = Player.HPBarPosition.Y - 25;
                         for (var i = 0; 3 > i; i++)
                         {
                             Drawing.DrawLine(
                                 x + (i * 20), y, x + (i * 20) + 10, y, 10, (i > stacks ? Color.DarkGray : Color.Orange));
                         }
                     }
+                }
+                if (W.Level > 0 && Cards.LastCard != CardColor.None && _nextCard.GetValue<bool>())
+                {
+                    Drawing.DrawLine(
+                        x - 58, y + 35, x - 58 + 16, y + 35, 16,
+                        (Cards.LastCard == CardColor.Gold
+                            ? Color.Blue
+                            : (Cards.LastCard == CardColor.Blue ? Color.Red : Color.Gold)));
                 }
             }
             catch (Exception ex)
@@ -918,15 +947,10 @@ namespace SFXChallenger.Champions
                 }
                 else if (mode == "flee")
                 {
-                    red += GetWHits(target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), CardColor.Red);
-                    if (red > gold || red == gold)
-                    {
-                        cards.Add(CardColor.Red);
-                    }
-                    else if (gold > red || red == gold)
-                    {
-                        cards.Add(CardColor.Gold);
-                    }
+                    cards.Add(
+                        GetWHits(target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), CardColor.Red) >= 2
+                            ? CardColor.Red
+                            : CardColor.Gold);
                 }
                 if (!cards.Any())
                 {
@@ -960,11 +984,13 @@ namespace SFXChallenger.Champions
         public static class Cards
         {
             public static List<CardColor> ShouldSelect;
+            public static CardColor LastCard;
             public static int LastWSent;
             public static int LastSendWSent;
 
             static Cards()
             {
+                LastCard = CardColor.None;
                 ShouldSelect = new List<CardColor>();
                 Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
                 Game.OnUpdate += OnGameUpdate;
@@ -997,7 +1023,7 @@ namespace SFXChallenger.Champions
                 try
                 {
                     if (ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Name == "PickACard" &&
-                        Status == SelectStatus.Ready)
+                        Status == SelectStatus.Ready && card != CardColor.None)
                     {
                         ShouldSelect.Clear();
                         ShouldSelect = new List<CardColor> { card };
@@ -1021,7 +1047,7 @@ namespace SFXChallenger.Champions
                 try
                 {
                     if (ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Name == "PickACard" &&
-                        Status == SelectStatus.Ready)
+                        Status == SelectStatus.Ready && cards.Any())
                     {
                         ShouldSelect.Clear();
                         ShouldSelect = cards;
@@ -1094,10 +1120,19 @@ namespace SFXChallenger.Champions
                     {
                         Status = SelectStatus.Selecting;
                     }
-
-                    if (args.SData.Name == "goldcardlock" || args.SData.Name == "bluecardlock" ||
-                        args.SData.Name == "redcardlock")
+                    if (args.SData.Name == "goldcardlock")
                     {
+                        LastCard = CardColor.Gold;
+                        Status = SelectStatus.Selected;
+                    }
+                    else if (args.SData.Name == "bluecardlock")
+                    {
+                        LastCard = CardColor.Blue;
+                        Status = SelectStatus.Selected;
+                    }
+                    else if (args.SData.Name == "redcardlock")
+                    {
+                        LastCard = CardColor.Red;
                         Status = SelectStatus.Selected;
                     }
                 }

@@ -234,8 +234,10 @@
 	<entry key="F_AutoLantern">Auto Lantern</entry>
 	<!-- END: AutoLantern -->
 
-	<!-- START: ExtendFlash -->
-	<entry key="F_ExtendFlash">Extend Flash</entry>
+	<!-- START: Flash -->
+	<entry key="F_Flash">Flash</entry>
+	<entry key="Flash_Extend">Extend</entry>
+	<entry key="Flash_IgniteCheck">Ignite Check</entry>
 	<!-- END: ExtendFlash -->
 
 	<!-- START: Humanize -->

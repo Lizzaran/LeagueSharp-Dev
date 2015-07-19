@@ -150,7 +150,7 @@ namespace SFXUtility
 
                 Global.IoC.Register(() => new Others(sfx), true, true);
                 Global.IoC.Register(() => new AutoLantern(sfx), true, true);
-                Global.IoC.Register(() => new ExtendFlash(sfx), true, true);
+                Global.IoC.Register(() => new Flash(sfx), true, true);
                 Global.IoC.Register(() => new Humanize(sfx), true, true);
                 Global.IoC.Register(() => new MoveTo(sfx), true, true);
                 Global.IoC.Register(() => new Ping(sfx), true, true);

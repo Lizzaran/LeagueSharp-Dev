@@ -23,7 +23,7 @@
     <AssemblyVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyVersionSettings>
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
-    <AssemblyVersion>0.8.3.30</AssemblyVersion>
+    <AssemblyVersion>0.8.3.31</AssemblyVersion>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -123,7 +123,7 @@
     <Compile Include="Features\Drawings\Health.cs" />
     <Compile Include="Features\Events\Events.cs" />
     <Compile Include="Features\Events\Game.cs" />
-    <Compile Include="Features\Others\ExtendFlash.cs" />
+    <Compile Include="Features\Others\Flash.cs" />
     <Compile Include="Features\Others\Humanize.cs" />
     <Compile Include="Features\Drawings\DamageIndicator.cs" />
     <Compile Include="Features\Others\AutoLantern.cs" />
