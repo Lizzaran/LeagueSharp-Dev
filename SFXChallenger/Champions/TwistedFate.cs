@@ -557,8 +557,8 @@ namespace SFXChallenger.Champions
                     var outRange = Menu.Item(Menu.Name + ".miscellaneous.q-min-range").GetValue<Slider>().Value >
                                    target.Distance(Player);
                     var best = BestQPosition(target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), hitChance);
-                    if (!best.Item2.Equals(Vector3.Zero) &&
-                        (best.Item1 >= 1 || outRange || cd >= 3 || Helpers.Utils.IsStunned(target)))
+                    if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1 &&
+                        (outRange || cd >= 3 || Helpers.Utils.IsStunned(target)))
                     {
                         Q.Cast(best.Item2);
                     }

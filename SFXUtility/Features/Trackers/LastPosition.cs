@@ -83,6 +83,7 @@ namespace SFXUtility.Features.Trackers
                 {
                     lastPosition.Teleported = true;
                     lastPosition.IsTeleporting = false;
+                    lastPosition.LastSeen = Game.Time;
                 }
             }
             catch (Exception ex)

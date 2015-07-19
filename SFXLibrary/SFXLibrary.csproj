@@ -22,7 +22,7 @@
     <AssemblyVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyVersionSettings>
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
-    <AssemblyVersion>1.0.1.7</AssemblyVersion>
+    <AssemblyVersion>1.0.1.8</AssemblyVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -96,6 +96,7 @@
     <Compile Include="IoCContainer\MappingKey.cs" />
     <Compile Include="Logger\ConsoleLogger.cs" />
     <Compile Include="Logger\ILogger.cs" />
+    <Compile Include="Logger\SimpleFileLogger.cs" />
     <Compile Include="Mediator.cs" />
     <Compile Include="MessageToActionsMap.cs" />
     <Compile Include="Language.cs" />
