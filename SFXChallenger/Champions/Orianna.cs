@@ -232,9 +232,10 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                Q.UpdateSourcePosition(Ball.Position);
+                Q.UpdateSourcePosition(Ball.Position, ObjectManager.Player.Position);
+                E.UpdateSourcePosition(Ball.Position, ObjectManager.Player.Position);
+
                 W.UpdateSourcePosition(Ball.Position, Ball.Position);
-                E.UpdateSourcePosition(Ball.Position);
                 R.UpdateSourcePosition(Ball.Position, Ball.Position);
             }
             catch (Exception ex)
@@ -262,6 +263,9 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                Q.UpdateSourcePosition(Ball.Position, ObjectManager.Player.Position);
+                E.UpdateSourcePosition(Ball.Position, ObjectManager.Player.Position);
+
                 if (Menu.Item(Menu.Name + ".ultimate.flash.enabled").GetValue<bool>() &&
                     Menu.Item(Menu.Name + ".ultimate.flash.hotkey").GetValue<KeyBind>().Active && R.IsReady() &&
                     SummonerManager.Flash.IsReady())

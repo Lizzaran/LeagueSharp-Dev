@@ -357,7 +357,7 @@ namespace LeagueSharp.Console
             {
                 if (evt != null)
                 {
-                    evt(null, null);
+                    evt(null, new EventArgs());
                 }
             }
             catch {}
@@ -398,6 +398,11 @@ namespace LeagueSharp.Console
         public static void WriteLine()
         {
             WriteLine(string.Empty);
+        }
+
+        public static void WriteLine<T>(T value)
+        {
+            WriteLine(value.ToString());
         }
 
         public static void WriteLine(bool value)
@@ -443,6 +448,11 @@ namespace LeagueSharp.Console
         public static void WriteLine(ulong value)
         {
             WriteLine(value.ToString());
+        }
+
+        public static void Write<T>(T value)
+        {
+            Write(value.ToString());
         }
 
         public static void Write(bool value)

@@ -129,12 +129,16 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                if (args.Target.IsDead || args.Target.Position.Distance(Player.Position) > 3000)
+                {
+                    return;
+                }
                 if (Menu.Item(Menu.Name + ".shield.enabled").GetValue<bool>() &&
                     (args.Target == null || args.Target.IsMe) && ManaManager.Check("shield"))
                 {
-                    if (args.Type == SpellDataTargetType.SelfAoe &&
-                        args.Sender.Distance(Player.Position) <=
-                        args.SData.CastRadius + args.Sender.BoundingRadius + Player.BoundingRadius && E.IsReady())
+                    var radius = args.SData.CastRadius + args.Sender.BoundingRadius + Player.BoundingRadius;
+                    if (args.Type == SpellDataTargetType.SelfAoe && radius <= 1000 &&
+                        args.Sender.Distance(Player.Position) <= radius && E.IsReady())
                     {
                         E.Cast();
                     }
@@ -173,8 +177,10 @@ namespace SFXChallenger.Champions
             {
                 if (Menu.Item(Menu.Name + ".miscellaneous.q-stun").GetValue<bool>() && Q.IsReady())
                 {
-                    var target = GameObjects.EnemyHeroes.OrderBy(e => e.Distance(Player))
-                        .FirstOrDefault(Utils.IsStunned);
+                    var target =
+                        GameObjects.EnemyHeroes.OrderBy(e => e.Distance(Player))
+                            .Where(e => Q.IsInRange(e))
+                            .FirstOrDefault(Utils.IsStunned);
                     if (target != null)
                     {
                         Q.Cast(target.Position);
