@@ -183,6 +183,8 @@
 
 	<!-- START: TargetSelector -->
 	<entry key="F_TargetSelector">Target Selector</entry>
+	<entry key="TS_WeightMode">Mode</entry>
+	<entry key="TS_WeightModes">Aggresive|Linear</entry>
 	<entry key="TS_SelectedTarget">Selected Target</entry>
 	<entry key="TS_AssassinTarget">Assasin Target</entry>
 	<entry key="TS_LastTarget">Last Target</entry>

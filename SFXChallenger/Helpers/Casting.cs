@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- casting.cs is part of SFXChallenger.
+ Casting.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -78,22 +78,35 @@ namespace SFXChallenger.Helpers
             spell.CastOnUnit(target, packet);
         }
 
-        public static void Farm(Spell spell, int minHit = 3, float overrideWidth = -1f)
+        public static void Farm(Spell spell,
+            int minHit = 3,
+            float overrideWidth = -1f,
+            bool chargeMax = true,
+            List<Obj_AI_Base> minions = null)
         {
             if (!spell.IsReady())
             {
                 return;
             }
             var spellWidth = overrideWidth > 0 ? overrideWidth : spell.Width;
-            var minions = MinionManager.GetMinions(
-                ((spell.Range + spellWidth) * 1.5f), MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+
+            if (minions == null)
+            {
+                minions =
+                    MinionManager.GetMinions(
+                        (((chargeMax && spell.IsChargedSpell ? spell.ChargedMaxRange : spell.Range) + spellWidth) * 1.5f),
+                        MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+            }
 
             if (minions.Count == 0)
             {
                 return;
             }
 
-            minHit = minions.Any(m => m.Team == GameObjectTeam.Neutral) ? 1 : minHit;
+            if (minHit > 1)
+            {
+                minHit = minions.Any(m => m.Team == GameObjectTeam.Neutral) ? 1 : minHit;
+            }
 
             if (spell.Type == SkillshotType.SkillshotCircle)
             {

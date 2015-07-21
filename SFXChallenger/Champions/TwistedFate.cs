@@ -52,7 +52,7 @@ namespace SFXChallenger.Champions
     internal class TwistedFate : Champion
     {
         private readonly float _qAngle = 28 * (float) Math.PI / 180;
-        private readonly float _wRedRadius = 100f;
+        private readonly float _wRedRadius = 200f;
         private MenuItem _eStacks;
         private MenuItem _nextCard;
         private float _qDelay;
@@ -219,8 +219,17 @@ namespace SFXChallenger.Champions
                     {
                         if (Cards.Has(CardColor.Gold))
                         {
-                            _qDelay = Game.Time + hero.Distance(Player) * 1.2f / Player.BasicAttack.MissileSpeed;
+                            _qDelay = Game.Time + W.Delay / 2f +
+                                      hero.Distance(Player) * 1.2f / Player.BasicAttack.MissileSpeed;
                             _qTarget = hero;
+
+                            var target = TargetSelector.GetTarget(
+                                W.Range, LeagueSharp.Common.TargetSelector.DamageType.Magical, false);
+                            if (target != null && !target.NetworkId.Equals(hero.NetworkId))
+                            {
+                                Orbwalker.ForceTarget(target);
+                                args.Process = false;
+                            }
                         }
                     }
                 }
@@ -285,6 +294,94 @@ namespace SFXChallenger.Champions
             try
             {
                 var enemies = targets.Where(e => e.IsValidTarget(Q.Range * 1.5f)).ToList();
+                var enemyPositions = (from h in enemies
+                    let ePred = Q.GetPrediction(h)
+                    where ePred.Hitchance >= (hitChance - 1)
+                    select new Tuple<Obj_AI_Base, Vector3>(h, ePred.UnitPosition)).ToList();
+                var targetPos = target == null ? Vector3.Zero : target.Position;
+                if (target == null)
+                {
+                    var possibilities =
+                        ListExtensions.ProduceEnumeration(enemyPositions).Where(p => p.Count > 0).ToList();
+                    var count = 0;
+                    foreach (var possibility in possibilities)
+                    {
+                        var mec = MEC.GetMec(possibility.Select(p => p.Item2.To2D()).ToList());
+                        if (mec.Radius < Q.Width && possibility.Count > count)
+                        {
+                            count = possibility.Count;
+                            targetPos = mec.Center.To3D();
+                        }
+                    }
+                }
+                if (targetPos.Equals(Vector3.Zero) || !enemyPositions.Any())
+                {
+                    return new Tuple<int, Vector3>(totalHits, castPos);
+                }
+
+                foreach (var enemy in enemyPositions)
+                {
+                    var hits = 1;
+                    var lEnemy = enemy;
+                    var containsTarget = target == null || enemy.Item1.NetworkId == target.NetworkId;
+                    var direction = Q.Range * (enemy.Item2 - ObjectManager.Player.Position).Normalized().To2D();
+
+                    var recs = new List<Geometry.Polygon.Rectangle>
+                    {
+                        new Geometry.Polygon.Rectangle(
+                            Player.Position, Player.Position.Extend(Player.Position + direction.To3D(), Q.Range),
+                            Q.Width),
+                        new Geometry.Polygon.Rectangle(
+                            Player.Position,
+                            Player.Position.Extend(Player.Position + direction.Rotated(_qAngle).To3D(), Q.Range),
+                            Q.Width),
+                        new Geometry.Polygon.Rectangle(
+                            Player.Position,
+                            Player.Position.Extend(Player.Position + direction.Rotated(-_qAngle).To3D(), Q.Range),
+                            Q.Width)
+                    };
+
+                    foreach (var rec in recs)
+                    {
+                        foreach (var enemy2 in enemyPositions.Where(e => e.Item1.NetworkId != lEnemy.Item1.NetworkId))
+                        {
+                            var bounding = new Geometry.Polygon.Circle(
+                                enemy2.Item2, enemy2.Item1.BoundingRadius * 0.85f);
+                            if (bounding.Points.Any(p => rec.IsInside(p) || rec.IsInside(p) || rec.IsInside(p)))
+                            {
+                                hits++;
+                                if (target != null && enemy.Item1.NetworkId.Equals(target.NetworkId))
+                                {
+                                    containsTarget = true;
+                                }
+                            }
+                        }
+                        if (containsTarget && hits > totalHits)
+                        {
+                            totalHits = hits;
+                            castPos = rec.End.To3D();
+                            if (totalHits >= enemies.Count)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return new Tuple<int, Vector3>(totalHits, castPos);
+        }
+
+        private Tuple<int, Vector3> BestQPositionasd(Obj_AI_Base target, List<Obj_AI_Base> targets, HitChance hitChance)
+        {
+            var castPos = Vector3.Zero;
+            var totalHits = 0;
+            try
+            {
+                var enemies = targets.Where(e => e.IsValidTarget(Q.Range * 1.5f)).ToList();
                 var enemyPositions = new List<Tuple<Obj_AI_Base, Vector3>>();
                 var circle = new Geometry.Polygon.Circle(Player.Position, Player.BoundingRadius / 2f, 30).Points;
 
@@ -313,15 +410,12 @@ namespace SFXChallenger.Champions
                         }
                     }
                 }
-                if (targetPos.Equals(Vector3.Zero))
+                if (targetPos.Equals(Vector3.Zero) || !enemyPositions.Any())
                 {
                     return new Tuple<int, Vector3>(totalHits, castPos);
                 }
+
                 circle = circle.OrderBy(c => c.Distance(targetPos)).ToList();
-                if (!enemyPositions.Any())
-                {
-                    return new Tuple<int, Vector3>(totalHits, castPos);
-                }
 
                 foreach (var point in circle)
                 {
@@ -513,7 +607,7 @@ namespace SFXChallenger.Champions
             if (w && W.IsReady())
             {
                 var target = TargetSelector.GetTarget(
-                    W.Range * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+                    W.Range * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical, false);
                 if (target != null)
                 {
                     var best = GetBestCard(target, "combo");
@@ -537,7 +631,7 @@ namespace SFXChallenger.Champions
             if (w && W.IsReady())
             {
                 var target = TargetSelector.GetTarget(
-                    W.Range * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+                    W.Range * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical, false);
                 if (target != null)
                 {
                     var best = GetBestCard(target, "harass");
@@ -563,12 +657,14 @@ namespace SFXChallenger.Champions
                     return;
                 }
                 var target = TargetSelector.GetTarget(Q.Range, LeagueSharp.Common.TargetSelector.DamageType.Magical);
-                if (target != null && (!target.NetworkId.Equals(_qTarget.NetworkId) || Game.Time > _qDelay))
+                if (target != null &&
+                    (!target.NetworkId.Equals(_qTarget.NetworkId) ||
+                     (Game.Time > _qDelay || Helpers.Utils.IsStunned(target))))
                 {
                     var cd = W.Instance.CooldownExpires - Game.Time;
                     var outOfRange = target.Distance(Player) >=
                                      Menu.Item(Menu.Name + ".miscellaneous.q-min-range").GetValue<Slider>().Value;
-                    if (outOfRange || (cd >= 3 || W.Level == 0) || Helpers.Utils.IsStunned(target))
+                    if (outOfRange || (cd >= 2 || W.Level == 0) || Helpers.Utils.IsStunned(target))
                     {
                         var best = BestQPosition(
                             target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), hitChance);
@@ -595,7 +691,16 @@ namespace SFXChallenger.Champions
             {
                 var minions = MinionManager.GetMinions(
                     Q.Range * 1.2f, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
-                if (minions.Any(m => m.Team == GameObjectTeam.Neutral))
+                var m = minions.OrderBy(x => x.Distance(Player)).FirstOrDefault();
+                if (m == null)
+                {
+                    return;
+                }
+                if (m.Team != GameObjectTeam.Neutral)
+                {
+                    minions.RemoveAll(x => x.Team == GameObjectTeam.Neutral);
+                }
+                else
                 {
                     qMin = 1;
                 }
@@ -766,9 +871,7 @@ namespace SFXChallenger.Champions
                 {
                     var minions =
                         MinionManager.GetMinions(
-                            W.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
-                            .Where(m => W.IsKillable(m, 1) || m.Health > W.GetDamage(m) * 2.2)
-                            .ToList();
+                            W.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth).ToList();
                     var minHits = minions.Any(m => m.Team == GameObjectTeam.Neutral)
                         ? 1
                         : Menu.Item(Menu.Name + ".lane-clear.red-min").GetValue<Slider>().Value;

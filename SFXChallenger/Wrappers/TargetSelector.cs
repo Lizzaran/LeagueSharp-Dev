@@ -59,10 +59,6 @@ namespace SFXChallenger.Wrappers
         private static readonly HashSet<Priority> Priorities;
         private static readonly HashSet<WeightedItem> WeightedItems;
         private static readonly Dictionary<int, AggroItem> AggroItems = new Dictionary<int, AggroItem>();
-
-        private static readonly Dictionary<int, HashSet<DamageItem>> DamageItems =
-            new Dictionary<int, HashSet<DamageItem>>();
-
         private static TargetSelectorModeType _tsMode = TargetSelectorModeType.Weights;
         private static Menu _weightsMenu;
 
@@ -161,20 +157,6 @@ namespace SFXChallenger.Wrappers
                                 a.Value.Target.NetworkId == t.NetworkId &&
                                 (Game.Time - a.Value.Timestamp) <= AggroFadeTime)),
                 new WeightedItem(
-                    "damage-me", Global.Lang.Get("TS_DamageMe"), 0, false, 1250, delegate(Obj_AI_Hero t)
-                    {
-                        HashSet<DamageItem> damageItems;
-                        if (DamageItems.TryGetValue(t.NetworkId, out damageItems))
-                        {
-                            return
-                                damageItems.Where(
-                                    d =>
-                                        d.Target.NetworkId == ObjectManager.Player.NetworkId &&
-                                        Game.Time - d.Timestamp <= DamageFadeTime).Sum(d => d.Damage);
-                        }
-                        return 0;
-                    }),
-                new WeightedItem(
                     "gold", Global.Lang.Get("TS_Gold"), 7, false, 8000,
                     t =>
                         (t.MinionsKilled + t.NeutralMinionsKilled) * MinionGold + t.ChampionsKilled * KillGold +
@@ -185,7 +167,6 @@ namespace SFXChallenger.Wrappers
 
             Game.OnWndProc += OnGameWndProc;
             Drawing.OnDraw += OnDrawingDraw;
-            AttackableUnit.OnDamage += OnAttackableUnitDamage;
             Obj_AI_Base.OnAggro += OnObjAiBaseAggro;
         }
 
@@ -236,31 +217,6 @@ namespace SFXChallenger.Wrappers
                 {
                     item.GetValueFunc = func;
                 }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private static void OnAttackableUnitDamage(AttackableUnit sender, AttackableUnitDamageEventArgs args)
-        {
-            try
-            {
-                if (!sender.IsEnemy || sender.Type != GameObjectType.obj_AI_Hero ||
-                    ObjectManager.Player.NetworkId != args.TargetNetworkId)
-                {
-                    return;
-                }
-                foreach (var item in DamageItems)
-                {
-                    item.Value.RemoveWhere(i => Game.Time - i.Timestamp > DamageFadeTime);
-                }
-                if (!DamageItems.ContainsKey(sender.NetworkId))
-                {
-                    DamageItems[sender.NetworkId] = new HashSet<DamageItem>();
-                }
-                DamageItems[sender.NetworkId].Add(new DamageItem(ObjectManager.Player, args.Damage));
             }
             catch (Exception ex)
             {
@@ -575,9 +531,12 @@ namespace SFXChallenger.Wrappers
                 var targetsList = new HashSet<Target>();
                 var multiplicator =
                     _menu.Item(_menu.Name + ".weights.heroes.weight-multiplicator").GetValue<Slider>().Value;
+                var count = _menu.Item(_menu.Name + ".weights.mode").GetValue<StringList>().SelectedIndex == 0
+                    ? 1
+                    : targets.Count;
                 foreach (var target in targets)
                 {
-                    var tmpWeight = WeightedItems.Where(w => w.Weight > 0).Sum(w => w.CalculatedWeight(target));
+                    var tmpWeight = WeightedItems.Where(w => w.Weight > 0).Sum(w => w.CalculatedWeight(target, count));
                     if (_menu != null)
                     {
                         tmpWeight +=
@@ -677,6 +636,10 @@ namespace SFXChallenger.Wrappers
                     new MenuItem(assassinManager.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 _weightsMenu = _menu.AddSubMenu(new Menu(Global.Lang.Get("TS_Weights"), menu.Name + ".weights"));
+
+                _weightsMenu.AddItem(
+                    new MenuItem(_weightsMenu + ".mode", Global.Lang.Get("TS_WeightMode")).SetValue(
+                        new StringList(Global.Lang.GetList("TS_WeightModes"))));
 
                 var heroesMenu =
                     _weightsMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Heroes"), _weightsMenu.Name + ".heroes"));
@@ -830,20 +793,6 @@ namespace SFXChallenger.Wrappers
         public float Weight { get; private set; }
     }
 
-    internal class DamageItem
-    {
-        public DamageItem(Obj_AI_Hero target, float damage)
-        {
-            Target = target;
-            Damage = damage;
-            Timestamp = Game.Time;
-        }
-
-        public Obj_AI_Hero Target { get; set; }
-        public float Damage { get; private set; }
-        public float Timestamp { get; private set; }
-    }
-
     internal class AggroItem
     {
         public AggroItem(Obj_AI_Hero target)
@@ -952,7 +901,7 @@ namespace SFXChallenger.Wrappers
             return _maxCache.Value;
         }
 
-        public float CalculatedWeight(Obj_AI_Hero target)
+        public float CalculatedWeight(Obj_AI_Hero target, int targetCount)
         {
             try
             {
@@ -964,7 +913,7 @@ namespace SFXChallenger.Wrappers
                 }
                 var weight = CalculatedWeight(
                     GetValue(target), LastMin(), LastMax(), Inverted ? Weight : TargetSelector.MinWeight,
-                    Inverted ? TargetSelector.MinWeight : Weight);
+                    Inverted ? TargetSelector.MinWeight : Weight, targetCount);
                 if (cache == null)
                 {
                     _weightCache[target.NetworkId] = new Cache(weight);
@@ -982,11 +931,17 @@ namespace SFXChallenger.Wrappers
             return 0;
         }
 
-        public float CalculatedWeight(float currentValue, float currentMin, float currentMax, float newMin, float newMax)
+        public float CalculatedWeight(float currentValue,
+            float currentMin,
+            float currentMax,
+            float newMin,
+            float newMax,
+            int targetCount)
         {
             try
             {
-                var weight = (((currentValue - currentMin) * (newMax - newMin)) / (currentMax - currentMin)) + newMin;
+                currentMin = currentMin / targetCount;
+                var weight = (currentValue - currentMin) * (newMax - newMin) / (currentMax - currentMin) + newMin;
                 return !float.IsNaN(weight) && !float.IsInfinity(weight) ? weight : 0;
             }
             catch (Exception ex)
