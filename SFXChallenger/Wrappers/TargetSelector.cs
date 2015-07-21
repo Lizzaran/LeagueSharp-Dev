@@ -635,7 +635,7 @@ namespace SFXChallenger.Wrappers
                 _weightsMenu = _menu.AddSubMenu(new Menu(Global.Lang.Get("TS_Weights"), menu.Name + ".weights"));
 
                 _weightsMenu.AddItem(
-                    new MenuItem(_weightsMenu + ".mode", Global.Lang.Get("TS_WeightMode")).SetValue(
+                    new MenuItem(_weightsMenu.Name + ".mode", Global.Lang.Get("TS_WeightMode")).SetValue(
                         new StringList(Global.Lang.GetList("TS_WeightModes"))));
 
                 var heroesMenu =
