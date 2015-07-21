@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- TargetSelector.cs is part of SFXChallenger.
+ targetselector.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -44,7 +44,6 @@ namespace SFXChallenger.Wrappers
         internal const int MinWeight = 0;
         internal const int MaxWeight = 20;
         private const int AggroFadeTime = 10;
-        private const int DamageFadeTime = 10;
         private const int MinMultiplicator = 0;
         private const int MaxMultiplicator = 10;
         private const float SelectClickBuffer = 100f;
@@ -531,12 +530,10 @@ namespace SFXChallenger.Wrappers
                 var targetsList = new HashSet<Target>();
                 var multiplicator =
                     _menu.Item(_menu.Name + ".weights.heroes.weight-multiplicator").GetValue<Slider>().Value;
-                var count = _menu.Item(_menu.Name + ".weights.mode").GetValue<StringList>().SelectedIndex == 0
-                    ? 1
-                    : targets.Count;
+                var linear = _menu.Item(_menu.Name + ".weights.mode").GetValue<StringList>().SelectedIndex == 1;
                 foreach (var target in targets)
                 {
-                    var tmpWeight = WeightedItems.Where(w => w.Weight > 0).Sum(w => w.CalculatedWeight(target, count));
+                    var tmpWeight = WeightedItems.Where(w => w.Weight > 0).Sum(w => w.CalculatedWeight(target, linear));
                     if (_menu != null)
                     {
                         tmpWeight +=
@@ -901,7 +898,7 @@ namespace SFXChallenger.Wrappers
             return _maxCache.Value;
         }
 
-        public float CalculatedWeight(Obj_AI_Hero target, int targetCount)
+        public float CalculatedWeight(Obj_AI_Hero target, bool linear)
         {
             try
             {
@@ -912,8 +909,8 @@ namespace SFXChallenger.Wrappers
                     return cache.Value;
                 }
                 var weight = CalculatedWeight(
-                    GetValue(target), LastMin(), LastMax(), Inverted ? Weight : TargetSelector.MinWeight,
-                    Inverted ? TargetSelector.MinWeight : Weight, targetCount);
+                    GetValue(target), linear ? 0f : LastMin(), LastMax(), Inverted ? Weight : TargetSelector.MinWeight,
+                    Inverted ? TargetSelector.MinWeight : Weight);
                 if (cache == null)
                 {
                     _weightCache[target.NetworkId] = new Cache(weight);
@@ -931,16 +928,14 @@ namespace SFXChallenger.Wrappers
             return 0;
         }
 
-        public float CalculatedWeight(float currentValue,
+        private float CalculatedWeight(float currentValue,
             float currentMin,
             float currentMax,
             float newMin,
-            float newMax,
-            int targetCount)
+            float newMax)
         {
             try
             {
-                currentMin = currentMin / targetCount;
                 var weight = (currentValue - currentMin) * (newMax - newMin) / (currentMax - currentMin) + newMin;
                 return !float.IsNaN(weight) && !float.IsInfinity(weight) ? weight : 0;
             }
