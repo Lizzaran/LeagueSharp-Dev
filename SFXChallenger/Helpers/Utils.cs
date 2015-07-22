@@ -153,7 +153,7 @@ namespace SFXChallenger.Helpers
                         t.Type == BuffType.Stun).ToList();
             if (buffs.Any())
             {
-                return buffs.Select(t => t.EndTime).Max() - Game.Time;
+                return buffs.Max(t => t.EndTime) - Game.Time;
             }
             return 0f;
         }

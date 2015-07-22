@@ -193,7 +193,7 @@ namespace SFXChallenger.Champions
                 new MenuItem(miscMenu.Name + ".e-gapcloser", "E " + Global.Lang.Get("G_Gapcloser")).SetValue(false));
 
             TargetSelector.AddWeightedItem(
-                new WeightedItem("w-stacks", "W " + Global.Lang.Get("G_Stacks"), 13, true, 500, t => GetWStacks(t)));
+                new WeightedItem("w-stacks", "W " + Global.Lang.Get("G_Stacks"), 13, true, 333, 500, t => GetWStacks(t)));
 
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
             IndicatorManager.Add(Q);
