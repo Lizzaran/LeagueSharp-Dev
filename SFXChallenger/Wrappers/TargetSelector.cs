@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- TargetSelector.cs is part of SFXChallenger.
+ targetselector.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -44,8 +44,8 @@ namespace SFXChallenger.Wrappers
         internal const int MinWeight = 0;
         internal const int MaxWeight = 20;
         private const int AggroFadeTime = 10;
-        private const int MinMultiplicator = 0;
-        private const int MaxMultiplicator = 10;
+        private const int MinMultiplicator = 1;
+        private const int MaxMultiplicator = 5;
         private const float SelectClickBuffer = 100f;
         private const float MinionGold = 22.34f;
         private const float KillGold = 300.00f;
@@ -666,7 +666,7 @@ namespace SFXChallenger.Wrappers
                 {
                     heroesMenu.AddItem(
                         new MenuItem(heroesMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(
-                            new Slider(1, 1, 5)));
+                            new Slider(1, MinMultiplicator, MaxMultiplicator)));
                 }
 
                 foreach (var item in WeightedItems)

@@ -294,10 +294,18 @@ namespace SFXChallenger.Champions
             try
             {
                 var enemies = targets.Where(e => e.IsValidTarget(Q.Range * 1.5f)).ToList();
-                var enemyPositions = (from h in enemies
-                    let ePred = Q.GetPrediction(h)
-                    where ePred.Hitchance >= (hitChance - 1)
-                    select new Tuple<Obj_AI_Base, Vector3>(h, ePred.UnitPosition)).ToList();
+                var enemyPositions = new List<Tuple<Obj_AI_Base, Vector3>>();
+                var circle = new Geometry.Polygon.Circle(Player.Position, Player.BoundingRadius, 30).Points;
+
+                foreach (var h in enemies)
+                {
+                    var ePred = Q.GetPrediction(h);
+                    if (ePred.Hitchance >= (hitChance - 1))
+                    {
+                        circle.Add(Player.Position.Extend(ePred.UnitPosition, Player.BoundingRadius).To2D());
+                        enemyPositions.Add(new Tuple<Obj_AI_Base, Vector3>(h, ePred.UnitPosition));
+                    }
+                }
                 var targetPos = target == null ? Vector3.Zero : target.Position;
                 if (target == null)
                 {
@@ -314,56 +322,45 @@ namespace SFXChallenger.Champions
                         }
                     }
                 }
-                if (targetPos.Equals(Vector3.Zero) || !enemyPositions.Any())
+                if (targetPos.Equals(Vector3.Zero))
+                {
+                    return new Tuple<int, Vector3>(totalHits, castPos);
+                }
+                circle = circle.OrderBy(c => c.Distance(targetPos)).ToList();
+                if (!enemyPositions.Any())
                 {
                     return new Tuple<int, Vector3>(totalHits, castPos);
                 }
 
-                foreach (var enemy in enemyPositions)
+                foreach (var point in circle)
                 {
-                    var hits = new List<Obj_AI_Base>();
-                    var containsTarget = target == null;
-                    var direction =
-                        (Q.Range * (enemy.Item2 - ObjectManager.Player.Position).Normalized()).Normalized().To2D();
-
-                    var recs = new List<Geometry.Polygon.Rectangle>
+                    var hits = 0;
+                    var containsTarget = false;
+                    var direction = Q.Range * (point.To3D() - ObjectManager.Player.Position).Normalized().To2D();
+                    var rect1 = new Geometry.Polygon.Rectangle(
+                        Player.Position, Player.Position.Extend(Player.Position + direction.To3D(), Q.Range), Q.Width);
+                    var rect2 = new Geometry.Polygon.Rectangle(
+                        Player.Position,
+                        Player.Position.Extend(Player.Position + direction.Rotated(_qAngle).To3D(), Q.Range), Q.Width);
+                    var rect3 = new Geometry.Polygon.Rectangle(
+                        Player.Position,
+                        Player.Position.Extend(Player.Position + direction.Rotated(-_qAngle).To3D(), Q.Range), Q.Width);
+                    foreach (var enemy in enemyPositions)
                     {
-                        new Geometry.Polygon.Rectangle(
-                            Player.Position, Player.Position.Extend(Player.Position + direction.To3D(), Q.Range),
-                            Q.Width),
-                        new Geometry.Polygon.Rectangle(
-                            Player.Position,
-                            Player.Position.Extend(Player.Position + direction.Rotated(_qAngle).To3D(), Q.Range),
-                            Q.Width),
-                        new Geometry.Polygon.Rectangle(
-                            Player.Position,
-                            Player.Position.Extend(Player.Position + direction.Rotated(-_qAngle).To3D(), Q.Range),
-                            Q.Width)
-                    };
-
-                    foreach (var rec in recs)
-                    {
-                        foreach (var enemy2 in enemyPositions)
+                        var bounding = new Geometry.Polygon.Circle(enemy.Item2, enemy.Item1.BoundingRadius * 0.85f);
+                        if (bounding.Points.Any(p => rect1.IsInside(p) || rect2.IsInside(p) || rect3.IsInside(p)))
                         {
-                            var bounding = new Geometry.Polygon.Circle(
-                                enemy2.Item2, enemy2.Item1.BoundingRadius * 0.85f);
-                            if (bounding.Points.Any(p => rec.IsInside(p)))
+                            hits++;
+                            if (target != null && enemy.Item1.NetworkId.Equals(target.NetworkId))
                             {
-                                hits.Add(enemy2.Item1);
-                                if (target != null && enemy.Item1.NetworkId.Equals(target.NetworkId))
-                                {
-                                    containsTarget = true;
-                                }
+                                containsTarget = true;
                             }
                         }
                     }
-
-                    hits.DistinctBy(@base => @base.NetworkId);
-
-                    if (containsTarget && hits.Count > totalHits)
+                    if ((containsTarget || target == null) && hits > totalHits)
                     {
-                        totalHits = hits.Count;
-                        castPos = Player.Position.Extend(enemy.Item2, Q.Range);
+                        totalHits = hits;
+                        castPos = Player.Position.Extend(point.To3D(), Q.Range);
                         if (totalHits >= enemies.Count)
                         {
                             break;
@@ -377,7 +374,7 @@ namespace SFXChallenger.Champions
             }
             return new Tuple<int, Vector3>(totalHits, castPos);
         }
-
+        
         private int GetWHits(Obj_AI_Base target, List<Obj_AI_Base> targets = null, CardColor color = CardColor.Gold)
         {
             try
