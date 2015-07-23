@@ -446,7 +446,8 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (sender != null && sender.IsEnemy && args.DangerLevel == Interrupter2.DangerLevel.High && Orbwalking.InAutoAttackRange(sender))
+                if (sender != null && sender.IsEnemy && args.DangerLevel == Interrupter2.DangerLevel.High &&
+                    Orbwalking.InAutoAttackRange(sender))
                 {
                     if (Cards.Has(CardColor.Gold))
                     {

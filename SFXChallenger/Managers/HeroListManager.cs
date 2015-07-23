@@ -121,7 +121,8 @@ namespace SFXChallenger.Managers
                 }
                 else
                 {
-                    throw new KeyNotFoundException(string.Format("HeroListManager: UniqueID \"{0}\" not found.", uniqueId));
+                    throw new KeyNotFoundException(
+                        string.Format("HeroListManager: UniqueID \"{0}\" not found.", uniqueId));
                 }
             }
             catch (Exception ex)

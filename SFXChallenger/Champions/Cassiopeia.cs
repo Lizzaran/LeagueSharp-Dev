@@ -50,6 +50,7 @@ namespace SFXChallenger.Champions
 {
     internal class Cassiopeia : TChampion
     {
+        private int _lastECast;
         private float _lastEEndTime;
         private float _lastPoisonClearDelay;
         private float _lastQPoisonDelay;
@@ -144,16 +145,16 @@ namespace SFXChallenger.Champions
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
-
+            DelayManager.AddToMenu(miscMenu, "e-delay", "E", 250, 0, 1000);
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "q-gapcloser")), "q-gapcloser",
-                false, false, true, false);
+                miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "q-gapcloser")),
+                "q-gapcloser", false, false, true, false);
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Fleeing"), miscMenu.Name + "q-fleeing")),
                 "q-fleeing", false, false, true, false);
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "w-gapcloser")), "w-gapcloser",
-                false, false, true, false);
+                miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "w-gapcloser")),
+                "w-gapcloser", false, false, true, false);
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Stunned"), miscMenu.Name + "w-stunned")),
                 "w-stunned", false, false, true, false);
@@ -181,7 +182,7 @@ namespace SFXChallenger.Champions
         protected override void SetupSpells()
         {
             Q = new Spell(SpellSlot.Q, 850f);
-            Q.SetSkillshot(0.6f, 60f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            Q.SetSkillshot(0.4f, 60f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
             W = new Spell(SpellSlot.W, 850f);
             W.SetSkillshot(0.7f, 125f, 2500f, false, SkillshotType.SkillshotCircle);
@@ -374,7 +375,8 @@ namespace SFXChallenger.Champions
                      Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed))
                 {
                     args.Process = Q.Instance.ManaCost > Player.Mana && W.Instance.ManaCost > Player.Mana &&
-                                   (E.Instance.ManaCost > Player.Mana || GetPoisonBuffEndTime(t) < E.GetSpellDelay(t));
+                                   (E.Instance.ManaCost > Player.Mana || GetPoisonBuffEndTime(t) < E.GetSpellDelay(t)) ||
+                                   !Q.IsReady() && !E.IsReady();
                 }
                 if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
                 {
@@ -707,12 +709,17 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                if (!DelayManager.Check("e-delay", _lastECast))
+                {
+                    return;
+                }
                 var ts = Targets.FirstOrDefault(t => E.CanCast(t) && GetPoisonBuffEndTime(t) > E.GetSpellDelay(t));
                 if (ts != null)
                 {
                     var pred = E.GetPrediction(ts, false, -1f, new[] { CollisionableObjects.YasuoWall });
                     if (pred.Hitchance != HitChance.Collision)
                     {
+                        _lastECast = Environment.TickCount;
                         E.Cast(ts);
                     }
                 }
@@ -763,7 +770,7 @@ namespace SFXChallenger.Champions
             var w = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>() && W.IsReady();
 
             if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady() &&
-                ManaManager.Check("lane-clear"))
+                ManaManager.Check("lane-clear") && DelayManager.Check("e-delay", _lastECast))
             {
                 var minion =
                     MinionManager.GetMinions(
@@ -779,6 +786,7 @@ namespace SFXChallenger.Champions
                 if (minion != null)
                 {
                     _lastEEndTime = Game.Time + E.GetSpellDelay(minion) + 0.1f;
+                    _lastECast = Environment.TickCount;
                     Casting.TargetSkill(minion, E);
                 }
             }

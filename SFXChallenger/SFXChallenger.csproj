@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.5.3.13</AssemblyVersion>
+    <AssemblyVersion>0.5.3.16</AssemblyVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -103,6 +103,7 @@
     <Compile Include="Global.cs" />
     <Compile Include="Helpers\DynamicInitializer.cs" />
     <Compile Include="Helpers\Utils.cs" />
+    <Compile Include="Managers\DelayManager.cs" />
     <Compile Include="Managers\DrawingManager.cs" />
     <Compile Include="Managers\HeroListManager.cs" />
     <Compile Include="Managers\HitchanceManager.cs" />
