@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- TwistedFate.cs is part of SFXChallenger.
+ twistedfate.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -940,7 +940,7 @@ namespace SFXChallenger.Champions
                         {
                             var redHits = GetWHits(
                                 target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), CardColor.Red);
-                            if (redHits >= 3)
+                            if (redHits >= Menu.Item(Menu.Name + ".combo.red-min").GetValue<Slider>().Value)
                             {
                                 cards.Add(CardColor.Red);
                             }
