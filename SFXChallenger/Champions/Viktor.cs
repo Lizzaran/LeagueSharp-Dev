@@ -165,16 +165,16 @@ namespace SFXChallenger.Champions
 
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Slowed"), miscMenu.Name + "w-slowed")),
-                "w-slowed", false, true, false);
+                "w-slowed", false, false, true, false);
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Stunned"), miscMenu.Name + "w-stunned")),
-                "w-stunned", false, true, false);
+                "w-stunned", false, false, true, false);
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Dash"), miscMenu.Name + "w-dash")), "w-dash",
-                false, true, false);
+                false, false, true, false);
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "w-gapcloser")),
-                "w-gapcloser", false, true, false);
+                "w-gapcloser", false, false, true, false);
 
 
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);

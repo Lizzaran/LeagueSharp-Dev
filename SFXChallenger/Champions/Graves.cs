@@ -94,10 +94,10 @@ namespace SFXChallenger.Champions
 
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "w-gapcloser")),
-                "w-gapcloser", false, true, false);
+                "w-gapcloser", false, false, true, false);
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("E " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "e-gapcloser")),
-                "e-gapcloser", false, true, false);
+                "e-gapcloser", false, false, true, false);
 
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
             IndicatorManager.Add(Q);

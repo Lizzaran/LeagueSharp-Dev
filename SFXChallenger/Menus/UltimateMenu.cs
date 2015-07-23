@@ -64,14 +64,14 @@ namespace SFXChallenger.Menus
                         var autoInterruptMenu =
                             uAutoMenu.AddSubMenu(
                                 new Menu(Global.Lang.Get("G_InterruptSpell"), uAutoMenu.Name + ".interrupt"));
-                        HeroListManager.AddToMenu(autoInterruptMenu, "ultimate-interrupt", false, true, false);
+                        HeroListManager.AddToMenu(autoInterruptMenu, "ultimate-interrupt", false, false, true, false);
                     }
                     if (autoGapcloser)
                     {
                         var autoGapcloserMenu =
                             uAutoMenu.AddSubMenu(
                                 new Menu(Global.Lang.Get("G_Gapcloser"), uAutoMenu.Name + ".gapcloser"));
-                        HeroListManager.AddToMenu(autoGapcloserMenu, "ultimate-gapcloser", false, true, false);
+                        HeroListManager.AddToMenu(autoGapcloserMenu, "ultimate-gapcloser", false, false, true, false);
                     }
                     uAutoMenu.AddItem(
                         new MenuItem(uAutoMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(
@@ -122,7 +122,7 @@ namespace SFXChallenger.Menus
                     var uWhitelistMenu =
                         ultimateMenu.AddSubMenu(
                             new Menu(Global.Lang.Get("G_Whitelist"), ultimateMenu.Name + ".whitelist"));
-                    HeroListManager.AddToMenu(uWhitelistMenu, "ultimate-whitelist", false, true, true);
+                    HeroListManager.AddToMenu(uWhitelistMenu, "ultimate-whitelist", false, false, true, true);
                 }
 
                 if (force)
@@ -132,7 +132,7 @@ namespace SFXChallenger.Menus
                     uForceMenu.AddItem(
                         new MenuItem(uForceMenu.Name + ".additional", Global.Lang.Get("G_Additional")).SetValue(
                             new Slider(0, 0, 4)));
-                    HeroListManager.AddToMenu(uForceMenu, "ultimate-force", false, true, false);
+                    HeroListManager.AddToMenu(uForceMenu, "ultimate-force", false, false, true, false);
                 }
 
                 return ultimateMenu;

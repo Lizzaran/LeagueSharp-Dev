@@ -36,9 +36,15 @@ namespace SFXChallenger.Managers
 {
     internal class HeroListManager
     {
-        private static readonly Dictionary<string, Menu> Menues = new Dictionary<string, Menu>();
+        private static readonly Dictionary<string, Tuple<Menu, bool>> Menues =
+            new Dictionary<string, Tuple<Menu, bool>>();
 
-        public static void AddToMenu(Menu menu, string uniqueId, bool ally, bool enemy, bool defaultValue)
+        public static void AddToMenu(Menu menu,
+            string uniqueId,
+            bool whitelist,
+            bool ally,
+            bool enemy,
+            bool defaultValue)
         {
             try
             {
@@ -47,6 +53,11 @@ namespace SFXChallenger.Managers
                     throw new ArgumentException(
                         string.Format("HeroListManager: UniqueID \"{0}\" already exist.", uniqueId));
                 }
+
+                menu.AddItem(
+                    new MenuItem(
+                        menu.Name + ".hero-list-" + uniqueId + ".header",
+                        Global.Lang.Get(whitelist ? "G_Whitelist" : "G_Blacklist")));
 
                 foreach (var hero in GameObjects.Heroes.Where(h => ally && h.IsAlly || enemy && h.IsEnemy))
                 {
@@ -58,9 +69,9 @@ namespace SFXChallenger.Managers
 
                 menu.AddItem(
                     new MenuItem(menu.Name + ".hero-list-" + uniqueId + ".enabled", Global.Lang.Get("G_Enabled"))
-                        .SetValue(defaultValue));
+                        .SetValue(true));
 
-                Menues[uniqueId] = menu;
+                Menues[uniqueId] = new Tuple<Menu, bool>(menu, whitelist);
             }
             catch (Exception ex)
             {
@@ -72,10 +83,10 @@ namespace SFXChallenger.Managers
         {
             try
             {
-                Menu menu;
-                if (Menues.TryGetValue(uniqueId, out menu))
+                Tuple<Menu, bool> tuple;
+                if (Menues.TryGetValue(uniqueId, out tuple))
                 {
-                    return menu.Item(menu.Name + ".hero-list-" + uniqueId + ".enabled").GetValue<bool>();
+                    return tuple.Item1.Item(tuple.Item1.Name + ".hero-list-" + uniqueId + ".enabled").GetValue<bool>();
                 }
                 throw new KeyNotFoundException(string.Format("HeroListManager: UniqueID \"{0}\" not found.", uniqueId));
             }
@@ -91,16 +102,22 @@ namespace SFXChallenger.Managers
             return Check(uniqueId, hero.ChampionName);
         }
 
-
         public static bool Check(string uniqueId, string champ)
         {
             try
             {
-                Menu menu;
-                if (Menues.TryGetValue(uniqueId, out menu))
+                Tuple<Menu, bool> tuple;
+                if (Menues.TryGetValue(uniqueId, out tuple))
                 {
-                    return menu.Item(menu.Name + ".hero-list-" + uniqueId + ".enabled").GetValue<bool>() &&
-                           menu.Item(menu.Name + ".hero-list-" + uniqueId + champ.ToLower()).GetValue<bool>();
+                    if (tuple.Item1.Item(tuple.Item1.Name + ".hero-list-" + uniqueId + ".enabled").GetValue<bool>())
+                    {
+                        return tuple.Item2 &&
+                               tuple.Item1.Item(tuple.Item1.Name + ".hero-list-" + uniqueId + champ.ToLower())
+                                   .GetValue<bool>() ||
+                               !tuple.Item2 &&
+                               !tuple.Item1.Item(tuple.Item1.Name + ".hero-list-" + uniqueId + champ.ToLower())
+                                   .GetValue<bool>();
+                    }
                 }
                 throw new KeyNotFoundException(string.Format("HeroListManager: UniqueID \"{0}\" not found.", uniqueId));
             }

@@ -182,7 +182,7 @@ namespace SFXChallenger.Champions
 
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("E " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "e-gapcloser")),
-                "e-gapcloser", false, true, false);
+                "e-gapcloser", false, false, true, false);
 
             TargetSelector.AddWeightedItem(
                 new WeightedItem("w-stacks", "W " + Global.Lang.Get("G_Stacks"), 13, true, 333, 500, t => GetWStacks(t)));

@@ -149,7 +149,7 @@ namespace SFXChallenger.Champions
 
             HeroListManager.AddToMenu(
                 blitzMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Blacklist"), blitzMenu.Name + ".blacklist")),
-                "blitzcrank", false, true, false);
+                "blitzcrank", false, false, true, false);
 
             blitzMenu.AddItem(new MenuItem(blitzMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
 

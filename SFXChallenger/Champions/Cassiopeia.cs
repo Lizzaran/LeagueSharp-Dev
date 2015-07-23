@@ -122,7 +122,7 @@ namespace SFXChallenger.Champions
                     .SetValue(true));
 
             var ultimateMenu = UltimateMenu.AddToMenu(Menu, true, true, true, true, true, true, true);
-            
+
             ultimateMenu.AddItem(
                 new MenuItem(ultimateMenu.Name + ".range", Global.Lang.Get("G_Range")).SetValue(
                     new Slider(700, 400, 825))).ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
@@ -147,25 +147,25 @@ namespace SFXChallenger.Champions
 
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Dash"), miscMenu.Name + "q-dash")), "q-dash",
-                false, true, false);
+                false, false, true, false);
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "q-gapcloser")),
-                "q-gapcloser", false, true, false);
+                "q-gapcloser", false, false, true, false);
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Fleeing"), miscMenu.Name + "q-fleeing")),
-                "q-fleeing", false, true, false);
+                "q-fleeing", false, false, true, false);
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Stunned"), miscMenu.Name + "w-stunned")),
-                "w-stunned", false, true, false);
+                "w-stunned", false, false, true, false);
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Dash"), miscMenu.Name + "w-dash")), "w-dash",
-                false, true, false);
+                false, false, true, false);
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "w-gapcloser")),
-                "w-gapcloser", false, true, false);
+                "w-gapcloser", false, false, true, false);
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Fleeing"), miscMenu.Name + "w-fleeing")),
-                "w-fleeing", false, true, false);
+                "w-fleeing", false, false, true, false);
 
             R.Range = Menu.Item(Menu.Name + ".ultimate.range").GetValue<Slider>().Value;
             DrawingManager.Update(
@@ -274,25 +274,34 @@ namespace SFXChallenger.Champions
                         if (pred.Hitchance >= R.GetHitChance("combo"))
                         {
                             R.UpdateSourcePosition(flashPos, flashPos);
-                            if (GameObjects.EnemyHeroes.Count(x => R.WillHit(x, pred.CastPosition)) >= min)
+                            var hits =
+                                GameObjects.EnemyHeroes.Where(enemy => R.WillHit(enemy, pred.CastPosition)).ToList();
+                            if (hits.Any(hit => HeroListManager.Check("ultimate-whitelist", hit)) ||
+                                hits.Any(hit => HeroListManager.Check("ultimate-force", hit)) &&
+                                hits.Count >=
+                                (Menu.Item(Menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1))
                             {
-                                R.Cast(
-                                    Player.Position.Extend(
-                                        pred.CastPosition, -(Player.Position.Distance(pred.CastPosition) * 2)), true);
-                                Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
-                            }
-                            else if (Menu.Item(Menu.Name + ".ultimate.flash.1v1").GetValue<bool>())
-                            {
-                                var cDmg = CalcComboDamage(
-                                    target, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
-                                    Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
-                                    Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true);
-                                if (cDmg - 20 >= target.Health)
+                                if (hits.Count >= min)
                                 {
                                     R.Cast(
                                         Player.Position.Extend(
                                             pred.CastPosition, -(Player.Position.Distance(pred.CastPosition) * 2)), true);
                                     Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
+                                }
+                                else if (Menu.Item(Menu.Name + ".ultimate.flash.1v1").GetValue<bool>())
+                                {
+                                    var cDmg = CalcComboDamage(
+                                        target, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
+                                        Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
+                                        Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true);
+                                    if (cDmg - 20 >= target.Health)
+                                    {
+                                        R.Cast(
+                                            Player.Position.Extend(
+                                                pred.CastPosition, -(Player.Position.Distance(pred.CastPosition) * 2)),
+                                            true);
+                                        Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
+                                    }
                                 }
                             }
                             R.UpdateSourcePosition();
@@ -457,11 +466,9 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                
                 if (sender.IsEnemy && args.DangerLevel == Interrupter2.DangerLevel.High &&
                     Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
-                    HeroListManager.Check("ultimate-interrupt", sender) &&
-                    sender.IsFacing(Player))
+                    HeroListManager.Check("ultimate-interrupt", sender) && sender.IsFacing(Player))
                 {
                     Casting.SkillShot(sender, R, R.GetHitChance("combo"));
                 }
@@ -600,17 +607,22 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                foreach (var target in
-                    Targets.Where(t => (!face || t.IsFacing(Player)) && t.HealthPercent > 25 && R.CanCast(t)))
+                foreach (var t in Targets)
                 {
-                    var cDmg = CalcComboDamage(target, q, w, e, true);
-                    if (cDmg - 20 >= target.Health)
+                    if ((!face || t.IsFacing(Player)) && t.HealthPercent > 25 && R.CanCast(t))
                     {
-                        if (
-                            GameObjects.EnemyHeroes.Count(
-                                em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) == 1)
+                        var cDmg = CalcComboDamage(t, q, w, e, true);
+                        if (cDmg - 10 >= t.Health)
                         {
-                            Casting.SkillShot(target, R, hitChance);
+                            if (
+                                GameObjects.EnemyHeroes.Count(
+                                    em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) == 1)
+                            {
+                                if (RLogic(hitChance, 1))
+                                {
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
@@ -630,8 +642,12 @@ namespace SFXChallenger.Champions
                     var pred = R.GetPrediction(target, true);
                     if (pred.Hitchance >= hitChance)
                     {
-                        var hits = GameObjects.EnemyHeroes.Count(x => R.WillHit(x, pred.CastPosition));
-                        if (hits >= min)
+                        var hits = GameObjects.EnemyHeroes.Where(enemy => R.WillHit(enemy, pred.CastPosition)).ToList();
+                        if (hits.Count >= min &&
+                            (hits.Any(h => HeroListManager.Check("ultimate-whitelist", h)) ||
+                             hits.Any(h => HeroListManager.Check("ultimate-force", h)) &&
+                             hits.Count >=
+                             (Menu.Item(Menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1)))
                         {
                             R.Cast(pred.CastPosition);
                             return true;
