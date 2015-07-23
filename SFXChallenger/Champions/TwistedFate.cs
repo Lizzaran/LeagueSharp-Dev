@@ -166,9 +166,6 @@ namespace SFXChallenger.Champions
                 miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Stunned"), miscMenu.Name + "q-stunned")),
                 "q-stunned", false, false, true, false);
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Dash"), miscMenu.Name + "q-dash")), "q-dash",
-                false, false, true, false);
-            HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "q-gapcloser")),
                 "q-gapcloser", false, false, true, false);
             HeroListManager.AddToMenu(
@@ -484,7 +481,7 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
-                if (HeroListManager.Check("q-dash", hero) && Player.Distance(args.EndPos) <= Q.Range && Q.IsReady())
+                if (HeroListManager.Check("q-gapcloser", hero) && Player.Distance(args.EndPos) <= Q.Range && Q.IsReady())
                 {
                     Q.Cast(args.EndPos);
                 }

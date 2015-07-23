@@ -170,9 +170,6 @@ namespace SFXChallenger.Champions
                 miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Stunned"), miscMenu.Name + "w-stunned")),
                 "w-stunned", false, false, true, false);
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Dash"), miscMenu.Name + "w-dash")), "w-dash",
-                false, false, true, false);
-            HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "w-gapcloser")),
                 "w-gapcloser", false, false, true, false);
 
@@ -425,7 +422,7 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
-                if (HeroListManager.Check("w-dash", hero))
+                if (HeroListManager.Check("w-gapcloser", hero))
                 {
                     if (args.EndPos.Distance(Player.Position) < W.Range)
                     {

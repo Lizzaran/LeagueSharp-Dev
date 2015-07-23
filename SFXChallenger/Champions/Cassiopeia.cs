@@ -146,23 +146,17 @@ namespace SFXChallenger.Champions
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
 
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Dash"), miscMenu.Name + "q-dash")), "q-dash",
+                miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "q-gapcloser")), "q-gapcloser",
                 false, false, true, false);
-            HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "q-gapcloser")),
-                "q-gapcloser", false, false, true, false);
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Fleeing"), miscMenu.Name + "q-fleeing")),
                 "q-fleeing", false, false, true, false);
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Stunned"), miscMenu.Name + "w-stunned")),
-                "w-stunned", false, false, true, false);
-            HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Dash"), miscMenu.Name + "w-dash")), "w-dash",
+                miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "w-gapcloser")), "w-gapcloser",
                 false, false, true, false);
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "w-gapcloser")),
-                "w-gapcloser", false, false, true, false);
+                miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Stunned"), miscMenu.Name + "w-stunned")),
+                "w-stunned", false, false, true, false);
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Fleeing"), miscMenu.Name + "w-fleeing")),
                 "w-fleeing", false, false, true, false);
@@ -427,11 +421,10 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
-
                 var endTick = Game.Time - Game.Ping / 2000f + (args.EndPos.Distance(args.StartPos) / args.Speed);
 
                 var wCasted = false;
-                if (HeroListManager.Check("w-dash", hero) && Player.Distance(args.EndPos) <= W.Range && W.IsReady())
+                if (HeroListManager.Check("w-gapcloser", hero) && Player.Distance(args.EndPos) <= W.Range && W.IsReady())
                 {
                     var delay = (int) (endTick - Game.Time - W.Delay - 0.1f);
                     if (delay > 0)
@@ -445,7 +438,7 @@ namespace SFXChallenger.Champions
                     wCasted = true;
                 }
 
-                if (!wCasted && HeroListManager.Check("q-dash", hero) && Player.Distance(args.EndPos) <= Q.Range &&
+                if (!wCasted && HeroListManager.Check("q-gapcloser", hero) && Player.Distance(args.EndPos) <= Q.Range &&
                     Q.IsReady())
                 {
                     var delay = (int) (endTick - Game.Time - Q.Delay - 0.1f);
@@ -490,7 +483,6 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
-
                 if (Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
                     HeroListManager.Check("ultimate-gapcloser", args.Sender))
                 {
