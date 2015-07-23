@@ -260,17 +260,22 @@ namespace SFXChallenger.Champions
                                 R.Cast(Player.Position);
                                 Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
                             }
-                            else if (Menu.Item(Menu.Name + ".ultimate.flash.1v1").GetValue<bool>() &&
-                                     HeroListManager.Check("ultimate-whitelist", target))
+                            else if (Menu.Item(Menu.Name + ".ultimate.flash.1v1").GetValue<bool>())
                             {
-                                var cDmg = CalcComboDamage(
-                                    target, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
-                                    Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
-                                    Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true);
-                                if (cDmg - 20 >= target.Health)
+                                if (hits.Any(hit => HeroListManager.Check("ultimate-whitelist", hit)) ||
+                                    hits.Any(hit => HeroListManager.Check("ultimate-force", hit)) &&
+                                    hits.Count >=
+                                    (Menu.Item(Menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1))
                                 {
-                                    R.Cast(Player.Position);
-                                    Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
+                                    var cDmg = CalcComboDamage(
+                                        target, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
+                                        Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
+                                        Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true);
+                                    if (cDmg - 20 >= target.Health)
+                                    {
+                                        R.Cast(Player.Position);
+                                        Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
+                                    }
                                 }
                             }
                             R.UpdateSourcePosition(Ball.Position, Ball.Position);
