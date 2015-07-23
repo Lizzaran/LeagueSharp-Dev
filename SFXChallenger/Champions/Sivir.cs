@@ -106,8 +106,9 @@ namespace SFXChallenger.Champions
             shieldMenu.AddItem(new MenuItem(shieldMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
-            miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".q-stun", "Q " + Global.Lang.Get("G_Stunned")).SetValue(false));
+            HeroListManager.AddToMenu(
+                miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Stunned"), miscMenu.Name + "q-stunned")),
+                "q-stunned", false, true, false);
 
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
             IndicatorManager.Add(Q);
@@ -175,12 +176,12 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (Menu.Item(Menu.Name + ".miscellaneous.q-stun").GetValue<bool>() && Q.IsReady())
+                if (Q.IsReady())
                 {
                     var target =
                         GameObjects.EnemyHeroes.OrderBy(e => e.Distance(Player))
                             .Where(e => Q.IsInRange(e))
-                            .FirstOrDefault(Utils.IsStunned);
+                            .FirstOrDefault(t => HeroListManager.Check("q-stunned", t) && Utils.IsStunned(t));
                     if (target != null)
                     {
                         Q.Cast(target.Position);

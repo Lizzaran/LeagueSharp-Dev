@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- twistedfate.cs is part of SFXChallenger.
+ TwistedFate.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@ namespace SFXChallenger.Champions
     internal class TwistedFate : Champion
     {
         private readonly float _qAngle = 28 * (float) Math.PI / 180;
-        private readonly float _wRedRadius = 190f;
+        private readonly float _wRedRadius = 200f;
         private MenuItem _eStacks;
         private MenuItem _nextCard;
         private float _qDelay;
@@ -161,13 +161,19 @@ namespace SFXChallenger.Champions
                 new MenuItem(miscMenu.Name + ".mode", Global.Lang.Get("G_Mode")).SetValue(
                     new StringList(Global.Lang.GetList("TF_Modes"))));
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r-card", Global.Lang.Get("TF_RCard")).SetValue(true));
-            miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".q-stunned", "Q " + Global.Lang.Get("G_Stunned")).SetValue(true));
-            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".q-dash", "Q " + Global.Lang.Get("G_Dash")).SetValue(true));
-            miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".q-gap", "Q " + Global.Lang.Get("G_Gapcloser")).SetValue(true));
-            miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".w-interrupt", "W " + Global.Lang.Get("G_InterruptSpell")).SetValue(true));
+
+            HeroListManager.AddToMenu(
+                miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Stunned"), miscMenu.Name + "q-stunned")),
+                "q-stunned", false, true, false);
+            HeroListManager.AddToMenu(
+                miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Dash"), miscMenu.Name + "q-dash")), "q-dash",
+                false, true, false);
+            HeroListManager.AddToMenu(
+                miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "q-gapcloser")),
+                "q-gapcloser", false, true, false);
+            HeroListManager.AddToMenu(
+                miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_InterruptSpell"), miscMenu.Name + "w-interrupt")),
+                "w-interrupt", false, true, false);
 
             var manualMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Manual"), Menu.Name + ".manual"));
             manualMenu.AddItem(
@@ -280,6 +286,21 @@ namespace SFXChallenger.Champions
                         Cards.Select(CardColor.Gold);
                     }
                 }
+                if (Q.IsReady())
+                {
+                    var target =
+                        GameObjects.Heroes.FirstOrDefault(
+                            t => Q.IsInRange(t) && HeroListManager.Check("q-stunned", t) && Helpers.Utils.IsStunned(t));
+                    if (target != null)
+                    {
+                        var best = BestQPosition(
+                            target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("harass"));
+                        if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
+                        {
+                            Q.Cast(best.Item2);
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -374,7 +395,7 @@ namespace SFXChallenger.Champions
             }
             return new Tuple<int, Vector3>(totalHits, castPos);
         }
-        
+
         private int GetWHits(Obj_AI_Base target, List<Obj_AI_Base> targets = null, CardColor color = CardColor.Gold)
         {
             try
@@ -432,8 +453,7 @@ namespace SFXChallenger.Champions
             try
             {
                 if (sender.IsEnemy && args.DangerLevel == Interrupter2.DangerLevel.High &&
-                    Menu.Item(Menu.Name + ".miscellaneous.w-interrupt").GetValue<bool>() &&
-                    sender.Distance(Player) < W.Range)
+                    HeroListManager.Check("w-interrupt", sender) && sender.Distance(Player) < W.Range)
                 {
                     if (Cards.Status != SelectStatus.Selected && W.IsReady())
                     {
@@ -464,19 +484,9 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
-                var endPos = args.EndPos;
-                if (hero.ChampionName.Equals("Fizz", StringComparison.OrdinalIgnoreCase))
+                if (HeroListManager.Check("q-dash", hero) && Player.Distance(args.EndPos) <= Q.Range && Q.IsReady())
                 {
-                    endPos = args.StartPos.Extend(endPos, 550);
-                }
-                if (hero.ChampionName.Equals("LeBlanc", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    endPos = args.StartPos.Distance(Player) < W.Range ? args.StartPos : endPos;
-                }
-                if (Menu.Item(Menu.Name + ".miscellaneous.q-dash").GetValue<bool>() &&
-                    Player.Distance(endPos) <= Q.Range && Q.IsReady())
-                {
-                    Q.Cast(endPos);
+                    Q.Cast(args.EndPos);
                 }
             }
             catch (Exception ex)
@@ -493,19 +503,10 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
-
-                var endPos = args.End;
-                if (args.Sender.ChampionName.Equals("Fizz", StringComparison.OrdinalIgnoreCase))
+                if (HeroListManager.Check("q-gapcloser", args.Sender) && args.End.Distance(Player.Position) < Q.Range &&
+                    Q.IsReady())
                 {
-                    endPos = args.Start.Extend(endPos, 550);
-                }
-
-                if (Menu.Item(Menu.Name + ".miscellaneous.q-gap").GetValue<bool>() && Q.IsReady())
-                {
-                    if (endPos.Distance(Player.Position) < Q.Range)
-                    {
-                        Q.Cast(endPos);
-                    }
+                    Q.Cast(args.End);
                 }
             }
             catch (Exception ex)
@@ -566,14 +567,22 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                if (Cards.Has(CardColor.Gold))
+                {
+                    return;
+                }
                 if ((Cards.Has() || HasEBuff()) &&
                     GameObjects.EnemyHeroes.Any(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget()))
                 {
                     return;
                 }
                 var target = TargetSelector.GetTarget(Q.Range, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+                if (_qTarget != null && _qTarget.IsValidTarget(Q.Range) && Game.Time < _qDelay + 0.5f)
+                {
+                    target = _qTarget;
+                }
                 if (target != null &&
-                    (!target.NetworkId.Equals(_qTarget.NetworkId) ||
+                    (_qTarget == null || !target.NetworkId.Equals(_qTarget.NetworkId) ||
                      (Game.Time > _qDelay || Helpers.Utils.IsStunned(target))))
                 {
                     var cd = W.Instance.CooldownExpires - Game.Time;

@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- targetselector.cs is part of SFXChallenger.
+ TargetSelector.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -456,7 +456,7 @@ namespace SFXChallenger.Wrappers
                     IsValidTarget(
                         SelectedTarget,
                         _menu.Item(_menu.Name + ".force-focus-selected").GetValue<bool>() ? float.MaxValue : aRange,
-                        LeagueSharp.Common.TargetSelector.DamageType.True, true, from))
+                        LeagueSharp.Common.TargetSelector.DamageType.True, ignoreShields, from))
                 {
                     return new List<Obj_AI_Hero> { SelectedTarget };
                 }

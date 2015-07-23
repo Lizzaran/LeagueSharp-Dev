@@ -31,6 +31,7 @@ using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
+using SFXChallenger.Menus;
 using SFXChallenger.Wrappers;
 using SFXLibrary;
 using SFXLibrary.Extensions.NET;
@@ -120,65 +121,8 @@ namespace SFXChallenger.Champions
                     lasthitMenu.Name + ".e-poison", Global.Lang.Get("G_UseE") + " " + Global.Lang.Get("G_Poison"))
                     .SetValue(true));
 
-            var ultimateMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Ultimate"), Menu.Name + ".ultimate"));
-
-            var uComboMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), ultimateMenu.Name + ".combo"));
-            uComboMenu.AddItem(
-                new MenuItem(uComboMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
-            uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".1v1", "R 1v1").SetValue(true));
-            uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
-
-            var uAutoMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Auto"), ultimateMenu.Name + ".auto"));
-
-            var autoGapMenu =
-                uAutoMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Gapcloser"), uAutoMenu.Name + ".gapcloser"));
-            foreach (var enemy in
-                GameObjects.EnemyHeroes.Where(
-                    e =>
-                        AntiGapcloser.Spells.Any(
-                            s => s.ChampionName.Equals(e.ChampionName, StringComparison.OrdinalIgnoreCase))))
-            {
-                autoGapMenu.AddItem(
-                    new MenuItem(autoGapMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(true));
-            }
-
-            var autoInterruptMenu =
-                uAutoMenu.AddSubMenu(new Menu(Global.Lang.Get("G_InterruptSpell"), uAutoMenu.Name + ".interrupt"));
-            foreach (var enemy in GameObjects.EnemyHeroes)
-            {
-                autoInterruptMenu.AddItem(
-                    new MenuItem(autoInterruptMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(false));
-            }
-
-            uAutoMenu.AddItem(
-                new MenuItem(uAutoMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
-            uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".1v1", "R 1v1").SetValue(false));
-            uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
-
-            var uFlashMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Flash"), ultimateMenu.Name + ".flash"));
-            uFlashMenu.AddItem(
-                new MenuItem(uFlashMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
-            uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".1v1", "R 1v1").SetValue(true));
-            uFlashMenu.AddItem(
-                new MenuItem(uFlashMenu.Name + ".hotkey", Global.Lang.Get("G_Hotkey")).SetValue(
-                    new KeyBind('U', KeyBindType.Press)));
-            uFlashMenu.AddItem(
-                new MenuItem(uFlashMenu.Name + ".move-cursor", Global.Lang.Get("G_MoveCursor")).SetValue(true));
-            uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
-
-            var uAssistedMenu =
-                ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Assisted"), ultimateMenu.Name + ".assisted"));
-            uAssistedMenu.AddItem(
-                new MenuItem(uAssistedMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
-            uAssistedMenu.AddItem(new MenuItem(uAssistedMenu.Name + ".1v1", "R 1v1").SetValue(true));
-            uAssistedMenu.AddItem(
-                new MenuItem(uAssistedMenu.Name + ".hotkey", Global.Lang.Get("G_Hotkey")).SetValue(
-                    new KeyBind('R', KeyBindType.Press)));
-            uAssistedMenu.AddItem(
-                new MenuItem(uAssistedMenu.Name + ".move-cursor", Global.Lang.Get("G_MoveCursor")).SetValue(true));
-            uAssistedMenu.AddItem(
-                new MenuItem(uAssistedMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
-
+            var ultimateMenu = UltimateMenu.AddToMenu(Menu, true, true, true, true, true, true, true);
+            
             ultimateMenu.AddItem(
                 new MenuItem(ultimateMenu.Name + ".range", Global.Lang.Get("G_Range")).SetValue(
                     new Slider(700, 400, 825))).ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
@@ -200,14 +144,28 @@ namespace SFXChallenger.Champions
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
-            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".q-dash", "Q " + Global.Lang.Get("G_Dash")).SetValue(false));
-            miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".q-fleeing", "Q " + Global.Lang.Get("G_Fleeing")).SetValue(false));
-            miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".w-stunned", "W " + Global.Lang.Get("G_Stunned")).SetValue(false));
-            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-dash", "W " + Global.Lang.Get("G_Dash")).SetValue(false));
-            miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".w-fleeing", "W " + Global.Lang.Get("G_Fleeing")).SetValue(false));
+
+            HeroListManager.AddToMenu(
+                miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Dash"), miscMenu.Name + "q-dash")), "q-dash",
+                false, true, false);
+            HeroListManager.AddToMenu(
+                miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "q-gapcloser")),
+                "q-gapcloser", false, true, false);
+            HeroListManager.AddToMenu(
+                miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Fleeing"), miscMenu.Name + "q-fleeing")),
+                "q-fleeing", false, true, false);
+            HeroListManager.AddToMenu(
+                miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Stunned"), miscMenu.Name + "w-stunned")),
+                "w-stunned", false, true, false);
+            HeroListManager.AddToMenu(
+                miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Dash"), miscMenu.Name + "w-dash")), "w-dash",
+                false, true, false);
+            HeroListManager.AddToMenu(
+                miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "w-gapcloser")),
+                "w-gapcloser", false, true, false);
+            HeroListManager.AddToMenu(
+                miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Fleeing"), miscMenu.Name + "w-fleeing")),
+                "w-fleeing", false, true, false);
 
             R.Range = Menu.Item(Menu.Name + ".ultimate.range").GetValue<Slider>().Value;
             DrawingManager.Update(
@@ -384,9 +342,10 @@ namespace SFXChallenger.Champions
                     }
                 }
 
-                if (Menu.Item(Menu.Name + ".miscellaneous.w-stunned").GetValue<bool>() && W.IsReady())
+                if (HeroListManager.Enabled("w-stunned") && W.IsReady())
                 {
-                    var target = Targets.FirstOrDefault(Utils.IsStunned);
+                    var target = Targets.FirstOrDefault(
+                        t => HeroListManager.Check("w-stunned", t) && Utils.IsStunned(t));
                     if (target != null)
                     {
                         Casting.SkillShot(target, W, W.GetHitChance("harass"));
@@ -458,43 +417,33 @@ namespace SFXChallenger.Champions
                 }
 
                 var endTick = Game.Time - Game.Ping / 2000f + (args.EndPos.Distance(args.StartPos) / args.Speed);
-                var endPos = args.EndPos;
-                if (hero.ChampionName.Equals("Fizz", StringComparison.OrdinalIgnoreCase))
-                {
-                    endPos = args.StartPos.Extend(endPos, 550);
-                }
-                if (hero.ChampionName.Equals("LeBlanc", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    endPos = args.StartPos.Distance(Player) < W.Range ? args.StartPos : endPos;
-                }
 
                 var wCasted = false;
-                if (Menu.Item(Menu.Name + ".miscellaneous.w-dash").GetValue<bool>() &&
-                    Player.Distance(endPos) <= W.Range && W.IsReady())
+                if (HeroListManager.Check("w-dash", hero) && Player.Distance(args.EndPos) <= W.Range && W.IsReady())
                 {
                     var delay = (int) (endTick - Game.Time - W.Delay - 0.1f);
                     if (delay > 0)
                     {
-                        Utility.DelayAction.Add(delay * 1000, () => W.Cast(endPos));
+                        Utility.DelayAction.Add(delay * 1000, () => W.Cast(args.EndPos));
                     }
                     else
                     {
-                        W.Cast(endPos);
+                        W.Cast(args.EndPos);
                     }
                     wCasted = true;
                 }
 
-                if (!wCasted && Menu.Item(Menu.Name + ".miscellaneous.q-dash").GetValue<bool>() &&
-                    Player.Distance(endPos) <= Q.Range && Q.IsReady())
+                if (!wCasted && HeroListManager.Check("q-dash", hero) && Player.Distance(args.EndPos) <= Q.Range &&
+                    Q.IsReady())
                 {
                     var delay = (int) (endTick - Game.Time - Q.Delay - 0.1f);
                     if (delay > 0)
                     {
-                        Utility.DelayAction.Add(delay * 1000, () => Q.Cast(endPos));
+                        Utility.DelayAction.Add(delay * 1000, () => Q.Cast(args.EndPos));
                     }
                     else
                     {
-                        Q.Cast(endPos);
+                        Q.Cast(args.EndPos);
                     }
                 }
             }
@@ -508,9 +457,10 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                
                 if (sender.IsEnemy && args.DangerLevel == Interrupter2.DangerLevel.High &&
                     Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
-                    Menu.Item(Menu.Name + ".ultimate.auto.interrupt." + sender.ChampionName).GetValue<bool>() &&
+                    HeroListManager.Check("ultimate-interrupt", sender) &&
                     sender.IsFacing(Player))
                 {
                     Casting.SkillShot(sender, R, R.GetHitChance("combo"));
@@ -531,19 +481,26 @@ namespace SFXChallenger.Champions
                     return;
                 }
 
-                var endPos = args.End;
-                if (args.Sender.ChampionName.Equals("Fizz", StringComparison.OrdinalIgnoreCase))
+                if (Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
+                    HeroListManager.Check("ultimate-gapcloser", args.Sender))
                 {
-                    endPos = args.Start.Extend(endPos, 550);
+                    if (args.End.Distance(Player.Position) < R.Range)
+                    {
+                        R.Cast(args.End);
+                    }
+                }
+                var wCasted = false;
+                if (HeroListManager.Check("w-gapcloser", args.Sender) && Player.Distance(args.End) <= W.Range &&
+                    W.IsReady())
+                {
+                    W.Cast(args.End);
+                    wCasted = true;
                 }
 
-                if (Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
-                    Menu.Item(Menu.Name + ".ultimate.auto.gapcloser." + args.Sender.ChampionName).GetValue<bool>())
+                if (!wCasted && HeroListManager.Check("q-gapcloser", args.Sender) &&
+                    Player.Distance(args.End) <= Q.Range && Q.IsReady())
                 {
-                    if (endPos.Distance(Player.Position) < R.Range)
-                    {
-                        R.Cast(endPos);
-                    }
+                    Q.Cast(args.End);
                 }
             }
             catch (Exception ex)
@@ -698,8 +655,8 @@ namespace SFXChallenger.Champions
                         t =>
                             Q.CanCast(t) &&
                             (GetPoisonBuffEndTime(t) < Q.Delay * 1.2f ||
-                             (Menu.Item(Menu.Name + ".miscellaneous.q-fleeing").GetValue<bool>() && !t.IsFacing(Player) &&
-                              t.IsMoving && t.Distance(Player) > 150)));
+                             (HeroListManager.Check("q-fleeing", t) && !t.IsFacing(Player) && t.IsMoving &&
+                              t.Distance(Player) > 150)));
                 if (ts != null)
                 {
                     _lastQPoisonDelay = Game.Time + Q.Delay;
@@ -723,8 +680,8 @@ namespace SFXChallenger.Champions
                             W.CanCast(t) &&
                             ((_lastQPoisonDelay < Game.Time && GetPoisonBuffEndTime(t) < W.Delay * 1.2 ||
                               _lastQPoisonT.NetworkId != t.NetworkId) ||
-                             (Menu.Item(Menu.Name + ".miscellaneous.w-fleeing").GetValue<bool>() && !t.IsFacing(Player) &&
-                              t.IsMoving && t.Distance(Player) > 150)));
+                             (HeroListManager.Check("w-fleeing", t) && !t.IsFacing(Player) && t.IsMoving &&
+                              t.Distance(Player) > 150)));
                 if (ts != null)
                 {
                     Casting.SkillShot(ts, W, hitChance);

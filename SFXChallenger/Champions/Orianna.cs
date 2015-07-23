@@ -31,6 +31,7 @@ using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Events;
 using SFXChallenger.Managers;
+using SFXChallenger.Menus;
 using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
@@ -96,70 +97,7 @@ namespace SFXChallenger.Champions
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
 
-            var ultimateMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Ultimate"), Menu.Name + ".ultimate"));
-
-            var uComboMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), ultimateMenu.Name + ".combo"));
-            uComboMenu.AddItem(
-                new MenuItem(uComboMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
-            uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".1v1", "R 1v1").SetValue(true));
-            uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
-
-            var uAutoMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Auto"), ultimateMenu.Name + ".auto"));
-
-            var autoInterruptMenu =
-                uAutoMenu.AddSubMenu(new Menu(Global.Lang.Get("G_InterruptSpell"), uAutoMenu.Name + ".interrupt"));
-            foreach (var enemy in GameObjects.EnemyHeroes)
-            {
-                autoInterruptMenu.AddItem(
-                    new MenuItem(autoInterruptMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(false));
-            }
-
-            uAutoMenu.AddItem(
-                new MenuItem(uAutoMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
-            uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".1v1", "R 1v1").SetValue(false));
-            uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
-
-            var uFlashMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Flash"), ultimateMenu.Name + ".flash"));
-            uFlashMenu.AddItem(
-                new MenuItem(uFlashMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
-            uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".1v1", "R 1v1").SetValue(true));
-            uFlashMenu.AddItem(
-                new MenuItem(uFlashMenu.Name + ".hotkey", Global.Lang.Get("G_Hotkey")).SetValue(
-                    new KeyBind('U', KeyBindType.Press)));
-            uFlashMenu.AddItem(
-                new MenuItem(uFlashMenu.Name + ".move-cursor", Global.Lang.Get("G_MoveCursor")).SetValue(true));
-            uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
-
-            var uAssistedMenu =
-                ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Assisted"), ultimateMenu.Name + ".assisted"));
-            uAssistedMenu.AddItem(
-                new MenuItem(uAssistedMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
-            uAssistedMenu.AddItem(new MenuItem(uAssistedMenu.Name + ".1v1", "R 1v1").SetValue(true));
-            uAssistedMenu.AddItem(
-                new MenuItem(uAssistedMenu.Name + ".hotkey", Global.Lang.Get("G_Hotkey")).SetValue(
-                    new KeyBind('R', KeyBindType.Press)));
-            uAssistedMenu.AddItem(
-                new MenuItem(uAssistedMenu.Name + ".move-cursor", Global.Lang.Get("G_MoveCursor")).SetValue(true));
-            uAssistedMenu.AddItem(
-                new MenuItem(uAssistedMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
-
-            var uWhitelistMenu =
-                ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Whitelist"), ultimateMenu.Name + ".whitelist"));
-            foreach (var enemy in GameObjects.EnemyHeroes)
-            {
-                uWhitelistMenu.AddItem(
-                    new MenuItem(uWhitelistMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(true));
-            }
-
-            var uForceMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Force"), ultimateMenu.Name + ".force"));
-            uForceMenu.AddItem(
-                new MenuItem(uForceMenu.Name + ".additional", Global.Lang.Get("G_Additional")).SetValue(
-                    new Slider(0, 0, 4)));
-            foreach (var enemy in GameObjects.EnemyHeroes)
-            {
-                uForceMenu.AddItem(
-                    new MenuItem(uForceMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(false));
-            }
+            UltimateMenu.AddToMenu(Menu, true, true, false, true, true, true, true);
 
             var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Flee"), Menu.Name + ".flee"));
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
@@ -314,13 +252,8 @@ namespace SFXChallenger.Champions
                         {
                             R.UpdateSourcePosition(flashPos, flashPos);
                             var hits = GameObjects.EnemyHeroes.Where(x => R.WillHit(x, pred.CastPosition)).ToList();
-                            if (hits.Count >= min &&
-                                hits.Any(
-                                    hit =>
-                                        Menu.Item(Menu.Name + ".ultimate.whitelist." + hit.ChampionName)
-                                            .GetValue<bool>()) ||
-                                hits.Any(
-                                    hit => Menu.Item(Menu.Name + ".ultimate.force." + hit.ChampionName).GetValue<bool>()) &&
+                            if (hits.Count >= min && hits.Any(hit => HeroListManager.Check("ultimate-whitelist", hit)) ||
+                                hits.Any(hit => HeroListManager.Check("ultimate-force", hit)) &&
                                 hits.Count >=
                                 (Menu.Item(Menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1))
                             {
@@ -328,7 +261,7 @@ namespace SFXChallenger.Champions
                                 Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
                             }
                             else if (Menu.Item(Menu.Name + ".ultimate.flash.1v1").GetValue<bool>() &&
-                                     Menu.Item(Menu.Name + ".ultimate.whitelist." + target.ChampionName).GetValue<bool>())
+                                     HeroListManager.Check("ultimate-whitelist", target))
                             {
                                 var cDmg = CalcComboDamage(
                                     target, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
@@ -408,8 +341,7 @@ namespace SFXChallenger.Champions
             {
                 if (sender.IsEnemy && args.DangerLevel == Interrupter2.DangerLevel.High && args.MovementInterrupts &&
                     Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
-                    Menu.Item(Menu.Name + ".ultimate.auto.interrupt." + sender.ChampionName).GetValue<bool>() &&
-                    R.IsReady())
+                    HeroListManager.Check("ultimate-interrupt", sender) && R.IsReady())
                 {
                     var hits = GetHits(R);
                     if (hits.Item2.Any(i => i.NetworkId.Equals(sender.NetworkId)))
@@ -651,10 +583,8 @@ namespace SFXChallenger.Champions
             try
             {
                 var hits = GetHits(R);
-                if (hits.Item1 >= min &&
-                    hits.Item2.Any(
-                        hit => Menu.Item(Menu.Name + ".ultimate.whitelist." + hit.ChampionName).GetValue<bool>()) ||
-                    hits.Item2.Any(hit => Menu.Item(Menu.Name + ".ultimate.force." + hit.ChampionName).GetValue<bool>()) &&
+                if (hits.Item1 >= min && hits.Item2.Any(hit => HeroListManager.Check("ultimate-whitelist", hit)) ||
+                    hits.Item2.Any(hit => HeroListManager.Check("ultimate-force", hit)) &&
                     hits.Item1 >= (Menu.Item(Menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1))
                 {
                     R.Cast(Player.Position);

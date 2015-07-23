@@ -91,10 +91,13 @@ namespace SFXChallenger.Champions
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
-            miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".w-gapcloser", "W " + Global.Lang.Get("G_Gapcloser")).SetValue(false));
-            miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".e-gapcloser", "E " + Global.Lang.Get("G_Gapcloser")).SetValue(false));
+
+            HeroListManager.AddToMenu(
+                miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "w-gapcloser")),
+                "w-gapcloser", false, true, false);
+            HeroListManager.AddToMenu(
+                miscMenu.AddSubMenu(new Menu("E " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "e-gapcloser")),
+                "e-gapcloser", false, true, false);
 
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
             IndicatorManager.Add(Q);
@@ -126,22 +129,16 @@ namespace SFXChallenger.Champions
                     return;
                 }
 
-                var endPos = args.End;
-                if (args.Sender.ChampionName.Equals("Fizz", StringComparison.OrdinalIgnoreCase))
+                if (HeroListManager.Check("w-gapcloser", args.Sender))
                 {
-                    endPos = args.Start.Extend(endPos, 550);
-                }
-
-                if (Menu.Item(Menu.Name + ".miscellaneous.w-gapcloser").GetValue<bool>())
-                {
-                    if (endPos.Distance(Player.Position) < W.Range)
+                    if (args.End.Distance(Player.Position) < W.Range)
                     {
-                        W.Cast(endPos);
+                        W.Cast(args.End);
                     }
                 }
-                if (Menu.Item(Menu.Name + ".miscellaneous.e-gapcloser").GetValue<bool>())
+                if (HeroListManager.Check("e-gapcloser", args.Sender))
                 {
-                    E.Cast(endPos.Extend(Player.Position, E.Range));
+                    E.Cast(args.End.Extend(Player.Position, E.Range));
                 }
             }
             catch (Exception ex)

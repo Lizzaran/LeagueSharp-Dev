@@ -147,13 +147,9 @@ namespace SFXChallenger.Champions
 
             var blitzMenu = ultiMenu.AddSubMenu(new Menu("Blitzcrank", ultiMenu.Name + ".blitzcrank"));
 
-            var excludeMenu =
-                blitzMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Blacklist"), blitzMenu.Name + ".blacklist"));
-            foreach (var enemy in GameObjects.EnemyHeroes)
-            {
-                excludeMenu.AddItem(
-                    new MenuItem(excludeMenu.Name + enemy.ChampionName, enemy.ChampionName).SetValue(false));
-            }
+            HeroListManager.AddToMenu(
+                blitzMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Blacklist"), blitzMenu.Name + ".blacklist")),
+                "blitzcrank", false, true, false);
 
             blitzMenu.AddItem(new MenuItem(blitzMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
 
@@ -213,8 +209,8 @@ namespace SFXChallenger.Champions
                         args.Buff.Name.Equals("rocketgrab2", StringComparison.OrdinalIgnoreCase) && args.Buff.IsActive)
                     {
                         if (Menu.Item(Menu.Name + ".ultimate.blitzcrank.r").GetValue<bool>() &&
-                            !Menu.Item(Menu.Name + ".ultimate.blitzcrank.blacklist." + target.ChampionName)
-                                .GetValue<bool>() && R.IsReady() && SoulBound.Unit.Distance(Player) < R.Range)
+                            !HeroListManager.Check("blitzcrank", target) && R.IsReady() &&
+                            SoulBound.Unit.Distance(Player) < R.Range)
                         {
                             if (!SoulBound.Unit.UnderTurret(false) && SoulBound.Unit.Distance(sender) > 750f &&
                                 SoulBound.Unit.Distance(Player) > R.Range / 3f)

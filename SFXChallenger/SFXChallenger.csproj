@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.5.3.10</AssemblyVersion>
+    <AssemblyVersion>0.5.3.11</AssemblyVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -104,6 +104,7 @@
     <Compile Include="Helpers\DynamicInitializer.cs" />
     <Compile Include="Helpers\Utils.cs" />
     <Compile Include="Managers\DrawingManager.cs" />
+    <Compile Include="Managers\HeroListManager.cs" />
     <Compile Include="Managers\HitchanceManager.cs" />
     <Compile Include="Managers\IndicatorManager.cs" />
     <Compile Include="Managers\InitiatorManager.cs" />
@@ -113,6 +114,7 @@
     <Compile Include="Menus\LanguageMenu.cs" />
     <Compile Include="Menus\TickMenu.cs" />
     <Compile Include="Helpers\Casting.cs" />
+    <Compile Include="Menus\UltimateMenu.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

@@ -162,13 +162,20 @@ namespace SFXChallenger.Champions
                 new MenuItem(fleeMenu.Name + ".q-upgraded", "Q " + Global.Lang.Get("G_Upgraded")).SetValue(true));
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
-            miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".w-slowed", "W " + Global.Lang.Get("G_Slowed")).SetValue(true));
-            miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".w-stunned", "W " + Global.Lang.Get("G_Stunned")).SetValue(true));
-            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-dash", "W " + Global.Lang.Get("G_Dash")).SetValue(true));
-            miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".w-gapcloser", "W " + Global.Lang.Get("G_Gapcloser")).SetValue(true));
+
+            HeroListManager.AddToMenu(
+                miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Slowed"), miscMenu.Name + "w-slowed")),
+                "w-slowed", false, true, false);
+            HeroListManager.AddToMenu(
+                miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Stunned"), miscMenu.Name + "w-stunned")),
+                "w-stunned", false, true, false);
+            HeroListManager.AddToMenu(
+                miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Dash"), miscMenu.Name + "w-dash")), "w-dash",
+                false, true, false);
+            HeroListManager.AddToMenu(
+                miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "w-gapcloser")),
+                "w-gapcloser", false, true, false);
+
 
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
             IndicatorManager.Add(
@@ -254,12 +261,12 @@ namespace SFXChallenger.Champions
                     }
                 }
 
-                if (Menu.Item(Menu.Name + ".miscellaneous.w-stunned").GetValue<bool>() && W.IsReady())
+                if (HeroListManager.Enabled("w-stunned") && W.IsReady())
                 {
                     var target =
                         Targets.FirstOrDefault(
                             t =>
-                                t.IsValidTarget(W.Range) &&
+                                HeroListManager.Check("w-stunned", t) && t.IsValidTarget(W.Range) &&
                                 (t.HasBuffOfType(BuffType.Charm) || t.HasBuffOfType(BuffType.Snare) ||
                                  t.HasBuffOfType(BuffType.Knockup) || t.HasBuffOfType(BuffType.Polymorph) ||
                                  t.HasBuffOfType(BuffType.Fear) || t.HasBuffOfType(BuffType.Taunt) ||
@@ -271,12 +278,12 @@ namespace SFXChallenger.Champions
                     }
                 }
 
-                if (Menu.Item(Menu.Name + ".miscellaneous.w-slowed").GetValue<bool>() && W.IsReady())
+                if (HeroListManager.Enabled("w-slowed") && W.IsReady())
                 {
                     var target =
                         Targets.FirstOrDefault(
                             t =>
-                                t.IsValidTarget(W.Range) &&
+                                t.IsValidTarget(W.Range) && HeroListManager.Check("w-slowed", t) &&
                                 t.Buffs.Any(b => b.Type == BuffType.Slow && b.EndTime - Game.Time > 0.5f));
                     if (target != null)
                     {
@@ -418,21 +425,11 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
-
-                var endPos = args.EndPos;
-                if (hero.ChampionName.Equals("Fizz", StringComparison.OrdinalIgnoreCase))
+                if (HeroListManager.Check("w-dash", hero))
                 {
-                    endPos = args.StartPos.Extend(endPos, 550);
-                }
-                if (hero.ChampionName.Equals("LeBlanc", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    endPos = args.StartPos.Distance(Player) < W.Range ? args.StartPos : endPos;
-                }
-                if (Menu.Item(Menu.Name + ".miscellaneous.w-dash").GetValue<bool>())
-                {
-                    if (endPos.Distance(Player.Position) < W.Range)
+                    if (args.EndPos.Distance(Player.Position) < W.Range)
                     {
-                        W.Cast(endPos);
+                        W.Cast(args.EndPos);
                     }
                 }
             }
@@ -468,18 +465,11 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
-
-                var endPos = args.End;
-                if (args.Sender.ChampionName.Equals("Fizz", StringComparison.OrdinalIgnoreCase))
+                if (HeroListManager.Check("w-gapcloser", args.Sender))
                 {
-                    endPos = args.Start.Extend(endPos, 550);
-                }
-
-                if (Menu.Item(Menu.Name + ".miscellaneous.w-gapcloser").GetValue<bool>())
-                {
-                    if (endPos.Distance(Player.Position) < W.Range)
+                    if (args.End.Distance(Player.Position) < W.Range)
                     {
-                        W.Cast(endPos);
+                        W.Cast(args.End);
                     }
                 }
             }

@@ -57,7 +57,6 @@ namespace SFXChallenger.Champions
             Core.OnPostUpdate += OnCorePostUpdate;
             Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
             AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
-            Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
             Drawing.OnDraw += OnDrawingDraw;
         }
 
@@ -66,7 +65,6 @@ namespace SFXChallenger.Champions
             Core.OnPostUpdate -= OnCorePostUpdate;
             Orbwalking.AfterAttack -= OnOrbwalkingAfterAttack;
             AntiGapcloser.OnEnemyGapcloser -= OnEnemyGapcloser;
-            Interrupter2.OnInterruptableTarget -= OnInterruptableTarget;
             Drawing.OnDraw -= OnDrawingDraw;
         }
 
@@ -145,14 +143,6 @@ namespace SFXChallenger.Champions
                     new MenuItem(autoGapMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(false));
             }
 
-            var autoInterruptMenu =
-                uAutoMenu.AddSubMenu(new Menu(Global.Lang.Get("G_InterruptSpell"), uAutoMenu.Name + ".interrupt"));
-            foreach (var enemy in GameObjects.EnemyHeroes)
-            {
-                autoInterruptMenu.AddItem(
-                    new MenuItem(autoInterruptMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(false));
-            }
-
             uAutoMenu.AddItem(
                 new MenuItem(uAutoMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
             uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".1v1", "R 1v1").SetValue(false));
@@ -189,8 +179,10 @@ namespace SFXChallenger.Champions
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
-            miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".e-gapcloser", "E " + Global.Lang.Get("G_Gapcloser")).SetValue(false));
+
+            HeroListManager.AddToMenu(
+                miscMenu.AddSubMenu(new Menu("E " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "e-gapcloser")),
+                "e-gapcloser", false, true, false);
 
             TargetSelector.AddWeightedItem(
                 new WeightedItem("w-stacks", "W " + Global.Lang.Get("G_Stacks"), 13, true, 333, 500, t => GetWStacks(t)));
@@ -272,38 +264,15 @@ namespace SFXChallenger.Champions
                     return;
                 }
 
-                var endPos = args.End;
-                if (args.Sender.ChampionName.Equals("Fizz", StringComparison.OrdinalIgnoreCase))
+                if (HeroListManager.Check("e-gapcloser", args.Sender) && args.End.Distance(Player.Position) < E.Range &&
+                    E.IsReady())
                 {
-                    endPos = args.Start.Extend(endPos, 550);
-                }
-
-                if (Menu.Item(Menu.Name + ".miscellaneous.e-gapcloser").GetValue<bool>() &&
-                    endPos.Distance(Player.Position) < E.Range)
-                {
-                    E.Cast(endPos);
+                    E.Cast(args.End);
                 }
                 if (Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
                     Menu.Item(Menu.Name + ".ultimate.auto.gapcloser." + args.Sender.ChampionName).GetValue<bool>())
                 {
                     RLogic(args.Sender, HitChance.High, 1);
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnInterruptableTarget(Obj_AI_Hero sender, Interrupter2.InterruptableTargetEventArgs args)
-        {
-            try
-            {
-                if (sender.IsEnemy && args.DangerLevel >= Interrupter2.DangerLevel.High &&
-                    Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
-                    Menu.Item(Menu.Name + ".ultimate.auto.interrupt." + sender.ChampionName).GetValue<bool>())
-                {
-                    RLogic(sender, HitChance.High, 1);
                 }
             }
             catch (Exception ex)
