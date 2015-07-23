@@ -122,7 +122,7 @@ namespace SFXChallenger.Menus
                     var uWhitelistMenu =
                         ultimateMenu.AddSubMenu(
                             new Menu(Global.Lang.Get("G_Whitelist"), ultimateMenu.Name + ".whitelist"));
-                    HeroListManager.AddToMenu(uWhitelistMenu, "ultimate-whitelist", false, false, true, true);
+                    HeroListManager.AddToMenu(uWhitelistMenu, "ultimate-whitelist", true, false, true, true);
                 }
 
                 if (force)
@@ -132,7 +132,7 @@ namespace SFXChallenger.Menus
                     uForceMenu.AddItem(
                         new MenuItem(uForceMenu.Name + ".additional", Global.Lang.Get("G_Additional")).SetValue(
                             new Slider(0, 0, 4)));
-                    HeroListManager.AddToMenu(uForceMenu, "ultimate-force", false, false, true, false);
+                    HeroListManager.AddToMenu(uForceMenu, "ultimate-force", true, false, true, false);
                 }
 
                 return ultimateMenu;
