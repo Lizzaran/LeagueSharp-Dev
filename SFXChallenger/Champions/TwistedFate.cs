@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- twistedfate.cs is part of SFXChallenger.
+ TwistedFate.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -906,13 +906,16 @@ namespace SFXChallenger.Champions
                     {
                         cards.Add(CardColor.Gold);
                     }
-                    if (W.GetDamage(target) + damage > target.Health)
+                    if (target.Distance(Player) < Orbwalking.GetRealAutoAttackRange(target) * 0.85f)
                     {
-                        cards.Add(CardColor.Blue);
-                    }
-                    if (W.GetDamage(target, 1) + damage > target.Health)
-                    {
-                        cards.Add(CardColor.Red);
+                        if (W.GetDamage(target) + damage > target.Health)
+                        {
+                            cards.Add(CardColor.Blue);
+                        }
+                        if (W.GetDamage(target, 1) + damage > target.Health)
+                        {
+                            cards.Add(CardColor.Red);
+                        }
                     }
                     if (!cards.Any())
                     {
