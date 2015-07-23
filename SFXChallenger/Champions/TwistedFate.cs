@@ -168,9 +168,6 @@ namespace SFXChallenger.Champions
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "q-gapcloser")),
                 "q-gapcloser", false, false, true, false);
-            HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_InterruptSpell"), miscMenu.Name + "w-interrupt")),
-                "w-interrupt", false, false, true, false);
 
             var manualMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Manual"), Menu.Name + ".manual"));
             manualMenu.AddItem(
@@ -223,7 +220,7 @@ namespace SFXChallenger.Champions
                         if (Cards.Has(CardColor.Gold))
                         {
                             _qDelay = Game.Time + W.Delay / 2f +
-                                      hero.Distance(Player) * 1.2f / Player.BasicAttack.MissileSpeed;
+                                      hero.Distance(Player) * 1.5f / Player.BasicAttack.MissileSpeed;
                             _qTarget = hero;
 
                             var target = TargetSelector.GetTarget(
@@ -449,20 +446,12 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (sender.IsEnemy && args.DangerLevel == Interrupter2.DangerLevel.High &&
-                    HeroListManager.Check("w-interrupt", sender) && sender.Distance(Player) < W.Range)
+                if (sender != null && sender.IsEnemy && args.DangerLevel == Interrupter2.DangerLevel.High && Orbwalking.InAutoAttackRange(sender))
                 {
-                    if (Cards.Status != SelectStatus.Selected && W.IsReady())
+                    if (Cards.Has(CardColor.Gold))
                     {
-                        Cards.Select(CardColor.Gold);
                         Orbwalker.ForceTarget(sender);
-                    }
-                    else
-                    {
-                        if (Cards.Has(CardColor.Gold))
-                        {
-                            Orbwalker.ForceTarget(sender);
-                        }
+                        Player.IssueOrder(GameObjectOrder.AttackUnit, sender);
                     }
                 }
             }
@@ -574,7 +563,7 @@ namespace SFXChallenger.Champions
                     return;
                 }
                 var target = TargetSelector.GetTarget(Q.Range, LeagueSharp.Common.TargetSelector.DamageType.Magical);
-                if (_qTarget != null && _qTarget.IsValidTarget(Q.Range) && Game.Time < _qDelay + 0.5f)
+                if (_qTarget != null && _qTarget.IsValidTarget(Q.Range) && _qDelay + 0.5f > Game.Time)
                 {
                     target = _qTarget;
                 }
@@ -1046,19 +1035,7 @@ namespace SFXChallenger.Champions
             {
                 try
                 {
-                    if (ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Name == "PickACard" &&
-                        Status == SelectStatus.Ready && card != CardColor.None)
-                    {
-                        ShouldSelect.Clear();
-                        ShouldSelect = new List<CardColor> { card };
-                        if (Utils.TickCount - LastWSent > 200)
-                        {
-                            if (ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, ObjectManager.Player))
-                            {
-                                LastWSent = Utils.TickCount;
-                            }
-                        }
-                    }
+                    Select(new List<CardColor> { card });
                 }
                 catch (Exception ex)
                 {

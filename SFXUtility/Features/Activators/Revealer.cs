@@ -291,7 +291,7 @@ namespace SFXUtility.Features.Activators
                         s =>
                             !string.IsNullOrEmpty(s.Name) &&
                             s.Name.Equals(args.SData.Name, StringComparison.OrdinalIgnoreCase));
-                if (spell != null && !spell.Custom && Menu.Item("[F_Revealer]Invisibleshaco").GetValue<bool>())
+                if (spell != null && !spell.Custom && Menu.Item(Name + "Invisibleshaco").GetValue<bool>())
                 {
                     CastLogic(args.End, false);
                 }

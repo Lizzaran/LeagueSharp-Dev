@@ -119,7 +119,10 @@ namespace SFXChallenger.Managers
                                    .GetValue<bool>();
                     }
                 }
-                throw new KeyNotFoundException(string.Format("HeroListManager: UniqueID \"{0}\" not found.", uniqueId));
+                else
+                {
+                    throw new KeyNotFoundException(string.Format("HeroListManager: UniqueID \"{0}\" not found.", uniqueId));
+                }
             }
             catch (Exception ex)
             {
