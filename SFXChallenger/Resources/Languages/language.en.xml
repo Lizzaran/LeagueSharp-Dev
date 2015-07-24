@@ -103,6 +103,8 @@
 	<entry key="G_Manual">Manual</entry>
 	<entry key="G_Simple">Simple</entry>
 	<entry key="G_Advanced">Advanced</entry>
+	<entry key="G_RequiredTarget">Required Target</entry>
+	<entry key="G_RangeCheck">Range Check</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: Language -->

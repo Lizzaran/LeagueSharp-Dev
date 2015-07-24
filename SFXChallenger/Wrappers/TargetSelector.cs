@@ -543,14 +543,17 @@ namespace SFXChallenger.Wrappers
         {
             try
             {
+                foreach (var weight in WeightedItems.Where(w => w.Weight > 0))
+                {
+                    weight.UpdateMinMax(targets);
+                }
+
                 var targetsList = new List<Target>();
                 var multiplicator =
                     _menu.Item(_menu.Name + ".weights.heroes.weight-multiplicator").GetValue<Slider>().Value;
-                var linear = _menu.Item(_menu.Name + ".weights.mode").GetValue<StringList>().SelectedIndex == 1;
                 foreach (var target in targets)
                 {
-                    var tmpWeight =
-                        WeightedItems.Where(w => w.Weight > 0).Sum(w => w.CalculatedWeight(target, targets, linear));
+                    var tmpWeight = WeightedItems.Where(w => w.Weight > 0).Sum(w => w.CalculatedWeight(target));
                     if (_menu != null)
                     {
                         tmpWeight +=
@@ -650,10 +653,6 @@ namespace SFXChallenger.Wrappers
                     new MenuItem(assassinManager.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 _weightsMenu = _menu.AddSubMenu(new Menu(Global.Lang.Get("TS_Weights"), menu.Name + ".weights"));
-
-                _weightsMenu.AddItem(
-                    new MenuItem(_weightsMenu.Name + ".mode", Global.Lang.Get("TS_WeightMode")).SetValue(
-                        new StringList(Global.Lang.GetList("TS_WeightModes"))));
 
                 var heroesMenu =
                     _weightsMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Heroes"), _weightsMenu.Name + ".heroes"));
@@ -918,7 +917,7 @@ namespace SFXChallenger.Wrappers
             return _maxCache.Value;
         }
 
-        public float CalculatedWeight(Obj_AI_Hero target, List<Obj_AI_Hero> targets, bool linear)
+        public float CalculatedWeight(Obj_AI_Hero target)
         {
             try
             {
@@ -934,10 +933,8 @@ namespace SFXChallenger.Wrappers
                     return cache.Value;
                 }
 
-                UpdateMinMax(targets);
-
                 var weight = CalculatedWeight(
-                    GetValue(target), linear ? 0f : LastMin(), LastMax(), Inverted ? Weight : TargetSelector.MinWeight,
+                    GetValue(target), 0f, LastMax(), Inverted ? Weight : TargetSelector.MinWeight,
                     Inverted ? TargetSelector.MinWeight : Weight);
                 if (cache == null)
                 {
@@ -1001,7 +998,7 @@ namespace SFXChallenger.Wrappers
             }
         }
 
-        private void UpdateMinMax(List<Obj_AI_Hero> targets)
+        public void UpdateMinMax(List<Obj_AI_Hero> targets)
         {
             try
             {

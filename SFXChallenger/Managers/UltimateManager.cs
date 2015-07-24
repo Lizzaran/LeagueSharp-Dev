@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- UltimateMenu.cs is part of SFXChallenger.
+ UltimateManager.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -23,27 +23,36 @@
 #region
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using LeagueSharp;
 using LeagueSharp.Common;
-using SFXChallenger.Managers;
+using SFXLibrary;
 using SFXLibrary.Logger;
 
 #endregion
 
-namespace SFXChallenger.Menus
+namespace SFXChallenger.Managers
 {
-    internal class UltimateMenu
+    internal class UltimateManager
     {
+        private static Menu _menu;
+
         public static Menu AddToMenu(Menu menu,
             bool auto,
             bool autoInterrupt,
+            bool interruptDelay,
             bool autoGapcloser,
+            bool gapcloserDelay,
             bool flash,
             bool assisted,
-            bool whitelist,
+            bool required,
             bool force)
         {
             try
             {
+                _menu = menu;
+
                 var ultimateMenu = menu.AddSubMenu(new Menu(Global.Lang.Get("G_Ultimate"), menu.Name + ".ultimate"));
 
                 var uComboMenu =
@@ -64,6 +73,11 @@ namespace SFXChallenger.Menus
                         var autoInterruptMenu =
                             uAutoMenu.AddSubMenu(
                                 new Menu(Global.Lang.Get("G_InterruptSpell"), uAutoMenu.Name + ".interrupt"));
+                        if (interruptDelay)
+                        {
+                            DelayManager.AddToMenu(
+                                autoInterruptMenu, "ultimate-interrupt-delay", string.Empty, 250, 0, 1000);
+                        }
                         HeroListManager.AddToMenu(autoInterruptMenu, "ultimate-interrupt", false, false, true, false);
                     }
                     if (autoGapcloser)
@@ -71,6 +85,11 @@ namespace SFXChallenger.Menus
                         var autoGapcloserMenu =
                             uAutoMenu.AddSubMenu(
                                 new Menu(Global.Lang.Get("G_Gapcloser"), uAutoMenu.Name + ".gapcloser"));
+                        if (gapcloserDelay)
+                        {
+                            DelayManager.AddToMenu(
+                                autoGapcloserMenu, "ultimate-gapcloser-delay", string.Empty, 250, 0, 1000);
+                        }
                         HeroListManager.AddToMenu(autoGapcloserMenu, "ultimate-gapcloser", false, false, true, false);
                     }
                     uAutoMenu.AddItem(
@@ -117,12 +136,15 @@ namespace SFXChallenger.Menus
                         new MenuItem(uAssistedMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
                 }
 
-                if (whitelist)
+                if (required)
                 {
-                    var uWhitelistMenu =
+                    var uRequiredListMenu =
                         ultimateMenu.AddSubMenu(
-                            new Menu(Global.Lang.Get("G_Whitelist"), ultimateMenu.Name + ".whitelist"));
-                    HeroListManager.AddToMenu(uWhitelistMenu, "ultimate-whitelist", true, false, true, true);
+                            new Menu(Global.Lang.Get("G_RequiredTarget"), ultimateMenu.Name + ".required"));
+                    uRequiredListMenu.AddItem(
+                        new MenuItem(uRequiredListMenu.Name + ".range-check", Global.Lang.Get("G_RangeCheck")).SetValue(
+                            new Slider(2000, 1000, 3000)));
+                    HeroListManager.AddToMenu(uRequiredListMenu, "ultimate-required", true, false, true, false);
                 }
 
                 if (force)
@@ -142,6 +164,41 @@ namespace SFXChallenger.Menus
                 Global.Logger.AddItem(new LogItem(ex));
             }
             return null;
+        }
+
+        public static bool Check(int min, List<Obj_AI_Hero> hits)
+        {
+            try
+            {
+                if (_menu == null)
+                {
+                    return false;
+                }
+
+                if (!hits.Any(hit => HeroListManager.Check("ultimate-required", hit)))
+                {
+                    var range = _menu.Item(_menu.Name + ".ultimate.required.range-check").GetValue<Slider>().Value;
+                    if (
+                        GameObjects.EnemyHeroes.Where(
+                            h => !h.IsDead && h.IsVisible && h.Distance(ObjectManager.Player) <= range)
+                            .Any(enemy => HeroListManager.Check("ultimate-required", enemy)))
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return hits.Count >= min ||
+                           (hits.Any(hit => HeroListManager.Check("ultimate-force", hit)) &&
+                            hits.Count >=
+                            (_menu.Item(_menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1));
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return false;
         }
     }
 }

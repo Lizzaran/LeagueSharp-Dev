@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- DelayManager.cs is part of SFXChallenger.
+ delaymanager.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -57,6 +57,25 @@ namespace SFXChallenger.Managers
             }
         }
 
+        public static int Get(string uniqueId)
+        {
+            try
+            {
+                Menu menu;
+                if (Menues.TryGetValue(uniqueId, out menu))
+                {
+                    var value = menu.Item(menu.Name + ".delay-manager." + uniqueId).GetValue<Slider>().Value;
+                    return value < 10 ? value : new Random().Next((int) (value * 0.8f), (int) (value * 1.2f));
+                }
+                throw new KeyNotFoundException(string.Format("DelayManager: UniqueID \"{0}\" not found.", uniqueId));
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return 0;
+        }
+
         public static bool Check(string uniqueId, int lastCast)
         {
             try
@@ -65,10 +84,6 @@ namespace SFXChallenger.Managers
                 if (Menues.TryGetValue(uniqueId, out menu))
                 {
                     var value = menu.Item(menu.Name + ".delay-manager." + uniqueId).GetValue<Slider>().Value;
-                    Console.WriteLine(value);
-                    Console.WriteLine(lastCast + (new Random().Next((int) (value * 0.8f), (int) (value * 1.2f))));
-                    Console.WriteLine(Environment.TickCount);
-                    Console.WriteLine("------------------");
                     return value < 10 ||
                            Environment.TickCount >=
                            lastCast + (new Random().Next((int) (value * 0.8f), (int) (value * 1.2f)));

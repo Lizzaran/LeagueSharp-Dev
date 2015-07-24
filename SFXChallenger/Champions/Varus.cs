@@ -32,7 +32,6 @@ using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
-using SFXChallenger.Menus;
 using SFXChallenger.Wrappers;
 using SFXLibrary;
 using SFXLibrary.Logger;
@@ -122,7 +121,7 @@ namespace SFXChallenger.Champions
             laneclearMenu.AddItem(
                 new MenuItem(laneclearMenu.Name + ".min", Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
 
-            var ultimateMenu = UltimateMenu.AddToMenu(Menu, true, false, true, false, true, true, true);
+            var ultimateMenu = UltimateManager.AddToMenu(Menu, true, false, false, true, false, false, true, true, true);
 
             ultimateMenu.AddItem(
                 new MenuItem(ultimateMenu.Name + ".radius", Global.Lang.Get("G_Range")).SetValue(
@@ -517,10 +516,7 @@ namespace SFXChallenger.Champions
                 if (pred.Hitchance >= hitChance)
                 {
                     var hits = GameObjects.EnemyHeroes.Where(e => e.Distance(target) <= _rSpreadRadius).ToList();
-                    if (hits.Count >= min && hits.Any(h => HeroListManager.Check("ultimate-whitelist", h)) ||
-                        (hits.Any(h => HeroListManager.Check("ultimate-force", h)) &&
-                         hits.Count >=
-                         (Menu.Item(Menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1)))
+                    if (UltimateManager.Check(min, hits))
                     {
                         R.Cast(pred.CastPosition);
                         return true;

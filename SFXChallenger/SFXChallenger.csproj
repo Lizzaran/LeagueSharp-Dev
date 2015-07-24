@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.5.3.18</AssemblyVersion>
+    <AssemblyVersion>0.7.0.2</AssemblyVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -111,11 +111,11 @@
     <Compile Include="Managers\InitiatorManager.cs" />
     <Compile Include="Managers\KillstealManager.cs" />
     <Compile Include="Managers\TargetSpellManager.cs" />
+    <Compile Include="Managers\UltimateManager.cs" />
     <Compile Include="Menus\InfoMenu.cs" />
     <Compile Include="Menus\LanguageMenu.cs" />
     <Compile Include="Menus\TickMenu.cs" />
     <Compile Include="Helpers\Casting.cs" />
-    <Compile Include="Menus\UltimateMenu.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

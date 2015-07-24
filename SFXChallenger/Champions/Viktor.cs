@@ -31,7 +31,6 @@ using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
-using SFXChallenger.Menus;
 using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
@@ -113,7 +112,7 @@ namespace SFXChallenger.Champions
                 new MenuItem(laneclearMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(
                     new Slider(3, 1, 5)));
 
-            var ultimateMenu = UltimateMenu.AddToMenu(Menu, true, true, false, false, true, true, true);
+            var ultimateMenu = UltimateManager.AddToMenu(Menu, true, true, true, false, false, false, true, true, true);
 
             ultimateMenu.AddItem(
                 new MenuItem(ultimateMenu.Name + ".follow", Global.Lang.Get("Viktor_AutoFollow")).SetValue(true));
@@ -369,7 +368,7 @@ namespace SFXChallenger.Champions
                     Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
                     HeroListManager.Check("ultimate-interrupt", sender.ChampionName) && sender.IsFacing(Player))
                 {
-                    R.Cast(sender);
+                    Utility.DelayAction.Add(DelayManager.Get("ultimate-interrupt-delay"), () => R.Cast(sender.Position));
                 }
             }
             catch (Exception ex)
@@ -585,11 +584,7 @@ namespace SFXChallenger.Champions
                         if (cDmg - 20 >= target.Health)
                         {
                             var pred = BestRCastLocation();
-                            if (pred.Item2.Count >= 1 &&
-                                pred.Item2.Any(h => HeroListManager.Check("ultimate-whitelist", h)) ||
-                                (pred.Item2.Any(h => HeroListManager.Check("ultimate-force", h)) &&
-                                 pred.Item2.Count >=
-                                 (Menu.Item(Menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1)))
+                            if (UltimateManager.Check(1, pred.Item2))
                             {
                                 R.Cast(extended ? (Player.Position.Extend(pred.Item1, R.Range)) : pred.Item1);
                                 return extended;
@@ -610,10 +605,7 @@ namespace SFXChallenger.Champions
             try
             {
                 var pred = BestRCastLocation();
-                if (pred.Item2.Count >= min && pred.Item2.Any(h => HeroListManager.Check("ultimate-whitelist", h)) ||
-                    (pred.Item2.Any(h => HeroListManager.Check("ultimate-force", h)) &&
-                     pred.Item2.Count >=
-                     (Menu.Item(Menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1)))
+                if (UltimateManager.Check(min, pred.Item2))
                 {
                     R.Cast(pred.Item1);
                     return true;
