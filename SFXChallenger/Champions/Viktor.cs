@@ -916,7 +916,7 @@ namespace SFXChallenger.Champions
                 var hits = new List<Obj_AI_Hero>();
                 var center = Vector2.Zero;
                 float radius = -1;
-                var range = (overrideRange > 0 ? overrideRange : (R.Range * 1.3f));
+                var range = (overrideRange > 0 ? overrideRange : (R.Range + R.Width / 2));
                 var points = (from t in GameObjects.EnemyHeroes
                     where t.IsValidTarget(range)
                     let prediction = Q.GetPrediction(t)
@@ -948,7 +948,11 @@ namespace SFXChallenger.Champions
                             return new Tuple<Vector3, List<Obj_AI_Hero>>(center.To3D2(), hits);
                         }
                     }
-                    return new Tuple<Vector3, List<Obj_AI_Hero>>(target.Position, new List<Obj_AI_Hero> { target });
+                    if (target.Distance(Player) < R.Range || target.Distance(Player) < R.Range + R.Width / 3f)
+                    {
+                        return new Tuple<Vector3, List<Obj_AI_Hero>>(
+                            Player.Position.Extend(target.Position, R.Range), new List<Obj_AI_Hero> { target });
+                    }
                 }
             }
             catch (Exception ex)
