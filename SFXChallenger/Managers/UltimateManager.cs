@@ -190,11 +190,18 @@ namespace SFXChallenger.Managers
                         }
                     }
                 }
-                return hits.Count >= min ||
-                       (HeroListManager.Enabled("ultimate-force") &&
-                        hits.Any(hit => HeroListManager.Check("ultimate-force", hit)) &&
+
+                if (HeroListManager.Enabled("ultimate-force"))
+                {
+                    if (hits.Any(hit => HeroListManager.Check("ultimate-force", hit)) &&
                         hits.Count >=
-                        (_menu.Item(_menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1));
+                        (_menu.Item(_menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1))
+                    {
+                        return true;
+                    }
+                }
+
+                return hits.Count >= min;
             }
             catch (Exception ex)
             {
