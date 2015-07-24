@@ -657,13 +657,14 @@ namespace SFXChallenger.Champions
 
                 foreach (var target in targets)
                 {
+                    bool containsTarget;
                     var lTarget = target;
                     if (target.Distance(Player.Position) < E.Range)
                     {
                         var cCastPos = target.Position;
                         foreach (var t in targets.Where(t => t.NetworkId != lTarget.NetworkId))
                         {
-                            var containsTarget = mainTarget == null || lTarget.NetworkId == mainTarget.NetworkId;
+                            containsTarget = mainTarget == null || lTarget.NetworkId == mainTarget.NetworkId;
                             var count = 1;
                             var cTarget = t;
                             input.Unit = t;
@@ -720,7 +721,7 @@ namespace SFXChallenger.Champions
                     }
                     else
                     {
-                        input2.Unit = target;
+                        input2.Unit = lTarget;
                         var castPos = Prediction.GetPrediction(input2).CastPosition;
                         var sCastPos = Player.Position.Extend(castPos, E.Range);
 
@@ -733,10 +734,10 @@ namespace SFXChallenger.Champions
                             input2.From = point.To3D();
                             input2.RangeCheckFrom = point.To3D();
                             input2.Range = ELength;
-                            var containsTarget = mainTarget == null;
                             var pred2 = Prediction.GetPrediction(input2);
                             if (pred2.Hitchance >= hitChance)
                             {
+                                containsTarget = mainTarget == null || lTarget.NetworkId == mainTarget.NetworkId;
                                 var count = 1;
                                 var rect = new Geometry.Polygon.Rectangle(
                                     point, point.To3D().Extend(pred2.CastPosition, ELength).To2D(), E.Width);
@@ -819,7 +820,7 @@ namespace SFXChallenger.Champions
                 ManaManager.Check("lane-clear-e"))
             {
                 var minions = MinionManager.GetMinions(
-                    MaxERange * 1.3f, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+                    MaxERange * 1.5f, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
                 var minHits = minions.Any(m => m.Team == GameObjectTeam.Neutral)
                     ? 1
                     : Menu.Item(Menu.Name + ".lane-clear.e-min").GetValue<Slider>().Value;
@@ -930,7 +931,7 @@ namespace SFXChallenger.Champions
                         foreach (var possibility in possibilities)
                         {
                             var mec = MEC.GetMec(possibility.Select(p => p.Item2).ToList());
-                            if (mec.Radius < (R.Width / 2) && Player.Distance(mec.Center) < range)
+                            if (mec.Radius < R.Width && Player.Distance(mec.Center) < range)
                             {
                                 if ((possibility.Count > hits.Count ||
                                      possibility.Count == hits.Count && mec.Radius < radius) &&
