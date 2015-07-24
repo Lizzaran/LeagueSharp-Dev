@@ -203,9 +203,7 @@ namespace SFXChallenger.Champions
                 Q.UpdateSourcePosition(Ball.Position, ObjectManager.Player.Position);
                 E.UpdateSourcePosition(Ball.Position, ObjectManager.Player.Position);
 
-                if (Menu.Item(Menu.Name + ".ultimate.flash.enabled").GetValue<bool>() &&
-                    Menu.Item(Menu.Name + ".ultimate.flash.hotkey").GetValue<KeyBind>().Active && R.IsReady() &&
-                    SummonerManager.Flash.IsReady())
+                if (UltimateManager.Flash() && R.IsReady() && SummonerManager.Flash.IsReady())
                 {
                     if (Menu.Item(Menu.Name + ".ultimate.flash.move-cursor").GetValue<bool>())
                     {
@@ -276,9 +274,7 @@ namespace SFXChallenger.Champions
                     }
                 }
 
-                if (Menu.Item(Menu.Name + ".ultimate.assisted.enabled").GetValue<bool>() &&
-                    Menu.Item(Menu.Name + ".ultimate.assisted.hotkey").GetValue<KeyBind>().Active && R.IsReady() &&
-                    !Ball.IsMoving)
+                if (UltimateManager.Assisted() && R.IsReady() && !Ball.IsMoving)
                 {
                     if (Menu.Item(Menu.Name + ".ultimate.assisted.move-cursor").GetValue<bool>())
                     {
@@ -313,7 +309,7 @@ namespace SFXChallenger.Champions
                     }
                 }
 
-                if (Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() && R.IsReady() && !Ball.IsMoving)
+                if (UltimateManager.Auto() && R.IsReady() && !Ball.IsMoving)
                 {
                     if (!RLogic(Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value))
                     {
@@ -338,8 +334,7 @@ namespace SFXChallenger.Champions
             try
             {
                 if (sender.IsEnemy && args.DangerLevel == Interrupter2.DangerLevel.High && args.MovementInterrupts &&
-                    Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
-                    HeroListManager.Check("ultimate-interrupt", sender) && R.IsReady())
+                    UltimateManager.Interrupt(sender) && R.IsReady())
                 {
                     var hits = GetHits(R);
                     if (hits.Item2.Any(i => i.NetworkId.Equals(sender.NetworkId)))
@@ -363,7 +358,7 @@ namespace SFXChallenger.Champions
             var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>();
             var w = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>();
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>();
-            var r = Menu.Item(Menu.Name + ".ultimate.combo.enabled").GetValue<bool>();
+            var r = UltimateManager.Combo();
             var target = TargetSelector.GetTarget(Q.Range + Q.Width, TargetSelector.DamageType.Magical);
             if (w && W.IsReady())
             {

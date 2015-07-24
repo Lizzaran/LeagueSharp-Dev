@@ -192,8 +192,7 @@ namespace SFXChallenger.Champions
                 {
                     RFollowLogic();
                 }
-                if (Menu.Item(Menu.Name + ".ultimate.assisted.enabled").GetValue<bool>() &&
-                    Menu.Item(Menu.Name + ".ultimate.assisted.hotkey").GetValue<KeyBind>().Active && R.IsReady())
+                if (UltimateManager.Assisted() && R.IsReady())
                 {
                     if (Menu.Item(Menu.Name + ".ultimate.assisted.move-cursor").GetValue<bool>())
                     {
@@ -211,7 +210,7 @@ namespace SFXChallenger.Champions
                     }
                 }
 
-                if (Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() && R.IsReady())
+                if (UltimateManager.Auto() && R.IsReady())
                 {
                     if (!RLogic(Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value))
                     {
@@ -365,8 +364,7 @@ namespace SFXChallenger.Champions
             try
             {
                 if (sender.IsEnemy && args.DangerLevel == Interrupter2.DangerLevel.High &&
-                    Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
-                    HeroListManager.Check("ultimate-interrupt", sender.ChampionName) && sender.IsFacing(Player))
+                    UltimateManager.Interrupt(sender))
                 {
                     Utility.DelayAction.Add(DelayManager.Get("ultimate-interrupt-delay"), () => R.Cast(sender.Position));
                 }
@@ -404,7 +402,7 @@ namespace SFXChallenger.Champions
             var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady();
             var w = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady();
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
-            var r = Menu.Item(Menu.Name + ".ultimate.combo.enabled").GetValue<bool>() && R.IsReady();
+            var r = UltimateManager.Combo() && R.IsReady();
             var extended = false;
 
             if (q)

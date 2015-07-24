@@ -178,8 +178,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (Menu.Item(Menu.Name + ".ultimate.assisted.enabled").GetValue<bool>() &&
-                    Menu.Item(Menu.Name + ".ultimate.assisted.hotkey").GetValue<KeyBind>().Active && R.IsReady())
+                if (UltimateManager.Assisted() && R.IsReady())
                 {
                     if (Menu.Item(Menu.Name + ".ultimate.assisted.move-cursor").GetValue<bool>())
                     {
@@ -198,7 +197,7 @@ namespace SFXChallenger.Champions
                     }
                 }
 
-                if (Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() && R.IsReady())
+                if (UltimateManager.Auto() && R.IsReady())
                 {
                     if (
                         !RLogic(
@@ -232,8 +231,7 @@ namespace SFXChallenger.Champions
                 {
                     E.Cast(args.End);
                 }
-                if (Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
-                    HeroListManager.Check("ultimate-gapcloser", args.Sender))
+                if (UltimateManager.Gapcloser(args.Sender))
                 {
                     RLogic(args.Sender, HitChance.High, 1);
                 }
@@ -276,7 +274,7 @@ namespace SFXChallenger.Champions
         {
             var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>();
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>();
-            var r = Menu.Item(Menu.Name + ".ultimate.combo.enabled").GetValue<bool>();
+            var r = UltimateManager.Combo();
 
             if (q && Q.IsReady())
             {
