@@ -143,6 +143,11 @@ namespace SFXChallenger.Helpers
                    t.IsStunned;
         }
 
+        public static bool IsSlowed(Obj_AI_Base t)
+        {
+            return t.HasBuffOfType(BuffType.Slow);
+        }
+
         public static float GetStunTime(Obj_AI_Base target)
         {
             var buffs =

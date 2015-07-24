@@ -40,19 +40,20 @@ using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
 using MinionTeam = SFXLibrary.MinionTeam;
 using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
+using Utils = SFXChallenger.Helpers.Utils;
 
 #endregion
 
 namespace SFXChallenger.Champions
 {
-    internal class Viktor : TChampion
+    internal class Viktor : Champion
     {
         private const float MaxERange = 1225f;
         private const float ELength = 700f;
         private const float RMoveInterval = 325f;
         private float _lastRMoveCommand = Environment.TickCount;
         private GameObject _rObject;
-        public Viktor() : base(1500f) {}
 
         protected override ItemFlags ItemFlags
         {
@@ -198,13 +199,14 @@ namespace SFXChallenger.Champions
                     {
                         Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
                     }
-
-                    if (!RLogic(Menu.Item(Menu.Name + ".ultimate.assisted.min").GetValue<Slider>().Value))
+                    var target = TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+                    if (target != null &&
+                        !RLogic(target, Menu.Item(Menu.Name + ".ultimate.assisted.min").GetValue<Slider>().Value))
                     {
                         if (Menu.Item(Menu.Name + ".ultimate.assisted.1v1").GetValue<bool>())
                         {
                             RLogic1V1(
-                                Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
+                                target, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                                 Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
                         }
                     }
@@ -212,12 +214,14 @@ namespace SFXChallenger.Champions
 
                 if (UltimateManager.Auto() && R.IsReady())
                 {
-                    if (!RLogic(Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value))
+                    var target = TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+                    if (target != null &&
+                        !RLogic(target, Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value))
                     {
                         if (Menu.Item(Menu.Name + ".ultimate.auto.1v1").GetValue<bool>())
                         {
                             RLogic1V1(
-                                Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
+                                target, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                                 Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
                         }
                     }
@@ -226,14 +230,8 @@ namespace SFXChallenger.Champions
                 if (HeroListManager.Enabled("w-stunned") && W.IsReady())
                 {
                     var target =
-                        Targets.FirstOrDefault(
-                            t =>
-                                HeroListManager.Check("w-stunned", t) && t.IsValidTarget(W.Range) &&
-                                (t.HasBuffOfType(BuffType.Charm) || t.HasBuffOfType(BuffType.Snare) ||
-                                 t.HasBuffOfType(BuffType.Knockup) || t.HasBuffOfType(BuffType.Polymorph) ||
-                                 t.HasBuffOfType(BuffType.Fear) || t.HasBuffOfType(BuffType.Taunt) ||
-                                 t.HasBuffOfType(BuffType.Stun) || t.IsStunned ||
-                                 W.GetPrediction(t).Hitchance == HitChance.Immobile));
+                        GameObjects.EnemyHeroes.FirstOrDefault(
+                            t => t.IsValidTarget(W.Range) && HeroListManager.Check("w-stunned", t) && Utils.IsStunned(t));
                     if (target != null)
                     {
                         Casting.SkillShot(target, W, W.GetHitChance("combo"));
@@ -243,7 +241,7 @@ namespace SFXChallenger.Champions
                 if (HeroListManager.Enabled("w-slowed") && W.IsReady())
                 {
                     var target =
-                        Targets.FirstOrDefault(
+                        GameObjects.EnemyHeroes.FirstOrDefault(
                             t =>
                                 t.IsValidTarget(W.Range) && HeroListManager.Check("w-slowed", t) &&
                                 t.Buffs.Any(b => b.Type == BuffType.Slow && b.EndTime - Game.Time > 0.5f));
@@ -308,7 +306,9 @@ namespace SFXChallenger.Champions
                 {
                     if (args.Target.Type != GameObjectType.obj_AI_Hero)
                     {
-                        var hero = Targets.FirstOrDefault(Orbwalking.InAutoAttackRange);
+                        var hero =
+                            TargetSelector.GetTargets(Player.AttackRange + Player.BoundingRadius * 4f)
+                                .FirstOrDefault(Orbwalking.InAutoAttackRange);
                         if (hero != null)
                         {
                             Orbwalker.ForceTarget(hero);
@@ -403,39 +403,49 @@ namespace SFXChallenger.Champions
             var w = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady();
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
             var r = UltimateManager.Combo() && R.IsReady();
-            var extended = false;
 
             if (q)
             {
-                QLogic();
+                Casting.TargetSkill(Q);
             }
             if (w)
             {
-                WLogic(W.GetHitChance("combo"));
+                var target = TargetSelector.GetTarget(W.Range * 1.2f);
+                if (target != null)
+                {
+                    WLogic(target, W.GetHitChance("combo"));
+                }
             }
             if (e)
             {
-                ELogic(Targets, E.GetHitChance("combo"));
+                var target = TargetSelector.GetTarget(
+                    MaxERange * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+                if (target != null)
+                {
+                    ELogic(target, null, E.GetHitChance("combo"));
+                }
             }
             if (r)
             {
-                if (!RLogic(Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value))
+                var target = TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+                if (target != null &&
+                    !RLogic(target, Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value))
                 {
                     if (Menu.Item(Menu.Name + ".ultimate.combo.1v1").GetValue<bool>())
                     {
-                        extended = RLogic1V1(q, e);
+                        RLogic1V1(target, q, e);
                     }
                 }
             }
-            var target = Targets.FirstOrDefault(t => t.IsValidTarget(R.Range));
-            if (target != null && CalcComboDamage(target, q, e, r, extended) > target.Health)
+            var rTarget = TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+            if (rTarget != null && CalcComboDamage(rTarget, q, e, r) > rTarget.Health)
             {
-                ItemManager.UseComboItems(target);
-                SummonerManager.UseComboSummoners(target);
+                ItemManager.UseComboItems(rTarget);
+                SummonerManager.UseComboSummoners(rTarget);
             }
         }
 
-        private float CalcComboDamage(Obj_AI_Hero target, bool q, bool e, bool r, bool extended)
+        private float CalcComboDamage(Obj_AI_Hero target, bool q, bool e, bool r)
         {
             try
             {
@@ -460,7 +470,7 @@ namespace SFXChallenger.Champions
                 {
                     damage += E.GetDamage(target);
                 }
-                if (r && R.IsReady() && target.IsValidTarget(extended ? R.Range + (R.Width * 0.45f) : R.Range))
+                if (r && R.IsReady() && target.IsValidTarget(R.Range + R.Width))
                 {
                     damage += R.GetDamage(target);
 
@@ -485,7 +495,7 @@ namespace SFXChallenger.Champions
                     }
                     else
                     {
-                        stacks = extended ? 12 : 14;
+                        stacks = 13;
                     }
 
                     damage += (R.GetDamage(target, 1) * stacks);
@@ -547,46 +557,19 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private bool RLogic1V1(bool q, bool e)
+        private void RLogic1V1(Obj_AI_Hero target, bool q, bool e)
         {
             try
             {
-                if (!R.IsReady())
-                {
-                    return false;
-                }
                 if (GameObjects.EnemyHeroes.Count(em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) == 1)
                 {
-                    var extended = false;
-                    var extendedRange = R.Range + (R.Width * 0.4f);
-                    var targets = Targets.Where(t => t.HealthPercent > 20 && R.CanCast(t)).ToList();
-                    if (!targets.Any())
+                    var cDmg = CalcComboDamage(target, q, e, true);
+                    if (cDmg - 20 >= target.Health)
                     {
-                        targets =
-                            Targets.Where(
-                                t =>
-                                    t.HealthPercent > 20 && t.IsFacing(Player)
-                                        ? t.IsValidTarget(extendedRange)
-                                        : R.GetPrediction(t, true, extendedRange).Hitchance >= HitChance.High).ToList();
-                        extended = targets.Any();
-                    }
-
-                    foreach (var target in targets)
-                    {
-                        var cDmg = CalcComboDamage(target, q, e, false, extended);
-                        if (cDmg - 20 >= target.Health)
+                        var pred = BestRCastLocation(target);
+                        if (UltimateManager.Check(1, pred.Item2))
                         {
-                            return extended;
-                        }
-                        cDmg = CalcComboDamage(target, q, e, true, extended);
-                        if (cDmg - 20 >= target.Health)
-                        {
-                            var pred = BestRCastLocation();
-                            if (UltimateManager.Check(1, pred.Item2))
-                            {
-                                R.Cast(extended ? (Player.Position.Extend(pred.Item1, R.Range)) : pred.Item1);
-                                return extended;
-                            }
+                            R.Cast(pred.Item1);
                         }
                     }
                 }
@@ -595,14 +578,13 @@ namespace SFXChallenger.Champions
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
-            return false;
         }
 
-        private bool RLogic(int min)
+        private bool RLogic(Obj_AI_Hero target, int min)
         {
             try
             {
-                var pred = BestRCastLocation();
+                var pred = BestRCastLocation(target);
                 if (UltimateManager.Check(min, pred.Item2))
                 {
                     R.Cast(pred.Item1);
@@ -616,14 +598,14 @@ namespace SFXChallenger.Champions
             return false;
         }
 
-        private void QLogic()
+        private void WLogic(Obj_AI_Hero target, HitChance hitChance)
         {
             try
             {
-                var ts = Targets.FirstOrDefault(t => t.Distance(Player) < Q.Range);
-                if (ts != null)
+                var pred = W.GetPrediction(target, true);
+                if (pred.Hitchance >= hitChance)
                 {
-                    Casting.TargetSkill(ts, Q);
+                    W.Cast(pred.CastPosition);
                 }
             }
             catch (Exception ex)
@@ -632,38 +614,14 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private void WLogic(HitChance hitChance)
+        private bool ELogic(Obj_AI_Hero target, List<Obj_AI_Hero> targets, HitChance hitChance, int minHits = 1)
         {
-            try
-            {
-                var ts =
-                    Targets.Where(t => W.CanCast(t))
-                        .OrderByDescending(
-                            t =>
-                                GameObjects.EnemyHeroes.Count(
-                                    e => W.WillHit(e.Position, W.GetPrediction(t, true).CastPosition)))
-                        .FirstOrDefault();
-                if (ts != null)
-                {
-                    var pred = W.GetPrediction(ts, true);
-                    if (pred.Hitchance >= hitChance)
-                    {
-                        W.Cast(pred.CastPosition);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
+            return ELogic(
+                target, targets.Select(t => t as Obj_AI_Base).Where(t => t != null).ToList(), hitChance, minHits);
         }
 
-        private bool ELogic(List<Obj_AI_Hero> targets, HitChance hitChance, int minHits = 1)
-        {
-            return ELogic(targets.Select(t => t as Obj_AI_Base).Where(t => t != null).ToList(), hitChance, minHits);
-        }
-
-        private bool ELogic(List<Obj_AI_Base> targets,
+        private bool ELogic(Obj_AI_Hero mainTarget,
+            List<Obj_AI_Base> targets,
             HitChance hitChance,
             int minHits,
             float overrideExtendedDistance = -1)
@@ -689,6 +647,10 @@ namespace SFXChallenger.Champions
                 var startPos = Vector3.Zero;
                 var endPos = Vector3.Zero;
                 var hits = 0;
+                if (targets == null)
+                {
+                    targets = GameObjects.EnemyHeroes.Select(t => t as Obj_AI_Base).ToList();
+                }
                 targets = targets.Where(t => t.Distance(Player) < MaxERange * 1.5f).ToList();
                 var targetCount = targets.Count;
 
@@ -700,6 +662,7 @@ namespace SFXChallenger.Champions
                         var cCastPos = target.Position;
                         foreach (var t in targets.Where(t => t.NetworkId != lTarget.NetworkId))
                         {
+                            var containsTarget = mainTarget == null || lTarget.NetworkId == mainTarget.NetworkId;
                             var count = 1;
                             var cTarget = t;
                             input.Unit = t;
@@ -727,9 +690,13 @@ namespace SFXChallenger.Champions
                                                 : (c.BoundingRadius) * 0.9f)).Points.Any(p => rect.IsInside(p)))
                                     {
                                         count++;
+                                        if (!containsTarget && c.NetworkId == mainTarget.NetworkId)
+                                        {
+                                            containsTarget = true;
+                                        }
                                     }
                                 }
-                                if (count > hits)
+                                if (count > hits && containsTarget)
                                 {
                                     hits = count;
                                     startPos = cCastPos;
@@ -765,7 +732,7 @@ namespace SFXChallenger.Champions
                             input2.From = point.To3D();
                             input2.RangeCheckFrom = point.To3D();
                             input2.Range = ELength;
-
+                            var containsTarget = mainTarget == null;
                             var pred2 = Prediction.GetPrediction(input2);
                             if (pred2.Hitchance >= hitChance)
                             {
@@ -786,9 +753,13 @@ namespace SFXChallenger.Champions
                                                 : (c.BoundingRadius) * 0.9f)).Points.Any(p => rect.IsInside(p)))
                                     {
                                         count++;
+                                        if (!containsTarget && c.NetworkId == mainTarget.NetworkId)
+                                        {
+                                            containsTarget = true;
+                                        }
                                     }
                                 }
-                                if (count > hits)
+                                if (count > hits && containsTarget)
                                 {
                                     hits = count;
                                     startPos = point.To3D();
@@ -828,11 +799,16 @@ namespace SFXChallenger.Champions
 
             if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>())
             {
-                QLogic();
+                Casting.TargetSkill(Q);
             }
             if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>())
             {
-                ELogic(Targets, E.GetHitChance("harass"));
+                var target = TargetSelector.GetTarget(
+                    MaxERange * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+                if (target != null)
+                {
+                    ELogic(target, null, E.GetHitChance("harass"));
+                }
             }
         }
 
@@ -849,7 +825,7 @@ namespace SFXChallenger.Champions
 
                 if (minions.Count >= minHits)
                 {
-                    ELogic((minions.Concat(Targets)).ToList(), HitChance.High, minHits);
+                    ELogic(null, (minions.Concat(GameObjects.EnemyHeroes)).ToList(), HitChance.High, minHits);
                 }
             }
             if (Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady() &&
@@ -903,7 +879,9 @@ namespace SFXChallenger.Champions
         {
             if (Menu.Item(Menu.Name + ".killsteal.q-aa").GetValue<bool>() && Q.IsReady())
             {
-                foreach (var target in Targets.Where(Orbwalking.InAutoAttackRange))
+                var target =
+                    GameObjects.EnemyHeroes.FirstOrDefault(t => t.IsValidTarget() && Orbwalking.InAutoAttackRange(t));
+                if (target != null)
                 {
                     var damage = CalcPassiveDamage(target) + Q.GetDamage(target);
                     if (damage - 10 > target.Health)
@@ -915,12 +893,13 @@ namespace SFXChallenger.Champions
             }
             if (Menu.Item(Menu.Name + ".killsteal.e").GetValue<bool>() && E.IsReady())
             {
-                foreach (var target in Targets.Where(t => t.Distance(Player) < MaxERange))
+                foreach (var target in
+                    GameObjects.EnemyHeroes.Where(t => t.IsValidTarget() && t.Distance(Player) < MaxERange))
                 {
                     var damage = E.GetDamage(target);
                     if (damage - 10 > target.Health)
                     {
-                        if (ELogic(new List<Obj_AI_Hero> { target }, E.GetHitChance("combo")))
+                        if (ELogic(target, null, E.GetHitChance("combo")))
                         {
                             break;
                         }
@@ -929,7 +908,7 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private Tuple<Vector3, List<Obj_AI_Hero>> BestRCastLocation(float overrideRange = -1)
+        private Tuple<Vector3, List<Obj_AI_Hero>> BestRCastLocation(Obj_AI_Hero target, float overrideRange = -1)
         {
             try
             {
@@ -937,7 +916,7 @@ namespace SFXChallenger.Champions
                 var center = Vector2.Zero;
                 float radius = -1;
                 var range = (overrideRange > 0 ? overrideRange : (R.Range * 1.3f));
-                var points = (from t in Targets
+                var points = (from t in GameObjects.EnemyHeroes
                     where t.IsValidTarget(range)
                     let prediction = Q.GetPrediction(t)
                     where prediction.Hitchance >= HitChance.Medium
@@ -952,8 +931,9 @@ namespace SFXChallenger.Champions
                             var mec = MEC.GetMec(possibility.Select(p => p.Item2).ToList());
                             if (mec.Radius < (R.Width / 2) && Player.Distance(mec.Center) < range)
                             {
-                                if (possibility.Count > hits.Count ||
-                                    possibility.Count == hits.Count && mec.Radius < radius)
+                                if ((possibility.Count > hits.Count ||
+                                     possibility.Count == hits.Count && mec.Radius < radius) &&
+                                    possibility.Any(p => p.Item1.NetworkId == target.NetworkId))
                                 {
                                     center = mec.Center;
                                     radius = mec.Radius;
@@ -967,12 +947,7 @@ namespace SFXChallenger.Champions
                             return new Tuple<Vector3, List<Obj_AI_Hero>>(center.To3D2(), hits);
                         }
                     }
-                    var dTarget = Targets.FirstOrDefault(t => t.IsValidTarget(range));
-                    if (dTarget != null)
-                    {
-                        return new Tuple<Vector3, List<Obj_AI_Hero>>(
-                            dTarget.Position, new List<Obj_AI_Hero> { dTarget });
-                    }
+                    return new Tuple<Vector3, List<Obj_AI_Hero>>(target.Position, new List<Obj_AI_Hero> { target });
                 }
             }
             catch (Exception ex)
@@ -991,7 +966,7 @@ namespace SFXChallenger.Champions
                 var count = 0;
                 var moveDistance = -1f;
                 var maxRelocation = IsSpellUpgraded(R) ? R.Width * 1.2f : R.Width * 0.8f;
-                var targets = Targets.Where(t => t.IsValidTarget()).ToList();
+                var targets = GameObjects.EnemyHeroes.Where(t => t.IsValidTarget(1500f)).ToList();
                 if (targets.Any())
                 {
                     var possibilities =
