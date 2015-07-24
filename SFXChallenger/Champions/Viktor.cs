@@ -617,7 +617,8 @@ namespace SFXChallenger.Champions
         private bool ELogic(Obj_AI_Hero target, List<Obj_AI_Hero> targets, HitChance hitChance, int minHits = 1)
         {
             return ELogic(
-                target, targets.Select(t => t as Obj_AI_Base).Where(t => t != null).ToList(), hitChance, minHits);
+                target, targets == null ? null : targets.Select(t => t as Obj_AI_Base).Where(t => t != null).ToList(),
+                hitChance, minHits);
         }
 
         private bool ELogic(Obj_AI_Hero mainTarget,
