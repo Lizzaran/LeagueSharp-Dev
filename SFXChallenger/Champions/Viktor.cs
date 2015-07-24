@@ -422,7 +422,7 @@ namespace SFXChallenger.Champions
                     MaxERange * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical);
                 if (target != null)
                 {
-                    ELogic(target, null, E.GetHitChance("combo"));
+                    ELogic(target, GameObjects.EnemyHeroes.ToList(), E.GetHitChance("combo"));
                 }
             }
             if (r)
@@ -617,8 +617,7 @@ namespace SFXChallenger.Champions
         private bool ELogic(Obj_AI_Hero target, List<Obj_AI_Hero> targets, HitChance hitChance, int minHits = 1)
         {
             return ELogic(
-                target, targets == null ? null : targets.Select(t => t as Obj_AI_Base).Where(t => t != null).ToList(),
-                hitChance, minHits);
+                target, targets.Select(t => t as Obj_AI_Base).Where(t => t != null).ToList(), hitChance, minHits);
         }
 
         private bool ELogic(Obj_AI_Hero mainTarget,
@@ -648,11 +647,7 @@ namespace SFXChallenger.Champions
                 var startPos = Vector3.Zero;
                 var endPos = Vector3.Zero;
                 var hits = 0;
-                if (targets == null)
-                {
-                    targets = GameObjects.EnemyHeroes.Select(t => t as Obj_AI_Base).ToList();
-                }
-                targets = targets.Where(t => t.Distance(Player) < MaxERange * 1.5f).ToList();
+                targets = targets.Where(t => t.IsValidTarget(MaxERange * 1.2f)).ToList();
                 var targetCount = targets.Count;
 
                 foreach (var target in targets)
@@ -661,10 +656,10 @@ namespace SFXChallenger.Champions
                     var lTarget = target;
                     if (target.Distance(Player.Position) < E.Range)
                     {
+                        containsTarget = mainTarget == null || lTarget.NetworkId == mainTarget.NetworkId;
                         var cCastPos = target.Position;
                         foreach (var t in targets.Where(t => t.NetworkId != lTarget.NetworkId))
                         {
-                            containsTarget = mainTarget == null || lTarget.NetworkId == mainTarget.NetworkId;
                             var count = 1;
                             var cTarget = t;
                             input.Unit = t;
@@ -674,6 +669,10 @@ namespace SFXChallenger.Champions
                             if (pred.Hitchance >= (hitChance - 1))
                             {
                                 count++;
+                                if (!containsTarget)
+                                {
+                                    containsTarget = t.NetworkId == mainTarget.NetworkId;
+                                }
                                 var rect = new Geometry.Polygon.Rectangle(
                                     cCastPos.To2D(), cCastPos.Extend(pred.CastPosition, ELength).To2D(), E.Width);
                                 foreach (var c in
@@ -710,7 +709,7 @@ namespace SFXChallenger.Champions
                                 }
                             }
                         }
-                        if (endPos.Equals(Vector3.Zero))
+                        if (endPos.Equals(Vector3.Zero) && containsTarget)
                         {
                             startPos = target.IsFacing(Player) && IsSpellUpgraded(E)
                                 ? Player.Position.Extend(cCastPos, Player.Distance(cCastPos) - (ELength / 10f))
@@ -809,7 +808,7 @@ namespace SFXChallenger.Champions
                     MaxERange * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical);
                 if (target != null)
                 {
-                    ELogic(target, null, E.GetHitChance("harass"));
+                    ELogic(target, GameObjects.EnemyHeroes.ToList(), E.GetHitChance("harass"));
                 }
             }
         }
@@ -901,7 +900,7 @@ namespace SFXChallenger.Champions
                     var damage = E.GetDamage(target);
                     if (damage - 10 > target.Health)
                     {
-                        if (ELogic(target, null, E.GetHitChance("combo")))
+                        if (ELogic(target, GameObjects.EnemyHeroes.ToList(), E.GetHitChance("combo")))
                         {
                             break;
                         }
