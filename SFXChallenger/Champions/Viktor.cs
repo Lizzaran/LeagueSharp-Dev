@@ -313,53 +313,11 @@ namespace SFXChallenger.Champions
                         var hero = Targets.FirstOrDefault(Orbwalking.InAutoAttackRange);
                         if (hero != null)
                         {
-                            args.Process = false;
                             Orbwalker.ForceTarget(hero);
+                            args.Process = false;
                             return;
                         }
                     }
-                    var target = args.Target as Obj_AI_Minion;
-                    if (target != null)
-                    {
-                        var health = HealthPrediction.GetHealthPrediction(target, (int) ((Player.AttackDelay * 1000)));
-                        if (health * 2 > CalcPassiveDamage(target) || health < CalcPassiveDamage(target))
-                        {
-                            args.Process = true;
-                            return;
-                        }
-
-                        var minions =
-                            MinionManager.GetMinions(
-                                1000, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
-                                .Where(Orbwalking.InAutoAttackRange)
-                                .ToList();
-
-                        var killable =
-                            minions.FirstOrDefault(
-                                m =>
-                                    HealthPrediction.GetHealthPrediction(m, (int) ((Player.AttackDelay * 1000))) <
-                                    CalcPassiveDamage(m));
-                        if (killable != null)
-                        {
-                            Orbwalker.ForceTarget(killable);
-                        }
-                        else
-                        {
-                            var other =
-                                minions.FirstOrDefault(
-                                    m =>
-                                        HealthPrediction.GetHealthPrediction(m, (int) ((Player.AttackDelay * 1000))) * 2 >
-                                        CalcPassiveDamage(m));
-                            if (other != null)
-                            {
-                                Orbwalker.ForceTarget(other);
-                            }
-                        }
-                        args.Process = false;
-                        return;
-                    }
-                    args.Process = true;
-                    return;
                 }
                 if (args.Target.Type == GameObjectType.obj_AI_Hero &&
                     (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
