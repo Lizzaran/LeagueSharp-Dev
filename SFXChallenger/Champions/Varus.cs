@@ -32,6 +32,7 @@ using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
+using SFXChallenger.Menus;
 using SFXChallenger.Wrappers;
 using SFXLibrary;
 using SFXLibrary.Logger;
@@ -121,45 +122,7 @@ namespace SFXChallenger.Champions
             laneclearMenu.AddItem(
                 new MenuItem(laneclearMenu.Name + ".min", Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
 
-            var ultimateMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Ultimate"), Menu.Name + ".ultimate"));
-
-            var uComboMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), ultimateMenu.Name + ".combo"));
-            uComboMenu.AddItem(
-                new MenuItem(uComboMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(new Slider(2, 1, 5)));
-            uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".1v1", "R 1v1").SetValue(true));
-            uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
-
-            var uAutoMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Auto"), ultimateMenu.Name + ".auto"));
-
-            var autoGapMenu =
-                uAutoMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Gapcloser"), uAutoMenu.Name + ".gapcloser"));
-            foreach (var enemy in
-                GameObjects.EnemyHeroes.Where(
-                    e =>
-                        AntiGapcloser.Spells.Any(
-                            s => s.ChampionName.Equals(e.ChampionName, StringComparison.OrdinalIgnoreCase))))
-            {
-                autoGapMenu.AddItem(
-                    new MenuItem(autoGapMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(false));
-            }
-
-            uAutoMenu.AddItem(
-                new MenuItem(uAutoMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
-            uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".1v1", "R 1v1").SetValue(false));
-            uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
-
-            var uAssistedMenu =
-                ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Assisted"), ultimateMenu.Name + ".assisted"));
-            uAssistedMenu.AddItem(
-                new MenuItem(uAssistedMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(new Slider(2, 1, 5)));
-            uAssistedMenu.AddItem(new MenuItem(uAssistedMenu.Name + ".1v1", "R 1v1").SetValue(true));
-            uAssistedMenu.AddItem(
-                new MenuItem(uAssistedMenu.Name + ".hotkey", Global.Lang.Get("G_Hotkey")).SetValue(
-                    new KeyBind('R', KeyBindType.Press)));
-            uAssistedMenu.AddItem(
-                new MenuItem(uAssistedMenu.Name + ".move-cursor", Global.Lang.Get("G_MoveCursor")).SetValue(true));
-            uAssistedMenu.AddItem(
-                new MenuItem(uAssistedMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
+            var ultimateMenu = UltimateMenu.AddToMenu(Menu, true, false, true, false, true, true, true);
 
             ultimateMenu.AddItem(
                 new MenuItem(ultimateMenu.Name + ".radius", Global.Lang.Get("G_Range")).SetValue(
@@ -168,6 +131,7 @@ namespace SFXChallenger.Champions
                 {
                     _rSpreadRadius = args.GetNewValue<Slider>().Value;
                 };
+
             _rSpreadRadius = Menu.Item(Menu.Name + ".ultimate.radius").GetValue<Slider>().Value;
 
             var killstealMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Killsteal"), Menu.Name + ".killsteal"));
@@ -270,7 +234,7 @@ namespace SFXChallenger.Champions
                     E.Cast(args.End);
                 }
                 if (Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
-                    Menu.Item(Menu.Name + ".ultimate.auto.gapcloser." + args.Sender.ChampionName).GetValue<bool>())
+                    HeroListManager.Check("ultimate-gapcloser", args.Sender))
                 {
                     RLogic(args.Sender, HitChance.High, 1);
                 }
@@ -550,10 +514,17 @@ namespace SFXChallenger.Champions
                     return false;
                 }
                 var pred = R.GetPrediction(target);
-                if (pred.Hitchance >= hitChance && target.CountEnemiesInRange(_rSpreadRadius) >= min)
+                if (pred.Hitchance >= hitChance)
                 {
-                    R.Cast(pred.CastPosition);
-                    return true;
+                    var hits = GameObjects.EnemyHeroes.Where(e => e.Distance(target) <= _rSpreadRadius).ToList();
+                    if (hits.Count >= min && hits.Any(h => HeroListManager.Check("ultimate-whitelist", h)) ||
+                        (hits.Any(h => HeroListManager.Check("ultimate-force", h)) &&
+                         hits.Count >=
+                         (Menu.Item(Menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1)))
+                    {
+                        R.Cast(pred.CastPosition);
+                        return true;
+                    }
                 }
             }
             catch (Exception ex)

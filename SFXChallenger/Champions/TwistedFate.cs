@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- TwistedFate.cs is part of SFXChallenger.
+ twistedfate.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -233,6 +233,18 @@ namespace SFXChallenger.Champions
                         }
                     }
                 }
+                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear ||
+                    Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
+                {
+                    if (Cards.Has(CardColor.Red))
+                    {
+                        var target = Orbwalker.ForcedTarget();
+                        if (target != null && target.NetworkId != args.Target.NetworkId)
+                        {
+                            args.Process = false;
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -249,14 +261,21 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear && Cards.Status == SelectStatus.Selected)
+                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear ||
+                    Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
                 {
                     if (Cards.Has(CardColor.Red))
                     {
-                        var best = GetBestLaneClearTargetCard(true);
-                        if (best.Item1 != null && best.Item2.Any())
+                        var range = Player.AttackRange + Player.BoundingRadius * 1.5f;
+                        var minions = MinionManager.GetMinions(range, MinionTypes.All, MinionTeam.NotAlly);
+                        var pred =
+                            MinionManager.GetBestCircularFarmLocation(
+                                minions.Select(m => m.Position.To2D()).ToList(), 500, range);
+                        var target = minions.OrderBy(m => m.Distance(pred.Position)).FirstOrDefault();
+                        if (target != null)
                         {
-                            Orbwalker.ForceTarget(best.Item1);
+                            Orbwalker.ForceTarget(target);
+                            Player.IssueOrder(GameObjectOrder.AttackUnit, target);
                         }
                     }
                 }
@@ -623,10 +642,11 @@ namespace SFXChallenger.Champions
             }
             if (w && W.IsReady())
             {
-                var best = GetBestLaneClearTargetCard();
-                if (best.Item1 != null && best.Item2.Any())
+                var minions = MinionManager.GetMinions(
+                    W.Range * 1.2f, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+                if (minions.Any())
                 {
-                    Cards.Select(best.Item2);
+                    Cards.Select(!ManaManager.Check("lane-clear-blue") ? CardColor.Blue : CardColor.Red);
                 }
             }
         }
@@ -738,78 +758,6 @@ namespace SFXChallenger.Champions
             return CardColor.None;
         }
 
-        private Tuple<int, Obj_AI_Base> GetBestRedMinion(List<Obj_AI_Base> minions)
-        {
-            var totalHits = 0;
-            Obj_AI_Base target = null;
-            try
-            {
-                foreach (var minion in minions)
-                {
-                    var redHits = GetWHits(minion, minions, CardColor.Red);
-                    if (redHits > totalHits)
-                    {
-                        totalHits = redHits;
-                        target = minion;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return new Tuple<int, Obj_AI_Base>(totalHits, target);
-        }
-
-        private Tuple<Obj_AI_Base, List<CardColor>> GetBestLaneClearTargetCard(bool forceRed = false)
-        {
-            var cards = new List<CardColor>();
-            Obj_AI_Base target = null;
-            try
-            {
-                if (!ManaManager.Check("lane-clear-blue") && !forceRed)
-                {
-                    var minions = MinionManager.GetMinions(
-                        W.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
-                    if (minions.Any() && (Player.ManaPercent < 95 || minions.Any(m => m.Team == GameObjectTeam.Neutral)))
-                    {
-                        var best = minions.FirstOrDefault(m => W.IsKillable(m) || m.Health > W.GetDamage(m) * 2.2);
-                        target = best ?? minions.First();
-                        cards.Add(CardColor.Blue);
-                    }
-                }
-                else
-                {
-                    var minions =
-                        MinionManager.GetMinions(
-                            W.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth).ToList();
-                    var minHits = minions.Any(m => m.Team == GameObjectTeam.Neutral)
-                        ? 1
-                        : Menu.Item(Menu.Name + ".lane-clear.red-min").GetValue<Slider>().Value;
-                    if (Cards.Has(CardColor.Red))
-                    {
-                        minHits = 1;
-                    }
-                    var best = GetBestRedMinion(minions);
-                    if (best.Item2 != null && best.Item1 >= minHits)
-                    {
-                        cards.Add(CardColor.Red);
-                        target = best.Item2;
-                    }
-                    else if (!forceRed)
-                    {
-                        cards.Add(CardColor.Blue);
-                        target = best.Item2;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return new Tuple<Obj_AI_Base, List<CardColor>>(target, cards);
-        }
-
         private List<CardColor> GetBestCard(Obj_AI_Hero target, string mode)
         {
             var cards = new List<CardColor>();
@@ -893,21 +841,21 @@ namespace SFXChallenger.Champions
                 }
                 if (mode == "combo" && !cards.Any())
                 {
-                    var distance = target.Distance(ObjectManager.Player);
+                    var distance = target.Distance(Player);
                     var damage = ItemManager.CalculateComboDamage(target) - target.HPRegenRate * 2f - 10;
                     if (HasEBuff())
                     {
                         damage += E.GetDamage(target);
                     }
-                    if (Q.IsReady() && Helpers.Utils.GetStunTime(target) > 0.5f && distance < Q.Range / 3f)
+                    if (Q.IsReady() && (Helpers.Utils.GetStunTime(target) > 0.5f || distance < Q.Range / 4f))
                     {
-                        damage += Q.GetDamage(target) * 0.9f;
+                        damage += Q.GetDamage(target);
                     }
                     if (W.GetDamage(target, 2) + damage > target.Health)
                     {
                         cards.Add(CardColor.Gold);
                     }
-                    if (target.Distance(Player) < Orbwalking.GetRealAutoAttackRange(target) * 0.85f)
+                    if (distance < Orbwalking.GetRealAutoAttackRange(target) * 0.85f)
                     {
                         if (W.GetDamage(target) + damage > target.Health)
                         {

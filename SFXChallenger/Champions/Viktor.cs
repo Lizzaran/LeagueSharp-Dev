@@ -31,6 +31,7 @@ using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
+using SFXChallenger.Menus;
 using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
@@ -112,41 +113,7 @@ namespace SFXChallenger.Champions
                 new MenuItem(laneclearMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(
                     new Slider(3, 1, 5)));
 
-            var ultimateMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Ultimate"), Menu.Name + ".ultimate"));
-
-            var uComboMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), ultimateMenu.Name + ".combo"));
-            uComboMenu.AddItem(
-                new MenuItem(uComboMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
-            uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".1v1", "R 1v1").SetValue(true));
-            uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
-
-            var uAutoMenu = ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Auto"), ultimateMenu.Name + ".auto"));
-
-            var autoInterruptMenu =
-                uAutoMenu.AddSubMenu(new Menu(Global.Lang.Get("G_InterruptSpell"), uAutoMenu.Name + ".interrupt"));
-            foreach (var enemy in GameObjects.EnemyHeroes)
-            {
-                autoInterruptMenu.AddItem(
-                    new MenuItem(autoInterruptMenu.Name + "." + enemy.ChampionName, enemy.ChampionName).SetValue(false));
-            }
-
-            uAutoMenu.AddItem(
-                new MenuItem(uAutoMenu.Name + ".min", Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
-            uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".1v1", "R 1v1").SetValue(false));
-            uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
-
-            var uAssistedMenu =
-                ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Assisted"), ultimateMenu.Name + ".assisted"));
-            uAssistedMenu.AddItem(
-                new MenuItem(uAssistedMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
-            uAssistedMenu.AddItem(new MenuItem(uAssistedMenu.Name + ".1v1", "R 1v1").SetValue(true));
-            uAssistedMenu.AddItem(
-                new MenuItem(uAssistedMenu.Name + ".hotkey", Global.Lang.Get("G_Hotkey")).SetValue(
-                    new KeyBind('R', KeyBindType.Press)));
-            uAssistedMenu.AddItem(
-                new MenuItem(uAssistedMenu.Name + ".move-cursor", Global.Lang.Get("G_MoveCursor")).SetValue(true));
-            uAssistedMenu.AddItem(
-                new MenuItem(uAssistedMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
+            var ultimateMenu = UltimateMenu.AddToMenu(Menu, true, true, false, false, true, true, true);
 
             ultimateMenu.AddItem(
                 new MenuItem(ultimateMenu.Name + ".follow", Global.Lang.Get("Viktor_AutoFollow")).SetValue(true));
@@ -440,10 +407,9 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (sender.IsEnemy && args.DangerLevel == Interrupter2.DangerLevel.High && args.MovementInterrupts &&
+                if (sender.IsEnemy && args.DangerLevel == Interrupter2.DangerLevel.High &&
                     Menu.Item(Menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
-                    Menu.Item(Menu.Name + ".ultimate.auto.interrupt." + sender.ChampionName).GetValue<bool>() &&
-                    sender.IsFacing(Player))
+                    HeroListManager.Check("ultimate-interrupt", sender.ChampionName) && sender.IsFacing(Player))
                 {
                     R.Cast(sender);
                 }
@@ -660,12 +626,14 @@ namespace SFXChallenger.Champions
                         cDmg = CalcComboDamage(target, q, e, true, extended);
                         if (cDmg - 20 >= target.Health)
                         {
-                            Vector3 center;
-                            int hits;
-                            BestRCastLocation(out center, out hits, extended ? extendedRange : -1);
-                            if (hits >= 1 && !center.Equals(Vector3.Zero))
+                            var pred = BestRCastLocation();
+                            if (pred.Item2.Count >= 1 &&
+                                pred.Item2.Any(h => HeroListManager.Check("ultimate-whitelist", h)) ||
+                                (pred.Item2.Any(h => HeroListManager.Check("ultimate-force", h)) &&
+                                 pred.Item2.Count >=
+                                 (Menu.Item(Menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1)))
                             {
-                                R.Cast(extended ? (Player.Position.Extend(center, R.Range)) : center);
+                                R.Cast(extended ? (Player.Position.Extend(pred.Item1, R.Range)) : pred.Item1);
                                 return extended;
                             }
                         }
@@ -683,12 +651,13 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                Vector3 center;
-                int hits;
-                BestRCastLocation(out center, out hits);
-                if (hits >= min && !center.Equals(Vector3.Zero))
+                var pred = BestRCastLocation();
+                if (pred.Item2.Count >= min && pred.Item2.Any(h => HeroListManager.Check("ultimate-whitelist", h)) ||
+                    (pred.Item2.Any(h => HeroListManager.Check("ultimate-force", h)) &&
+                     pred.Item2.Count >=
+                     (Menu.Item(Menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1)))
                 {
-                    R.Cast(center);
+                    R.Cast(pred.Item1);
                     return true;
                 }
             }
@@ -1012,19 +981,19 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private void BestRCastLocation(out Vector3 pos, out int hits, float overrideRange = -1)
+        private Tuple<Vector3, List<Obj_AI_Hero>> BestRCastLocation(float overrideRange = -1)
         {
             try
             {
+                var hits = new List<Obj_AI_Hero>();
                 var center = Vector2.Zero;
                 float radius = -1;
-                var count = 0;
                 var range = (overrideRange > 0 ? overrideRange : (R.Range * 1.3f));
-                var points = (from enemy in Targets.Where(t => t.IsValidTarget(range))
-                    select Q.GetPrediction(enemy)
-                    into prediction
+                var points = (from t in Targets
+                    where t.IsValidTarget(range)
+                    let prediction = Q.GetPrediction(t)
                     where prediction.Hitchance >= HitChance.Medium
-                    select prediction.UnitPosition.To2D()).ToList();
+                    select new Tuple<Obj_AI_Hero, Vector2>(t, prediction.UnitPosition.To2D())).ToList();
                 if (points.Any())
                 {
                     var possibilities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 1).ToList();
@@ -1032,30 +1001,29 @@ namespace SFXChallenger.Champions
                     {
                         foreach (var possibility in possibilities)
                         {
-                            var mec = MEC.GetMec(possibility);
+                            var mec = MEC.GetMec(possibility.Select(p => p.Item2).ToList());
                             if (mec.Radius < (R.Width / 2) && Player.Distance(mec.Center) < range)
                             {
-                                if (possibility.Count > count || possibility.Count == count && mec.Radius < radius)
+                                if (possibility.Count > hits.Count ||
+                                    possibility.Count == hits.Count && mec.Radius < radius)
                                 {
                                     center = mec.Center;
                                     radius = mec.Radius;
-                                    count = possibility.Count;
+                                    hits.Clear();
+                                    hits.AddRange(possibility.Select(p => p.Item1).ToList());
                                 }
                             }
                         }
                         if (!center.Equals(Vector2.Zero))
                         {
-                            hits = count;
-                            pos = center.To3D();
-                            return;
+                            return new Tuple<Vector3, List<Obj_AI_Hero>>(center.To3D2(), hits);
                         }
                     }
                     var dTarget = Targets.FirstOrDefault(t => t.IsValidTarget(range));
                     if (dTarget != null)
                     {
-                        hits = 1;
-                        pos = dTarget.Position;
-                        return;
+                        return new Tuple<Vector3, List<Obj_AI_Hero>>(
+                            dTarget.Position, new List<Obj_AI_Hero> { dTarget });
                     }
                 }
             }
@@ -1063,8 +1031,7 @@ namespace SFXChallenger.Champions
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
-            hits = 0;
-            pos = Vector3.Zero;
+            return new Tuple<Vector3, List<Obj_AI_Hero>>(Vector3.Zero, new List<Obj_AI_Hero>());
         }
 
         private Vector3 BestRFollowLocation(Vector3 position)

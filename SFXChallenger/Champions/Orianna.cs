@@ -253,9 +253,9 @@ namespace SFXChallenger.Champions
                             R.UpdateSourcePosition(flashPos, flashPos);
                             var hits = GameObjects.EnemyHeroes.Where(x => R.WillHit(x, pred.CastPosition)).ToList();
                             if (hits.Count >= min && hits.Any(hit => HeroListManager.Check("ultimate-whitelist", hit)) ||
-                                hits.Any(hit => HeroListManager.Check("ultimate-force", hit)) &&
-                                hits.Count >=
-                                (Menu.Item(Menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1))
+                                (hits.Any(hit => HeroListManager.Check("ultimate-force", hit)) &&
+                                 hits.Count >=
+                                 (Menu.Item(Menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1)))
                             {
                                 R.Cast(Player.Position);
                                 Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
@@ -263,9 +263,9 @@ namespace SFXChallenger.Champions
                             else if (Menu.Item(Menu.Name + ".ultimate.flash.1v1").GetValue<bool>())
                             {
                                 if (hits.Any(hit => HeroListManager.Check("ultimate-whitelist", hit)) ||
-                                    hits.Any(hit => HeroListManager.Check("ultimate-force", hit)) &&
-                                    hits.Count >=
-                                    (Menu.Item(Menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1))
+                                    (hits.Any(hit => HeroListManager.Check("ultimate-force", hit)) &&
+                                     hits.Count >=
+                                     (Menu.Item(Menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1)))
                                 {
                                     var cDmg = CalcComboDamage(
                                         target, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
@@ -589,8 +589,8 @@ namespace SFXChallenger.Champions
             {
                 var hits = GetHits(R);
                 if (hits.Item1 >= min && hits.Item2.Any(hit => HeroListManager.Check("ultimate-whitelist", hit)) ||
-                    hits.Item2.Any(hit => HeroListManager.Check("ultimate-force", hit)) &&
-                    hits.Item1 >= (Menu.Item(Menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1))
+                    (hits.Item2.Any(hit => HeroListManager.Check("ultimate-force", hit)) &&
+                     hits.Item1 >= (Menu.Item(Menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1)))
                 {
                     R.Cast(Player.Position);
                     return true;
