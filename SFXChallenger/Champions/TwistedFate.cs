@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- twistedfate.cs is part of SFXChallenger.
+ TwistedFate.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -132,10 +132,6 @@ namespace SFXChallenger.Champions
             laneclearMenu.AddItem(
                 new MenuItem(laneclearMenu.Name + ".q-min", "Q " + Global.Lang.Get("G_Min")).SetValue(
                     new Slider(3, 1, 5)));
-            laneclearMenu.AddItem(
-                new MenuItem(
-                    laneclearMenu.Name + ".red-min", "W " + Global.Lang.Get("TF_Red") + " " + Global.Lang.Get("G_Min"))
-                    .SetValue(new Slider(3, 1, 5)));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
 
@@ -799,7 +795,7 @@ namespace SFXChallenger.Champions
                     {
                         blue = 4;
                     }
-                    var minRed = Menu.Item(Menu.Name + ".lane-clear.red-min").GetValue<Slider>().Value;
+                    var minRed = Menu.Item(Menu.Name + ".combo.red-min").GetValue<Slider>().Value;
                     var redHits = GetWHits(target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), CardColor.Red);
                     red += redHits;
                     if (red > blue && red > gold && redHits >= minRed)
