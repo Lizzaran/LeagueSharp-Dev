@@ -176,26 +176,25 @@ namespace SFXChallenger.Managers
                     return false;
                 }
 
-                if (HeroListManager.Enabled("ultimate-required") &&
-                    !hits.Any(hit => HeroListManager.Check("ultimate-required", hit)))
+                if (HeroListManager.Enabled("ultimate-required"))
                 {
-                    var range = _menu.Item(_menu.Name + ".ultimate.required.range-check").GetValue<Slider>().Value;
-                    if (
-                        GameObjects.EnemyHeroes.Where(
-                            h => !h.IsDead && h.IsVisible && h.Distance(ObjectManager.Player) <= range)
-                            .Any(h => HeroListManager.Check("ultimate-required", h)))
+                    if (!hits.Any(hit => HeroListManager.Check("ultimate-required", hit)))
                     {
-                        return false;
+                        var range = _menu.Item(_menu.Name + ".ultimate.required.range-check").GetValue<Slider>().Value;
+                        if (
+                            GameObjects.EnemyHeroes.Where(
+                                h => !h.IsDead && h.IsVisible && h.Distance(ObjectManager.Player) <= range)
+                                .Any(h => HeroListManager.Check("ultimate-required", h)))
+                        {
+                            return false;
+                        }
                     }
                 }
-                else
-                {
-                    return hits.Count >= min ||
-                           (HeroListManager.Enabled("ultimate-force") &&
-                            hits.Any(hit => HeroListManager.Check("ultimate-force", hit)) &&
-                            hits.Count >=
-                            (_menu.Item(_menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1));
-                }
+                return hits.Count >= min ||
+                       (HeroListManager.Enabled("ultimate-force") &&
+                        hits.Any(hit => HeroListManager.Check("ultimate-force", hit)) &&
+                        hits.Count >=
+                        (_menu.Item(_menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1));
             }
             catch (Exception ex)
             {
