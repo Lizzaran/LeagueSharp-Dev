@@ -67,7 +67,7 @@ namespace SFXChallenger.Managers
                 if (auto)
                 {
                     var uAutoMenu =
-                        ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Auto"), ultimateMenu.Name + ".auto"));
+                        ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("UM_Auto"), ultimateMenu.Name + ".auto"));
                     if (autoInterrupt)
                     {
                         var autoInterruptMenu =
@@ -112,7 +112,7 @@ namespace SFXChallenger.Managers
                         new MenuItem(uFlashMenu.Name + ".hotkey", Global.Lang.Get("G_Hotkey")).SetValue(
                             new KeyBind('U', KeyBindType.Press)));
                     uFlashMenu.AddItem(
-                        new MenuItem(uFlashMenu.Name + ".move-cursor", Global.Lang.Get("G_MoveCursor")).SetValue(true));
+                        new MenuItem(uFlashMenu.Name + ".move-cursor", Global.Lang.Get("UM_MoveCursor")).SetValue(true));
                     uFlashMenu.AddItem(
                         new MenuItem(uFlashMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
                 }
@@ -121,7 +121,7 @@ namespace SFXChallenger.Managers
                 {
                     var uAssistedMenu =
                         ultimateMenu.AddSubMenu(
-                            new Menu(Global.Lang.Get("G_Assisted"), ultimateMenu.Name + ".assisted"));
+                            new Menu(Global.Lang.Get("UM_Assisted"), ultimateMenu.Name + ".assisted"));
                     uAssistedMenu.AddItem(
                         new MenuItem(uAssistedMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(
                             new Slider(3, 1, 5)));
@@ -130,7 +130,7 @@ namespace SFXChallenger.Managers
                         new MenuItem(uAssistedMenu.Name + ".hotkey", Global.Lang.Get("G_Hotkey")).SetValue(
                             new KeyBind('R', KeyBindType.Press)));
                     uAssistedMenu.AddItem(
-                        new MenuItem(uAssistedMenu.Name + ".move-cursor", Global.Lang.Get("G_MoveCursor")).SetValue(
+                        new MenuItem(uAssistedMenu.Name + ".move-cursor", Global.Lang.Get("UM_MoveCursor")).SetValue(
                             true));
                     uAssistedMenu.AddItem(
                         new MenuItem(uAssistedMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
@@ -140,19 +140,20 @@ namespace SFXChallenger.Managers
                 {
                     var uRequiredListMenu =
                         ultimateMenu.AddSubMenu(
-                            new Menu(Global.Lang.Get("G_RequiredTarget"), ultimateMenu.Name + ".required"));
+                            new Menu(Global.Lang.Get("UM_RequiredTarget"), ultimateMenu.Name + ".required"));
                     uRequiredListMenu.AddItem(
-                        new MenuItem(uRequiredListMenu.Name + ".range-check", Global.Lang.Get("G_RangeCheck")).SetValue(
-                            new Slider(2000, 1000, 3000)));
+                        new MenuItem(uRequiredListMenu.Name + ".range-check", Global.Lang.Get("UM_RangeCheck")).SetValue
+                            (new Slider(2000, 1000, 3000)));
                     HeroListManager.AddToMenu(uRequiredListMenu, "ultimate-required", true, false, true, false);
                 }
 
                 if (force)
                 {
                     var uForceMenu =
-                        ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Force"), ultimateMenu.Name + ".force"));
+                        ultimateMenu.AddSubMenu(
+                            new Menu(Global.Lang.Get("UM_ForceTarget"), ultimateMenu.Name + ".force"));
                     uForceMenu.AddItem(
-                        new MenuItem(uForceMenu.Name + ".additional", Global.Lang.Get("G_Additional")).SetValue(
+                        new MenuItem(uForceMenu.Name + ".additional", Global.Lang.Get("UM_AdditionalTargets")).SetValue(
                             new Slider(0, 0, 4)));
                     HeroListManager.AddToMenu(uForceMenu, "ultimate-force", true, false, true, false);
                 }
@@ -175,13 +176,14 @@ namespace SFXChallenger.Managers
                     return false;
                 }
 
-                if (!hits.Any(hit => HeroListManager.Check("ultimate-required", hit)))
+                if (HeroListManager.Enabled("ultimate-required") &&
+                    !hits.Any(hit => HeroListManager.Check("ultimate-required", hit)))
                 {
                     var range = _menu.Item(_menu.Name + ".ultimate.required.range-check").GetValue<Slider>().Value;
                     if (
                         GameObjects.EnemyHeroes.Where(
                             h => !h.IsDead && h.IsVisible && h.Distance(ObjectManager.Player) <= range)
-                            .Any(enemy => HeroListManager.Check("ultimate-required", enemy)))
+                            .Any(h => HeroListManager.Check("ultimate-required", h)))
                     {
                         return false;
                     }
@@ -189,7 +191,8 @@ namespace SFXChallenger.Managers
                 else
                 {
                     return hits.Count >= min ||
-                           (hits.Any(hit => HeroListManager.Check("ultimate-force", hit)) &&
+                           (HeroListManager.Enabled("ultimate-force") &&
+                            hits.Any(hit => HeroListManager.Check("ultimate-force", hit)) &&
                             hits.Count >=
                             (_menu.Item(_menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1));
                 }

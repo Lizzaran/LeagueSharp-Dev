@@ -59,7 +59,6 @@
 	<entry key="G_UseE">Use E</entry>
 	<entry key="G_UseR">Use R</entry>
 	<entry key="G_Flash">Flash</entry>
-	<entry key="G_Auto">Auto</entry>
 	<entry key="G_Killsteal">Killsteal</entry>
 	<entry key="G_Stunned">Stunned</entry>
 	<entry key="G_Dash">Dash</entry>
@@ -67,9 +66,7 @@
 	<entry key="G_Killable">Killable</entry>
 	<entry key="G_LastHit">Lasthit</entry>
 	<entry key="G_Ultimate">Ultimate</entry>
-	<entry key="G_Assisted">Assisted</entry>
 	<entry key="G_InterruptSpell">Interrupt Spell</entry>
-	<entry key="G_MoveCursor">Move to Cursor</entry>
 	<entry key="G_Min">Min</entry>
 	<entry key="G_Max">Max</entry>
 	<entry key="G_Facing">Facing</entry>
@@ -86,8 +83,6 @@
 	<entry key="G_Blacklist">Blacklist</entry>
 	<entry key="G_Whitelist">Whitelist</entry>
 	<entry key="G_BlockMissing">Block Missing</entry>
-	<entry key="G_Additional">Additional</entry>
-	<entry key="G_Force">Force</entry>
 	<entry key="G_Always">Always</entry>
 	<entry key="G_Minimap">Minimap</entry>
 	<entry key="G_Stacks">Stacks</entry>
@@ -103,8 +98,6 @@
 	<entry key="G_Manual">Manual</entry>
 	<entry key="G_Simple">Simple</entry>
 	<entry key="G_Advanced">Advanced</entry>
-	<entry key="G_RequiredTarget">Required Target</entry>
-	<entry key="G_RangeCheck">Range Check</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: Language -->
@@ -178,6 +171,16 @@
 	<entry key="MI_Sightstone">Sightstone</entry>
 	<entry key="MI_RubySightstone">Ruby Sightstone</entry>
 	<!-- END: ItemManager -->
+
+	<!-- START: UltimateManager -->
+	<entry key="UM_Auto">Auto</entry>
+	<entry key="UM_Assisted">Assisted</entry>
+	<entry key="UM_MoveCursor">Move to Cursor</entry>
+	<entry key="UM_ForceTarget">Force Target</entry>
+	<entry key="UM_RequiredTarget">Required Target</entry>
+	<entry key="UM_RangeCheck">Range Check</entry>
+	<entry key="UM_AdditionalTargets">Additional Targets</entry>
+	<!-- END: UltimateManager -->
 
 	<!-- START: Orbwalker -->
 	<entry key="F_Orbwalker">Orbwalker</entry>
