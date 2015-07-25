@@ -72,7 +72,6 @@ namespace SFXChallenger.Champions
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
 
             var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Harass"), Menu.Name + ".harass"));
             HitchanceManager.AddToMenu(
@@ -226,7 +225,7 @@ namespace SFXChallenger.Champions
             var useQ = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady();
             var useW = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady();
             var useE = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
-            var useR = Menu.Item(Menu.Name + ".combo.r").GetValue<bool>() && R.IsReady();
+            var useR = UltimateManager.Combo() && R.IsReady();
 
             if (useQ)
             {

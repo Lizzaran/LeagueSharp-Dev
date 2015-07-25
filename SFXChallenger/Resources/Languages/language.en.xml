@@ -65,7 +65,6 @@
 	<entry key="G_Fleeing">Fleeing</entry>
 	<entry key="G_Killable">Killable</entry>
 	<entry key="G_LastHit">Lasthit</entry>
-	<entry key="G_Ultimate">Ultimate</entry>
 	<entry key="G_InterruptSpell">Interrupt Spell</entry>
 	<entry key="G_Min">Min</entry>
 	<entry key="G_Max">Max</entry>
@@ -177,6 +176,7 @@
 	<!-- END: ItemManager -->
 
 	<!-- START: UltimateManager -->
+	<entry key="F_Ultimate">Ultimate</entry>
 	<entry key="UM_Duel">Duel</entry>
 	<entry key="UM_Auto">Auto</entry>
 	<entry key="UM_Assisted">Assisted</entry>

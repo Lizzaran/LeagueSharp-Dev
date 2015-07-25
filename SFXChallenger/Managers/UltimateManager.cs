@@ -67,7 +67,7 @@ namespace SFXChallenger.Managers
                 _force = force;
                 _menu = menu;
 
-                var ultimateMenu = menu.AddSubMenu(new Menu(Global.Lang.Get("G_Ultimate"), menu.Name + ".ultimate"));
+                var ultimateMenu = menu.AddSubMenu(new Menu(Global.Lang.Get("F_Ultimate"), menu.Name + ".ultimate"));
 
                 var uComboMenu =
                     ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), ultimateMenu.Name + ".combo"));
@@ -231,6 +231,40 @@ namespace SFXChallenger.Managers
             }
             return null;
         }
+        
+        public static bool Combo()
+        {
+            return _menu != null && _menu.Item(_menu.Name + ".ultimate.combo.enabled").GetValue<bool>();
+        }
+
+        public static bool Auto()
+        {
+            return _menu != null && _auto && _menu.Item(_menu.Name + ".ultimate.auto.enabled").GetValue<bool>();
+        }
+
+        public static bool Interrupt(Obj_AI_Hero hero)
+        {
+            return _menu != null && _interrupt && _menu.Item(_menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
+                   HeroListManager.Check("ultimate-interrupt", hero);
+        }
+
+        public static bool Gapcloser(Obj_AI_Hero hero)
+        {
+            return _menu != null && _gapcloser && _menu.Item(_menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
+                   HeroListManager.Check("ultimate-gapcloser", hero);
+        }
+
+        public static bool Flash()
+        {
+            return _menu != null && _flash && _menu.Item(_menu.Name + ".ultimate.flash.enabled").GetValue<bool>() &&
+                   _menu.Item(_menu.Name + ".ultimate.flash.hotkey").GetValue<KeyBind>().Active;
+        }
+
+        public static bool Assisted()
+        {
+            return _menu != null && _assisted && _menu.Item(_menu.Name + ".ultimate.assisted.enabled").GetValue<bool>() &&
+                   _menu.Item(_menu.Name + ".ultimate.assisted.hotkey").GetValue<KeyBind>().Active;
+        }
 
         public static bool CheckDuel(Obj_AI_Hero target, float damage)
         {
@@ -240,6 +274,7 @@ namespace SFXChallenger.Managers
                 {
                     return false;
                 }
+
                 var alliesRange = _menu.Item(_menu.Name + ".ultimate.duel.allies.range").GetValue<Slider>().Value;
                 var alliesCount = _menu.Item(_menu.Name + ".ultimate.duel.allies.count").GetValue<Slider>().Value;
                 var alliesIncrease = _menu.Item(_menu.Name + ".ultimate.duel.allies.increase").GetValue<bool>();
@@ -280,40 +315,6 @@ namespace SFXChallenger.Managers
                 Global.Logger.AddItem(new LogItem(ex));
             }
             return false;
-        }
-
-        public static bool Combo()
-        {
-            return _menu != null && _menu.Item(_menu.Name + ".ultimate.combo.enabled").GetValue<bool>();
-        }
-
-        public static bool Auto()
-        {
-            return _menu != null && _auto && _menu.Item(_menu.Name + ".ultimate.auto.enabled").GetValue<bool>();
-        }
-
-        public static bool Interrupt(Obj_AI_Hero hero)
-        {
-            return _menu != null && _interrupt && _menu.Item(_menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
-                   HeroListManager.Check("ultimate-interrupt", hero);
-        }
-
-        public static bool Gapcloser(Obj_AI_Hero hero)
-        {
-            return _menu != null && _gapcloser && _menu.Item(_menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
-                   HeroListManager.Check("ultimate-gapcloser", hero);
-        }
-
-        public static bool Flash()
-        {
-            return _menu != null && _flash && _menu.Item(_menu.Name + ".ultimate.flash.enabled").GetValue<bool>() &&
-                   _menu.Item(_menu.Name + ".ultimate.flash.hotkey").GetValue<KeyBind>().Active;
-        }
-
-        public static bool Assisted()
-        {
-            return _menu != null && _assisted && _menu.Item(_menu.Name + ".ultimate.assisted.enabled").GetValue<bool>() &&
-                   _menu.Item(_menu.Name + ".ultimate.assisted.hotkey").GetValue<KeyBind>().Active;
         }
 
         public static bool Check(int min, List<Obj_AI_Hero> hits)

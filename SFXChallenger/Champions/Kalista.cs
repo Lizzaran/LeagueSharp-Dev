@@ -143,7 +143,7 @@ namespace SFXChallenger.Champions
             var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Flee"), Menu.Name + ".flee"));
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".aa", Global.Lang.Get("G_UseAutoAttacks")).SetValue(true));
 
-            var ultiMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Ultimate"), Menu.Name + ".ultimate"));
+            var ultiMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("F_Ultimate"), Menu.Name + ".ultimate"));
 
             var blitzMenu = ultiMenu.AddSubMenu(new Menu("Blitzcrank", ultiMenu.Name + ".blitzcrank"));
 

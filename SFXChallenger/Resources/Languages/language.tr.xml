@@ -43,7 +43,7 @@
 	<entry key="G_Fleeing">Fleeing</entry>
 	<entry key="G_Killable">Öldürülebilir</entry>
 	<entry key="G_LastHit">Lasthit</entry>
-	<entry key="G_Ultimate">Ultimate</entry>
+	<entry key="F_Ultimate">Ultimate</entry>
 	<entry key="G_Assisted">Assisted</entry>
 	<entry key="G_InterruptSpell">Interrupt Spell</entry>
 	<entry key="G_MoveCursor">İmlece doğru yürü</entry>
