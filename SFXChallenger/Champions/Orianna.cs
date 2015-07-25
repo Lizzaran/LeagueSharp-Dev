@@ -74,6 +74,11 @@ namespace SFXChallenger.Champions
 
         protected override void AddToMenu()
         {
+            Menu.AddItem(new MenuItem(Menu.Name + ".q-speed", "Q Speed").SetValue(new Slider(1350, 900, 1500)))
+                .ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { Q.Speed = args.GetNewValue<Slider>().Value; };
+            Q.Speed = Menu.Item(Menu.Name + ".q-speed").GetValue<Slider>().Value;
+
             var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), Menu.Name + ".combo"));
             HitchanceManager.AddToMenu(
                 comboMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), comboMenu.Name + ".hitchance")), "combo",
@@ -96,7 +101,17 @@ namespace SFXChallenger.Champions
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
 
-            UltimateManager.AddToMenu(Menu, true, true, false, false, false, true, true, true, true);
+            var ultimateMenu = UltimateManager.AddToMenu(Menu, true, true, false, false, false, true, true, true, true);
+
+            ultimateMenu.AddItem(
+                new MenuItem(ultimateMenu.Name + ".range", Global.Lang.Get("G_Range")).SetValue(
+                    new Slider(350, 250, 400))).ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        R.Range = args.GetNewValue<Slider>().Value;
+                        DrawingManager.Update(
+                            "R " + Global.Lang.Get("G_Flash"),
+                            args.GetNewValue<Slider>().Value + SummonerManager.Flash.Range);
+                    };
 
             var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Flee"), Menu.Name + ".flee"));
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
@@ -112,6 +127,7 @@ namespace SFXChallenger.Champions
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".block-r", Global.Lang.Get("G_BlockMissing") + " R").SetValue(true));
 
+            R.Range = Menu.Item(Menu.Name + ".ultimate.range").GetValue<Slider>().Value;
             DrawingManager.Add("R " + Global.Lang.Get("G_Flash"), R.Range + SummonerManager.Flash.Range);
 
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
@@ -187,12 +203,12 @@ namespace SFXChallenger.Champions
             Q.SetSkillshot(0.25f, 110f, 1350f, false, SkillshotType.SkillshotCircle);
 
             W = new Spell(SpellSlot.W, 220f);
-            W.SetSkillshot(0.1f, 250f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            W.SetSkillshot(0.1f, 240f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E, 1095f);
             E.SetSkillshot(0.25f, 125f, 1700f, false, SkillshotType.SkillshotLine);
 
-            R = new Spell(SpellSlot.R, 370f);
+            R = new Spell(SpellSlot.R, 400f);
             R.SetSkillshot(0.60f, 350f, float.MaxValue, false, SkillshotType.SkillshotCircle);
         }
 
@@ -333,7 +349,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (sender.IsEnemy && args.DangerLevel == Interrupter2.DangerLevel.High && args.MovementInterrupts &&
+                if (sender.IsEnemy && args.DangerLevel == Interrupter2.DangerLevel.High &&
                     UltimateManager.Interrupt(sender) && R.IsReady())
                 {
                     var hits = GetHits(R);
@@ -423,23 +439,20 @@ namespace SFXChallenger.Champions
                     return 0;
                 }
                 float damage = 0;
-                if (q)
+                if (q && Q.IsReady())
                 {
-                    damage += Q.GetDamage(target) * 2f;
+                    damage += Q.GetDamage(target);
                 }
                 if (w && W.IsReady())
                 {
                     damage += W.GetDamage(target);
                 }
-                if (e && E.IsReady())
-                {
-                    damage += E.GetDamage(target);
-                }
+                if (e) {}
                 if (r && R.IsReady())
                 {
                     damage += R.GetDamage(target);
                 }
-                damage += 2f * (float) Player.GetAutoAttackDamage(target);
+                damage += (float) Player.GetAutoAttackDamage(target, true);
                 damage += ItemManager.CalculateComboDamage(target);
                 damage += SummonerManager.CalculateComboDamage(target);
                 return damage;
@@ -887,20 +900,8 @@ namespace SFXChallenger.Champions
             }
             if (w && W.IsReady())
             {
-                var n = 0;
-                var d = 0;
-                foreach (var m in allMinions)
-                {
-                    if (m.Distance(Ball.Position) <= W.Range)
-                    {
-                        n++;
-                        if (W.GetDamage(m) > m.Health)
-                        {
-                            d++;
-                        }
-                    }
-                }
-                if (n >= 3 || d >= 2)
+                if (allMinions.Where(m => m.Distance(Ball.Position) <= W.Range).Count(m => W.GetDamage(m) > m.Health) >=
+                    3)
                 {
                     W.Cast(Player.Position);
                 }
