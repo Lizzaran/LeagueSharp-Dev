@@ -165,11 +165,11 @@ namespace SFXChallenger.Managers
                     new MenuItem(uDuelAlliesMenu.Name + ".range", Global.Lang.Get("UM_MaxAlliesRange")).SetValue(
                         new Slider(1500, 500, 3000)));
                 uDuelAlliesMenu.AddItem(
-                    new MenuItem(uDuelAlliesMenu.Name + ".count", Global.Lang.Get("UM_MinAlliesCount")).SetValue(
+                    new MenuItem(uDuelAlliesMenu.Name + ".min", Global.Lang.Get("UM_MinAllies")).SetValue(
                         new Slider(0, 0, 4)));
                 uDuelAlliesMenu.AddItem(
-                    new MenuItem(uDuelAlliesMenu.Name + ".increase", Global.Lang.Get("UM_AlliesIncrease")).SetValue(
-                        false));
+                    new MenuItem(uDuelAlliesMenu.Name + ".max", Global.Lang.Get("UM_MaxAllies")).SetValue(
+                        new Slider(3, 0, 4)));
 
                 var uDuelEnemiesMenu =
                     uDuelMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Enemies"), uDuelMenu.Name + ".enemies"));
@@ -178,7 +178,10 @@ namespace SFXChallenger.Managers
                     new MenuItem(uDuelEnemiesMenu.Name + ".range", Global.Lang.Get("UM_MaxEnemiesRange")).SetValue(
                         new Slider(2500, 500, 3000)));
                 uDuelEnemiesMenu.AddItem(
-                    new MenuItem(uDuelEnemiesMenu.Name + ".count", Global.Lang.Get("UM_MaxEnemiesCount")).SetValue(
+                    new MenuItem(uDuelEnemiesMenu.Name + ".min", Global.Lang.Get("UM_MinEnemies")).SetValue(
+                        new Slider(1, 0, 5)));
+                uDuelEnemiesMenu.AddItem(
+                    new MenuItem(uDuelEnemiesMenu.Name + ".max", Global.Lang.Get("UM_MaxEnemies")).SetValue(
                         new Slider(1, 0, 5)));
 
                 var uDuelTargetMenu =
@@ -231,7 +234,7 @@ namespace SFXChallenger.Managers
             }
             return null;
         }
-        
+
         public static bool Combo()
         {
             return _menu != null && _menu.Item(_menu.Name + ".ultimate.combo.enabled").GetValue<bool>();
@@ -276,11 +279,12 @@ namespace SFXChallenger.Managers
                 }
 
                 var alliesRange = _menu.Item(_menu.Name + ".ultimate.duel.allies.range").GetValue<Slider>().Value;
-                var alliesCount = _menu.Item(_menu.Name + ".ultimate.duel.allies.count").GetValue<Slider>().Value;
-                var alliesIncrease = _menu.Item(_menu.Name + ".ultimate.duel.allies.increase").GetValue<bool>();
+                var alliesMin = _menu.Item(_menu.Name + ".ultimate.duel.allies.min").GetValue<Slider>().Value;
+                var alliesMax = _menu.Item(_menu.Name + ".ultimate.duel.allies.max").GetValue<Slider>().Value;
 
                 var enemiesRange = _menu.Item(_menu.Name + ".ultimate.duel.enemies.range").GetValue<Slider>().Value;
-                var enemiesCount = _menu.Item(_menu.Name + ".ultimate.duel.enemies.count").GetValue<Slider>().Value;
+                var enemiesMin = _menu.Item(_menu.Name + ".ultimate.duel.enemies.min").GetValue<Slider>().Value;
+                var enemiesMax = _menu.Item(_menu.Name + ".ultimate.duel.enemies.max").GetValue<Slider>().Value;
 
                 var targetMinHealth =
                     _menu.Item(_menu.Name + ".ultimate.duel.target.min-health").GetValue<Slider>().Value;
@@ -299,7 +303,7 @@ namespace SFXChallenger.Managers
                         GameObjects.EnemyHeroes.Count(
                             h => h.IsValid && !h.IsDead && h.IsVisible && h.Distance(pos) <= enemiesRange);
 
-                    if (aCount >= alliesCount && ((alliesIncrease ? eCount : eCount - alliesCount) <= enemiesCount))
+                    if (aCount >= alliesMin && aCount <= alliesMax && eCount >= enemiesMin && eCount <= enemiesMax)
                     {
                         var decrease =
                             _menu.Item(_menu.Name + ".ultimate.duel.damage.decrease").GetValue<Slider>().Value;
