@@ -74,11 +74,6 @@ namespace SFXChallenger.Champions
 
         protected override void AddToMenu()
         {
-            Menu.AddItem(new MenuItem(Menu.Name + ".q-speed", "Q Speed").SetValue(new Slider(1350, 900, 1500)))
-                .ValueChanged +=
-                delegate(object sender, OnValueChangeEventArgs args) { Q.Speed = args.GetNewValue<Slider>().Value; };
-            Q.Speed = Menu.Item(Menu.Name + ".q-speed").GetValue<Slider>().Value;
-
             var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), Menu.Name + ".combo"));
             HitchanceManager.AddToMenu(
                 comboMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), comboMenu.Name + ".hitchance")), "combo",
@@ -127,7 +122,6 @@ namespace SFXChallenger.Champions
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".block-r", Global.Lang.Get("G_BlockMissing") + " R").SetValue(true));
 
-            R.Range = Menu.Item(Menu.Name + ".ultimate.range").GetValue<Slider>().Value;
             DrawingManager.Add("R " + Global.Lang.Get("G_Flash"), R.Range + SummonerManager.Flash.Range);
 
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
@@ -439,11 +433,11 @@ namespace SFXChallenger.Champions
                     return 0;
                 }
                 float damage = 0;
-                if (q && Q.IsReady())
+                if (q && (Q.IsReady() || Q.Instance.CooldownExpires - Game.Time <= 1))
                 {
                     damage += Q.GetDamage(target);
                 }
-                if (w && W.IsReady())
+                if (w && (W.IsReady() || W.Instance.CooldownExpires - Game.Time <= 1))
                 {
                     damage += W.GetDamage(target);
                 }
@@ -452,7 +446,7 @@ namespace SFXChallenger.Champions
                 {
                     damage += R.GetDamage(target);
                 }
-                damage += (float) Player.GetAutoAttackDamage(target, true);
+                damage += 2 * (float) Player.GetAutoAttackDamage(target, true);
                 damage += ItemManager.CalculateComboDamage(target);
                 damage += SummonerManager.CalculateComboDamage(target);
                 return damage;
@@ -607,7 +601,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if ((from t in GameObjects.EnemyHeroes.Where(t => t.HealthPercent > 25)
+                if ((from t in GameObjects.EnemyHeroes.Where(t => t.HealthPercent > 15)
                     let cDmg = CalcComboDamage(t, q, w, e, true)
                     where cDmg - 10 >= t.Health
                     where
