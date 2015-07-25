@@ -47,14 +47,18 @@ namespace SFXChallenger.Champions
             get { return ItemFlags.Offensive | ItemFlags.Defensive | ItemFlags.Flee; }
         }
 
+        public Spell R2 { get; private set; }
+
         protected override void OnLoad()
         {
+            Core.OnPostUpdate += OnCorePostUpdate;
             Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
             AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
         }
 
         protected override void OnUnload()
         {
+            Core.OnPostUpdate -= OnCorePostUpdate;
             Orbwalking.AfterAttack -= OnOrbwalkingAfterAttack;
             AntiGapcloser.OnEnemyGapcloser -= OnEnemyGapcloser;
         }
@@ -83,6 +87,8 @@ namespace SFXChallenger.Champions
                 new MenuItem(laneclearMenu.Name + ".q-min", "Q " + Global.Lang.Get("G_Min")).SetValue(
                     new Slider(3, 1, 5)));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
+
+            UltimateManager.AddToMenu(Menu, true, false, false, false, false, false, true, true, true);
 
             var killstealMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Killsteal"), Menu.Name + ".killsteal"));
             killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
@@ -118,6 +124,46 @@ namespace SFXChallenger.Champions
 
             R = new Spell(SpellSlot.R, 1100f);
             R.SetSkillshot(0.25f, 110f, 2100f, false, SkillshotType.SkillshotLine);
+
+            R2 = new Spell(SpellSlot.R, 750f);
+            R2.SetSkillshot(0f, (float) (60 * Math.PI / 180), 1500f, false, SkillshotType.SkillshotCone);
+        }
+
+        private void OnCorePostUpdate(EventArgs args)
+        {
+            try
+            {
+                if (UltimateManager.Assisted() && R.IsReady())
+                {
+                    if (Menu.Item(Menu.Name + ".ultimate.assisted.move-cursor").GetValue<bool>())
+                    {
+                        Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
+                    }
+
+                    if (
+                        !RLogic(
+                            TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical),
+                            Menu.Item(Menu.Name + ".ultimate.assisted.min").GetValue<Slider>().Value))
+                    {
+                        RLogicDuel(Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady());
+                    }
+                }
+
+                if (UltimateManager.Auto() && R.IsReady())
+                {
+                    if (
+                        !RLogic(
+                            TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical),
+                            Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value))
+                    {
+                        RLogicDuel(Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnEnemyGapcloser(ActiveGapcloser args)
@@ -206,15 +252,115 @@ namespace SFXChallenger.Champions
             if (useR)
             {
                 var target = TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical);
-                if (target != null && R.GetDamage(target) * 0.9f > target.Health || Orbwalking.InAutoAttackRange(target))
+                if (target != null && Orbwalking.InAutoAttackRange(target))
                 {
-                    var pred = R.GetPrediction(target);
-                    if (pred.Hitchance >= R.GetHitChance("combo"))
+                    if (!RLogic(target, Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value))
                     {
-                        R.Cast(pred.CastPosition);
+                        if (Menu.Item(Menu.Name + ".ultimate.combo.duel").GetValue<bool>())
+                        {
+                            RLogicDuel(useQ);
+                        }
                     }
                 }
             }
+        }
+
+        private bool RLogic(Obj_AI_Hero target, int min)
+        {
+            try
+            {
+                var hits = GetRHits(target);
+                if (UltimateManager.Check(min, hits.Item2))
+                {
+                    R.Cast(Player.Position);
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return false;
+        }
+
+        private void RLogicDuel(bool q)
+        {
+            try
+            {
+                foreach (var t in GameObjects.EnemyHeroes)
+                {
+                    if (UltimateManager.CheckDuel(t, CalcComboDamage(t, q, true)))
+                    {
+                        if (RLogic(t, 1))
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private float CalcComboDamage(Obj_AI_Hero target, bool q, bool r)
+        {
+            try
+            {
+                if (target == null)
+                {
+                    return 0;
+                }
+                float damage = 0;
+                if (q && (Q.IsReady() || Q.Instance.CooldownExpires - Game.Time <= 1))
+                {
+                    damage += Q.GetDamage(target);
+                }
+                if (r && R.IsReady())
+                {
+                    damage += R.GetDamage(target);
+                }
+                damage += 3 * (float) Player.GetAutoAttackDamage(target, true);
+                damage += ItemManager.CalculateComboDamage(target);
+                damage += SummonerManager.CalculateComboDamage(target);
+                return damage;
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return 0;
+        }
+
+        private Tuple<int, List<Obj_AI_Hero>> GetRHits(Obj_AI_Hero target)
+        {
+            var hits = new List<Obj_AI_Hero>();
+            try
+            {
+                var pred = R.GetPrediction(target);
+                if (pred.Hitchance >= R.GetHitChance("combo"))
+                {
+                    hits.Add(target);
+                    var pos = Player.Position.Extend(pred.CastPosition, Player.Distance(pred.UnitPosition));
+                    var pos2 = Player.Position.Extend(pos, Player.Distance(pos) + R2.Range);
+                    R2.UpdateSourcePosition(pos, pos);
+                    R2.Delay = Player.Position.Distance(pred.UnitPosition) / R.Speed + 0.1f;
+                    hits.AddRange(
+                        GameObjects.EnemyHeroes.Where(
+                            h =>
+                                h.NetworkId != target.NetworkId && h.IsValidTarget() &&
+                                h.Distance(h.Position, true) < (R.Range + R2.Range) * (R.Range + R2.Range))
+                            .Where(enemy => R2.WillHit(enemy, pos2)));
+                    R2.UpdateSourcePosition();
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return new Tuple<int, List<Obj_AI_Hero>>(hits.Count, hits);
         }
 
         protected override void Harass()

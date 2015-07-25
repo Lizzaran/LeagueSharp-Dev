@@ -42,6 +42,8 @@ namespace SFXChallenger.Managers
         private static bool _gapcloser;
         private static bool _flash;
         private static bool _assisted;
+        private static bool _required;
+        private static bool _force;
 
         public static Menu AddToMenu(Menu menu,
             bool auto,
@@ -61,6 +63,8 @@ namespace SFXChallenger.Managers
                 _gapcloser = autoGapcloser;
                 _flash = flash;
                 _assisted = assisted;
+                _required = required;
+                _force = force;
                 _menu = menu;
 
                 var ultimateMenu = menu.AddSubMenu(new Menu(Global.Lang.Get("G_Ultimate"), menu.Name + ".ultimate"));
@@ -70,7 +74,7 @@ namespace SFXChallenger.Managers
                 uComboMenu.AddItem(
                     new MenuItem(uComboMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(
                         new Slider(3, 1, 5)));
-                uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".1v1", "R 1v1").SetValue(true));
+                uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".duel", Global.Lang.Get("UM_Duel")).SetValue(true));
                 uComboMenu.AddItem(
                     new MenuItem(uComboMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
 
@@ -105,7 +109,8 @@ namespace SFXChallenger.Managers
                     uAutoMenu.AddItem(
                         new MenuItem(uAutoMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(
                             new Slider(3, 1, 5)));
-                    uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".1v1", "R 1v1").SetValue(false));
+                    uAutoMenu.AddItem(
+                        new MenuItem(uAutoMenu.Name + ".duel", Global.Lang.Get("UM_Duel")).SetValue(false));
                     uAutoMenu.AddItem(
                         new MenuItem(uAutoMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
                 }
@@ -117,7 +122,8 @@ namespace SFXChallenger.Managers
                     uFlashMenu.AddItem(
                         new MenuItem(uFlashMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(
                             new Slider(3, 1, 5)));
-                    uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".1v1", "R 1v1").SetValue(true));
+                    uFlashMenu.AddItem(
+                        new MenuItem(uFlashMenu.Name + ".duel", Global.Lang.Get("UM_Duel")).SetValue(true));
                     uFlashMenu.AddItem(
                         new MenuItem(uFlashMenu.Name + ".hotkey", Global.Lang.Get("G_Hotkey")).SetValue(
                             new KeyBind('U', KeyBindType.Press)));
@@ -135,7 +141,8 @@ namespace SFXChallenger.Managers
                     uAssistedMenu.AddItem(
                         new MenuItem(uAssistedMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(
                             new Slider(3, 1, 5)));
-                    uAssistedMenu.AddItem(new MenuItem(uAssistedMenu.Name + ".1v1", "R 1v1").SetValue(true));
+                    uAssistedMenu.AddItem(
+                        new MenuItem(uAssistedMenu.Name + ".duel", Global.Lang.Get("UM_Duel")).SetValue(true));
                     uAssistedMenu.AddItem(
                         new MenuItem(uAssistedMenu.Name + ".hotkey", Global.Lang.Get("G_Hotkey")).SetValue(
                             new KeyBind('R', KeyBindType.Press)));
@@ -146,6 +153,54 @@ namespace SFXChallenger.Managers
                         new MenuItem(uAssistedMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
                 }
 
+                var uDuelMenu =
+                    ultimateMenu.AddSubMenu(
+                        new Menu(
+                            Global.Lang.Get("UM_Duel") + Global.Lang.Get("G_Settings"), ultimateMenu.Name + ".duel"));
+
+                var uDuelAlliesMenu =
+                    uDuelMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Allies"), uDuelMenu.Name + ".allies"));
+
+                uDuelAlliesMenu.AddItem(
+                    new MenuItem(uDuelAlliesMenu.Name + ".range", Global.Lang.Get("UM_MaxAlliesRange")).SetValue(
+                        new Slider(1500, 500, 3000)));
+                uDuelAlliesMenu.AddItem(
+                    new MenuItem(uDuelAlliesMenu.Name + ".count", Global.Lang.Get("UM_MinAlliesCount")).SetValue(
+                        new Slider(0, 0, 4)));
+                uDuelAlliesMenu.AddItem(
+                    new MenuItem(uDuelAlliesMenu.Name + ".increase", Global.Lang.Get("UM_AlliesIncrease")).SetValue(
+                        false));
+
+                var uDuelEnemiesMenu =
+                    uDuelMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Enemies"), uDuelMenu.Name + ".enemies"));
+
+                uDuelEnemiesMenu.AddItem(
+                    new MenuItem(uDuelEnemiesMenu.Name + ".range", Global.Lang.Get("UM_MaxEnemiesRange")).SetValue(
+                        new Slider(2500, 500, 3000)));
+                uDuelEnemiesMenu.AddItem(
+                    new MenuItem(uDuelEnemiesMenu.Name + ".count", Global.Lang.Get("UM_MaxEnemiesCount")).SetValue(
+                        new Slider(1, 0, 5)));
+
+                var uDuelTargetMenu =
+                    uDuelMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Target"), uDuelMenu.Name + ".target"));
+
+                uDuelTargetMenu.AddItem(
+                    new MenuItem(uDuelTargetMenu.Name + ".min-health", Global.Lang.Get("UM_MinTargetHealth")).SetValue(
+                        new Slider(25, 10)));
+                uDuelTargetMenu.AddItem(
+                    new MenuItem(uDuelTargetMenu.Name + ".max-health", Global.Lang.Get("UM_MaxTargetHealth")).SetValue(
+                        new Slider(100, 10)));
+
+                var uDuelDamageMenu =
+                    uDuelMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Damage"), uDuelMenu.Name + ".damage"));
+
+                uDuelDamageMenu.AddItem(
+                    new MenuItem(uDuelDamageMenu.Name + ".decrease", Global.Lang.Get("UM_DamageDecrease")).SetValue(
+                        new Slider(0)));
+                uDuelDamageMenu.AddItem(
+                    new MenuItem(uDuelDamageMenu.Name + ".increase", Global.Lang.Get("UM_DamageIncrease")).SetValue(
+                        new Slider(0)));
+
                 if (required)
                 {
                     var uRequiredListMenu =
@@ -154,7 +209,7 @@ namespace SFXChallenger.Managers
                     uRequiredListMenu.AddItem(
                         new MenuItem(uRequiredListMenu.Name + ".range-check", Global.Lang.Get("UM_RangeCheck")).SetValue
                             (new Slider(2000, 1000, 3000)));
-                    HeroListManager.AddToMenu(uRequiredListMenu, "ultimate-required", true, false, true, false);
+                    HeroListManager.AddToMenu(uRequiredListMenu, "ultimate-required", true, false, true, false, true);
                 }
 
                 if (force)
@@ -164,8 +219,8 @@ namespace SFXChallenger.Managers
                             new Menu(Global.Lang.Get("UM_ForceTarget"), ultimateMenu.Name + ".force"));
                     uForceMenu.AddItem(
                         new MenuItem(uForceMenu.Name + ".additional", Global.Lang.Get("UM_AdditionalTargets")).SetValue(
-                            new Slider(0, 0, 4)));
-                    HeroListManager.AddToMenu(uForceMenu, "ultimate-force", true, false, true, false);
+                            new Slider(0, 0, 4)).DontSave());
+                    HeroListManager.AddToMenu(uForceMenu, "ultimate-force", true, false, true, false, true);
                 }
 
                 return ultimateMenu;
@@ -177,6 +232,56 @@ namespace SFXChallenger.Managers
             return null;
         }
 
+        public static bool CheckDuel(Obj_AI_Hero target, float damage)
+        {
+            try
+            {
+                if (_menu == null || target == null || !target.IsValidTarget())
+                {
+                    return false;
+                }
+                var alliesRange = _menu.Item(_menu.Name + ".ultimate.duel.allies.range").GetValue<Slider>().Value;
+                var alliesCount = _menu.Item(_menu.Name + ".ultimate.duel.allies.count").GetValue<Slider>().Value;
+                var alliesIncrease = _menu.Item(_menu.Name + ".ultimate.duel.allies.increase").GetValue<bool>();
+
+                var enemiesRange = _menu.Item(_menu.Name + ".ultimate.duel.enemies.range").GetValue<Slider>().Value;
+                var enemiesCount = _menu.Item(_menu.Name + ".ultimate.duel.enemies.count").GetValue<Slider>().Value;
+
+                var targetMinHealth =
+                    _menu.Item(_menu.Name + ".ultimate.duel.target.min-health").GetValue<Slider>().Value;
+                var targetMaxHealth =
+                    _menu.Item(_menu.Name + ".ultimate.duel.target.max-health").GetValue<Slider>().Value;
+
+                if (target.HealthPercent >= targetMinHealth && target.HealthPercent <= targetMaxHealth)
+                {
+                    var pos = ObjectManager.Player.Position.Extend(
+                        target.Position, ObjectManager.Player.Distance(target) / 2f);
+
+                    var aCount =
+                        GameObjects.AllyHeroes.Count(
+                            h => h.IsValid && !h.IsMe && !h.IsDead && h.Distance(pos) <= alliesRange);
+                    var eCount =
+                        GameObjects.EnemyHeroes.Count(
+                            h => h.IsValid && !h.IsDead && h.IsVisible && h.Distance(pos) <= enemiesRange);
+
+                    if (aCount >= alliesCount && ((alliesIncrease ? eCount : eCount - alliesCount) <= enemiesCount))
+                    {
+                        var decrease =
+                            _menu.Item(_menu.Name + ".ultimate.duel.damage.decrease").GetValue<Slider>().Value;
+                        var increase =
+                            _menu.Item(_menu.Name + ".ultimate.duel.target.increase").GetValue<Slider>().Value;
+
+                        return (damage - (damage / 100) * decrease + (damage / 100) * increase) > target.Health;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return false;
+        }
+
         public static bool Combo()
         {
             return _menu != null && _menu.Item(_menu.Name + ".ultimate.combo.enabled").GetValue<bool>();
@@ -184,30 +289,30 @@ namespace SFXChallenger.Managers
 
         public static bool Auto()
         {
-            return _menu != null && _menu.Item(_menu.Name + ".ultimate.auto.enabled").GetValue<bool>();
+            return _menu != null && _auto && _menu.Item(_menu.Name + ".ultimate.auto.enabled").GetValue<bool>();
         }
 
         public static bool Interrupt(Obj_AI_Hero hero)
         {
-            return _menu != null && _menu.Item(_menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
+            return _menu != null && _interrupt && _menu.Item(_menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
                    HeroListManager.Check("ultimate-interrupt", hero);
         }
 
         public static bool Gapcloser(Obj_AI_Hero hero)
         {
-            return _menu != null && _menu.Item(_menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
+            return _menu != null && _gapcloser && _menu.Item(_menu.Name + ".ultimate.auto.enabled").GetValue<bool>() &&
                    HeroListManager.Check("ultimate-gapcloser", hero);
         }
 
         public static bool Flash()
         {
-            return _menu != null && _menu.Item(_menu.Name + ".ultimate.flash.enabled").GetValue<bool>() &&
+            return _menu != null && _flash && _menu.Item(_menu.Name + ".ultimate.flash.enabled").GetValue<bool>() &&
                    _menu.Item(_menu.Name + ".ultimate.flash.hotkey").GetValue<KeyBind>().Active;
         }
 
         public static bool Assisted()
         {
-            return _menu != null && _menu.Item(_menu.Name + ".ultimate.assisted.enabled").GetValue<bool>() &&
+            return _menu != null && _assisted && _menu.Item(_menu.Name + ".ultimate.assisted.enabled").GetValue<bool>() &&
                    _menu.Item(_menu.Name + ".ultimate.assisted.hotkey").GetValue<KeyBind>().Active;
         }
 
@@ -220,7 +325,7 @@ namespace SFXChallenger.Managers
                     return false;
                 }
 
-                if (HeroListManager.Enabled("ultimate-force"))
+                if (_force && HeroListManager.Enabled("ultimate-force"))
                 {
                     if (hits.Any(hit => HeroListManager.Check("ultimate-force", hit)) &&
                         hits.Count >=
@@ -230,7 +335,7 @@ namespace SFXChallenger.Managers
                     }
                 }
 
-                if (HeroListManager.Enabled("ultimate-required"))
+                if (_required && HeroListManager.Enabled("ultimate-required"))
                 {
                     if (!hits.Any(hit => HeroListManager.Check("ultimate-required", hit)))
                     {

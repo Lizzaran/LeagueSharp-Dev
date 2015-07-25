@@ -191,7 +191,7 @@ namespace SFXChallenger.Champions
                             R.GetHitChance("combo"),
                             Menu.Item(Menu.Name + ".ultimate.assisted.min").GetValue<Slider>().Value))
                     {
-                        RLogic1V1(
+                        RLogicDuel(
                             Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                             Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
                     }
@@ -205,7 +205,7 @@ namespace SFXChallenger.Champions
                             R.GetHitChance("combo"),
                             Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value))
                     {
-                        RLogic1V1(
+                        RLogicDuel(
                             Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                             Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
                     }
@@ -321,9 +321,9 @@ namespace SFXChallenger.Champions
                             target, R.GetHitChance("combo"),
                             Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value))
                     {
-                        if (Menu.Item(Menu.Name + ".ultimate.combo.1v1").GetValue<bool>())
+                        if (Menu.Item(Menu.Name + ".ultimate.combo.duel").GetValue<bool>())
                         {
-                            RLogic1V1(q, e);
+                            RLogicDuel(q, e);
                         }
                     }
                 }
@@ -528,26 +528,17 @@ namespace SFXChallenger.Champions
             return false;
         }
 
-        private void RLogic1V1(bool q, bool e)
+        private void RLogicDuel(bool q, bool e)
         {
             try
             {
                 foreach (var t in GameObjects.EnemyHeroes)
                 {
-                    if (t.HealthPercent > 25)
+                    if (UltimateManager.CheckDuel(t, CalcComboDamage(t, q, e, true)))
                     {
-                        var cDmg = CalcComboDamage(t, q, e, true);
-                        if (cDmg - 10 >= t.Health)
+                        if (RLogic(t, R.GetHitChance("combo"), 1))
                         {
-                            if (
-                                GameObjects.EnemyHeroes.Count(
-                                    em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) == 1)
-                            {
-                                if (RLogic(t, R.GetHitChance("combo"), 1))
-                                {
-                                    break;
-                                }
-                            }
+                            break;
                         }
                     }
                 }

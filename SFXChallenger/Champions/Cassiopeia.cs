@@ -275,7 +275,7 @@ namespace SFXChallenger.Champions
                                         pred.CastPosition, -(Player.Position.Distance(pred.CastPosition) * 2)), true);
                                 Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
                             }
-                            else if (Menu.Item(Menu.Name + ".ultimate.flash.1v1").GetValue<bool>())
+                            else if (Menu.Item(Menu.Name + ".ultimate.flash.duel").GetValue<bool>())
                             {
                                 if (UltimateManager.Check(1, hits))
                                 {
@@ -310,9 +310,9 @@ namespace SFXChallenger.Champions
                             R.GetHitChance("combo"),
                             Menu.Item(Menu.Name + ".ultimate.assisted.min").GetValue<Slider>().Value))
                     {
-                        if (Menu.Item(Menu.Name + ".ultimate.assisted.1v1").GetValue<bool>())
+                        if (Menu.Item(Menu.Name + ".ultimate.assisted.duel").GetValue<bool>())
                         {
-                            RLogic1V1(
+                            RLogicDuel(
                                 R.GetHitChance("combo"),
                                 Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                                 Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
@@ -328,9 +328,9 @@ namespace SFXChallenger.Champions
                             R.GetHitChance("combo"),
                             Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value))
                     {
-                        if (Menu.Item(Menu.Name + ".ultimate.auto.1v1").GetValue<bool>())
+                        if (Menu.Item(Menu.Name + ".ultimate.auto.duel").GetValue<bool>())
                         {
-                            RLogic1V1(
+                            RLogicDuel(
                                 R.GetHitChance("combo"),
                                 Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                                 Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
@@ -526,9 +526,9 @@ namespace SFXChallenger.Champions
                     !RLogic(
                         R.GetHitChance("combo"), Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value))
                 {
-                    if (Menu.Item(Menu.Name + ".ultimate.combo.1v1").GetValue<bool>())
+                    if (Menu.Item(Menu.Name + ".ultimate.combo.duel").GetValue<bool>())
                     {
-                        RLogic1V1(R.GetHitChance("combo"), q, w, e);
+                        RLogicDuel(R.GetHitChance("combo"), q, w, e);
                     }
                 }
             }
@@ -588,25 +588,19 @@ namespace SFXChallenger.Champions
             return 0;
         }
 
-        private void RLogic1V1(HitChance hitChance, bool q, bool w, bool e, bool face = true)
+        private void RLogicDuel(HitChance hitChance, bool q, bool w, bool e, bool face = true)
         {
             try
             {
                 foreach (var t in Targets)
                 {
-                    if ((!face || t.IsFacing(Player)) && t.HealthPercent > 25 && R.CanCast(t))
+                    if ((!face || t.IsFacing(Player)) && R.CanCast(t))
                     {
-                        var cDmg = CalcComboDamage(t, q, w, e, true);
-                        if (cDmg - 10 >= t.Health)
+                        if (UltimateManager.CheckDuel(t, CalcComboDamage(t, q, w, e, true)))
                         {
-                            if (
-                                GameObjects.EnemyHeroes.Count(
-                                    em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) == 1)
+                            if (RLogic(hitChance, 1))
                             {
-                                if (RLogic(hitChance, 1))
-                                {
-                                    break;
-                                }
+                                break;
                             }
                         }
                     }

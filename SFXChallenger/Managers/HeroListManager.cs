@@ -44,7 +44,8 @@ namespace SFXChallenger.Managers
             bool whitelist,
             bool ally,
             bool enemy,
-            bool defaultValue)
+            bool defaultValue,
+            bool dontSave = false)
         {
             try
             {
@@ -61,10 +62,15 @@ namespace SFXChallenger.Managers
 
                 foreach (var hero in GameObjects.Heroes.Where(h => ally && h.IsAlly || enemy && h.IsEnemy))
                 {
-                    menu.AddItem(
+                    var item =
                         new MenuItem(
                             menu.Name + ".hero-list-" + uniqueId + hero.ChampionName.ToLower(), hero.ChampionName)
-                            .SetValue(defaultValue));
+                            .SetValue(defaultValue);
+                    menu.AddItem(item);
+                    if (dontSave)
+                    {
+                        item.DontSave();
+                    }
                 }
 
                 menu.AddItem(

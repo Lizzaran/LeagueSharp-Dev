@@ -203,9 +203,9 @@ namespace SFXChallenger.Champions
                     if (target != null &&
                         !RLogic(target, Menu.Item(Menu.Name + ".ultimate.assisted.min").GetValue<Slider>().Value))
                     {
-                        if (Menu.Item(Menu.Name + ".ultimate.assisted.1v1").GetValue<bool>())
+                        if (Menu.Item(Menu.Name + ".ultimate.assisted.duel").GetValue<bool>())
                         {
-                            RLogic1V1(
+                            RLogicDuel(
                                 target, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                                 Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
                         }
@@ -218,9 +218,9 @@ namespace SFXChallenger.Champions
                     if (target != null &&
                         !RLogic(target, Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value))
                     {
-                        if (Menu.Item(Menu.Name + ".ultimate.auto.1v1").GetValue<bool>())
+                        if (Menu.Item(Menu.Name + ".ultimate.auto.duel").GetValue<bool>())
                         {
-                            RLogic1V1(
+                            RLogicDuel(
                                 target, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                                 Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
                         }
@@ -431,9 +431,9 @@ namespace SFXChallenger.Champions
                 if (target != null &&
                     !RLogic(target, Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value))
                 {
-                    if (Menu.Item(Menu.Name + ".ultimate.combo.1v1").GetValue<bool>())
+                    if (Menu.Item(Menu.Name + ".ultimate.combo.duel").GetValue<bool>())
                     {
-                        RLogic1V1(target, q, e);
+                        RLogicDuel(target, q, e);
                     }
                 }
             }
@@ -557,20 +557,16 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private void RLogic1V1(Obj_AI_Hero target, bool q, bool e)
+        private void RLogicDuel(Obj_AI_Hero target, bool q, bool e)
         {
             try
             {
-                if (GameObjects.EnemyHeroes.Count(em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) == 1)
+                if (UltimateManager.CheckDuel(target, CalcComboDamage(target, q, e, true)))
                 {
-                    var cDmg = CalcComboDamage(target, q, e, true);
-                    if (cDmg - 20 >= target.Health)
+                    var pred = BestRCastLocation(target);
+                    if (UltimateManager.Check(1, pred.Item2))
                     {
-                        var pred = BestRCastLocation(target);
-                        if (UltimateManager.Check(1, pred.Item2))
-                        {
-                            R.Cast(pred.Item1);
-                        }
+                        R.Cast(pred.Item1);
                     }
                 }
             }

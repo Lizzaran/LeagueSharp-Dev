@@ -76,7 +76,6 @@
 	<entry key="G_Upgraded">Upgraded</entry>
 	<entry key="G_AutoAttack">AutoAttack</entry>
 	<entry key="G_Slowed">Slowed</entry>
-	<entry key="G_Range">Range</entry>
 	<entry key="G_Jungle">Jungle</entry>
 	<entry key="G_Turret">Turret</entry>
 	<entry key="G_Save">Save</entry>
@@ -98,6 +97,11 @@
 	<entry key="G_Manual">Manual</entry>
 	<entry key="G_Simple">Simple</entry>
 	<entry key="G_Advanced">Advanced</entry>
+	<entry key="G_Settings">Settings</entry>
+	<entry key="G_Allies">Allies</entry>
+	<entry key="G_Enemies">Enemies</entry>
+	<entry key="G_Damage">Damage</entry>
+	<entry key="G_Target">Target</entry>
 	<!-- END: GLOBAL -->
 
 	<!-- START: Language -->
@@ -173,6 +177,7 @@
 	<!-- END: ItemManager -->
 
 	<!-- START: UltimateManager -->
+	<entry key="UM_Duel">Duel</entry>
 	<entry key="UM_Auto">Auto</entry>
 	<entry key="UM_Assisted">Assisted</entry>
 	<entry key="UM_MoveCursor">Move to Cursor</entry>
@@ -180,6 +185,15 @@
 	<entry key="UM_RequiredTarget">Required Target</entry>
 	<entry key="UM_RangeCheck">Range Check</entry>
 	<entry key="UM_AdditionalTargets">Additional Targets</entry>
+	<entry key="UM_MaxAlliesRange">Max Allies Range</entry>
+	<entry key="UM_MinAlliesCount">Min Allies Count</entry>
+	<entry key="UM_AlliesIncrease">Allies Increase Max Enemies</entry>
+	<entry key="UM_MaxEnemiesRange">Max Enemies Range</entry>
+	<entry key="UM_MaxEnemiesCount">Max Enemies Count</entry>
+	<entry key="UM_MinTargetHealth">Min Target Health %</entry>
+	<entry key="UM_MaxTargetHealth">Max Target Health %</entry>
+	<entry key="UM_DamageDecrease">Decrease Damage %</entry>
+	<entry key="UM_DamageIncrease">Increase Damage %</entry>
 	<!-- END: UltimateManager -->
 
 	<!-- START: Orbwalker -->

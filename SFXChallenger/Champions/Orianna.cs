@@ -119,6 +119,12 @@ namespace SFXChallenger.Champions
             initiatorMenu.AddItem(new MenuItem(initiatorMenu.Name + ".use-e", Global.Lang.Get("G_UseE")).SetValue(true));
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
+            ManaManager.AddToMenu(
+                miscMenu, "e-self", ManaCheckType.Minimum, ManaValueType.Percent, "E " + Global.Lang.Get("G_Self"));
+            ManaManager.AddToMenu(
+                miscMenu, "e-allies", ManaCheckType.Minimum, ManaValueType.Percent, "E " + Global.Lang.Get("G_Allies"));
+            miscMenu.AddItem(
+                new MenuItem(miscMenu.Name + ".e-allies", "E " + Global.Lang.Get("G_Allies")).SetValue(true));
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".block-r", Global.Lang.Get("G_BlockMissing") + " R").SetValue(true));
 
@@ -264,7 +270,7 @@ namespace SFXChallenger.Champions
                                 R.Cast(Player.Position);
                                 Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
                             }
-                            else if (Menu.Item(Menu.Name + ".ultimate.flash.1v1").GetValue<bool>())
+                            else if (Menu.Item(Menu.Name + ".ultimate.flash.duel").GetValue<bool>())
                             {
                                 if (UltimateManager.Check(1, hits))
                                 {
@@ -293,9 +299,9 @@ namespace SFXChallenger.Champions
                     if (!RLogic(Menu.Item(Menu.Name + ".ultimate.assisted.min").GetValue<Slider>().Value))
                     {
                         var casted = false;
-                        if (Menu.Item(Menu.Name + ".ultimate.assisted.1v1").GetValue<bool>())
+                        if (Menu.Item(Menu.Name + ".ultimate.assisted.duel").GetValue<bool>())
                         {
-                            casted = RLogic1V1(
+                            casted = RLogicDuel(
                                 Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                                 Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
                                 Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
@@ -323,9 +329,9 @@ namespace SFXChallenger.Champions
                 {
                     if (!RLogic(Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value))
                     {
-                        if (Menu.Item(Menu.Name + ".ultimate.auto.1v1").GetValue<bool>())
+                        if (Menu.Item(Menu.Name + ".ultimate.auto.duel").GetValue<bool>())
                         {
-                            RLogic1V1(
+                            RLogicDuel(
                                 Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                                 Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
                                 Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
@@ -378,9 +384,9 @@ namespace SFXChallenger.Champions
             {
                 if (!RLogic(Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value))
                 {
-                    if (Menu.Item(Menu.Name + ".ultimate.combo.1v1").GetValue<bool>())
+                    if (Menu.Item(Menu.Name + ".ultimate.combo.duel").GetValue<bool>())
                     {
-                        RLogic1V1(q, w, e);
+                        RLogicDuel(q, w, e);
                     }
                 }
             }
@@ -495,7 +501,10 @@ namespace SFXChallenger.Champions
                             bestEqTravelTime = t;
                         }
                     }
-                    if (eqTarget != null && bestEqTravelTime < directTravelTime * 1.3f &&
+                    if (eqTarget != null &&
+                        (eqTarget.IsMe || Menu.Item(Menu.Name + ".miscellaneous.e-allies").GetValue<bool>()) &&
+                        (eqTarget.IsMe && ManaManager.Check("e-self") || !eqTarget.IsMe && ManaManager.Check("e-allies")) &&
+                        bestEqTravelTime < directTravelTime * 1.3f &&
                         (Ball.Position.Distance(eqTarget.ServerPosition, true) > 10000))
                     {
                         E.CastOnUnit(eqTarget);
@@ -551,7 +560,9 @@ namespace SFXChallenger.Champions
                     {
                         target = Player;
                     }
-                    if (GetEHits(target.ServerPosition).Item1 >= minHits)
+                    if ((target.IsMe || Menu.Item(Menu.Name + ".miscellaneous.e-allies").GetValue<bool>()) &&
+                        (target.IsMe && ManaManager.Check("e-self") || !target.IsMe && ManaManager.Check("e-allies")) &&
+                        GetEHits(target.ServerPosition).Item1 >= minHits)
                     {
                         E.CastOnUnit(target);
                     }
@@ -567,8 +578,12 @@ namespace SFXChallenger.Champions
                         GameObjects.AllyHeroes.Where(h => h.IsValidTarget(E.Range, false))
                             .Where(ally => ally.Position.CountEnemiesInRange(300) >= 2))
                     {
-                        E.CastOnUnit(ally);
-                        return;
+                        if ((ally.IsMe || Menu.Item(Menu.Name + ".miscellaneous.e-allies").GetValue<bool>()) &&
+                            (ally.IsMe && ManaManager.Check("e-self") || !ally.IsMe && ManaManager.Check("e-allies")))
+                        {
+                            E.CastOnUnit(ally);
+                            return;
+                        }
                     }
                 }
             }
@@ -597,17 +612,13 @@ namespace SFXChallenger.Champions
             return false;
         }
 
-        private bool RLogic1V1(bool q, bool w, bool e)
+        private bool RLogicDuel(bool q, bool w, bool e)
         {
             try
             {
-                if ((from t in GameObjects.EnemyHeroes.Where(t => t.HealthPercent > 15)
-                    let cDmg = CalcComboDamage(t, q, w, e, true)
-                    where cDmg - 10 >= t.Health
-                    where
-                        GameObjects.EnemyHeroes.Count(em => !em.IsDead && em.IsVisible && em.Distance(Player) < 3000) ==
-                        1
-                    select t).Any(t => RLogic(1)))
+                if (
+                    GameObjects.EnemyHeroes.Where(t => UltimateManager.CheckDuel(t, CalcComboDamage(t, q, w, e, true)))
+                        .Any(t => RLogic(1)))
                 {
                     return true;
                 }
@@ -746,8 +757,10 @@ namespace SFXChallenger.Champions
                 var totalHits = 0;
                 foreach (var ally in
                     GameObjects.AllyHeroes.Where(
-                        a => (Ball.Hero == null || Ball.Hero.NetworkId != a.NetworkId) && a.Distance(Player) <= E.Range)
-                    )
+                        a =>
+                            (Ball.Hero == null || Ball.Hero.NetworkId != a.NetworkId) && a.Distance(Player) <= E.Range &&
+                            (a.IsMe || Menu.Item(Menu.Name + ".miscellaneous.e-allies").GetValue<bool>()) &&
+                            (a.IsMe && ManaManager.Check("e-self") || !a.IsMe && ManaManager.Check("e-allies"))))
                 {
                     var hits = GameObjects.EnemyHeroes.Count(e => e.Distance(ally) < spell.Range);
                     if (hits > totalHits)
