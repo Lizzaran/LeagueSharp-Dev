@@ -643,7 +643,7 @@ namespace SFXChallenger.Champions
                                 spell.WillHit(enemy, Ball.Position) &&
                                 Ball.Position.Distance(enemy.ServerPosition, true) < spell.Width * spell.Width))
                 {
-                    if (enemy.IsDashing())
+                    if (enemy.IsDashing() && enemy.Distance(Ball.Position) >= 100f)
                     {
                         if (enemy.Position.Distance(Ball.Position) >
                             enemy.GetDashInfo().EndPos.Distance(Ball.Position) - 50f)
