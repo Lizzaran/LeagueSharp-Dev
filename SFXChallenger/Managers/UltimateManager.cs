@@ -179,17 +179,17 @@ namespace SFXChallenger.Managers
                         new Slider(2500, 500, 3000)));
                 uDuelEnemiesMenu.AddItem(
                     new MenuItem(uDuelEnemiesMenu.Name + ".min", Global.Lang.Get("UM_MinEnemies")).SetValue(
-                        new Slider(1, 0, 5)));
+                        new Slider(1, 1, 5)));
                 uDuelEnemiesMenu.AddItem(
                     new MenuItem(uDuelEnemiesMenu.Name + ".max", Global.Lang.Get("UM_MaxEnemies")).SetValue(
-                        new Slider(1, 0, 5)));
+                        new Slider(1, 1, 5)));
 
                 var uDuelTargetMenu =
                     uDuelMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Target"), uDuelMenu.Name + ".target"));
 
                 uDuelTargetMenu.AddItem(
                     new MenuItem(uDuelTargetMenu.Name + ".min-health", Global.Lang.Get("UM_MinTargetHealth")).SetValue(
-                        new Slider(25, 10)));
+                        new Slider(15, 10)));
                 uDuelTargetMenu.AddItem(
                     new MenuItem(uDuelTargetMenu.Name + ".max-health", Global.Lang.Get("UM_MaxTargetHealth")).SetValue(
                         new Slider(100, 10)));
@@ -308,7 +308,7 @@ namespace SFXChallenger.Managers
                         var decrease =
                             _menu.Item(_menu.Name + ".ultimate.duel.damage.decrease").GetValue<Slider>().Value;
                         var increase =
-                            _menu.Item(_menu.Name + ".ultimate.duel.target.increase").GetValue<Slider>().Value;
+                            _menu.Item(_menu.Name + ".ultimate.duel.damage.increase").GetValue<Slider>().Value;
 
                         return (damage - (damage / 100) * decrease + (damage / 100) * increase) > target.Health;
                     }
