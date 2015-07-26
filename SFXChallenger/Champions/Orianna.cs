@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- orianna.cs is part of SFXChallenger.
+ Orianna.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@ using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
 using SharpDX;
+using Color = System.Drawing.Color;
 using MinionManager = SFXLibrary.MinionManager;
 using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
 using MinionTeam = SFXLibrary.MinionTeam;
@@ -48,6 +49,9 @@ namespace SFXChallenger.Champions
     internal class Orianna : Champion
     {
         private readonly float _maxBallDistance = 1300f;
+        private MenuItem _ballPositionCircle;
+        private MenuItem _ballPositionRadius;
+        private MenuItem _ballPositionThickness;
 
         protected override ItemFlags ItemFlags
         {
@@ -61,6 +65,7 @@ namespace SFXChallenger.Champions
             InitiatorManager.OnAllyInitiator += OnAllyInitiator;
             Spellbook.OnCastSpell += OnSpellbookCastSpell;
             Ball.OnPositionChange += OnBallPositionChange;
+            Drawing.OnDraw += OnDrawingDraw;
         }
 
         protected override void OnUnload()
@@ -70,6 +75,7 @@ namespace SFXChallenger.Champions
             InitiatorManager.OnAllyInitiator -= OnAllyInitiator;
             Spellbook.OnCastSpell -= OnSpellbookCastSpell;
             Ball.OnPositionChange -= OnBallPositionChange;
+            Drawing.OnDraw -= OnDrawingDraw;
         }
 
         protected override void AddToMenu()
@@ -136,6 +142,29 @@ namespace SFXChallenger.Champions
             IndicatorManager.Add(E);
             IndicatorManager.Add(R);
             IndicatorManager.Finale();
+
+            _ballPositionThickness = DrawingManager.Add(Global.Lang.Get("Orianna_BallThickness"), new Slider(5, 1, 10));
+            _ballPositionRadius = DrawingManager.Add(Global.Lang.Get("Orianna_BallRadius"), new Slider(125, 0, 300));
+            _ballPositionCircle = DrawingManager.Add(
+                Global.Lang.Get("Orianna_BallPosition"), new Circle(false, Color.OrangeRed));
+        }
+
+        private void OnDrawingDraw(EventArgs args)
+        {
+            try
+            {
+                var circle = _ballPositionCircle.GetValue<Circle>();
+                if (circle.Active)
+                {
+                    Render.Circle.DrawCircle(
+                        Ball.Position, _ballPositionRadius.GetValue<Slider>().Value, circle.Color,
+                        _ballPositionThickness.GetValue<Slider>().Value);
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)

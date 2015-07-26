@@ -334,7 +334,7 @@ namespace SFXChallenger.Wrappers
                         var position = Drawing.WorldToScreen(target.Position);
                         var totalWeight = 0f;
                         var offset = 0f;
-                        foreach (var weight in WeightedItems)
+                        foreach (var weight in WeightedItems.Where(w => w.Weight > 0))
                         {
                             var lastWeight = weight.LastWeight(target);
                             if (lastWeight > 0)
@@ -862,7 +862,6 @@ namespace SFXChallenger.Wrappers
 
     internal class WeightedItem
     {
-        private readonly Cache _maxCache = new Cache(0);
         private readonly Dictionary<int, Cache> _valueCache = new Dictionary<int, Cache>();
         private readonly Dictionary<int, Cache> _weightCache = new Dictionary<int, Cache>();
 
@@ -890,6 +889,8 @@ namespace SFXChallenger.Wrappers
         public bool Inverted { get; set; }
         public int CacheWeightTime { get; set; }
         public int CacheValueTime { get; set; }
+        public float LastMax { get; set; }
+        public float LastMin { get; set; }
 
         public float LastWeight(Obj_AI_Hero target)
         {
@@ -925,11 +926,6 @@ namespace SFXChallenger.Wrappers
             return 0f;
         }
 
-        public float LastMax()
-        {
-            return _maxCache.Value;
-        }
-
         public float CalculatedWeight(Obj_AI_Hero target)
         {
             try
@@ -946,9 +942,9 @@ namespace SFXChallenger.Wrappers
                     return cache.Value;
                 }
 
-                var weight = CalculatedWeight(
-                    GetValue(target), Inverted ? LastMax() : 0, Inverted ? 0 : LastMax(),
-                    Inverted ? Weight : TargetSelector.MinWeight, Inverted ? TargetSelector.MinWeight : Weight);
+                var weight = Inverted
+                    ? CalculatedWeight(GetValue(target), 0, LastMax, TargetSelector.MinWeight, Weight)
+                    : CalculatedWeight(LastMin, GetValue(target), 0, Weight, TargetSelector.MinWeight);
                 if (cache == null)
                 {
                     _weightCache[target.NetworkId] = new Cache(weight);
@@ -1015,7 +1011,22 @@ namespace SFXChallenger.Wrappers
         {
             try
             {
-                _maxCache.Value = targets.Select(GetValue).Concat(new[] { float.MinValue }).Max();
+                var min = float.MaxValue;
+                var max = float.MinValue;
+                foreach (var target in targets)
+                {
+                    var value = GetValue(target);
+                    if (value < min)
+                    {
+                        min = value;
+                    }
+                    if (value > max)
+                    {
+                        max = value;
+                    }
+                }
+                LastMin = min;
+                LastMax = max;
             }
             catch (Exception ex)
             {

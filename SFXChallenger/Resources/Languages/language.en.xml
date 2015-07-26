@@ -7,6 +7,10 @@
 	<entry key="Viktor_AutoFollow">Auto Follow</entry>
 	<!-- START: Viktor -->
 
+	<!-- START: Varus -->
+	<entry key="Varus_FastCastMin">Fast Cast @ Health %</entry>
+	<!-- START: Varus -->
+	
 	<!-- START: Cassiopeia -->
 	<entry key="Cassiopeia_PoisonTime">Poison Time</entry>
 	<!-- START: Cassio -->
@@ -14,6 +18,11 @@
 	<!-- START: Sivir -->
 	<entry key="Sivir_Shield">Shield</entry>
 	<!-- START: Sivir -->
+
+	<!-- START: Orianna -->
+	<entry key="Orianna_BallPosition">Ball Position</entry>
+	<entry key="Orianna_BallRadius">Ball Radius</entry>
+	<!-- START: Orianna -->
 
 	<!-- START: Kalista -->
 	<entry key="Kalista_EHarassReset">E Harass Reset</entry>

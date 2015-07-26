@@ -50,6 +50,30 @@ namespace SFXChallenger.Helpers
             return false;
         }
 
+        public static Vector2 PositionAfter(Obj_AI_Base unit, float t, float speed = float.MaxValue)
+        {
+            var distance = t * speed;
+            var path = unit.GetWaypoints();
+
+            for (var i = 0; i < path.Count - 1; i++)
+            {
+                var a = path[i];
+                var b = path[i + 1];
+                var d = a.Distance(b);
+
+                if (d < distance)
+                {
+                    distance -= d;
+                }
+                else
+                {
+                    return a + distance * (b - a).Normalized();
+                }
+            }
+
+            return path[path.Count - 1];
+        }
+
         public static float GetSpellDelay(this Spell spell, Obj_AI_Base target)
         {
             try
