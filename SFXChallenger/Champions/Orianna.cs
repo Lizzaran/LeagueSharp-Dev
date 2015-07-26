@@ -634,14 +634,28 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                var hits =
+                var hits = new List<Obj_AI_Hero>();
+                foreach (var enemy in
                     GameObjects.EnemyHeroes.Where(
                         h => h.IsValidTarget() && Ball.Position.Distance(h.Position, true) < spell.Range * spell.Range)
                         .Where(
                             enemy =>
                                 spell.WillHit(enemy, Ball.Position) &&
-                                Ball.Position.Distance(enemy.ServerPosition, true) < spell.Width * spell.Width)
-                        .ToList();
+                                Ball.Position.Distance(enemy.ServerPosition, true) < spell.Width * spell.Width))
+                {
+                    if (enemy.IsDashing())
+                    {
+                        if (enemy.Position.Distance(Ball.Position) >
+                            enemy.GetDashInfo().EndPos.Distance(Ball.Position) - 50f)
+                        {
+                            hits.Add(enemy);
+                        }
+                    }
+                    else
+                    {
+                        hits.Add(enemy);
+                    }
+                }
                 return new Tuple<int, List<Obj_AI_Hero>>(hits.Count, hits);
             }
             catch (Exception ex)
