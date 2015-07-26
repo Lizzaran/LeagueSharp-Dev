@@ -105,12 +105,12 @@ namespace SFXChallenger.Abstracts
             try
             {
                 Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
+                Flee();
                 Utility.DelayAction.Add(
                     750, delegate
                     {
                         if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Flee)
                         {
-                            Flee();
                             ItemManager.UseFleeItems();
                         }
                     });

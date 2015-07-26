@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Orianna.cs is part of SFXChallenger.
+ orianna.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -917,11 +917,9 @@ namespace SFXChallenger.Champions
 
         protected override void Flee()
         {
-            if (Ball.IsMoving)
-            {
-                return;
-            }
-            if (Menu.Item(Menu.Name + ".flee.w").GetValue<bool>() && Ball.Status == BallStatus.Me && W.IsReady())
+            if (Menu.Item(Menu.Name + ".flee.w").GetValue<bool>() &&
+                (Ball.Status == BallStatus.Me || Ball.Position.Distance(Player.Position) <= W.Width * 0.8f) &&
+                W.IsReady())
             {
                 W.Cast(Player.Position);
             }
