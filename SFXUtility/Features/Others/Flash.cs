@@ -28,6 +28,7 @@ using LeagueSharp;
 using LeagueSharp.Common;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
+using SharpDX;
 
 #endregion
 
@@ -60,6 +61,7 @@ namespace SFXUtility.Features.Others
             {
                 Menu = new Menu(Name, Name);
 
+                Menu.AddItem(new MenuItem(Name + "WallCheck", Global.Lang.Get("Flash_WallCheck")).SetValue(false));
                 Menu.AddItem(new MenuItem(Name + "IgniteCheck", Global.Lang.Get("Flash_IgniteCheck")).SetValue(false));
                 Menu.AddItem(new MenuItem(Name + "Extend", Global.Lang.Get("Flash_Extend")).SetValue(false));
 
@@ -82,6 +84,34 @@ namespace SFXUtility.Features.Others
                         .Name.Equals("SummonerFlash", StringComparison.OrdinalIgnoreCase))
                 {
                     return;
+                }
+                var endPos = args.StartPosition;
+                var distance = ObjectManager.Player.ServerPosition.Distance(endPos);
+                if (Menu.Item(Name + "WallCheck").GetValue<bool>() && endPos.IsWall())
+                {
+                    var wallStart = Vector3.Zero;
+                    var wallEnd = Vector3.Zero;
+                    for (var i = 0; 900 > i; i++)
+                    {
+                        var pos = ObjectManager.Player.Position.Extend(endPos, i);
+                        if (wallStart.Equals(Vector3.Zero) && pos.IsWall())
+                        {
+                            wallStart = ObjectManager.Player.Position.Extend(endPos, i - 1);
+                        }
+                        if (!wallStart.Equals(Vector3.Zero) && !pos.IsWall())
+                        {
+                            wallEnd = pos;
+                            break;
+                        }
+                    }
+                    if (!wallStart.Equals(Vector3.Zero))
+                    {
+                        if (wallEnd.Equals(Vector3.Zero) || wallEnd.Distance(endPos) > wallStart.Distance(endPos))
+                        {
+                            args.Process = false;
+                            ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, wallStart);
+                        }
+                    }
                 }
                 if (Menu.Item(Name + "IgniteCheck").GetValue<bool>())
                 {
@@ -109,11 +139,11 @@ namespace SFXUtility.Features.Others
                 }
                 if (Menu.Item(Name + "Extend").GetValue<bool>())
                 {
-                    if (ObjectManager.Player.ServerPosition.To2D().Distance(args.StartPosition) < 390f)
+                    if (distance < 390f)
                     {
                         args.Process = false;
                         ObjectManager.Player.Spellbook.CastSpell(
-                            args.Slot, ObjectManager.Player.ServerPosition.Extend(args.StartPosition, 400f));
+                            args.Slot, ObjectManager.Player.ServerPosition.Extend(endPos, 450f));
                     }
                 }
             }

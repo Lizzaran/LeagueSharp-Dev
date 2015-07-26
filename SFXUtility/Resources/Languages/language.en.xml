@@ -237,6 +237,7 @@
 	<!-- START: Flash -->
 	<entry key="F_Flash">Flash</entry>
 	<entry key="Flash_Extend">Extend</entry>
+	<entry key="Flash_WallCheck">Wall Check</entry>
 	<entry key="Flash_IgniteCheck">Ignite Check</entry>
 	<!-- END: ExtendFlash -->
 
