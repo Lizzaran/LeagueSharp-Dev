@@ -26,7 +26,6 @@ using System;
 using System.IO;
 using System.Linq;
 using SFXLibrary;
-using SFXLibrary.IoCContainer;
 using SFXLibrary.Logger;
 
 #endregion
@@ -36,7 +35,6 @@ namespace SFXUtility
     public class Global
     {
         public static ILogger Logger;
-        public static Container IoC = new Container();
         public static Language Lang = new Language();
         public static string DefaultFont = "Calibri";
         public static string Name = "SFXUtility";

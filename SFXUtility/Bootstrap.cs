@@ -51,7 +51,11 @@ namespace SFXUtility
         {
             try
             {
+                #region Upvote
+
                 var upvoteItem = Upvote.Initialize(Global.Name, 7);
+
+                #endregion Upvote
 
                 AppDomain.CurrentDomain.UnhandledException +=
                     delegate(object sender, UnhandledExceptionEventArgs eventArgs)
@@ -72,10 +76,21 @@ namespace SFXUtility
 
                 SetupLanguage();
 
+                #region GameObjects
+
                 GameObjects.Initialize();
 
+                #endregion GameObjects
+
                 Global.SFX = new SFXUtility();
-                Global.SFX.Menu.AddItem(upvoteItem);
+
+                #region Upvote
+
+                Global.SFX.Menu.SubMenu(Global.SFX.Name + "Settings").AddItem(upvoteItem);
+
+                #endregion Upvote
+
+                #region Parents
 
                 var activators = new Activators();
                 var detectors = new Detectors();
@@ -85,8 +100,11 @@ namespace SFXUtility
                 var timers = new Timers();
                 var trackers = new Trackers();
 
+                #endregion Parents
+
                 var features = new List<IChild>
                 {
+                    #region Features
                     new KillSteal(activators),
                     new Potion(activators),
                     new Revealer(activators),
@@ -126,6 +144,7 @@ namespace SFXUtility
                     new LastPosition(trackers),
                     new Sidebar(trackers),
                     new Ward(trackers)
+                    #endregion Features
                 };
 
                 CustomEvents.Game.OnGameLoad += delegate

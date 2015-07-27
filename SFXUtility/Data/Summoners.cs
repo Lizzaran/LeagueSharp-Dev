@@ -56,13 +56,21 @@ namespace SFXUtility.Data
 
         static Summoners()
         {
-            // ReSharper disable once StringLiteralTypo
-            BlueSmite = new SummonerSpell { Name = "s5_summonersmiteplayerganker", Range = 750f };
-            RedSmite = new SummonerSpell { Name = "s5_summonersmiteduel", Range = 750f };
-            Ignite = new SummonerSpell { Name = "SummonerDot", Range = 600f };
-            Smite = new SummonerSpell { Name = "SummonerSmite", Range = 750f };
+            try
+            {
+                // ReSharper disable once StringLiteralTypo
+                BlueSmite = new SummonerSpell { Name = "s5_summonersmiteplayerganker", Range = 750f };
+                RedSmite = new SummonerSpell { Name = "s5_summonersmiteduel", Range = 750f };
+                Ignite = new SummonerSpell { Name = "SummonerDot", Range = 600f };
+                Smite = new SummonerSpell { Name = "SummonerSmite", Range = 750f };
 
-            SummonerSpells = new List<SummonerSpell> { Ignite, Smite, BlueSmite, RedSmite };
+                SummonerSpells = new List<SummonerSpell> { Ignite, Smite, BlueSmite, RedSmite };
+            }
+            catch (Exception ex)
+            {
+                SummonerSpells = new List<SummonerSpell>();
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         public static bool IsReady(this SummonerSpell spell)

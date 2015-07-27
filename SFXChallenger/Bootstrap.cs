@@ -86,7 +86,7 @@ namespace SFXChallenger
 
                             if (_champion.SFXMenu != null && upvoteItem != null)
                             {
-                                _champion.SFXMenu.AddItem(upvoteItem);
+                                _champion.SFXMenu.SubMenu(_champion.SFXMenu.Name + ".settings").AddItem(upvoteItem);
                             }
                         }
                     }

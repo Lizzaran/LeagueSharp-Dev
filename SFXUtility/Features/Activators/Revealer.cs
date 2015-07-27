@@ -232,18 +232,18 @@ namespace SFXUtility.Features.Activators
                 {
                     return;
                 }
-                if (!bush)
-                {
-                    if (
-                        GameObjects.AllyMinions.Any(
-                            m =>
-                                !string.IsNullOrEmpty(m.CharData.Name) &&
-                                m.CharData.Name.Equals("VisionWard", StringComparison.OrdinalIgnoreCase) &&
-                                ObjectManager.Player.Distance(m) < 400f))
-                    {
-                        return;
-                    }
-                }
+                //if (!bush)
+                //{
+                //    if (
+                //        GameObjects.AllyMinions.Any(
+                //            m =>
+                //                !string.IsNullOrEmpty(m.CharData.Name) &&
+                //                m.CharData.Name.Equals("VisionWard", StringComparison.OrdinalIgnoreCase) &&
+                //                ObjectManager.Player.Distance(m) < 400f))
+                //    {
+                //        return;
+                //    }
+                //}
                 var slot = GetRevealSlot(bush);
                 if (slot != SpellSlot.Unknown)
                 {

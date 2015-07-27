@@ -45,35 +45,30 @@ namespace SFXUtility
             {
                 Menu = new Menu(Name, Name, true);
 
-                Menu.AddItem(
-                    new MenuItem(Name + "Font", Global.Lang.Get("SFXUtility_Font")).SetValue(
-                        new StringList(
-                            new[]
-                            {
-                                "Calibri", "Arial", "Tahoma", "Verdana", "Times New Roman", "Lucida Console",
-                                "Comic Sans MS"
-                            })));
-
-                Global.DefaultFont = Menu.Item(Name + "Font").GetValue<StringList>().SelectedValue;
-
-                AddLanguage(Menu);
-
-                var infoMenu = new Menu(Global.Lang.Get("SFXUtility_Info"), Name + "Info");
+                var infoMenu = new Menu(Global.Lang.Get("SFX_Info"), Name + "Info");
 
                 infoMenu.AddItem(
                     new MenuItem(
-                        infoMenu.Name + "Version",
-                        string.Format("{0}: {1}", Global.Lang.Get("SFXUtility_Version"), Version)));
-                infoMenu.AddItem(
-                    new MenuItem(infoMenu.Name + "Forum", Global.Lang.Get("SFXUtility_Forum") + ": Lizzaran"));
-                infoMenu.AddItem(
-                    new MenuItem(infoMenu.Name + "Github", Global.Lang.Get("SFXUtility_GitHub") + ": Lizzaran"));
-                infoMenu.AddItem(new MenuItem(infoMenu.Name + "IRC", Global.Lang.Get("SFXUtility_IRC") + ": Appril"));
+                        infoMenu.Name + "Version", string.Format("{0}: {1}", Global.Lang.Get("SFX_Version"), Version)));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Forum", Global.Lang.Get("SFX_Forum") + ": Lizzaran"));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Github", Global.Lang.Get("SFX_GitHub") + ": Lizzaran"));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "IRC", Global.Lang.Get("SFX_IRC") + ": Appril"));
                 infoMenu.AddItem(
                     new MenuItem(
                         infoMenu.Name + "Exception", string.Format("{0}: {1}", Global.Lang.Get("SFX_Exception"), 0)));
 
+                var globalMenu = new Menu(Global.Lang.Get("SFX_Settings"), Name + "Settings");
+
+                #region Fonts
+
+                AddFont(globalMenu);
+
+                #endregion Fonts
+
+                AddLanguage(globalMenu);
+
                 Menu.AddSubMenu(infoMenu);
+                Menu.AddSubMenu(globalMenu);
 
                 AppDomain.CurrentDomain.DomainUnload += OnExit;
                 AppDomain.CurrentDomain.ProcessExit += OnExit;
@@ -90,7 +85,7 @@ namespace SFXUtility
 
         public string Name
         {
-            get { return Global.Lang.Get("F_SFXUtility"); }
+            get { return Global.Lang.Get("F_SFX"); }
         }
 
         public Version Version
@@ -98,12 +93,37 @@ namespace SFXUtility
             get { return Assembly.GetExecutingAssembly().GetName().Version; }
         }
 
+        #region Fonts
+
+        private void AddFont(Menu menu)
+        {
+            try
+            {
+                menu.AddItem(
+                    new MenuItem(menu.Name + "Font", Global.Lang.Get("SFX_Font")).SetValue(
+                        new StringList(
+                            new[]
+                            {
+                                "Calibri", "Arial", "Tahoma", "Verdana", "Times New Roman", "Lucida Console",
+                                "Comic Sans MS"
+                            })));
+
+                Global.DefaultFont = menu.Item(menu.Name + "Font").GetValue<StringList>().SelectedValue;
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        #endregion Fonts
+
         private void AddLanguage(Menu menu)
         {
             try
             {
                 menu.AddItem(
-                    new MenuItem(menu.Name + "Language", Global.Lang.Get("SFXUtility_Language")).SetValue(
+                    new MenuItem(menu.Name + "Language", Global.Lang.Get("SFX_Language")).SetValue(
                         new StringList(
                             new[] { Global.Lang.Get("Language_Auto") }.Concat(Global.Lang.Languages.ToArray()).ToArray())))
                     .ValueChanged += delegate(object sender, OnValueChangeEventArgs args)

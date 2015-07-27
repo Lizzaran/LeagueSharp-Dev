@@ -23,7 +23,7 @@
     <AssemblyVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyVersionSettings>
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
-    <AssemblyVersion>0.8.3.43</AssemblyVersion>
+    <AssemblyVersion>0.8.3.46</AssemblyVersion>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -104,7 +104,6 @@
     <Compile Include="Data\Items.cs" />
     <Compile Include="Data\Relics.cs" />
     <Compile Include="Data\Jungle.cs" />
-    <Compile Include="Classes\Spectator.cs" />
     <Compile Include="Data\Models.cs" />
     <Compile Include="Data\Summoners.cs" />
     <Compile Include="Features\Activators\Activators.cs" />

@@ -58,52 +58,67 @@ namespace SFXUtility.Data
 
         static Items()
         {
-            // AOE damage, only melee
-            Tiamat = new CustomItem
+            try
             {
-                Item = ItemData.Tiamat_Melee_Only.GetItem(),
-                Damage = Damage.DamageItems.Tiamat,
-                Target = false,
-                Range = ItemData.Tiamat_Melee_Only.GetItem().Range
-            };
+                // AOE damage, only melee
+                Tiamat = new CustomItem
+                {
+                    Item = ItemData.Tiamat_Melee_Only.GetItem(),
+                    Damage = Damage.DamageItems.Tiamat,
+                    Target = false,
+                    Range = ItemData.Tiamat_Melee_Only.GetItem().Range
+                };
 
-            // AOE damage, only melee
-            Hydra = new CustomItem
+                // AOE damage, only melee
+                Hydra = new CustomItem
+                {
+                    Item = ItemData.Ravenous_Hydra_Melee_Only.GetItem(),
+                    Damage = Damage.DamageItems.Hydra,
+                    Target = false,
+                    Range = ItemData.Ravenous_Hydra_Melee_Only.GetItem().Range
+                };
+
+                // Slow + Damage
+                BilgewaterCutlass = new CustomItem
+                {
+                    Item = ItemData.Bilgewater_Cutlass.GetItem(),
+                    Damage = Damage.DamageItems.Bilgewater,
+                    Target = true,
+                    Range = ItemData.Bilgewater_Cutlass.GetItem().Range
+                };
+
+                // Slow + Damage
+                BladeRuinedKing = new CustomItem
+                {
+                    Item = ItemData.Blade_of_the_Ruined_King.GetItem(),
+                    Damage = Damage.DamageItems.Botrk,
+                    Target = true,
+                    Range = ItemData.Blade_of_the_Ruined_King.GetItem().Range
+                };
+
+                // Damage + Slow
+                HextechGunblade = new CustomItem
+                {
+                    Item = ItemData.Hextech_Gunblade.GetItem(),
+                    Damage = Damage.DamageItems.Hexgun,
+                    Target = true,
+                    Range = ItemData.Hextech_Gunblade.GetItem().Range
+                };
+
+                CustomItems = new List<CustomItem>
+                {
+                    Tiamat,
+                    Hydra,
+                    BilgewaterCutlass,
+                    BladeRuinedKing,
+                    HextechGunblade
+                };
+            }
+            catch (Exception ex)
             {
-                Item = ItemData.Ravenous_Hydra_Melee_Only.GetItem(),
-                Damage = Damage.DamageItems.Hydra,
-                Target = false,
-                Range = ItemData.Ravenous_Hydra_Melee_Only.GetItem().Range
-            };
-
-            // Slow + Damage
-            BilgewaterCutlass = new CustomItem
-            {
-                Item = ItemData.Bilgewater_Cutlass.GetItem(),
-                Damage = Damage.DamageItems.Bilgewater,
-                Target = true,
-                Range = ItemData.Bilgewater_Cutlass.GetItem().Range
-            };
-
-            // Slow + Damage
-            BladeRuinedKing = new CustomItem
-            {
-                Item = ItemData.Blade_of_the_Ruined_King.GetItem(),
-                Damage = Damage.DamageItems.Botrk,
-                Target = true,
-                Range = ItemData.Blade_of_the_Ruined_King.GetItem().Range
-            };
-
-            // Damage + Slow
-            HextechGunblade = new CustomItem
-            {
-                Item = ItemData.Hextech_Gunblade.GetItem(),
-                Damage = Damage.DamageItems.Hexgun,
-                Target = true,
-                Range = ItemData.Hextech_Gunblade.GetItem().Range
-            };
-
-            CustomItems = new List<CustomItem> { Tiamat, Hydra, BilgewaterCutlass, BladeRuinedKing, HextechGunblade };
+                CustomItems = new List<CustomItem>();
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         public static float CalculateComboDamage(Obj_AI_Hero target)

@@ -61,16 +61,16 @@
 	<entry key="G_HitChance">HitChance</entry>
 	<!-- END: GLOBAL -->
 	sida
-	<!-- START: SFXUtility -->
-	<entry key="F_SFXUtility">SFXUtility</entry>
-	<entry key="SFXUtility_Language">Ngôn Ngữ</entry>
-	<entry key="SFXUtility_Loaded">loaded</entry>
-	<entry key="SFXUtility_Info">Thông Tin</entry>
-	<entry key="SFXUtility_Version">Phiên Bản</entry>
-	<entry key="SFXUtility_Forum">Forum</entry>
-	<entry key="SFXUtility_GitHub">GitHub</entry>
-	<entry key="SFXUtility_IRC">IRC</entry>
-	<!-- END: SFXUtility -->
+	<!-- START: SFX -->
+	<entry key="F_SFX">SFXUtility</entry>
+	<entry key="SFX_Language">Ngôn Ngữ</entry>
+	<entry key="SFX_Loaded">loaded</entry>
+	<entry key="SFX_Info">Thông Tin</entry>
+	<entry key="SFX_Version">Phiên Bản</entry>
+	<entry key="SFX_Forum">Forum</entry>
+	<entry key="SFX_GitHub">GitHub</entry>
+	<entry key="SFX_IRC">IRC</entry>
+	<!-- END: SFX -->
 
 	<!-- START: Features -->
 	<entry key="F_Activators">Dùng Trang Bị</entry>
@@ -191,9 +191,9 @@
 	<entry key="F_AutoLantern">Tự Bấm Lồng Đèn</entry>
 	<!-- END: AutoLantern -->
 
-	<!-- START: ExtendFlash -->
+	<!-- START: Flash -->
 	<entry key="F_ExtendFlash">Tốc Biến Khoảng Cách Tối Đa</entry>
-	<!-- END: ExtendFlash -->
+	<!-- END: Flash -->
 
 	<!-- START: Humanize -->
 	<entry key="F_Humanize">Làm Giống Người Hơn</entry>

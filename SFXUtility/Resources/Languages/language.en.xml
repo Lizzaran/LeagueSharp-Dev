@@ -70,24 +70,26 @@
 	<entry key="G_Ping">Ping</entry>
 	<!-- END: GLOBAL -->
 
-	<!-- START: SFXUtility -->
-	<entry key="F_SFXUtility">SFXUtility</entry>
-	<entry key="SFXUtility_Font">Font</entry>
-	<entry key="SFXUtility_Language">Language</entry>
-	<entry key="SFXUtility_Loaded">loaded</entry>
-	<entry key="SFXUtility_Info">Info</entry>
-	<entry key="SFXUtility_Version">Version</entry>
-	<entry key="SFXUtility_Forum">Forum</entry>
-	<entry key="SFXUtility_GitHub">GitHub</entry>
-	<entry key="SFXUtility_IRC">IRC</entry>
+	<!-- START: SFX -->
+	<entry key="F_SFX">SFXUtility</entry>
+	<entry key="SFX_Settings">Settings</entry>
+	<entry key="SFX_Font">Font</entry>
+	<entry key="SFX_Language">Language</entry>
+	<entry key="SFX_Loaded">loaded</entry>
+	<entry key="SFX_Info">Info</entry>
+	<entry key="SFX_Version">Version</entry>
+	<entry key="SFX_Forum">Forum</entry>
+	<entry key="SFX_GitHub">GitHub</entry>
+	<entry key="SFX_IRC">IRC</entry>
 	<entry key="SFX_Exception">Exception</entry>
-	<!-- END: SFXUtility -->
+	<!-- END: SFX -->
 
 	<!-- START: Language -->
 	<entry key="Language_Auto">auto</entry>
 	<!-- END: Language -->
 
 	<!-- START: Features -->
+	<entry key="F_App">App</entry>
 	<entry key="F_Activators">Activators</entry>
 	<entry key="F_Detectors">Detectors</entry>
 	<entry key="F_Drawings">Drawings</entry>
@@ -240,7 +242,7 @@
 	<entry key="Flash_Extend">Extend</entry>
 	<entry key="Flash_WallCheck">Wall Check</entry>
 	<entry key="Flash_IgniteCheck">Ignite Check</entry>
-	<!-- END: ExtendFlash -->
+	<!-- END: Flash -->
 
 	<!-- START: Humanize -->
 	<entry key="F_Humanize">Humanize</entry>

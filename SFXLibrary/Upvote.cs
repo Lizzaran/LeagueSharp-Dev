@@ -60,6 +60,7 @@ namespace SFXLibrary
                 {
                     return menuItem;
                 }
+                var firstRun = false;
                 if (!menuItem.GetValue<bool>())
                 {
                     var count = 1;
@@ -82,6 +83,7 @@ namespace SFXLibrary
                         }
                         else
                         {
+                            firstRun = true;
                             File.WriteAllText(file, count.ToString());
                         }
                     }
@@ -89,7 +91,7 @@ namespace SFXLibrary
                     {
                         Console.WriteLine(ex);
                     }
-                    if (count >= maxGames)
+                    if (count >= maxGames || firstRun)
                     {
                         UpvoteItems.Add(new UpvoteItem(name));
                     }

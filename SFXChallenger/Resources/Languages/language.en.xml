@@ -112,6 +112,10 @@
 	<entry key="G_Target">Target</entry>
 	<!-- END: GLOBAL -->
 
+	<!-- START: Settings -->
+	<entry key="F_Settings">Settings</entry>
+	<!-- END: Settings -->
+
 	<!-- START: Language -->
 	<entry key="F_Language">Language</entry>
 	<entry key="Language_Auto">auto</entry>

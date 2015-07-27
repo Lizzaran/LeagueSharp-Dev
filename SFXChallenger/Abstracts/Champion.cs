@@ -195,6 +195,9 @@ namespace SFXChallenger.Abstracts
 
                 InfoMenu.AddToMenu(SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_Info"), SFXMenu.Name + ".info")));
 
+                LanguageMenu.AddToMenu(
+                    SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_Settings"), SFXMenu.Name + ".settings")));
+
                 TargetSelector.AddToMenu(
                     SFXMenu.AddSubMenu(
                         new Menu(Global.Lang.Get("F_TargetSelector"), SFXMenu.Name + ".ts." + Player.ChampionName)));
@@ -210,7 +213,6 @@ namespace SFXChallenger.Abstracts
                     SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MS"), SFXMenu.Name + ".summoners")));
 
                 TickMenu.AddToMenu(SFXMenu);
-                LanguageMenu.AddToMenu(SFXMenu);
 
                 SFXMenu.AddToMainMenu();
 
