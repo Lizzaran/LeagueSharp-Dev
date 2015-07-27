@@ -38,9 +38,13 @@ namespace SFXUtility.Features.Others
     // Credits: Tree
     internal class SkinChanger : Child<Others>
     {
+        private readonly List<ModelUnit> _playerList = new List<ModelUnit>();
         private ModelUnit _player;
-        private List<ModelUnit> _playerList;
-        public SkinChanger(SFXUtility sfx) : base(sfx) {}
+
+        public SkinChanger(Others parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -61,7 +65,7 @@ namespace SFXUtility.Features.Others
             base.OnDisable();
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -80,8 +84,6 @@ namespace SFXUtility.Features.Others
         {
             try
             {
-                _playerList = new List<ModelUnit>();
-
                 foreach (var hero in GameObjects.Heroes)
                 {
                     var localHero = hero;

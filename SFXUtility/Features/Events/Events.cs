@@ -30,8 +30,6 @@ namespace SFXUtility.Features.Events
 {
     internal class Events : Parent
     {
-        public Events(SFXUtility sfx) : base(sfx) {}
-
         public override string Name
         {
             get { return Global.Lang.Get("F_Events"); }

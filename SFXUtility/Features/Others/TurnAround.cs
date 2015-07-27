@@ -39,10 +39,19 @@ namespace SFXUtility.Features.Others
 {
     internal class TurnAround : Child<Others>
     {
+        private readonly List<SpellInfo> _spellInfos = new List<SpellInfo>
+        {
+            new SpellInfo("Cassiopeia", "CassiopeiaPetrifyingGaze", 1000f, false, true, 0.85f),
+            new SpellInfo("Tryndamere", "MockingShout", 900f, false, false, 0.65f)
+        };
+
         private float _blockMovementTime;
         private Vector3 _lastMove;
-        private List<SpellInfo> _spellInfos;
-        public TurnAround(SFXUtility sfx) : base(sfx) {}
+
+        public TurnAround(Others parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -123,7 +132,7 @@ namespace SFXUtility.Features.Others
             }
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -142,12 +151,6 @@ namespace SFXUtility.Features.Others
         {
             try
             {
-                _spellInfos = new List<SpellInfo>
-                {
-                    new SpellInfo("Cassiopeia", "CassiopeiaPetrifyingGaze", 1000f, false, true, 0.85f),
-                    new SpellInfo("Tryndamere", "MockingShout", 900f, false, false, 0.65f)
-                };
-
                 if (!GameObjects.EnemyHeroes.Any(h => _spellInfos.Any(i => i.Owner == h.ChampionName)))
                 {
                     OnUnload(null, new UnloadEventArgs(true));

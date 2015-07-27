@@ -35,9 +35,13 @@ namespace SFXUtility.Features.Others
 {
     internal class Humanize : Child<Others>
     {
+        private readonly Dictionary<SpellSlot, float> _lastSpell = new Dictionary<SpellSlot, float>();
         private float _lastMovement;
-        private Dictionary<SpellSlot, float> _lastSpell;
-        public Humanize(SFXUtility sfx) : base(sfx) {}
+
+        public Humanize(Others parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -58,7 +62,7 @@ namespace SFXUtility.Features.Others
             base.OnDisable();
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -75,19 +79,6 @@ namespace SFXUtility.Features.Others
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        protected override void OnInitialize()
-        {
-            try
-            {
-                _lastSpell = new Dictionary<SpellSlot, float>();
-                base.OnInitialize();
             }
             catch (Exception ex)
             {

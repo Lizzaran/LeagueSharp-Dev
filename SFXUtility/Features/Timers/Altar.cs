@@ -41,10 +41,14 @@ namespace SFXUtility.Features.Timers
 {
     internal class Altar : Child<Timers>
     {
-        private List<AltarObj> _altarObjs;
+        private readonly List<AltarObj> _altarObjs = new List<AltarObj>();
         private Font _mapText;
         private Font _minimapText;
-        public Altar(SFXUtility sfx) : base(sfx) {}
+
+        public Altar(Timers parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -142,7 +146,7 @@ namespace SFXUtility.Features.Timers
             }
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -177,6 +181,9 @@ namespace SFXUtility.Features.Timers
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
+
+                _minimapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMinimapFontSize").GetValue<Slider>().Value);
+                _mapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMapFontSize").GetValue<Slider>().Value);
             }
             catch (Exception ex)
             {
@@ -188,8 +195,6 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
-                _altarObjs = new List<AltarObj>();
-
                 _altarObjs.AddRange(
                     Altars.Objects.Where(c => c.MapType == Utility.Map.GetMap().Type)
                         .Select(
@@ -203,9 +208,6 @@ namespace SFXUtility.Features.Timers
                     OnUnload(null, new UnloadEventArgs(true));
                     return;
                 }
-
-                _minimapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMinimapFontSize").GetValue<Slider>().Value);
-                _mapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMapFontSize").GetValue<Slider>().Value);
 
                 base.OnInitialize();
             }

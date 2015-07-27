@@ -39,8 +39,18 @@ namespace SFXUtility.Features.Drawings
 {
     internal class DamageIndicator : Child<Drawings>
     {
-        private List<Spell> _spells;
-        public DamageIndicator(SFXUtility sfx) : base(sfx) {}
+        private readonly List<Spell> _spells = new List<Spell>
+        {
+            new Spell(SpellSlot.Q),
+            new Spell(SpellSlot.W),
+            new Spell(SpellSlot.E),
+            new Spell(SpellSlot.R)
+        };
+
+        public DamageIndicator(Drawings parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -91,7 +101,7 @@ namespace SFXUtility.Features.Drawings
             base.OnDisable();
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -114,25 +124,6 @@ namespace SFXUtility.Features.Drawings
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        protected override void OnInitialize()
-        {
-            try
-            {
-                _spells = new List<Spell>
-                {
-                    new Spell(SpellSlot.Q),
-                    new Spell(SpellSlot.W),
-                    new Spell(SpellSlot.E),
-                    new Spell(SpellSlot.R)
-                };
-                base.OnInitialize();
             }
             catch (Exception ex)
             {

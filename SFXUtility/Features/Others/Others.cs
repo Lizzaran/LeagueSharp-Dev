@@ -30,8 +30,6 @@ namespace SFXUtility.Features.Others
 {
     internal class Others : Parent
     {
-        public Others(SFXUtility sfx) : base(sfx) {}
-
         public override string Name
         {
             get { return Global.Lang.Get("F_Others"); }

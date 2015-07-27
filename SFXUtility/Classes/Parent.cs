@@ -32,7 +32,7 @@ namespace SFXUtility.Classes
 {
     internal abstract class Parent : Base
     {
-        protected Parent(SFXUtility sfx) : base(sfx)
+        protected Parent()
         {
             OnLoad();
         }
@@ -42,7 +42,7 @@ namespace SFXUtility.Classes
             get { return !Unloaded && Menu != null && Menu.Item(Name + "Enabled").GetValue<bool>(); }
         }
 
-        private void OnLoad()
+        public void OnLoad()
         {
             try
             {
@@ -50,7 +50,7 @@ namespace SFXUtility.Classes
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                BaseMenu.AddSubMenu(Menu);
+                Global.SFX.Menu.AddSubMenu(Menu);
 
                 RaiseOnInitialized();
             }

@@ -45,16 +45,38 @@ namespace SFXUtility.Features.Trackers
     internal class Ward : Child<Trackers>
     {
         private const float CheckInterval = 300f;
+        private readonly List<HeroWard> _heroNoWards = new List<HeroWard>();
+        private readonly List<WardObject> _wardObjects = new List<WardObject>();
+
+        private readonly List<WardStruct> _wardStructs = new List<WardStruct>
+        {
+            new WardStruct(60, 1100, "YellowTrinket", "TrinketTotemLvl1", WardType.Green),
+            new WardStruct(60 * 3, 1100, "YellowTrinketUpgrade", "TrinketTotemLvl2", WardType.Green),
+            new WardStruct(60 * 3, 1100, "SightWard", "TrinketTotemLvl3", WardType.Green),
+            new WardStruct(60 * 3, 1100, "SightWard", "SightWard", WardType.Green),
+            new WardStruct(60 * 3, 1100, "SightWard", "ItemGhostWard", WardType.Green),
+            new WardStruct(60 * 3, 1100, "SightWard", "wrigglelantern", WardType.Green),
+            new WardStruct(60 * 3, 1100, "SightWard", "ItemFeralFlare", WardType.Green),
+            new WardStruct(int.MaxValue, 1100, "VisionWard", "TrinketTotemLvl3B", WardType.Pink),
+            new WardStruct(int.MaxValue, 1100, "VisionWard", "VisionWard", WardType.Pink),
+            new WardStruct(60 * 4, 212, "CaitlynTrap", "CaitlynYordleTrap", WardType.Trap),
+            new WardStruct(60 * 10, 212, "TeemoMushroom", "BantamTrap", WardType.Trap),
+            new WardStruct(60 * 1, 212, "ShacoBox", "JackInTheBox", WardType.Trap),
+            new WardStruct(60 * 2, 212, "Nidalee_Spear", "Bushwhack", WardType.Trap),
+            new WardStruct(60 * 10, 212, "Noxious_Trap", "BantamTrap", WardType.Trap)
+        };
+
         private Texture _greenWardTexture;
-        private List<HeroWard> _heroNoWards;
-        private float _lastCheck;
+        private float _lastCheck = Environment.TickCount;
         private Line _line;
         private Texture _pinkWardTexture;
         private Sprite _sprite;
         private Font _text;
-        private List<WardObject> _wardObjects;
-        private List<WardStruct> _wardStructs;
-        public Ward(SFXUtility sfx) : base(sfx) {}
+
+        public Ward(Trackers parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -87,7 +109,7 @@ namespace SFXUtility.Features.Trackers
             base.OnDisable();
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -143,6 +165,10 @@ namespace SFXUtility.Features.Trackers
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
+
+                _sprite = MDrawing.GetSprite();
+                _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
+                _line = MDrawing.GetLine(Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value);
             }
             catch (Exception ex)
             {
@@ -154,31 +180,8 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                _heroNoWards = new List<HeroWard>();
-                _wardObjects = new List<WardObject>();
-                _wardStructs = new List<WardStruct>
-                {
-                    new WardStruct(60, 1100, "YellowTrinket", "TrinketTotemLvl1", WardType.Green),
-                    new WardStruct(60 * 3, 1100, "YellowTrinketUpgrade", "TrinketTotemLvl2", WardType.Green),
-                    new WardStruct(60 * 3, 1100, "SightWard", "TrinketTotemLvl3", WardType.Green),
-                    new WardStruct(60 * 3, 1100, "SightWard", "SightWard", WardType.Green),
-                    new WardStruct(60 * 3, 1100, "SightWard", "ItemGhostWard", WardType.Green),
-                    new WardStruct(60 * 3, 1100, "SightWard", "wrigglelantern", WardType.Green),
-                    new WardStruct(60 * 3, 1100, "SightWard", "ItemFeralFlare", WardType.Green),
-                    new WardStruct(int.MaxValue, 1100, "VisionWard", "TrinketTotemLvl3B", WardType.Pink),
-                    new WardStruct(int.MaxValue, 1100, "VisionWard", "VisionWard", WardType.Pink),
-                    new WardStruct(60 * 4, 212, "CaitlynTrap", "CaitlynYordleTrap", WardType.Trap),
-                    new WardStruct(60 * 10, 212, "TeemoMushroom", "BantamTrap", WardType.Trap),
-                    new WardStruct(60 * 1, 212, "ShacoBox", "JackInTheBox", WardType.Trap),
-                    new WardStruct(60 * 2, 212, "Nidalee_Spear", "Bushwhack", WardType.Trap),
-                    new WardStruct(60 * 10, 212, "Noxious_Trap", "BantamTrap", WardType.Trap)
-                };
-                _lastCheck = Environment.TickCount;
-                _sprite = MDrawing.GetSprite();
                 _greenWardTexture = Resources.WT_Green.ToTexture();
                 _pinkWardTexture = Resources.WT_Pink.ToTexture();
-                _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
-                _line = MDrawing.GetLine(Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value);
 
                 base.OnInitialize();
             }

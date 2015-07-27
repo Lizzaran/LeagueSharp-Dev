@@ -41,10 +41,14 @@ namespace SFXUtility.Features.Timers
 {
     internal class Relic : Child<Timers>
     {
+        private readonly List<RelicObj> _relicObjs = new List<RelicObj>();
         private Font _mapText;
         private Font _minimapText;
-        private List<RelicObj> _relicObjs;
-        public Relic(SFXUtility sfx) : base(sfx) {}
+
+        public Relic(Timers parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -167,7 +171,7 @@ namespace SFXUtility.Features.Timers
             }
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -202,6 +206,9 @@ namespace SFXUtility.Features.Timers
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
+
+                _minimapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMinimapFontSize").GetValue<Slider>().Value);
+                _mapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMapFontSize").GetValue<Slider>().Value);
             }
             catch (Exception ex)
             {
@@ -213,8 +220,6 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
-                _relicObjs = new List<RelicObj>();
-
                 _relicObjs.AddRange(
                     Relics.Objects.Where(c => c.MapType == Utility.Map.GetMap().Type)
                         .Select(c => new RelicObj(c.SpawnTime, c.RespawnTime, c.Position, c.ObjectName, c.MapType)));
@@ -224,9 +229,6 @@ namespace SFXUtility.Features.Timers
                     OnUnload(null, new UnloadEventArgs(true));
                     return;
                 }
-
-                _minimapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMinimapFontSize").GetValue<Slider>().Value);
-                _mapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMapFontSize").GetValue<Slider>().Value);
 
                 base.OnInitialize();
             }

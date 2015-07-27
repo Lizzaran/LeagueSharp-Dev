@@ -39,8 +39,25 @@ namespace SFXUtility.Features.Activators
 {
     internal class Potion : Child<Activators>
     {
-        private List<PotionStruct> _potions;
-        public Potion(SFXUtility sfx) : base(sfx) {}
+        private readonly List<PotionStruct> _potions = new List<PotionStruct>
+        {
+            new PotionStruct(
+                "ItemCrystalFlask", (ItemId) ItemData.Crystalline_Flask.Id, 1,
+                new[] { PotionType.Health, PotionType.Mana }),
+            new PotionStruct("RegenerationPotion", (ItemId) ItemData.Health_Potion.Id, 0, new[] { PotionType.Health }),
+            new PotionStruct(
+                "ItemMiniRegenPotion", (ItemId) ItemData.Total_Biscuit_of_Rejuvenation.Id, 0,
+                new[] { PotionType.Health }),
+            new PotionStruct(
+                "ItemMiniRegenPotion", (ItemId) ItemData.Total_Biscuit_of_Rejuvenation2.Id, 0,
+                new[] { PotionType.Health }),
+            new PotionStruct("FlaskOfCrystalWater", (ItemId) ItemData.Mana_Potion.Id, 0, new[] { PotionType.Mana })
+        };
+
+        public Potion(Activators parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -59,7 +76,7 @@ namespace SFXUtility.Features.Activators
             base.OnDisable();
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -91,37 +108,6 @@ namespace SFXUtility.Features.Activators
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        protected override void OnInitialize()
-        {
-            try
-            {
-                _potions =
-                    new List<PotionStruct>
-                    {
-                        new PotionStruct(
-                            "ItemCrystalFlask", (ItemId) ItemData.Crystalline_Flask.Id, 1, 1,
-                            new[] { PotionType.Health, PotionType.Mana }),
-                        new PotionStruct(
-                            "RegenerationPotion", (ItemId) ItemData.Health_Potion.Id, 0, 2, new[] { PotionType.Health }),
-                        new PotionStruct(
-                            "ItemMiniRegenPotion", (ItemId) ItemData.Total_Biscuit_of_Rejuvenation.Id, 0, 3,
-                            new[] { PotionType.Health }),
-                        new PotionStruct(
-                            "ItemMiniRegenPotion", (ItemId) ItemData.Total_Biscuit_of_Rejuvenation2.Id, 0, 4,
-                            new[] { PotionType.Health }),
-                        new PotionStruct(
-                            "FlaskOfCrystalWater", (ItemId) ItemData.Mana_Potion.Id, 0, 5, new[] { PotionType.Mana })
-                    }
-                        .OrderBy(x => x.Priority).ToList();
-
-                base.OnInitialize();
             }
             catch (Exception ex)
             {
@@ -209,15 +195,13 @@ namespace SFXUtility.Features.Activators
             public readonly string BuffName;
             public readonly ItemId ItemId;
             public readonly int MinCharges;
-            public readonly int Priority;
             public readonly PotionType[] TypeList;
 
-            public PotionStruct(string buffName, ItemId itemId, int minCharges, int priority, PotionType[] typeList)
+            public PotionStruct(string buffName, ItemId itemId, int minCharges, PotionType[] typeList)
             {
                 BuffName = buffName;
                 ItemId = itemId;
                 MinCharges = minCharges;
-                Priority = priority;
                 TypeList = typeList;
             }
         }

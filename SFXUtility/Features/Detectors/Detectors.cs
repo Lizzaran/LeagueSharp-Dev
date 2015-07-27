@@ -30,8 +30,6 @@ namespace SFXUtility.Features.Detectors
 {
     internal class Detectors : Parent
     {
-        public Detectors(SFXUtility sfx) : base(sfx) {}
-
         public override string Name
         {
             get { return Global.Lang.Get("F_Detectors"); }

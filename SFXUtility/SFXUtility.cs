@@ -35,7 +35,7 @@ using Version = System.Version;
 
 namespace SFXUtility
 {
-    internal class SFXUtility
+    public class SFXUtility
     {
         private bool _unloadTriggered;
 
@@ -149,7 +149,7 @@ namespace SFXUtility
                         AppDomain.CurrentDomain.BaseDirectory,
                         string.Format("{0}.language.", Global.Name.ToLower()) + "*", SearchOption.TopDirectoryOnly)
                         .FirstOrDefault();
-                if (!string.IsNullOrEmpty(file))
+                if (file != null && Global.Lang.Languages.Any(l => l.Equals(file.Substring(1))))
                 {
                     string ext = null;
                     var splitted = file.Split('.');

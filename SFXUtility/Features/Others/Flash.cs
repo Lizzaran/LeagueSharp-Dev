@@ -36,7 +36,10 @@ namespace SFXUtility.Features.Others
 {
     internal class Flash : Child<Others>
     {
-        public Flash(SFXUtility sfx) : base(sfx) {}
+        public Flash(Others parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -55,7 +58,7 @@ namespace SFXUtility.Features.Others
             base.OnDisable();
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {

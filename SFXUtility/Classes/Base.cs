@@ -33,10 +33,9 @@ namespace SFXUtility.Classes
 {
     internal abstract class Base
     {
-        protected Base(SFXUtility sfx)
+        protected Base()
         {
-            BaseMenu = sfx.Menu;
-            sfx.OnUnload += OnUnload;
+            Global.SFX.OnUnload += OnUnload;
         }
 
         public abstract bool Enabled { get; }
@@ -44,7 +43,6 @@ namespace SFXUtility.Classes
         public bool Initialized { get; protected set; }
         public bool Unloaded { get; protected set; }
         public Menu Menu { get; set; }
-        protected Menu BaseMenu { get; private set; }
         public event EventHandler OnInitialized;
         public event EventHandler OnEnabled;
         public event EventHandler OnDisabled;

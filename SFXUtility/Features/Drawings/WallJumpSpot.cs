@@ -39,8 +39,12 @@ namespace SFXUtility.Features.Drawings
 {
     internal class WallJumpSpot : Child<Drawings>
     {
-        private List<PositionStruct> _walljumpSpots;
-        public WallJumpSpot(SFXUtility sfx) : base(sfx) {}
+        private readonly List<PositionStruct> _walljumpSpots = new List<PositionStruct>();
+
+        public WallJumpSpot(Drawings parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -81,7 +85,7 @@ namespace SFXUtility.Features.Drawings
             base.OnDisable();
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -126,7 +130,6 @@ namespace SFXUtility.Features.Drawings
                     return;
                 }
 
-                _walljumpSpots = new List<PositionStruct>();
                 SetupPositions();
 
                 if (_walljumpSpots.Count <= 0)

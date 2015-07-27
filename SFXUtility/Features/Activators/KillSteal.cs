@@ -38,7 +38,10 @@ namespace SFXUtility.Features.Activators
 {
     internal class KillSteal : Child<Activators>
     {
-        public KillSteal(SFXUtility sfx) : base(sfx) {}
+        public KillSteal(Activators parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -57,7 +60,7 @@ namespace SFXUtility.Features.Activators
             base.OnDisable();
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {

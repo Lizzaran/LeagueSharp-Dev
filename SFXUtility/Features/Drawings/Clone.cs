@@ -38,9 +38,13 @@ namespace SFXUtility.Features.Drawings
 {
     internal class Clone : Child<Drawings>
     {
-        private List<string> _cloneHeroes;
-        private List<Obj_AI_Hero> _heroes;
-        public Clone(SFXUtility sfx) : base(sfx) {}
+        private readonly List<string> _cloneHeroes = new List<string> { "shaco", "leblanc", "monkeyking", "yorick" };
+        private readonly List<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
+
+        public Clone(Drawings parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -79,7 +83,7 @@ namespace SFXUtility.Features.Drawings
             }
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -115,9 +119,6 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                _cloneHeroes = new List<string> { "shaco", "leblanc", "monkeyking", "yorick" };
-                _heroes = new List<Obj_AI_Hero>();
-
                 _heroes.AddRange(
                     GameObjects.EnemyHeroes.Where(hero => _cloneHeroes.Contains(hero.ChampionName.ToLower())));
 

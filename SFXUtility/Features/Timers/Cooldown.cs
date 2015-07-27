@@ -33,7 +33,6 @@ using SFXLibrary.Extensions.NET;
 using SFXLibrary.Extensions.SharpDX;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
-using SFXUtility.Features.Detectors;
 using SFXUtility.Properties;
 using SharpDX;
 using SharpDX.Direct3D9;
@@ -49,19 +48,26 @@ namespace SFXUtility.Features.Timers
     internal class Cooldown : Child<Timers>
     {
         private const float TeleportCd = 300f;
-        private List<Obj_AI_Hero> _heroes;
+        private readonly Dictionary<int, List<SpellDataInst>> _spellDatas = new Dictionary<int, List<SpellDataInst>>();
+        private readonly SpellSlot[] _spellSlots = { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R };
+
+        private readonly Dictionary<int, List<SpellDataInst>> _summonerDatas =
+            new Dictionary<int, List<SpellDataInst>>();
+
+        private readonly SpellSlot[] _summonerSlots = { SpellSlot.Summoner1, SpellSlot.Summoner2 };
+        private readonly Dictionary<string, Texture> _summonerTextures = new Dictionary<string, Texture>();
+        private readonly Dictionary<int, float> _teleports = new Dictionary<int, float>();
+        private List<Obj_AI_Hero> _heroes = new List<Obj_AI_Hero>();
         private Texture _hudSelfTexture;
         private Texture _hudTexture;
         private Line _line;
-        private Dictionary<int, List<SpellDataInst>> _spellDatas;
-        private SpellSlot[] _spellSlots;
         private Sprite _sprite;
-        private Dictionary<int, List<SpellDataInst>> _summonerDatas;
-        private SpellSlot[] _summonerSlots;
-        private Dictionary<string, Texture> _summonerTextures;
-        private Dictionary<int, float> _teleports;
         private Font _text;
-        public Cooldown(SFXUtility sfx) : base(sfx) {}
+
+        public Cooldown(Timers parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -72,6 +78,7 @@ namespace SFXUtility.Features.Timers
         {
             Drawing.OnEndScene += OnDrawingEndScene;
             Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
+            Obj_AI_Base.OnTeleport += OnObjAiBaseTeleport;
 
             base.OnEnable();
         }
@@ -80,6 +87,7 @@ namespace SFXUtility.Features.Timers
         {
             Drawing.OnEndScene -= OnDrawingEndScene;
             Obj_AI_Base.OnProcessSpellCast -= OnObjAiBaseProcessSpellCast;
+            Obj_AI_Base.OnTeleport -= OnObjAiBaseTeleport;
 
             base.OnDisable();
         }
@@ -115,7 +123,7 @@ namespace SFXUtility.Features.Timers
             }
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -217,6 +225,10 @@ namespace SFXUtility.Features.Timers
                 };
 
                 Parent.Menu.AddSubMenu(Menu);
+
+                _sprite = MDrawing.GetSprite();
+                _line = MDrawing.GetLine(4);
+                _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
             }
             catch (Exception ex)
             {
@@ -228,24 +240,14 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
-                _spellSlots = new[] { SpellSlot.Q, SpellSlot.W, SpellSlot.E, SpellSlot.R };
-                _summonerSlots = new[] { SpellSlot.Summoner1, SpellSlot.Summoner2 };
-                _summonerTextures = new Dictionary<string, Texture>();
-                _teleports = new Dictionary<int, float>();
-                _heroes = new List<Obj_AI_Hero>();
-                _spellDatas = new Dictionary<int, List<SpellDataInst>>();
-                _summonerDatas = new Dictionary<int, List<SpellDataInst>>();
-
-                if (Global.IoC.IsRegistered<Teleport>())
-                {
-                    var rt = Global.IoC.Resolve<Teleport>();
-                    rt.OnFinish += TeleportFinish;
-                }
+                _hudTexture = Resources.CD_Hud.ToTexture();
+                _hudSelfTexture = Resources.CD_HudSelf.ToTexture();
 
                 foreach (var enemy in GameObjects.Heroes)
                 {
-                    _spellDatas.Add(enemy.NetworkId, _spellSlots.Select(slot => enemy.GetSpell(slot)).ToList());
-                    _summonerDatas.Add(enemy.NetworkId, _summonerSlots.Select(slot => enemy.GetSpell(slot)).ToList());
+                    var lEnemy = enemy;
+                    _spellDatas.Add(enemy.NetworkId, _spellSlots.Select(slot => lEnemy.GetSpell(slot)).ToList());
+                    _summonerDatas.Add(enemy.NetworkId, _summonerSlots.Select(slot => lEnemy.GetSpell(slot)).ToList());
                 }
 
                 foreach (var sName in
@@ -258,12 +260,6 @@ namespace SFXUtility.Features.Timers
                         ((Bitmap) Resources.ResourceManager.GetObject(string.Format("CD_{0}", FixSummonerName(sName))) ??
                          Resources.CD_summonerbarrier).ToTexture();
                 }
-
-                _sprite = MDrawing.GetSprite();
-                _hudTexture = Resources.CD_Hud.ToTexture();
-                _hudSelfTexture = Resources.CD_HudSelf.ToTexture();
-                _line = MDrawing.GetLine(4);
-                _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
 
                 _heroes = Menu.Item(Name + "DrawingAlly").GetValue<bool>() &&
                           Menu.Item(Name + "DrawingEnemy").GetValue<bool>()
@@ -287,25 +283,28 @@ namespace SFXUtility.Features.Timers
             }
         }
 
-        private void TeleportFinish(object sender, TeleportEventArgs args)
+        private void OnObjAiBaseTeleport(Obj_AI_Base sender, GameObjectTeleportEventArgs args)
         {
             try
             {
-                if (args.Type == Packet.S2C.Teleport.Type.Teleport)
+                var packet = Packet.S2C.Teleport.Decoded(sender, args);
+                if (packet.Type == Packet.S2C.Teleport.Type.Teleport &&
+                    (packet.Status == Packet.S2C.Teleport.Status.Finish ||
+                     packet.Status == Packet.S2C.Teleport.Status.Abort))
                 {
                     var time = Game.Time;
                     Utility.DelayAction.Add(
-                        250,
-                        delegate
+                        250, delegate
                         {
-                            _teleports[args.UnitNetworkId] = time +
-                                                             (GameObjects.EnemyHeroes.Any(
-                                                                 e =>
-                                                                     e.NetworkId == args.UnitNetworkId &&
-                                                                     GameObjects.EnemyTurrets.Any(
-                                                                         t => e.Distance(t) < 400))
-                                                                 ? TeleportCd - 60f
-                                                                 : TeleportCd);
+                            var cd = packet.Status == Packet.S2C.Teleport.Status.Finish
+                                ? (GameObjects.EnemyHeroes.Any(
+                                    e =>
+                                        e.NetworkId == packet.UnitNetworkId &&
+                                        GameObjects.EnemyTurrets.Any(t => e.Distance(t) < 400))
+                                    ? 240
+                                    : 300)
+                                : 200;
+                            _teleports[packet.UnitNetworkId] = time + cd;
                         });
                 }
             }
@@ -338,6 +337,7 @@ namespace SFXUtility.Features.Timers
                 {
                     try
                     {
+                        var lHero = hero;
                         if (!hero.Position.IsValid() || !hero.HPBarPosition.IsValid())
                         {
                             return;
@@ -394,18 +394,19 @@ namespace SFXUtility.Features.Timers
                         var spellData = _spellDatas[hero.NetworkId];
                         foreach (var spell in spellData)
                         {
+                            var lSpell = spell;
                             if (spell != null)
                             {
                                 var spell1 = spell;
                                 var manual = hero.IsAlly
                                     ? _manualAllySpells.FirstOrDefault(
                                         m =>
-                                            m.Slot.Equals(spell.Slot) &&
-                                            m.Champ.Equals(hero.ChampionName, StringComparison.OrdinalIgnoreCase))
+                                            m.Slot.Equals(lSpell.Slot) &&
+                                            m.Champ.Equals(lHero.ChampionName, StringComparison.OrdinalIgnoreCase))
                                     : _manualEnemySpells.FirstOrDefault(
                                         m =>
                                             m.Slot.Equals(spell1.Slot) &&
-                                            m.Champ.Equals(hero.ChampionName, StringComparison.OrdinalIgnoreCase));
+                                            m.Champ.Equals(lHero.ChampionName, StringComparison.OrdinalIgnoreCase));
                                 var t = (manual != null ? manual.CooldownExpires : spell.CooldownExpires) - Game.Time;
                                 var spellCooldown = manual != null ? manual.Cooldown : spell.Cooldown;
                                 var percent = (t > 0 && Math.Abs(spellCooldown) > float.Epsilon)

@@ -33,7 +33,6 @@ using SFXLibrary.Extensions.NET;
 using SFXLibrary.Extensions.SharpDX;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
-using SFXUtility.Features.Detectors;
 using SFXUtility.Properties;
 using SharpDX;
 using SharpDX.Direct3D9;
@@ -53,28 +52,38 @@ namespace SFXUtility.Features.Trackers
         private const float HudHeight = 90f;
         private const float SummonerWidth = 22f;
         private const float SummonerHeight = 22f;
-        private string[] _champsEnergy;
-        private string[] _champsNoEnergy;
-        private string[] _champsRage;
-        private List<EnemyObject> _enemyObjects;
+        private readonly string[] _champsEnergy = { "Akali", "Kennen", "LeeSin", "Shen", "Zed", "Gnar", "Rengar" };
+
+        private readonly string[] _champsNoEnergy =
+        {
+            "Aatrox", "DrMundo", "Vladimir", "Zac", "Katarina", "Garen",
+            "Riven"
+        };
+
+        private readonly string[] _champsRage = { "Shyvana", "RekSai", "Renekton", "Rumble" };
+        private readonly List<EnemyObject> _enemyObjects = new List<EnemyObject>();
+        private readonly Dictionary<int, List<SpellDataInst>> _spellDatas = new Dictionary<int, List<SpellDataInst>>();
+        private readonly SpellSlot[] _summonerSpellSlots = { SpellSlot.Summoner1, SpellSlot.Summoner2 };
+        private readonly Dictionary<string, Texture> _summonerTextures = new Dictionary<string, Texture>();
+        private readonly Dictionary<int, float> _teleports = new Dictionary<int, float>();
         private Texture _hudTexture;
         private Texture _invisibleTexture;
         private Line _line;
         private float _scale;
-        private Dictionary<int, List<SpellDataInst>> _spellDatas;
         private Sprite _sprite;
-        private SpellSlot[] _summonerSpellSlots;
-        private Dictionary<string, Texture> _summonerTextures;
         private Texture _teleportAbortTexture;
         private Texture _teleportFinishTexture;
-        private Dictionary<int, float> _teleports;
         private Texture _teleportStartTexture;
         private Font _text12;
         private Font _text13;
         private Font _text18;
         private Font _text30;
         private Texture _ultimateTexture;
-        public Sidebar(SFXUtility sfx) : base(sfx) {}
+
+        public Sidebar(Trackers parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -85,6 +94,7 @@ namespace SFXUtility.Features.Trackers
         {
             Game.OnWndProc += OnGameWndProc;
             Drawing.OnEndScene += OnDrawingEndScene;
+            Obj_AI_Base.OnTeleport += OnObjAiBaseTeleport;
 
             base.OnEnable();
         }
@@ -93,6 +103,7 @@ namespace SFXUtility.Features.Trackers
         {
             Game.OnWndProc -= OnGameWndProc;
             Drawing.OnEndScene -= OnDrawingEndScene;
+            Obj_AI_Base.OnTeleport -= OnObjAiBaseTeleport;
 
             base.OnDisable();
         }
@@ -276,7 +287,7 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -305,6 +316,13 @@ namespace SFXUtility.Features.Trackers
                 Parent.Menu.AddSubMenu(Menu);
 
                 _scale = Menu.Item(Menu.Name + "DrawingScale").GetValue<Slider>().Value / 10f;
+
+                _text12 = MDrawing.GetFont((int) (Math.Ceiling(12 * _scale)));
+                _text13 = MDrawing.GetFont((int) (Math.Ceiling(13 * _scale)));
+                _text18 = MDrawing.GetFont((int) (Math.Ceiling(18 * _scale)));
+                _text30 = MDrawing.GetFont((int) (Math.Ceiling(30 * _scale)));
+                _line = MDrawing.GetLine((int) (Math.Ceiling(9 * _scale)));
+                _sprite = MDrawing.GetSprite();
             }
             catch (Exception ex)
             {
@@ -322,34 +340,17 @@ namespace SFXUtility.Features.Trackers
                     return;
                 }
 
-                _champsEnergy = new[] { "Akali", "Kennen", "LeeSin", "Shen", "Zed", "Gnar", "Rengar" };
-
-                _champsNoEnergy = new[] { "Aatrox", "DrMundo", "Vladimir", "Zac", "Katarina", "Garen", "Riven" };
-
-                _champsRage = new[] { "Shyvana", "RekSai", "Renekton", "Rumble" };
-                _enemyObjects = new List<EnemyObject>();
-                _summonerSpellSlots = new[] { SpellSlot.Summoner1, SpellSlot.Summoner2 };
-                _summonerTextures = new Dictionary<string, Texture>();
-                _teleports = new Dictionary<int, float>();
-                _spellDatas = new Dictionary<int, List<SpellDataInst>>();
-
-                if (Global.IoC.IsRegistered<Teleport>())
-                {
-                    var rt = Global.IoC.Resolve<Teleport>();
-                    rt.OnFinish += TeleportHandle;
-                    rt.OnStart += TeleportHandle;
-                    rt.OnAbort += TeleportHandle;
-                    rt.OnUnknown += TeleportHandle;
-                }
-
-                _text12 = MDrawing.GetFont((int) (Math.Ceiling(12 * _scale)));
-                _text13 = MDrawing.GetFont((int) (Math.Ceiling(13 * _scale)));
-                _text18 = MDrawing.GetFont((int) (Math.Ceiling(18 * _scale)));
-                _text30 = MDrawing.GetFont((int) (Math.Ceiling(30 * _scale)));
+                _hudTexture = Resources.SB_Hud.Scale(_scale).ToTexture();
+                _invisibleTexture = Resources.SB_Invisible.Scale(_scale).ToTexture();
+                _teleportAbortTexture = Resources.SB_RecallAbort.Scale(_scale).ToTexture();
+                _teleportFinishTexture = Resources.SB_RecallFinish.Scale(_scale).ToTexture();
+                _teleportStartTexture = Resources.SB_RecallStart.Scale(_scale).ToTexture();
+                _ultimateTexture = Resources.SB_Ultimate.Scale(_scale).ToTexture();
 
                 foreach (var enemy in GameObjects.EnemyHeroes)
                 {
-                    _spellDatas.Add(enemy.NetworkId, _summonerSpellSlots.Select(slot => enemy.GetSpell(slot)).ToList());
+                    var lEnemy = enemy;
+                    _spellDatas.Add(enemy.NetworkId, _summonerSpellSlots.Select(slot => lEnemy.GetSpell(slot)).ToList());
                 }
 
                 foreach (var enemy in GameObjects.EnemyHeroes)
@@ -376,15 +377,6 @@ namespace SFXUtility.Features.Trackers
                         }
                     }
                 }
-
-                _hudTexture = Resources.SB_Hud.Scale(_scale).ToTexture();
-                _invisibleTexture = Resources.SB_Invisible.Scale(_scale).ToTexture();
-                _teleportAbortTexture = Resources.SB_RecallAbort.Scale(_scale).ToTexture();
-                _teleportFinishTexture = Resources.SB_RecallFinish.Scale(_scale).ToTexture();
-                _teleportStartTexture = Resources.SB_RecallStart.Scale(_scale).ToTexture();
-                _ultimateTexture = Resources.SB_Ultimate.Scale(_scale).ToTexture();
-                _line = MDrawing.GetLine((int) (Math.Ceiling(9 * _scale)));
-                _sprite = MDrawing.GetSprite();
 
                 base.OnInitialize();
             }
@@ -436,32 +428,34 @@ namespace SFXUtility.Features.Trackers
             return null;
         }
 
-        private void TeleportHandle(object sender, TeleportEventArgs args)
+        private void OnObjAiBaseTeleport(Obj_AI_Base sender, GameObjectTeleportEventArgs args)
         {
             try
             {
-                var enemyObject = _enemyObjects.FirstOrDefault(e => e.Unit.NetworkId == args.UnitNetworkId);
+                var packet = Packet.S2C.Teleport.Decoded(sender, args);
+                var enemyObject = _enemyObjects.FirstOrDefault(e => e.Unit.NetworkId == packet.UnitNetworkId);
                 if (enemyObject != null)
                 {
-                    if (args.Status == Packet.S2C.Teleport.Status.Finish &&
-                        args.Type == Packet.S2C.Teleport.Type.Teleport)
+                    if (packet.Type == Packet.S2C.Teleport.Type.Teleport &&
+                        (packet.Status == Packet.S2C.Teleport.Status.Finish ||
+                         packet.Status == Packet.S2C.Teleport.Status.Abort))
                     {
                         var time = Game.Time;
                         Utility.DelayAction.Add(
-                            250,
-                            delegate
+                            250, delegate
                             {
-                                _teleports[args.UnitNetworkId] = time +
-                                                                 (GameObjects.EnemyHeroes.Any(
-                                                                     e =>
-                                                                         e.NetworkId == args.UnitNetworkId &&
-                                                                         GameObjects.EnemyTurrets.Any(
-                                                                             t => e.Distance(t) < 400))
-                                                                     ? 240
-                                                                     : 300);
+                                var cd = packet.Status == Packet.S2C.Teleport.Status.Finish
+                                    ? (GameObjects.EnemyHeroes.Any(
+                                        e =>
+                                            e.NetworkId == packet.UnitNetworkId &&
+                                            GameObjects.EnemyTurrets.Any(t => e.Distance(t) < 400))
+                                        ? 240
+                                        : 300)
+                                    : 200;
+                                _teleports[packet.UnitNetworkId] = time + cd;
                             });
                     }
-                    enemyObject.TeleportStatus = args.Status;
+                    enemyObject.TeleportStatus = packet.Status;
                 }
             }
             catch (Exception ex)

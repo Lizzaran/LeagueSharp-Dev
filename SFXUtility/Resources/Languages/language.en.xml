@@ -39,6 +39,7 @@
 	<entry key="G_Health">Health</entry>
 	<entry key="G_Mana">Mana</entry>
 	<entry key="G_Turret">Turret</entry>
+	<entry key="G_Shop">Shop</entry>
 	<entry key="G_Inhibitor">Inhibitor</entry>
 	<entry key="G_Experience">Experience</entry>
 	<entry key="G_Attack">Attack</entry>

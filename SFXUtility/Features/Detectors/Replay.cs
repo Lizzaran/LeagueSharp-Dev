@@ -41,11 +41,15 @@ namespace SFXUtility.Features.Detectors
 {
     internal class Replay : Child<Detectors>
     {
+        private readonly Timer _timer = new Timer { Enabled = false };
         private bool _isRecording;
         private Texture _recordTexture;
         private Sprite _sprite;
-        private Timer _timer;
-        public Replay(SFXUtility sfx) : base(sfx) {}
+
+        public Replay(Detectors parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -105,7 +109,7 @@ namespace SFXUtility.Features.Detectors
             }
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -125,6 +129,8 @@ namespace SFXUtility.Features.Detectors
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
+
+                _sprite = MDrawing.GetSprite();
             }
             catch (Exception ex)
             {
@@ -136,11 +142,8 @@ namespace SFXUtility.Features.Detectors
         {
             try
             {
-                _timer = new Timer();
-                _sprite = MDrawing.GetSprite();
                 _recordTexture = Resources.RC_On.ToTexture();
 
-                _timer.Enabled = false;
                 _timer.Interval = Menu.Item(Name + "CheckInterval").GetValue<Slider>().Value * 60 * 1000;
                 _timer.Elapsed += OnTimerElapsed;
 

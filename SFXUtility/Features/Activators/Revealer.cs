@@ -39,14 +39,21 @@ namespace SFXUtility.Features.Activators
 {
     internal class Revealer : Child<Activators>
     {
+        private const float CheckInterval = 333f;
         private const float MaxRange = 600f;
         private const float Delay = 2f;
+        private readonly List<ChampionObject> _championObjects = new List<ChampionObject>();
+        private float _lastCheck = Environment.TickCount;
         private float _lastReveal;
         private Obj_AI_Hero _leBlanc;
         private Obj_AI_Hero _rengar;
         private Obj_AI_Hero _vayne;
         private HashSet<SpellData> spellList = new HashSet<SpellData>();
-        public Revealer(SFXUtility sfx) : base(sfx) {}
+
+        public Revealer(Activators parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -57,7 +64,7 @@ namespace SFXUtility.Features.Activators
         {
             GameObject.OnCreate += OnGameObjectCreate;
             Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
-            AttackableUnit.OnLeaveTeamVisiblity += OnAttackableUnitLeaveTeamVisiblity;
+            Game.OnUpdate += OnGameUpdate;
 
             base.OnEnable();
         }
@@ -66,12 +73,12 @@ namespace SFXUtility.Features.Activators
         {
             GameObject.OnCreate -= OnGameObjectCreate;
             Obj_AI_Base.OnProcessSpellCast -= OnObjAiBaseProcessSpellCast;
-            AttackableUnit.OnLeaveTeamVisiblity -= OnAttackableUnitLeaveTeamVisiblity;
+            Game.OnUpdate -= OnGameUpdate;
 
             base.OnDisable();
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -109,6 +116,11 @@ namespace SFXUtility.Features.Activators
                     new SpellData("Twitch", SpellSlot.Q)
                 };
 
+                foreach (var enemy in GameObjects.EnemyHeroes)
+                {
+                    _championObjects.Add(new ChampionObject(enemy));
+                }
+
                 var menuList =
                     spellList.OrderBy(s => s.Hero).GroupBy(s => s.Hero).Select(h => new { Hero = h.Key }).ToList();
 
@@ -138,55 +150,78 @@ namespace SFXUtility.Features.Activators
             }
         }
 
-        private void OnAttackableUnitLeaveTeamVisiblity(AttackableUnit sender, EventArgs args)
+        private void OnGameUpdate(EventArgs args)
         {
-            try
+            if (_lastCheck + CheckInterval > Environment.TickCount)
             {
-                var hero = sender as Obj_AI_Hero;
-                if (hero == null || !hero.IsEnemy || !Menu.Item(Name + "Bush").GetValue<bool>() ||
-                    !Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active)
-                {
-                    return;
-                }
-                var pos = GetGrassPosition(hero.Position);
-                if (!pos.Equals(Vector3.Zero))
+                return;
+            }
+
+            _lastCheck = Environment.TickCount;
+
+            foreach (var championObject in _championObjects.Where(c => c.Hero.IsVisible))
+            {
+                championObject.LastSeen = Game.Time;
+            }
+            if (!Menu.Item(Name + "Bush").GetValue<bool>() || !Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active)
+            {
+                return;
+            }
+
+            foreach (var championObject in
+                _championObjects.Where(
+                    c =>
+                        !c.Hero.IsVisible && !c.Hero.IsDead && Game.Time - c.LastSeen <= 2 &&
+                        c.Hero.Distance(ObjectManager.Player) < 1000))
+            {
+                var pos = GetWardPos(championObject.Hero.ServerPosition, 165, 2);
+                if (!pos.Equals(championObject.Hero.ServerPosition) && !pos.Equals(Vector3.Zero))
                 {
                     CastLogic(pos, true);
                 }
             }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
         }
 
-        private Vector3 GetGrassPosition(Vector3 pos)
+        private Vector3 GetWardPos(Vector3 lastPos, int radius = 165, int precision = 3)
         {
-            try
+            var count = precision;
+            while (count > 0)
             {
-                var dist = MaxRange - ObjectManager.Player.Distance(pos);
-                if (dist < 0)
+                var vertices = radius;
+                var wardLocations = new WardLocation[vertices];
+                var angle = 2 * Math.PI / vertices;
+                for (var i = 0; i < vertices; i++)
                 {
-                    return Vector3.Zero;
+                    var th = angle * i;
+                    var pos = new Vector3(
+                        (float) (lastPos.X + radius * Math.Cos(th)), (float) (lastPos.Y + radius * Math.Sin(th)), 0);
+                    wardLocations[i] = new WardLocation(pos, NavMesh.IsWallOfGrass(pos, 10));
                 }
-                for (var i = 10; i <= dist; i = i + 5)
+                var grassLocations = new List<GrassLocation>();
+                for (var i = 0; i < wardLocations.Length; i++)
                 {
-                    var circle = new Geometry.Polygon.Circle(pos, i);
-                    foreach (var point in circle.Points)
+                    if (wardLocations[i].Grass)
                     {
-                        if (NavMesh.GetCollisionFlags(point.To3D2()).HasFlag(CollisionFlags.Grass))
+                        if (i != 0 && wardLocations[i - 1].Grass)
                         {
-                            return point.To3D2();
+                            grassLocations.Last().Count++;
+                        }
+                        else
+                        {
+                            grassLocations.Add(new GrassLocation(i, 1));
                         }
                     }
                 }
-                return Vector3.Zero;
+                var grassLocation = grassLocations.OrderByDescending(x => x.Count).FirstOrDefault();
+                if (grassLocation != null)
+                {
+                    var midelement = (int) Math.Ceiling(grassLocation.Count / 2f);
+                    lastPos = wardLocations[grassLocation.Index + midelement - 1].Pos;
+                    radius = (int) Math.Floor(radius / 2f);
+                }
+                count--;
             }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return Vector3.Zero;
+            return lastPos;
         }
 
         private void CastLogic(Vector3 pos, bool bush)
@@ -202,13 +237,14 @@ namespace SFXUtility.Features.Activators
                     if (
                         GameObjects.AllyMinions.Any(
                             m =>
-                                m.Name.Equals("VisionWard", StringComparison.OrdinalIgnoreCase) &&
+                                !string.IsNullOrEmpty(m.CharData.Name) &&
+                                m.CharData.Name.Equals("VisionWard", StringComparison.OrdinalIgnoreCase) &&
                                 ObjectManager.Player.Distance(m) < 400f))
                     {
                         return;
                     }
                 }
-                var slot = GetWardSlot(bush);
+                var slot = GetRevealSlot(bush);
                 if (slot != SpellSlot.Unknown)
                 {
                     ObjectManager.Player.Spellbook.CastSpell(slot, pos);
@@ -221,7 +257,7 @@ namespace SFXUtility.Features.Activators
             }
         }
 
-        private SpellSlot GetWardSlot(bool bush)
+        private SpellSlot GetRevealSlot(bool bush)
         {
             try
             {
@@ -389,6 +425,41 @@ namespace SFXUtility.Features.Activators
             public SpellSlot Slot { get; private set; }
             public string Name { get; private set; }
             public bool Custom { get; private set; }
+        }
+
+        internal class ChampionObject
+        {
+            public ChampionObject(Obj_AI_Hero hero)
+            {
+                Hero = hero;
+            }
+
+            public Obj_AI_Hero Hero { get; private set; }
+            public float LastSeen { get; set; }
+        }
+
+        internal class GrassLocation
+        {
+            public readonly int Index;
+            public int Count;
+
+            public GrassLocation(int index, int count)
+            {
+                Index = index;
+                Count = count;
+            }
+        }
+
+        internal class WardLocation
+        {
+            public readonly bool Grass;
+            public readonly Vector3 Pos;
+
+            public WardLocation(Vector3 pos, bool grass)
+            {
+                Pos = pos;
+                Grass = grass;
+            }
         }
     }
 }

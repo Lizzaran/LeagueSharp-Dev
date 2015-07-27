@@ -41,9 +41,13 @@ namespace SFXUtility.Features.Drawings
     internal class Waypoint : Child<Drawings>
     {
         private const float CheckInterval = 50f;
-        private float _lastCheck;
-        private Dictionary<int, List<Vector2>> _waypoints;
-        public Waypoint(SFXUtility sfx) : base(sfx) {}
+        private readonly Dictionary<int, List<Vector2>> _waypoints = new Dictionary<int, List<Vector2>>();
+        private float _lastCheck = Environment.TickCount;
+
+        public Waypoint(Drawings parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -130,7 +134,7 @@ namespace SFXUtility.Features.Drawings
             }
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -177,20 +181,6 @@ namespace SFXUtility.Features.Drawings
                 };
 
                 Parent.Menu.AddSubMenu(Menu);
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        protected override void OnInitialize()
-        {
-            try
-            {
-                _waypoints = new Dictionary<int, List<Vector2>>();
-                _lastCheck = Environment.TickCount;
-                base.OnInitialize();
             }
             catch (Exception ex)
             {

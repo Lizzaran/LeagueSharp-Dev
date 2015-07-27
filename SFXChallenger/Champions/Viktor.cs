@@ -172,7 +172,7 @@ namespace SFXChallenger.Champions
 
         protected override void SetupSpells()
         {
-            Q = new Spell(SpellSlot.Q, 600f);
+            Q = new Spell(SpellSlot.Q, Player.BoundingRadius * 2 + 600f);
             Q.SetTargetted(0.3f, 2000f);
 
             W = new Spell(SpellSlot.W, 700f);

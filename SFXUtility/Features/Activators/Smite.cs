@@ -42,13 +42,17 @@ namespace SFXUtility.Features.Activators
     internal class Smite : Child<Activators>
     {
         public const float SmiteRange = 570f;
-        private List<Jungle.Camp> _camps;
+        private readonly List<Jungle.Camp> _camps = new List<Jungle.Camp>();
+        private readonly List<HeroSpell> _heroSpells = new List<HeroSpell>();
         private Obj_AI_Minion _currentMinion;
         private bool _delayActive;
-        private List<HeroSpell> _heroSpells;
         private string[] _mobNames = new string[0];
         private Spell _smiteSpell;
-        public Smite(SFXUtility sfx) : base(sfx) {}
+
+        public Smite(Activators parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -69,7 +73,7 @@ namespace SFXUtility.Features.Activators
             base.OnDisable();
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -136,9 +140,6 @@ namespace SFXUtility.Features.Activators
         {
             try
             {
-                _camps = new List<Jungle.Camp>();
-                _heroSpells = new List<HeroSpell>();
-
                 var smiteSpell =
                     ObjectManager.Player.Spellbook.Spells.FirstOrDefault(
                         s => s.Name.Contains("Smite", StringComparison.OrdinalIgnoreCase));

@@ -42,12 +42,16 @@ namespace SFXUtility.Features.Timers
     internal class Jungle : Child<Timers>
     {
         private const float CheckInterval = 800f;
-        private List<Camp> _camps;
+        private readonly List<Camp> _camps = new List<Camp>();
         private int _dragonStacks;
-        private float _lastCheck;
+        private float _lastCheck = Environment.TickCount;
         private Font _mapText;
         private Font _minimapText;
-        public Jungle(SFXUtility sfx) : base(sfx) {}
+
+        public Jungle(Timers parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -144,19 +148,19 @@ namespace SFXUtility.Features.Timers
 
                 _lastCheck = Environment.TickCount;
 
-
                 var dragonStacks = 0;
                 foreach (var enemy in GameObjects.EnemyHeroes)
                 {
                     var buff =
                         enemy.Buffs.FirstOrDefault(
                             b => b.Name.Equals("s5test_dragonslayerbuff", StringComparison.OrdinalIgnoreCase));
-                    if (buff != null && buff.Count > dragonStacks)
+                    if (buff != null)
                     {
                         dragonStacks = buff.Count;
                     }
                 }
-                if (dragonStacks > _dragonStacks)
+
+                if (dragonStacks > _dragonStacks || dragonStacks == 5)
                 {
                     var dCamp = _camps.FirstOrDefault(c => c.Mobs.Any(m => m.Name.Contains("Dragon")));
                     if (dCamp != null && !dCamp.Dead)
@@ -165,6 +169,7 @@ namespace SFXUtility.Features.Timers
                         dCamp.NextRespawnTime = (int) Game.Time + dCamp.RespawnTime;
                     }
                 }
+
                 _dragonStacks = dragonStacks;
 
                 var bCamp = _camps.FirstOrDefault(c => c.Mobs.Any(m => m.Name.Contains("Baron")));
@@ -238,7 +243,7 @@ namespace SFXUtility.Features.Timers
             }
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -273,6 +278,9 @@ namespace SFXUtility.Features.Timers
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
+
+                _minimapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMinimapFontSize").GetValue<Slider>().Value);
+                _mapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMapFontSize").GetValue<Slider>().Value);
             }
             catch (Exception ex)
             {
@@ -284,9 +292,6 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
-                _camps = new List<Camp>();
-                _lastCheck = Environment.TickCount;
-
                 _camps.AddRange(
                     Data.Jungle.Camps.Where(c => c.MapType == Utility.Map.GetMap().Type)
                         .Select(
@@ -297,9 +302,6 @@ namespace SFXUtility.Features.Timers
                     OnUnload(null, new UnloadEventArgs(true));
                     return;
                 }
-
-                _minimapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMinimapFontSize").GetValue<Slider>().Value);
-                _mapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMapFontSize").GetValue<Slider>().Value);
 
                 base.OnInitialize();
             }

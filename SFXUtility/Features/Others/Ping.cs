@@ -38,9 +38,13 @@ namespace SFXUtility.Features.Others
 {
     internal class Ping : Child<Others>
     {
-        private List<PingItem> _pingItems;
+        private readonly List<PingItem> _pingItems = new List<PingItem>();
         private Font _text;
-        public Ping(SFXUtility sfx) : base(sfx) {}
+
+        public Ping(Others parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -63,7 +67,7 @@ namespace SFXUtility.Features.Others
             base.OnDisable();
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -78,22 +82,8 @@ namespace SFXUtility.Features.Others
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        protected override void OnInitialize()
-        {
-            try
-            {
-                _pingItems = new List<PingItem>();
 
                 _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
-
-                base.OnInitialize();
             }
             catch (Exception ex)
             {

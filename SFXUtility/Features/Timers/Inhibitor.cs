@@ -42,11 +42,15 @@ namespace SFXUtility.Features.Timers
     internal class Inhibitor : Child<Timers>
     {
         private const float CheckInterval = 800f;
-        private List<InhibitorObject> _inhibs;
-        private float _lastCheck;
+        private readonly List<InhibitorObject> _inhibs = new List<InhibitorObject>();
+        private float _lastCheck = Environment.TickCount;
         private Font _mapText;
         private Font _minimapText;
-        public Inhibitor(SFXUtility sfx) : base(sfx) {}
+
+        public Inhibitor(Timers parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -147,7 +151,7 @@ namespace SFXUtility.Features.Timers
             }
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -182,6 +186,9 @@ namespace SFXUtility.Features.Timers
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
+
+                _minimapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMinimapFontSize").GetValue<Slider>().Value);
+                _mapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMapFontSize").GetValue<Slider>().Value);
             }
             catch (Exception ex)
             {
@@ -193,8 +200,6 @@ namespace SFXUtility.Features.Timers
         {
             try
             {
-                _inhibs = new List<InhibitorObject>();
-
                 foreach (var inhib in GameObjects.Inhibitors)
                 {
                     _inhibs.Add(new InhibitorObject(inhib));
@@ -205,9 +210,6 @@ namespace SFXUtility.Features.Timers
                     OnUnload(null, new UnloadEventArgs(true));
                     return;
                 }
-
-                _minimapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMinimapFontSize").GetValue<Slider>().Value);
-                _mapText = MDrawing.GetFont(Menu.Item(Name + "DrawingMapFontSize").GetValue<Slider>().Value);
 
                 base.OnInitialize();
             }

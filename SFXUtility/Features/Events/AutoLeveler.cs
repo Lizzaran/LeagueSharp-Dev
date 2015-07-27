@@ -38,11 +38,15 @@ namespace SFXUtility.Features.Events
     {
         private const float CheckInterval = 300f;
         private SpellDataInst _e;
-        private float _lastCheck;
+        private float _lastCheck = Environment.TickCount;
         private SpellDataInst _q;
         private SpellDataInst _r;
         private SpellDataInst _w;
-        public AutoLeveler(SFXUtility sfx) : base(sfx) {}
+
+        public AutoLeveler(Events parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -81,53 +85,58 @@ namespace SFXUtility.Features.Events
                 }.ToList();
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
                 Menu = new Menu(Name, Name);
-                var championMenu = new Menu(ObjectManager.Player.ChampionName, Name + ObjectManager.Player.ChampionName);
+                CustomEvents.Game.OnGameLoad += delegate
+                {
+                    var championMenu = new Menu(
+                        ObjectManager.Player.ChampionName, Name + ObjectManager.Player.ChampionName);
 
-                var earlyMenu = new Menu(Global.Lang.Get("AutoLeveler_Early"), championMenu.Name + "Early");
-                earlyMenu.AddItem(
-                    new MenuItem(earlyMenu.Name + "1", "1: ").SetValue(
-                        new StringList(
-                            new[] { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" })));
-                earlyMenu.AddItem(
-                    new MenuItem(earlyMenu.Name + "2", "2: ").SetValue(
-                        new StringList(
-                            new[] { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" },
-                            2)));
-                earlyMenu.AddItem(
-                    new MenuItem(earlyMenu.Name + "3", "3: ").SetValue(
-                        new StringList(
-                            new[] { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" },
-                            4)));
-                earlyMenu.AddItem(
-                    new MenuItem(earlyMenu.Name + "4", "4: ").SetValue(
-                        new StringList(
-                            new[] { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" },
-                            2)));
-                earlyMenu.AddItem(
-                    new MenuItem(earlyMenu.Name + "5", "5: ").SetValue(
-                        new StringList(
-                            new[] { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" },
-                            3)));
+                    var earlyMenu = new Menu(Global.Lang.Get("AutoLeveler_Early"), championMenu.Name + "Early");
+                    earlyMenu.AddItem(
+                        new MenuItem(earlyMenu.Name + "1", "1: ").SetValue(
+                            new StringList(
+                                new[]
+                                { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" })));
+                    earlyMenu.AddItem(
+                        new MenuItem(earlyMenu.Name + "2", "2: ").SetValue(
+                            new StringList(
+                                new[]
+                                { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" }, 2)));
+                    earlyMenu.AddItem(
+                        new MenuItem(earlyMenu.Name + "3", "3: ").SetValue(
+                            new StringList(
+                                new[]
+                                { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" }, 4)));
+                    earlyMenu.AddItem(
+                        new MenuItem(earlyMenu.Name + "4", "4: ").SetValue(
+                            new StringList(
+                                new[]
+                                { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" }, 2)));
+                    earlyMenu.AddItem(
+                        new MenuItem(earlyMenu.Name + "5", "5: ").SetValue(
+                            new StringList(
+                                new[]
+                                { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" }, 3)));
 
-                championMenu.AddSubMenu(earlyMenu);
+                    championMenu.AddSubMenu(earlyMenu);
 
-                championMenu.AddItem(new MenuItem(championMenu.Name + "Q", "Q").SetValue(new Slider(3, 3, 1)));
-                championMenu.AddItem(new MenuItem(championMenu.Name + "W", "W").SetValue(new Slider(1, 3, 1)));
-                championMenu.AddItem(new MenuItem(championMenu.Name + "E", "E").SetValue(new Slider(2, 3, 1)));
+                    championMenu.AddItem(new MenuItem(championMenu.Name + "Q", "Q").SetValue(new Slider(3, 3, 1)));
+                    championMenu.AddItem(new MenuItem(championMenu.Name + "W", "W").SetValue(new Slider(1, 3, 1)));
+                    championMenu.AddItem(new MenuItem(championMenu.Name + "E", "E").SetValue(new Slider(2, 3, 1)));
 
-                championMenu.AddItem(
-                    new MenuItem(championMenu.Name + "OnlyR", Global.Lang.Get("AutoLeveler_OnlyR")).SetValue(false));
-                championMenu.AddItem(
-                    new MenuItem(championMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                    championMenu.AddItem(
+                        new MenuItem(championMenu.Name + "OnlyR", Global.Lang.Get("AutoLeveler_OnlyR")).SetValue(false));
+                    championMenu.AddItem(
+                        new MenuItem(championMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                Menu.AddSubMenu(championMenu);
+                    Menu.AddSubMenu(championMenu);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                    Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                };
 
                 Parent.Menu.AddSubMenu(Menu);
             }
@@ -141,11 +150,11 @@ namespace SFXUtility.Features.Events
         {
             try
             {
-                _lastCheck = Environment.TickCount;
                 _q = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.Q);
                 _w = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W);
                 _e = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E);
                 _r = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.R);
+
                 base.OnInitialize();
             }
             catch (Exception ex)

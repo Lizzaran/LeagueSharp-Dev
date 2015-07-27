@@ -41,10 +41,14 @@ namespace SFXUtility.Features.Drawings
 {
     internal class Health : Child<Drawings>
     {
-        private List<Obj_BarracksDampener> _inhibs;
+        private readonly List<Obj_BarracksDampener> _inhibs = new List<Obj_BarracksDampener>();
+        private readonly List<Obj_AI_Turret> _turrets = new List<Obj_AI_Turret>();
         private Font _text;
-        private List<Obj_AI_Turret> _turrets;
-        public Health(SFXUtility sfx) : base(sfx) {}
+
+        public Health(Drawings parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -103,7 +107,7 @@ namespace SFXUtility.Features.Drawings
             }
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -123,6 +127,8 @@ namespace SFXUtility.Features.Drawings
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
+
+                _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
             }
             catch (Exception ex)
             {
@@ -134,9 +140,6 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                _inhibs = new List<Obj_BarracksDampener>();
-                _turrets = new List<Obj_AI_Turret>();
-
                 _turrets.AddRange(
                     GameObjects.Turrets.Where(t => t.IsValid && !t.IsDead && t.Health > 1f && t.Health < 9999f));
                 _inhibs.AddRange(GameObjects.Inhibitors);
@@ -146,8 +149,6 @@ namespace SFXUtility.Features.Drawings
                     OnUnload(null, new UnloadEventArgs(true));
                     return;
                 }
-
-                _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
 
                 base.OnInitialize();
             }

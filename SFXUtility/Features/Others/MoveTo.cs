@@ -34,8 +34,12 @@ namespace SFXUtility.Features.Others
 {
     internal class MoveTo : Child<Others>
     {
-        private float _lastCheck;
-        public MoveTo(SFXUtility sfx) : base(sfx) {}
+        private float _lastCheck = Environment.TickCount;
+
+        public MoveTo(Others parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -78,7 +82,7 @@ namespace SFXUtility.Features.Others
             }
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {

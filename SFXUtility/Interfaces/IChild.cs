@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Trackers.cs is part of SFXUtility.
+ IChild.cs is part of SFXUtility.
 
  SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,19 +20,10 @@
 
 #endregion License
 
-#region
-
-using SFXUtility.Classes;
-
-#endregion
-
-namespace SFXUtility.Features.Trackers
+namespace SFXUtility.Interfaces
 {
-    internal class Trackers : Parent
+    internal interface IChild
     {
-        public override string Name
-        {
-            get { return Global.Lang.Get("F_Trackers"); }
-        }
+        void HandleEvents();
     }
 }

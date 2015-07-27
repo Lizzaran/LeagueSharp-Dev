@@ -42,11 +42,15 @@ namespace SFXUtility.Features.Detectors
     internal class Gank : Child<Detectors>
     {
         private const float CheckInterval = 300f;
-        private List<ChampionObject> _championObjects;
+        private readonly List<ChampionObject> _championObjects = new List<ChampionObject>();
         private float _lastCheck;
         private Line _line;
         private Font _text;
-        public Gank(SFXUtility sfx) : base(sfx) {}
+
+        public Gank(Detectors parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -179,7 +183,7 @@ namespace SFXUtility.Features.Detectors
             }
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -206,6 +210,31 @@ namespace SFXUtility.Features.Detectors
 
                 Menu.AddSubMenu(drawingMenu);
 
+                Menu.AddItem(
+                    new MenuItem(Name + "Range", Global.Lang.Get("G_Range")).SetValue(new Slider(3000, 500, 5000)));
+                Menu.AddItem(
+                    new MenuItem(Name + "Cooldown", Global.Lang.Get("Gank_Cooldown")).SetValue(new Slider(10, 0, 30)));
+                Menu.AddItem(
+                    new MenuItem(Name + "Duration", Global.Lang.Get("Gank_Duration")).SetValue(new Slider(10, 0, 30)));
+                Menu.AddItem(new MenuItem(Name + "Ping", Global.Lang.Get("G_Ping")).SetValue(true));
+
+                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+
+                Parent.Menu.AddSubMenu(Menu);
+
+                _line = MDrawing.GetLine(Menu.Item(Name + "DrawingThickness").GetValue<Slider>().Value);
+                _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        protected override void OnInitialize()
+        {
+            try
+            {
                 var enemyMenu = new Menu(Global.Lang.Get("G_Enemy"), Name + "Enemies");
                 enemyMenu.AddItem(
                     new MenuItem(enemyMenu.Name + "Smite", Global.Lang.Get("Gank_OnlySmite")).SetValue(
@@ -236,32 +265,6 @@ namespace SFXUtility.Features.Detectors
 
                 Menu.AddSubMenu(allyMenu);
 
-                Menu.AddItem(
-                    new MenuItem(Name + "Range", Global.Lang.Get("G_Range")).SetValue(new Slider(3000, 500, 5000)));
-                Menu.AddItem(
-                    new MenuItem(Name + "Cooldown", Global.Lang.Get("Gank_Cooldown")).SetValue(new Slider(10, 0, 30)));
-                Menu.AddItem(
-                    new MenuItem(Name + "Duration", Global.Lang.Get("Gank_Duration")).SetValue(new Slider(10, 0, 30)));
-                Menu.AddItem(new MenuItem(Name + "Ping", Global.Lang.Get("G_Ping")).SetValue(true));
-
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
-
-                Parent.Menu.AddSubMenu(Menu);
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        protected override void OnInitialize()
-        {
-            try
-            {
-                _line = MDrawing.GetLine(Menu.Item(Name + "DrawingThickness").GetValue<Slider>().Value);
-                _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
-
-                _championObjects = new List<ChampionObject>();
                 foreach (var hero in GameObjects.Heroes.Where(h => !h.IsMe))
                 {
                     _championObjects.Add(new ChampionObject(hero));

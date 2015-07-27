@@ -30,8 +30,6 @@ namespace SFXUtility.Features.Activators
 {
     internal class Activators : Parent
     {
-        public Activators(SFXUtility sfx) : base(sfx) {}
-
         public override string Name
         {
             get { return Global.Lang.Get("F_Activators"); }

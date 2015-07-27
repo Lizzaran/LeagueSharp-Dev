@@ -28,7 +28,6 @@ using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXLibrary;
-using SFXLibrary.Extensions.NET;
 using SFXLibrary.Extensions.SharpDX;
 using SFXLibrary.Logger;
 using SFXUtility.Classes;
@@ -45,25 +44,25 @@ namespace SFXUtility.Features.Detectors
 {
     internal class Teleport : Child<Detectors>
     {
+        private readonly List<TeleportObject> _teleportObjects = new List<TeleportObject>();
         private Font _barText;
         private Line _line;
-        private List<TeleportObject> _teleportObjects;
         private Font _text;
-        public Teleport(SFXUtility sfx) : base(sfx) {}
+
+        public Teleport(Detectors parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
             get { return Global.Lang.Get("F_Teleport"); }
         }
 
-        public event EventHandler<TeleportEventArgs> OnStart;
-        public event EventHandler<TeleportEventArgs> OnFinish;
-        public event EventHandler<TeleportEventArgs> OnAbort;
-        public event EventHandler<TeleportEventArgs> OnUnknown;
-
         protected override void OnEnable()
         {
             Drawing.OnEndScene += OnDrawingEndScene;
+            Obj_AI_Base.OnTeleport += OnObjAiBaseTeleport;
 
             base.OnEnable();
         }
@@ -71,6 +70,7 @@ namespace SFXUtility.Features.Detectors
         protected override void OnDisable()
         {
             Drawing.OnEndScene -= OnDrawingEndScene;
+            Obj_AI_Base.OnTeleport -= OnObjAiBaseTeleport;
 
             base.OnDisable();
         }
@@ -208,7 +208,7 @@ namespace SFXUtility.Features.Detectors
             }
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -283,6 +283,15 @@ namespace SFXUtility.Features.Detectors
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
+
+                _text = MDrawing.GetFont(Menu.Item(Name + "DrawingTextFontSize").GetValue<Slider>().Value);
+                _barText =
+                    MDrawing.GetFont(
+                        (int)
+                            (Math.Ceiling(
+                                Menu.Item(Name + "DrawingBarFontSize").GetValue<Slider>().Value *
+                                (Menu.Item(Menu.Name + "DrawingBarScale").GetValue<Slider>().Value / 10d))));
+                _line = MDrawing.GetLine(1);
             }
             catch (Exception ex)
             {
@@ -294,8 +303,7 @@ namespace SFXUtility.Features.Detectors
         {
             try
             {
-                _teleportObjects = new List<TeleportObject>();
-                _teleportObjects =
+                _teleportObjects.AddRange(
                     GameObjects.Heroes.Select(
                         hero =>
                             new TeleportObject(hero)
@@ -304,19 +312,7 @@ namespace SFXUtility.Features.Detectors
                                     Menu.Item(Menu.Name + "DrawingTextAdditionalTime").GetValue<Slider>().Value,
                                 AdditionalBarTime =
                                     Menu.Item(Menu.Name + "DrawingBarAdditionalTime").GetValue<Slider>().Value
-                            })
-                        .ToList();
-
-                Obj_AI_Base.OnTeleport += OnObjAiBaseTeleport;
-
-                _text = MDrawing.GetFont(Menu.Item(Name + "DrawingTextFontSize").GetValue<Slider>().Value);
-                _barText =
-                    MDrawing.GetFont(
-                        (int)
-                            (Math.Ceiling(
-                                Menu.Item(Name + "DrawingBarFontSize").GetValue<Slider>().Value *
-                                (Menu.Item(Menu.Name + "DrawingBarScale").GetValue<Slider>().Value / 10d))));
-                _line = MDrawing.GetLine(1);
+                            }));
 
                 base.OnInitialize();
             }
@@ -358,29 +354,6 @@ namespace SFXUtility.Features.Detectors
                     teleport.Duration = duration;
                     teleport.LastStatus = packet.Status;
                     teleport.LastType = packet.Type;
-
-                    switch (packet.Status)
-                    {
-                        case Packet.S2C.Teleport.Status.Start:
-                            OnStart.RaiseEvent(
-                                null, new TeleportEventArgs(packet.UnitNetworkId, packet.Status, packet.Type));
-                            break;
-
-                        case Packet.S2C.Teleport.Status.Finish:
-                            OnFinish.RaiseEvent(
-                                null, new TeleportEventArgs(packet.UnitNetworkId, packet.Status, packet.Type));
-                            break;
-
-                        case Packet.S2C.Teleport.Status.Abort:
-                            OnAbort.RaiseEvent(
-                                null, new TeleportEventArgs(packet.UnitNetworkId, packet.Status, packet.Type));
-                            break;
-
-                        case Packet.S2C.Teleport.Status.Unknown:
-                            OnUnknown.RaiseEvent(
-                                null, new TeleportEventArgs(packet.UnitNetworkId, packet.Status, packet.Type));
-                            break;
-                    }
                 }
             }
             catch (Exception ex)

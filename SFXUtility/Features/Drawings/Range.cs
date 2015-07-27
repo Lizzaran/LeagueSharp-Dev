@@ -40,7 +40,12 @@ namespace SFXUtility.Features.Drawings
     {
         private const float ExperienceRange = 1350f;
         private const float TurretRange = 875f;
-        public Range(SFXUtility sfx) : base(sfx) {}
+        private const float ShopRange = 1250f;
+
+        public Range(Drawings parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -248,6 +253,37 @@ namespace SFXUtility.Features.Drawings
             }
         }
 
+        private void DrawShop()
+        {
+            try
+            {
+                var drawAlly = Menu.Item(Name + "ShopAlly").GetValue<bool>();
+                var drawEnemy = Menu.Item(Name + "ShopEnemy").GetValue<bool>();
+                var thickness = Menu.Item(Name + "DrawingCircleThickness").GetValue<Slider>().Value;
+
+                if (!drawAlly && !drawEnemy)
+                {
+                    return;
+                }
+
+                var allyColor = Menu.Item(Name + "ShopColorAlly").GetValue<Color>();
+                var enemyColor = Menu.Item(Name + "ShopColorEnemy").GetValue<Color>();
+
+                foreach (var shop in
+                    GameObjects.Shops.Where(
+                        t =>
+                            t.IsValid && !t.IsDead && t.Health > 1f && t.IsVisible &&
+                            (t.IsAlly && drawAlly || t.IsEnemy && drawEnemy) && t.Position.IsOnScreen(ShopRange)))
+                {
+                    Render.Circle.DrawCircle(shop.Position, ShopRange, shop.IsAlly ? allyColor : enemyColor, thickness);
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
         private void OnDrawingDraw(EventArgs args)
         {
             try
@@ -256,6 +292,7 @@ namespace SFXUtility.Features.Drawings
                 DrawTurret();
                 DrawAttack();
                 DrawSpell();
+                DrawShop();
             }
             catch (Exception ex)
             {
@@ -263,7 +300,7 @@ namespace SFXUtility.Features.Drawings
             }
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -323,6 +360,18 @@ namespace SFXUtility.Features.Drawings
                         .SetValue(Color.DarkRed));
                 turretMenu.AddItem(new MenuItem(turretMenu.Name + "Ally", Global.Lang.Get("G_Ally")).SetValue(false));
                 turretMenu.AddItem(new MenuItem(turretMenu.Name + "Enemy", Global.Lang.Get("G_Enemy")).SetValue(false));
+
+                var shopMenu = new Menu(Global.Lang.Get("G_Shop"), Name + "Shop");
+                shopMenu.AddItem(
+                    new MenuItem(
+                        shopMenu.Name + "ColorAlly", Global.Lang.Get("G_Color") + " " + Global.Lang.Get("G_Ally"))
+                        .SetValue(Color.DarkGreen));
+                shopMenu.AddItem(
+                    new MenuItem(
+                        shopMenu.Name + "ColorEnemy", Global.Lang.Get("G_Color") + " " + Global.Lang.Get("G_Enemy"))
+                        .SetValue(Color.DarkRed));
+                shopMenu.AddItem(new MenuItem(shopMenu.Name + "Ally", Global.Lang.Get("G_Ally")).SetValue(false));
+                shopMenu.AddItem(new MenuItem(shopMenu.Name + "Enemy", Global.Lang.Get("G_Enemy")).SetValue(false));
 
                 var spellMenu = new Menu(Global.Lang.Get("G_Spell"), Name + "Spell");
                 spellMenu.AddItem(
@@ -387,6 +436,7 @@ namespace SFXUtility.Features.Drawings
                 Menu.AddSubMenu(experienceMenu);
                 Menu.AddSubMenu(attackMenu);
                 Menu.AddSubMenu(turretMenu);
+                Menu.AddSubMenu(shopMenu);
                 Menu.AddSubMenu(spellMenu);
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));

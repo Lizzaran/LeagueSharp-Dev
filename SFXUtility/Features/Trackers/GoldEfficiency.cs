@@ -41,10 +41,10 @@ namespace SFXUtility.Features.Trackers
     internal class GoldEfficiency : Child<Trackers>
     {
         private const float CheckInterval = 1000f;
-        private Dictionary<Obj_AI_Hero, string> _goldEfficiencies;
-        private float _lastCheck;
+        private readonly Dictionary<Obj_AI_Hero, string> _goldEfficiencies = new Dictionary<Obj_AI_Hero, string>();
+        private float _lastCheck = Environment.TickCount;
         private Font _text;
-        public GoldEfficiency(SFXUtility sfx) : base(sfx) {}
+        public GoldEfficiency(Trackers parent) : base(parent) {}
 
         public override string Name
         {
@@ -67,7 +67,7 @@ namespace SFXUtility.Features.Trackers
             base.OnDisable();
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -82,22 +82,8 @@ namespace SFXUtility.Features.Trackers
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
 
-        protected override void OnInitialize()
-        {
-            try
-            {
-                _goldEfficiencies = new Dictionary<Obj_AI_Hero, string>();
-                _lastCheck = Environment.TickCount;
                 _text = MDrawing.GetFont(Menu.Item(Name + "DrawingFontSize").GetValue<Slider>().Value);
-
-                base.OnInitialize();
             }
             catch (Exception ex)
             {

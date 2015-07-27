@@ -28,17 +28,8 @@ using SFXUtility.Classes;
 
 namespace SFXUtility.Features.Drawings
 {
-
-    #region
-
-    // TODO: Option for percentage
-
-    #endregion
-
     internal class Drawings : Parent
     {
-        public Drawings(SFXUtility sfx) : base(sfx) {}
-
         public override string Name
         {
             get { return Global.Lang.Get("F_Drawings"); }

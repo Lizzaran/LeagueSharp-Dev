@@ -46,11 +46,7 @@ namespace SFXUtility.Classes
             {
                 Drawing.OnPreReset += OnDrawingPreReset;
                 Drawing.OnPostReset += OnDrawingPostReset;
-
-                if (Global.IoC.IsRegistered<SFXUtility>())
-                {
-                    Global.IoC.Resolve<SFXUtility>().OnUnload += OnUnload;
-                }
+                Global.SFX.OnUnload += OnUnload;
             }
             catch (Exception ex)
             {

@@ -25,16 +25,17 @@
 using System;
 using LeagueSharp.Common;
 using SFXLibrary.Logger;
+using SFXUtility.Interfaces;
 
 #endregion
 
 namespace SFXUtility.Classes
 {
-    internal abstract class Child<T> : Base where T : Parent
+    internal abstract class Child<T> : Base, IChild where T : Parent
     {
-        protected Child(SFXUtility sfx) : base(sfx)
+        protected Child(T parent)
         {
-            LoadParent();
+            Parent = parent;
         }
 
         public T Parent { get; set; }
@@ -49,52 +50,7 @@ namespace SFXUtility.Classes
             }
         }
 
-        private void LoadParent()
-        {
-            try
-            {
-                if (Global.IoC.IsRegistered<T>())
-                {
-                    Parent = Global.IoC.Resolve<T>();
-                    if (Parent.Initialized)
-                    {
-                        OnParentInitialized(null, new EventArgs());
-                    }
-                    else
-                    {
-                        Parent.OnInitialized += OnParentInitialized;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        protected abstract void OnLoad();
-
-        private void OnParentInitialized(object obj, EventArgs args)
-        {
-            try
-            {
-                if (Global.IoC.IsRegistered<T>())
-                {
-                    Parent = Global.IoC.Resolve<T>();
-                    if (Parent != null)
-                    {
-                        OnLoad();
-                        HandleEvents();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        protected virtual void HandleEvents()
+        public void HandleEvents()
         {
             try
             {
@@ -144,5 +100,7 @@ namespace SFXUtility.Classes
                 Global.Logger.AddItem(new LogItem(ex));
             }
         }
+
+        protected abstract void OnLoad();
     }
 }

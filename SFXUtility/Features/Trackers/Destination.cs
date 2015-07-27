@@ -43,10 +43,14 @@ namespace SFXUtility.Features.Trackers
     internal class Destination : Child<Trackers>
     {
         private const float CheckInterval = 300f;
-        private List<DestinationObject> _destinations;
+        private readonly List<DestinationObject> _destinations = new List<DestinationObject>();
         private float _lastCheck;
         private Line _line;
-        public Destination(SFXUtility sfx) : base(sfx) {}
+
+        public Destination(Trackers parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -69,7 +73,7 @@ namespace SFXUtility.Features.Trackers
             base.OnDisable();
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
@@ -92,6 +96,8 @@ namespace SFXUtility.Features.Trackers
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
+
+                _line = MDrawing.GetLine(2);
             }
             catch (Exception ex)
             {
@@ -103,17 +109,13 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                _destinations = new List<DestinationObject>();
-
                 SetupDestinations();
 
-                if (_destinations.Count == 0)
+                if (!_destinations.Any())
                 {
                     OnUnload(null, new UnloadEventArgs(true));
                     return;
                 }
-
-                _line = MDrawing.GetLine(2);
 
                 base.OnInitialize();
             }

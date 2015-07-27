@@ -39,9 +39,9 @@ namespace SFXUtility.Features.Events
         private bool _onEndTriggerd;
         private bool _onStartTriggerd;
 
-        public Game(SFXUtility sfx) : base(sfx)
+        public Game(Events parent) : base(parent)
         {
-            LeagueSharp.Game.OnStart += delegate { _onStartTriggerd = true; };
+            OnLoad();
         }
 
         public override string Name
@@ -61,10 +61,12 @@ namespace SFXUtility.Features.Events
             base.OnDisable();
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
+                LeagueSharp.Game.OnStart += delegate { _onStartTriggerd = true; };
+
                 Menu = new Menu(Name, Name);
                 var startMenu = new Menu(Global.Lang.Get("Game_OnStart"), Name + "OnStart");
                 startMenu.AddItem(

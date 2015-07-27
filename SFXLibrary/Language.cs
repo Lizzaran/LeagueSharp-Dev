@@ -107,9 +107,9 @@ namespace SFXLibrary
             return string.Format("[{0}]", key);
         }
 
-        public string[] GetList(string key, char seperator = '|', string overrideLanguage = null)
+        public string[] GetList(string key, char separator = '|', string overrideLanguage = null)
         {
-            return Get(key, overrideLanguage).Split(seperator).ToArray();
+            return Get(key, overrideLanguage).Split(separator).ToArray();
         }
     }
 }

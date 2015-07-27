@@ -30,8 +30,6 @@ namespace SFXUtility.Features.Timers
 {
     internal class Timers : Parent
     {
-        public Timers(SFXUtility sfx) : base(sfx) {}
-
         public override string Name
         {
             get { return Global.Lang.Get("F_Timers"); }

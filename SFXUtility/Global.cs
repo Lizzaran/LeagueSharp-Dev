@@ -44,6 +44,7 @@ namespace SFXUtility
         public static string BaseDir = AppDomain.CurrentDomain.BaseDirectory;
         public static string LogDir = Path.Combine(BaseDir, Name + " - Logs");
         public static string CacheDir = Path.Combine(BaseDir, Name + " - Cache");
+        public static SFXUtility SFX = null;
 
         static Global()
         {

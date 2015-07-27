@@ -35,7 +35,10 @@ namespace SFXUtility.Features.Drawings
 {
     internal class Clock : Child<Drawings>
     {
-        public Clock(SFXUtility sfx) : base(sfx) {}
+        public Clock(Drawings parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -69,7 +72,7 @@ namespace SFXUtility.Features.Drawings
             base.OnDisable();
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {

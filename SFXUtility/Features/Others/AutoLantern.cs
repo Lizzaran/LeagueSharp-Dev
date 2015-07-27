@@ -37,7 +37,11 @@ namespace SFXUtility.Features.Others
     internal class AutoLantern : Child<Others>
     {
         private GameObject _lantern;
-        public AutoLantern(SFXUtility sfx) : base(sfx) {}
+
+        public AutoLantern(Others parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {
@@ -60,7 +64,7 @@ namespace SFXUtility.Features.Others
             base.OnDisable();
         }
 
-        protected override void OnLoad()
+        protected override sealed void OnLoad()
         {
             try
             {
