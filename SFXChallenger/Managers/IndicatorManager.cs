@@ -50,7 +50,7 @@ namespace SFXChallenger.Managers
         {
             try
             {
-                _menu = subMenu ? menu.AddSubMenu(new Menu(Global.Lang.Get("F_IDM"), _menu.Name + ".indicator")) : menu;
+                _menu = subMenu ? menu.AddSubMenu(new Menu(Global.Lang.Get("F_IDM"), menu.Name + ".indicator")) : menu;
 
                 var drawingMenu = _menu.AddSubMenu(new Menu(Global.Lang.Get("G_Drawing"), _menu.Name + ".drawing"));
                 drawingMenu.AddItem(
