@@ -943,8 +943,9 @@ namespace SFXChallenger.Wrappers
                 }
 
                 var weight = Inverted
-                    ? CalculatedWeight(GetValue(target), 0, LastMax, TargetSelector.MinWeight, Weight)
-                    : CalculatedWeight(LastMin, GetValue(target), 0, Weight, TargetSelector.MinWeight);
+                    ? CalculatedWeight(LastMin, GetValue(target), 0, Weight, TargetSelector.MinWeight)
+                    : CalculatedWeight(GetValue(target), 0, LastMax, TargetSelector.MinWeight, Weight);
+
                 if (cache == null)
                 {
                     _weightCache[target.NetworkId] = new Cache(weight);
