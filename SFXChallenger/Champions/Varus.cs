@@ -100,7 +100,6 @@ namespace SFXChallenger.Champions
             comboMenu.AddItem(
                 new MenuItem(comboMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 3)));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
 
             var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Harass"), Menu.Name + ".harass"));
             HitchanceManager.AddToMenu(
@@ -175,7 +174,7 @@ namespace SFXChallenger.Champions
         {
             Q = new Spell(SpellSlot.Q, 925f);
             Q.SetSkillshot(0.25f, 70f, 1800f, false, SkillshotType.SkillshotLine);
-            Q.SetCharged("VarusQ", "VarusQ", 925, 1700, 1.75f);
+            Q.SetCharged("VarusQ", "VarusQ", 925, 1700, 1.65f);
 
             W = new Spell(SpellSlot.W, 0f);
 
