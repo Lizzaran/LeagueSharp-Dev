@@ -33,6 +33,7 @@ using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
 using SFXChallenger.Wrappers;
 using SFXLibrary;
+using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
 using SharpDX;
 using Collision = LeagueSharp.Common.Collision;
@@ -183,6 +184,10 @@ namespace SFXChallenger.Champions
 
             R = new Spell(SpellSlot.R, 1075f);
             R.SetSkillshot(0.25f, 120f, 1950f, false, SkillshotType.SkillshotLine);
+
+            Console.WriteLine(E.Instance.SData.MissileSpeed);
+            Console.WriteLine(E.Instance.SData.LineWidth);
+            Console.WriteLine(E.Instance.SData.CastFrame / 30);
         }
 
         private void OnCorePostUpdate(EventArgs args)
@@ -316,7 +321,7 @@ namespace SFXChallenger.Champions
                     if (Menu.Item(Menu.Name + ".combo.e-always").GetValue<bool>() || stacks ||
                         GetWStacks(target) >= Menu.Item(Menu.Name + ".combo.e-stacks").GetValue<Slider>().Value ||
                         E.IsKillable(target) ||
-                        GetEHits(target, E.GetHitChance("combo")) >=
+                        BestECastLocation(target, E.GetHitChance("combo")).Item2.Count >=
                         Menu.Item(Menu.Name + ".combo.e-min").GetValue<Slider>().Value)
                     {
                         ELogic(target, E.GetHitChance("combo"));
@@ -378,8 +383,8 @@ namespace SFXChallenger.Champions
                     if (Menu.Item(Menu.Name + ".harass.e-always").GetValue<bool>() || stacks ||
                         GetWStacks(target) >= Menu.Item(Menu.Name + ".harass.e-stacks").GetValue<Slider>().Value ||
                         E.IsKillable(target) ||
-                        GetEHits(target, E.GetHitChance("harass")) >=
-                        Menu.Item(Menu.Name + ".harass.e-min").GetValue<Slider>().Value)
+                        BestECastLocation(target, E.GetHitChance("combo")).Item2.Count >=
+                        Menu.Item(Menu.Name + ".combo.e-min").GetValue<Slider>().Value)
                     {
                         ELogic(target, E.GetHitChance("harass"));
                     }
@@ -495,33 +500,6 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private int GetEHits(Obj_AI_Hero target, HitChance hitChance)
-        {
-            try
-            {
-                if (Q.IsCharging || target == null)
-                {
-                    return 0;
-                }
-                var pred = E.GetPrediction(target);
-                if (pred.Hitchance >= hitChance)
-                {
-                    var points =
-                        (from enemy in GameObjects.EnemyHeroes.Where(e => e.IsValidTarget((E.Range + E.Width) * 1.2f))
-                            select E.GetPrediction(target)
-                            into pred2
-                            where pred2.Hitchance >= (hitChance - 1)
-                            select pred2.UnitPosition).ToList();
-                    return points.Count(p => p.Distance(pred.CastPosition) < E.Width * 0.9f);
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return 0;
-        }
-
         private int GetQHits(Obj_AI_Hero target, HitChance hitChance)
         {
             if (target == null)
@@ -564,10 +542,10 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
-                var pred = E.GetPrediction(target);
-                if (pred.Hitchance >= hitChance)
+                var best = BestECastLocation(target, hitChance);
+                if (best.Item2.Count > 0 && !best.Item1.Equals(Vector3.Zero))
                 {
-                    E.Cast(pred.CastPosition);
+                    E.Cast(best.Item1);
                 }
             }
             catch (Exception ex)
@@ -747,6 +725,54 @@ namespace SFXChallenger.Champions
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        private Tuple<Vector3, List<Obj_AI_Hero>> BestECastLocation(Obj_AI_Hero target, HitChance hitChance)
+        {
+            try
+            {
+                var hits = new List<Obj_AI_Hero>();
+                var center = Vector2.Zero;
+                float radius = -1;
+                var range = E.Range + E.Width / 2f;
+                var points = (from t in GameObjects.EnemyHeroes
+                    where t.IsValidTarget(range)
+                    let prediction = E.GetPrediction(t)
+                    where prediction.Hitchance >= (hitChance - 1)
+                    select new Tuple<Obj_AI_Hero, Vector2>(t, prediction.UnitPosition.To2D())).ToList();
+                if (points.Any())
+                {
+                    var possibilities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 0).ToList();
+                    if (possibilities.Any())
+                    {
+                        foreach (var possibility in possibilities)
+                        {
+                            var mec = MEC.GetMec(possibility.Select(p => p.Item2).ToList());
+                            if (mec.Radius < E.Width && Player.Distance(mec.Center) < range)
+                            {
+                                if ((possibility.Count > hits.Count ||
+                                     possibility.Count == hits.Count && mec.Radius < radius) &&
+                                    possibility.Any(p => p.Item1.NetworkId == target.NetworkId))
+                                {
+                                    center = mec.Center;
+                                    radius = mec.Radius;
+                                    hits.Clear();
+                                    hits.AddRange(possibility.Select(p => p.Item1).ToList());
+                                }
+                            }
+                        }
+                        if (!center.Equals(Vector2.Zero))
+                        {
+                            return new Tuple<Vector3, List<Obj_AI_Hero>>(center.To3D2(), hits);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return new Tuple<Vector3, List<Obj_AI_Hero>>(Vector3.Zero, new List<Obj_AI_Hero>());
         }
     }
 }
