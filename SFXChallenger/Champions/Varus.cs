@@ -174,7 +174,7 @@ namespace SFXChallenger.Champions
         {
             Q = new Spell(SpellSlot.Q, 925f);
             Q.SetSkillshot(0.25f, 70f, 1800f, false, SkillshotType.SkillshotLine);
-            Q.SetCharged("VarusQ", "VarusQ", 925, 1700, 1.65f);
+            Q.SetCharged("VarusQ", "VarusQ", 925, 1700, 1.5f);
 
             W = new Spell(SpellSlot.W, 0f);
 
@@ -405,7 +405,7 @@ namespace SFXChallenger.Champions
 
         private bool IsFullyCharged()
         {
-            return Q.ChargedMaxRange - Q.Range < 10;
+            return Q.ChargedMaxRange - Q.Range < 200;
         }
 
         private float GetQDamage(Obj_AI_Hero target, int collisions)
@@ -704,7 +704,7 @@ namespace SFXChallenger.Champions
                 var killable =
                     GameObjects.EnemyHeroes.FirstOrDefault(
                         e =>
-                            Q.IsInRange(e) && (!range || !Orbwalking.InAutoAttackRange(e)) &&
+                            e.IsValidTarget(Q.Range) && (!range || !Orbwalking.InAutoAttackRange(e)) &&
                             (QIsKillable(e, 1) || QMaxRangeHit(e) && QIsKillable(e, 2)));
                 if (killable != null)
                 {
