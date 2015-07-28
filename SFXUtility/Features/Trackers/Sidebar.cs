@@ -48,6 +48,7 @@ namespace SFXUtility.Features.Trackers
 {
     internal class Sidebar : Child<Trackers>
     {
+        private float _lastChatSend;
         private const float HudWidth = 95f;
         private const float HudHeight = 90f;
         private const float SummonerWidth = 22f;
@@ -512,8 +513,9 @@ namespace SFXUtility.Features.Trackers
                                             _teleports.TryGetValue(enemy.Unit.NetworkId, out teleportCd);
                                         }
                                         var time = (teleportCd > 0.1f ? teleportCd : spell.CooldownExpires) - Game.Time;
-                                        if (time > 0)
+                                        if (time > 0 && Environment.TickCount > _lastChatSend + 1500)
                                         {
+                                            _lastChatSend = Environment.TickCount;
                                             var sName = ReadableSummonerName(spell.Name);
                                             Game.Say(
                                                 string.Format(

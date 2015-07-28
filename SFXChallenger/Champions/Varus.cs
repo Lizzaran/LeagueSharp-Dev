@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- varus.cs is part of SFXChallenger.
+ Varus.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -24,7 +24,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
@@ -35,8 +34,16 @@ using SFXChallenger.Managers;
 using SFXChallenger.Wrappers;
 using SFXLibrary;
 using SFXLibrary.Logger;
+using SharpDX;
+using Collision = LeagueSharp.Common.Collision;
+using Color = System.Drawing.Color;
+using MinionManager = SFXLibrary.MinionManager;
+using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
+using MinionTeam = SFXLibrary.MinionTeam;
+using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
+using Utils = SFXChallenger.Helpers.Utils;
 
 #endregion
 
@@ -75,6 +82,9 @@ namespace SFXChallenger.Champions
                 comboMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), comboMenu.Name + ".hitchance")), "combo",
                 new Dictionary<string, int> { { "Q", 1 }, { "E", 1 }, { "R", 2 } });
             comboMenu.AddItem(
+                new MenuItem(comboMenu.Name + ".q-fast-cast-min", Global.Lang.Get("Varus_FastCastMin")).SetValue(
+                    new Slider(25)));
+            comboMenu.AddItem(
                 new MenuItem(comboMenu.Name + ".q-range", "Q " + Global.Lang.Get("G_OutOfRange")).SetValue(true));
             comboMenu.AddItem(
                 new MenuItem(comboMenu.Name + ".q-always", "Q " + Global.Lang.Get("G_Always")).SetValue(false));
@@ -97,6 +107,9 @@ namespace SFXChallenger.Champions
                 harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
                 new Dictionary<string, int> { { "Q", 1 }, { "E", 1 } });
             ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
+            harassMenu.AddItem(
+                new MenuItem(harassMenu.Name + ".q-fast-cast-min", Global.Lang.Get("Varus_FastCastMin")).SetValue(
+                    new Slider(25)));
             harassMenu.AddItem(
                 new MenuItem(harassMenu.Name + ".q-range", "Q " + Global.Lang.Get("G_OutOfRange")).SetValue(true));
             harassMenu.AddItem(
@@ -142,7 +155,6 @@ namespace SFXChallenger.Champions
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
-
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("E " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "e-gapcloser")),
                 "e-gapcloser", false, false, true, false);
@@ -163,7 +175,7 @@ namespace SFXChallenger.Champions
         {
             Q = new Spell(SpellSlot.Q, 925f);
             Q.SetSkillshot(0.25f, 70f, 1800f, false, SkillshotType.SkillshotLine);
-            Q.SetCharged("VarusQ", "VarusQ", 925, 1600, 1.5f);
+            Q.SetCharged("VarusQ", "VarusQ", 925, 1700, 1.75f);
 
             W = new Spell(SpellSlot.W, 0f);
 
@@ -285,13 +297,14 @@ namespace SFXChallenger.Champions
                     var stacks = W.Level == 0 && Menu.Item(Menu.Name + ".combo.q-stacks").GetValue<Slider>().Value > 0;
                     if (Q.IsCharging || Menu.Item(Menu.Name + ".combo.q-always").GetValue<bool>() ||
                         Menu.Item(Menu.Name + ".combo.q-range").GetValue<bool>() &&
-                        Player.CountEnemiesInRange(Player.AttackRange * 1.075f) == 0 || stacks ||
+                        !Orbwalking.InAutoAttackRange(target) || stacks ||
                         GetWStacks(target) >= Menu.Item(Menu.Name + ".combo.q-stacks").GetValue<Slider>().Value ||
-                        Q.IsKillable(target) ||
                         GetQHits(target, Q.GetHitChance("combo")) >=
-                        Menu.Item(Menu.Name + ".combo.q-min").GetValue<Slider>().Value)
+                        Menu.Item(Menu.Name + ".combo.q-min").GetValue<Slider>().Value || Q.IsKillable(target))
                     {
-                        QLogic(target, Q.GetHitChance("combo"));
+                        QLogic(
+                            target, Q.GetHitChance("combo"),
+                            Menu.Item(Menu.Name + ".combo.q-fast-cast-min").GetValue<Slider>().Value);
                     }
                 }
             }
@@ -343,15 +356,17 @@ namespace SFXChallenger.Champions
                 if (target != null)
                 {
                     var stacks = W.Level == 0 && Menu.Item(Menu.Name + ".harass.q-stacks").GetValue<Slider>().Value > 0;
-                    if (Q.IsCharging || W.Level == 0 || Menu.Item(Menu.Name + ".harass.q-always").GetValue<bool>() ||
+                    if (Q.IsCharging || Menu.Item(Menu.Name + ".harass.q-always").GetValue<bool>() ||
                         Menu.Item(Menu.Name + ".harass.q-range").GetValue<bool>() &&
-                        Player.CountEnemiesInRange(Player.AttackRange * 1.075f) == 0 || stacks ||
+                        !Orbwalking.InAutoAttackRange(target) || stacks ||
                         GetWStacks(target) >= Menu.Item(Menu.Name + ".harass.q-stacks").GetValue<Slider>().Value ||
                         Q.IsKillable(target) ||
                         GetQHits(target, Q.GetHitChance("harass")) >=
                         Menu.Item(Menu.Name + ".harass.q-min").GetValue<Slider>().Value)
                     {
-                        QLogic(target, Q.GetHitChance("harass"));
+                        QLogic(
+                            target, Q.GetHitChance("harass"),
+                            Menu.Item(Menu.Name + ".harass.q-fast-cast-min").GetValue<Slider>().Value);
                     }
                 }
             }
@@ -373,7 +388,77 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private void QLogic(Obj_AI_Hero target, HitChance hitChance)
+        private bool QMaxRangeHit(Obj_AI_Hero target)
+        {
+            var delay = (Q.ChargeDuration / 1000f) *
+                        ((Q.Range - Q.ChargedMinRange) / (Q.ChargedMaxRange - Q.ChargedMinRange));
+            return
+                Utils.PositionAfter(
+                    target,
+                    delay + (Player.Distance(target) - Q.Width - target.BoundingRadius * 0.75f) / Q.Speed +
+                    Game.Ping / 2000f, target.MoveSpeed).Distance(Player) < Q.ChargedMaxRange;
+        }
+
+        private bool QIsKillable(Obj_AI_Hero target, int collisions)
+        {
+            return target.Health + target.HPRegenRate / 2f < GetQDamage(target, collisions);
+        }
+
+        private bool IsFullyCharged()
+        {
+            return Q.ChargedMaxRange - Q.Range < 10;
+        }
+
+        private float GetQDamage(Obj_AI_Hero target, int collisions)
+        {
+            if (Q.Level == 0)
+            {
+                return 0;
+            }
+            var chargePercentage = Q.Range / Q.ChargedMaxRange;
+            var damage =
+                (float)
+                    ((new float[] { 10, 47, 83, 120, 157 }[Q.Level - 1] +
+                      new float[] { 5, 23, 42, 60, 78 }[Q.Level - 1] * chargePercentage) +
+                     (chargePercentage * (Player.TotalAttackDamage() + Player.TotalAttackDamage * .6)));
+            var minimum = damage / 100f * 33f;
+            for (var i = 0; i < collisions; i++)
+            {
+                var reduce = (damage / 100f * 15f);
+                if (damage - reduce < minimum)
+                {
+                    damage = minimum;
+                    break;
+                }
+                damage -= reduce;
+            }
+            return (float) Player.CalcDamage(target, Damage.DamageType.Physical, damage);
+        }
+
+        private int GetQCollisionsCount(Obj_AI_Hero target, Vector3 castPos)
+        {
+            try
+            {
+                var input = new PredictionInput
+                {
+                    Unit = target,
+                    Radius = Q.Width,
+                    Delay = Q.Delay,
+                    Speed = Q.Speed,
+                    CollisionObjects = new[] { CollisionableObjects.Heroes, CollisionableObjects.Minions }
+                };
+                return
+                    Collision.GetCollision(
+                        new List<Vector3> { Player.Position.Extend(castPos, Q.Range + Q.Width) }, input).Count;
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return 0;
+        }
+
+        private void QLogic(Obj_AI_Hero target, HitChance hitChance, int minHealthPercent)
         {
             try
             {
@@ -381,37 +466,27 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
+                var pred = Q.GetPrediction(target);
+                if (pred.Hitchance >= hitChance &&
+                    (QIsKillable(target, GetQCollisionsCount(target, pred.CastPosition)) ||
+                     Player.HealthPercent <= minHealthPercent))
+                {
+                    Q.Cast(pred.CastPosition);
+                }
+
                 if (!Q.IsCharging)
                 {
-                    var pred = Q.GetPrediction(target);
-                    if (pred.Hitchance >= hitChance)
+                    if (QMaxRangeHit(target))
                     {
-                        Q.Cast(target);
-                    }
-                    else
-                    {
-                        var input = new PredictionInput
-                        {
-                            Range = Q.ChargedMaxRange,
-                            Collision = false,
-                            Delay = 1f,
-                            Radius = Q.Width,
-                            Speed = Q.Speed,
-                            Type = Q.Type,
-                            Unit = target
-                        };
-                        if (Prediction.GetPrediction(input).Hitchance >= (hitChance - 1))
-                        {
-                            Q.StartCharging();
-                        }
+                        Q.StartCharging();
                     }
                 }
-                if (Q.IsCharging)
+                if (Q.IsCharging && (!QMaxRangeHit(target) || IsFullyCharged()))
                 {
-                    var pred = Q.GetPrediction(target);
-                    if (pred.Hitchance >= hitChance)
+                    var pred2 = Q.GetPrediction(target);
+                    if (pred2.Hitchance >= hitChance)
                     {
-                        Q.Cast(pred.CastPosition);
+                        Q.Cast(pred2.CastPosition);
                     }
                 }
             }
@@ -560,7 +635,7 @@ namespace SFXChallenger.Champions
                 float damage = 0;
                 if (q)
                 {
-                    damage += Q.GetDamage(target);
+                    damage += GetQDamage(target, 1);
                 }
                 if (e && E.IsReady())
                 {
@@ -591,7 +666,19 @@ namespace SFXChallenger.Champions
             var min = Menu.Item(Menu.Name + ".lane-clear.min").GetValue<Slider>().Value;
             if (Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady())
             {
-                Casting.Farm(Q, min);
+                var minions = MinionManager.GetMinions(
+                    Q.ChargedMaxRange, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+                if (Q.IsCharging || minions.Count >= min || minions.Any(m => m.Team == GameObjectTeam.Neutral))
+                {
+                    if (!Q.IsCharging)
+                    {
+                        Q.StartCharging();
+                    }
+                    if (Q.IsCharging && IsFullyCharged())
+                    {
+                        Casting.Farm(Q, minions.Count < min ? minions.Count : min);
+                    }
+                }
             }
             if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady())
             {
@@ -617,10 +704,12 @@ namespace SFXChallenger.Champions
                 var range = Menu.Item(Menu.Name + ".killsteal.range").GetValue<bool>();
                 var killable =
                     GameObjects.EnemyHeroes.FirstOrDefault(
-                        e => Q.IsInRange(e) && (!range || !Orbwalking.InAutoAttackRange(e)) && Q.IsKillable(e));
+                        e =>
+                            Q.IsInRange(e) && (!range || !Orbwalking.InAutoAttackRange(e)) &&
+                            (QIsKillable(e, 1) || QMaxRangeHit(e) && QIsKillable(e, 2)));
                 if (killable != null)
                 {
-                    QLogic(killable, HitChance.High);
+                    QLogic(killable, HitChance.High, 100);
                 }
             }
         }
