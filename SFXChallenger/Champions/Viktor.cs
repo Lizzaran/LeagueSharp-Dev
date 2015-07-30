@@ -182,7 +182,7 @@ namespace SFXChallenger.Champions
             E.SetSkillshot(0f, 90f, 800f, false, SkillshotType.SkillshotLine);
 
             R = new Spell(SpellSlot.R, 700f);
-            R.SetSkillshot(0.45f, 575f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            R.SetSkillshot(0.75f, 575f, float.MaxValue, false, SkillshotType.SkillshotCircle);
         }
 
         private void OnCorePostUpdate(EventArgs args)
@@ -915,12 +915,12 @@ namespace SFXChallenger.Champions
                 var range = (overrideRange > 0 ? overrideRange : (R.Range + R.Width / 2));
                 var points = (from t in GameObjects.EnemyHeroes
                     where t.IsValidTarget(range)
-                    let prediction = R.GetPrediction(t)
+                    let prediction = Q.GetPrediction(t)
                     where prediction.Hitchance >= HitChance.Medium
                     select new Tuple<Obj_AI_Hero, Vector2>(t, prediction.UnitPosition.To2D())).ToList();
                 if (points.Any())
                 {
-                    var possibilities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 0).ToList();
+                    var possibilities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 1).ToList();
                     if (possibilities.Any())
                     {
                         foreach (var possibility in possibilities)
@@ -943,6 +943,11 @@ namespace SFXChallenger.Champions
                         {
                             return new Tuple<Vector3, List<Obj_AI_Hero>>(center.To3D2(), hits);
                         }
+                    }
+                    if (target.Distance(Player) < R.Range || target.Distance(Player) < R.Range + R.Width / 3f)
+                    {
+                        return new Tuple<Vector3, List<Obj_AI_Hero>>(
+                            Player.Position.Extend(target.Position, R.Range), new List<Obj_AI_Hero> { target });
                     }
                 }
             }
@@ -975,7 +980,7 @@ namespace SFXChallenger.Champions
                         {
                             var mec = MEC.GetMec(possibility);
                             var distance = position.Distance(mec.Center.To3D());
-                            if (mec.Radius < R.Width * 0.85f && distance < maxRelocation)
+                            if (mec.Radius < (R.Width / 2) && distance < maxRelocation)
                             {
                                 if (possibility.Count > count ||
                                     possibility.Count == count && (mec.Radius < radius || distance < moveDistance))
