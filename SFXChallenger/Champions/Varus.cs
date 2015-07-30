@@ -184,16 +184,13 @@ namespace SFXChallenger.Champions
 
             R = new Spell(SpellSlot.R, 1075f);
             R.SetSkillshot(0.25f, 120f, 1950f, false, SkillshotType.SkillshotLine);
-
-            Console.WriteLine(E.Instance.SData.MissileSpeed);
-            Console.WriteLine(E.Instance.SData.LineWidth);
-            Console.WriteLine(E.Instance.SData.CastFrame / 30);
         }
 
         private void OnCorePostUpdate(EventArgs args)
         {
             try
             {
+                Orbwalker.SetAttack(!Q.IsCharging);
                 if (UltimateManager.Assisted() && R.IsReady())
                 {
                     if (Menu.Item(Menu.Name + ".ultimate.assisted.move-cursor").GetValue<bool>())
@@ -734,7 +731,7 @@ namespace SFXChallenger.Champions
                 var hits = new List<Obj_AI_Hero>();
                 var center = Vector2.Zero;
                 float radius = -1;
-                var range = E.Range + E.Width / 2f;
+                var range = E.Range;
                 var points = (from t in GameObjects.EnemyHeroes
                     where t.IsValidTarget(range)
                     let prediction = E.GetPrediction(t)
