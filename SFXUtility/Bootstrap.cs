@@ -102,54 +102,55 @@ namespace SFXUtility
 
                 #endregion Parents
 
-                var features = new List<IChild>
-                {
-                    #region Features
-                    new KillSteal(activators),
-                    new Potion(activators),
-                    new Revealer(activators),
-                    new Smite(activators),
-                    new Gank(detectors),
-                    new Replay(detectors),
-                    new Teleport(detectors),
-                    new Clock(drawings),
-                    new Clone(drawings),
-                    new DamageIndicator(drawings),
-                    new Health(drawings),
-                    new LasthitMarker(drawings),
-                    new PerfectWard(drawings),
-                    new Range(drawings),
-                    new SafeJungleSpot(drawings),
-                    new WallJumpSpot(drawings),
-                    new Waypoint(drawings),
-                    new AutoLeveler(events),
-                    new Game(events),
-                    new Trinket(events),
-                    new AntiFountain(others),
-                    new AutoLantern(others),
-                    new Flash(others),
-                    new Humanize(others),
-                    new MoveTo(others),
-                    new Ping(others),
-                    new SkinChanger(others),
-                    new TurnAround(others),
-                    new Ability(timers),
-                    new Altar(timers),
-                    new Cooldown(timers),
-                    new Relic(timers),
-                    new Inhibitor(timers),
-                    new Jungle(timers),
-                    new GoldEfficiency(trackers),
-                    new Destination(trackers),
-                    new LastPosition(trackers),
-                    new Sidebar(trackers),
-                    new Ward(trackers)
-                    #endregion Features
-                };
+                Global.Features.AddRange(
+                    new List<IChild>
+                    {
+                        #region Features
+                        new KillSteal(activators),
+                        new Potion(activators),
+                        new Revealer(activators),
+                        new Smite(activators),
+                        new Gank(detectors),
+                        new Replay(detectors),
+                        new Teleport(detectors),
+                        new Clock(drawings),
+                        new Clone(drawings),
+                        new DamageIndicator(drawings),
+                        new Health(drawings),
+                        new LasthitMarker(drawings),
+                        new PerfectWard(drawings),
+                        new Range(drawings),
+                        new SafeJungleSpot(drawings),
+                        new WallJumpSpot(drawings),
+                        new Waypoint(drawings),
+                        new AutoLeveler(events),
+                        new Game(events),
+                        new Trinket(events),
+                        new AntiFountain(others),
+                        new AutoLantern(others),
+                        new Flash(others),
+                        new Humanize(others),
+                        new MoveTo(others),
+                        new Ping(others),
+                        new SkinChanger(others),
+                        new TurnAround(others),
+                        new Ability(timers),
+                        new Altar(timers),
+                        new Cooldown(timers),
+                        new Relic(timers),
+                        new Inhibitor(timers),
+                        new Jungle(timers),
+                        new GoldEfficiency(trackers),
+                        new Destination(trackers),
+                        new LastPosition(trackers),
+                        new Sidebar(trackers),
+                        new Ward(trackers)
+                        #endregion Features
+                    });
 
                 CustomEvents.Game.OnGameLoad += delegate
                 {
-                    foreach (var feature in features)
+                    foreach (var feature in Global.Features)
                     {
                         try
                         {

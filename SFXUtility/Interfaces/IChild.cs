@@ -22,8 +22,13 @@
 
 namespace SFXUtility.Interfaces
 {
-    internal interface IChild
+    public interface IChild
     {
+        bool Enabled { get; }
+        string Name { get; }
+        bool Initialized { get; }
+        bool Unloaded { get; }
+        bool Handled { get; }
         void HandleEvents();
     }
 }

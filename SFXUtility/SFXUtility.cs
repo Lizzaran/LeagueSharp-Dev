@@ -29,6 +29,7 @@ using System.Reflection;
 using LeagueSharp.Common;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
+using SFXUtility.Classes;
 using Version = System.Version;
 
 #endregion
@@ -66,6 +67,7 @@ namespace SFXUtility
                 #endregion Fonts
 
                 AddLanguage(globalMenu);
+                AddReport(globalMenu);
 
                 Menu.AddSubMenu(infoMenu);
                 Menu.AddSubMenu(globalMenu);
@@ -92,31 +94,6 @@ namespace SFXUtility
         {
             get { return Assembly.GetExecutingAssembly().GetName().Version; }
         }
-
-        #region Fonts
-
-        private void AddFont(Menu menu)
-        {
-            try
-            {
-                menu.AddItem(
-                    new MenuItem(menu.Name + "Font", Global.Lang.Get("SFX_Font")).SetValue(
-                        new StringList(
-                            new[]
-                            {
-                                "Calibri", "Arial", "Tahoma", "Verdana", "Times New Roman", "Lucida Console",
-                                "Comic Sans MS"
-                            })));
-
-                Global.DefaultFont = menu.Item(menu.Name + "Font").GetValue<StringList>().SelectedValue;
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        #endregion Fonts
 
         private void AddLanguage(Menu menu)
         {
@@ -251,6 +228,62 @@ namespace SFXUtility
                 Global.Logger.AddItem(new LogItem(ex));
             }
         }
+
+        #region Fonts
+
+        private void AddReport(Menu menu)
+        {
+            try
+            {
+                menu.AddItem(new MenuItem(menu.Name + "Report", Global.Lang.Get("SFX_GenerateReport")).SetValue(false))
+                    .ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        try
+                        {
+                            if (!args.GetNewValue<bool>())
+                            {
+                                return;
+                            }
+                            Utility.DelayAction.Add(0, () => menu.Item(menu.Name + "Report").SetValue(false));
+                            File.WriteAllText(
+                                Path.Combine(Global.BaseDir, string.Format("{0}.report.txt", Global.Name.ToLower())),
+                                GenerateReport.Generate());
+                            Notifications.AddNotification(Global.Lang.Get("SFX_ReportGenerated"), 5000);
+                        }
+                        catch (Exception ex)
+                        {
+                            Global.Logger.AddItem(new LogItem(ex));
+                        }
+                    };
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void AddFont(Menu menu)
+        {
+            try
+            {
+                menu.AddItem(
+                    new MenuItem(menu.Name + "Font", Global.Lang.Get("SFX_Font")).SetValue(
+                        new StringList(
+                            new[]
+                            {
+                                "Calibri", "Arial", "Tahoma", "Verdana", "Times New Roman", "Lucida Console",
+                                "Comic Sans MS"
+                            })));
+
+                Global.DefaultFont = menu.Item(menu.Name + "Font").GetValue<StringList>().SelectedValue;
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        #endregion Fonts
     }
 
     public class UnloadEventArgs : EventArgs

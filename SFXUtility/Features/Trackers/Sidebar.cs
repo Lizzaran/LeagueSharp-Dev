@@ -48,7 +48,6 @@ namespace SFXUtility.Features.Trackers
 {
     internal class Sidebar : Child<Trackers>
     {
-        private float _lastChatSend;
         private const float HudWidth = 95f;
         private const float HudHeight = 90f;
         private const float SummonerWidth = 22f;
@@ -69,6 +68,7 @@ namespace SFXUtility.Features.Trackers
         private readonly Dictionary<int, float> _teleports = new Dictionary<int, float>();
         private Texture _hudTexture;
         private Texture _invisibleTexture;
+        private float _lastChatSend;
         private Line _line;
         private float _scale;
         private Sprite _sprite;

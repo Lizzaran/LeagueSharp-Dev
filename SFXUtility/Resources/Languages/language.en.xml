@@ -74,6 +74,8 @@
 	<entry key="F_SFX">SFXUtility</entry>
 	<entry key="SFX_Settings">Settings</entry>
 	<entry key="SFX_Font">Font</entry>
+	<entry key="SFX_GenerateReport">Generate Report</entry>
+	<entry key="SFX_ReportGenerated">Report Generated</entry>
 	<entry key="SFX_Language">Language</entry>
 	<entry key="SFX_Loaded">loaded</entry>
 	<entry key="SFX_Info">Info</entry>

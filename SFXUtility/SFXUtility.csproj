@@ -23,7 +23,7 @@
     <AssemblyVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyVersionSettings>
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
-    <AssemblyVersion>0.8.3.46</AssemblyVersion>
+    <AssemblyVersion>0.8.3.48</AssemblyVersion>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -100,6 +100,7 @@
     <Compile Include="Classes\ImageLoader.cs" />
     <Compile Include="Classes\MDrawing.cs" />
     <Compile Include="Classes\Parent.cs" />
+    <Compile Include="Classes\Report.cs" />
     <Compile Include="Data\Altars.cs" />
     <Compile Include="Data\Items.cs" />
     <Compile Include="Data\Relics.cs" />

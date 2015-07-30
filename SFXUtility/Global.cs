@@ -23,10 +23,12 @@
 #region
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SFXLibrary;
 using SFXLibrary.Logger;
+using SFXUtility.Interfaces;
 
 #endregion
 
@@ -43,6 +45,7 @@ namespace SFXUtility
         public static string LogDir = Path.Combine(BaseDir, Name + " - Logs");
         public static string CacheDir = Path.Combine(BaseDir, Name + " - Cache");
         public static SFXUtility SFX = null;
+        public static List<IChild> Features = new List<IChild>();
 
         static Global()
         {
