@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using LeagueSharp;
+using SFXUtility.Interfaces;
 
 #endregion
 
@@ -92,7 +93,7 @@ namespace SFXUtility.Classes
             {
                 try
                 {
-                    Builder.Append(feature.Name);
+                    Builder.Append(GetFeatureName(feature));
                     Builder.Append(feature.Equals(lastFeature) ? Environment.NewLine : ", ");
                 }
                 catch (Exception ex)
@@ -118,6 +119,16 @@ namespace SFXUtility.Classes
             Builder.AppendLine();
         }
 
+        private static string GetFeatureName(IChild feature)
+        {
+            var split = feature.ToString().Split('.');
+            if (split.Length > 0)
+            {
+                return split.Last();
+            }
+            return feature.ToString();
+        }
+
         private static void GenerateFeatures()
         {
             Builder.AppendLine("Activated Features");
@@ -128,9 +139,10 @@ namespace SFXUtility.Classes
                 try
                 {
                     Builder.AppendLine();
-                    Builder.AppendLine(feature.Name);
+                    Builder.AppendLine(GetFeatureName(feature));
                     Builder.AppendLine("-------------------");
-                    Builder.AppendLine(string.Format("[Name]        : {0}", feature.Name));
+                    Builder.AppendLine(string.Format("[Name]        : {0}", GetFeatureName(feature)));
+                    Builder.AppendLine(string.Format("[Full Name]   : {0}", feature));
                     Builder.AppendLine(string.Format("[Enabled]     : {0}", feature.Enabled));
                     Builder.AppendLine(string.Format("[Handled]     : {0}", feature.Handled));
                     Builder.AppendLine(string.Format("[Initialized] : {0}", feature.Initialized));

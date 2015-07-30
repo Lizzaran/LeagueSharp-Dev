@@ -992,7 +992,7 @@ namespace SFXChallenger.Champions
                 Pos = ObjectManager.Player.Position;
                 GameObject.OnCreate += OnGameObjectCreate;
                 Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
-                Core.OnPreUpdate += OnCorePreUpdate;
+                Game.OnUpdate += OnGameUpdate;
 
                 foreach (var obj in GameObjects.AllGameObjects)
                 {
@@ -1038,7 +1038,7 @@ namespace SFXChallenger.Champions
             public static bool IsMoving { get; private set; }
             public static event EventHandler OnPositionChange;
 
-            private static void OnCorePreUpdate(EventArgs args)
+            private static void OnGameUpdate(EventArgs args)
             {
                 try
                 {
