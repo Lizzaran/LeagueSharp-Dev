@@ -650,7 +650,7 @@ namespace SFXChallenger.Champions
                     }
                     if (Q.IsCharging && IsFullyCharged())
                     {
-                        Casting.Farm(Q, minions.Count < min ? minions.Count : min);
+                        Casting.Farm(Q, minions.Count < min ? minions.Count : min, -1f, false, minions);
                     }
                 }
             }
