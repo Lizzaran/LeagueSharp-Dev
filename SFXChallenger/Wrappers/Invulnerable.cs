@@ -24,7 +24,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXLibrary.Logger;
@@ -52,7 +51,7 @@ namespace SFXChallenger.Wrappers
             new InvulnerableStruct("Kayle", "JudicatorIntervention", null, false),
             new InvulnerableStruct(null, "BlackShield", LeagueSharp.Common.TargetSelector.DamageType.Magical, true),
             new InvulnerableStruct(null, "BansheesVeil", LeagueSharp.Common.TargetSelector.DamageType.Magical, true),
-            new InvulnerableStruct("Sivir", "SivirShield", LeagueSharp.Common.TargetSelector.DamageType.True, true),
+            new InvulnerableStruct("Sivir", "SivirE", LeagueSharp.Common.TargetSelector.DamageType.True, true),
             new InvulnerableStruct(
                 "Nocturne", "ShroudofDarkness", LeagueSharp.Common.TargetSelector.DamageType.True, true)
         };
@@ -72,14 +71,16 @@ namespace SFXChallenger.Wrappers
                 {
                     if (invulnerable.Champion == null || invulnerable.Champion == target.ChampionName)
                     {
-                        if (invulnerable.DamageType == null || invulnerable.DamageType == damageType || invulnerable.DamageType == LeagueSharp.Common.TargetSelector.DamageType.True)
+                        if (invulnerable.DamageType == null || invulnerable.DamageType == damageType ||
+                            invulnerable.DamageType == LeagueSharp.Common.TargetSelector.DamageType.True)
                         {
-                            if (ignoreShields && !invulnerable.IsShield || !ignoreShields && invulnerable.IsShield)
+                            if (!ignoreShields && invulnerable.IsShield && target.HasBuff(invulnerable.BuffName))
                             {
-                                if (invulnerable.CustomCheck == null || invulnerable.CustomCheck(target, damageType))
-                                {
-                                    return true;
-                                }
+                                return true;
+                            }
+                            if (invulnerable.CustomCheck == null || invulnerable.CustomCheck(target, damageType))
+                            {
+                                return true;
                             }
                         }
                     }
