@@ -78,7 +78,7 @@ namespace SFXChallenger.Wrappers
                             {
                                 return true;
                             }
-                            if (invulnerable.CustomCheck == null || invulnerable.CustomCheck(target, damageType))
+                            if (invulnerable.CustomCheck != null && invulnerable.CustomCheck(target, damageType))
                             {
                                 return true;
                             }
