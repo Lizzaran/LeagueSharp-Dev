@@ -578,7 +578,8 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
-                var target = TargetSelector.GetTarget(Q.Range, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+                var target = TargetSelector.GetTarget(
+                    Q.Range, LeagueSharp.Common.TargetSelector.DamageType.Magical, false);
                 if (_qTarget != null && _qTarget.IsValidTarget(Q.Range) && _qDelay + 0.5f > Game.Time)
                 {
                     target = _qTarget;
@@ -669,7 +670,7 @@ namespace SFXChallenger.Champions
                 else
                 {
                     var target = TargetSelector.GetTarget(
-                        W.Range * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+                        W.Range * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical, false);
                     if (target != null)
                     {
                         var best = GetBestCard(target, "flee");

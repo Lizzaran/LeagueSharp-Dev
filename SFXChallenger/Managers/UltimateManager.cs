@@ -156,7 +156,8 @@ namespace SFXChallenger.Managers
                 var uDuelMenu =
                     ultimateMenu.AddSubMenu(
                         new Menu(
-                            Global.Lang.Get("UM_Duel") + Global.Lang.Get("G_Settings"), ultimateMenu.Name + ".duel"));
+                            Global.Lang.Get("UM_Duel") + " " + Global.Lang.Get("G_Settings"),
+                            ultimateMenu.Name + ".duel"));
 
                 var uDuelAlliesMenu =
                     uDuelMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Allies"), uDuelMenu.Name + ".allies"));
