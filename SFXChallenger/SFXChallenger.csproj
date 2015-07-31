@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.7.0.5</AssemblyVersion>
+    <AssemblyVersion>0.7.0.8</AssemblyVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -101,6 +101,7 @@
     <Compile Include="Events\InitiatorArgs.cs" />
     <Compile Include="Events\TargetCastArgs.cs" />
     <Compile Include="Global.cs" />
+    <Compile Include="Helpers\CPrediction.cs" />
     <Compile Include="Helpers\DynamicInitializer.cs" />
     <Compile Include="Helpers\Utils.cs" />
     <Compile Include="Managers\DelayManager.cs" />

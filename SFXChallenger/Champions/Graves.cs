@@ -234,7 +234,13 @@ namespace SFXChallenger.Champions
             }
             if (useW)
             {
-                Casting.SkillShot(W, W.GetHitChance("combo"));
+                var target = TargetSelector.GetTarget(
+                    W.Range + W.Width, LeagueSharp.Common.TargetSelector.DamageType.Physical);
+                var best = CPrediction.Circle(W, target, W.GetHitChance("combo"));
+                if (best.TotalHits > 0 && !best.CastPosition.Equals(Vector3.Zero))
+                {
+                    W.Cast(best.CastPosition);
+                }
             }
             if (useE)
             {

@@ -105,7 +105,11 @@ namespace SFXChallenger.Helpers
 
             if (minHit > 1)
             {
-                minHit = minions.Any(m => m.Team == GameObjectTeam.Neutral) ? 1 : minHit;
+                var nearest = minions.OrderBy(m => m.Distance(ObjectManager.Player)).FirstOrDefault();
+                if (nearest != null && nearest.Team == GameObjectTeam.Neutral)
+                {
+                    minHit = 1;
+                }
             }
 
             if (spell.Type == SkillshotType.SkillshotCircle)

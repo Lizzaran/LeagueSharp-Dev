@@ -52,6 +52,8 @@
 	<entry key="G_Debug">Debug</entry>
 	<entry key="G_Range">Range</entry>
 	<entry key="G_Hero">Hero</entry>
+	<entry key="G_Burst">Burst</entry>
+	<entry key="G_Full">Full</entry>
 	<entry key="G_Heroes">Heroes</entry>
 	<entry key="G_Miscellaneous">Miscellaneous</entry>
 	<entry key="G_Gapcloser">Gapcloser</entry>

@@ -232,9 +232,10 @@ namespace SFXChallenger.Champions
                             var range = W.Range + Player.BoundingRadius * 2f;
                             var targets = laneclear
                                 ? MinionManager.GetMinions(
-                                    range, MinionTypes.All, MinionTeam.NotAlly,
-                                    MinionOrderTypes.MaxHealth)
-                                : GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(range)).Cast<Obj_AI_Base>().ToList();
+                                    range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
+                                : GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(range))
+                                    .Cast<Obj_AI_Base>()
+                                    .ToList();
                             if (targets.Any(Orbwalking.InAutoAttackRange) && targets.Count >= wMin)
                             {
                                 W.Cast();

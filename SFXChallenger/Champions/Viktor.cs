@@ -159,11 +159,20 @@ namespace SFXChallenger.Champions
                 });
             IndicatorManager.Add(E);
             IndicatorManager.Add(
-                "R", delegate(Obj_AI_Hero hero)
+                "R " + Global.Lang.Get("G_Burst"), delegate(Obj_AI_Hero hero)
                 {
                     if (R.IsReady())
                     {
-                        return R.GetDamage(hero) + (R.GetDamage(hero, 1) * 10);
+                        return R.GetDamage(hero) + R.GetDamage(hero, 1);
+                    }
+                    return 0;
+                });
+            IndicatorManager.Add(
+                "R " + Global.Lang.Get("G_Full"), delegate(Obj_AI_Hero hero)
+                {
+                    if (R.IsReady())
+                    {
+                        return R.GetDamage(hero) + R.GetDamage(hero, 1) * 10;
                     }
                     return 0;
                 });
@@ -183,7 +192,7 @@ namespace SFXChallenger.Champions
             E.SetSkillshot(0f, 90f, 800f, false, SkillshotType.SkillshotLine);
 
             R = new Spell(SpellSlot.R, 700f);
-            R.SetSkillshot(0.75f, 575f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            R.SetSkillshot(0.3f, 575f, float.MaxValue, false, SkillshotType.SkillshotCircle);
         }
 
         private void OnCorePostUpdate(EventArgs args)
@@ -564,10 +573,10 @@ namespace SFXChallenger.Champions
             {
                 if (UltimateManager.CheckDuel(target, CalcComboDamage(target, q, e, true)))
                 {
-                    var pred = BestRCastLocation(target);
-                    if (UltimateManager.Check(1, pred.Item2))
+                    var pred = CPrediction.Circle(R, target, HitChance.High);
+                    if (pred.TotalHits > 0 && UltimateManager.Check(1, pred.Hits))
                     {
-                        R.Cast(pred.Item1);
+                        R.Cast(pred.CastPosition);
                     }
                 }
             }
@@ -581,10 +590,10 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                var pred = BestRCastLocation(target);
-                if (UltimateManager.Check(min, pred.Item2))
+                var pred = CPrediction.Circle(R, target, HitChance.High);
+                if (pred.TotalHits > 0 && UltimateManager.Check(min, pred.Hits))
                 {
-                    R.Cast(pred.Item1);
+                    R.Cast(pred.CastPosition);
                     return true;
                 }
             }
@@ -904,59 +913,6 @@ namespace SFXChallenger.Champions
                     }
                 }
             }
-        }
-
-        private Tuple<Vector3, List<Obj_AI_Hero>> BestRCastLocation(Obj_AI_Hero target, float overrideRange = -1)
-        {
-            try
-            {
-                var hits = new List<Obj_AI_Hero>();
-                var center = Vector2.Zero;
-                float radius = -1;
-                var range = (overrideRange > 0 ? overrideRange : (R.Range + R.Width / 2));
-                var points = (from t in GameObjects.EnemyHeroes
-                    where t.IsValidTarget(range)
-                    let prediction = Q.GetPrediction(t)
-                    where prediction.Hitchance >= HitChance.Medium
-                    select new Tuple<Obj_AI_Hero, Vector2>(t, prediction.UnitPosition.To2D())).ToList();
-                if (points.Any())
-                {
-                    var possibilities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 1).ToList();
-                    if (possibilities.Any())
-                    {
-                        foreach (var possibility in possibilities)
-                        {
-                            var mec = MEC.GetMec(possibility.Select(p => p.Item2).ToList());
-                            if (mec.Radius < R.Width && Player.Distance(mec.Center) < range)
-                            {
-                                if ((possibility.Count > hits.Count ||
-                                     possibility.Count == hits.Count && mec.Radius < radius) &&
-                                    possibility.Any(p => p.Item1.NetworkId == target.NetworkId))
-                                {
-                                    center = mec.Center;
-                                    radius = mec.Radius;
-                                    hits.Clear();
-                                    hits.AddRange(possibility.Select(p => p.Item1).ToList());
-                                }
-                            }
-                        }
-                        if (!center.Equals(Vector2.Zero))
-                        {
-                            return new Tuple<Vector3, List<Obj_AI_Hero>>(center.To3D2(), hits);
-                        }
-                    }
-                    if (target.Distance(Player) < R.Range || target.Distance(Player) < R.Range + R.Width / 3f)
-                    {
-                        return new Tuple<Vector3, List<Obj_AI_Hero>>(
-                            Player.Position.Extend(target.Position, R.Range), new List<Obj_AI_Hero> { target });
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return new Tuple<Vector3, List<Obj_AI_Hero>>(Vector3.Zero, new List<Obj_AI_Hero>());
         }
 
         private Vector3 BestRFollowLocation(Vector3 position)

@@ -52,7 +52,11 @@ namespace SFXChallenger.Managers
             {
                 _menu = subMenu ? menu.AddSubMenu(new Menu(Global.Lang.Get("F_IDM"), menu.Name + ".indicator")) : menu;
 
-                var drawingMenu = _menu.AddSubMenu(new Menu(Global.Lang.Get("G_Drawing"), _menu.Name.Replace(ObjectManager.Player.ChampionName, string.Empty) + ".drawing"));
+                var drawingMenu =
+                    _menu.AddSubMenu(
+                        new Menu(
+                            Global.Lang.Get("G_Drawing"),
+                            _menu.Name.Replace(ObjectManager.Player.ChampionName, string.Empty) + ".drawing"));
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + ".color", Global.Lang.Get("G_Color")).SetValue(Color.Orange));
                 drawingMenu.AddItem(

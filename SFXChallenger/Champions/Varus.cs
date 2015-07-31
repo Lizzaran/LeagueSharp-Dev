@@ -33,7 +33,6 @@ using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
 using SFXChallenger.Wrappers;
 using SFXLibrary;
-using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
 using SharpDX;
 using Collision = LeagueSharp.Common.Collision;
@@ -180,7 +179,7 @@ namespace SFXChallenger.Champions
             W = new Spell(SpellSlot.W, 0f);
 
             E = new Spell(SpellSlot.E, 950f);
-            E.SetSkillshot(0.50f, 250f, 1400f, false, SkillshotType.SkillshotCircle);
+            E.SetSkillshot(0.25f, 250f, 1400f, false, SkillshotType.SkillshotCircle);
 
             R = new Spell(SpellSlot.R, 1075f);
             R.SetSkillshot(0.25f, 120f, 1950f, false, SkillshotType.SkillshotLine);
@@ -311,14 +310,15 @@ namespace SFXChallenger.Champions
             }
             if (e && E.IsReady())
             {
-                var target = TargetSelector.GetTarget(E.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical);
+                var target = TargetSelector.GetTarget(
+                    E.Range + E.Width, LeagueSharp.Common.TargetSelector.DamageType.Physical);
                 if (target != null)
                 {
                     var stacks = W.Level == 0 && Menu.Item(Menu.Name + ".combo.e-stacks").GetValue<Slider>().Value > 0;
                     if (Menu.Item(Menu.Name + ".combo.e-always").GetValue<bool>() || stacks ||
                         GetWStacks(target) >= Menu.Item(Menu.Name + ".combo.e-stacks").GetValue<Slider>().Value ||
                         E.IsKillable(target) ||
-                        BestECastLocation(target, E.GetHitChance("combo")).Item2.Count >=
+                        CPrediction.Circle(E, target, E.GetHitChance("combo")).TotalHits >=
                         Menu.Item(Menu.Name + ".combo.e-min").GetValue<Slider>().Value)
                     {
                         ELogic(target, E.GetHitChance("combo"));
@@ -373,14 +373,15 @@ namespace SFXChallenger.Champions
             }
             if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>() && E.IsReady())
             {
-                var target = TargetSelector.GetTarget(E.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical);
+                var target = TargetSelector.GetTarget(
+                    E.Range + E.Width, LeagueSharp.Common.TargetSelector.DamageType.Physical);
                 if (target != null)
                 {
                     var stacks = W.Level == 0 && Menu.Item(Menu.Name + ".harass.e-stacks").GetValue<Slider>().Value > 0;
                     if (Menu.Item(Menu.Name + ".harass.e-always").GetValue<bool>() || stacks ||
                         GetWStacks(target) >= Menu.Item(Menu.Name + ".harass.e-stacks").GetValue<Slider>().Value ||
                         E.IsKillable(target) ||
-                        BestECastLocation(target, E.GetHitChance("combo")).Item2.Count >=
+                        CPrediction.Circle(E, target, E.GetHitChance("harass")).TotalHits >=
                         Menu.Item(Menu.Name + ".combo.e-min").GetValue<Slider>().Value)
                     {
                         ELogic(target, E.GetHitChance("harass"));
@@ -539,10 +540,11 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
-                var best = BestECastLocation(target, hitChance);
-                if (best.Item2.Count > 0 && !best.Item1.Equals(Vector3.Zero))
+
+                var best = CPrediction.Circle(E, target, hitChance);
+                if (best.TotalHits > 0 && !best.CastPosition.Equals(Vector3.Zero))
                 {
-                    E.Cast(best.Item1);
+                    E.Cast(best.CastPosition);
                 }
             }
             catch (Exception ex)
@@ -721,54 +723,6 @@ namespace SFXChallenger.Champions
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
-        }
-
-        private Tuple<Vector3, List<Obj_AI_Hero>> BestECastLocation(Obj_AI_Hero target, HitChance hitChance)
-        {
-            try
-            {
-                var hits = new List<Obj_AI_Hero>();
-                var center = Vector2.Zero;
-                float radius = -1;
-                var range = E.Range;
-                var points = (from t in GameObjects.EnemyHeroes
-                    where t.IsValidTarget(range)
-                    let prediction = E.GetPrediction(t)
-                    where prediction.Hitchance >= (hitChance - 1)
-                    select new Tuple<Obj_AI_Hero, Vector2>(t, prediction.UnitPosition.To2D())).ToList();
-                if (points.Any())
-                {
-                    var possibilities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 0).ToList();
-                    if (possibilities.Any())
-                    {
-                        foreach (var possibility in possibilities)
-                        {
-                            var mec = MEC.GetMec(possibility.Select(p => p.Item2).ToList());
-                            if (mec.Radius < E.Width && Player.Distance(mec.Center) < range)
-                            {
-                                if ((possibility.Count > hits.Count ||
-                                     possibility.Count == hits.Count && mec.Radius < radius) &&
-                                    possibility.Any(p => p.Item1.NetworkId == target.NetworkId))
-                                {
-                                    center = mec.Center;
-                                    radius = mec.Radius;
-                                    hits.Clear();
-                                    hits.AddRange(possibility.Select(p => p.Item1).ToList());
-                                }
-                            }
-                        }
-                        if (!center.Equals(Vector2.Zero))
-                        {
-                            return new Tuple<Vector3, List<Obj_AI_Hero>>(center.To3D2(), hits);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return new Tuple<Vector3, List<Obj_AI_Hero>>(Vector3.Zero, new List<Obj_AI_Hero>());
         }
     }
 }
