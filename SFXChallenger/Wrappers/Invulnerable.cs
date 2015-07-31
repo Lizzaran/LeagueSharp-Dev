@@ -64,15 +64,27 @@ namespace SFXChallenger.Wrappers
         {
             try
             {
-                return target.HasBuffOfType(BuffType.Invulnerability) ||
-                       Invulnerables.Any(
-                           i =>
-                               (i.Champion == null || i.Champion == target.ChampionName) &&
-                               (!ignoreShields || !i.IsShield) &&
-                               (i.DamageType == null ||
-                                i.DamageType == LeagueSharp.Common.TargetSelector.DamageType.True ||
-                                i.DamageType == damageType) && target.HasBuff(i.BuffName) &&
-                               (i.CustomCheck == null || i.CustomCheck(target, damageType)));
+                if (target.HasBuffOfType(BuffType.Invulnerability))
+                {
+                    return true;
+                }
+                foreach (var invulnerable in Invulnerables)
+                {
+                    if (invulnerable.Champion == null || invulnerable.Champion == target.ChampionName)
+                    {
+                        if (invulnerable.DamageType == null || invulnerable.DamageType == damageType || invulnerable.DamageType == LeagueSharp.Common.TargetSelector.DamageType.True)
+                        {
+                            if (ignoreShields && !invulnerable.IsShield || !ignoreShields && invulnerable.IsShield)
+                            {
+                                if (invulnerable.CustomCheck == null || invulnerable.CustomCheck(target, damageType))
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+                return false;
             }
             catch (Exception ex)
             {
