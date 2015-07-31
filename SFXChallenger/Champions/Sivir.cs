@@ -236,7 +236,11 @@ namespace SFXChallenger.Champions
                                 : GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(range))
                                     .Cast<Obj_AI_Base>()
                                     .ToList();
-                            if (targets.Any(Orbwalking.InAutoAttackRange) && targets.Count >= wMin)
+                            if (targets.Count >= wMin &&
+                                targets.Any(
+                                    t =>
+                                        Orbwalking.InAutoAttackRange(t) &&
+                                        targets.Any(t2 => t2.NetworkId != t.NetworkId && t2.Distance(t) <= 450)))
                             {
                                 W.Cast();
                                 Orbwalking.ResetAutoAttackTimer();
