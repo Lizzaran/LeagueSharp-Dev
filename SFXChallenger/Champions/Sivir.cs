@@ -130,16 +130,10 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (args.Target.IsDead || args.Target.Position.Distance(Player.Position) > 3000)
+                if (Menu.Item(Menu.Name + ".shield.enabled").GetValue<bool>() && args.Target.IsMe &&
+                    ManaManager.Check("shield"))
                 {
-                    return;
-                }
-                if (Menu.Item(Menu.Name + ".shield.enabled").GetValue<bool>() &&
-                    (args.Target == null || args.Target.IsMe) && ManaManager.Check("shield"))
-                {
-                    var radius = args.SData.CastRadius + args.Sender.BoundingRadius + Player.BoundingRadius;
-                    if (args.Type == SpellDataTargetType.SelfAoe && radius <= 1000 &&
-                        args.Sender.Distance(Player.Position) <= radius && E.IsReady())
+                    if (args.Type == SpellDataTargetType.SelfAoe)
                     {
                         E.Cast();
                     }
@@ -235,10 +229,12 @@ namespace SFXChallenger.Champions
                         }
                         if (useW && (!laneclear || ManaManager.Check("lane-clear-w")))
                         {
+                            var range = W.Range + Player.BoundingRadius * 2f;
                             var targets = laneclear
                                 ? MinionManager.GetMinions(
-                                    800f, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
-                                : GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(800f)).Cast<Obj_AI_Base>().ToList();
+                                    range, MinionTypes.All, MinionTeam.NotAlly,
+                                    MinionOrderTypes.MaxHealth)
+                                : GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(range)).Cast<Obj_AI_Base>().ToList();
                             if (targets.Any(Orbwalking.InAutoAttackRange) && targets.Count >= wMin)
                             {
                                 W.Cast();

@@ -73,13 +73,10 @@ namespace SFXChallenger.Managers
                 {
                     return;
                 }
-                if (args.Target != null)
+                var target = FixTarget(hero, args.Target, args.SData);
+                if (target == null)
                 {
-                    var target = args.Target as Obj_AI_Hero;
-                    if (target == null)
-                    {
-                        return;
-                    }
+                    return;
                 }
                 var enabled = true;
                 if (_menu != null)
@@ -90,8 +87,8 @@ namespace SFXChallenger.Managers
                 if (enabled)
                 {
                     var eventArgs = new TargetCastArgs(
-                        hero, args.Target, args.SData.TargettingType, FixDelay(hero, args.SData),
-                        FixSpeed(hero, args.SData), args.SData);
+                        hero, target, args.SData.TargettingType, FixDelay(hero, args.SData), FixSpeed(hero, args.SData),
+                        args.SData);
                     OnTargetCast.RaiseEvent(null, eventArgs);
                     (hero.IsAlly ? OnAllyTargetCast : OnEnemyTargetCast).RaiseEvent(null, eventArgs);
                 }
@@ -100,6 +97,20 @@ namespace SFXChallenger.Managers
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        private static Obj_AI_Hero FixTarget(Obj_AI_Hero sender, GameObject target, SpellData data)
+        {
+            if (target == null)
+            {
+                var range = (data.CastRange + data.CastRadius + sender.BoundingRadius +
+                             ObjectManager.Player.BoundingRadius) * 1.25f;
+                if (ObjectManager.Player.Distance(sender) < range)
+                {
+                    return ObjectManager.Player;
+                }
+            }
+            return target != null && target.IsMe ? ObjectManager.Player : null;
         }
 
         private static float FixDelay(Obj_AI_Hero hero, SpellData data)

@@ -52,7 +52,7 @@ namespace SFXChallenger.Managers
             {
                 _menu = subMenu ? menu.AddSubMenu(new Menu(Global.Lang.Get("F_IDM"), menu.Name + ".indicator")) : menu;
 
-                var drawingMenu = _menu.AddSubMenu(new Menu(Global.Lang.Get("G_Drawing"), _menu.Name + ".drawing"));
+                var drawingMenu = _menu.AddSubMenu(new Menu(Global.Lang.Get("G_Drawing"), _menu.Name.Replace(ObjectManager.Player.ChampionName, string.Empty) + ".drawing"));
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + ".color", Global.Lang.Get("G_Color")).SetValue(Color.Orange));
                 drawingMenu.AddItem(
@@ -159,9 +159,10 @@ namespace SFXChallenger.Managers
                 {
                     return;
                 }
-                var color = _menu.Item(_menu.Name + ".drawing.color").GetValue<Color>();
+                var drawingName = _menu.Name.Replace(ObjectManager.Player.ChampionName, string.Empty);
+                var color = _menu.Item(drawingName + ".drawing.color").GetValue<Color>();
                 color = Color.FromArgb(
-                    _menu.Item(_menu.Name + ".drawing.opacity").GetValue<Slider>().Value * 255 / 100, color);
+                    _menu.Item(drawingName + ".drawing.opacity").GetValue<Slider>().Value * 255 / 100, color);
                 foreach (var unit in
                     GameObjects.EnemyHeroes.Where(
                         u => u.IsHPBarRendered && u.Position.IsOnScreen() && u.IsValidTarget()))

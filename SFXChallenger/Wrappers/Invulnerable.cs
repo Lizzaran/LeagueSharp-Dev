@@ -52,9 +52,9 @@ namespace SFXChallenger.Wrappers
             new InvulnerableStruct("Kayle", "JudicatorIntervention", null, false),
             new InvulnerableStruct(null, "BlackShield", LeagueSharp.Common.TargetSelector.DamageType.Magical, true),
             new InvulnerableStruct(null, "BansheesVeil", LeagueSharp.Common.TargetSelector.DamageType.Magical, true),
-            new InvulnerableStruct("Sivir", "SivirShield", LeagueSharp.Common.TargetSelector.DamageType.Magical, true),
+            new InvulnerableStruct("Sivir", "SivirShield", LeagueSharp.Common.TargetSelector.DamageType.True, true),
             new InvulnerableStruct(
-                "Nocturne", "ShroudofDarkness", LeagueSharp.Common.TargetSelector.DamageType.Magical, true)
+                "Nocturne", "ShroudofDarkness", LeagueSharp.Common.TargetSelector.DamageType.True, true)
         };
 
         // ReSharper restore StringLiteralTypo
@@ -68,8 +68,10 @@ namespace SFXChallenger.Wrappers
                        Invulnerables.Any(
                            i =>
                                (i.Champion == null || i.Champion == target.ChampionName) &&
-                               (!ignoreShields || !i.IsShield) && (i.DamageType == null || i.DamageType == damageType) &&
-                               target.HasBuff(i.BuffName) &&
+                               (!ignoreShields || !i.IsShield) &&
+                               (i.DamageType == null ||
+                                i.DamageType == LeagueSharp.Common.TargetSelector.DamageType.True ||
+                                i.DamageType == damageType) && target.HasBuff(i.BuffName) &&
                                (i.CustomCheck == null || i.CustomCheck(target, damageType)));
             }
             catch (Exception ex)

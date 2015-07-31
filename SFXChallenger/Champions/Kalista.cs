@@ -31,6 +31,7 @@ using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
+using SFXChallenger.Wrappers;
 using SFXLibrary;
 using SFXLibrary.Logger;
 using SharpDX;
@@ -734,6 +735,14 @@ namespace SFXChallenger.Champions
                             {
                                 return false;
                             }
+                        }
+                    }
+                    var hero = target as Obj_AI_Hero;
+                    if (hero != null)
+                    {
+                        if (Invulnerable.HasBuff(hero, LeagueSharp.Common.TargetSelector.DamageType.True, false))
+                        {
+                            return false;
                         }
                     }
                     return GetDamage(target) > target.Health; // + target.AttackShield;
