@@ -163,7 +163,7 @@ namespace SFXChallenger.Champions
                 new WeightedItem("w-stacks", "W " + Global.Lang.Get("G_Stacks"), 13, true, 333, 500, t => GetWStacks(t)));
 
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
-            IndicatorManager.Add(Q);
+            IndicatorManager.Add("Q", hero => Q.GetDamage(hero, 1));
             IndicatorManager.Add(E);
             IndicatorManager.Add(R);
             IndicatorManager.Finale();
@@ -633,12 +633,9 @@ namespace SFXChallenger.Champions
 
         protected override void LaneClear()
         {
-            if (!ManaManager.Check("lane-clear") && !Q.IsCharging)
-            {
-                return;
-            }
             var min = Menu.Item(Menu.Name + ".lane-clear.min").GetValue<Slider>().Value;
-            if (Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady())
+            if (Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady() &&
+                (ManaManager.Check("lane-clear") || Q.IsCharging))
             {
                 var minions = MinionManager.GetMinions(
                     Q.ChargedMaxRange, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
@@ -654,7 +651,9 @@ namespace SFXChallenger.Champions
                     }
                 }
             }
-            if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady())
+
+            if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady() &&
+                ManaManager.Check("lane-clear"))
             {
                 Casting.Farm(E, min);
             }

@@ -33,6 +33,7 @@ using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
 using SFXLibrary;
 using SFXLibrary.Logger;
+using SharpDX;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
@@ -241,7 +242,7 @@ namespace SFXChallenger.Champions
                     (E.Range + Player.AttackRange) * 0.9f, LeagueSharp.Common.TargetSelector.DamageType.Physical);
                 if (target != null)
                 {
-                    var pos = Player.Position.Extend(target.Position, E.Range);
+                    var pos = Player.Position.Extend(Game.CursorPos, E.Range);
                     if (!pos.UnderTurret(true))
                     {
                         E.Cast(pos);
@@ -271,7 +272,7 @@ namespace SFXChallenger.Champions
                 var hits = GetRHits(target);
                 if (UltimateManager.Check(min, hits.Item2))
                 {
-                    R.Cast(Player.Position);
+                    R.Cast(hits.Item3);
                     return true;
                 }
                 return false;
@@ -333,14 +334,16 @@ namespace SFXChallenger.Champions
             return 0;
         }
 
-        private Tuple<int, List<Obj_AI_Hero>> GetRHits(Obj_AI_Hero target)
+        private Tuple<int, List<Obj_AI_Hero>, Vector3> GetRHits(Obj_AI_Hero target)
         {
             var hits = new List<Obj_AI_Hero>();
+            var castPos = Vector3.Zero;
             try
             {
                 var pred = R.GetPrediction(target);
                 if (pred.Hitchance >= R.GetHitChance("combo"))
                 {
+                    castPos = pred.CastPosition;
                     hits.Add(target);
                     var pos = Player.Position.Extend(pred.CastPosition, Player.Distance(pred.UnitPosition));
                     var pos2 = Player.Position.Extend(pos, Player.Distance(pos) + R2.Range);
@@ -359,7 +362,7 @@ namespace SFXChallenger.Champions
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
-            return new Tuple<int, List<Obj_AI_Hero>>(hits.Count, hits);
+            return new Tuple<int, List<Obj_AI_Hero>, Vector3>(hits.Count, hits, castPos);
         }
 
         protected override void Harass()
