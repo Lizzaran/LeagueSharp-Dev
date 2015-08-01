@@ -47,19 +47,19 @@ namespace SFXChallenger.Helpers
                 var radius = float.MaxValue;
                 var range = spell.Range + spell.Width + (boundingRadius ? target.BoundingRadius * 0.75f : 0);
                 var width = spell.Width + (boundingRadius ? target.BoundingRadius * 2f : 0);
-                var points = (from t in GameObjects.EnemyHeroes
+                var positions = (from t in GameObjects.EnemyHeroes
                     where t.IsValidTarget(range, true, spell.RangeCheckFrom)
                     let prediction = spell.GetPrediction(t)
                     where prediction.Hitchance >= (hitChance - 1)
-                    select new Tuple<Obj_AI_Hero, Vector2>(t, prediction.UnitPosition.To2D())).ToList();
-                if (points.Any())
+                    select new Position(t, prediction.UnitPosition)).ToList();
+                if (positions.Any())
                 {
-                    var possibilities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 0).ToList();
+                    var possibilities = ListExtensions.ProduceEnumeration(positions).Where(p => p.Count > 0).ToList();
                     if (possibilities.Any())
                     {
                         foreach (var possibility in possibilities)
                         {
-                            var mec = MEC.GetMec(possibility.Select(p => p.Item2).ToList());
+                            var mec = MEC.GetMec(possibility.Select(p => p.UnitPosition.To2D()).ToList());
                             var distance = spell.From.Distance(mec.Center.To3D());
                             if (mec.Radius < width && distance < range)
                             {
@@ -73,16 +73,19 @@ namespace SFXChallenger.Helpers
                                 if (boundingRadius)
                                 {
                                     lHits.AddRange(
-                                        (from point in points
+                                        (from position in positions
                                             where
-                                                new Geometry.Polygon.Circle(point.Item2, point.Item1.BoundingRadius)
-                                                    .Points.Any(p => circle.IsInside(p))
-                                            select point.Item1));
+                                                new Geometry.Polygon.Circle(
+                                                    position.UnitPosition, position.Hero.BoundingRadius).Points.Any(
+                                                        p => circle.IsInside(p))
+                                            select position.Hero));
                                 }
                                 else
                                 {
                                     lHits.AddRange(
-                                        from point in points where circle.IsInside(point.Item2) select point.Item1);
+                                        from position in positions
+                                        where circle.IsInside(position.UnitPosition)
+                                        select position.Hero);
                                 }
                                 if ((lHits.Count > hits.Count || lHits.Count == hits.Count && mec.Radius < radius ||
                                      lHits.Count == hits.Count &&
@@ -119,12 +122,12 @@ namespace SFXChallenger.Helpers
             try
             {
                 var range = spell.IsChargedSpell && maxRange ? spell.ChargedMaxRange : spell.Range;
-                var points = (from t in GameObjects.EnemyHeroes
+                var positions = (from t in GameObjects.EnemyHeroes
                     where t.IsValidTarget(range, true, spell.RangeCheckFrom)
                     let prediction = spell.GetPrediction(t)
                     where prediction.Hitchance >= (hitChance - 1)
-                    select new Tuple<Obj_AI_Hero, Vector2>(t, prediction.UnitPosition.To2D())).ToList();
-                if (points.Any())
+                    select new Position(t, prediction.UnitPosition)).ToList();
+                if (positions.Any())
                 {
                     var hits = new List<Obj_AI_Hero>();
                     var pred = spell.GetPrediction(target);
@@ -136,15 +139,18 @@ namespace SFXChallenger.Helpers
                         if (boundingRadius)
                         {
                             hits.AddRange(
-                                from point in points.Where(p => p.Item1.NetworkId != target.NetworkId)
+                                from point in positions.Where(p => p.Hero.NetworkId != target.NetworkId)
                                 let circle =
-                                    new Geometry.Polygon.Circle(point.Item2, point.Item1.BoundingRadius * 0.85f)
+                                    new Geometry.Polygon.Circle(point.UnitPosition, point.Hero.BoundingRadius * 0.85f)
                                 where circle.Points.Any(p => rect.IsInside(p))
-                                select point.Item1);
+                                select point.Hero);
                         }
                         else
                         {
-                            hits.AddRange(from point in points where rect.IsInside(point.Item2) select point.Item1);
+                            hits.AddRange(
+                                from position in positions
+                                where rect.IsInside(position.UnitPosition)
+                                select position.Hero);
                         }
                         return new Result(pred.CastPosition, hits);
                     }
@@ -157,11 +163,23 @@ namespace SFXChallenger.Helpers
             return new Result(Vector3.Zero, new List<Obj_AI_Hero>());
         }
 
+        private struct Position
+        {
+            public readonly Obj_AI_Hero Hero;
+            public readonly Vector3 UnitPosition;
+
+            public Position(Obj_AI_Hero hero, Vector3 unitPosition)
+            {
+                Hero = hero;
+                UnitPosition = unitPosition;
+            }
+        }
+
         internal struct Result
         {
-            public Vector3 CastPosition;
-            public List<Obj_AI_Hero> Hits;
-            public int TotalHits;
+            public readonly Vector3 CastPosition;
+            public readonly List<Obj_AI_Hero> Hits;
+            public readonly int TotalHits;
 
             public Result(Vector3 castPosition, List<Obj_AI_Hero> hits)
             {
