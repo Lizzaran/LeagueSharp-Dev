@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Viktor.cs is part of SFXChallenger.
+ viktor.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -199,7 +199,7 @@ namespace SFXChallenger.Champions
             E.SetSkillshot(0f, 90f, 800f, false, SkillshotType.SkillshotLine);
 
             R = new Spell(SpellSlot.R, 700f);
-            R.SetSkillshot(0.3f, 575f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            R.SetSkillshot(0.3f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
         }
 
         private void OnCorePostUpdate(EventArgs args)
@@ -624,7 +624,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                var pred = CPrediction.Circle(R, target, HitChance.High, false);
+                var pred = CPrediction.Circle(R, target, HitChance.High);
                 if (pred.TotalHits > 0 && UltimateManager.Check(min, pred.Hits))
                 {
                     R.Cast(pred.CastPosition);

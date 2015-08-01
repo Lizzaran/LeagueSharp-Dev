@@ -214,8 +214,7 @@
 	<entry key="UM_MaxEnemies">Max Enemies</entry>
 	<entry key="UM_MinTargetHealth">Min Target Health %</entry>
 	<entry key="UM_MaxTargetHealth">Max Target Health %</entry>
-	<entry key="UM_DamageDecrease">Decrease Damage %</entry>
-	<entry key="UM_DamageIncrease">Increase Damage %</entry>
+	<entry key="UM_DamagePercent">Combo Damage %</entry>
 	<!-- END: UltimateManager -->
 
 	<!-- START: Orbwalker -->

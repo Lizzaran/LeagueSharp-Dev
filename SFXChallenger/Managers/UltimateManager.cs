@@ -199,11 +199,8 @@ namespace SFXChallenger.Managers
                     uDuelMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Damage"), uDuelMenu.Name + ".damage"));
 
                 uDuelDamageMenu.AddItem(
-                    new MenuItem(uDuelDamageMenu.Name + ".decrease", Global.Lang.Get("UM_DamageDecrease")).SetValue(
-                        new Slider(0)));
-                uDuelDamageMenu.AddItem(
-                    new MenuItem(uDuelDamageMenu.Name + ".increase", Global.Lang.Get("UM_DamageIncrease")).SetValue(
-                        new Slider(0)));
+                    new MenuItem(uDuelDamageMenu.Name + ".percent", Global.Lang.Get("UM_DamagePercent")).SetValue(
+                        new Slider(100, 1, 200)));
 
                 if (required)
                 {
@@ -295,7 +292,7 @@ namespace SFXChallenger.Managers
                 if (target.HealthPercent >= targetMinHealth && target.HealthPercent <= targetMaxHealth)
                 {
                     var pos = ObjectManager.Player.Position.Extend(
-                        target.Position, ObjectManager.Player.Distance(target) / 2f).Normalized();
+                        target.Position, ObjectManager.Player.Distance(target) / 2f);
 
                     var aCount =
                         GameObjects.AllyHeroes.Count(
@@ -306,12 +303,9 @@ namespace SFXChallenger.Managers
 
                     if (aCount >= alliesMin && aCount <= alliesMax && eCount >= enemiesMin && eCount <= enemiesMax)
                     {
-                        var decrease =
-                            _menu.Item(_menu.Name + ".ultimate.duel.damage.decrease").GetValue<Slider>().Value;
-                        var increase =
-                            _menu.Item(_menu.Name + ".ultimate.duel.damage.increase").GetValue<Slider>().Value;
-
-                        return (damage - (damage / 100) * decrease + (damage / 100) * increase) > target.Health;
+                        return damage *
+                               (_menu.Item(_menu.Name + ".ultimate.duel.damage.percent").GetValue<Slider>().Value / 100f) >
+                               target.Health;
                     }
                 }
             }
