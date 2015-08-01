@@ -90,53 +90,49 @@ namespace SFXUtility.Features.Events
             try
             {
                 Menu = new Menu(Name, Name);
-                CustomEvents.Game.OnGameLoad += delegate
-                {
-                    var championMenu = new Menu(
-                        ObjectManager.Player.ChampionName, Name + ObjectManager.Player.ChampionName);
 
-                    var earlyMenu = new Menu(Global.Lang.Get("AutoLeveler_Early"), championMenu.Name + "Early");
-                    earlyMenu.AddItem(
-                        new MenuItem(earlyMenu.Name + "1", "1: ").SetValue(
-                            new StringList(
-                                new[]
-                                { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" })));
-                    earlyMenu.AddItem(
-                        new MenuItem(earlyMenu.Name + "2", "2: ").SetValue(
-                            new StringList(
-                                new[]
-                                { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" }, 2)));
-                    earlyMenu.AddItem(
-                        new MenuItem(earlyMenu.Name + "3", "3: ").SetValue(
-                            new StringList(
-                                new[]
-                                { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" }, 4)));
-                    earlyMenu.AddItem(
-                        new MenuItem(earlyMenu.Name + "4", "4: ").SetValue(
-                            new StringList(
-                                new[]
-                                { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" }, 2)));
-                    earlyMenu.AddItem(
-                        new MenuItem(earlyMenu.Name + "5", "5: ").SetValue(
-                            new StringList(
-                                new[]
-                                { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" }, 3)));
+                var championMenu = new Menu(ObjectManager.Player.ChampionName, Name + ObjectManager.Player.ChampionName);
 
-                    championMenu.AddSubMenu(earlyMenu);
+                var earlyMenu = new Menu(Global.Lang.Get("AutoLeveler_Early"), championMenu.Name + "Early");
+                earlyMenu.AddItem(
+                    new MenuItem(earlyMenu.Name + "1", "1: ").SetValue(
+                        new StringList(
+                            new[] { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" })));
+                earlyMenu.AddItem(
+                    new MenuItem(earlyMenu.Name + "2", "2: ").SetValue(
+                        new StringList(
+                            new[] { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" },
+                            2)));
+                earlyMenu.AddItem(
+                    new MenuItem(earlyMenu.Name + "3", "3: ").SetValue(
+                        new StringList(
+                            new[] { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" },
+                            4)));
+                earlyMenu.AddItem(
+                    new MenuItem(earlyMenu.Name + "4", "4: ").SetValue(
+                        new StringList(
+                            new[] { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" },
+                            2)));
+                earlyMenu.AddItem(
+                    new MenuItem(earlyMenu.Name + "5", "5: ").SetValue(
+                        new StringList(
+                            new[] { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" },
+                            3)));
 
-                    championMenu.AddItem(new MenuItem(championMenu.Name + "Q", "Q").SetValue(new Slider(3, 3, 1)));
-                    championMenu.AddItem(new MenuItem(championMenu.Name + "W", "W").SetValue(new Slider(1, 3, 1)));
-                    championMenu.AddItem(new MenuItem(championMenu.Name + "E", "E").SetValue(new Slider(2, 3, 1)));
+                championMenu.AddSubMenu(earlyMenu);
 
-                    championMenu.AddItem(
-                        new MenuItem(championMenu.Name + "OnlyR", Global.Lang.Get("AutoLeveler_OnlyR")).SetValue(false));
-                    championMenu.AddItem(
-                        new MenuItem(championMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                championMenu.AddItem(new MenuItem(championMenu.Name + "Q", "Q").SetValue(new Slider(3, 3, 1)));
+                championMenu.AddItem(new MenuItem(championMenu.Name + "W", "W").SetValue(new Slider(1, 3, 1)));
+                championMenu.AddItem(new MenuItem(championMenu.Name + "E", "E").SetValue(new Slider(2, 3, 1)));
 
-                    Menu.AddSubMenu(championMenu);
+                championMenu.AddItem(
+                    new MenuItem(championMenu.Name + "OnlyR", Global.Lang.Get("AutoLeveler_OnlyR")).SetValue(false));
+                championMenu.AddItem(
+                    new MenuItem(championMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
-                    Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
-                };
+                Menu.AddSubMenu(championMenu);
+
+                Menu.AddItem(new MenuItem(Menu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
             }
@@ -196,8 +192,7 @@ namespace SFXUtility.Features.Events
         {
             try
             {
-                if (!sender.IsValid || !sender.IsMe ||
-                    !Menu.Item(Name + ObjectManager.Player.ChampionName + "Enabled").GetValue<bool>())
+                if (!sender.IsValid || !sender.IsMe || !Menu.Item(Menu.Name + "Enabled").GetValue<bool>())
                 {
                     return;
                 }

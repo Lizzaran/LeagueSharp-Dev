@@ -44,7 +44,11 @@ namespace SFXUtility.Features.Trackers
         private readonly Dictionary<Obj_AI_Hero, string> _goldEfficiencies = new Dictionary<Obj_AI_Hero, string>();
         private float _lastCheck = Environment.TickCount;
         private Font _text;
-        public GoldEfficiency(Trackers parent) : base(parent) {}
+
+        public GoldEfficiency(Trackers parent) : base(parent)
+        {
+            OnLoad();
+        }
 
         public override string Name
         {

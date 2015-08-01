@@ -74,6 +74,7 @@ namespace SFXUtility.Classes
                             OnDisable();
                         }
                     };
+
                 Menu.Item(Menu.Name + "Enabled").ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
                 {
                     if (!Unloaded && args.GetNewValue<bool>())
