@@ -38,14 +38,15 @@ namespace SFXChallenger.Helpers
 {
     internal class CPrediction
     {
-        public static Result Circle(Spell spell, Obj_AI_Hero target, HitChance hitChance)
+        public static Result Circle(Spell spell, Obj_AI_Hero target, HitChance hitChance, bool boundingRadius = true)
         {
             try
             {
                 var hits = new List<Obj_AI_Hero>();
                 var center = Vector2.Zero;
-                float radius = -1;
-                var range = spell.Range + spell.Width + target.BoundingRadius * 0.5f;
+                var radius = float.MaxValue;
+                var range = spell.Range + spell.Width + (boundingRadius ? target.BoundingRadius * 0.75f : 0);
+                var width = spell.Width + (boundingRadius ? target.BoundingRadius * 2f : 0);
                 var points = (from t in GameObjects.EnemyHeroes
                     where t.IsValidTarget(range)
                     let prediction = spell.GetPrediction(t)
@@ -60,18 +61,29 @@ namespace SFXChallenger.Helpers
                         {
                             var mec = MEC.GetMec(possibility.Select(p => p.Item2).ToList());
                             var distance = ObjectManager.Player.Distance(mec.Center);
-                            if (mec.Radius < spell.Width + target.BoundingRadius && distance < range)
+                            if (mec.Radius < width && distance < range)
                             {
+                                var lHits = new List<Obj_AI_Hero>();
                                 var circle =
                                     new Geometry.Polygon.Circle(
                                         ObjectManager.Player.Position.Extend(
                                             mec.Center.To3D(), spell.Range > distance ? distance : spell.Range),
                                         spell.Width);
-                                var lHits = (from point in points
-                                    where
-                                        new Geometry.Polygon.Circle(point.Item2, point.Item1.BoundingRadius).Points.Any(
-                                            p => circle.IsInside(p))
-                                    select point.Item1).ToList();
+
+                                if (boundingRadius)
+                                {
+                                    lHits.AddRange(
+                                        (from point in points
+                                            where
+                                                new Geometry.Polygon.Circle(point.Item2, point.Item1.BoundingRadius)
+                                                    .Points.Any(p => circle.IsInside(p))
+                                            select point.Item1));
+                                }
+                                else
+                                {
+                                    lHits.AddRange(
+                                        from point in points where circle.IsInside(point.Item2) select point.Item1);
+                                }
                                 if ((lHits.Count > hits.Count || lHits.Count == hits.Count && mec.Radius < radius ||
                                      lHits.Count == hits.Count &&
                                      ObjectManager.Player.Distance(circle.Center) <

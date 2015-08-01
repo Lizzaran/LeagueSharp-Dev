@@ -33,6 +33,7 @@ using SFXLibrary;
 using SFXLibrary.Logger;
 using ItemData = LeagueSharp.Common.Data.ItemData;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+using Utils = SFXChallenger.Helpers.Utils;
 
 #endregion
 
@@ -254,6 +255,11 @@ namespace SFXChallenger.Managers
                             new MenuItem(itemMenu.Name + ".min-enemies-range", Global.Lang.Get("MI_MinEnemiesRange"))
                                 .SetValue(new Slider(1, 0, 5)));
 
+                        //itemMenu.AddItem(new MenuItem(itemMenu.Name + ".player-health-below", Global.Lang.Get("MI_PlayerHealthBelow")).SetValue(new Slider(100)));
+                        //itemMenu.AddItem(new MenuItem(itemMenu.Name + ".player-health-below", Global.Lang.Get("MI_PlayerHealthAbove")).SetValue(new Slider()));
+                        //itemMenu.AddItem(new MenuItem(itemMenu.Name + ".target-health-below", Global.Lang.Get("MI_TargetHealthBelow")).SetValue(new Slider(100)));
+                        //itemMenu.AddItem(new MenuItem(itemMenu.Name + ".target-health-above", Global.Lang.Get("MI_TargetHealthAbove")).SetValue(new Slider()));
+
                         if (item.Flags.HasFlag(ItemFlags.Flee))
                         {
                             itemMenu.AddItem(
@@ -452,12 +458,7 @@ namespace SFXChallenger.Managers
                                     e.Position.Distance(ObjectManager.Player.Position, true) <
                                     Math.Pow(localItem.Range, 2)))
                         {
-                            if (!enemy.HasBuffOfType(BuffType.Slow) && !enemy.HasBuffOfType(BuffType.Stun) &&
-                                !enemy.HasBuffOfType(BuffType.Fear) && !enemy.HasBuffOfType(BuffType.Flee) &&
-                                !enemy.HasBuffOfType(BuffType.Charm) && !enemy.HasBuffOfType(BuffType.Snare) &&
-                                !enemy.HasBuffOfType(BuffType.Invulnerability) && !enemy.HasBuffOfType(BuffType.Knockup) &&
-                                !enemy.HasBuffOfType(BuffType.Polymorph) && !enemy.HasBuffOfType(BuffType.Sleep) &&
-                                !enemy.HasBuffOfType(BuffType.Taunt))
+                            if (!Utils.IsStunned(enemy) && !Utils.IsSlowed(enemy))
                             {
                                 switch (localItem.CastType)
                                 {

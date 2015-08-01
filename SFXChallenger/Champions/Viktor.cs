@@ -65,6 +65,7 @@ namespace SFXChallenger.Champions
             Core.OnPostUpdate += OnCorePostUpdate;
             Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
             Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
+            Orbwalking.OnNonKillableMinion += OnOrbwalkingNonKillableMinion;
             AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
             Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
             CustomEvents.Unit.OnDash += OnUnitDash;
@@ -76,6 +77,7 @@ namespace SFXChallenger.Champions
             Core.OnPostUpdate -= OnCorePostUpdate;
             Orbwalking.BeforeAttack -= OnOrbwalkingBeforeAttack;
             Orbwalking.AfterAttack -= OnOrbwalkingAfterAttack;
+            Orbwalking.OnNonKillableMinion -= OnOrbwalkingNonKillableMinion;
             AntiGapcloser.OnEnemyGapcloser -= OnEnemyGapcloser;
             Interrupter2.OnInterruptableTarget -= OnInterruptableTarget;
             CustomEvents.Unit.OnDash -= OnUnitDash;
@@ -112,6 +114,11 @@ namespace SFXChallenger.Champions
             laneclearMenu.AddItem(
                 new MenuItem(laneclearMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(
                     new Slider(3, 1, 5)));
+
+            var lasthitMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LastHit"), Menu.Name + ".lasthit"));
+            ManaManager.AddToMenu(lasthitMenu, "lasthit", ManaCheckType.Minimum, ManaValueType.Percent);
+            lasthitMenu.AddItem(
+                new MenuItem(lasthitMenu.Name + ".q-unkillable", "Q " + Global.Lang.Get("G_Unkillable")).SetValue(true));
 
             var ultimateMenu = UltimateManager.AddToMenu(Menu, true, true, true, false, false, false, true, true, true);
 
@@ -258,6 +265,27 @@ namespace SFXChallenger.Champions
                     if (target != null)
                     {
                         Casting.SkillShot(target, W, W.GetHitChance("combo"));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void OnOrbwalkingNonKillableMinion(AttackableUnit unit)
+        {
+            try
+            {
+                if (Menu.Item(Menu.Name + ".lasthit.q-unkillable").GetValue<bool>() && Q.IsReady() &&
+                    ManaManager.Check("lasthit"))
+                {
+                    var target = unit as Obj_AI_Base;
+                    if (target != null && Q.IsKillable(target) &&
+                        HealthPrediction.GetHealthPrediction(target, (int) (Q.GetSpellDelay(target) * 1000)) > 0)
+                    {
+                        Casting.TargetSkill(target, Q);
                     }
                 }
             }
@@ -573,7 +601,7 @@ namespace SFXChallenger.Champions
             {
                 if (UltimateManager.CheckDuel(target, CalcComboDamage(target, q, e, true)))
                 {
-                    var pred = CPrediction.Circle(R, target, HitChance.High);
+                    var pred = CPrediction.Circle(R, target, HitChance.High, false);
                     if (pred.TotalHits > 0 && UltimateManager.Check(1, pred.Hits))
                     {
                         R.Cast(pred.CastPosition);
@@ -590,7 +618,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                var pred = CPrediction.Circle(R, target, HitChance.High);
+                var pred = CPrediction.Circle(R, target, HitChance.High, false);
                 if (pred.TotalHits > 0 && UltimateManager.Check(min, pred.Hits))
                 {
                     R.Cast(pred.CastPosition);

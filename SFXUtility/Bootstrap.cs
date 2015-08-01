@@ -102,7 +102,9 @@ namespace SFXUtility
 
                 #endregion Parents
 
-                Global.Features.AddRange(
+                CustomEvents.Game.OnGameLoad += delegate
+                {
+				Global.Features.AddRange(
                     new List<IChild>
                     {
                         #region Features
@@ -147,9 +149,6 @@ namespace SFXUtility
                         new Ward(trackers)
                         #endregion Features
                     });
-
-                CustomEvents.Game.OnGameLoad += delegate
-                {
                     foreach (var feature in Global.Features)
                     {
                         try
