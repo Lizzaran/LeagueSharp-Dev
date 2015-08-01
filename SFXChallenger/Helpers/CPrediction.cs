@@ -43,12 +43,12 @@ namespace SFXChallenger.Helpers
             try
             {
                 var hits = new List<Obj_AI_Hero>();
-                var center = Vector2.Zero;
+                var center = Vector3.Zero;
                 var radius = float.MaxValue;
                 var range = spell.Range + spell.Width + (boundingRadius ? target.BoundingRadius * 0.75f : 0);
                 var width = spell.Width + (boundingRadius ? target.BoundingRadius * 2f : 0);
                 var points = (from t in GameObjects.EnemyHeroes
-                    where t.IsValidTarget(range)
+                    where t.IsValidTarget(range, true, spell.RangeCheckFrom)
                     let prediction = spell.GetPrediction(t)
                     where prediction.Hitchance >= (hitChance - 1)
                     select new Tuple<Obj_AI_Hero, Vector2>(t, prediction.UnitPosition.To2D())).ToList();
@@ -60,13 +60,13 @@ namespace SFXChallenger.Helpers
                         foreach (var possibility in possibilities)
                         {
                             var mec = MEC.GetMec(possibility.Select(p => p.Item2).ToList());
-                            var distance = ObjectManager.Player.Distance(mec.Center);
+                            var distance = spell.From.Distance(mec.Center.To3D());
                             if (mec.Radius < width && distance < range)
                             {
                                 var lHits = new List<Obj_AI_Hero>();
                                 var circle =
                                     new Geometry.Polygon.Circle(
-                                        ObjectManager.Player.Position.Extend(
+                                        spell.From.Extend(
                                             mec.Center.To3D(), spell.Range > distance ? distance : spell.Range),
                                         spell.Width);
 
@@ -86,21 +86,67 @@ namespace SFXChallenger.Helpers
                                 }
                                 if ((lHits.Count > hits.Count || lHits.Count == hits.Count && mec.Radius < radius ||
                                      lHits.Count == hits.Count &&
-                                     ObjectManager.Player.Distance(circle.Center) <
-                                     ObjectManager.Player.Distance(center)) &&
+                                     spell.From.Distance(circle.Center.To3D()) < spell.From.Distance(center)) &&
                                     lHits.Any(p => p.NetworkId == target.NetworkId))
                                 {
-                                    center = circle.Center;
+                                    center = circle.Center.To3D2();
                                     radius = mec.Radius;
                                     hits.Clear();
                                     hits.AddRange(lHits);
                                 }
                             }
                         }
-                        if (!center.Equals(Vector2.Zero))
+                        if (!center.Equals(Vector3.Zero))
                         {
-                            return new Result(center.To3D2(), hits);
+                            return new Result(center, hits);
                         }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return new Result(Vector3.Zero, new List<Obj_AI_Hero>());
+        }
+
+        public static Result Line(Spell spell,
+            Obj_AI_Hero target,
+            HitChance hitChance,
+            bool boundingRadius = true,
+            bool maxRange = true)
+        {
+            try
+            {
+                var range = spell.IsChargedSpell && maxRange ? spell.ChargedMaxRange : spell.Range;
+                var points = (from t in GameObjects.EnemyHeroes
+                    where t.IsValidTarget(range, true, spell.RangeCheckFrom)
+                    let prediction = spell.GetPrediction(t)
+                    where prediction.Hitchance >= (hitChance - 1)
+                    select new Tuple<Obj_AI_Hero, Vector2>(t, prediction.UnitPosition.To2D())).ToList();
+                if (points.Any())
+                {
+                    var hits = new List<Obj_AI_Hero>();
+                    var pred = spell.GetPrediction(target);
+                    if (pred.Hitchance >= hitChance)
+                    {
+                        hits.Add(target);
+                        var rect = new Geometry.Polygon.Rectangle(
+                            spell.From, spell.From.Extend(pred.CastPosition, range), spell.Width);
+                        if (boundingRadius)
+                        {
+                            hits.AddRange(
+                                from point in points.Where(p => p.Item1.NetworkId != target.NetworkId)
+                                let circle =
+                                    new Geometry.Polygon.Circle(point.Item2, point.Item1.BoundingRadius * 0.85f)
+                                where circle.Points.Any(p => rect.IsInside(p))
+                                select point.Item1);
+                        }
+                        else
+                        {
+                            hits.AddRange(from point in points where rect.IsInside(point.Item2) select point.Item1);
+                        }
+                        return new Result(pred.CastPosition, hits);
                     }
                 }
             }

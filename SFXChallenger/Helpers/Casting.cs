@@ -40,42 +40,61 @@ namespace SFXChallenger.Helpers
 {
     internal class Casting
     {
-        public static void SkillShot(Spell spell, HitChance hitChance, bool aoe = false, bool towerCheck = false)
+        public static void SkillShot(Spell spell, HitChance hitChance, bool boundingRadius = true, bool maxRange = true)
         {
-            SkillShot(TargetSelector.GetTarget(spell.Range, spell.DamageType), spell, hitChance, aoe, towerCheck);
+            SkillShot(TargetSelector.GetTarget(spell.Range + spell.Width, spell.DamageType), spell, hitChance);
         }
 
-        public static void SkillShot(Obj_AI_Base target,
+        public static void SkillShot(Obj_AI_Hero target,
             Spell spell,
             HitChance hitChance,
-            bool aoe = false,
-            bool towerCheck = false)
+            bool boundingRadius = true,
+            bool maxRange = true)
         {
-            if (!spell.IsReady() || target == null || towerCheck && target.UnderTurret(true))
+            if (!spell.IsReady() || target == null)
             {
                 return;
             }
 
-            var prediction = spell.GetPrediction(target, aoe);
-            if (prediction.Hitchance >= hitChance)
+            if (spell.Type == SkillshotType.SkillshotLine)
             {
-                spell.Cast(prediction.CastPosition);
+                var prediction = CPrediction.Line(spell, target, hitChance, boundingRadius, maxRange);
+                if (prediction.TotalHits >= 1)
+                {
+                    spell.Cast(prediction.CastPosition);
+                }
+            }
+            else if (spell.Type == SkillshotType.SkillshotCircle)
+            {
+                var prediction = CPrediction.Circle(spell, target, hitChance);
+                if (prediction.TotalHits >= 1)
+                {
+                    spell.Cast(prediction.CastPosition);
+                }
+            }
+            else
+            {
+                var prediction = spell.GetPrediction(target);
+                if (prediction.Hitchance >= hitChance)
+                {
+                    spell.Cast(prediction.CastPosition);
+                }
             }
         }
 
-        public static void TargetSkill(Spell spell, bool packet = false, bool towerCheck = false)
+        public static void TargetSkill(Spell spell)
         {
-            TargetSkill(TargetSelector.GetTarget(spell.Range, spell.DamageType), spell, packet, towerCheck);
+            TargetSkill(TargetSelector.GetTarget(spell.Range, spell.DamageType), spell);
         }
 
-        public static void TargetSkill(Obj_AI_Base target, Spell spell, bool packet = false, bool towerCheck = false)
+        public static void TargetSkill(Obj_AI_Base target, Spell spell)
         {
-            if (!spell.IsReady() || target == null || towerCheck && target.UnderTurret(true))
+            if (!spell.IsReady() || target == null)
             {
                 return;
             }
 
-            spell.CastOnUnit(target, packet);
+            spell.CastOnUnit(target);
         }
 
         public static void Farm(Spell spell,

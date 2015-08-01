@@ -276,7 +276,7 @@ namespace SFXChallenger.Champions
                 (!Menu.Item(Menu.Name + ".harass.w").GetValue<bool>() ||
                  (W.Level == 0 || !W.IsReady() || !GameObjects.EnemyHeroes.Any(Orbwalking.InAutoAttackRange))))
             {
-                Casting.SkillShot(Q, Q.GetHitChance("harass"));
+                Casting.SkillShot(Q, Q.GetHitChance("combo"));
             }
         }
 

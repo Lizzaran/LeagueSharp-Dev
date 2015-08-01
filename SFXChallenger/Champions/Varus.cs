@@ -299,7 +299,7 @@ namespace SFXChallenger.Champions
                         Menu.Item(Menu.Name + ".combo.q-range").GetValue<bool>() &&
                         !Orbwalking.InAutoAttackRange(target) || stacks ||
                         GetWStacks(target) >= Menu.Item(Menu.Name + ".combo.q-stacks").GetValue<Slider>().Value ||
-                        GetQHits(target, Q.GetHitChance("combo")) >=
+                        CPrediction.Line(Q, target, Q.GetHitChance("combo")).TotalHits >=
                         Menu.Item(Menu.Name + ".combo.q-min").GetValue<Slider>().Value || Q.IsKillable(target))
                     {
                         QLogic(
@@ -362,7 +362,7 @@ namespace SFXChallenger.Champions
                         !Orbwalking.InAutoAttackRange(target) || stacks ||
                         GetWStacks(target) >= Menu.Item(Menu.Name + ".harass.q-stacks").GetValue<Slider>().Value ||
                         Q.IsKillable(target) ||
-                        GetQHits(target, Q.GetHitChance("harass")) >=
+                        CPrediction.Line(Q, target, Q.GetHitChance("harass")).TotalHits >=
                         Menu.Item(Menu.Name + ".harass.q-min").GetValue<Slider>().Value)
                     {
                         QLogic(
@@ -468,8 +468,9 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
-                var pred = Q.GetPrediction(target);
-                if (pred.Hitchance >= hitChance &&
+
+                var pred = CPrediction.Line(Q, target, hitChance);
+                if (pred.TotalHits > 0 &&
                     (QIsKillable(target, GetQCollisionsCount(target, pred.CastPosition)) ||
                      Player.HealthPercent <= minHealthPercent))
                 {
@@ -485,8 +486,8 @@ namespace SFXChallenger.Champions
                 }
                 if (Q.IsCharging && (!QMaxRangeHit(target) || IsFullyCharged()))
                 {
-                    var pred2 = Q.GetPrediction(target);
-                    if (pred2.Hitchance >= hitChance)
+                    var pred2 = CPrediction.Line(Q, target, hitChance);
+                    if (pred2.TotalHits > 0)
                     {
                         Q.Cast(pred2.CastPosition);
                     }
@@ -496,40 +497,6 @@ namespace SFXChallenger.Champions
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
-        }
-
-        private int GetQHits(Obj_AI_Hero target, HitChance hitChance)
-        {
-            if (target == null)
-            {
-                return 0;
-            }
-            var totalHits = 0;
-            try
-            {
-                var pred = Q.GetPrediction(target);
-                if (pred.Hitchance >= hitChance)
-                {
-                    var enemies =
-                        GameObjects.EnemyHeroes.Where(e => e.IsValidTarget((Q.Range + Q.Width) * 1.2f)).ToList();
-                    var rect = new Geometry.Polygon.Rectangle(
-                        ObjectManager.Player.Position.To2D(),
-                        ObjectManager.Player.Position.Extend(pred.CastPosition, Q.ChargedMaxRange * 0.85f).To2D(),
-                        Q.Width);
-                    totalHits = 1 + (from enemy in enemies.Where(e => e.NetworkId != target.NetworkId)
-                        let pred2 = Q.GetPrediction(enemy)
-                        where pred2.Hitchance >= (hitChance - 1)
-                        where
-                            new Geometry.Polygon.Circle(pred2.UnitPosition, enemy.BoundingRadius * 0.9f).Points.Any(
-                                p => rect.IsInside(p))
-                        select enemy).Count();
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return totalHits;
         }
 
         private void ELogic(Obj_AI_Hero target, HitChance hitChance)
