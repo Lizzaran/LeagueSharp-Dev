@@ -265,14 +265,14 @@ namespace SFXChallenger.Champions
                         var enemy = target as Obj_AI_Hero;
                         if (enemy != null)
                         {
-                            ItemManager.Muramana(true);
+                            ItemManager.Muramana(enemy, true);
                             ItemManager.UseComboItems(enemy);
                             SummonerManager.UseComboSummoners(enemy);
                         }
                     }
                     else
                     {
-                        ItemManager.Muramana(false);
+                        ItemManager.Muramana(null, false);
                     }
                 }
             }

@@ -176,6 +176,10 @@
 	<!-- START: ItemManager -->
 	<entry key="F_MI">Items</entry>
 	<entry key="MI_MinEnemiesRange">Min. Enemies in Range</entry>
+	<entry key="MI_PlayerHealthBelow">Player Health &#37; &#60;&#61;</entry>
+	<entry key="MI_PlayerHealthAbove">Player Health &#37; &#62;&#61;</entry>
+	<entry key="MI_TargetHealthBelow">Target Health &#37; &#60;&#61;</entry>
+	<entry key="MI_TargetHealthAbove">Target Health &#37; &#62;&#61;</entry>
 	<entry key="MI_UseFlee">Use Flee</entry>
 	<entry key="MI_UseCombo">Use Combo</entry>
 

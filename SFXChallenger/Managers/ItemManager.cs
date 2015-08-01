@@ -254,11 +254,22 @@ namespace SFXChallenger.Managers
                         itemMenu.AddItem(
                             new MenuItem(itemMenu.Name + ".min-enemies-range", Global.Lang.Get("MI_MinEnemiesRange"))
                                 .SetValue(new Slider(1, 0, 5)));
-
-                        //itemMenu.AddItem(new MenuItem(itemMenu.Name + ".player-health-below", Global.Lang.Get("MI_PlayerHealthBelow")).SetValue(new Slider(100)));
-                        //itemMenu.AddItem(new MenuItem(itemMenu.Name + ".player-health-below", Global.Lang.Get("MI_PlayerHealthAbove")).SetValue(new Slider()));
-                        //itemMenu.AddItem(new MenuItem(itemMenu.Name + ".target-health-below", Global.Lang.Get("MI_TargetHealthBelow")).SetValue(new Slider(100)));
-                        //itemMenu.AddItem(new MenuItem(itemMenu.Name + ".target-health-above", Global.Lang.Get("MI_TargetHealthAbove")).SetValue(new Slider()));
+                        itemMenu.AddItem(
+                            new MenuItem(
+                                itemMenu.Name + ".player-health-below", Global.Lang.Get("MI_PlayerHealthBelow"))
+                                .SetValue(new Slider(100)));
+                        itemMenu.AddItem(
+                            new MenuItem(
+                                itemMenu.Name + ".player-health-above", Global.Lang.Get("MI_PlayerHealthAbove"))
+                                .SetValue(new Slider(0)));
+                        itemMenu.AddItem(
+                            new MenuItem(
+                                itemMenu.Name + ".target-health-below", Global.Lang.Get("MI_TargetHealthBelow"))
+                                .SetValue(new Slider(100)));
+                        itemMenu.AddItem(
+                            new MenuItem(
+                                itemMenu.Name + ".target-health-above", Global.Lang.Get("MI_TargetHealthAbove"))
+                                .SetValue(new Slider(0)));
 
                         if (item.Flags.HasFlag(ItemFlags.Flee))
                         {
@@ -277,6 +288,22 @@ namespace SFXChallenger.Managers
                 muramanaMenu.AddItem(
                     new MenuItem(muramanaMenu.Name + ".min-enemies-range", Global.Lang.Get("MI_MinEnemiesRange"))
                         .SetValue(new Slider(1, 0, 5)));
+                muramanaMenu.AddItem(
+                    new MenuItem(muramanaMenu.Name + ".min-enemies-range", Global.Lang.Get("MI_MinEnemiesRange"))
+                        .SetValue(new Slider(1, 0, 5)));
+                muramanaMenu.AddItem(
+                    new MenuItem(muramanaMenu.Name + ".player-health-below", Global.Lang.Get("MI_PlayerHealthBelow"))
+                        .SetValue(new Slider(100)));
+                muramanaMenu.AddItem(
+                    new MenuItem(muramanaMenu.Name + ".player-health-above", Global.Lang.Get("MI_PlayerHealthAbove"))
+                        .SetValue(new Slider(0)));
+                muramanaMenu.AddItem(
+                    new MenuItem(muramanaMenu.Name + ".target-health-below", Global.Lang.Get("MI_TargetHealthBelow"))
+                        .SetValue(new Slider(100)));
+                muramanaMenu.AddItem(
+                    new MenuItem(muramanaMenu.Name + ".target-health-above", Global.Lang.Get("MI_TargetHealthAbove"))
+                        .SetValue(new Slider(0)));
+
                 muramanaMenu.AddItem(
                     new MenuItem(muramanaMenu.Name + ".combo", Global.Lang.Get("MI_UseCombo")).SetValue(true));
 
@@ -339,6 +366,7 @@ namespace SFXChallenger.Managers
                 {
                     return;
                 }
+
                 foreach (var item in
                     Items.Where(
                         i =>
@@ -346,7 +374,16 @@ namespace SFXChallenger.Managers
                             _menu.Item(_menu.Name + "." + i.Name + ".combo").GetValue<bool>() && i.Item.IsOwned() &&
                             i.Item.IsReady() && distance <= Math.Pow(i.Range, 2) &&
                             ObjectManager.Player.CountEnemiesInRange(i.Range) >=
-                            _menu.Item(_menu.Name + "." + i.Name + ".min-enemies-range").GetValue<Slider>().Value))
+                            _menu.Item(_menu.Name + "." + i.Name + ".min-enemies-range").GetValue<Slider>().Value &&
+                            ObjectManager.Player.HealthPercent <=
+                            _menu.Item(_menu.Name + "." + i.Name + ".player-health-below").GetValue<Slider>().Value &&
+                            ObjectManager.Player.HealthPercent >=
+                            _menu.Item(_menu.Name + "." + i.Name + ".player-health-above").GetValue<Slider>().Value &&
+                            (target == null ||
+                             target.HealthPercent <=
+                             _menu.Item(_menu.Name + "." + i.Name + ".target-health-below").GetValue<Slider>().Value &&
+                             target.HealthPercent >=
+                             _menu.Item(_menu.Name + "." + i.Name + ".target-health-above").GetValue<Slider>().Value)))
                 {
                     switch (item.CastType)
                     {
@@ -372,7 +409,7 @@ namespace SFXChallenger.Managers
             }
         }
 
-        public static void Muramana(bool activate)
+        public static void Muramana(Obj_AI_Hero target, bool activate)
         {
             try
             {
@@ -381,7 +418,16 @@ namespace SFXChallenger.Managers
                      (_menu == null ||
                       _menu.Item(_menu.Name + ".muramana.combo").GetValue<bool>() &&
                       ObjectManager.Player.CountEnemiesInRange(Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)) >=
-                      _menu.Item(_menu.Name + ".muramana.min-enemies-range").GetValue<Slider>().Value)) ||
+                      _menu.Item(_menu.Name + ".muramana.min-enemies-range").GetValue<Slider>().Value &&
+                      ObjectManager.Player.HealthPercent <=
+                      _menu.Item(_menu.Name + ".muramana.player-health-below").GetValue<Slider>().Value &&
+                      ObjectManager.Player.HealthPercent >=
+                      _menu.Item(_menu.Name + ".muramana.player-health-above").GetValue<Slider>().Value &&
+                      (target == null ||
+                       target.HealthPercent <=
+                       _menu.Item(_menu.Name + ".muramana.target-health-below").GetValue<Slider>().Value &&
+                       target.HealthPercent >=
+                       _menu.Item(_menu.Name + ".muramana.target-health-above").GetValue<Slider>().Value))) ||
                     !activate && hasBuff)
                 {
                     var muramana = ItemData.Muramana.GetItem();
@@ -437,6 +483,7 @@ namespace SFXChallenger.Managers
             {
                 return;
             }
+
             try
             {
                 foreach (var item in
@@ -446,17 +493,32 @@ namespace SFXChallenger.Managers
                             _menu.Item(_menu.Name + "." + i.Name + ".flee").GetValue<bool>() && i.Item.IsOwned() &&
                             i.Item.IsReady() && i.Item.IsOwned() && i.Item.IsReady() &&
                             ObjectManager.Player.CountEnemiesInRange(i.Range) >=
-                            _menu.Item(_menu.Name + "." + i.Name + ".min-enemies-range").GetValue<Slider>().Value))
+                            _menu.Item(_menu.Name + "." + i.Name + ".min-enemies-range").GetValue<Slider>().Value &&
+                            ObjectManager.Player.HealthPercent <=
+                            _menu.Item(_menu.Name + "." + i.Name + ".player-health-below").GetValue<Slider>().Value &&
+                            ObjectManager.Player.HealthPercent >=
+                            _menu.Item(_menu.Name + "." + i.Name + ".player-health-above").GetValue<Slider>().Value))
                 {
                     if (item.CastType != CastType.Self)
                     {
+                        var lItem = item;
                         var localItem = item;
                         foreach (var enemy in
-                            GameObjects.EnemyHeroes.OrderByDescending(
-                                e =>
-                                    !Invulnerable.HasBuff(e) &&
-                                    e.Position.Distance(ObjectManager.Player.Position, true) <
-                                    Math.Pow(localItem.Range, 2)))
+                            GameObjects.EnemyHeroes.Where(
+                                t =>
+                                    t.IsValidTarget() && !Invulnerable.HasBuff(t) &&
+                                    t.HealthPercent <=
+                                    _menu.Item(_menu.Name + "." + lItem.Name + ".target-health-below")
+                                        .GetValue<Slider>()
+                                        .Value &&
+                                    t.HealthPercent >=
+                                    _menu.Item(_menu.Name + "." + lItem.Name + ".target-health-above")
+                                        .GetValue<Slider>()
+                                        .Value)
+                                .OrderByDescending(
+                                    t =>
+                                        t.Position.Distance(ObjectManager.Player.Position, true) <
+                                        Math.Pow(localItem.Range, 2)))
                         {
                             if (!Utils.IsStunned(enemy) && !Utils.IsSlowed(enemy))
                             {

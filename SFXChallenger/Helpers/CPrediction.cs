@@ -42,6 +42,10 @@ namespace SFXChallenger.Helpers
         {
             try
             {
+                if (spell == null || target == null)
+                {
+                    return new Result(Vector3.Zero, new List<Obj_AI_Hero>());
+                }
                 var hits = new List<Obj_AI_Hero>();
                 var center = Vector3.Zero;
                 var radius = float.MaxValue;
@@ -121,6 +125,10 @@ namespace SFXChallenger.Helpers
         {
             try
             {
+                if (spell == null || target == null)
+                {
+                    return new Result(Vector3.Zero, new List<Obj_AI_Hero>());
+                }
                 var range = spell.IsChargedSpell && maxRange ? spell.ChargedMaxRange : spell.Range;
                 var positions = (from t in GameObjects.EnemyHeroes
                     where t.IsValidTarget(range, true, spell.RangeCheckFrom)
