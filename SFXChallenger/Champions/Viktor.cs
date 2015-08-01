@@ -190,7 +190,7 @@ namespace SFXChallenger.Champions
         {
             Q = new Spell(SpellSlot.Q, Player.BoundingRadius + 600f);
             Q.Range += GameObjects.EnemyHeroes.Max(e => e.BoundingRadius);
-            Q.SetTargetted(0.3f, 2000f);
+            Q.SetTargetted(0.2f, 1800f);
 
             W = new Spell(SpellSlot.W, 700f);
             W.SetSkillshot(1.6f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
@@ -223,7 +223,7 @@ namespace SFXChallenger.Champions
                         if (Menu.Item(Menu.Name + ".ultimate.assisted.duel").GetValue<bool>())
                         {
                             RLogicDuel(
-                                target, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
+                                Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                                 Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
                         }
                     }
@@ -238,7 +238,7 @@ namespace SFXChallenger.Champions
                         if (Menu.Item(Menu.Name + ".ultimate.auto.duel").GetValue<bool>())
                         {
                             RLogicDuel(
-                                target, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
+                                Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                                 Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
                         }
                     }
@@ -475,7 +475,7 @@ namespace SFXChallenger.Champions
                 {
                     if (Menu.Item(Menu.Name + ".ultimate.combo.duel").GetValue<bool>())
                     {
-                        RLogicDuel(target, q, e);
+                        RLogicDuel(q, e);
                     }
                 }
             }
@@ -599,16 +599,18 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private void RLogicDuel(Obj_AI_Hero target, bool q, bool e)
+        private void RLogicDuel(bool q, bool e)
         {
             try
             {
-                if (UltimateManager.CheckDuel(target, CalcComboDamage(target, q, e, true)))
+                foreach (var t in GameObjects.EnemyHeroes)
                 {
-                    var pred = CPrediction.Circle(R, target, HitChance.High, false);
-                    if (pred.TotalHits > 0 && UltimateManager.Check(1, pred.Hits))
+                    if (UltimateManager.CheckDuel(t, CalcComboDamage(t, q, e, true)))
                     {
-                        R.Cast(pred.CastPosition);
+                        if (RLogic(t, 1))
+                        {
+                            break;
+                        }
                     }
                 }
             }
