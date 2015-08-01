@@ -216,7 +216,8 @@ namespace SFXChallenger.Champions
                     {
                         Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
                     }
-                    var target = TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+                    var target = TargetSelector.GetTarget(
+                        R.Range + R.Width, LeagueSharp.Common.TargetSelector.DamageType.Magical);
                     if (target != null &&
                         !RLogic(target, Menu.Item(Menu.Name + ".ultimate.assisted.min").GetValue<Slider>().Value))
                     {
@@ -231,7 +232,8 @@ namespace SFXChallenger.Champions
 
                 if (UltimateManager.Auto() && R.IsReady())
                 {
-                    var target = TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+                    var target = TargetSelector.GetTarget(
+                        R.Range + R.Width, LeagueSharp.Common.TargetSelector.DamageType.Magical);
                     if (target != null &&
                         !RLogic(target, Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value))
                     {
@@ -469,7 +471,8 @@ namespace SFXChallenger.Champions
             }
             if (r)
             {
-                var target = TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+                var target = TargetSelector.GetTarget(
+                    R.Range + R.Width, LeagueSharp.Common.TargetSelector.DamageType.Magical);
                 if (target != null &&
                     !RLogic(target, Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value))
                 {
@@ -479,7 +482,8 @@ namespace SFXChallenger.Champions
                     }
                 }
             }
-            var rTarget = TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+            var rTarget = TargetSelector.GetTarget(
+                R.Range + R.Width, LeagueSharp.Common.TargetSelector.DamageType.Magical);
             if (rTarget != null && CalcComboDamage(rTarget, q, e, r) > rTarget.Health)
             {
                 ItemManager.UseComboItems(rTarget);
