@@ -295,7 +295,7 @@ namespace SFXChallenger.Managers
                 if (target.HealthPercent >= targetMinHealth && target.HealthPercent <= targetMaxHealth)
                 {
                     var pos = ObjectManager.Player.Position.Extend(
-                        target.Position, ObjectManager.Player.Distance(target) / 2f);
+                        target.Position, ObjectManager.Player.Distance(target) / 2f).Normalized();
 
                     var aCount =
                         GameObjects.AllyHeroes.Count(

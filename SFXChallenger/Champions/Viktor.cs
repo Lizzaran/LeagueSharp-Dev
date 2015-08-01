@@ -278,14 +278,18 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (Menu.Item(Menu.Name + ".lasthit.q-unkillable").GetValue<bool>() && Q.IsReady() &&
-                    ManaManager.Check("lasthit"))
+                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit ||
+                    Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
                 {
-                    var target = unit as Obj_AI_Base;
-                    if (target != null && Q.IsKillable(target) &&
-                        HealthPrediction.GetHealthPrediction(target, (int) (Q.GetSpellDelay(target) * 1000)) > 0)
+                    if (Menu.Item(Menu.Name + ".lasthit.q-unkillable").GetValue<bool>() && Q.IsReady() &&
+                        ManaManager.Check("lasthit"))
                     {
-                        Casting.TargetSkill(target, Q);
+                        var target = unit as Obj_AI_Base;
+                        if (target != null && Q.IsKillable(target) &&
+                            HealthPrediction.GetHealthPrediction(target, (int) (Q.GetSpellDelay(target) * 1000)) > 0)
+                        {
+                            Casting.TargetSkill(target, Q);
+                        }
                     }
                 }
             }
