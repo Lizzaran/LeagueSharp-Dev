@@ -53,7 +53,7 @@ namespace SFXChallenger.Champions
     {
         private const float MaxERange = 1225f;
         private const float ELength = 700f;
-        private const float RMoveInterval = 325f;
+        private const float RMoveInterval = 500f;
         private float _lastRMoveCommand = Environment.TickCount;
         private GameObject _rObject;
 
@@ -971,7 +971,7 @@ namespace SFXChallenger.Champions
                         {
                             var mec = MEC.GetMec(possibility);
                             var distance = position.Distance(mec.Center.To3D());
-                            if (mec.Radius < (R.Width / 2) && distance < maxRelocation)
+                            if (mec.Radius < R.Width && distance < maxRelocation && distance > 20)
                             {
                                 if (possibility.Count > count ||
                                     possibility.Count == count && (mec.Radius < radius || distance < moveDistance))

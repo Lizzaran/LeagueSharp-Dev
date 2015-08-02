@@ -22,6 +22,7 @@
 
 #region
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
@@ -158,7 +159,8 @@ namespace SFXChallenger.Helpers
 
         private static void CircleFarm(Spell spell, List<Obj_AI_Base> minions, int min, float overrideWidth = -1f)
         {
-            var spellWidth = overrideWidth > 0 ? overrideWidth : spell.Width;
+            var spellWidth = (overrideWidth > 0 ? overrideWidth : spell.Width) +
+                             minions.Average(m => m.BoundingRadius) * 2f;
             var points = (from minion in minions
                 select spell.GetPrediction(minion)
                 into pred
@@ -175,7 +177,7 @@ namespace SFXChallenger.Helpers
                     foreach (var possibility in possibilities)
                     {
                         var mec = MEC.GetMec(possibility);
-                        if (mec.Radius < spellWidth * 0.95f)
+                        if (mec.Radius < spellWidth)
                         {
                             if (possibility.Count > hits || possibility.Count == hits && radius > mec.Radius)
                             {
@@ -198,32 +200,33 @@ namespace SFXChallenger.Helpers
             var spellWidth = overrideWidth > 0 ? overrideWidth : spell.Width;
             var totalHits = 0;
             var castPos = Vector3.Zero;
-            foreach (var minion in minions)
+
+            var positions = (from minion in minions
+                let pred = spell.GetPrediction(minion)
+                where pred.Hitchance >= HitChance.Medium
+                select new Tuple<Obj_AI_Base, Vector3>(minion, pred.UnitPosition)).ToList();
+
+            if (positions.Any())
             {
-                var lMinion = minion;
-                var pred = spell.GetPrediction(minion);
-                if (pred.Hitchance < HitChance.Medium)
+                foreach (var position in positions)
                 {
-                    continue;
-                }
-                var rect = new Geometry.Polygon.Rectangle(
-                    ObjectManager.Player.Position.To2D(),
-                    ObjectManager.Player.Position.Extend(pred.CastPosition, spell.Range).To2D(), spellWidth);
-                var count = 1 + (from minion2 in minions.Where(m => m.NetworkId != lMinion.NetworkId)
-                    let pred2 = spell.GetPrediction(minion2)
-                    where pred2.Hitchance >= HitChance.Medium
-                    where
-                        new Geometry.Polygon.Circle(pred2.UnitPosition, minion2.BoundingRadius * 0.8f).Points.Any(
-                            p => rect.IsInside(p))
-                    select 1).Sum();
-                if (count > totalHits)
-                {
-                    totalHits = count;
-                    castPos = pred.CastPosition;
-                }
-                if (totalHits == minions.Count)
-                {
-                    break;
+                    var rect = new Geometry.Polygon.Rectangle(
+                        ObjectManager.Player.Position, ObjectManager.Player.Position.Extend(position.Item2, spell.Range),
+                        spellWidth);
+                    var count =
+                        positions.Select(
+                            position2 =>
+                                new Geometry.Polygon.Circle(position2.Item2, position2.Item1.BoundingRadius * 0.9f))
+                            .Count(circle => circle.Points.Any(p => rect.IsInside(p)));
+                    if (count > totalHits)
+                    {
+                        totalHits = count;
+                        castPos = position.Item2;
+                    }
+                    if (totalHits == minions.Count)
+                    {
+                        break;
+                    }
                 }
                 if (!castPos.Equals(Vector3.Zero) && totalHits >= min)
                 {

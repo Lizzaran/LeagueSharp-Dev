@@ -53,6 +53,7 @@ namespace SFXChallenger.Champions
 {
     internal class Varus : Champion
     {
+        private float _lastLaneClearQStart;
         private float _rSpreadRadius = 450f;
         private MenuItem _wStacks;
 
@@ -164,7 +165,7 @@ namespace SFXChallenger.Champions
                 new WeightedItem("w-stacks", "W " + Global.Lang.Get("G_Stacks"), 13, true, 333, 500, t => GetWStacks(t)));
 
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
-            IndicatorManager.Add("Q", hero => Q.GetDamage(hero, 1));
+            IndicatorManager.Add("Q", hero => Q.IsReady() ? Q.GetDamage(hero, 1) : 0);
             IndicatorManager.Add(E);
             IndicatorManager.Add(R);
             IndicatorManager.Finale();
@@ -609,10 +610,13 @@ namespace SFXChallenger.Champions
                     if (!Q.IsCharging)
                     {
                         Q.StartCharging();
+                        _lastLaneClearQStart = Game.Time;
                     }
                     if (Q.IsCharging && IsFullyCharged())
                     {
-                        Casting.Farm(Q, minions.Count < min ? minions.Count : min, -1f, false, minions);
+                        Casting.Farm(
+                            Q, Game.Time - _lastLaneClearQStart > 3 ? 1 : (minions.Count < min ? minions.Count : min),
+                            -1f, false, minions);
                     }
                 }
             }
