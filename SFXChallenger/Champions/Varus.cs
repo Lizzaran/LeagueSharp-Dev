@@ -182,7 +182,7 @@ namespace SFXChallenger.Champions
             W = new Spell(SpellSlot.W, 0f, DamageType.Magical);
 
             E = new Spell(SpellSlot.E, 950f);
-            E.SetSkillshot(0.25f, 250f, 1750f, false, SkillshotType.SkillshotCircle);
+            E.SetSkillshot(0.25f, 250f, 1500f, false, SkillshotType.SkillshotCircle);
 
             R = new Spell(SpellSlot.R, 1075f);
             R.SetSkillshot(0.25f, 120f, 1950f, false, SkillshotType.SkillshotLine);
