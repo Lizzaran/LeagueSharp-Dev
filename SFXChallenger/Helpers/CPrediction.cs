@@ -51,12 +51,13 @@ namespace SFXChallenger.Helpers
                 var center = Vector3.Zero;
                 var radius = float.MaxValue;
                 var range = spell.Range + spell.Width + (boundingRadius ? target.BoundingRadius * 0.75f : 0);
-                var width = spell.Width + (boundingRadius ? target.BoundingRadius * 2f : 0);
                 var positions = (from t in GameObjects.EnemyHeroes
                     where t.IsValidTarget(range, true, spell.RangeCheckFrom)
                     let prediction = spell.GetPrediction(t)
                     where prediction.Hitchance >= (hitChance - 1)
                     select new Position(t, prediction.UnitPosition)).ToList();
+                var width = spell.Width +
+                            (boundingRadius ? positions.Select(p => p.Hero).Min(p => p.BoundingRadius) : 0);
                 if (positions.Any())
                 {
                     var possibilities = ListExtensions.ProduceEnumeration(positions).Where(p => p.Count > 0).ToList();

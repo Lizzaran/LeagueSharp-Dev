@@ -159,8 +159,7 @@ namespace SFXChallenger.Helpers
 
         private static void CircleFarm(Spell spell, List<Obj_AI_Base> minions, int min, float overrideWidth = -1f)
         {
-            var spellWidth = (overrideWidth > 0 ? overrideWidth : spell.Width) +
-                             minions.Average(m => m.BoundingRadius) * 2f;
+            var spellWidth = (overrideWidth > 0 ? overrideWidth : spell.Width) + minions.Average(m => m.BoundingRadius);
             var points = (from minion in minions
                 select spell.GetPrediction(minion)
                 into pred
