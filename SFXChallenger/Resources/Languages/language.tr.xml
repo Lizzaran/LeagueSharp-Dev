@@ -22,7 +22,7 @@
 	<entry key="G_Heroes">Şampiyonlar</entry>
 	<entry key="G_Miscellaneous">Çeşitler</entry>
 	<entry key="G_Gapcloser">Gapcloser</entry>
-	<entry key="G_ImportantSpell">Önemli Büyü</entry>
+	<entry key="G_ImportantWrappers.Spell">Önemli Büyü</entry>
 	<entry key="G_Lasthit">Son Vuruş</entry>
 	<entry key="G_Hotkey">Kısayol Tuşu</entry>
 	<entry key="G_Combo">Kombo</entry>
@@ -45,7 +45,7 @@
 	<entry key="G_LastHit">Lasthit</entry>
 	<entry key="F_Ultimate">Ultimate</entry>
 	<entry key="G_Assisted">Assisted</entry>
-	<entry key="G_InterruptSpell">Interrupt Spell</entry>
+	<entry key="G_InterruptWrappers.Spell">Interrupt Wrappers.Spell</entry>
 	<entry key="G_MoveCursor">İmlece doğru yürü</entry>
 	<entry key="G_Min">Min</entry>
 	<entry key="G_Max">Max</entry>

@@ -33,13 +33,14 @@ using SFXLibrary.Extensions.LeagueSharp;
 using SFXLibrary.Logger;
 using SharpDX;
 using Color = System.Drawing.Color;
+using DamageType = SFXChallenger.Enumerations.DamageType;
 using ItemData = LeagueSharp.Common.Data.ItemData;
 
 #endregion
 
 namespace SFXChallenger.Wrappers
 {
-    internal class TargetSelector
+    internal static class TargetSelector
     {
         internal const int MinWeight = 0;
         internal const int MaxWeight = 20;
@@ -413,17 +414,18 @@ namespace SFXChallenger.Wrappers
             return _selectedTarget;
         }
 
-        public static Obj_AI_Hero GetTarget(Spell spell,
+        public static Obj_AI_Hero GetTarget(this Spell spell,
             bool ignoreShields = true,
             Vector3 from = new Vector3(),
             IEnumerable<Obj_AI_Hero> ignoredChampions = null)
         {
-            return GetTarget(spell.Range, spell.DamageType, ignoreShields, from, ignoredChampions);
+            return GetTarget(
+                (spell.Range + spell.Width) * 1.1f, spell.DamageType, ignoreShields, from, ignoredChampions);
         }
 
         private static bool IsValidTarget(Obj_AI_Hero target,
             float range,
-            LeagueSharp.Common.TargetSelector.DamageType damageType,
+            DamageType damageType,
             bool ignoreShields = true,
             Vector3 from = default(Vector3))
         {
@@ -434,7 +436,7 @@ namespace SFXChallenger.Wrappers
         }
 
         public static Obj_AI_Hero GetTarget(float range,
-            LeagueSharp.Common.TargetSelector.DamageType damageType = LeagueSharp.Common.TargetSelector.DamageType.True,
+            DamageType damageType = DamageType.True,
             bool ignoreShields = true,
             Vector3 from = default(Vector3),
             IEnumerable<Obj_AI_Hero> ignoredChampions = null)
@@ -452,7 +454,7 @@ namespace SFXChallenger.Wrappers
         }
 
         public static List<Obj_AI_Hero> GetTargets(float range,
-            LeagueSharp.Common.TargetSelector.DamageType damageType = LeagueSharp.Common.TargetSelector.DamageType.True,
+            DamageType damageType = DamageType.True,
             bool ignoreShields = true,
             Vector3 from = default(Vector3),
             IEnumerable<Obj_AI_Hero> ignoredChampions = null)
@@ -467,7 +469,7 @@ namespace SFXChallenger.Wrappers
                     IsValidTarget(
                         SelectedTarget,
                         _menu.Item(_menu.Name + ".force-focus-selected").GetValue<bool>() ? float.MaxValue : aRange,
-                        LeagueSharp.Common.TargetSelector.DamageType.True, ignoreShields, from))
+                        DamageType.True, ignoreShields, from))
                 {
                     return new List<Obj_AI_Hero> { SelectedTarget };
                 }

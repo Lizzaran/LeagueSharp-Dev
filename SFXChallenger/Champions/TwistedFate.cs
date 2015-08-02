@@ -35,11 +35,13 @@ using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
 using SharpDX;
 using Color = System.Drawing.Color;
+using DamageType = SFXChallenger.Enumerations.DamageType;
 using MinionManager = SFXLibrary.MinionManager;
 using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
 using MinionTeam = SFXLibrary.MinionTeam;
 using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 using Utils = LeagueSharp.Common.Utils;
 
@@ -192,10 +194,10 @@ namespace SFXChallenger.Champions
 
         protected override void SetupSpells()
         {
-            Q = new Spell(SpellSlot.Q, 1450f);
+            Q = new Spell(SpellSlot.Q, 1450f, DamageType.Magical);
             Q.SetSkillshot(0.25f, 40f, 1000f, false, SkillshotType.SkillshotLine);
 
-            W = new Spell(SpellSlot.W, 785f);
+            W = new Spell(SpellSlot.W, 785f, DamageType.Magical);
             W.SetSkillshot(0.5f, 100f, Player.BasicAttack.MissileSpeed, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E);
@@ -219,8 +221,7 @@ namespace SFXChallenger.Champions
                                       hero.Distance(Player) * 1.5f / Player.BasicAttack.MissileSpeed;
                             _qTarget = hero;
 
-                            var target = TargetSelector.GetTarget(
-                                W.Range, LeagueSharp.Common.TargetSelector.DamageType.Magical, false);
+                            var target = TargetSelector.GetTarget(W, false);
                             if (target != null && !target.NetworkId.Equals(hero.NetworkId))
                             {
                                 Orbwalker.ForceTarget(target);
@@ -524,8 +525,7 @@ namespace SFXChallenger.Champions
 
             if (w && W.IsReady())
             {
-                var target = TargetSelector.GetTarget(
-                    W.Range * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical, false);
+                var target = TargetSelector.GetTarget(W, false);
                 if (target != null)
                 {
                     var best = GetBestCard(target, "combo");
@@ -548,8 +548,7 @@ namespace SFXChallenger.Champions
 
             if (w && W.IsReady())
             {
-                var target = TargetSelector.GetTarget(
-                    W.Range * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical, false);
+                var target = TargetSelector.GetTarget(W, false);
                 if (target != null)
                 {
                     var best = GetBestCard(target, "harass");
@@ -578,8 +577,7 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
-                var target = TargetSelector.GetTarget(
-                    Q.Range, LeagueSharp.Common.TargetSelector.DamageType.Magical, false);
+                var target = TargetSelector.GetTarget(Q, false);
                 if (_qTarget != null && _qTarget.IsValidTarget(Q.Range) && _qDelay + 0.5f > Game.Time)
                 {
                     target = _qTarget;
@@ -669,8 +667,7 @@ namespace SFXChallenger.Champions
                 }
                 else
                 {
-                    var target = TargetSelector.GetTarget(
-                        W.Range * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical, false);
+                    var target = TargetSelector.GetTarget(W, false);
                     if (target != null)
                     {
                         var best = GetBestCard(target, "flee");

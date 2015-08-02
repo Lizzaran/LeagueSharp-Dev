@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXLibrary.Logger;
+using DamageType = SFXChallenger.Enumerations.DamageType;
 
 #endregion
 
@@ -49,15 +50,15 @@ namespace SFXChallenger.Wrappers
                     1),
             new InvulnerableStruct("Tryndamere", "UndyingRage", null, false, (target, type) => target.HealthPercent < 5),
             new InvulnerableStruct("Kayle", "JudicatorIntervention", null, false),
-            new InvulnerableStruct(null, "BlackShield", LeagueSharp.Common.TargetSelector.DamageType.Magical, true),
-            new InvulnerableStruct(null, "BansheesVeil", LeagueSharp.Common.TargetSelector.DamageType.Magical, true),
+            new InvulnerableStruct(null, "BlackShield", DamageType.Magical, true),
+            new InvulnerableStruct(null, "BansheesVeil", DamageType.Magical, true),
             new InvulnerableStruct("Sivir", "SivirE", null, true),
             new InvulnerableStruct("Nocturne", "ShroudofDarkness", null, true)
         };
 
         // ReSharper restore StringLiteralTypo
         public static bool HasBuff(Obj_AI_Hero target,
-            LeagueSharp.Common.TargetSelector.DamageType damageType = LeagueSharp.Common.TargetSelector.DamageType.True,
+            DamageType damageType = DamageType.True,
             bool ignoreShields = true)
         {
             try
@@ -97,9 +98,9 @@ namespace SFXChallenger.Wrappers
     {
         public InvulnerableStruct(string champion,
             string buffName,
-            LeagueSharp.Common.TargetSelector.DamageType? damageType,
+            DamageType? damageType,
             bool isShield,
-            Func<Obj_AI_Base, LeagueSharp.Common.TargetSelector.DamageType, bool> customCheck = null) : this()
+            Func<Obj_AI_Base, DamageType, bool> customCheck = null) : this()
         {
             Champion = champion;
             BuffName = buffName;
@@ -110,8 +111,8 @@ namespace SFXChallenger.Wrappers
 
         public string Champion { get; set; }
         public string BuffName { get; private set; }
-        public LeagueSharp.Common.TargetSelector.DamageType? DamageType { get; private set; }
+        public DamageType? DamageType { get; private set; }
         public bool IsShield { get; private set; }
-        public Func<Obj_AI_Base, LeagueSharp.Common.TargetSelector.DamageType, bool> CustomCheck { get; private set; }
+        public Func<Obj_AI_Base, DamageType, bool> CustomCheck { get; private set; }
     }
 }

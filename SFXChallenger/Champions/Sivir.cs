@@ -39,6 +39,7 @@ using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
 using MinionTeam = SFXLibrary.MinionTeam;
 using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+using Spell = SFXChallenger.Wrappers.Spell;
 using Utils = SFXChallenger.Helpers.Utils;
 
 #endregion

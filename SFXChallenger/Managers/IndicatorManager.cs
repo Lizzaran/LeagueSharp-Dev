@@ -31,6 +31,7 @@ using SFXLibrary;
 using SFXLibrary.Logger;
 using SharpDX;
 using Color = System.Drawing.Color;
+using Spell = SFXChallenger.Wrappers.Spell;
 
 #endregion
 

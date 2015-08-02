@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- viktor.cs is part of SFXChallenger.
+ Viktor.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -35,11 +35,13 @@ using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
 using SharpDX;
+using DamageType = SFXChallenger.Enumerations.DamageType;
 using MinionManager = SFXLibrary.MinionManager;
 using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
 using MinionTeam = SFXLibrary.MinionTeam;
 using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 using Utils = SFXChallenger.Helpers.Utils;
 
@@ -188,17 +190,17 @@ namespace SFXChallenger.Champions
 
         protected override void SetupSpells()
         {
-            Q = new Spell(SpellSlot.Q, Player.BoundingRadius + 600f);
+            Q = new Spell(SpellSlot.Q, Player.BoundingRadius + 600f, DamageType.Magical);
             Q.Range += GameObjects.EnemyHeroes.Max(e => e.BoundingRadius);
             Q.SetTargetted(0.2f, 1800f);
 
-            W = new Spell(SpellSlot.W, 700f);
+            W = new Spell(SpellSlot.W, 700f, DamageType.Magical);
             W.SetSkillshot(1.6f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
-            E = new Spell(SpellSlot.E, 525f);
+            E = new Spell(SpellSlot.E, 525f, DamageType.Magical);
             E.SetSkillshot(0f, 90f, 800f, false, SkillshotType.SkillshotLine);
 
-            R = new Spell(SpellSlot.R, 700f);
+            R = new Spell(SpellSlot.R, 700f, DamageType.Magical);
             R.SetSkillshot(0.3f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
         }
 
@@ -216,8 +218,7 @@ namespace SFXChallenger.Champions
                     {
                         Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
                     }
-                    var target = TargetSelector.GetTarget(
-                        R.Range + R.Width, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+                    var target = TargetSelector.GetTarget(R);
                     if (target != null &&
                         !RLogic(target, Menu.Item(Menu.Name + ".ultimate.assisted.min").GetValue<Slider>().Value))
                     {
@@ -232,8 +233,7 @@ namespace SFXChallenger.Champions
 
                 if (UltimateManager.Auto() && R.IsReady())
                 {
-                    var target = TargetSelector.GetTarget(
-                        R.Range + R.Width, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+                    var target = TargetSelector.GetTarget(R);
                     if (target != null &&
                         !RLogic(target, Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value))
                     {
@@ -351,7 +351,7 @@ namespace SFXChallenger.Champions
                     if (args.Target.Type != GameObjectType.obj_AI_Hero)
                     {
                         var hero =
-                            TargetSelector.GetTargets(Player.AttackRange + Player.BoundingRadius * 4f)
+                            TargetSelector.GetTargets(Player.AttackRange + Player.BoundingRadius * 3f)
                                 .FirstOrDefault(Orbwalking.InAutoAttackRange);
                         if (hero != null)
                         {
@@ -454,7 +454,7 @@ namespace SFXChallenger.Champions
             }
             if (w)
             {
-                var target = TargetSelector.GetTarget(W.Range * 1.2f);
+                var target = TargetSelector.GetTarget(W);
                 if (target != null)
                 {
                     WLogic(target, W.GetHitChance("combo"));
@@ -462,8 +462,7 @@ namespace SFXChallenger.Champions
             }
             if (e)
             {
-                var target = TargetSelector.GetTarget(
-                    MaxERange * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+                var target = TargetSelector.GetTarget((MaxERange + E.Width) * 1.2f, E.DamageType);
                 if (target != null)
                 {
                     ELogic(target, GameObjects.EnemyHeroes.ToList(), E.GetHitChance("combo"));
@@ -471,8 +470,7 @@ namespace SFXChallenger.Champions
             }
             if (r)
             {
-                var target = TargetSelector.GetTarget(
-                    R.Range + R.Width, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+                var target = TargetSelector.GetTarget(R);
                 if (target != null &&
                     !RLogic(target, Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value))
                 {
@@ -482,8 +480,7 @@ namespace SFXChallenger.Champions
                     }
                 }
             }
-            var rTarget = TargetSelector.GetTarget(
-                R.Range + R.Width, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+            var rTarget = TargetSelector.GetTarget(R);
             if (rTarget != null && CalcComboDamage(rTarget, q, e, r) > rTarget.Health)
             {
                 ItemManager.UseComboItems(rTarget);
@@ -848,8 +845,7 @@ namespace SFXChallenger.Champions
             }
             if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>())
             {
-                var target = TargetSelector.GetTarget(
-                    MaxERange * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Magical);
+                var target = TargetSelector.GetTarget((MaxERange + E.Width) * 1.2f, E.DamageType);
                 if (target != null)
                 {
                     ELogic(target, GameObjects.EnemyHeroes.ToList(), E.GetHitChance("harass"));

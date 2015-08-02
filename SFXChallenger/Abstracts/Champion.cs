@@ -32,6 +32,7 @@ using SFXChallenger.Managers;
 using SFXChallenger.Menus;
 using SFXLibrary.Logger;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
 #endregion

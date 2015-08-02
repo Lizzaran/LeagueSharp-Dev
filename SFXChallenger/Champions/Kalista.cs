@@ -36,11 +36,13 @@ using SFXLibrary;
 using SFXLibrary.Logger;
 using SharpDX;
 using Collision = LeagueSharp.Common.Collision;
+using DamageType = SFXChallenger.Enumerations.DamageType;
 using MinionManager = SFXLibrary.MinionManager;
 using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
 using MinionTeam = SFXLibrary.MinionTeam;
 using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 using Utils = SFXChallenger.Helpers.Utils;
 
@@ -452,8 +454,7 @@ namespace SFXChallenger.Champions
 
             if (useE)
             {
-                var target = TargetSelector.GetTarget(
-                    E.Range * 1.2f, LeagueSharp.Common.TargetSelector.DamageType.Physical);
+                var target = TargetSelector.GetTarget(E);
                 if (target != null && Rend.HasBuff(target))
                 {
                     if (target.Distance(Player) > Orbwalking.GetRealAutoAttackRange(target))
@@ -740,7 +741,7 @@ namespace SFXChallenger.Champions
                     var hero = target as Obj_AI_Hero;
                     if (hero != null)
                     {
-                        if (Invulnerable.HasBuff(hero, LeagueSharp.Common.TargetSelector.DamageType.True, false))
+                        if (Invulnerable.HasBuff(hero, DamageType.Physical, false))
                         {
                             return false;
                         }

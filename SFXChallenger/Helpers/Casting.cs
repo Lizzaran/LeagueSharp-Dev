@@ -32,6 +32,7 @@ using MinionManager = SFXLibrary.MinionManager;
 using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
 using MinionTeam = SFXLibrary.MinionTeam;
 using MinionTypes = SFXLibrary.MinionTypes;
+using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
 #endregion
@@ -42,7 +43,7 @@ namespace SFXChallenger.Helpers
     {
         public static void SkillShot(Spell spell, HitChance hitChance, bool boundingRadius = true, bool maxRange = true)
         {
-            SkillShot(TargetSelector.GetTarget(spell.Range + spell.Width, spell.DamageType), spell, hitChance);
+            SkillShot(TargetSelector.GetTarget(spell), spell, hitChance);
         }
 
         public static void SkillShot(Obj_AI_Hero target,
@@ -84,7 +85,7 @@ namespace SFXChallenger.Helpers
 
         public static void TargetSkill(Spell spell)
         {
-            TargetSkill(TargetSelector.GetTarget(spell.Range, spell.DamageType), spell);
+            TargetSkill(TargetSelector.GetTarget(spell), spell);
         }
 
         public static void TargetSkill(Obj_AI_Base target, Spell spell)

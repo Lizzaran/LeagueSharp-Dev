@@ -34,7 +34,9 @@ using SFXChallenger.Managers;
 using SFXLibrary;
 using SFXLibrary.Logger;
 using SharpDX;
+using DamageType = SFXChallenger.Enumerations.DamageType;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
 #endregion
@@ -117,7 +119,7 @@ namespace SFXChallenger.Champions
             Q = new Spell(SpellSlot.Q, 850f);
             Q.SetSkillshot(0.25f, 15f * (float) Math.PI / 180, 2000f, false, SkillshotType.SkillshotCone);
 
-            W = new Spell(SpellSlot.W, 900f);
+            W = new Spell(SpellSlot.W, 900f, DamageType.Magical);
             W.SetSkillshot(0.35f, 250f, 1650f, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E, 425f);
@@ -142,7 +144,7 @@ namespace SFXChallenger.Champions
 
                     if (
                         !RLogic(
-                            TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical),
+                            TargetSelector.GetTarget(R),
                             Menu.Item(Menu.Name + ".ultimate.assisted.min").GetValue<Slider>().Value))
                     {
                         RLogicDuel(Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady());
@@ -153,7 +155,7 @@ namespace SFXChallenger.Champions
                 {
                     if (
                         !RLogic(
-                            TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical),
+                            TargetSelector.GetTarget(R),
                             Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value))
                     {
                         RLogicDuel(Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady());
@@ -234,8 +236,7 @@ namespace SFXChallenger.Champions
             }
             if (useW)
             {
-                var target = TargetSelector.GetTarget(
-                    W.Range + W.Width, LeagueSharp.Common.TargetSelector.DamageType.Physical);
+                var target = TargetSelector.GetTarget(W);
                 var best = CPrediction.Circle(W, target, W.GetHitChance("combo"));
                 if (best.TotalHits > 0 && !best.CastPosition.Equals(Vector3.Zero))
                 {
@@ -244,8 +245,7 @@ namespace SFXChallenger.Champions
             }
             if (useE)
             {
-                var target = TargetSelector.GetTarget(
-                    (E.Range + Player.AttackRange) * 0.9f, LeagueSharp.Common.TargetSelector.DamageType.Physical);
+                var target = TargetSelector.GetTarget((E.Range + Player.AttackRange) * 0.9f, E.DamageType);
                 if (target != null)
                 {
                     var pos = Player.Position.Extend(Game.CursorPos, E.Range);
@@ -257,7 +257,7 @@ namespace SFXChallenger.Champions
             }
             if (useR)
             {
-                var target = TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical);
+                var target = TargetSelector.GetTarget(R);
                 if (target != null && Orbwalking.InAutoAttackRange(target))
                 {
                     if (!RLogic(target, Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value))

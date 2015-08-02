@@ -104,15 +104,15 @@
 
 //        protected override void SetupSpells()
 //        {
-//            Q = new Spell(SpellSlot.Q, 1075f);
+//            Q = new Wrappers.Spell(SpellSlot.Q, 1075f);
 //            Q.SetSkillshot(0f, 65f, 1500f, false, SkillshotType.SkillshotLine);
 
-//            W = new Spell(SpellSlot.W, 450f);
+//            W = new Wrappers.Spell(SpellSlot.W, 450f);
 
-//            E = new Spell(SpellSlot.E, 1150f);
+//            E = new Wrappers.Spell(SpellSlot.E, 1150f);
 //            E.SetSkillshot(0f, 65f, 1500f, false, SkillshotType.SkillshotLine);
 
-//            R = new Spell(SpellSlot.R, 250f);
+//            R = new Wrappers.Spell(SpellSlot.R, 250f);
 //            R.SetSkillshot(0.5f, 700f, 1400f, false, SkillshotType.SkillshotLine);
 //        }
 
@@ -134,8 +134,8 @@
 //            }
 //            if (useE)
 //            {
-//                var target = TargetSelector.GetTarget(
-//                    (E.Range + Player.AttackRange) * 0.9f, LeagueSharp.Common.TargetSelector.DamageType.Physical);
+//                var target = Wrappers.TargetSelector.GetTarget(
+//                    (E.Range + Player.AttackRange) * 0.9f, Enumerations.DamageType.Physical);
 //                if (target != null)
 //                {
 //                    var pos = Player.Position.Extend(target.Position, E.Range);
@@ -147,7 +147,7 @@
 //            }
 //            if (useR)
 //            {
-//                var target = TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical);
+//                var target = Wrappers.TargetSelector.GetTarget(R.Range, Enumerations.DamageType.Physical);
 //                if (target != null && R.GetDamage(target) * 0.9f > target.Health || Orbwalking.InAutoAttackRange(target))
 //                {
 //                    var pred = R.GetPrediction(target);

@@ -29,6 +29,7 @@ using LeagueSharp.Common;
 using SFXLibrary;
 using SharpDX;
 using Color = System.Drawing.Color;
+using DamageType = SFXChallenger.Enumerations.DamageType;
 using MinionManager = SFXLibrary.MinionManager;
 using MinionTeam = SFXLibrary.MinionTeam;
 using MinionTypes = SFXLibrary.MinionTypes;
@@ -677,7 +678,7 @@ namespace SFXChallenger.Wrappers
                 if ((ActiveMode == OrbwalkingMode.Mixed || ActiveMode == OrbwalkingMode.LaneClear) &&
                     !_config.Item("PriorizeFarm").GetValue<bool>())
                 {
-                    var target = TargetSelector.GetTarget(-1, LeagueSharp.Common.TargetSelector.DamageType.Physical);
+                    var target = TargetSelector.GetTarget(-1, DamageType.Physical);
                     if (target != null)
                     {
                         return target;
@@ -763,7 +764,7 @@ namespace SFXChallenger.Wrappers
                 /*Champions*/
                 if (ActiveMode != OrbwalkingMode.LastHit)
                 {
-                    var target = TargetSelector.GetTarget(-1, LeagueSharp.Common.TargetSelector.DamageType.Physical);
+                    var target = TargetSelector.GetTarget(-1, DamageType.Physical);
                     if (target.IsValidTarget())
                     {
                         return target;

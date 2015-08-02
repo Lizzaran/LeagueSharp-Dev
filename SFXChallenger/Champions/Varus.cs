@@ -37,11 +37,13 @@ using SFXLibrary.Logger;
 using SharpDX;
 using Collision = LeagueSharp.Common.Collision;
 using Color = System.Drawing.Color;
+using DamageType = SFXChallenger.Enumerations.DamageType;
 using MinionManager = SFXLibrary.MinionManager;
 using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
 using MinionTeam = SFXLibrary.MinionTeam;
 using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 using Utils = SFXChallenger.Helpers.Utils;
 
@@ -176,7 +178,7 @@ namespace SFXChallenger.Champions
             Q.SetSkillshot(0.25f, 70f, 1800f, false, SkillshotType.SkillshotLine);
             Q.SetCharged("VarusQ", "VarusQ", 925, 1700, 1.5f);
 
-            W = new Spell(SpellSlot.W, 0f);
+            W = new Spell(SpellSlot.W, 0f, DamageType.Magical);
 
             E = new Spell(SpellSlot.E, 950f);
             E.SetSkillshot(0.25f, 250f, 1400f, false, SkillshotType.SkillshotCircle);
@@ -199,8 +201,7 @@ namespace SFXChallenger.Champions
 
                     if (
                         !RLogic(
-                            TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical),
-                            R.GetHitChance("combo"),
+                            TargetSelector.GetTarget(R), R.GetHitChance("combo"),
                             Menu.Item(Menu.Name + ".ultimate.assisted.min").GetValue<Slider>().Value))
                     {
                         RLogicDuel(
@@ -213,8 +214,7 @@ namespace SFXChallenger.Champions
                 {
                     if (
                         !RLogic(
-                            TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical),
-                            R.GetHitChance("combo"),
+                            TargetSelector.GetTarget(R), R.GetHitChance("combo"),
                             Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value))
                     {
                         RLogicDuel(
@@ -290,8 +290,7 @@ namespace SFXChallenger.Champions
 
             if (q && Q.IsReady())
             {
-                var target = TargetSelector.GetTarget(
-                    Q.ChargedMaxRange, LeagueSharp.Common.TargetSelector.DamageType.Physical);
+                var target = TargetSelector.GetTarget((Q.ChargedMaxRange + Q.Width) * 1.1f, Q.DamageType);
                 if (target != null)
                 {
                     var stacks = W.Level == 0 && Menu.Item(Menu.Name + ".combo.q-stacks").GetValue<Slider>().Value > 0;
@@ -310,8 +309,7 @@ namespace SFXChallenger.Champions
             }
             if (e && E.IsReady())
             {
-                var target = TargetSelector.GetTarget(
-                    E.Range + E.Width, LeagueSharp.Common.TargetSelector.DamageType.Physical);
+                var target = TargetSelector.GetTarget(E);
                 if (target != null)
                 {
                     var stacks = W.Level == 0 && Menu.Item(Menu.Name + ".combo.e-stacks").GetValue<Slider>().Value > 0;
@@ -327,7 +325,7 @@ namespace SFXChallenger.Champions
             }
             if (r && R.IsReady())
             {
-                var target = TargetSelector.GetTarget(R.Range, LeagueSharp.Common.TargetSelector.DamageType.Physical);
+                var target = TargetSelector.GetTarget(R);
                 if (target != null)
                 {
                     if (
@@ -352,8 +350,7 @@ namespace SFXChallenger.Champions
             }
             if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && Q.IsReady())
             {
-                var target = TargetSelector.GetTarget(
-                    Q.ChargedMaxRange, LeagueSharp.Common.TargetSelector.DamageType.Physical);
+                var target = TargetSelector.GetTarget((Q.ChargedMaxRange + Q.Width) * 1.1f, Q.DamageType);
                 if (target != null)
                 {
                     var stacks = W.Level == 0 && Menu.Item(Menu.Name + ".harass.q-stacks").GetValue<Slider>().Value > 0;
@@ -373,8 +370,7 @@ namespace SFXChallenger.Champions
             }
             if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>() && E.IsReady())
             {
-                var target = TargetSelector.GetTarget(
-                    E.Range + E.Width, LeagueSharp.Common.TargetSelector.DamageType.Physical);
+                var target = TargetSelector.GetTarget(E);
                 if (target != null)
                 {
                     var stacks = W.Level == 0 && Menu.Item(Menu.Name + ".harass.e-stacks").GetValue<Slider>().Value > 0;

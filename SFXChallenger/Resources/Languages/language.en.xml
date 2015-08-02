@@ -57,7 +57,7 @@
 	<entry key="G_Heroes">Heroes</entry>
 	<entry key="G_Miscellaneous">Miscellaneous</entry>
 	<entry key="G_Gapcloser">Gapcloser</entry>
-	<entry key="G_ImportantSpell">Important Spell</entry>
+	<entry key="G_ImportantWrappers.Spell">Important Wrappers.Spell</entry>
 	<entry key="G_Lasthit">Lasthit</entry>
 	<entry key="G_Hotkey">Hotkey</entry>
 	<entry key="G_Combo">Combo</entry>
@@ -77,7 +77,7 @@
 	<entry key="G_Fleeing">Fleeing</entry>
 	<entry key="G_Killable">Killable</entry>
 	<entry key="G_LastHit">Lasthit</entry>
-	<entry key="G_InterruptSpell">Interrupt Spell</entry>
+	<entry key="G_InterruptWrappers.Spell">Interrupt Wrappers.Spell</entry>
 	<entry key="G_Min">Min</entry>
 	<entry key="G_Max">Max</entry>
 	<entry key="G_Facing">Facing</entry>

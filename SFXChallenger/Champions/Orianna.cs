@@ -36,11 +36,14 @@ using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
 using SharpDX;
 using Color = System.Drawing.Color;
+using DamageType = SFXChallenger.Enumerations.DamageType;
 using MinionManager = SFXLibrary.MinionManager;
 using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
 using MinionTeam = SFXLibrary.MinionTeam;
 using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+using Spell = SFXChallenger.Wrappers.Spell;
+using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 
 #endregion
 
@@ -228,16 +231,16 @@ namespace SFXChallenger.Champions
 
         protected override void SetupSpells()
         {
-            Q = new Spell(SpellSlot.Q, 825f);
+            Q = new Spell(SpellSlot.Q, 825f, DamageType.Magical);
             Q.SetSkillshot(0.25f, 110f, 1350f, false, SkillshotType.SkillshotCircle);
 
-            W = new Spell(SpellSlot.W, 220f);
+            W = new Spell(SpellSlot.W, 220f, DamageType.Magical);
             W.SetSkillshot(0.1f, 240f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
-            E = new Spell(SpellSlot.E, 1095f);
+            E = new Spell(SpellSlot.E, 1095f, DamageType.Magical);
             E.SetSkillshot(0.25f, 125f, 1700f, false, SkillshotType.SkillshotLine);
 
-            R = new Spell(SpellSlot.R, 400f);
+            R = new Spell(SpellSlot.R, 400f, DamageType.Magical);
             R.SetSkillshot(0.60f, 350f, float.MaxValue, false, SkillshotType.SkillshotCircle);
         }
 
@@ -267,7 +270,7 @@ namespace SFXChallenger.Champions
                         return;
                     }
                     var target = TargetSelector.GetTarget(
-                        (R.Range + SummonerManager.Flash.Range) * 1.2f, TargetSelector.DamageType.Magical);
+                        (R.Range + SummonerManager.Flash.Range) * 1.2f, DamageType.Magical);
                     if (target != null && !target.IsDashing() &&
                         (Prediction.GetPrediction(target, R.Delay + 0.3f).UnitPosition.Distance(Player.Position)) >
                         R.Range * 1.025f)
@@ -404,7 +407,7 @@ namespace SFXChallenger.Champions
             var w = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>();
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>();
             var r = UltimateManager.Combo();
-            var target = TargetSelector.GetTarget(Q.Range + Q.Width, TargetSelector.DamageType.Magical);
+            var target = TargetSelector.GetTarget(Q);
             if (w && W.IsReady())
             {
                 WLogic(1);
@@ -449,9 +452,7 @@ namespace SFXChallenger.Champions
             }
             if (q && Q.IsReady())
             {
-                QLogic(
-                    TargetSelector.GetTarget(Q.Range + Q.Width, TargetSelector.DamageType.Magical),
-                    Q.GetHitChance("combo"), e);
+                QLogic(TargetSelector.GetTarget(Q), Q.GetHitChance("combo"), e);
             }
             if (e && E.IsReady())
             {

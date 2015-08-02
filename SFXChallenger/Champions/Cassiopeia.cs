@@ -35,11 +35,13 @@ using SFXChallenger.Wrappers;
 using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
+using DamageType = SFXChallenger.Enumerations.DamageType;
 using MinionManager = SFXLibrary.MinionManager;
 using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
 using MinionTeam = SFXLibrary.MinionTeam;
 using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 using Utils = SFXChallenger.Helpers.Utils;
 
@@ -180,17 +182,17 @@ namespace SFXChallenger.Champions
 
         protected override void SetupSpells()
         {
-            Q = new Spell(SpellSlot.Q, 850f);
+            Q = new Spell(SpellSlot.Q, 850f, DamageType.Magical);
             Q.SetSkillshot(0.4f, 60f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
-            W = new Spell(SpellSlot.W, 850f);
+            W = new Spell(SpellSlot.W, 850f, DamageType.Magical);
             W.SetSkillshot(0.7f, 125f, 2500f, false, SkillshotType.SkillshotCircle);
 
-            E = new Spell(SpellSlot.E, 700f);
+            E = new Spell(SpellSlot.E, 700f, DamageType.Magical);
             E.SetTargetted(0.2f, 1700f);
             E.Collision = true;
 
-            R = new Spell(SpellSlot.R, 825f);
+            R = new Spell(SpellSlot.R, 825f, DamageType.Magical);
             R.SetSkillshot(0.8f, (float) (80 * Math.PI / 180), float.MaxValue, false, SkillshotType.SkillshotCone);
         }
 
