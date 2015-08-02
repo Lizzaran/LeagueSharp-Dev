@@ -192,12 +192,12 @@ namespace SFXChallenger.Abstracts
         {
             try
             {
-                SFXMenu = new Menu(Global.Name + " - ALPHA", "sfx", true);
+                SFXMenu = new Menu(Global.Name, "sfx", true);
 
-                InfoMenu.AddToMenu(SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_Info"), SFXMenu.Name + ".info")));
+                Menu = SFXMenu.AddSubMenu(new Menu(Player.ChampionName, "." + Player.ChampionName));
 
-                LanguageMenu.AddToMenu(
-                    SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_Settings"), SFXMenu.Name + ".settings")));
+                DrawingManager.AddToMenu(
+                    Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Drawing"), Menu.Name + ".drawing")), this);
 
                 TargetSelector.AddToMenu(
                     SFXMenu.AddSubMenu(
@@ -213,14 +213,14 @@ namespace SFXChallenger.Abstracts
                 SummonerManager.AddToMenu(
                     SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MS"), SFXMenu.Name + ".summoners")));
 
+                LanguageMenu.AddToMenu(
+                    SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_Settings"), SFXMenu.Name + ".settings")));
+
+                InfoMenu.AddToMenu(SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_Info"), SFXMenu.Name + ".info")));
+
                 TickMenu.AddToMenu(SFXMenu);
 
                 SFXMenu.AddToMainMenu();
-
-                Menu = SFXMenu.AddSubMenu(new Menu(Player.ChampionName, Player.ChampionName));
-
-                DrawingManager.AddToMenu(
-                    Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Drawing"), Menu.Name + ".drawing")), this);
 
                 try
                 {
@@ -230,8 +230,6 @@ namespace SFXChallenger.Abstracts
                 {
                     Global.Logger.AddItem(new LogItem(ex));
                 }
-
-                Menu.AddToMainMenu();
             }
             catch (Exception ex)
             {
