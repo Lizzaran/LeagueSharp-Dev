@@ -32,7 +32,7 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 
 [assembly: AssemblyTitle("SFXUtility")]
-[assembly: AssemblyDescription("Utility Assembly")]
+[assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration(("Release"))]
 [assembly: AssemblyCompany("Sentryfox")]
 [assembly: AssemblyProduct("SFXUtility")]

@@ -86,7 +86,7 @@ namespace SFXChallenger.Managers
                     {
                         var autoInterruptMenu =
                             uAutoMenu.AddSubMenu(
-                                new Menu(Global.Lang.Get("G_InterruptWrappers.Spell"), uAutoMenu.Name + ".interrupt"));
+                                new Menu(Global.Lang.Get("G_InterruptSpell"), uAutoMenu.Name + ".interrupt"));
                         if (interruptDelay)
                         {
                             DelayManager.AddToMenu(

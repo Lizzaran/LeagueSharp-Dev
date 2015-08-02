@@ -590,7 +590,7 @@ namespace SFXChallenger.Champions
                     var pos = BestRFollowLocation(_rObject.Position);
                     if (!pos.Equals(Vector3.Zero))
                     {
-                        R.Cast(pos);
+                        Player.Spellbook.CastSpell(SpellSlot.R, pos);
                     }
                 }
             }

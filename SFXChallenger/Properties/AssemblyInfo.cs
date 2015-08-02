@@ -32,7 +32,7 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 
 [assembly: AssemblyTitle("SFXChallenger")]
-[assembly: AssemblyDescription("AIO Champions")]
+[assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Sentryfox")]
 [assembly: AssemblyProduct("SFXChallenger")]
