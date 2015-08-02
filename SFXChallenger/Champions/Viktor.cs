@@ -625,7 +625,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                var pred = CPrediction.Circle(R, target, HitChance.High);
+                var pred = CPrediction.Circle(R, target, HitChance.High, false);
                 if (pred.TotalHits > 0 && UltimateManager.Check(min, pred.Hits))
                 {
                     R.Cast(pred.CastPosition);

@@ -217,9 +217,11 @@ namespace SFXChallenger.Abstracts
 
                 SFXMenu.AddToMainMenu();
 
-                Menu = new Menu(Global.ChampionPrefix + " " + Player.ChampionName, Player.ChampionName, true);
+                Menu = SFXMenu.AddSubMenu(new Menu(Player.ChampionName, Player.ChampionName));
+
                 DrawingManager.AddToMenu(
                     Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Drawing"), Menu.Name + ".drawing")), this);
+
                 try
                 {
                     AddToMenu();
