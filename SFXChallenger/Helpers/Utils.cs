@@ -29,7 +29,6 @@ using LeagueSharp.Common;
 using SFXLibrary;
 using SFXLibrary.Logger;
 using SharpDX;
-using Spell = SFXChallenger.Wrappers.Spell;
 
 #endregion
 
@@ -75,33 +74,7 @@ namespace SFXChallenger.Helpers
             return path[path.Count - 1];
         }
 
-        public static float GetSpellDelay(this Spell spell, Obj_AI_Base target)
-        {
-            try
-            {
-                if (target is Obj_AI_Hero && target.IsMoving)
-                {
-                    var predTarget = Prediction.GetPrediction(
-                        target,
-                        spell.Delay +
-                        (ObjectManager.Player.ServerPosition.Distance(target.ServerPosition) / (spell.Speed)) +
-                        (Game.Ping / 2000f) + 0.1f);
-                    return spell.Delay +
-                           (ObjectManager.Player.ServerPosition.Distance(predTarget.UnitPosition) / (spell.Speed)) +
-                           (Game.Ping / 2000f) + 0.1f;
-                }
-                return spell.Delay +
-                       (ObjectManager.Player.ServerPosition.Distance(target.ServerPosition) / (spell.Speed)) +
-                       (Game.Ping / 2000f) + 0.1f;
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return 0;
-        }
-
-        public static float GetSpellDelay(Obj_AI_Base sender,
+        public static float SpellArrivalTime(Obj_AI_Base sender,
             Obj_AI_Base target,
             float delay,
             float speed,

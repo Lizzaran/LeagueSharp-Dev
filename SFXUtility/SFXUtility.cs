@@ -229,8 +229,6 @@ namespace SFXUtility
             }
         }
 
-        #region Fonts
-
         private void AddReport(Menu menu)
         {
             try
@@ -261,6 +259,8 @@ namespace SFXUtility
                 Global.Logger.AddItem(new LogItem(ex));
             }
         }
+
+        #region Fonts
 
         private void AddFont(Menu menu)
         {

@@ -31,7 +31,7 @@ using SFXUtility.Interfaces;
 
 namespace SFXUtility.Classes
 {
-    internal abstract class Child<T> : Base, IChild where T : Parent
+    public abstract class Child<T> : Base, IChild where T : Parent
     {
         protected Child(T parent)
         {

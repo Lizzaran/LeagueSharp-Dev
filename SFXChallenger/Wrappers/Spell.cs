@@ -22,7 +22,10 @@
 
 #region
 
+using System;
 using LeagueSharp;
+using LeagueSharp.Common;
+using SFXLibrary.Logger;
 using DamageType = SFXChallenger.Enumerations.DamageType;
 
 #endregion
@@ -72,6 +75,25 @@ namespace SFXChallenger.Wrappers
                     return LeagueSharp.Common.TargetSelector.DamageType.True;
             }
             return LeagueSharp.Common.TargetSelector.DamageType.Physical;
+        }
+
+        public float ArrivalTime(Obj_AI_Base target)
+        {
+            try
+            {
+                if (target is Obj_AI_Hero && target.IsMoving)
+                {
+                    var predTarget = Prediction.GetPrediction(
+                        target, Delay + (From.Distance(target.ServerPosition) / (Speed)) + (Game.Ping / 2000f) + 0.1f);
+                    return Delay + (From.Distance(predTarget.UnitPosition) / (Speed)) + (Game.Ping / 2000f) + 0.1f;
+                }
+                return Delay + (From.Distance(target.ServerPosition) / (Speed)) + (Game.Ping / 2000f) + 0.1f;
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return 0;
         }
     }
 }

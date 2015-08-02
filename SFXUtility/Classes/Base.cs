@@ -31,7 +31,7 @@ using SFXLibrary.Logger;
 
 namespace SFXUtility.Classes
 {
-    internal abstract class Base
+    public abstract class Base
     {
         protected Base()
         {

@@ -78,9 +78,16 @@ namespace SFXChallenger
 
                         if (_champion != null)
                         {
-                            Update.Check(
-                                Global.Name, Assembly.GetExecutingAssembly().GetName().Version, Global.UpdatePath, 10000);
-
+                            try
+                            {
+                                Update.Check(
+                                    Global.Name, Assembly.GetExecutingAssembly().GetName().Version, Global.UpdatePath,
+                                    10000);
+                            }
+                            catch (Exception ex)
+                            {
+                                Global.Logger.AddItem(new LogItem(ex));
+                            }
                             Core.Init(_champion, 50);
                             Core.Boot();
 

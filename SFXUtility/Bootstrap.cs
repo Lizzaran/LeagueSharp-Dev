@@ -32,6 +32,10 @@ using System.Resources;
 using LeagueSharp.Common;
 using SFXLibrary;
 using SFXLibrary.Logger;
+using SFXUtility.Interfaces;
+
+#region Usings-Features
+
 using SFXUtility.Features.Activators;
 using SFXUtility.Features.Detectors;
 using SFXUtility.Features.Drawings;
@@ -39,7 +43,8 @@ using SFXUtility.Features.Events;
 using SFXUtility.Features.Others;
 using SFXUtility.Features.Timers;
 using SFXUtility.Features.Trackers;
-using SFXUtility.Interfaces;
+
+#endregion Usings-Features
 
 #endregion
 
@@ -160,8 +165,15 @@ namespace SFXUtility
                             Global.Logger.AddItem(new LogItem(ex));
                         }
                     }
-                    Update.Check(
-                        Global.Name, Assembly.GetExecutingAssembly().GetName().Version, Global.UpdatePath, 10000);
+                    try
+                    {
+                        Update.Check(
+                            Global.Name, Assembly.GetExecutingAssembly().GetName().Version, Global.UpdatePath, 10000);
+                    }
+                    catch (Exception ex)
+                    {
+                        Global.Logger.AddItem(new LogItem(ex));
+                    }
                 };
             }
             catch (Exception ex)

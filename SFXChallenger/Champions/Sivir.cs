@@ -140,7 +140,7 @@ namespace SFXChallenger.Champions
                     }
                     if (args.Type == SpellDataTargetType.Unit && args.Target != null && args.Target.IsMe)
                     {
-                        var delay = (int) (Utils.GetSpellDelay(args.Sender, Player, args.Delay, args.Speed, true)) *
+                        var delay = (int) (Utils.SpellArrivalTime(args.Sender, Player, args.Delay, args.Speed, true)) *
                                     1000;
                         var ping = Game.Ping / 2000;
                         if (delay - 200 - ping > 0)

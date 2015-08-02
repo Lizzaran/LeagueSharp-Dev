@@ -30,7 +30,7 @@ using SFXLibrary.Logger;
 
 namespace SFXUtility.Classes
 {
-    internal abstract class Parent : Base
+    public abstract class Parent : Base
     {
         protected Parent()
         {

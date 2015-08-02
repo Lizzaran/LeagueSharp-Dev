@@ -182,7 +182,7 @@ namespace SFXChallenger.Champions
             W = new Spell(SpellSlot.W, 0f, DamageType.Magical);
 
             E = new Spell(SpellSlot.E, 950f);
-            E.SetSkillshot(0.25f, 250f, 1400f, false, SkillshotType.SkillshotCircle);
+            E.SetSkillshot(0.25f, 250f, 1750f, false, SkillshotType.SkillshotCircle);
 
             R = new Spell(SpellSlot.R, 1075f);
             R.SetSkillshot(0.25f, 120f, 1950f, false, SkillshotType.SkillshotLine);
@@ -289,6 +289,22 @@ namespace SFXChallenger.Champions
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>();
             var r = UltimateManager.Combo();
 
+            if (e && !Q.IsCharging && E.IsReady())
+            {
+                var target = TargetSelector.GetTarget(E);
+                if (target != null)
+                {
+                    var stacks = W.Level == 0 && Menu.Item(Menu.Name + ".combo.e-stacks").GetValue<Slider>().Value > 0;
+                    if (Menu.Item(Menu.Name + ".combo.e-always").GetValue<bool>() || stacks ||
+                        GetWStacks(target) >= Menu.Item(Menu.Name + ".combo.e-stacks").GetValue<Slider>().Value ||
+                        E.IsKillable(target) ||
+                        CPrediction.Circle(E, target, E.GetHitChance("combo")).TotalHits >=
+                        Menu.Item(Menu.Name + ".combo.e-min").GetValue<Slider>().Value)
+                    {
+                        ELogic(target, E.GetHitChance("combo"));
+                    }
+                }
+            }
             if (q && Q.IsReady())
             {
                 var target = TargetSelector.GetTarget((Q.ChargedMaxRange + Q.Width) * 1.1f, Q.DamageType);
@@ -305,22 +321,6 @@ namespace SFXChallenger.Champions
                         QLogic(
                             target, Q.GetHitChance("combo"),
                             Menu.Item(Menu.Name + ".combo.q-fast-cast-min").GetValue<Slider>().Value);
-                    }
-                }
-            }
-            if (e && E.IsReady())
-            {
-                var target = TargetSelector.GetTarget(E);
-                if (target != null)
-                {
-                    var stacks = W.Level == 0 && Menu.Item(Menu.Name + ".combo.e-stacks").GetValue<Slider>().Value > 0;
-                    if (Menu.Item(Menu.Name + ".combo.e-always").GetValue<bool>() || stacks ||
-                        GetWStacks(target) >= Menu.Item(Menu.Name + ".combo.e-stacks").GetValue<Slider>().Value ||
-                        E.IsKillable(target) ||
-                        CPrediction.Circle(E, target, E.GetHitChance("combo")).TotalHits >=
-                        Menu.Item(Menu.Name + ".combo.e-min").GetValue<Slider>().Value)
-                    {
-                        ELogic(target, E.GetHitChance("combo"));
                     }
                 }
             }
@@ -349,6 +349,22 @@ namespace SFXChallenger.Champions
             {
                 return;
             }
+            if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>() && !Q.IsCharging && E.IsReady())
+            {
+                var target = TargetSelector.GetTarget(E);
+                if (target != null)
+                {
+                    var stacks = W.Level == 0 && Menu.Item(Menu.Name + ".harass.e-stacks").GetValue<Slider>().Value > 0;
+                    if (Menu.Item(Menu.Name + ".harass.e-always").GetValue<bool>() || stacks ||
+                        GetWStacks(target) >= Menu.Item(Menu.Name + ".harass.e-stacks").GetValue<Slider>().Value ||
+                        E.IsKillable(target) ||
+                        CPrediction.Circle(E, target, E.GetHitChance("harass")).TotalHits >=
+                        Menu.Item(Menu.Name + ".combo.e-min").GetValue<Slider>().Value)
+                    {
+                        ELogic(target, E.GetHitChance("harass"));
+                    }
+                }
+            }
             if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && Q.IsReady())
             {
                 var target = TargetSelector.GetTarget((Q.ChargedMaxRange + Q.Width) * 1.1f, Q.DamageType);
@@ -366,22 +382,6 @@ namespace SFXChallenger.Champions
                         QLogic(
                             target, Q.GetHitChance("harass"),
                             Menu.Item(Menu.Name + ".harass.q-fast-cast-min").GetValue<Slider>().Value);
-                    }
-                }
-            }
-            if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>() && E.IsReady())
-            {
-                var target = TargetSelector.GetTarget(E);
-                if (target != null)
-                {
-                    var stacks = W.Level == 0 && Menu.Item(Menu.Name + ".harass.e-stacks").GetValue<Slider>().Value > 0;
-                    if (Menu.Item(Menu.Name + ".harass.e-always").GetValue<bool>() || stacks ||
-                        GetWStacks(target) >= Menu.Item(Menu.Name + ".harass.e-stacks").GetValue<Slider>().Value ||
-                        E.IsKillable(target) ||
-                        CPrediction.Circle(E, target, E.GetHitChance("harass")).TotalHits >=
-                        Menu.Item(Menu.Name + ".combo.e-min").GetValue<Slider>().Value)
-                    {
-                        ELogic(target, E.GetHitChance("harass"));
                     }
                 }
             }

@@ -213,7 +213,7 @@ namespace SFXChallenger.Champions
                                 .FirstOrDefault(
                                     e =>
                                         e.Health < E.GetDamage(e) - 5 &&
-                                        (ePoison && GetPoisonBuffEndTime(e) > E.GetSpellDelay(e) || eHit));
+                                        (ePoison && GetPoisonBuffEndTime(e) > E.ArrivalTime(e) || eHit));
                         if (m != null)
                         {
                             Casting.TargetSkill(m, E);
@@ -367,7 +367,7 @@ namespace SFXChallenger.Champions
                      Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed))
                 {
                     args.Process = Q.Instance.ManaCost > Player.Mana && W.Instance.ManaCost > Player.Mana &&
-                                   (E.Instance.ManaCost > Player.Mana || GetPoisonBuffEndTime(t) < E.GetSpellDelay(t)) ||
+                                   (E.Instance.ManaCost > Player.Mana || GetPoisonBuffEndTime(t) < E.ArrivalTime(t)) ||
                                    !Q.IsReady() && !E.IsReady();
                 }
                 if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
@@ -377,7 +377,7 @@ namespace SFXChallenger.Champions
                     {
                         var m = args.Target as Obj_AI_Minion;
                         if (m != null && (_lastEEndTime < Game.Time || E.IsReady()) ||
-                            (GetPoisonBuffEndTime(m) < E.GetSpellDelay(m) || E.Instance.ManaCost > Player.Mana) ||
+                            (GetPoisonBuffEndTime(m) < E.ArrivalTime(m) || E.Instance.ManaCost > Player.Mana) ||
                             !ManaManager.Check("lane-clear"))
                         {
                             args.Process = true;
@@ -394,8 +394,7 @@ namespace SFXChallenger.Champions
                         {
                             args.Process = Menu.Item(Menu.Name + ".lasthit.e").GetValue<bool>() ||
                                            (Menu.Item(Menu.Name + ".lasthit.e-poison").GetValue<bool>() &&
-                                            GetPoisonBuffEndTime(m) > E.GetSpellDelay(m)) &&
-                                           ManaManager.Check("lasthit");
+                                            GetPoisonBuffEndTime(m) > E.ArrivalTime(m)) && ManaManager.Check("lasthit");
                         }
                     }
                 }
@@ -694,7 +693,7 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
-                var ts = Targets.FirstOrDefault(t => E.CanCast(t) && GetPoisonBuffEndTime(t) > E.GetSpellDelay(t));
+                var ts = Targets.FirstOrDefault(t => E.CanCast(t) && GetPoisonBuffEndTime(t) > E.ArrivalTime(t));
                 if (ts != null)
                 {
                     var pred = E.GetPrediction(ts, false, -1f, new[] { CollisionableObjects.YasuoWall });
@@ -758,7 +757,7 @@ namespace SFXChallenger.Champions
                         Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
                         .Where(
                             e =>
-                                GetPoisonBuffEndTime(e) > E.GetSpellDelay(e) &&
+                                GetPoisonBuffEndTime(e) > E.ArrivalTime(e) &&
                                 (e.Team == GameObjectTeam.Neutral ||
                                  (e.Health > E.GetDamage(e) * 2 || e.Health < E.GetDamage(e) - 5)))
                         .OrderByDescending(
@@ -766,7 +765,7 @@ namespace SFXChallenger.Champions
                         .FirstOrDefault();
                 if (minion != null)
                 {
-                    _lastEEndTime = Game.Time + E.GetSpellDelay(minion) + 0.1f;
+                    _lastEEndTime = Game.Time + E.ArrivalTime(minion) + 0.1f;
                     _lastECast = Environment.TickCount;
                     Casting.TargetSkill(minion, E);
                 }
@@ -850,7 +849,7 @@ namespace SFXChallenger.Champions
                     GameObjects.EnemyHeroes.FirstOrDefault(
                         e =>
                             E.CanCast(e) && e.Health < E.GetDamage(e) - 5 &&
-                            (ePoison && GetPoisonBuffEndTime(e) > E.GetSpellDelay(e) || eHit));
+                            (ePoison && GetPoisonBuffEndTime(e) > E.ArrivalTime(e) || eHit));
                 if (m != null)
                 {
                     Casting.TargetSkill(m, E);

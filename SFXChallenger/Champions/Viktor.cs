@@ -288,7 +288,7 @@ namespace SFXChallenger.Champions
                     {
                         var target = unit as Obj_AI_Base;
                         if (target != null && Q.IsKillable(target) &&
-                            HealthPrediction.GetHealthPrediction(target, (int) (Q.GetSpellDelay(target) * 1000)) > 0)
+                            HealthPrediction.GetHealthPrediction(target, (int) (Q.ArrivalTime(target) * 1000)) > 0)
                         {
                             Casting.TargetSkill(target, Q);
                         }
