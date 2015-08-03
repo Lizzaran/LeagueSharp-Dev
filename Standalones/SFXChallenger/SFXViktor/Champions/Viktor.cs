@@ -192,7 +192,7 @@ namespace SFXViktor.Champions
         {
             Q = new Spell(SpellSlot.Q, Player.BoundingRadius + 600f, DamageType.Magical);
             Q.Range += GameObjects.EnemyHeroes.Max(e => e.BoundingRadius);
-            Q.SetTargetted(0f, 2000f);
+            Q.SetTargetted(0.4f, 2000f);
 
             W = new Spell(SpellSlot.W, 700f, DamageType.Magical);
             W.SetSkillshot(1.6f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
@@ -202,9 +202,6 @@ namespace SFXViktor.Champions
 
             R = new Spell(SpellSlot.R, 700f, DamageType.Magical);
             R.SetSkillshot(0.1f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
-
-            Console.WriteLine(Q.Instance.SData.MissileSpeed);
-            Console.WriteLine(Q.Instance.SData.CastFrame / 30);
         }
 
         private void OnCorePostUpdate(EventArgs args)
