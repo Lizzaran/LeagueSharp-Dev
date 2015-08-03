@@ -120,10 +120,10 @@ namespace SFXOrianna.Wrappers
             WeightedItems = new HashSet<WeightedItem>
             {
                 new WeightedItem(
-                    "killable", Global.Lang.Get("TS_AAKillable"), 20, false, 333, 333,
-                    t => t.Health < ObjectManager.Player.GetAutoAttackDamage(t, true) ? 1 : 0),
+                    "killable", Global.Lang.Get("TS_AAKillable"), 20, false,
+                    t => t.Health < ObjectManager.Player.GetAutoAttackDamage(t, true) ? 10 : 0),
                 new WeightedItem(
-                    "attack-damage", Global.Lang.Get("TS_AttackDamage"), 10, false, 333, 6500, delegate(Obj_AI_Hero t)
+                    "attack-damage", Global.Lang.Get("TS_AttackDamage"), 10, false, delegate(Obj_AI_Hero t)
                     {
                         var ad = (t.BaseAttackDamage + t.FlatPhysicalDamageMod);
                         ad += ad / 100 * (t.Crit * 100) * (t.HasItem(ItemData.Infinity_Edge.Id) ? 2.5f : 2f);
@@ -132,7 +132,7 @@ namespace SFXOrianna.Wrappers
                         return (ad * (100 / (100 + (averageArmor > 0 ? averageArmor : 0)))) * t.AttackSpeedMod;
                     }),
                 new WeightedItem(
-                    "ability-power", Global.Lang.Get("TS_AbilityPower"), 10, false, 333, 7000, delegate(Obj_AI_Hero t)
+                    "ability-power", Global.Lang.Get("TS_AbilityPower"), 10, false, delegate(Obj_AI_Hero t)
                     {
                         var averageMr = GameObjects.AllyHeroes.Average(a => a.SpellBlock) *
                                         ObjectManager.Player.PercentMagicPenetrationMod - t.FlatMagicPenetrationMod;
@@ -140,24 +140,24 @@ namespace SFXOrianna.Wrappers
                                (100 / (100 + (averageMr > 0 ? averageMr : 0)));
                     }),
                 new WeightedItem(
-                    "low-resists", Global.Lang.Get("TS_LowResists"), 6, true, 333, 7500,
+                    "low-resists", Global.Lang.Get("TS_LowResists"), 6, true,
                     t =>
                         ObjectManager.Player.FlatPhysicalDamageMod >= ObjectManager.Player.FlatMagicDamageMod
                             ? t.Armor
                             : t.SpellBlock),
-                new WeightedItem("low-health", Global.Lang.Get("TS_LowHealth"), 8, true, 333, 333, t => t.Health),
+                new WeightedItem("low-health", Global.Lang.Get("TS_LowHealth"), 8, true, t => t.Health),
                 new WeightedItem(
-                    "short-distance", Global.Lang.Get("TS_ShortDistance"), 7, true, 333, 333,
+                    "short-distance", Global.Lang.Get("TS_ShortDistance"), 7, true,
                     t => t.Distance(ObjectManager.Player)),
                 new WeightedItem(
-                    "team-focus", Global.Lang.Get("TS_TeamFocus"), 3, false, 333, 1250,
+                    "team-focus", Global.Lang.Get("TS_TeamFocus"), 3, false,
                     t =>
                         AggroItems.Count(
                             a =>
                                 a.Value.Target.NetworkId == t.NetworkId &&
                                 AggroFadeTime + a.Value.Timestamp >= Game.Time)),
                 new WeightedItem(
-                    "hard-cc", Global.Lang.Get("TS_HardCC"), 5, false, 333, 333, delegate(Obj_AI_Hero t)
+                    "hard-cc", Global.Lang.Get("TS_HardCC"), 5, false, delegate(Obj_AI_Hero t)
                     {
                         var buffs =
                             t.Buffs.Where(
@@ -165,20 +165,20 @@ namespace SFXOrianna.Wrappers
                                     x.Type == BuffType.Charm || x.Type == BuffType.Knockback ||
                                     x.Type == BuffType.Suppression || x.Type == BuffType.Fear ||
                                     x.Type == BuffType.Taunt || x.Type == BuffType.Stun).ToList();
-                        return buffs.Any() ? buffs.Max(x => x.EndTime) : 0f;
+                        return buffs.Any() ? buffs.Max(x => x.EndTime) + 1f : 0f;
                     }),
                 new WeightedItem(
-                    "soft-cc", Global.Lang.Get("TS_SoftCC"), 5, false, 333, 333, delegate(Obj_AI_Hero t)
+                    "soft-cc", Global.Lang.Get("TS_SoftCC"), 5, false, delegate(Obj_AI_Hero t)
                     {
                         var buffs =
                             t.Buffs.Where(
                                 x =>
                                     x.Type == BuffType.Slow || x.Type == BuffType.Silence || x.Type == BuffType.Snare ||
                                     x.Type == BuffType.Polymorph).ToList();
-                        return buffs.Any() ? buffs.Max(x => x.EndTime) : 0f;
+                        return buffs.Any() ? buffs.Max(x => x.EndTime) + 1f : 0f;
                     }),
                 new WeightedItem(
-                    "gold", Global.Lang.Get("TS_Gold"), 7, false, 333, 8000,
+                    "gold", Global.Lang.Get("TS_Gold"), 7, false,
                     t =>
                         (t.MinionsKilled + t.NeutralMinionsKilled) * MinionGold + t.ChampionsKilled * KillGold +
                         t.Assists * AssistGold)
@@ -282,6 +282,7 @@ namespace SFXOrianna.Wrappers
                 {
                     return;
                 }
+                var weightsRange = _menu.Item(_menu.Name + ".drawing.weights-range").GetValue<bool>();
                 var weightsSimple = _menu.Item(_menu.Name + ".drawing.weights-simple").GetValue<bool>();
                 var weightsAdvanced = _menu.Item(_menu.Name + ".drawing.weights-advanced").GetValue<bool>();
                 var weightMultiplicator =
@@ -329,7 +330,13 @@ namespace SFXOrianna.Wrappers
                 if ((weightsSimple || weightsAdvanced) && _tsMode == TargetSelectorModeType.Weights)
                 {
                     var enemies =
-                        GameObjects.EnemyHeroes.Where(h => h.IsValidTarget(_debugRange) && h.Position.IsOnScreen());
+                        GameObjects.EnemyHeroes.Where(
+                            h => h.IsValidTarget(weightsRange ? _debugRange : float.MaxValue) && h.Position.IsOnScreen())
+                            .ToList();
+                    foreach (var weight in WeightedItems.Where(w => w.Weight > 0))
+                    {
+                        weight.UpdateSimulatedMaxValue(enemies);
+                    }
                     foreach (var target in enemies)
                     {
                         var position = Drawing.WorldToScreen(target.Position);
@@ -337,7 +344,7 @@ namespace SFXOrianna.Wrappers
                         var offset = 0f;
                         foreach (var weight in WeightedItems.Where(w => w.Weight > 0))
                         {
-                            var lastWeight = weight.LastWeight(target);
+                            var lastWeight = weight.SimulatedCalculatedWeight(target);
                             if (lastWeight > 0)
                             {
                                 if (_menu != null)
@@ -655,6 +662,10 @@ namespace SFXOrianna.Wrappers
                         drawingMenu.Name + ".weights-advanced",
                         Global.Lang.Get("TS_Weights") + " " + Global.Lang.Get("G_Advanced")).SetValue(false));
                 drawingMenu.AddItem(
+                    new MenuItem(
+                        drawingMenu.Name + ".weights-range",
+                        Global.Lang.Get("TS_Weights") + " " + Global.Lang.Get("TS_RangeCheck")).SetValue(false));
+                drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + ".circle-thickness", Global.Lang.Get("G_CircleThickness")).SetValue(
                         new Slider(2, 1, 10)));
 
@@ -839,40 +850,12 @@ namespace SFXOrianna.Wrappers
         public float Timestamp { get; private set; }
     }
 
-    internal class Cache
-    {
-        private float _value;
-
-        public Cache(float value)
-        {
-            Value = value;
-            Time = Environment.TickCount;
-        }
-
-        public float Value
-        {
-            get { return _value; }
-            set
-            {
-                _value = value;
-                Time = Environment.TickCount;
-            }
-        }
-
-        public int Time { get; private set; }
-    }
-
     internal class WeightedItem
     {
-        private readonly Dictionary<int, Cache> _valueCache = new Dictionary<int, Cache>();
-        private readonly Dictionary<int, Cache> _weightCache = new Dictionary<int, Cache>();
-
         public WeightedItem(string name,
             string displayName,
             int weight,
             bool inverted,
-            int cacheWeightTime,
-            int cacheValueTime,
             Func<Obj_AI_Hero, float> getValue)
         {
             GetValueFunc = getValue;
@@ -880,8 +863,6 @@ namespace SFXOrianna.Wrappers
             DisplayName = displayName;
             Weight = weight;
             Inverted = inverted;
-            CacheWeightTime = cacheWeightTime;
-            CacheValueTime = cacheValueTime;
         }
 
         public Func<Obj_AI_Hero, float> GetValueFunc { get; set; }
@@ -889,44 +870,10 @@ namespace SFXOrianna.Wrappers
         public string DisplayName { get; set; }
         public int Weight { get; set; }
         public bool Inverted { get; set; }
-        public int CacheWeightTime { get; set; }
-        public int CacheValueTime { get; set; }
-        public float LastMax { get; set; }
-        public float LastMin { get; set; }
-
-        public float LastWeight(Obj_AI_Hero target)
-        {
-            try
-            {
-                Cache cache;
-                if (_weightCache.TryGetValue(target.NetworkId, out cache))
-                {
-                    return cache.Value;
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return 0f;
-        }
-
-        public float LastValue(Obj_AI_Hero target)
-        {
-            try
-            {
-                Cache cache;
-                if (_valueCache.TryGetValue(target.NetworkId, out cache))
-                {
-                    return cache.Value;
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return 0f;
-        }
+        public float MaxValue { get; set; }
+        public float MinValue { get; set; }
+        public float SimulatedMaxValue { get; set; }
+        public float SimulatedMinValue { get; set; }
 
         public float CalculatedWeight(Obj_AI_Hero target)
         {
@@ -936,27 +883,9 @@ namespace SFXOrianna.Wrappers
                 {
                     return 0;
                 }
-
-                Cache cache;
-                if (_weightCache.TryGetValue(target.NetworkId, out cache) &&
-                    cache.Time + CacheWeightTime > Environment.TickCount)
-                {
-                    return cache.Value;
-                }
-
-                var weight = Inverted
-                    ? CalculatedWeight(LastMin, GetValue(target), 0, Weight, TargetSelector.MinWeight)
-                    : CalculatedWeight(GetValue(target), 0, LastMax, TargetSelector.MinWeight, Weight);
-
-                if (cache == null)
-                {
-                    _weightCache[target.NetworkId] = new Cache(weight);
-                }
-                else
-                {
-                    _weightCache[target.NetworkId].Value = weight;
-                }
-                return weight;
+                return Inverted
+                    ? Weight - (Weight * (GetValue(target) - MinValue) / MaxValue)
+                    : Weight * GetValue(target) / MaxValue;
             }
             catch (Exception ex)
             {
@@ -965,16 +894,17 @@ namespace SFXOrianna.Wrappers
             return 0;
         }
 
-        private float CalculatedWeight(float currentValue,
-            float currentMin,
-            float currentMax,
-            float newMin,
-            float newMax)
+        public float SimulatedCalculatedWeight(Obj_AI_Hero target)
         {
             try
             {
-                var weight = (currentValue - currentMin) * (newMax - newMin) / (currentMax - currentMin) + newMin;
-                return !float.IsNaN(weight) && !float.IsInfinity(weight) ? weight : 0;
+                if (Weight == 0)
+                {
+                    return 0;
+                }
+                return Inverted
+                    ? Weight - (Weight * (GetValue(target) - SimulatedMinValue) / SimulatedMaxValue)
+                    : Weight * GetValue(target) / SimulatedMaxValue;
             }
             catch (Exception ex)
             {
@@ -987,26 +917,12 @@ namespace SFXOrianna.Wrappers
         {
             try
             {
-                Cache cache;
-                if (_valueCache.TryGetValue(target.NetworkId, out cache) &&
-                    cache.Time + CacheValueTime - 15 > Environment.TickCount)
-                {
-                    return cache.Value;
-                }
                 var value = GetValueFunc(target);
-                if (cache == null)
-                {
-                    _valueCache[target.NetworkId] = new Cache(value);
-                }
-                else
-                {
-                    _valueCache[target.NetworkId].Value = value;
-                }
-                return value;
+                return value > 1 ? value : 1;
             }
             catch
             {
-                return Inverted ? float.MaxValue : float.MinValue;
+                return Inverted ? MaxValue : MinValue;
             }
         }
 
@@ -1028,8 +944,35 @@ namespace SFXOrianna.Wrappers
                         max = value;
                     }
                 }
-                LastMin = min;
-                LastMax = max;
+                MinValue = min > 1 ? min : 1;
+                MaxValue = max > min ? max : min + 1;
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        public void UpdateSimulatedMaxValue(List<Obj_AI_Hero> targets)
+        {
+            try
+            {
+                var min = float.MaxValue;
+                var max = float.MinValue;
+                foreach (var target in targets)
+                {
+                    var value = GetValue(target);
+                    if (value < min)
+                    {
+                        min = value;
+                    }
+                    if (value > max)
+                    {
+                        max = value;
+                    }
+                }
+                SimulatedMinValue = min > 1 ? min : 1;
+                SimulatedMaxValue = max > min ? max : min + 1;
             }
             catch (Exception ex)
             {

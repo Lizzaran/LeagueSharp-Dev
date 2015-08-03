@@ -177,7 +177,7 @@ namespace SFXCassiopeia.Champions
 
             TargetSelector.AddWeightedItem(
                 new WeightedItem(
-                    "poison-time", Global.Lang.Get("Cassiopeia_PoisonTime"), 10, true, 333, 500, GetPoisonBuffEndTime));
+                    "poison-time", Global.Lang.Get("Cassiopeia_PoisonTime"), 10, true, GetPoisonBuffEndTime));
         }
 
         protected override void SetupSpells()

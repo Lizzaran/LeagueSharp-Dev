@@ -166,6 +166,7 @@
 
 	<!-- START: LasthitMarker -->
 	<entry key="F_LasthitMarker">Lasthit Marker</entry>
+	<entry key="LasthitMarker_Prediction">Prediction</entry>
 	<entry key="LasthitMarker_HpBar">HpBar</entry>
 	<entry key="LasthitMarker_Killable">Killable</entry>
 	<entry key="LasthitMarker_Unkillable">Unkillable</entry>
