@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- ReSharper disable MarkupTextTypo -->
+<language lang="en">
+
+	<!-- START: GLOBAL -->
+	<entry key="G_Enabled">Enabled</entry>
+	<entry key="G_Hotkey">Hotkey</entry>
+	<entry key="G_Ally">Ally</entry>
+	<entry key="G_Enemy">Enemy</entry>
+	<entry key="G_Self">Self</entry>
+	<entry key="G_Drawing">Drawing</entry>
+	<entry key="G_Color">Color</entry>
+	<entry key="G_Circle">Circle</entry>
+	<entry key="G_Cross">Cross</entry>
+	<entry key="G_Radius">Radius</entry>
+	<entry key="G_Thickness">Thickness</entry>
+	<entry key="G_Line">Line</entry>
+	<entry key="G_Fill">Fill</entry>
+	<entry key="G_Rectangle">Rectangle</entry>
+	<entry key="G_Percent">Percent</entry>
+	<entry key="G_FontSize">Font Size</entry>
+	<entry key="G_TimeFormat">Time Format</entry>
+	<entry key="G_Yellow">Yellow</entry>
+	<entry key="G_Red">Red</entry>
+	<entry key="G_Blue">Blue</entry>
+	<entry key="G_Offset">Offset</entry>
+	<entry key="G_Top">Top</entry>
+	<entry key="G_Right">Right</entry>
+	<entry key="G_Bottom">Bottom</entry>
+	<entry key="G_Left">Left</entry>
+	<entry key="G_From">From</entry>
+	<entry key="G_To">To</entry>
+	<entry key="G_Minimum">Min</entry>
+	<entry key="G_Maximum">Max</entry>
+	<entry key="G_Range">Range</entry>
+	<entry key="G_Distance">Distance</entry>
+	<entry key="G_Outline">Outline</entry>
+	<entry key="G_Health">Health</entry>
+	<entry key="G_Mana">Mana</entry>
+	<entry key="G_Turret">Turret</entry>
+	<entry key="G_Shop">Shop</entry>
+	<entry key="G_Inhibitor">Inhibitor</entry>
+	<entry key="G_Experience">Experience</entry>
+	<entry key="G_Attack">Attack</entry>
+	<entry key="G_Spell">Spell</entry>
+	<entry key="G_Movement">Movement</entry>
+	<entry key="G_Delay">Delay</entry>
+	<entry key="G_Map">Map</entry>
+	<entry key="G_Minimap">Minimap</entry>
+	<entry key="G_Text">Text</entry>
+	<entry key="G_Bar">Bar</entry>
+	<entry key="G_Height">Height</entry>
+	<entry key="G_Width">Width</entry>
+	<entry key="G_Say">Say</entry>
+	<entry key="G_Scale">Scale</entry>
+	<entry key="G_Hero">Hero</entry>
+	<entry key="G_Use">Use</entry>
+	<entry key="G_Useable">Useable</entry>
+	<entry key="G_Unusable">Unusable</entry>
+	<entry key="G_Damage">Damage</entry>
+	<entry key="G_Indicator">Indicator</entry>
+	<entry key="G_HitChance">HitChance</entry>
+	<entry key="G_Priority">Priority</entry>
+	<entry key="G_Is">Is</entry>
+	<entry key="G_Skillshot">Skillshot</entry>
+	<entry key="G_Collision">Collision</entry>
+	<entry key="G_Type">Type</entry>
+	<entry key="G_None">None</entry>
+	<entry key="G_Ping">Ping</entry>
+	<!-- END: GLOBAL -->
+
+	<!-- START: SFX -->
+	<entry key="F_SFX">SFXSafeJungleSpot</entry>
+	<entry key="SFX_Settings">Settings</entry>
+	<entry key="SFX_Font">Font</entry>
+	<entry key="SFX_GenerateReport">Generate Report</entry>
+	<entry key="SFX_ReportGenerated">Report Generated</entry>
+	<entry key="SFX_Language">Language</entry>
+	<entry key="SFX_Loaded">loaded</entry>
+	<entry key="SFX_Info">Info</entry>
+	<entry key="SFX_Version">Version</entry>
+	<entry key="SFX_Forum">Forum</entry>
+	<entry key="SFX_GitHub">GitHub</entry>
+	<entry key="SFX_IRC">IRC</entry>
+	<entry key="SFX_Exception">Exception</entry>
+	<!-- END: SFX -->
+
+	<!-- START: Language -->
+	<entry key="Language_Auto">auto</entry>
+	<!-- END: Language -->
+
+	<!-- START: Features -->
+	<entry key="F_App">App</entry>
+	<entry key="F_Activators">Activators</entry>
+	<entry key="F_Detectors">Detectors</entry>
+	<entry key="F_Drawings">Drawings</entry>
+	<entry key="F_Events">Events</entry>
+	<entry key="F_Others">Others</entry>
+	<entry key="F_Timers">Timers</entry>
+	<entry key="F_Trackers">Trackers</entry>
+	<!-- END: Features -->
+
+	<!-- START: Potion -->
+	<entry key="F_Potion">Potion</entry>
+	<!-- END: Potion -->
+
+	<!-- START: Revealer -->
+	<entry key="F_Revealer">Revealer</entry>
+	<entry key="Revealer_Bush">Bush</entry>
+	<entry key="Revealer_Invisible">Invisible</entry>
+	<!-- END: Revealer -->
+
+	<!-- START: Smite -->
+	<entry key="F_Smite">Smite</entry>
+	<entry key="Smite_SmallCamps">Small Camps</entry>
+	<entry key="Smite_Smite">Smite</entry>
+	<entry key="Smite_MinHitChanceList">Low|Medium|High|Very High</entry>
+	<entry key="Smite_DamageTypeList">Magical|Physical|True</entry>
+	<entry key="Smite_SkillshotTypeList">Line|Circle|Cone</entry>
+	<!-- END: Smite -->
+
+	<!-- START: Gank -->
+	<entry key="F_Gank">Gank</entry>
+	<entry key="Gank_OnlySmite">Only Smite</entry>
+	<entry key="Gank_Cooldown">Cooldown</entry>
+	<entry key="Gank_Duration">Duration</entry>
+	<entry key="Gank_ChampionName">Champion Name</entry>
+	<!-- END: Gank -->
+
+	<!-- START: Replay -->
+	<entry key="F_Replay">Replay op.gg</entry>
+	<entry key="Replay_DoRecord">Do Record</entry>
+	<entry key="Replay_NotifyRecord">Notify Record</entry>
+	<entry key="Replay_CheckInterval">Check Interval</entry>
+	<!-- END: Replay -->
+
+	<!-- START: Teleport -->
+	<entry key="F_Teleport">Teleport</entry>
+	<entry key="Teleport_Aborted">Aborted</entry>
+	<entry key="Teleport_Recalling">Recalling</entry>
+	<entry key="Teleport_Recalled">Recalled</entry>
+	<entry key="Teleport_Teleporting">Teleporting</entry>
+	<entry key="Teleport_Teleported">Teleported</entry>
+	<entry key="Teleport_Transporting">Transporting</entry>
+	<entry key="Teleport_Transported">Transported</entry>
+	<entry key="Teleport_AdditionalTime">Additional Time</entry>
+	<!-- END: Teleport -->
+
+	<!-- START: Clock -->
+	<entry key="F_Clock">Clock</entry>
+	<!-- END: Clock -->
+
+	<!-- START: Clone -->
+	<entry key="F_Clone">Clone</entry>
+	<!-- END: Clone -->
+
+	<!-- START: DamageIndicator -->
+	<entry key="F_DamageIndicator">Damage Indicator</entry>
+	<entry key="DamageIndicator_AutoAttacks">Auto Attacks</entry>
+	<!-- END: DamageIndicator -->
+
+	<!-- START: Health -->
+	<entry key="F_Health">Health</entry>
+	<!-- END: Health -->
+
+	<!-- START: LasthitMarker -->
+	<entry key="F_LasthitMarker">Lasthit Marker</entry>
+	<entry key="LasthitMarker_HpBar">HpBar</entry>
+	<entry key="LasthitMarker_Killable">Killable</entry>
+	<entry key="LasthitMarker_Unkillable">Unkillable</entry>
+	<!-- END: LasthitMarker -->
+
+	<!-- START: PerfectWard -->
+	<entry key="F_PerfectWard">Perfect Ward</entry>
+	<!-- END: PerfectWard -->
+
+	<!-- START: KillSteal -->
+	<entry key="F_KillSteal">KillSteal</entry>
+	<entry key="KillSteal_Summoners">Summoners</entry>
+	<entry key="KillSteal_Items">Items</entry>
+	<!-- END: KillSteal -->
+
+	<!-- START: Range -->
+	<entry key="F_Range">Range</entry>
+	<!-- END: Range -->
+
+	<!-- START: SafeJungleSpot -->
+	<entry key="F_SafeJungleSpot">Safe Jungle Spot</entry>
+	<!-- END: SafeJungleSpot -->
+
+	<!-- START: WallJumpSpot -->
+	<entry key="F_WallJumpSpot">Wall Jump Spot</entry>
+	<!-- END: WallJumpSpot -->
+
+	<!-- START: Waypoint -->
+	<entry key="F_Waypoint">Waypoint</entry>
+	<!-- END: Waypoint -->
+
+	<!-- START: AutoLeveler -->
+	<entry key="F_AutoLeveler">Auto Leveler</entry>
+	<entry key="AutoLeveler_Early">Early</entry>
+	<entry key="AutoLeveler_Priority">Priority</entry>
+	<entry key="AutoLeveler_OnlyR">Only R</entry>
+	<!-- END: AutoLeveler -->
+
+	<!-- START: Game -->
+	<entry key="F_Game">Game</entry>
+	<entry key="Game_OnStart">OnStart</entry>
+	<entry key="Game_Greeting">Greeting</entry>
+	<entry key="Game_GreetingList">gl &amp; hf|good luck &amp; have fun</entry>
+	<entry key="Game_OnEnd">OnEnd</entry>
+	<entry key="Game_Ending">Goodbye</entry>
+	<entry key="Game_EndingList">gg|gg wp|good game|well played</entry>
+	<entry key="Game_CloseLoL">Close LoL</entry>
+	<!-- END: Game -->
+
+	<!-- START: Trinket -->
+	<entry key="F_Trinket">Trinket</entry>
+	<entry key="Trinket_Level">Level</entry>
+	<entry key="Trinket_WardingTotem">Warding Totem @ Level</entry>
+	<entry key="Trinket_SweepingLens">Sweeping Lens @ Level</entry>
+	<entry key="Trinket_ScryingOrb">Scrying Orb @ Level</entry>
+	<entry key="Trinket_WardingTotemBuy">Buy Warding Totem</entry>
+	<entry key="Trinket_SweepingLensBuy">Buy Sweeping Lens</entry>
+	<entry key="Trinket_ScryingOrbBuy">Buy Scrying Orb</entry>
+	<entry key="Trinket_Events">Events</entry>
+	<entry key="Trinket_Sightstone">Sightstone</entry>
+	<entry key="Trinket_RubySightstone">Ruby Sightstone</entry>
+	<entry key="Trinket_BuyTrinket">Buy Trinket</entry>
+	<entry key="Trinket_SellUpgraded">Sell Upgraded</entry>
+	<!-- END: Trinket -->
+
+	<!-- START: AntiFountain -->
+	<entry key="F_AntiFountain">Anti Fountain</entry>
+	<!-- END: AntiFountain -->
+
+	<!-- START: AutoLantern -->
+	<entry key="F_AutoLantern">Auto Lantern</entry>
+	<!-- END: AutoLantern -->
+
+	<!-- START: Flash -->
+	<entry key="F_Flash">Flash</entry>
+	<entry key="Flash_Extend">Extend</entry>
+	<entry key="Flash_WallCheck">Wall Check</entry>
+	<entry key="Flash_IgniteCheck">Ignite Check</entry>
+	<!-- END: Flash -->
+
+	<!-- START: Humanize -->
+	<entry key="F_Humanize">Humanize</entry>
+	<!-- END: Humanize -->
+
+	<!-- START: MoveTo -->
+	<entry key="F_MoveTo">Move To</entry>
+	<!-- END: MoveTo -->
+
+	<!-- START: Ping -->
+	<entry key="F_Ping">Ping</entry>
+	<!-- END: Ping -->
+
+	<!-- START: SkinChanger -->
+	<entry key="F_SkinChanger">Skin Changer</entry>
+	<!-- END: SkinChanger -->
+
+	<!-- START: TurnAround -->
+	<entry key="F_TurnAround">Turn Around</entry>
+	<!-- END: TurnAround -->
+
+	<!-- START: Ability -->
+	<entry key="F_Ability">Ability</entry>
+	<entry key="Ability_Passive">Passive</entry>
+	<entry key="Ability_Revive">Revive</entry>
+	<entry key="Ability_Zhonyas">Zhonyas</entry>
+	<entry key="Ability_Guardian">Guardian</entry>
+	<!-- END: Ability -->
+
+	<!-- START: Cooldown -->
+	<entry key="F_Cooldown">Cooldown</entry>
+	<!-- END: Cooldown -->
+
+	<!-- START: Jungle -->
+	<entry key="F_Jungle">Jungle</entry>
+	<!-- END: Jungle -->
+
+	<!-- START: Altar -->
+	<entry key="F_Altar">Altar</entry>
+	<!-- END: Altar -->
+
+	<!-- START: Relic -->
+	<entry key="F_Relic">Relic</entry>
+	<!-- END: Relic -->
+
+	<!-- START: Inhibitor -->
+	<entry key="F_Inhibitor">Inhibitor</entry>
+	<!-- END: Inhibitor -->
+
+	<!-- START: Destination -->
+	<entry key="F_Destination">Destination</entry>
+	<!-- END: Destination -->
+
+	<!-- START: GoldEfficiency -->
+	<entry key="F_GoldEfficiency">Gold Efficiency</entry>
+	<!-- END: GoldEfficiency -->
+
+	<!-- START: LastPosition -->
+	<entry key="F_LastPosition">Last Position</entry>
+	<entry key="LastPosition_SSTimer">SS Timer</entry>
+	<!-- END: LastPosition -->
+
+	<!-- START: Sidebar -->
+	<entry key="F_Sidebar">Sidebar</entry>
+	<entry key="Sidebar_Clickable">Clickable</entry>
+	<!-- END: Sidebar -->
+
+	<!-- START: Ward -->
+	<entry key="F_Ward">Ward</entry>
+	<entry key="Ward_Green">Green</entry>
+	<entry key="Ward_Pink">Pink</entry>
+	<entry key="Ward_Trap">Trap</entry>
+	<entry key="Ward_Vision">Vision</entry>
+	<entry key="Ward_FilterWards">Filter Wards</entry>
+	<!-- END: Ward -->
+
+</language>
+<!-- ReSharper restore MarkupTextTypo -->
