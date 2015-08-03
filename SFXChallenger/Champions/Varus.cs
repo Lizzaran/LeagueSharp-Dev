@@ -162,7 +162,7 @@ namespace SFXChallenger.Champions
                 "e-gapcloser", false, false, true, false);
 
             TargetSelector.AddWeightedItem(
-                new WeightedItem("w-stacks", "W " + Global.Lang.Get("G_Stacks"), 13, true, 333, 500, t => GetWStacks(t)));
+                new WeightedItem("w-stacks", "W " + Global.Lang.Get("G_Stacks"), 13, true, t => GetWStacks(t)));
 
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
             IndicatorManager.Add("Q", hero => Q.IsReady() ? Q.GetDamage(hero, 1) : 0);

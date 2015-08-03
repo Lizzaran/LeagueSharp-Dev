@@ -69,11 +69,22 @@ namespace SFXUtility.Features.Drawings
 
                 var hpBar = Menu.Item(Name + "DrawingHpBarEnabled").GetValue<bool>();
                 var circle = Menu.Item(Name + "DrawingCircleEnabled").GetValue<bool>();
+                var prediction = Menu.Item(Name + "Prediction").GetValue<bool>();
 
                 foreach (var minion in _minions)
                 {
+                    var health = prediction
+                        ? HealthPrediction.GetHealthPrediction(
+                            minion, (int) (ObjectManager.Player.AttackCastDelay * 1000) - 100 + Game.Ping / 2 +
+                            1000 * (int) ObjectManager.Player.Distance(minion) /
+                            (int)
+                                (ObjectManager.Player.CombatType == GameObjectCombatType.Melee ||
+                                 ObjectManager.Player.ChampionName == "Azir"
+                                    ? float.MaxValue
+                                    : ObjectManager.Player.BasicAttack.MissileSpeed), 0)
+                        : minion.Health;
                     var aaDamage = ObjectManager.Player.GetAutoAttackDamage(minion, true);
-                    var killable = minion.Health <= aaDamage;
+                    var killable = health <= aaDamage;
                     if (hpBar)
                     {
                         var barPos = minion.HPBarPosition;
@@ -142,7 +153,8 @@ namespace SFXUtility.Features.Drawings
                 drawingMenu.AddSubMenu(drawingCirclesMenu);
 
                 Menu.AddSubMenu(drawingMenu);
-
+                Menu.AddItem(
+                    new MenuItem(Name + "Prediction", Global.Lang.Get("LasthitMarker_Prediction")).SetValue(false));
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
