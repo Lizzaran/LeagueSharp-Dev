@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- CPrediction.cs is part of SFXVarus.
+ cprediction.cs is part of SFXVarus.
 
  SFXVarus is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ namespace SFXVarus.Helpers
                 var hits = new List<Obj_AI_Hero>();
                 var center = Vector3.Zero;
                 var radius = float.MaxValue;
-                var range = spell.Range + spell.Width + (boundingRadius ? target.BoundingRadius * 0.75f : 0);
+                var range = spell.Range + (spell.Width * 0.9f) + (boundingRadius ? target.BoundingRadius * 0.85f : 0);
                 var positions = (from t in GameObjects.EnemyHeroes
                     where t.IsValidTarget(range, true, spell.RangeCheckFrom)
                     let prediction = spell.GetPrediction(t)
@@ -82,8 +82,8 @@ namespace SFXVarus.Helpers
                                         (from position in positions
                                             where
                                                 new Geometry.Polygon.Circle(
-                                                    position.UnitPosition, position.Hero.BoundingRadius).Points.Any(
-                                                        p => circle.IsInside(p))
+                                                    position.UnitPosition, (position.Hero.BoundingRadius * 0.85f))
+                                                    .Points.Any(p => circle.IsInside(p))
                                             select position.Hero));
                                 }
                                 else
@@ -131,7 +131,8 @@ namespace SFXVarus.Helpers
                 {
                     return new Result(Vector3.Zero, new List<Obj_AI_Hero>());
                 }
-                var range = spell.IsChargedSpell && maxRange ? spell.ChargedMaxRange : spell.Range;
+                var range = (spell.IsChargedSpell && maxRange ? spell.ChargedMaxRange : spell.Range) +
+                            (spell.Width * 0.9f) + (boundingRadius ? target.BoundingRadius * 0.85f : 0);
                 var positions = (from t in GameObjects.EnemyHeroes
                     where t.IsValidTarget(range, true, spell.RangeCheckFrom)
                     let prediction = spell.GetPrediction(t)
