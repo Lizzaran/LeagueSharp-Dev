@@ -53,7 +53,7 @@ namespace SFXChallenger.Champions
     {
         private const float MaxERange = 1225f;
         private const float ELength = 700f;
-        private const float RMoveInterval = 500f;
+        private const float RMoveInterval = 350f;
         private float _lastRMoveCommand = Environment.TickCount;
         private GameObject _rObject;
 
@@ -192,7 +192,7 @@ namespace SFXChallenger.Champions
         {
             Q = new Spell(SpellSlot.Q, Player.BoundingRadius + 600f, DamageType.Magical);
             Q.Range += GameObjects.EnemyHeroes.Max(e => e.BoundingRadius);
-            Q.SetTargetted(0.2f, 1800f);
+            Q.SetTargetted(0f, 2000f);
 
             W = new Spell(SpellSlot.W, 700f, DamageType.Magical);
             W.SetSkillshot(1.6f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
@@ -287,10 +287,14 @@ namespace SFXChallenger.Champions
                         ManaManager.Check("lasthit"))
                     {
                         var target = unit as Obj_AI_Base;
-                        if (target != null && Q.IsKillable(target) &&
-                            HealthPrediction.GetHealthPrediction(target, (int) (Q.ArrivalTime(target) * 1000)) > 0)
+                        if (target != null)
                         {
-                            Casting.TargetSkill(target, Q);
+                            var health = HealthPrediction.GetHealthPrediction(
+                                target, (int) (Q.ArrivalTime(target) * 1000), 0);
+                            if (health > 0 && Q.GetDamage(target) >= health)
+                            {
+                                Casting.TargetSkill(target, Q);
+                            }
                         }
                     }
                 }
@@ -348,6 +352,14 @@ namespace SFXChallenger.Champions
                 }
                 if (Player.HasBuff("viktorpowertransferreturn"))
                 {
+                    if (R.IsReady() && R.Instance.Name.Equals("ViktorChaosStorm", StringComparison.OrdinalIgnoreCase) &&
+                        GameObjects.EnemyHeroes.Any(Orbwalking.InAutoAttackRange) && RLogicDuel(true, true) ||
+                        GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(R.Range + R.Width))
+                            .Any(e => RLogic(e, Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value)))
+                    {
+                        args.Process = false;
+                        return;
+                    }
                     if (args.Target.Type != GameObjectType.obj_AI_Hero)
                     {
                         var hero =
@@ -448,7 +460,15 @@ namespace SFXChallenger.Champions
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
             var r = UltimateManager.Combo() && R.IsReady();
 
-            if (q)
+            if (e)
+            {
+                var target = TargetSelector.GetTarget((MaxERange + E.Width) * 1.2f, E.DamageType);
+                if (target != null)
+                {
+                    ELogic(target, GameObjects.EnemyHeroes.ToList(), E.GetHitChance("combo"));
+                }
+            }
+            if (q && !e)
             {
                 Casting.TargetSkill(Q);
             }
@@ -460,15 +480,7 @@ namespace SFXChallenger.Champions
                     WLogic(target, W.GetHitChance("combo"));
                 }
             }
-            if (e)
-            {
-                var target = TargetSelector.GetTarget((MaxERange + E.Width) * 1.2f, E.DamageType);
-                if (target != null)
-                {
-                    ELogic(target, GameObjects.EnemyHeroes.ToList(), E.GetHitChance("combo"));
-                }
-            }
-            if (r)
+            if (r && (Player.HasBuff("viktorpowertransferreturn") || !q))
             {
                 var target = TargetSelector.GetTarget(R);
                 if (target != null &&
@@ -485,6 +497,27 @@ namespace SFXChallenger.Champions
             {
                 ItemManager.UseComboItems(rTarget);
                 SummonerManager.UseComboSummoners(rTarget);
+            }
+        }
+
+        protected override void Harass()
+        {
+            if (!ManaManager.Check("harass"))
+            {
+                return;
+            }
+
+            if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>())
+            {
+                var target = TargetSelector.GetTarget((MaxERange + E.Width) * 1.2f, E.DamageType);
+                if (target != null)
+                {
+                    ELogic(target, GameObjects.EnemyHeroes.ToList(), E.GetHitChance("harass"));
+                }
+            }
+            if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>())
+            {
+                Casting.TargetSkill(Q);
             }
         }
 
@@ -600,17 +633,21 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private void RLogicDuel(bool q, bool e)
+        private bool RLogicDuel(bool q, bool e)
         {
             try
             {
+                if (!R.Instance.Name.Equals("ViktorChaosStorm", StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
                 foreach (var t in GameObjects.EnemyHeroes)
                 {
                     if (UltimateManager.CheckDuel(t, CalcComboDamage(t, q, e, true)))
                     {
                         if (RLogic(t, 1))
                         {
-                            break;
+                            return true;
                         }
                     }
                 }
@@ -619,12 +656,17 @@ namespace SFXChallenger.Champions
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+            return false;
         }
 
         private bool RLogic(Obj_AI_Hero target, int min)
         {
             try
             {
+                if (!R.Instance.Name.Equals("ViktorChaosStorm", StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
                 var pred = CPrediction.Circle(R, target, HitChance.High, false);
                 if (pred.TotalHits > 0 && UltimateManager.Check(min, pred.Hits))
                 {
@@ -830,27 +872,6 @@ namespace SFXChallenger.Champions
                 Global.Logger.AddItem(new LogItem(ex));
             }
             return false;
-        }
-
-        protected override void Harass()
-        {
-            if (!ManaManager.Check("harass"))
-            {
-                return;
-            }
-
-            if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>())
-            {
-                Casting.TargetSkill(Q);
-            }
-            if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>())
-            {
-                var target = TargetSelector.GetTarget((MaxERange + E.Width) * 1.2f, E.DamageType);
-                if (target != null)
-                {
-                    ELogic(target, GameObjects.EnemyHeroes.ToList(), E.GetHitChance("harass"));
-                }
-            }
         }
 
         protected override void LaneClear()

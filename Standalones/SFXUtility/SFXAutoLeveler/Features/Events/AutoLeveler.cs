@@ -75,12 +75,9 @@ namespace SFXAutoLeveler.Features.Events
             return
                 new List<SpellInfoStruct>
                 {
-                    new SpellInfoStruct(
-                        SpellSlot.Q, Menu.Item(Name + ObjectManager.Player.ChampionName + "Q").GetValue<Slider>().Value),
-                    new SpellInfoStruct(
-                        SpellSlot.W, Menu.Item(Name + ObjectManager.Player.ChampionName + "W").GetValue<Slider>().Value),
-                    new SpellInfoStruct(
-                        SpellSlot.E, Menu.Item(Name + ObjectManager.Player.ChampionName + "E").GetValue<Slider>().Value),
+                    new SpellInfoStruct(SpellSlot.Q, Menu.Item(Menu.Name + "Q").GetValue<Slider>().Value),
+                    new SpellInfoStruct(SpellSlot.W, Menu.Item(Menu.Name + "W").GetValue<Slider>().Value),
+                    new SpellInfoStruct(SpellSlot.E, Menu.Item(Menu.Name + "E").GetValue<Slider>().Value),
                     new SpellInfoStruct(SpellSlot.R, 5)
                 }.ToList();
         }
@@ -89,11 +86,9 @@ namespace SFXAutoLeveler.Features.Events
         {
             try
             {
-                Menu = new Menu(Name, Name);
+                Menu = new Menu(Name, Name + ObjectManager.Player.ChampionName);
 
-                var championMenu = new Menu(ObjectManager.Player.ChampionName, Name + ObjectManager.Player.ChampionName);
-
-                var earlyMenu = new Menu(Global.Lang.Get("AutoLeveler_Early"), championMenu.Name + "Early");
+                var earlyMenu = new Menu(Global.Lang.Get("AutoLeveler_Early"), Menu.Name + "Early");
                 earlyMenu.AddItem(
                     new MenuItem(earlyMenu.Name + "1", "1: ").SetValue(
                         new StringList(
@@ -119,18 +114,13 @@ namespace SFXAutoLeveler.Features.Events
                             new[] { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" },
                             3)));
 
-                championMenu.AddSubMenu(earlyMenu);
+                Menu.AddSubMenu(earlyMenu);
 
-                championMenu.AddItem(new MenuItem(championMenu.Name + "Q", "Q").SetValue(new Slider(3, 3, 1)));
-                championMenu.AddItem(new MenuItem(championMenu.Name + "W", "W").SetValue(new Slider(1, 3, 1)));
-                championMenu.AddItem(new MenuItem(championMenu.Name + "E", "E").SetValue(new Slider(2, 3, 1)));
+                Menu.AddItem(new MenuItem(Menu.Name + "Q", "Q").SetValue(new Slider(3, 3, 1)));
+                Menu.AddItem(new MenuItem(Menu.Name + "W", "W").SetValue(new Slider(1, 3, 1)));
+                Menu.AddItem(new MenuItem(Menu.Name + "E", "E").SetValue(new Slider(2, 3, 1)));
 
-                championMenu.AddItem(
-                    new MenuItem(championMenu.Name + "OnlyR", Global.Lang.Get("AutoLeveler_OnlyR")).SetValue(false));
-                championMenu.AddItem(
-                    new MenuItem(championMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
-
-                Menu.AddSubMenu(championMenu);
+                Menu.AddItem(new MenuItem(Menu.Name + "OnlyR", Global.Lang.Get("AutoLeveler_OnlyR")).SetValue(false));
 
                 Menu.AddItem(new MenuItem(Menu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
 
@@ -192,7 +182,7 @@ namespace SFXAutoLeveler.Features.Events
         {
             try
             {
-                if (!sender.IsValid || !sender.IsMe || !Menu.Item(Menu.Name + "Enabled").GetValue<bool>())
+                if (!sender.IsValid || !sender.IsMe)
                 {
                     return;
                 }
@@ -203,10 +193,7 @@ namespace SFXAutoLeveler.Features.Events
 
                 if (pLevel <= 5)
                 {
-                    var index =
-                        Menu.Item(Name + ObjectManager.Player.ChampionName + "Early" + pLevel)
-                            .GetValue<StringList>()
-                            .SelectedIndex;
+                    var index = Menu.Item(Menu.Name + "Early" + pLevel).GetValue<StringList>().SelectedIndex;
                     switch (index)
                     {
                         case 0:
@@ -252,8 +239,7 @@ namespace SFXAutoLeveler.Features.Events
                         ObjectManager.Player.Spellbook.LevelUpSpell(pItem.Slot);
                         availablePoints--;
                     }
-                    if (pItem.Slot == SpellSlot.R &&
-                        Menu.Item(Name + ObjectManager.Player.ChampionName + "OnlyR").GetValue<bool>())
+                    if (pItem.Slot == SpellSlot.R && Menu.Item(Menu.Name + "OnlyR").GetValue<bool>())
                     {
                         return;
                     }

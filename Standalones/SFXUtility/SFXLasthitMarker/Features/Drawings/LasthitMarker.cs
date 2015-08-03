@@ -75,7 +75,8 @@ namespace SFXLasthitMarker.Features.Drawings
                 {
                     var health = prediction
                         ? HealthPrediction.GetHealthPrediction(
-                            minion, (int) (ObjectManager.Player.AttackCastDelay * 1000) - 100 + Game.Ping / 2 +
+                            minion,
+                            (int) (ObjectManager.Player.AttackCastDelay * 1000) - 100 + Game.Ping / 2 +
                             1000 * (int) ObjectManager.Player.Distance(minion) /
                             (int)
                                 (ObjectManager.Player.CombatType == GameObjectCombatType.Melee ||
