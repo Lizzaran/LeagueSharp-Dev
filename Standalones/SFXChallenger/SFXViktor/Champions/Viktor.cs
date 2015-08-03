@@ -202,6 +202,9 @@ namespace SFXViktor.Champions
 
             R = new Spell(SpellSlot.R, 700f, DamageType.Magical);
             R.SetSkillshot(0.1f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+
+            Console.WriteLine(Q.Instance.SData.MissileSpeed);
+            Console.WriteLine(Q.Instance.SData.CastFrame / 30);
         }
 
         private void OnCorePostUpdate(EventArgs args)
@@ -352,13 +355,22 @@ namespace SFXViktor.Champions
                 }
                 if (Player.HasBuff("viktorpowertransferreturn"))
                 {
-                    if (R.IsReady() && R.Instance.Name.Equals("ViktorChaosStorm", StringComparison.OrdinalIgnoreCase) &&
-                        GameObjects.EnemyHeroes.Any(Orbwalking.InAutoAttackRange) && RLogicDuel(true, true) ||
-                        GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(R.Range + R.Width))
-                            .Any(e => RLogic(e, Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value)))
+                    if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
                     {
-                        args.Process = false;
-                        return;
+                        if (R.IsReady() &&
+                            R.Instance.Name.Equals("ViktorChaosStorm", StringComparison.OrdinalIgnoreCase) &&
+                            GameObjects.EnemyHeroes.Any(Orbwalking.InAutoAttackRange) &&
+                            (RLogicDuel(true, Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true) ||
+                             GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(R.Range + R.Width))
+                                 .Any(
+                                     e =>
+                                         RLogic(
+                                             e, Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value,
+                                             true))))
+                        {
+                            args.Process = false;
+                            return;
+                        }
                     }
                     if (args.Target.Type != GameObjectType.obj_AI_Hero)
                     {
@@ -633,7 +645,7 @@ namespace SFXViktor.Champions
             }
         }
 
-        private bool RLogicDuel(bool q, bool e)
+        private bool RLogicDuel(bool q, bool e, bool simulated = false)
         {
             try
             {
@@ -641,15 +653,11 @@ namespace SFXViktor.Champions
                 {
                     return false;
                 }
-                foreach (var t in GameObjects.EnemyHeroes)
+                if (
+                    GameObjects.EnemyHeroes.Where(t => UltimateManager.CheckDuel(t, CalcComboDamage(t, q, e, true)))
+                        .Any(t => RLogic(t, 1, simulated)))
                 {
-                    if (UltimateManager.CheckDuel(t, CalcComboDamage(t, q, e, true)))
-                    {
-                        if (RLogic(t, 1))
-                        {
-                            return true;
-                        }
-                    }
+                    return true;
                 }
             }
             catch (Exception ex)
@@ -659,7 +667,7 @@ namespace SFXViktor.Champions
             return false;
         }
 
-        private bool RLogic(Obj_AI_Hero target, int min)
+        private bool RLogic(Obj_AI_Hero target, int min, bool simulated = false)
         {
             try
             {
@@ -670,7 +678,10 @@ namespace SFXViktor.Champions
                 var pred = CPrediction.Circle(R, target, HitChance.High, false);
                 if (pred.TotalHits > 0 && UltimateManager.Check(min, pred.Hits))
                 {
-                    R.Cast(pred.CastPosition);
+                    if (!simulated)
+                    {
+                        R.Cast(pred.CastPosition);
+                    }
                     return true;
                 }
             }
