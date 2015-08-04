@@ -50,7 +50,7 @@ namespace SFXChallenger.Helpers
                 var hits = new List<Obj_AI_Hero>();
                 var center = Vector3.Zero;
                 var radius = float.MaxValue;
-                var range = spell.Range + spell.Width + (boundingRadius ? target.BoundingRadius : 0);
+                var range = spell.Range + spell.Width + (boundingRadius ? target.BoundingRadius * 0.5f : 0);
                 var positions = (from t in GameObjects.EnemyHeroes
                     where t.IsValidTarget(range, true, spell.RangeCheckFrom)
                     let prediction = spell.GetPrediction(t)
@@ -82,7 +82,7 @@ namespace SFXChallenger.Helpers
                                         (from position in positions
                                             where
                                                 new Geometry.Polygon.Circle(
-                                                    position.UnitPosition, (position.Hero.BoundingRadius * 0.85f))
+                                                    position.UnitPosition, (position.Hero.BoundingRadius * 0.5f))
                                                     .Points.Any(p => circle.IsInside(p))
                                             select position.Hero));
                                 }
