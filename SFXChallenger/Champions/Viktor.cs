@@ -53,7 +53,7 @@ namespace SFXChallenger.Champions
     {
         private const float MaxERange = 1225f;
         private const float ELength = 700f;
-        private const float RMoveInterval = 350f;
+        private const float RMoveInterval = 500f;
         private float _lastRMoveCommand = Environment.TickCount;
         private GameObject _rObject;
 
@@ -349,16 +349,18 @@ namespace SFXChallenger.Champions
                         {
                             Orbwalker.ForceTarget(hero);
                             args.Process = false;
-                            return;
                         }
                     }
                 }
-                if (args.Target.Type == GameObjectType.obj_AI_Hero &&
-                    (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
-                     Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed))
+                else
                 {
-                    args.Process = (!Q.IsReady() || Player.Mana < Q.Instance.ManaCost) &&
-                                   (!E.IsReady() || Player.Mana < E.Instance.ManaCost);
+                    if (args.Target.Type == GameObjectType.obj_AI_Hero &&
+                        (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
+                         Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed))
+                    {
+                        args.Process = (!Q.IsReady() || Player.Mana < Q.Instance.ManaCost) &&
+                                       (!E.IsReady() || Player.Mana < E.Instance.ManaCost);
+                    }
                 }
             }
             catch (Exception ex)
@@ -502,7 +504,11 @@ namespace SFXChallenger.Champions
             }
             if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>())
             {
-                Casting.TargetSkill(Q);
+                var target = TargetSelector.GetTarget(Q.Range, Q.DamageType);
+                if (target != null)
+                {
+                    Q.CastOnUnit(target);
+                }
             }
         }
 
@@ -655,6 +661,13 @@ namespace SFXChallenger.Champions
                     if (!simulated)
                     {
                         R.Cast(pred.CastPosition);
+                        var aaTarget =
+                            TargetSelector.GetTargets(Player.AttackRange + Player.BoundingRadius * 3f)
+                                .FirstOrDefault(Orbwalking.InAutoAttackRange);
+                        if (aaTarget != null)
+                        {
+                            Player.IssueOrder(GameObjectOrder.AttackUnit, aaTarget);
+                        }
                     }
                     return true;
                 }
@@ -965,8 +978,10 @@ namespace SFXChallenger.Champions
                 var moveDistance = -1f;
                 var maxRelocation = IsSpellUpgraded(R) ? R.Width * 1.2f : R.Width * 0.8f;
                 var targets = GameObjects.EnemyHeroes.Where(t => t.IsValidTarget(1500f)).ToList();
+                var circle = new Geometry.Polygon.Circle(position, R.Width);
                 if (targets.Any())
                 {
+                    var minDistance = targets.Any(t => circle.IsInside(t)) ? targets.Min(t => t.BoundingRadius) * 2 : 0;
                     var possibilities =
                         ListExtensions.ProduceEnumeration(targets.Select(t => t.Position.To2D()).ToList())
                             .Where(p => p.Count > 1)
@@ -977,7 +992,7 @@ namespace SFXChallenger.Champions
                         {
                             var mec = MEC.GetMec(possibility);
                             var distance = position.Distance(mec.Center.To3D());
-                            if (mec.Radius < R.Width && distance < maxRelocation && distance > 20)
+                            if (mec.Radius < R.Width && distance < maxRelocation && distance > minDistance)
                             {
                                 if (possibility.Count > count ||
                                     possibility.Count == count && (mec.Radius < radius || distance < moveDistance))
@@ -995,7 +1010,7 @@ namespace SFXChallenger.Champions
                         }
                     }
                     var dTarget = targets.OrderBy(t => t.Distance(position)).FirstOrDefault();
-                    if (dTarget != null)
+                    if (dTarget != null && position.Distance(dTarget.Position) > minDistance)
                     {
                         return dTarget.Position;
                     }
