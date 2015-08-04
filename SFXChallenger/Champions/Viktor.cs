@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Viktor.cs is part of SFXChallenger.
+ viktor.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -153,7 +153,7 @@ namespace SFXChallenger.Champions
                         damage += Q.GetDamage(hero);
                         damage += CalcPassiveDamage(hero);
                     }
-                    if (Player.HasBuff("viktorpowertransferreturn"))
+                    else if (Player.HasBuff("viktorpowertransferreturn"))
                     {
                         damage += CalcPassiveDamage(hero);
                     }

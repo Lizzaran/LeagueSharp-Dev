@@ -145,7 +145,8 @@ namespace SFXGraves.Champions
                     if (
                         !RLogic(
                             TargetSelector.GetTarget(R),
-                            Menu.Item(Menu.Name + ".ultimate.assisted.min").GetValue<Slider>().Value))
+                            Menu.Item(Menu.Name + ".ultimate.assisted.min").GetValue<Slider>().Value,
+                            Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady()))
                     {
                         RLogicDuel(Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady());
                     }
@@ -156,7 +157,8 @@ namespace SFXGraves.Champions
                     if (
                         !RLogic(
                             TargetSelector.GetTarget(R),
-                            Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value))
+                            Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value,
+                            Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady()))
                     {
                         RLogicDuel(Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady());
                     }
@@ -260,7 +262,7 @@ namespace SFXGraves.Champions
                 var target = TargetSelector.GetTarget(R);
                 if (target != null && Orbwalking.InAutoAttackRange(target))
                 {
-                    if (!RLogic(target, Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value))
+                    if (!RLogic(target, Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value, useQ))
                     {
                         if (Menu.Item(Menu.Name + ".ultimate.combo.duel").GetValue<bool>())
                         {
@@ -271,12 +273,12 @@ namespace SFXGraves.Champions
             }
         }
 
-        private bool RLogic(Obj_AI_Hero target, int min)
+        private bool RLogic(Obj_AI_Hero target, int min, bool q)
         {
             try
             {
                 var hits = GetRHits(target);
-                if (UltimateManager.Check(min, hits.Item2))
+                if (UltimateManager.Check(min, hits.Item2, hero => CalcComboDamage(hero, q, true)))
                 {
                     R.Cast(hits.Item3);
                     return true;
@@ -298,7 +300,7 @@ namespace SFXGraves.Champions
                 {
                     if (UltimateManager.CheckDuel(t, CalcComboDamage(t, q, true)))
                     {
-                        if (RLogic(t, 1))
+                        if (RLogic(t, 1, q))
                         {
                             break;
                         }

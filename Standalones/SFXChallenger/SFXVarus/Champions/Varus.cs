@@ -203,7 +203,9 @@ namespace SFXVarus.Champions
                     if (
                         !RLogic(
                             TargetSelector.GetTarget(R), R.GetHitChance("combo"),
-                            Menu.Item(Menu.Name + ".ultimate.assisted.min").GetValue<Slider>().Value))
+                            Menu.Item(Menu.Name + ".ultimate.assisted.min").GetValue<Slider>().Value,
+                            Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
+                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady()))
                     {
                         RLogicDuel(
                             Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
@@ -216,7 +218,9 @@ namespace SFXVarus.Champions
                     if (
                         !RLogic(
                             TargetSelector.GetTarget(R), R.GetHitChance("combo"),
-                            Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value))
+                            Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value,
+                            Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
+                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady()))
                     {
                         RLogicDuel(
                             Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
@@ -246,7 +250,10 @@ namespace SFXVarus.Champions
                 }
                 if (UltimateManager.Gapcloser(args.Sender))
                 {
-                    RLogic(args.Sender, HitChance.High, 1);
+                    RLogic(
+                        args.Sender, HitChance.High, 1,
+                        Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
+                        Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
                 }
             }
             catch (Exception ex)
@@ -332,7 +339,9 @@ namespace SFXVarus.Champions
                     if (
                         !RLogic(
                             target, R.GetHitChance("combo"),
-                            Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value))
+                            Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value,
+                            Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
+                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady()))
                     {
                         if (Menu.Item(Menu.Name + ".ultimate.combo.duel").GetValue<bool>())
                         {
@@ -517,7 +526,7 @@ namespace SFXVarus.Champions
             }
         }
 
-        private bool RLogic(Obj_AI_Hero target, HitChance hitChance, int min)
+        private bool RLogic(Obj_AI_Hero target, HitChance hitChance, int min, bool q, bool e)
         {
             try
             {
@@ -528,8 +537,8 @@ namespace SFXVarus.Champions
                 var pred = R.GetPrediction(target);
                 if (pred.Hitchance >= hitChance)
                 {
-                    var hits = GameObjects.EnemyHeroes.Where(e => e.Distance(target) <= _rSpreadRadius).ToList();
-                    if (UltimateManager.Check(min, hits))
+                    var hits = GameObjects.EnemyHeroes.Where(x => x.Distance(target) <= _rSpreadRadius).ToList();
+                    if (UltimateManager.Check(min, hits, hero => CalcComboDamage(hero, q, e, true)))
                     {
                         R.Cast(pred.CastPosition);
                         return true;
@@ -551,7 +560,7 @@ namespace SFXVarus.Champions
                 {
                     if (UltimateManager.CheckDuel(t, CalcComboDamage(t, q, e, true)))
                     {
-                        if (RLogic(t, R.GetHitChance("combo"), 1))
+                        if (RLogic(t, R.GetHitChance("combo"), 1, q, e))
                         {
                             break;
                         }

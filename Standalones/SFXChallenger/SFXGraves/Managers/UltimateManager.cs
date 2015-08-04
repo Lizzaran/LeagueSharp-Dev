@@ -221,6 +221,9 @@ namespace SFXGraves.Managers
                     uForceMenu.AddItem(
                         new MenuItem(uForceMenu.Name + ".additional", Global.Lang.Get("UM_AdditionalTargets")).SetValue(
                             new Slider(0, 0, 4)).DontSave());
+                    uForceMenu.AddItem(
+                        new MenuItem(uForceMenu.Name + ".combo-killable", Global.Lang.Get("UM_ComboKillable")).SetValue(
+                            true).DontSave());
                     HeroListManager.AddToMenu(uForceMenu, "ultimate-force", true, false, true, false, true);
                 }
 
@@ -316,7 +319,7 @@ namespace SFXGraves.Managers
             return false;
         }
 
-        public static bool Check(int min, List<Obj_AI_Hero> hits)
+        public static bool Check(int min, List<Obj_AI_Hero> hits, Func<Obj_AI_Hero, float> calcDamage = null)
         {
             try
             {
@@ -327,7 +330,12 @@ namespace SFXGraves.Managers
 
                 if (_force && HeroListManager.Enabled("ultimate-force"))
                 {
-                    if (hits.Any(hit => HeroListManager.Check("ultimate-force", hit)) &&
+                    var killable = _menu.Item(_menu.Name + ".ultimate.force.combo-killable").GetValue<bool>();
+                    if (
+                        hits.Any(
+                            hit =>
+                                HeroListManager.Check("ultimate-force", hit) &&
+                                (!killable || calcDamage == null || calcDamage(hit) > hit.Health)) &&
                         hits.Count >=
                         (_menu.Item(_menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1))
                     {

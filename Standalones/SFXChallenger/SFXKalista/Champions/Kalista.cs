@@ -156,6 +156,14 @@ namespace SFXKalista.Champions
 
             blitzMenu.AddItem(new MenuItem(blitzMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
 
+            var tahmMenu = ultiMenu.AddSubMenu(new Menu("Tahm Kench", ultiMenu.Name + ".tahm-kench"));
+
+            HeroListManager.AddToMenu(
+                tahmMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Blacklist"), tahmMenu.Name + ".blacklist")),
+                "tahm-kench", false, false, true, false);
+
+            tahmMenu.AddItem(new MenuItem(tahmMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
+
             ultiMenu.AddItem(new MenuItem(ultiMenu.Name + ".save", Global.Lang.Get("G_Save")).SetValue(true));
 
 
@@ -204,21 +212,43 @@ namespace SFXKalista.Champions
                         SoulBound.Unit = hero;
                     }
                 }
+                if (sender.IsMe)
+                {
+                    Console.WriteLine(args.Buff.Name);
+                }
                 var target = sender as Obj_AI_Hero;
                 if (target != null)
                 {
                     if (SoulBound.Unit != null && sender.IsEnemy &&
-                        args.Buff.Caster.NetworkId == SoulBound.Unit.NetworkId &&
-                        args.Buff.Name.Equals("rocketgrab2", StringComparison.OrdinalIgnoreCase) && args.Buff.IsActive)
+                        args.Buff.Caster.NetworkId == SoulBound.Unit.NetworkId && args.Buff.IsActive &&
+                        SoulBound.Unit.Distance(Player) < R.Range && R.IsReady())
                     {
-                        if (Menu.Item(Menu.Name + ".ultimate.blitzcrank.r").GetValue<bool>() &&
-                            !HeroListManager.Check("blitzcrank", target) && R.IsReady() &&
-                            SoulBound.Unit.Distance(Player) < R.Range)
+                        if (args.Buff.Name.Equals("rocketgrab2", StringComparison.OrdinalIgnoreCase))
                         {
-                            if (!SoulBound.Unit.UnderTurret(false) && SoulBound.Unit.Distance(sender) > 750f &&
-                                SoulBound.Unit.Distance(Player) > R.Range / 3f)
+                            if (Menu.Item(Menu.Name + ".ultimate.blitzcrank.r").GetValue<bool>() &&
+                                !HeroListManager.Check("blitzcrank", target))
                             {
-                                R.Cast();
+                                if (!SoulBound.Unit.UnderTurret(false) && SoulBound.Unit.Distance(sender) > 750f &&
+                                    SoulBound.Unit.Distance(Player) > R.Range / 3f)
+                                {
+                                    R.Cast();
+                                }
+                            }
+                        }
+                        else if (args.Buff.Name.Equals("tahmkenchwdevoured", StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (Menu.Item(Menu.Name + ".ultimate.tahm-kench.r").GetValue<bool>() &&
+                                !HeroListManager.Check("tahm-kench", target))
+                            {
+                                if (!SoulBound.Unit.UnderTurret(false) &&
+                                    (SoulBound.Unit.Distance(sender) > Player.AttackRange ||
+                                     GameObjects.AllyHeroes.Where(
+                                         a => a.NetworkId != SoulBound.Unit.NetworkId && a.NetworkId != Player.NetworkId)
+                                         .Any(t => t.Distance(Player) > 600) ||
+                                     GameObjects.AllyTurrets.Any(t => t.Distance(Player) < 600)))
+                                {
+                                    R.Cast();
+                                }
                             }
                         }
                     }
@@ -416,7 +446,8 @@ namespace SFXKalista.Champions
                         }
                     }
                 }
-                if (Menu.Item(Menu.Name + ".ultimate.save").GetValue<bool>() && SoulBound.Unit != null && R.IsReady())
+                if (Menu.Item(Menu.Name + ".ultimate.save").GetValue<bool>() && SoulBound.Unit != null && R.IsReady() &&
+                    !Player.InFountain())
                 {
                     SoulBound.Clean();
                     if (SoulBound.Unit.HealthPercent <= 10 && SoulBound.Unit.CountEnemiesInRange(500) > 0 ||
@@ -732,7 +763,7 @@ namespace SFXKalista.Champions
                     {
                         if (target.Health < 100 && target is Obj_AI_Minion)
                         {
-                            if (HealthPrediction.GetHealthPrediction(target, 250) <= 0)
+                            if (HealthPrediction.GetHealthPrediction(target, 250, Game.Ping / 2) <= 0)
                             {
                                 return false;
                             }

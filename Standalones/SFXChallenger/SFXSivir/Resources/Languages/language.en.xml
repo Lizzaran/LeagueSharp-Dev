@@ -198,6 +198,7 @@
 
 	<!-- START: UltimateManager -->
 	<entry key="F_Ultimate">Ultimate</entry>
+	<entry key="UM_ComboKillable">Combo Killable</entry>
 	<entry key="UM_Duel">Duel</entry>
 	<entry key="UM_Auto">Auto</entry>
 	<entry key="UM_Assisted">Assisted</entry>

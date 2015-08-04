@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Viktor.cs is part of SFXViktor.
+ viktor.cs is part of SFXViktor.
 
  SFXViktor is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@ namespace SFXViktor.Champions
     {
         private const float MaxERange = 1225f;
         private const float ELength = 700f;
-        private const float RMoveInterval = 350f;
+        private const float RMoveInterval = 500f;
         private float _lastRMoveCommand = Environment.TickCount;
         private GameObject _rObject;
 
@@ -67,7 +67,6 @@ namespace SFXViktor.Champions
             Core.OnPostUpdate += OnCorePostUpdate;
             Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
             Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
-            Orbwalking.OnNonKillableMinion += OnOrbwalkingNonKillableMinion;
             AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
             Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
             CustomEvents.Unit.OnDash += OnUnitDash;
@@ -79,7 +78,6 @@ namespace SFXViktor.Champions
             Core.OnPostUpdate -= OnCorePostUpdate;
             Orbwalking.BeforeAttack -= OnOrbwalkingBeforeAttack;
             Orbwalking.AfterAttack -= OnOrbwalkingAfterAttack;
-            Orbwalking.OnNonKillableMinion -= OnOrbwalkingNonKillableMinion;
             AntiGapcloser.OnEnemyGapcloser -= OnEnemyGapcloser;
             Interrupter2.OnInterruptableTarget -= OnInterruptableTarget;
             CustomEvents.Unit.OnDash -= OnUnitDash;
@@ -116,11 +114,6 @@ namespace SFXViktor.Champions
             laneclearMenu.AddItem(
                 new MenuItem(laneclearMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(
                     new Slider(3, 1, 5)));
-
-            var lasthitMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LastHit"), Menu.Name + ".lasthit"));
-            ManaManager.AddToMenu(lasthitMenu, "lasthit", ManaCheckType.Minimum, ManaValueType.Percent);
-            lasthitMenu.AddItem(
-                new MenuItem(lasthitMenu.Name + ".q-unkillable", "Q " + Global.Lang.Get("G_Unkillable")).SetValue(true));
 
             var ultimateMenu = UltimateManager.AddToMenu(Menu, true, true, true, false, false, false, true, true, true);
 
@@ -191,7 +184,7 @@ namespace SFXViktor.Champions
         protected override void SetupSpells()
         {
             Q = new Spell(SpellSlot.Q, Player.BoundingRadius + 600f, DamageType.Magical);
-            Q.Range += GameObjects.EnemyHeroes.Max(e => e.BoundingRadius);
+            Q.Range += GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(1).Max();
             Q.SetTargetted(0.4f, 2000f);
 
             W = new Spell(SpellSlot.W, 700f, DamageType.Magical);
@@ -220,7 +213,10 @@ namespace SFXViktor.Champions
                     }
                     var target = TargetSelector.GetTarget(R);
                     if (target != null &&
-                        !RLogic(target, Menu.Item(Menu.Name + ".ultimate.assisted.min").GetValue<Slider>().Value))
+                        !RLogic(
+                            target, Menu.Item(Menu.Name + ".ultimate.assisted.min").GetValue<Slider>().Value,
+                            Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
+                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady()))
                     {
                         if (Menu.Item(Menu.Name + ".ultimate.assisted.duel").GetValue<bool>())
                         {
@@ -235,7 +231,10 @@ namespace SFXViktor.Champions
                 {
                     var target = TargetSelector.GetTarget(R);
                     if (target != null &&
-                        !RLogic(target, Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value))
+                        !RLogic(
+                            target, Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value,
+                            Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
+                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady()))
                     {
                         if (Menu.Item(Menu.Name + ".ultimate.auto.duel").GetValue<bool>())
                         {
@@ -267,35 +266,6 @@ namespace SFXViktor.Champions
                     if (target != null)
                     {
                         Casting.SkillShot(target, W, W.GetHitChance("combo"));
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnOrbwalkingNonKillableMinion(AttackableUnit unit)
-        {
-            try
-            {
-                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit ||
-                    Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
-                {
-                    if (Menu.Item(Menu.Name + ".lasthit.q-unkillable").GetValue<bool>() && Q.IsReady() &&
-                        ManaManager.Check("lasthit"))
-                    {
-                        var target = unit as Obj_AI_Base;
-                        if (target != null)
-                        {
-                            var health = HealthPrediction.GetHealthPrediction(
-                                target, (int) (Q.ArrivalTime(target) * 1000), 0);
-                            if (health > 0 && Q.GetDamage(target) >= health)
-                            {
-                                Casting.TargetSkill(target, Q);
-                            }
-                        }
                     }
                 }
             }
@@ -363,7 +333,8 @@ namespace SFXViktor.Champions
                                      e =>
                                          RLogic(
                                              e, Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value,
-                                             true))))
+                                             Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
+                                             Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true))))
                         {
                             args.Process = false;
                             return;
@@ -378,16 +349,18 @@ namespace SFXViktor.Champions
                         {
                             Orbwalker.ForceTarget(hero);
                             args.Process = false;
-                            return;
                         }
                     }
                 }
-                if (args.Target.Type == GameObjectType.obj_AI_Hero &&
-                    (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
-                     Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed))
+                else
                 {
-                    args.Process = (!Q.IsReady() || Player.Mana < Q.Instance.ManaCost) &&
-                                   (!E.IsReady() || Player.Mana < E.Instance.ManaCost);
+                    if (args.Target.Type == GameObjectType.obj_AI_Hero &&
+                        (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
+                         Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed))
+                    {
+                        args.Process = (!Q.IsReady() || Player.Mana < Q.Instance.ManaCost) &&
+                                       (!E.IsReady() || Player.Mana < E.Instance.ManaCost);
+                    }
                 }
             }
             catch (Exception ex)
@@ -468,18 +441,23 @@ namespace SFXViktor.Champions
             var w = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady();
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
             var r = UltimateManager.Combo() && R.IsReady();
-
+            var eCasted = false;
+            var qCasted = false;
             if (e)
             {
-                var target = TargetSelector.GetTarget((MaxERange + E.Width) * 1.2f, E.DamageType);
+                var target = TargetSelector.GetTarget((MaxERange + E.Width) * 1.1f, E.DamageType);
                 if (target != null)
                 {
-                    ELogic(target, GameObjects.EnemyHeroes.ToList(), E.GetHitChance("combo"));
+                    eCasted = ELogic(target, GameObjects.EnemyHeroes.ToList(), E.GetHitChance("combo"));
                 }
             }
-            if (q && !e)
+            if (q && (eCasted || !e || !E.IsReady()))
             {
-                Casting.TargetSkill(Q);
+                var target = TargetSelector.GetTarget(Q.Range, Q.DamageType);
+                if (target != null)
+                {
+                    qCasted = Q.CastOnUnit(target);
+                }
             }
             if (w)
             {
@@ -489,11 +467,11 @@ namespace SFXViktor.Champions
                     WLogic(target, W.GetHitChance("combo"));
                 }
             }
-            if (r && (Player.HasBuff("viktorpowertransferreturn") || !q))
+            if (r && (Player.HasBuff("viktorpowertransferreturn") || (qCasted || !q || !Q.IsReady())))
             {
                 var target = TargetSelector.GetTarget(R);
                 if (target != null &&
-                    !RLogic(target, Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value))
+                    !RLogic(target, Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value, q, e))
                 {
                     if (Menu.Item(Menu.Name + ".ultimate.combo.duel").GetValue<bool>())
                     {
@@ -518,7 +496,7 @@ namespace SFXViktor.Champions
 
             if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>())
             {
-                var target = TargetSelector.GetTarget((MaxERange + E.Width) * 1.2f, E.DamageType);
+                var target = TargetSelector.GetTarget((MaxERange + E.Width) * 1.1f, E.DamageType);
                 if (target != null)
                 {
                     ELogic(target, GameObjects.EnemyHeroes.ToList(), E.GetHitChance("harass"));
@@ -526,7 +504,11 @@ namespace SFXViktor.Champions
             }
             if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>())
             {
-                Casting.TargetSkill(Q);
+                var target = TargetSelector.GetTarget(Q.Range, Q.DamageType);
+                if (target != null)
+                {
+                    Q.CastOnUnit(target);
+                }
             }
         }
 
@@ -652,7 +634,7 @@ namespace SFXViktor.Champions
                 }
                 if (
                     GameObjects.EnemyHeroes.Where(t => UltimateManager.CheckDuel(t, CalcComboDamage(t, q, e, true)))
-                        .Any(t => RLogic(t, 1, simulated)))
+                        .Any(t => RLogic(t, 1, q, e, simulated)))
                 {
                     return true;
                 }
@@ -664,7 +646,7 @@ namespace SFXViktor.Champions
             return false;
         }
 
-        private bool RLogic(Obj_AI_Hero target, int min, bool simulated = false)
+        private bool RLogic(Obj_AI_Hero target, int min, bool q, bool e, bool simulated = false)
         {
             try
             {
@@ -673,11 +655,19 @@ namespace SFXViktor.Champions
                     return false;
                 }
                 var pred = CPrediction.Circle(R, target, HitChance.High, false);
-                if (pred.TotalHits > 0 && UltimateManager.Check(min, pred.Hits))
+                if (pred.TotalHits > 0 &&
+                    UltimateManager.Check(min, pred.Hits, hero => CalcComboDamage(hero, q, e, true)))
                 {
                     if (!simulated)
                     {
                         R.Cast(pred.CastPosition);
+                        var aaTarget =
+                            TargetSelector.GetTargets(Player.AttackRange + Player.BoundingRadius * 3f)
+                                .FirstOrDefault(Orbwalking.InAutoAttackRange);
+                        if (aaTarget != null)
+                        {
+                            Player.IssueOrder(GameObjectOrder.AttackUnit, aaTarget);
+                        }
                     }
                     return true;
                 }
@@ -738,7 +728,7 @@ namespace SFXViktor.Champions
                 var startPos = Vector3.Zero;
                 var endPos = Vector3.Zero;
                 var hits = 0;
-                targets = targets.Where(t => t.IsValidTarget(MaxERange * 1.2f)).ToList();
+                targets = targets.Where(t => t.IsValidTarget(MaxERange + E.Width * 1.1f)).ToList();
                 var targetCount = targets.Count;
 
                 foreach (var target in targets)
@@ -988,8 +978,10 @@ namespace SFXViktor.Champions
                 var moveDistance = -1f;
                 var maxRelocation = IsSpellUpgraded(R) ? R.Width * 1.2f : R.Width * 0.8f;
                 var targets = GameObjects.EnemyHeroes.Where(t => t.IsValidTarget(1500f)).ToList();
+                var circle = new Geometry.Polygon.Circle(position, R.Width);
                 if (targets.Any())
                 {
+                    var minDistance = targets.Any(t => circle.IsInside(t)) ? targets.Min(t => t.BoundingRadius) * 2 : 0;
                     var possibilities =
                         ListExtensions.ProduceEnumeration(targets.Select(t => t.Position.To2D()).ToList())
                             .Where(p => p.Count > 1)
@@ -1000,7 +992,7 @@ namespace SFXViktor.Champions
                         {
                             var mec = MEC.GetMec(possibility);
                             var distance = position.Distance(mec.Center.To3D());
-                            if (mec.Radius < R.Width && distance < maxRelocation && distance > 20)
+                            if (mec.Radius < R.Width && distance < maxRelocation && distance > minDistance)
                             {
                                 if (possibility.Count > count ||
                                     possibility.Count == count && (mec.Radius < radius || distance < moveDistance))
@@ -1018,7 +1010,7 @@ namespace SFXViktor.Champions
                         }
                     }
                     var dTarget = targets.OrderBy(t => t.Distance(position)).FirstOrDefault();
-                    if (dTarget != null)
+                    if (dTarget != null && position.Distance(dTarget.Position) > minDistance)
                     {
                         return dTarget.Position;
                     }
