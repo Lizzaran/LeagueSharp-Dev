@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- viktor.cs is part of SFXChallenger.
+ Viktor.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -114,6 +114,12 @@ namespace SFXChallenger.Champions
             laneclearMenu.AddItem(
                 new MenuItem(laneclearMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(
                     new Slider(3, 1, 5)));
+
+            var lasthitMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LastHit"), Menu.Name + ".lasthit"));
+            ManaManager.AddToMenu(lasthitMenu, "lasthit", ManaCheckType.Minimum, ManaValueType.Percent);
+            lasthitMenu.AddItem(
+                new MenuItem(lasthitMenu.Name + ".q-unkillable", "Q " + Global.Lang.Get("G_Unkillable")).SetValue(true));
+
 
             var ultimateMenu = UltimateManager.AddToMenu(Menu, true, true, true, false, false, false, true, true, true);
 
@@ -266,6 +272,32 @@ namespace SFXChallenger.Champions
                     if (target != null)
                     {
                         Casting.SkillShot(target, W, W.GetHitChance("combo"));
+                    }
+                }
+                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit ||
+                    Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
+                {
+                    if (Menu.Item(Menu.Name + ".lasthit.q-unkillable").GetValue<bool>() && Q.IsReady() &&
+                        ManaManager.Check("lasthit"))
+                    {
+                        var canAttack = Orbwalking.CanAttack();
+                        var minions =
+                            MinionManager.GetMinions(Q.Range)
+                                .Where(m => (!Orbwalking.InAutoAttackRange(m) || !canAttack) && m.HealthPercent <= 50)
+                                .ToList();
+                        if (minions.Any())
+                        {
+                            foreach (var minion in minions)
+                            {
+                                var health = HealthPrediction.GetHealthPrediction(
+                                    minion, (int) (Q.ArrivalTime(minion) * 1000), 0);
+                                if (health > 0 && Q.GetDamage(minion) > health)
+                                {
+                                    Q.CastOnUnit(minion);
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
             }
