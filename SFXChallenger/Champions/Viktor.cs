@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Viktor.cs is part of SFXChallenger.
+ viktor.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -54,6 +54,7 @@ namespace SFXChallenger.Champions
         private const float MaxERange = 1225f;
         private const float ELength = 700f;
         private const float RMoveInterval = 500f;
+        private float _lastAutoAttack;
         private float _lastRMoveCommand = Environment.TickCount;
         private GameObject _rObject;
 
@@ -280,10 +281,10 @@ namespace SFXChallenger.Champions
                     if (Menu.Item(Menu.Name + ".lasthit.q-unkillable").GetValue<bool>() && Q.IsReady() &&
                         ManaManager.Check("lasthit"))
                     {
-                        var canAttack = Orbwalking.CanAttack();
+                        var canAttack = Game.Time >= _lastAutoAttack + Player.AttackDelay;
                         var minions =
                             MinionManager.GetMinions(Q.Range)
-                                .Where(m => (!Orbwalking.InAutoAttackRange(m) || !canAttack) && m.HealthPercent <= 50)
+                                .Where(m => (!canAttack || !Orbwalking.InAutoAttackRange(m)) && m.HealthPercent <= 50)
                                 .ToList();
                         if (minions.Any())
                         {
@@ -374,13 +375,15 @@ namespace SFXChallenger.Champions
                     }
                     if (args.Target.Type != GameObjectType.obj_AI_Hero)
                     {
-                        var hero =
-                            TargetSelector.GetTargets(Player.AttackRange + Player.BoundingRadius * 3f)
-                                .FirstOrDefault(Orbwalking.InAutoAttackRange);
-                        if (hero != null)
+                        var targets = TargetSelector.GetTargets(Player.AttackRange + Player.BoundingRadius * 3f);
+                        if (targets != null && targets.Any())
                         {
-                            Orbwalker.ForceTarget(hero);
-                            args.Process = false;
+                            var hero = targets.FirstOrDefault(Orbwalking.InAutoAttackRange);
+                            if (hero != null)
+                            {
+                                Orbwalker.ForceTarget(hero);
+                                args.Process = false;
+                            }
                         }
                     }
                 }
@@ -403,6 +406,7 @@ namespace SFXChallenger.Champions
 
         private void OnOrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
         {
+            _lastAutoAttack = Game.Time;
             Orbwalker.ForceTarget(null);
         }
 

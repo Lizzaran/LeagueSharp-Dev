@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- cprediction.cs is part of SFXChallenger.
+ CPrediction.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -56,8 +56,7 @@ namespace SFXChallenger.Helpers
                     let prediction = spell.GetPrediction(t)
                     where prediction.Hitchance >= (hitChance - 1)
                     select new Position(t, prediction.UnitPosition)).ToList();
-                var width = spell.Width +
-                            (boundingRadius ? positions.Select(p => p.Hero).Min(p => p.BoundingRadius) : 0);
+                var width = spell.Width; //+ (boundingRadius ? positions.Select(p => p.Hero).Min(p => p.BoundingRadius) : 0);
                 if (positions.Any())
                 {
                     var possibilities = ListExtensions.ProduceEnumeration(positions).Where(p => p.Count > 0).ToList();
