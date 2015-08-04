@@ -153,7 +153,7 @@ namespace SFXChallenger.Champions
                         damage += Q.GetDamage(hero);
                         damage += CalcPassiveDamage(hero);
                     }
-                    else if (Player.HasBuff("viktorpowertransferreturn"))
+                    if (Player.HasBuff("viktorpowertransferreturn"))
                     {
                         damage += CalcPassiveDamage(hero);
                     }
@@ -440,6 +440,7 @@ namespace SFXChallenger.Champions
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
             var r = UltimateManager.Combo() && R.IsReady();
             var eCasted = false;
+            var qCasted = false;
             if (e)
             {
                 var target = TargetSelector.GetTarget((MaxERange + E.Width) * 1.1f, E.DamageType);
@@ -448,9 +449,13 @@ namespace SFXChallenger.Champions
                     eCasted = ELogic(target, GameObjects.EnemyHeroes.ToList(), E.GetHitChance("combo"));
                 }
             }
-            if (q && (eCasted || !e))
+            if (q && (eCasted || !e || !E.IsReady()))
             {
-                Casting.TargetSkill(Q);
+                var target = TargetSelector.GetTarget(Q.Range, Q.DamageType);
+                if (target != null)
+                {
+                    qCasted = Q.CastOnUnit(target);
+                }
             }
             if (w)
             {
@@ -460,7 +465,7 @@ namespace SFXChallenger.Champions
                     WLogic(target, W.GetHitChance("combo"));
                 }
             }
-            if (r && (Player.HasBuff("viktorpowertransferreturn") || !q))
+            if (r && (Player.HasBuff("viktorpowertransferreturn") || (qCasted || !q || !Q.IsReady())))
             {
                 var target = TargetSelector.GetTarget(R);
                 if (target != null &&
