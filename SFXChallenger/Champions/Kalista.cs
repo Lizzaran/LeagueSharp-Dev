@@ -416,7 +416,8 @@ namespace SFXChallenger.Champions
                         }
                     }
                 }
-                if (Menu.Item(Menu.Name + ".ultimate.save").GetValue<bool>() && SoulBound.Unit != null && R.IsReady())
+                if (Menu.Item(Menu.Name + ".ultimate.save").GetValue<bool>() && SoulBound.Unit != null && R.IsReady() &&
+                    !Player.InFountain())
                 {
                     SoulBound.Clean();
                     if (SoulBound.Unit.HealthPercent <= 10 && SoulBound.Unit.CountEnemiesInRange(500) > 0 ||
@@ -732,7 +733,7 @@ namespace SFXChallenger.Champions
                     {
                         if (target.Health < 100 && target is Obj_AI_Minion)
                         {
-                            if (HealthPrediction.GetHealthPrediction(target, 250) <= 0)
+                            if (HealthPrediction.GetHealthPrediction(target, 250, Game.Ping / 2) <= 0)
                             {
                                 return false;
                             }
