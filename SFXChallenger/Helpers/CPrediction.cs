@@ -50,13 +50,14 @@ namespace SFXChallenger.Helpers
                 var hits = new List<Obj_AI_Hero>();
                 var center = Vector3.Zero;
                 var radius = float.MaxValue;
-                var range = spell.Range + (spell.Width * 0.9f) + (boundingRadius ? target.BoundingRadius * 0.85f : 0);
+                var range = spell.Range + spell.Width + (boundingRadius ? target.BoundingRadius : 0);
                 var positions = (from t in GameObjects.EnemyHeroes
                     where t.IsValidTarget(range, true, spell.RangeCheckFrom)
                     let prediction = spell.GetPrediction(t)
                     where prediction.Hitchance >= (hitChance - 1)
                     select new Position(t, prediction.UnitPosition)).ToList();
-                var width = spell.Width; //+ (boundingRadius ? positions.Select(p => p.Hero).Min(p => p.BoundingRadius) : 0);
+                var spellWidth = spell.Width;
+                    //+ (boundingRadius ? positions.Select(p => p.Hero).Min(p => p.BoundingRadius) : 0);
                 if (positions.Any())
                 {
                     var possibilities = ListExtensions.ProduceEnumeration(positions).Where(p => p.Count > 0).ToList();
@@ -66,7 +67,7 @@ namespace SFXChallenger.Helpers
                         {
                             var mec = MEC.GetMec(possibility.Select(p => p.UnitPosition.To2D()).ToList());
                             var distance = spell.From.Distance(mec.Center.To3D());
-                            if (mec.Radius < width && distance < range)
+                            if (mec.Radius < spellWidth && distance < range)
                             {
                                 var lHits = new List<Obj_AI_Hero>();
                                 var circle =
