@@ -101,8 +101,8 @@ namespace SFXUtility.Features.Activators
 
                 Menu.AddItem(
                     new MenuItem(
-                        Name + "MinEnemyDistance",
-                        Global.Lang.Get("G_Minimum") + " " + Global.Lang.Get("G_Enemy") + " " +
+                        Name + "MaxEnemyDistance",
+                        Global.Lang.Get("G_Maximum") + " " + Global.Lang.Get("G_Enemy") + " " +
                         Global.Lang.Get("G_Distance")).SetValue(new Slider(1000, 0, 1500)));
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
@@ -147,7 +147,7 @@ namespace SFXUtility.Features.Activators
                     return;
                 }
 
-                var enemyDist = Menu.Item(Name + "MinEnemyDistance").GetValue<Slider>().Value;
+                var enemyDist = Menu.Item(Name + "MaxEnemyDistance").GetValue<Slider>().Value;
                 if (enemyDist != 0 &&
                     !GameObjects.EnemyHeroes.Any(e => e.Position.Distance(ObjectManager.Player.Position) <= enemyDist))
                 {
