@@ -30,6 +30,7 @@ using LeagueSharp.Common;
 using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Events;
+using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
 using SFXLibrary;
 using SFXLibrary.Extensions.NET;
@@ -59,6 +60,11 @@ namespace SFXChallenger.Champions
         protected override ItemFlags ItemFlags
         {
             get { return ItemFlags.Offensive | ItemFlags.Defensive | ItemFlags.Flee; }
+        }
+
+        protected override ItemUsageType ItemUsage
+        {
+            get { return ItemUsageType.Custom; }
         }
 
         protected override void OnLoad()
@@ -160,7 +166,8 @@ namespace SFXChallenger.Champions
                 if (circle.Active)
                 {
                     Render.Circle.DrawCircle(
-                        Ball.Position, _ballPositionRadius.GetValue<Slider>().Value, circle.Color,
+                        (Ball.Hero != null ? Ball.Hero.Position : Ball.Position),
+                        _ballPositionRadius.GetValue<Slider>().Value, circle.Color,
                         _ballPositionThickness.GetValue<Slider>().Value);
                 }
             }
@@ -305,8 +312,10 @@ namespace SFXChallenger.Champions
                                         Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
                                         Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true)))
                             {
-                                R.Cast(Player.Position);
-                                Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
+                                if (R.Cast(Ball.Position))
+                                {
+                                    Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
+                                }
                             }
                             else if (Menu.Item(Menu.Name + ".ultimate.flash.duel").GetValue<bool>())
                             {
@@ -324,8 +333,10 @@ namespace SFXChallenger.Champions
                                         Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true);
                                     if (cDmg - 20 >= target.Health)
                                     {
-                                        R.Cast(Player.Position);
-                                        Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
+                                        if (R.Cast(Ball.Position))
+                                        {
+                                            Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
+                                        }
                                     }
                                 }
                             }
@@ -857,51 +868,73 @@ namespace SFXChallenger.Champions
                 {
                     return new Tuple<int, Vector3>(0, Vector3.Zero);
                 }
-                var pred = Q.GetPrediction(target);
-                if (pred.Hitchance < hitChance)
+                var hits = new List<Obj_AI_Hero>();
+                var center = Vector3.Zero;
+                var radius = float.MaxValue;
+                var range = Q.Range + Q.Width + target.BoundingRadius * 0.85f;
+                var positions = (from t in GameObjects.EnemyHeroes
+                    where t.IsValidTarget(range, true, Q.RangeCheckFrom)
+                    let prediction = Q.GetPrediction(t)
+                    where prediction.Hitchance >= (hitChance - 1)
+                    select new CPrediction.Position(t, prediction.UnitPosition)).ToList();
+                if (positions.Any())
                 {
-                    return new Tuple<int, Vector3>(0, Vector3.Zero);
-                }
-                var points =
-                    (from enemy in GameObjects.EnemyHeroes.Where(h => h.IsValidTarget((Q.Range + R.Range * 1.2f)))
-                        select Q.GetPrediction(enemy)
-                        into ePred
-                        where ePred.Hitchance >= (hitChance - 1)
-                        select ePred.UnitPosition.To2D()).ToList();
-                if (points.Any())
-                {
-                    var possibilities = ListExtensions.ProduceEnumeration(points).Where(p => p.Count > 0).ToList();
-                    if (possibilities.Any())
+                    var mainTarget = positions.FirstOrDefault(p => p.Hero.NetworkId == target.NetworkId);
+                    var possibilities =
+                        ListExtensions.ProduceEnumeration(
+                            positions.Where(p => p.UnitPosition.Distance(mainTarget.UnitPosition) <= Q.Width * 0.85f)
+                                .ToList())
+                            .Where(p => p.Count > 0 && p.Any(t => t.Hero.NetworkId == mainTarget.Hero.NetworkId))
+                            .ToList();
+                    var rReady = R.IsReady();
+                    var wReady = W.IsReady();
+                    foreach (var possibility in possibilities)
                     {
-                        var hits = 0;
-                        var radius = float.MaxValue;
-                        var pos = Vector3.Zero;
-                        var rReady = R.IsReady();
-                        var wReady = R.IsReady();
-                        foreach (var possibility in possibilities)
+                        var mec = MEC.GetMec(possibility.Select(p => p.UnitPosition.To2D()).ToList());
+                        var distance = Q.From.Distance(mec.Center.To3D());
+                        if (distance < range)
                         {
-                            var check = false;
-                            var mec = MEC.GetMec(possibility);
-                            if (mec.Radius < R.Range * 0.85f && possibility.Count >= 3 && rReady)
+                            var check = mec.Radius < R.Range * 0.85f && possibility.Count >= 3 && rReady;
+                            if (mec.Radius < W.Range * 0.9f && possibility.Count >= 2 && wReady)
                             {
                                 check = true;
                             }
-                            if (mec.Radius < W.Range * 0.9f && points.Count >= 2 && wReady)
+                            if (mec.Radius < Q.Width * 0.9f && possibility.Count >= 1)
                             {
                                 check = true;
                             }
-                            if (mec.Radius < Q.Width * 0.9f && points.Count >= 1)
+                            if (check)
                             {
-                                check = true;
-                            }
-                            if (check && possibility.Count > hits || possibility.Count == hits && radius > mec.Radius)
-                            {
-                                hits = possibility.Count;
-                                radius = mec.Radius;
-                                pos = mec.Center.To3D();
+                                var lHits = new List<Obj_AI_Hero>();
+                                var circle =
+                                    new Geometry.Polygon.Circle(
+                                        Q.From.Extend(mec.Center.To3D(), Q.Range > distance ? distance : Q.Range),
+                                        Q.Width);
+
+                                lHits.AddRange(
+                                    (from position in positions
+                                        where
+                                            new Geometry.Polygon.Circle(
+                                                position.UnitPosition, (position.Hero.BoundingRadius * 0.85f)).Points
+                                                .Any(p => circle.IsInside(p))
+                                        select position.Hero));
+
+                                if ((lHits.Count > hits.Count || lHits.Count == hits.Count && mec.Radius < radius ||
+                                     lHits.Count == hits.Count &&
+                                     Q.From.Distance(circle.Center.To3D()) < Q.From.Distance(center)) &&
+                                    lHits.Any(p => p.NetworkId == target.NetworkId))
+                                {
+                                    center = circle.Center.To3D2();
+                                    radius = mec.Radius;
+                                    hits.Clear();
+                                    hits.AddRange(lHits);
+                                }
                             }
                         }
-                        return new Tuple<int, Vector3>(hits, pos);
+                    }
+                    if (!center.Equals(Vector3.Zero))
+                    {
+                        return new Tuple<int, Vector3>(hits.Count, center);
                     }
                 }
             }

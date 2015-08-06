@@ -43,7 +43,7 @@ using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXTwistedFate.Wrappers.Orbwalking;
 using Spell = SFXTwistedFate.Wrappers.Spell;
 using TargetSelector = SFXTwistedFate.Wrappers.TargetSelector;
-using Utils = LeagueSharp.Common.Utils;
+using Utils = SFXTwistedFate.Helpers.Utils;
 
 #endregion
 
@@ -56,7 +56,6 @@ namespace SFXTwistedFate.Champions
         private readonly float _qAngle = 28 * (float) Math.PI / 180;
         private readonly float _wRedRadius = 200f;
         private MenuItem _eStacks;
-        private MenuItem _nextCard;
         private float _qDelay;
         private Obj_AI_Hero _qTarget;
         private MenuItem _rMinimap;
@@ -64,6 +63,11 @@ namespace SFXTwistedFate.Champions
         protected override ItemFlags ItemFlags
         {
             get { return ItemFlags.Offensive | ItemFlags.Defensive | ItemFlags.Flee; }
+        }
+
+        protected override ItemUsageType ItemUsage
+        {
+            get { return ItemUsageType.Custom; }
         }
 
         protected override void OnLoad()
@@ -107,6 +111,8 @@ namespace SFXTwistedFate.Champions
                 new MenuItem(
                     comboMenu.Name + ".red-min", "W " + Global.Lang.Get("TF_Red") + " " + Global.Lang.Get("G_Min"))
                     .SetValue(new Slider(3, 1, 5)));
+            comboMenu.AddItem(
+                new MenuItem(comboMenu.Name + ".q-stunned", "Q " + Global.Lang.Get("G_OnlyStunned")).SetValue(false));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
 
@@ -118,12 +124,14 @@ namespace SFXTwistedFate.Champions
             ManaManager.AddToMenu(
                 harassMenu, "harass-blue", ManaCheckType.Minimum, ManaValueType.Percent,
                 "W " + Global.Lang.Get("TF_Blue"), 50);
-            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             harassMenu.AddItem(
                 new MenuItem(harassMenu.Name + ".w-card", "W " + Global.Lang.Get("TF_Card")).SetValue(
                     new StringList(Global.Lang.GetList("TF_Cards"))));
             harassMenu.AddItem(
                 new MenuItem(harassMenu.Name + ".w-auto", Global.Lang.Get("TF_AutoSelect")).SetValue(true));
+            harassMenu.AddItem(
+                new MenuItem(harassMenu.Name + ".q-stunned", "Q " + Global.Lang.Get("G_OnlyStunned")).SetValue(false));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
 
             var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LaneClear"), Menu.Name + ".lane-clear"));
@@ -156,6 +164,10 @@ namespace SFXTwistedFate.Champions
                     new Slider((int) W.Range, 500, 1000))).ValueChanged +=
                 delegate(object sender, OnValueChangeEventArgs args) { W.Range = args.GetNewValue<Slider>().Value; };
             miscMenu.AddItem(
+                new MenuItem(miscMenu.Name + ".w-delay", "W " + Global.Lang.Get("G_Delay")).SetValue(
+                    new Slider(300, 0, 1000))).ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { Cards.Delay = args.GetNewValue<Slider>().Value; };
+            miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".mode", Global.Lang.Get("G_Mode")).SetValue(
                     new StringList(Global.Lang.GetList("TF_Modes"))));
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r-card", Global.Lang.Get("TF_RCard")).SetValue(true));
@@ -180,14 +192,14 @@ namespace SFXTwistedFate.Champions
 
             Q.Range = Menu.Item(Menu.Name + ".miscellaneous.q-range").GetValue<Slider>().Value;
             W.Range = Menu.Item(Menu.Name + ".miscellaneous.w-range").GetValue<Slider>().Value;
+            Cards.Delay = Menu.Item(Menu.Name + ".miscellaneous.w-delay").GetValue<Slider>().Value;
 
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
             IndicatorManager.Add(Q);
             IndicatorManager.Add(W);
-            IndicatorManager.Add(E, false);
+            IndicatorManager.Add("E", hero => E.Level > 0 && HasEBuff() ? E.GetDamage(hero) : 0);
             IndicatorManager.Finale();
 
-            _nextCard = DrawingManager.Add(Global.Lang.Get("TF_NextCard"), false);
             _eStacks = DrawingManager.Add("E " + Global.Lang.Get("G_Stacks"), true);
             _rMinimap = DrawingManager.Add("R " + Global.Lang.Get("G_Minimap"), true);
         }
@@ -212,7 +224,7 @@ namespace SFXTwistedFate.Champions
                 var hero = args.Target as Obj_AI_Hero;
                 if (hero != null)
                 {
-                    args.Process = Cards.Status != SelectStatus.Selecting && Utils.TickCount - Cards.LastWSent > 300;
+                    args.Process = Cards.Status != SelectStatus.Selecting && !Cards.ShouldWait;
                     if (args.Process)
                     {
                         if (Cards.Has(CardColor.Gold))
@@ -276,8 +288,7 @@ namespace SFXTwistedFate.Champions
                         }
                     }
                 }
-                if (Utils.TickCount - Cards.LastWSent > 300 && Cards.Status != SelectStatus.Selecting &&
-                    Cards.Status != SelectStatus.Selected)
+                if (!Cards.ShouldWait && Cards.Status != SelectStatus.Selecting && Cards.Status != SelectStatus.Selected)
                 {
                     Orbwalker.ForceTarget(null);
                 }
@@ -300,7 +311,7 @@ namespace SFXTwistedFate.Champions
                 {
                     var target =
                         GameObjects.Heroes.FirstOrDefault(
-                            t => Q.IsInRange(t) && HeroListManager.Check("q-stunned", t) && Helpers.Utils.IsStunned(t));
+                            t => Q.IsInRange(t) && HeroListManager.Check("q-stunned", t) && Utils.IsStunned(t));
                     if (target != null)
                     {
                         var best = BestQPosition(
@@ -537,7 +548,7 @@ namespace SFXTwistedFate.Champions
             }
             if (q && Q.IsReady())
             {
-                QLogic(Q.GetHitChance("harass"));
+                QLogic("combo");
             }
         }
 
@@ -560,14 +571,15 @@ namespace SFXTwistedFate.Champions
             }
             if (ManaManager.Check("harass") && q && Q.IsReady())
             {
-                QLogic(Q.GetHitChance("harass"));
+                QLogic("harass");
             }
         }
 
-        private void QLogic(HitChance hitChance)
+        private void QLogic(string mode)
         {
             try
             {
+                var hitChance = Q.GetHitChance(mode);
                 if (Cards.Has(CardColor.Gold))
                 {
                     return;
@@ -582,14 +594,18 @@ namespace SFXTwistedFate.Champions
                 {
                     target = _qTarget;
                 }
+                if (Menu.Item(Menu.Name + "." + mode + ".q-stunned").GetValue<bool>() && !Utils.IsStunned(target))
+                {
+                    return;
+                }
                 if (target != null &&
                     (_qTarget == null || !target.NetworkId.Equals(_qTarget.NetworkId) ||
-                     (Game.Time > _qDelay || Helpers.Utils.IsStunned(target))))
+                     (Game.Time > _qDelay || Utils.IsStunned(target))))
                 {
                     var cd = W.Instance.CooldownExpires - Game.Time;
                     var outOfRange = target.Distance(Player) >=
                                      Menu.Item(Menu.Name + ".miscellaneous.q-min-range").GetValue<Slider>().Value;
-                    if (outOfRange || (cd >= 2 || W.Level == 0) || Helpers.Utils.IsStunned(target))
+                    if (outOfRange || (cd >= 2 || W.Level == 0) || Utils.IsStunned(target))
                     {
                         var best = BestQPosition(
                             target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), hitChance);
@@ -706,14 +722,6 @@ namespace SFXTwistedFate.Champions
                                 x + (i * 20), y, x + (i * 20) + 10, y, 10, (i > stacks ? Color.DarkGray : Color.Orange));
                         }
                     }
-                }
-                if (W.Level > 0 && Cards.LastCard != CardColor.None && _nextCard.GetValue<bool>())
-                {
-                    Drawing.DrawLine(
-                        x - 58, y + 35, x - 58 + 16, y + 35, 16,
-                        (Cards.LastCard == CardColor.Gold
-                            ? Color.Blue
-                            : (Cards.LastCard == CardColor.Blue ? Color.Red : Color.Gold)));
                 }
             }
             catch (Exception ex)
@@ -841,7 +849,7 @@ namespace SFXTwistedFate.Champions
                     {
                         damage += E.GetDamage(target);
                     }
-                    if (Q.IsReady() && (Helpers.Utils.GetStunTime(target) > 0.5f || distance < Q.Range / 4f))
+                    if (Q.IsReady() && (Utils.GetStunTime(target) > 0.5f || distance < Q.Range / 4f))
                     {
                         damage += Q.GetDamage(target);
                     }
@@ -944,8 +952,7 @@ namespace SFXTwistedFate.Champions
         {
             public static List<CardColor> ShouldSelect;
             public static CardColor LastCard;
-            public static int LastWSent;
-            public static int LastSendWSent;
+            private static int _lastWSent;
 
             static Cards()
             {
@@ -956,6 +963,13 @@ namespace SFXTwistedFate.Champions
             }
 
             public static SelectStatus Status { get; set; }
+
+            public static bool ShouldWait
+            {
+                get { return LeagueSharp.Common.Utils.TickCount - _lastWSent > Delay; }
+            }
+
+            public static int Delay { get; set; }
 
             public static bool Has(CardColor color)
             {
@@ -973,7 +987,6 @@ namespace SFXTwistedFate.Champions
 
             private static void SendWPacket()
             {
-                LastSendWSent = Utils.TickCount;
                 ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, false);
             }
 
@@ -1000,11 +1013,11 @@ namespace SFXTwistedFate.Champions
                         ShouldSelect = cards;
                         if (cards.Any())
                         {
-                            if (Utils.TickCount - LastWSent > 200)
+                            if (!ShouldWait)
                             {
                                 if (ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, ObjectManager.Player))
                                 {
-                                    LastWSent = Utils.TickCount;
+                                    _lastWSent = LeagueSharp.Common.Utils.TickCount;
                                 }
                             }
                         }
@@ -1024,8 +1037,7 @@ namespace SFXTwistedFate.Champions
                     var wState = ObjectManager.Player.Spellbook.CanUseSpell(SpellSlot.W);
 
                     if ((wState == SpellState.Ready && wName == "PickACard" &&
-                         (Status != SelectStatus.Selecting || Utils.TickCount - LastWSent > 500)) ||
-                        ObjectManager.Player.IsDead)
+                         (Status != SelectStatus.Selecting || !ShouldWait)) || ObjectManager.Player.IsDead)
                     {
                         Status = SelectStatus.Ready;
                     }

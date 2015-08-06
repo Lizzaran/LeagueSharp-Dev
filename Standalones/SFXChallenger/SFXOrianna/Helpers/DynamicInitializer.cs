@@ -47,7 +47,7 @@ namespace SFXOrianna.Helpers
             try
             {
                 var target = type.GetConstructor(Type.EmptyTypes);
-                if (target != null)
+                if (target != null && target.DeclaringType != null)
                 {
                     var dynamic = new DynamicMethod(string.Empty, type, new Type[0], target.DeclaringType);
                     var il = dynamic.GetILGenerator();

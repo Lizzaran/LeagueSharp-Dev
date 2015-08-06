@@ -57,22 +57,23 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>5</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="LeagueSharp">
-      <HintPath>G:\LeagueSharp\System\LeagueSharp.dll</HintPath>
+      <HintPath>E:\LeagueSharp\System\LeagueSharp.dll</HintPath>
     </Reference>
     <Reference Include="LeagueSharp.Common">
-      <HintPath>G:\LeagueSharp\System\LeagueSharp.Common.dll</HintPath>
+      <HintPath>E:\LeagueSharp\System\LeagueSharp.Common.dll</HintPath>
     </Reference>
     <Reference Include="SFXLibrary">
-      <HintPath>G:\LeagueSharp\System\SFXLibrary.dll</HintPath>
+      <HintPath>E:\LeagueSharp\System\SFXLibrary.dll</HintPath>
     </Reference>
     <Reference Include="SharpDX">
-      <HintPath>G:\LeagueSharp\System\SharpDX.dll</HintPath>
+      <HintPath>E:\LeagueSharp\System\SharpDX.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -83,6 +84,7 @@
     <Compile Include="Bootstrap.cs" />
     <Compile Include="Abstracts\TChampion.cs" />
     <Compile Include="Champions\Cassiopeia.cs" />
+    <Compile Include="Champions\Corki.cs" />
     <Compile Include="Champions\Graves.cs" />
     <Compile Include="Champions\Kalista.cs" />
     <Compile Include="Champions\Orianna.cs" />
@@ -93,6 +95,7 @@
     <Compile Include="Enumerations\CastType.cs" />
     <Compile Include="Enumerations\CombatFlags.cs" />
     <Compile Include="Enumerations\EffectFlags.cs" />
+    <Compile Include="Enumerations\ItemUsageType.cs" />
     <Compile Include="Enumerations\ManaCheckType.cs" />
     <Compile Include="Enumerations\ManaValueType.cs" />
     <Compile Include="Enumerations\TargetSelectorModeType.cs" />
@@ -103,6 +106,7 @@
     <Compile Include="Global.cs" />
     <Compile Include="Helpers\CPrediction.cs" />
     <Compile Include="Helpers\DynamicInitializer.cs" />
+    <Compile Include="Helpers\SpellQueue.cs" />
     <Compile Include="Helpers\Utils.cs" />
     <Compile Include="Managers\DelayManager.cs" />
     <Compile Include="Managers\DrawingManager.cs" />
@@ -111,6 +115,7 @@
     <Compile Include="Managers\IndicatorManager.cs" />
     <Compile Include="Managers\InitiatorManager.cs" />
     <Compile Include="Managers\KillstealManager.cs" />
+    <Compile Include="Managers\OverkillManager.cs" />
     <Compile Include="Managers\TargetSpellManager.cs" />
     <Compile Include="Managers\UltimateManager.cs" />
     <Compile Include="Menus\InfoMenu.cs" />

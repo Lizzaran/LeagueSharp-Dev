@@ -54,12 +54,20 @@ namespace SFXViktor.Champions
         private const float MaxERange = 1225f;
         private const float ELength = 700f;
         private const float RMoveInterval = 500f;
+        private float _lastAutoAttack;
+        private Obj_AI_Base _lastFarmTarget;
+        private Obj_AI_Base _lastQKillableTarget;
         private float _lastRMoveCommand = Environment.TickCount;
         private GameObject _rObject;
 
         protected override ItemFlags ItemFlags
         {
             get { return ItemFlags.Offensive | ItemFlags.Defensive | ItemFlags.Flee; }
+        }
+
+        protected override ItemUsageType ItemUsage
+        {
+            get { return ItemUsageType.Custom; }
         }
 
         protected override void OnLoad()
@@ -114,6 +122,11 @@ namespace SFXViktor.Champions
             laneclearMenu.AddItem(
                 new MenuItem(laneclearMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(
                     new Slider(3, 1, 5)));
+
+            var lasthitMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LastHit"), Menu.Name + ".lasthit"));
+            ManaManager.AddToMenu(lasthitMenu, "lasthit", ManaCheckType.Minimum, ManaValueType.Percent);
+            lasthitMenu.AddItem(
+                new MenuItem(lasthitMenu.Name + ".q-unkillable", "Q " + Global.Lang.Get("G_Unkillable")).SetValue(true));
 
             var ultimateMenu = UltimateManager.AddToMenu(Menu, true, true, true, false, false, false, true, true, true);
 
@@ -184,7 +197,7 @@ namespace SFXViktor.Champions
         protected override void SetupSpells()
         {
             Q = new Spell(SpellSlot.Q, Player.BoundingRadius + 600f, DamageType.Magical);
-            Q.Range += GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(1).Max();
+            Q.Range += GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(50).Average();
             Q.SetTargetted(0.4f, 2000f);
 
             W = new Spell(SpellSlot.W, 700f, DamageType.Magical);
@@ -194,7 +207,7 @@ namespace SFXViktor.Champions
             E.SetSkillshot(0f, 90f, 800f, false, SkillshotType.SkillshotLine);
 
             R = new Spell(SpellSlot.R, 700f, DamageType.Magical);
-            R.SetSkillshot(0.1f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            R.SetSkillshot(0.3f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
         }
 
         private void OnCorePostUpdate(EventArgs args)
@@ -266,6 +279,38 @@ namespace SFXViktor.Champions
                     if (target != null)
                     {
                         Casting.SkillShot(target, W, W.GetHitChance("combo"));
+                    }
+                }
+                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit ||
+                    Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
+                {
+                    if (Menu.Item(Menu.Name + ".lasthit.q-unkillable").GetValue<bool>() && Q.IsReady() &&
+                        ManaManager.Check("lasthit"))
+                    {
+                        var canAttack = Game.Time >= _lastAutoAttack + Player.AttackDelay;
+                        var minions =
+                            MinionManager.GetMinions(Q.Range)
+                                .Where(
+                                    m =>
+                                        (!canAttack || !Orbwalking.InAutoAttackRange(m)) && m.HealthPercent <= 50 &&
+                                        (_lastFarmTarget == null || _lastFarmTarget.NetworkId != m.NetworkId))
+                                .ToList();
+                        if (minions.Any())
+                        {
+                            foreach (var minion in minions)
+                            {
+                                var health = HealthPrediction.GetHealthPrediction(
+                                    minion, (int) (Q.ArrivalTime(minion) * 1000), 0);
+                                if (health > 0 && Q.GetDamage(minion) > health)
+                                {
+                                    if (Q.CastOnUnit(minion))
+                                    {
+                                        _lastQKillableTarget = minion;
+                                    }
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -342,13 +387,15 @@ namespace SFXViktor.Champions
                     }
                     if (args.Target.Type != GameObjectType.obj_AI_Hero)
                     {
-                        var hero =
-                            TargetSelector.GetTargets(Player.AttackRange + Player.BoundingRadius * 3f)
-                                .FirstOrDefault(Orbwalking.InAutoAttackRange);
-                        if (hero != null)
+                        var targets = TargetSelector.GetTargets(Player.AttackRange + Player.BoundingRadius * 3f);
+                        if (targets != null && targets.Any())
                         {
-                            Orbwalker.ForceTarget(hero);
-                            args.Process = false;
+                            var hero = targets.FirstOrDefault(Orbwalking.InAutoAttackRange);
+                            if (hero != null)
+                            {
+                                Orbwalker.ForceTarget(hero);
+                                args.Process = false;
+                            }
                         }
                     }
                 }
@@ -362,6 +409,14 @@ namespace SFXViktor.Champions
                                        (!E.IsReady() || Player.Mana < E.Instance.ManaCost);
                     }
                 }
+                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit ||
+                    Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
+                {
+                    if (_lastQKillableTarget != null && _lastQKillableTarget.NetworkId == args.Target.NetworkId)
+                    {
+                        args.Process = false;
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -371,6 +426,16 @@ namespace SFXViktor.Champions
 
         private void OnOrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
         {
+            _lastAutoAttack = Game.Time;
+            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit ||
+                Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
+            {
+                var bTarget = unit as Obj_AI_Base;
+                if (bTarget != null)
+                {
+                    _lastFarmTarget = bTarget;
+                }
+            }
             Orbwalker.ForceTarget(null);
         }
 
@@ -841,7 +906,9 @@ namespace SFXViktor.Champions
                                         }
                                     }
                                 }
-                                if (count > hits && containsTarget)
+                                if (count > hits && containsTarget ||
+                                    count == hits && containsTarget && mainTarget != null &&
+                                    point.Distance(mainTarget.Position) < startPos.Distance(mainTarget.Position))
                                 {
                                     hits = count;
                                     startPos = point.To3D();

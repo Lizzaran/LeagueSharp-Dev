@@ -33,23 +33,24 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>5</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="clipper_library">
-      <HintPath>G:\LeagueSharp\System\clipper_library.dll</HintPath>
+      <HintPath>E:\LeagueSharp\System\clipper_library.dll</HintPath>
     </Reference>
     <Reference Include="LeagueSharp">
-      <HintPath>G:\LeagueSharp\System\LeagueSharp.dll</HintPath>
+      <HintPath>E:\LeagueSharp\System\LeagueSharp.dll</HintPath>
     </Reference>
     <Reference Include="LeagueSharp.Common">
-      <HintPath>G:\LeagueSharp\System\LeagueSharp.Common.dll</HintPath>
+      <HintPath>E:\LeagueSharp\System\LeagueSharp.Common.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="SharpDX">
-      <HintPath>G:\LeagueSharp\System\SharpDX.dll</HintPath>
+      <HintPath>E:\LeagueSharp\System\SharpDX.dll</HintPath>
     </Reference>
     <Reference Include="SharpDX.Direct3D9">
-      <HintPath>G:\LeagueSharp\System\SharpDX.Direct3D9.dll</HintPath>
+      <HintPath>E:\LeagueSharp\System\SharpDX.Direct3D9.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

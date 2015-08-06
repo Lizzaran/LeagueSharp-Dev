@@ -53,6 +53,11 @@ namespace SFXSivir.Champions
             get { return ItemFlags.Offensive | ItemFlags.Defensive | ItemFlags.Flee; }
         }
 
+        protected override ItemUsageType ItemUsage
+        {
+            get { return ItemUsageType.AfterAttack; }
+        }
+
         protected override void OnLoad()
         {
             Core.OnPostUpdate += OnCorePostUpdate;
@@ -193,59 +198,43 @@ namespace SFXSivir.Champions
         {
             try
             {
-                if (unit.IsMe)
+                if (unit.IsMe && W.IsReady())
                 {
-                    if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
+                    var useW = false;
+                    var wMin = 0;
+                    var laneclear = false;
+                    switch (Orbwalker.ActiveMode)
                     {
-                        var enemy = target as Obj_AI_Hero;
-                        if (enemy != null)
-                        {
-                            ItemManager.Muramana(enemy, true);
-                            ItemManager.UseComboItems(enemy);
-                            SummonerManager.UseComboSummoners(enemy);
-                        }
+                        case Orbwalking.OrbwalkingMode.Combo:
+                            useW = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>();
+                            break;
+                        case Orbwalking.OrbwalkingMode.Mixed:
+                            useW = Menu.Item(Menu.Name + ".harass.w").GetValue<bool>();
+                            break;
+                        case Orbwalking.OrbwalkingMode.LaneClear:
+                            useW = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>();
+                            wMin = Menu.Item(Menu.Name + ".lane-clear.w-min").GetValue<Slider>().Value;
+                            laneclear = true;
+                            break;
                     }
-                    else
+                    if (useW && (!laneclear || ManaManager.Check("lane-clear-w")))
                     {
-                        ItemManager.Muramana(null, false);
-                    }
-                    if (W.IsReady())
-                    {
-                        var useW = false;
-                        var wMin = 1;
-                        var laneclear = false;
-                        switch (Orbwalker.ActiveMode)
+                        var range = W.Range + Player.BoundingRadius * 2f;
+                        var targets = laneclear
+                            ? MinionManager.GetMinions(
+                                range + 450, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
+                            : GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(range + 450))
+                                .Cast<Obj_AI_Base>()
+                                .ToList();
+                        if (targets.Count >= wMin && targets.Any(Orbwalking.InAutoAttackRange) &&
+                            (wMin == 0 ||
+                             targets.Any(
+                                 t =>
+                                     Orbwalking.InAutoAttackRange(t) &&
+                                     targets.Any(t2 => t2.NetworkId != t.NetworkId && t2.Distance(t) <= 450))))
                         {
-                            case Orbwalking.OrbwalkingMode.Combo:
-                                useW = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>();
-                                break;
-                            case Orbwalking.OrbwalkingMode.Mixed:
-                                useW = Menu.Item(Menu.Name + ".harass.w").GetValue<bool>();
-                                break;
-                            case Orbwalking.OrbwalkingMode.LaneClear:
-                                useW = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>();
-                                wMin = Menu.Item(Menu.Name + ".lane-clear.w-min").GetValue<Slider>().Value;
-                                laneclear = true;
-                                break;
-                        }
-                        if (useW && (!laneclear || ManaManager.Check("lane-clear-w")))
-                        {
-                            var range = W.Range + Player.BoundingRadius * 2f;
-                            var targets = laneclear
-                                ? MinionManager.GetMinions(
-                                    range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
-                                : GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(range))
-                                    .Cast<Obj_AI_Base>()
-                                    .ToList();
-                            if (targets.Count >= wMin &&
-                                targets.Any(
-                                    t =>
-                                        Orbwalking.InAutoAttackRange(t) &&
-                                        targets.Any(t2 => t2.NetworkId != t.NetworkId && t2.Distance(t) <= 450)))
-                            {
-                                W.Cast();
-                                Orbwalking.ResetAutoAttackTimer();
-                            }
+                            W.Cast();
+                            Orbwalking.ResetAutoAttackTimer();
                         }
                     }
                 }

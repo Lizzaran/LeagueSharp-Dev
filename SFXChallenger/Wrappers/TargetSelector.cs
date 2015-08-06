@@ -61,6 +61,7 @@ namespace SFXChallenger.Wrappers
         private static readonly Dictionary<int, AggroItem> AggroItems = new Dictionary<int, AggroItem>();
         private static TargetSelectorModeType _tsMode = TargetSelectorModeType.Weights;
         private static Menu _weightsMenu;
+        private static readonly float MaxBoundingRadius;
 
         static TargetSelector()
         {
@@ -189,6 +190,8 @@ namespace SFXChallenger.Wrappers
             Game.OnWndProc += OnGameWndProc;
             Drawing.OnDraw += OnDrawingDraw;
             Obj_AI_Base.OnAggro += OnObjAiBaseAggro;
+
+            MaxBoundingRadius = GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(50).Max();
         }
 
         public static Obj_AI_Hero SelectedTarget
@@ -427,7 +430,8 @@ namespace SFXChallenger.Wrappers
             IEnumerable<Obj_AI_Hero> ignoredChampions = null)
         {
             return GetTarget(
-                (spell.Range + spell.Width) * 1.1f, spell.DamageType, ignoreShields, from, ignoredChampions);
+                (spell.Range + spell.Width + MaxBoundingRadius) * 1.1f, spell.DamageType, ignoreShields, from,
+                ignoredChampions);
         }
 
         private static bool IsValidTarget(Obj_AI_Hero target,

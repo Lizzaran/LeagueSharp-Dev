@@ -62,10 +62,14 @@ namespace SFXChallenger.Champions
             get { return ItemFlags.Offensive | ItemFlags.Defensive | ItemFlags.Flee; }
         }
 
+        protected override ItemUsageType ItemUsage
+        {
+            get { return ItemUsageType.AfterAttack; }
+        }
+
         protected override void OnLoad()
         {
             Core.OnPostUpdate += OnCorePostUpdate;
-            Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
             AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
             Drawing.OnDraw += OnDrawingDraw;
         }
@@ -73,7 +77,6 @@ namespace SFXChallenger.Champions
         protected override void OnUnload()
         {
             Core.OnPostUpdate -= OnCorePostUpdate;
-            Orbwalking.AfterAttack -= OnOrbwalkingAfterAttack;
             AntiGapcloser.OnEnemyGapcloser -= OnEnemyGapcloser;
             Drawing.OnDraw -= OnDrawingDraw;
         }
@@ -254,34 +257,6 @@ namespace SFXChallenger.Champions
                         args.Sender, HitChance.High, 1,
                         Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                         Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnOrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
-        {
-            try
-            {
-                if (unit.IsMe)
-                {
-                    if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
-                    {
-                        var enemy = target as Obj_AI_Hero;
-                        if (enemy != null)
-                        {
-                            ItemManager.Muramana(enemy, true);
-                            ItemManager.UseComboItems(enemy);
-                            SummonerManager.UseComboSummoners(enemy);
-                        }
-                    }
-                    else
-                    {
-                        ItemManager.Muramana(null, false);
-                    }
                 }
             }
             catch (Exception ex)

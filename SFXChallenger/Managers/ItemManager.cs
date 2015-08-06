@@ -289,9 +289,6 @@ namespace SFXChallenger.Managers
                     new MenuItem(muramanaMenu.Name + ".min-enemies-range", Global.Lang.Get("MI_MinEnemiesRange"))
                         .SetValue(new Slider(1, 0, 5)));
                 muramanaMenu.AddItem(
-                    new MenuItem(muramanaMenu.Name + ".min-enemies-range", Global.Lang.Get("MI_MinEnemiesRange"))
-                        .SetValue(new Slider(1, 0, 5)));
-                muramanaMenu.AddItem(
                     new MenuItem(muramanaMenu.Name + ".player-health-below", Global.Lang.Get("MI_PlayerHealthBelow"))
                         .SetValue(new Slider(100)));
                 muramanaMenu.AddItem(
@@ -409,7 +406,7 @@ namespace SFXChallenger.Managers
             }
         }
 
-        public static void Muramana(Obj_AI_Hero target, bool activate)
+        public static void Muramana(Obj_AI_Hero target, bool activate, float overrideRange = -1f)
         {
             try
             {
@@ -417,7 +414,8 @@ namespace SFXChallenger.Managers
                 if ((activate && !hasBuff &&
                      (_menu == null ||
                       _menu.Item(_menu.Name + ".muramana.combo").GetValue<bool>() &&
-                      ObjectManager.Player.CountEnemiesInRange(Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)) >=
+                      ObjectManager.Player.CountEnemiesInRange(
+                          overrideRange > 0 ? overrideRange : Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)) >=
                       _menu.Item(_menu.Name + ".muramana.min-enemies-range").GetValue<Slider>().Value &&
                       ObjectManager.Player.HealthPercent <=
                       _menu.Item(_menu.Name + ".muramana.player-health-below").GetValue<Slider>().Value &&

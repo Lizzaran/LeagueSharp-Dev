@@ -24,12 +24,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXTwistedFate.Enumerations;
+using SFXTwistedFate.Helpers;
 using SFXTwistedFate.Interfaces;
 using SFXTwistedFate.Managers;
 using SFXTwistedFate.Menus;
+using SFXLibrary;
 using SFXLibrary.Logger;
 using Orbwalking = SFXTwistedFate.Wrappers.Orbwalking;
 using Spell = SFXTwistedFate.Wrappers.Spell;
@@ -55,6 +58,7 @@ namespace SFXTwistedFate.Abstracts
         }
 
         protected abstract ItemFlags ItemFlags { get; }
+        protected abstract ItemUsageType ItemUsage { get; }
         public Menu SFXMenu { get; private set; }
 
         public List<Spell> Spells
@@ -166,7 +170,88 @@ namespace SFXTwistedFate.Abstracts
                 SetupSpells();
                 SetupMenu();
 
+                SpellQueue.Initialize();
+
+                if (ItemUsage == ItemUsageType.AfterAttack)
+                {
+                    Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
+                    Spellbook.OnCastSpell += OnSpellbookCastSpell;
+                }
+
                 Drawing.OnDraw += DrawingOnDraw;
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
+        {
+            try
+            {
+                if (sender.Owner != null && sender.Owner.IsMe)
+                {
+                    if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
+                    {
+                        var endPos = args.EndPosition;
+                        var spell = Spells.FirstOrDefault(s => s.Slot == args.Slot);
+                        if (spell != null)
+                        {
+                            var enemy1 =
+                                GameObjects.EnemyHeroes.FirstOrDefault(
+                                    e => e.IsValidTarget() && e.Distance(endPos) < spell.Range / 2f);
+                            var enemy2 =
+                                GameObjects.EnemyHeroes.FirstOrDefault(
+                                    e => e.IsValidTarget() && e.Distance(Player) < spell.Range / 2f);
+                            if (enemy1 != null)
+                            {
+                                ItemManager.Muramana(
+                                    enemy1, true,
+                                    spell.Range + spell.Width + enemy1.BoundingRadius + Player.BoundingRadius);
+                            }
+                            if (enemy2 != null)
+                            {
+                                ItemManager.Muramana(
+                                    enemy2, true,
+                                    spell.Range + spell.Width + enemy2.BoundingRadius + Player.BoundingRadius);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        ItemManager.Muramana(null, false);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void OnOrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
+        {
+            try
+            {
+                if (unit.IsMe)
+                {
+                    Orbwalker.ForceTarget(null);
+                    if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
+                    {
+                        var enemy = target as Obj_AI_Hero;
+                        if (enemy != null)
+                        {
+                            ItemManager.Muramana(enemy, true);
+                            ItemManager.UseComboItems(enemy);
+                            SummonerManager.UseComboSummoners(enemy);
+                        }
+                    }
+                    else
+                    {
+                        ItemManager.Muramana(null, false);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -200,8 +285,7 @@ namespace SFXTwistedFate.Abstracts
                     Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Drawing"), Menu.Name + ".drawing")), this);
 
                 TargetSelector.AddToMenu(
-                    SFXMenu.AddSubMenu(
-                        new Menu(Global.Lang.Get("F_TargetSelector"), SFXMenu.Name + ".ts." + Player.ChampionName)));
+                    SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_TargetSelector"), SFXMenu.Name + ".ts")));
 
                 Orbwalker =
                     new Orbwalking.Orbwalker(
@@ -212,6 +296,8 @@ namespace SFXTwistedFate.Abstracts
                     SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MI"), SFXMenu.Name + ".items")), ItemFlags);
                 SummonerManager.AddToMenu(
                     SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MS"), SFXMenu.Name + ".summoners")));
+                OverkillManager.AddToMenu(
+                    SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MO"), SFXMenu.Name + ".overkill")));
 
                 LanguageMenu.AddToMenu(
                     SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_Settings"), SFXMenu.Name + ".settings")));

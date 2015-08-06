@@ -50,19 +50,22 @@ namespace SFXChallenger.Champions
             get { return ItemFlags.Offensive | ItemFlags.Defensive | ItemFlags.Flee; }
         }
 
+        protected override ItemUsageType ItemUsage
+        {
+            get { return ItemUsageType.AfterAttack; }
+        }
+
         public Spell R2 { get; private set; }
 
         protected override void OnLoad()
         {
             Core.OnPostUpdate += OnCorePostUpdate;
-            Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
             AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
         }
 
         protected override void OnUnload()
         {
             Core.OnPostUpdate -= OnCorePostUpdate;
-            Orbwalking.AfterAttack -= OnOrbwalkingAfterAttack;
             AntiGapcloser.OnEnemyGapcloser -= OnEnemyGapcloser;
         }
 
@@ -189,34 +192,6 @@ namespace SFXChallenger.Champions
                 if (HeroListManager.Check("e-gapcloser", args.Sender))
                 {
                     E.Cast(args.End.Extend(Player.Position, E.Range));
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnOrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
-        {
-            try
-            {
-                if (unit.IsMe)
-                {
-                    if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
-                    {
-                        var enemy = target as Obj_AI_Hero;
-                        if (enemy != null)
-                        {
-                            ItemManager.Muramana(enemy, true);
-                            ItemManager.UseComboItems(enemy);
-                            SummonerManager.UseComboSummoners(enemy);
-                        }
-                    }
-                    else
-                    {
-                        ItemManager.Muramana(null, false);
-                    }
                 }
             }
             catch (Exception ex)

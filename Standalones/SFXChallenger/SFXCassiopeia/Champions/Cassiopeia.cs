@@ -63,6 +63,11 @@ namespace SFXCassiopeia.Champions
             get { return ItemFlags.Offensive | ItemFlags.Defensive | ItemFlags.Flee; }
         }
 
+        protected override ItemUsageType ItemUsage
+        {
+            get { return ItemUsageType.Custom; }
+        }
+
         protected override void OnLoad()
         {
             Core.OnPreUpdate += OnCorePreUpdate;
@@ -279,10 +284,13 @@ namespace SFXCassiopeia.Champions
                                         Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
                                         Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true)))
                             {
-                                R.Cast(
-                                    Player.Position.Extend(
-                                        pred.CastPosition, -(Player.Position.Distance(pred.CastPosition) * 2)), true);
-                                Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
+                                if (
+                                    R.Cast(
+                                        Player.Position.Extend(
+                                            pred.CastPosition, -(Player.Position.Distance(pred.CastPosition) * 2)), true))
+                                {
+                                    Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
+                                }
                             }
                             else if (Menu.Item(Menu.Name + ".ultimate.flash.duel").GetValue<bool>())
                             {
@@ -300,11 +308,14 @@ namespace SFXCassiopeia.Champions
                                         Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true);
                                     if (cDmg - 20 >= target.Health)
                                     {
-                                        R.Cast(
-                                            Player.Position.Extend(
-                                                pred.CastPosition, -(Player.Position.Distance(pred.CastPosition) * 2)),
-                                            true);
-                                        Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
+                                        if (
+                                            R.Cast(
+                                                Player.Position.Extend(
+                                                    pred.CastPosition,
+                                                    -(Player.Position.Distance(pred.CastPosition) * 2)), true))
+                                        {
+                                            Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
+                                        }
                                     }
                                 }
                             }

@@ -23,6 +23,7 @@
 #region
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
@@ -57,13 +58,17 @@ namespace SFXChallenger.Champions
             get { return ItemFlags.Offensive | ItemFlags.Defensive | ItemFlags.Flee; }
         }
 
+        protected override ItemUsageType ItemUsage
+        {
+            get { return ItemUsageType.AfterAttack; }
+        }
+
         protected override void OnLoad()
         {
             Obj_AI_Base.OnBuffAdd += OnObjAiBaseBuffAdd;
             Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
             Spellbook.OnCastSpell += OnSpellbookCastSpell;
             Orbwalking.OnNonKillableMinion += OnOrbwalkingNonKillableMinion;
-            Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
             Core.OnPreUpdate += OnCorePreUpdate;
 
             var buffHero =
@@ -85,7 +90,6 @@ namespace SFXChallenger.Champions
             Obj_AI_Base.OnProcessSpellCast -= OnObjAiBaseProcessSpellCast;
             Spellbook.OnCastSpell -= OnSpellbookCastSpell;
             Orbwalking.OnNonKillableMinion -= OnOrbwalkingNonKillableMinion;
-            Orbwalking.AfterAttack -= OnOrbwalkingAfterAttack;
             Core.OnPreUpdate -= OnCorePreUpdate;
         }
 
@@ -146,9 +150,9 @@ namespace SFXChallenger.Champions
             var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Flee"), Menu.Name + ".flee"));
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".aa", Global.Lang.Get("G_UseAutoAttacks")).SetValue(true));
 
-            var ultiMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("F_Ultimate"), Menu.Name + ".ultimate"));
+            var ultimateMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("F_Ultimate"), Menu.Name + ".ultimate"));
 
-            var blitzMenu = ultiMenu.AddSubMenu(new Menu("Blitzcrank", ultiMenu.Name + ".blitzcrank"));
+            var blitzMenu = ultimateMenu.AddSubMenu(new Menu("Blitzcrank", ultimateMenu.Name + ".blitzcrank"));
 
             HeroListManager.AddToMenu(
                 blitzMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Blacklist"), blitzMenu.Name + ".blacklist")),
@@ -156,7 +160,7 @@ namespace SFXChallenger.Champions
 
             blitzMenu.AddItem(new MenuItem(blitzMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
 
-            var tahmMenu = ultiMenu.AddSubMenu(new Menu("Tahm Kench", ultiMenu.Name + ".tahm-kench"));
+            var tahmMenu = ultimateMenu.AddSubMenu(new Menu("Tahm Kench", ultimateMenu.Name + ".tahm-kench"));
 
             HeroListManager.AddToMenu(
                 tahmMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Blacklist"), tahmMenu.Name + ".blacklist")),
@@ -164,8 +168,7 @@ namespace SFXChallenger.Champions
 
             tahmMenu.AddItem(new MenuItem(tahmMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
 
-            ultiMenu.AddItem(new MenuItem(ultiMenu.Name + ".save", Global.Lang.Get("G_Save")).SetValue(true));
-
+            ultimateMenu.AddItem(new MenuItem(ultimateMenu.Name + ".save", Global.Lang.Get("G_Save")).SetValue(true));
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
             ManaManager.AddToMenu(miscMenu, "misc", ManaCheckType.Minimum, ManaValueType.Percent);
@@ -185,6 +188,10 @@ namespace SFXChallenger.Champions
             IndicatorManager.Finale();
 
             TargetSelector.OverwriteWeightFunction("low-health", hero => hero.Health - Rend.GetDamage(hero));
+            TargetSelector.AddWeightedItem(
+                new WeightedItem(
+                    "w-stack", "W " + Global.Lang.Get("G_Stack"), 10, false,
+                    hero => hero.HasBuff("kalistacoopstrikemarkally") ? 10 : 0));
         }
 
         protected override void SetupSpells()
@@ -211,10 +218,6 @@ namespace SFXChallenger.Champions
                     {
                         SoulBound.Unit = hero;
                     }
-                }
-                if (sender.IsMe)
-                {
-                    Console.WriteLine(args.Buff.Name);
                 }
                 var target = sender as Obj_AI_Hero;
                 if (target != null)
@@ -316,7 +319,7 @@ namespace SFXChallenger.Champions
                             else if ((slot == SpellSlot.Q || slot == SpellSlot.W || slot == SpellSlot.E ||
                                       slot == SpellSlot.R) &&
                                      ((args.Target != null && args.Target.NetworkId == SoulBound.Unit.NetworkId) ||
-                                      args.End.Distance(SoulBound.Unit.ServerPosition) <
+                                      args.End.Distance(SoulBound.Unit.ServerPosition, true) <
                                       Math.Pow(args.SData.LineWidth, 2)))
                             {
                                 damage = (float) hero.GetSpellDamage(SoulBound.Unit, slot);
@@ -326,35 +329,6 @@ namespace SFXChallenger.Champions
                                 SoulBound.Add(Game.Time + 2, damage);
                             }
                         }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnOrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
-        {
-            try
-            {
-                Orbwalker.ForceTarget(null);
-                if (unit.IsMe)
-                {
-                    if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
-                    {
-                        var enemy = target as Obj_AI_Hero;
-                        if (enemy != null)
-                        {
-                            ItemManager.Muramana(enemy, true);
-                            ItemManager.UseComboItems(enemy);
-                            SummonerManager.UseComboSummoners(enemy);
-                        }
-                    }
-                    else
-                    {
-                        ItemManager.Muramana(null, false);
                     }
                 }
             }
@@ -450,8 +424,8 @@ namespace SFXChallenger.Champions
                     !Player.InFountain())
                 {
                     SoulBound.Clean();
-                    if (SoulBound.Unit.HealthPercent <= 10 && SoulBound.Unit.CountEnemiesInRange(500) > 0 ||
-                        (SoulBound.Unit.HealthPercent <= 45 && SoulBound.TotalDamage * 1.1f > SoulBound.Unit.Health))
+                    if ((SoulBound.Unit.HealthPercent <= 10 && SoulBound.Unit.CountEnemiesInRange(500) > 0) ||
+                        (SoulBound.Unit.HealthPercent <= 50 && SoulBound.TotalDamage * 1.1f > SoulBound.Unit.Health))
                     {
                         R.Cast();
                     }
@@ -690,7 +664,9 @@ namespace SFXChallenger.Champions
 
         internal class SoulBound
         {
-            public static Dictionary<float, float> Damages = new Dictionary<float, float>();
+            private static readonly ConcurrentDictionary<float, float> Damages =
+                new ConcurrentDictionary<float, float>();
+
             public static Obj_AI_Hero Unit { get; set; }
 
             public static float TotalDamage
@@ -699,16 +675,13 @@ namespace SFXChallenger.Champions
                 {
                     try
                     {
-                        lock (Damages)
-                        {
-                            return Damages.Sum(e => e.Value);
-                        }
+                        return Damages.Where(e => e.Key >= Game.Time).Select(e => e.Value).DefaultIfEmpty(0).Sum();
                     }
                     catch (Exception ex)
                     {
                         Global.Logger.AddItem(new LogItem(ex));
                     }
-                    return 0f;
+                    return 0;
                 }
             }
 
@@ -716,12 +689,11 @@ namespace SFXChallenger.Champions
             {
                 try
                 {
-                    lock (Damages)
+                    var damages = Damages.Where(entry => entry.Key < Game.Time).ToArray();
+                    foreach (var entry in damages)
                     {
-                        foreach (var entry in Damages.Where(entry => Game.Time > entry.Key))
-                        {
-                            Damages.Remove(entry.Key);
-                        }
+                        float old;
+                        Damages.TryRemove(entry.Key, out old);
                     }
                 }
                 catch (Exception ex)
@@ -734,11 +706,14 @@ namespace SFXChallenger.Champions
             {
                 try
                 {
-                    lock (Damages)
+                    float value;
+                    if (Damages.TryGetValue(time, out value))
                     {
-                        float value;
-                        Damages.TryGetValue(time, out value);
                         Damages[time] = value + damage;
+                    }
+                    else
+                    {
+                        Damages[time] = damage;
                     }
                 }
                 catch (Exception ex)

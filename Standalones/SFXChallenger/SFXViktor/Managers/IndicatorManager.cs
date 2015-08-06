@@ -62,7 +62,7 @@ namespace SFXViktor.Managers
                     new MenuItem(drawingMenu.Name + ".color", Global.Lang.Get("G_Color")).SetValue(Color.Orange));
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + ".opacity", Global.Lang.Get("G_Opacity")).SetValue(
-                        new Slider(40, 5)));
+                        new Slider(60, 5)));
 
                 _menu.AddItem(
                     new MenuItem(_menu.Name + ".attacks", Global.Lang.Get("G_UseAutoAttacks")).SetValue(

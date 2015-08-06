@@ -36,7 +36,6 @@ namespace LeagueSharp.Console
     public static class Console
     {
         private static Vector2 _offset;
-        private static string _output = string.Empty;
         private static int _height;
         private static int _width;
         internal static Menu Menu;
@@ -271,11 +270,7 @@ namespace LeagueSharp.Console
             }
         }
 
-        internal static string Output
-        {
-            get { return _output; }
-            set { _output = value; }
-        }
+        internal static string Output { get; set; }
 
         public static int Alpha
         {

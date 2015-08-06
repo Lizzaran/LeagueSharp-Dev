@@ -73,7 +73,7 @@ namespace SFXSivir.Managers
                     ultimateMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), ultimateMenu.Name + ".combo"));
                 uComboMenu.AddItem(
                     new MenuItem(uComboMenu.Name + ".min", "R " + Global.Lang.Get("G_Min")).SetValue(
-                        new Slider(3, 1, 5)));
+                        new Slider(2, 1, 5)));
                 uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".duel", Global.Lang.Get("UM_Duel")).SetValue(true));
                 uComboMenu.AddItem(
                     new MenuItem(uComboMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
