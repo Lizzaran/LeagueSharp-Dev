@@ -199,7 +199,7 @@ namespace SFXChallenger.Champions
         {
             Q = new Spell(SpellSlot.Q, Player.BoundingRadius + 600f, DamageType.Magical);
             Q.Range += GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(50).Average();
-            Q.SetTargetted(0.4f, 2000f);
+            Q.SetTargetted(0.5f, 2000f);
 
             W = new Spell(SpellSlot.W, 700f, DamageType.Magical);
             W.SetSkillshot(1.6f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);

@@ -86,6 +86,17 @@ namespace SFXTeleport.Features.Detectors
 
                 try
                 {
+                    if (Menu.Item(Name + "DrawingDebug").GetValue<bool>())
+                    {
+                        if (_teleportObjects.Any())
+                        {
+                            var obj = _teleportObjects.First();
+                            obj.LastType = Packet.S2C.Teleport.Type.Recall;
+                            obj.LastStatus = Packet.S2C.Teleport.Status.Start;
+                            obj.Duration = 8000;
+                            obj.LastActionTime = Game.Time - obj.Duration + 1000;
+                        }
+                    }
                     if (Menu.Item(Name + "DrawingTextEnabled").GetValue<bool>())
                     {
                         var posX = Menu.Item(Name + "DrawingTextOffsetLeft").GetValue<Slider>().Value;
@@ -278,6 +289,17 @@ namespace SFXTeleport.Features.Detectors
                 drawingMenu.AddSubMenu(drawingTextMenu);
                 drawingMenu.AddSubMenu(drawingBarMenu);
 
+                drawingMenu.AddItem(
+                    new MenuItem(drawingMenu.Name + "Debug", Global.Lang.Get("G_Debug")).SetValue(false)).ValueChanged
+                    += delegate
+                    {
+                        foreach (var teleport in _teleportObjects)
+                        {
+                            teleport.LastStatus = Packet.S2C.Teleport.Status.Unknown;
+                            teleport.LastType = Packet.S2C.Teleport.Type.Unknown;
+                        }
+                    };
+
                 Menu.AddSubMenu(drawingMenu);
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
@@ -304,7 +326,7 @@ namespace SFXTeleport.Features.Detectors
             try
             {
                 _teleportObjects.AddRange(
-                    GameObjects.Heroes.Select(
+                    GameObjects.EnemyHeroes.Select(
                         hero =>
                             new TeleportObject(hero)
                             {
@@ -366,7 +388,6 @@ namespace SFXTeleport.Features.Detectors
         {
             public readonly Obj_AI_Hero Hero;
             private int _duration;
-            private float _lastActionTime;
             private Packet.S2C.Teleport.Status _lastStatus;
             private float _preLastActionTime;
             private float _teleportStart;
@@ -393,8 +414,8 @@ namespace SFXTeleport.Features.Detectors
                 {
                     _lastStatus = value;
                     _teleportStart = _lastStatus == Packet.S2C.Teleport.Status.Start ? Game.Time : 0f;
-                    _preLastActionTime = _lastActionTime;
-                    _lastActionTime = Game.Time;
+                    _preLastActionTime = LastActionTime;
+                    LastActionTime = Game.Time;
                 }
             }
 
@@ -410,22 +431,24 @@ namespace SFXTeleport.Features.Detectors
                         case Packet.S2C.Teleport.Status.Start:
                             return Game.Time - _teleportStart;
                         case Packet.S2C.Teleport.Status.Finish:
-                            return Game.Time - _lastActionTime > AdditionalBarTime ? 0 : Game.Time - _preLastActionTime;
+                            return Game.Time - LastActionTime > AdditionalBarTime ? 0 : Game.Time - _preLastActionTime;
                         case Packet.S2C.Teleport.Status.Abort:
-                            return Game.Time - _lastActionTime > AdditionalBarTime
+                            return Game.Time - LastActionTime > AdditionalBarTime
                                 ? 0
-                                : _lastActionTime - _preLastActionTime;
+                                : LastActionTime - _preLastActionTime;
                     }
                     return 0;
                 }
             }
+
+            public float LastActionTime { private get; set; }
 
             public override string ToString()
             {
                 var time = _teleportStart + Duration - Game.Time;
                 if (time <= 0)
                 {
-                    time = Game.Time - _lastActionTime;
+                    time = Game.Time - LastActionTime;
                 }
                 switch (LastType)
                 {
@@ -516,9 +539,9 @@ namespace SFXTeleport.Features.Detectors
                 var additional = LastStatus == Packet.S2C.Teleport.Status.Start
                     ? Duration + (bar ? AdditionalBarTime : AdditionalTextTime)
                     : (bar ? AdditionalBarTime : AdditionalTextTime);
-                if (_lastActionTime + additional <= Game.Time)
+                if (LastActionTime + additional <= Game.Time)
                 {
-                    _lastActionTime = 0f;
+                    LastActionTime = 0f;
                     return false;
                 }
                 return true;

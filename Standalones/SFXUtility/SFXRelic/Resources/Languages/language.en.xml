@@ -68,6 +68,7 @@
   <entry key="G_Type">Type</entry>
   <entry key="G_None">None</entry>
   <entry key="G_Ping">Ping</entry>
+  <entry key="G_Debug">Debug</entry>
   <!-- END: GLOBAL -->
 
   <!-- START: SFX -->

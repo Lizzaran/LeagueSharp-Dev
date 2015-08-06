@@ -421,11 +421,15 @@ namespace SFXChallenger.Champions
                     }
                 }
                 if (Menu.Item(Menu.Name + ".ultimate.save").GetValue<bool>() && SoulBound.Unit != null && R.IsReady() &&
-                    !Player.InFountain())
+                    !SoulBound.Unit.InFountain())
                 {
                     SoulBound.Clean();
+                    var enemies = SoulBound.Unit.CountEnemiesInRange(500);
                     if ((SoulBound.Unit.HealthPercent <= 10 && SoulBound.Unit.CountEnemiesInRange(500) > 0) ||
-                        (SoulBound.Unit.HealthPercent <= 50 && SoulBound.TotalDamage * 1.1f > SoulBound.Unit.Health))
+                        (SoulBound.Unit.HealthPercent <= 5 && SoulBound.TotalDamage > SoulBound.Unit.Health &&
+                         enemies == 0) ||
+                        (SoulBound.Unit.HealthPercent <= 50 && SoulBound.TotalDamage > SoulBound.Unit.Health &&
+                         enemies > 0))
                     {
                         R.Cast();
                     }
@@ -439,6 +443,17 @@ namespace SFXChallenger.Champions
                     Player.Distance(SummonersRift.River.Dragon) <= W.Range)
                 {
                     W.Cast(SummonersRift.River.Dragon);
+                }
+
+                if (SoulBound.Unit == null)
+                {
+                    SoulBound.Unit =
+                        GameObjects.AllyHeroes.FirstOrDefault(
+                            a =>
+                                a.Buffs.Any(
+                                    b =>
+                                        b.Caster.IsMe &&
+                                        b.Name.Equals("kalistacoopstrikeally", StringComparison.OrdinalIgnoreCase)));
                 }
             }
             catch (Exception ex)

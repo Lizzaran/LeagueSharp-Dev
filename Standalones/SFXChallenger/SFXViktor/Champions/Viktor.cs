@@ -54,8 +54,9 @@ namespace SFXViktor.Champions
         private const float MaxERange = 1225f;
         private const float ELength = 700f;
         private const float RMoveInterval = 500f;
+        private Obj_AI_Base _lastAfterFarmTarget;
         private float _lastAutoAttack;
-        private Obj_AI_Base _lastFarmTarget;
+        private Obj_AI_Base _lastBeforeFarmTarget;
         private Obj_AI_Base _lastQKillableTarget;
         private float _lastRMoveCommand = Environment.TickCount;
         private GameObject _rObject;
@@ -198,7 +199,7 @@ namespace SFXViktor.Champions
         {
             Q = new Spell(SpellSlot.Q, Player.BoundingRadius + 600f, DamageType.Magical);
             Q.Range += GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(50).Average();
-            Q.SetTargetted(0.4f, 2000f);
+            Q.SetTargetted(0.5f, 2000f);
 
             W = new Spell(SpellSlot.W, 700f, DamageType.Magical);
             W.SetSkillshot(1.6f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
@@ -293,7 +294,8 @@ namespace SFXViktor.Champions
                                 .Where(
                                     m =>
                                         (!canAttack || !Orbwalking.InAutoAttackRange(m)) && m.HealthPercent <= 50 &&
-                                        (_lastFarmTarget == null || _lastFarmTarget.NetworkId != m.NetworkId))
+                                        (_lastAfterFarmTarget == null || _lastAfterFarmTarget.NetworkId != m.NetworkId) &&
+                                        (_lastBeforeFarmTarget == null || _lastBeforeFarmTarget.NetworkId != m.NetworkId))
                                 .ToList();
                         if (minions.Any())
                         {
@@ -301,7 +303,7 @@ namespace SFXViktor.Champions
                             {
                                 var health = HealthPrediction.GetHealthPrediction(
                                     minion, (int) (Q.ArrivalTime(minion) * 1000), 0);
-                                if (health > 0 && Q.GetDamage(minion) > health)
+                                if (health > 0 && Math.Abs(health - minion.Health) > 10 && Q.GetDamage(minion) > health)
                                 {
                                     if (Q.CastOnUnit(minion))
                                     {
@@ -412,6 +414,14 @@ namespace SFXViktor.Champions
                 if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit ||
                     Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
                 {
+                    var minion = args.Target as Obj_AI_Minion;
+                    if (minion != null &&
+                        HealthPrediction.LaneClearHealthPrediction(
+                            minion, (int) (Player.AttackDelay * 1000), Game.Ping / 2) <
+                        Player.GetAutoAttackDamage(minion))
+                    {
+                        _lastBeforeFarmTarget = minion;
+                    }
                     if (_lastQKillableTarget != null && _lastQKillableTarget.NetworkId == args.Target.NetworkId)
                     {
                         args.Process = false;
@@ -433,7 +443,7 @@ namespace SFXViktor.Champions
                 var bTarget = unit as Obj_AI_Base;
                 if (bTarget != null)
                 {
-                    _lastFarmTarget = bTarget;
+                    _lastAfterFarmTarget = bTarget;
                 }
             }
             Orbwalker.ForceTarget(null);

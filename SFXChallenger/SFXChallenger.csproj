@@ -84,7 +84,6 @@
     <Compile Include="Bootstrap.cs" />
     <Compile Include="Abstracts\TChampion.cs" />
     <Compile Include="Champions\Cassiopeia.cs" />
-    <Compile Include="Champions\Corki.cs" />
     <Compile Include="Champions\Graves.cs" />
     <Compile Include="Champions\Kalista.cs" />
     <Compile Include="Champions\Orianna.cs" />
