@@ -117,6 +117,7 @@
     <Compile Include="Managers\OverkillManager.cs" />
     <Compile Include="Managers\TargetSpellManager.cs" />
     <Compile Include="Managers\UltimateManager.cs" />
+    <Compile Include="Menus\DebugMenu.cs" />
     <Compile Include="Menus\InfoMenu.cs" />
     <Compile Include="Menus\LanguageMenu.cs" />
     <Compile Include="Menus\TickMenu.cs" />

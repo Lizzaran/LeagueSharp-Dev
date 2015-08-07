@@ -299,8 +299,10 @@ namespace SFXOrianna.Abstracts
                 OverkillManager.AddToMenu(
                     SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MO"), SFXMenu.Name + ".overkill")));
 
-                LanguageMenu.AddToMenu(
-                    SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_Settings"), SFXMenu.Name + ".settings")));
+                var settingsMenu =
+                    SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_Settings"), SFXMenu.Name + ".settings"));
+                LanguageMenu.AddToMenu(settingsMenu);
+                DebugMenu.AddToMenu(settingsMenu, Spells);
 
                 InfoMenu.AddToMenu(SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_Info"), SFXMenu.Name + ".info")));
 

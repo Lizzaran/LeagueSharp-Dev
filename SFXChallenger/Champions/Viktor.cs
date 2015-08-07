@@ -199,7 +199,7 @@ namespace SFXChallenger.Champions
         {
             Q = new Spell(SpellSlot.Q, Player.BoundingRadius + 600f, DamageType.Magical);
             Q.Range += GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(50).Average();
-            Q.SetTargetted(0.5f, 2000f);
+            Q.SetTargetted(0.5f, 1800f);
 
             W = new Spell(SpellSlot.W, 700f, DamageType.Magical);
             W.SetSkillshot(1.6f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
@@ -208,7 +208,7 @@ namespace SFXChallenger.Champions
             E.SetSkillshot(0f, 90f, 800f, false, SkillshotType.SkillshotLine);
 
             R = new Spell(SpellSlot.R, 700f, DamageType.Magical);
-            R.SetSkillshot(0.3f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            R.SetSkillshot(0.2f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
         }
 
         private void OnCorePostUpdate(EventArgs args)
@@ -302,7 +302,7 @@ namespace SFXChallenger.Champions
                             foreach (var minion in minions)
                             {
                                 var health = HealthPrediction.GetHealthPrediction(
-                                    minion, (int) (Q.ArrivalTime(minion) * 1000), 0);
+                                    minion, (int) (Q.ArrivalTime(minion) * 1000));
                                 if (health > 0 && Math.Abs(health - minion.Health) > 10 && Q.GetDamage(minion) > health)
                                 {
                                     if (Q.CastOnUnit(minion))
@@ -517,6 +517,7 @@ namespace SFXChallenger.Champions
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
             var r = UltimateManager.Combo() && R.IsReady();
             var eCasted = false;
+            var eTarget = true;
             var qCasted = false;
             if (e)
             {
@@ -525,8 +526,12 @@ namespace SFXChallenger.Champions
                 {
                     eCasted = ELogic(target, GameObjects.EnemyHeroes.ToList(), E.GetHitChance("combo"));
                 }
+                else
+                {
+                    eTarget = false;
+                }
             }
-            if (q && (eCasted || !e || !E.IsReady()))
+            if (q && (eCasted || !e || !eTarget || !E.IsReady()))
             {
                 var target = TargetSelector.GetTarget(Q.Range, Q.DamageType);
                 if (target != null)

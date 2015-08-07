@@ -63,7 +63,7 @@ namespace SFXVarus.Helpers
                 var positions = (from t in GameObjects.EnemyHeroes
                     where t.IsValidTarget(range, true, spell.RangeCheckFrom)
                     let prediction = spell.GetPrediction(t)
-                    where prediction.Hitchance >= (hitChance - 1)
+                    where prediction.Hitchance >= hitChance
                     select new Position(t, prediction.UnitPosition)).ToList();
                 var spellWidth = spell.Width;
                 //+ (boundingRadius ? positions.Select(p => p.Hero).Min(p => p.BoundingRadius) : 0);
@@ -150,7 +150,7 @@ namespace SFXVarus.Helpers
                 var positions = (from t in GameObjects.EnemyHeroes
                     where t.IsValidTarget(range, true, spell.RangeCheckFrom)
                     let prediction = spell.GetPrediction(t)
-                    where prediction.Hitchance >= (hitChance - 1)
+                    where prediction.Hitchance >= hitChance
                     select new Position(t, prediction.UnitPosition)).ToList();
                 if (positions.Any())
                 {
