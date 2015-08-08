@@ -96,7 +96,6 @@ namespace SFXChallenger.Champions
         protected override void AddToMenu()
         {
             DrawingManager.Add("E " + Global.Lang.Get("G_Max"), MaxERange);
-            DrawingManager.Add("R " + Global.Lang.Get("G_Max"), R.Range + (R.Width / 2f));
 
             var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), Menu.Name + ".combo"));
             HitchanceManager.AddToMenu(
@@ -303,7 +302,7 @@ namespace SFXChallenger.Champions
                             {
                                 var health = HealthPrediction.GetHealthPrediction(
                                     minion, (int) (Q.ArrivalTime(minion) * 1000));
-                                if (health > 0 && Math.Abs(health - minion.Health) > 10 && Q.GetDamage(minion) > health)
+                                if (health > 0 && Math.Abs(health - minion.Health) > 10 && Q.GetDamage(minion) * 0.85f > health)
                                 {
                                     if (Q.CastOnUnit(minion))
                                     {
