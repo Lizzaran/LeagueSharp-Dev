@@ -37,20 +37,21 @@ namespace SFXChallenger.Menus
     {
         private static readonly Dictionary<Spell, Spell> DefaultSpells = new Dictionary<Spell, Spell>();
         private static Menu _menu;
-        private static readonly float MaxMultiplicator = 1.4f;
         private static readonly float MinMultiplicator = 0.6f;
+        private static readonly float MaxMultiplicator = 1.4f;
 
         public static void AddToMenu(Menu menu, List<Wrappers.Spell> spells)
         {
             try
             {
                 _menu = menu.AddSubMenu(new Menu("Debug", menu.Name + ".debug"));
-                if (!spells.Any(s => s.Speed > 0))
+
+                if (!spells.Any(s => s.Speed > 0 && s.Slot != SpellSlot.Unknown))
                 {
                     return;
                 }
 
-                foreach (var spell in spells.Where(s => s.Speed > 0))
+                foreach (var spell in spells.Where(s => s.Speed > 0 && s.Slot != SpellSlot.Unknown))
                 {
                     var lSpell = spell;
                     var range = spell.Range;
