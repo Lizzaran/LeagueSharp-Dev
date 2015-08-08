@@ -37,20 +37,21 @@ namespace SFXCassiopeia.Menus
     {
         private static readonly Dictionary<Spell, Spell> DefaultSpells = new Dictionary<Spell, Spell>();
         private static Menu _menu;
-        private static readonly float MaxMultiplicator = 1.4f;
         private static readonly float MinMultiplicator = 0.6f;
+        private static readonly float MaxMultiplicator = 1.4f;
 
         public static void AddToMenu(Menu menu, List<Wrappers.Spell> spells)
         {
             try
             {
                 _menu = menu.AddSubMenu(new Menu("Debug", menu.Name + ".debug"));
-                if (!spells.Any(s => s.Speed > 0))
+
+                if (spells.All(s => s.Slot == SpellSlot.Unknown))
                 {
                     return;
                 }
 
-                foreach (var spell in spells.Where(s => s.Speed > 0))
+                foreach (var spell in spells.Where(s => s.Slot != SpellSlot.Unknown))
                 {
                     var lSpell = spell;
                     var range = spell.Range;
@@ -75,30 +76,49 @@ namespace SFXCassiopeia.Menus
                     var spellMenu =
                         _menu.AddSubMenu(
                             new Menu(spell.Slot.ToString(), _menu.Name + ObjectManager.Player.ChampionName + spell.Slot));
-                    spellMenu.AddItem(
-                        new MenuItem(spellMenu.Name + ".range", "Range").SetValue(
-                            new Slider((int) range, (int) (range * MinMultiplicator), (int) (range * MaxMultiplicator))))
-                        .ValueChanged +=
-                        delegate(object sender, OnValueChangeEventArgs args)
-                        {
-                            lSpell.Range = args.GetNewValue<Slider>().Value;
-                        };
-                    spellMenu.AddItem(
-                        new MenuItem(spellMenu.Name + ".width", "Width").SetValue(
-                            new Slider((int) width, (int) (width * MinMultiplicator), (int) (width * MaxMultiplicator))))
-                        .ValueChanged +=
-                        delegate(object sender, OnValueChangeEventArgs args)
-                        {
-                            lSpell.Width = args.GetNewValue<Slider>().Value;
-                        };
-                    spellMenu.AddItem(
-                        new MenuItem(spellMenu.Name + ".speed", "Speed").SetValue(
-                            new Slider((int) speed, (int) (speed * MinMultiplicator), (int) (speed * MaxMultiplicator))))
-                        .ValueChanged +=
-                        delegate(object sender, OnValueChangeEventArgs args)
-                        {
-                            lSpell.Speed = args.GetNewValue<Slider>().Value;
-                        };
+
+                    if (Math.Abs(range - float.MaxValue) > 1 && range > 0)
+                    {
+                        spellMenu.AddItem(
+                            new MenuItem(spellMenu.Name + ".range", "Range").SetValue(
+                                new Slider(
+                                    (int) range, (int) (range * MinMultiplicator), (int) (range * MaxMultiplicator))))
+                            .ValueChanged +=
+                            delegate(object sender, OnValueChangeEventArgs args)
+                            {
+                                lSpell.Range = args.GetNewValue<Slider>().Value;
+                            };
+                        spell.Range = _menu.Item(spellMenu.Name + ".range").GetValue<Slider>().Value;
+                    }
+
+                    if (Math.Abs(width - float.MaxValue) > 1 && width > 0)
+                    {
+                        spellMenu.AddItem(
+                            new MenuItem(spellMenu.Name + ".width", "Width").SetValue(
+                                new Slider(
+                                    (int) width, (int) (width * MinMultiplicator), (int) (width * MaxMultiplicator))))
+                            .ValueChanged +=
+                            delegate(object sender, OnValueChangeEventArgs args)
+                            {
+                                lSpell.Width = args.GetNewValue<Slider>().Value;
+                            };
+                        spell.Width = _menu.Item(spellMenu.Name + ".width").GetValue<Slider>().Value;
+                    }
+
+                    if (Math.Abs(speed - float.MaxValue) > 1 && speed > 0)
+                    {
+                        spellMenu.AddItem(
+                            new MenuItem(spellMenu.Name + ".speed", "Speed").SetValue(
+                                new Slider(
+                                    (int) speed, (int) (speed * MinMultiplicator), (int) (speed * MaxMultiplicator))))
+                            .ValueChanged +=
+                            delegate(object sender, OnValueChangeEventArgs args)
+                            {
+                                lSpell.Speed = args.GetNewValue<Slider>().Value;
+                            };
+                        spell.Speed = _menu.Item(spellMenu.Name + ".speed").GetValue<Slider>().Value;
+                    }
+
                     spellMenu.AddItem(
                         new MenuItem(spellMenu.Name + ".delay", "Delay").SetValue(
                             new Slider(
@@ -108,10 +128,6 @@ namespace SFXCassiopeia.Menus
                         {
                             lSpell.Delay = args.GetNewValue<Slider>().Value / 1000f;
                         };
-
-                    spell.Range = _menu.Item(spellMenu.Name + ".range").GetValue<Slider>().Value;
-                    spell.Width = _menu.Item(spellMenu.Name + ".width").GetValue<Slider>().Value;
-                    spell.Speed = _menu.Item(spellMenu.Name + ".speed").GetValue<Slider>().Value;
                     spell.Delay = _menu.Item(spellMenu.Name + ".delay").GetValue<Slider>().Value / 1000f;
 
                     if (spell.IsChargedSpell)
@@ -168,21 +184,30 @@ namespace SFXCassiopeia.Menus
                                     entry.Key.ChargedMaxRange = entry.Value.ChargedMaxRange;
 
                                     var name = _menu.Name + ObjectManager.Player.ChampionName + entry.Key.Slot;
-                                    _menu.Item(name + ".range")
-                                        .SetValue(
-                                            new Slider(
-                                                (int) entry.Key.Range, (int) (entry.Key.Range * MinMultiplicator),
-                                                (int) (entry.Key.Range * MaxMultiplicator)));
-                                    _menu.Item(name + ".width")
-                                        .SetValue(
-                                            new Slider(
-                                                (int) entry.Key.Width, (int) (entry.Key.Width * MinMultiplicator),
-                                                (int) (entry.Key.Width * MaxMultiplicator)));
-                                    _menu.Item(name + ".speed")
-                                        .SetValue(
-                                            new Slider(
-                                                (int) entry.Key.Speed, (int) (entry.Key.Speed * MinMultiplicator),
-                                                (int) (entry.Key.Speed * MaxMultiplicator)));
+                                    if (Math.Abs(entry.Key.Speed - float.MaxValue) > 1 && entry.Key.Range > 0)
+                                    {
+                                        _menu.Item(name + ".range")
+                                            .SetValue(
+                                                new Slider(
+                                                    (int) entry.Key.Range, (int) (entry.Key.Range * MinMultiplicator),
+                                                    (int) (entry.Key.Range * MaxMultiplicator)));
+                                    }
+                                    if (Math.Abs(entry.Key.Speed - float.MaxValue) > 1 && entry.Key.Speed > 0)
+                                    {
+                                        _menu.Item(name + ".speed")
+                                            .SetValue(
+                                                new Slider(
+                                                    (int) entry.Key.Speed, (int) (entry.Key.Speed * MinMultiplicator),
+                                                    (int) (entry.Key.Speed * MaxMultiplicator)));
+                                    }
+                                    if (Math.Abs(entry.Key.Speed - float.MaxValue) > 1 && entry.Key.Width > 0)
+                                    {
+                                        _menu.Item(name + ".width")
+                                            .SetValue(
+                                                new Slider(
+                                                    (int) entry.Key.Width, (int) (entry.Key.Width * MinMultiplicator),
+                                                    (int) (entry.Key.Width * MaxMultiplicator)));
+                                    }
                                     _menu.Item(name + ".delay")
                                         .SetValue(
                                             new Slider(

@@ -2,20 +2,20 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- SpellQueue.cs is part of SFXVarus.
+ SpellQueue.cs is part of SFXSivir.
 
- SFXVarus is free software: you can redistribute it and/or modify
+ SFXSivir is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
 
- SFXVarus is distributed in the hope that it will be useful,
+ SFXSivir is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  GNU General Public License for more details.
 
  You should have received a copy of the GNU General Public License
- along with SFXVarus. If not, see <http://www.gnu.org/licenses/>.
+ along with SFXSivir. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #endregion License
@@ -29,18 +29,18 @@ using SFXLibrary.Logger;
 
 #endregion
 
-namespace SFXVarus.Helpers
+namespace SFXSivir.Managers
 {
-    public class SpellQueue
+    public class SpellQueueManager
     {
         private static float _sendTime;
-        public static bool Enabled { get; set; }
+        private static bool Enabled { get; set; }
 
-        public static bool IsBusy
+        private static bool IsBusy
         {
             get
             {
-                var busy = _sendTime > 0 && _sendTime + (Game.Ping / 2000f) - Game.Time > 0 ||
+                var busy = _sendTime > 0 && _sendTime + (Game.Ping / 2000f) + 0.1f - Game.Time > 0 ||
                            ObjectManager.Player.Spellbook.IsCastingSpell || ObjectManager.Player.Spellbook.IsChanneling ||
                            ObjectManager.Player.Spellbook.IsCharging;
 
@@ -48,7 +48,7 @@ namespace SFXVarus.Helpers
 
                 return busy;
             }
-            private set
+            set
             {
                 if (!value)
                 {
@@ -57,16 +57,29 @@ namespace SFXVarus.Helpers
             }
         }
 
-        public static bool IsReady
+        private static bool IsReady
         {
             get { return !IsBusy; }
         }
 
-        public static void Initialize()
+        public static void AddToMenu(Menu menu)
         {
-            Spellbook.OnCastSpell += OnSpellbookCastSpell;
-            Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
-            Spellbook.OnStopCast += OnSpellbookStopCast;
+            try
+            {
+                menu.AddItem(new MenuItem(menu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true))
+                    .ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args) { Enabled = args.GetNewValue<bool>(); };
+
+                Enabled = menu.Item(menu.Name + ".enabled").GetValue<bool>();
+
+                Spellbook.OnCastSpell += OnSpellbookCastSpell;
+                Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
+                Spellbook.OnStopCast += OnSpellbookStopCast;
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private static void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)

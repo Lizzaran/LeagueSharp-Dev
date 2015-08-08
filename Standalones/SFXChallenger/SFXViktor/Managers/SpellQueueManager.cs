@@ -29,18 +29,18 @@ using SFXLibrary.Logger;
 
 #endregion
 
-namespace SFXViktor.Helpers
+namespace SFXViktor.Managers
 {
-    public class SpellQueue
+    public class SpellQueueManager
     {
         private static float _sendTime;
-        public static bool Enabled { get; set; }
+        private static bool Enabled { get; set; }
 
-        public static bool IsBusy
+        private static bool IsBusy
         {
             get
             {
-                var busy = _sendTime > 0 && _sendTime + (Game.Ping / 2000f) - Game.Time > 0 ||
+                var busy = _sendTime > 0 && _sendTime + (Game.Ping / 2000f) + 0.1f - Game.Time > 0 ||
                            ObjectManager.Player.Spellbook.IsCastingSpell || ObjectManager.Player.Spellbook.IsChanneling ||
                            ObjectManager.Player.Spellbook.IsCharging;
 
@@ -48,7 +48,7 @@ namespace SFXViktor.Helpers
 
                 return busy;
             }
-            private set
+            set
             {
                 if (!value)
                 {
@@ -57,16 +57,29 @@ namespace SFXViktor.Helpers
             }
         }
 
-        public static bool IsReady
+        private static bool IsReady
         {
             get { return !IsBusy; }
         }
 
-        public static void Initialize()
+        public static void AddToMenu(Menu menu)
         {
-            Spellbook.OnCastSpell += OnSpellbookCastSpell;
-            Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
-            Spellbook.OnStopCast += OnSpellbookStopCast;
+            try
+            {
+                menu.AddItem(new MenuItem(menu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true))
+                    .ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args) { Enabled = args.GetNewValue<bool>(); };
+
+                Enabled = menu.Item(menu.Name + ".enabled").GetValue<bool>();
+
+                Spellbook.OnCastSpell += OnSpellbookCastSpell;
+                Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
+                Spellbook.OnStopCast += OnSpellbookStopCast;
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private static void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)

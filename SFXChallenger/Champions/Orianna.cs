@@ -242,7 +242,7 @@ namespace SFXChallenger.Champions
             Q.SetSkillshot(0.25f, 110f, 1350f, false, SkillshotType.SkillshotCircle);
 
             W = new Spell(SpellSlot.W, 220f, DamageType.Magical);
-            W.SetSkillshot(0.1f, 240f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            W.SetSkillshot(0.1f, 250f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E, 1095f, DamageType.Magical);
             E.SetSkillshot(0.25f, 125f, 1700f, false, SkillshotType.SkillshotLine);
@@ -592,7 +592,7 @@ namespace SFXChallenger.Champions
                 var hits = GetHits(W);
                 if (hits.Item1 >= minHits)
                 {
-                    W.Cast(Player.Position);
+                    W.Cast(Ball.Position);
                 }
             }
             catch (Exception ex)
@@ -611,6 +611,21 @@ namespace SFXChallenger.Champions
                 }
                 Obj_AI_Hero target = null;
                 var minHits = 1;
+
+                if (!Q.IsReady() && W.Instance.CooldownExpires < Q.Instance.CooldownExpires)
+                {
+                    var e1 =
+                        GameObjects.EnemyHeroes.Where(
+                            e => e.IsValidTarget() && e.Distance(Player.Position) < W.Width * 1.5f).ToList();
+                    var e2 =
+                        GameObjects.EnemyHeroes.Where(
+                            e => e.IsValidTarget() && e.Distance(Ball.Position) < W.Width * 1.5f).ToList();
+                    if ((e2.Count > e1.Count || e2.Count == e1.Count))
+                    {
+                        return;
+                    }
+                }
+
                 if (Utility.CountEnemiesInRange((int) (Q.Range + R.Width)) <= 1)
                 {
                     foreach (var ally in GameObjects.AllyHeroes.Where(h => h.IsValidTarget(E.Range, false)))
@@ -701,28 +716,29 @@ namespace SFXChallenger.Champions
             try
             {
                 var hits = new List<Obj_AI_Hero>();
-                foreach (var enemy in
-                    GameObjects.EnemyHeroes.Where(
-                        h => h.IsValidTarget() && Ball.Position.Distance(h.Position, true) < spell.Range * spell.Range)
-                        .Where(
-                            enemy =>
-                                spell.WillHit(enemy, Ball.Position) &&
-                                Ball.Position.Distance(enemy.ServerPosition, true) < spell.Width * spell.Width))
+                var positions = (from t in GameObjects.EnemyHeroes
+                    where t.IsValidTarget(spell.Width * 4, true, spell.RangeCheckFrom)
+                    let prediction = spell.GetPrediction(t)
+                    where prediction.Hitchance >= HitChance.High
+                    select new CPrediction.Position(t, prediction.UnitPosition)).ToList();
+                if (positions.Any())
                 {
-                    if (enemy.IsDashing() && enemy.Distance(Ball.Position) >= 100f)
-                    {
-                        if (enemy.Position.Distance(Ball.Position) >
-                            enemy.GetDashInfo().EndPos.Distance(Ball.Position) - 50f)
-                        {
-                            hits.Add(enemy);
-                        }
-                    }
-                    else
-                    {
-                        hits.Add(enemy);
-                    }
+                    var circle = new Geometry.Polygon.Circle(Ball.Position, spell.Width);
+                    hits.AddRange(
+                        from position in positions
+                        where
+                            !position.Hero.IsDashing() ||
+                            (position.Hero.Distance(Ball.Position) >= 100f &&
+                             position.Hero.Position.Distance(Ball.Position) >
+                             position.Hero.GetDashInfo().EndPos.Distance(Ball.Position) - 50f)
+                        where
+                            new Geometry.Polygon.Circle(
+                                position.UnitPosition,
+                                (position.Hero.BoundingRadius * CPrediction.BoundingRadiusMultiplicator)).Points.Any(
+                                    p => circle.IsInside(p))
+                        select position.Hero);
+                    return new Tuple<int, List<Obj_AI_Hero>>(hits.Count, hits);
                 }
-                return new Tuple<int, List<Obj_AI_Hero>>(hits.Count, hits);
             }
             catch (Exception ex)
             {
@@ -894,16 +910,9 @@ namespace SFXChallenger.Champions
                         var distance = Q.From.Distance(mec.Center.To3D());
                         if (distance < range)
                         {
-                            var check = mec.Radius < R.Range * 0.85f && possibility.Count >= 3 && rReady;
-                            if (mec.Radius < W.Range * 0.9f && possibility.Count >= 2 && wReady)
-                            {
-                                check = true;
-                            }
-                            if (mec.Radius < Q.Width * 0.9f && possibility.Count >= 1)
-                            {
-                                check = true;
-                            }
-                            if (check)
+                            if (mec.Radius < R.Range * 0.85f && possibility.Count >= 3 && rReady ||
+                                mec.Radius < W.Range * 0.9f && possibility.Count >= 2 && wReady ||
+                                mec.Radius < Q.Width * 0.9f && possibility.Count >= 1)
                             {
                                 var lHits = new List<Obj_AI_Hero>();
                                 var circle =

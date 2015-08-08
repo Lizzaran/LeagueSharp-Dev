@@ -105,7 +105,6 @@
     <Compile Include="Global.cs" />
     <Compile Include="Helpers\CPrediction.cs" />
     <Compile Include="Helpers\DynamicInitializer.cs" />
-    <Compile Include="Helpers\SpellQueue.cs" />
     <Compile Include="Helpers\Utils.cs" />
     <Compile Include="Managers\DelayManager.cs" />
     <Compile Include="Managers\DrawingManager.cs" />
@@ -115,6 +114,7 @@
     <Compile Include="Managers\InitiatorManager.cs" />
     <Compile Include="Managers\KillstealManager.cs" />
     <Compile Include="Managers\OverkillManager.cs" />
+    <Compile Include="Managers\SpellQueueManager.cs" />
     <Compile Include="Managers\TargetSpellManager.cs" />
     <Compile Include="Managers\UltimateManager.cs" />
     <Compile Include="Menus\DebugMenu.cs" />

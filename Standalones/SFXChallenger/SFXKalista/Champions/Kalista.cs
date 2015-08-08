@@ -637,6 +637,7 @@ namespace SFXKalista.Champions
         {
             if (Menu.Item(Menu.Name + ".flee.aa").GetValue<bool>())
             {
+                Orbwalker.SetAttack(true);
                 var dashObjects = GetDashObjects();
                 if (dashObjects != null && dashObjects.Any())
                 {

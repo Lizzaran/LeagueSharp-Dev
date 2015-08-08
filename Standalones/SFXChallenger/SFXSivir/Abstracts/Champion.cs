@@ -28,7 +28,6 @@ using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXSivir.Enumerations;
-using SFXSivir.Helpers;
 using SFXSivir.Interfaces;
 using SFXSivir.Managers;
 using SFXSivir.Menus;
@@ -109,6 +108,7 @@ namespace SFXSivir.Abstracts
         {
             try
             {
+                Orbwalker.SetAttack(false);
                 Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
                 Flee();
                 Utility.DelayAction.Add(
@@ -117,6 +117,14 @@ namespace SFXSivir.Abstracts
                         if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Flee)
                         {
                             ItemManager.UseFleeItems();
+                        }
+                    });
+                Utility.DelayAction.Add(
+                    125, delegate
+                    {
+                        if (Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.Flee)
+                        {
+                            Orbwalker.SetAttack(true);
                         }
                     });
             }
@@ -169,8 +177,6 @@ namespace SFXSivir.Abstracts
                 OnLoad();
                 SetupSpells();
                 SetupMenu();
-
-                SpellQueue.Initialize();
 
                 if (ItemUsage == ItemUsageType.AfterAttack)
                 {
@@ -296,13 +302,17 @@ namespace SFXSivir.Abstracts
                     SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MI"), SFXMenu.Name + ".items")), ItemFlags);
                 SummonerManager.AddToMenu(
                     SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MS"), SFXMenu.Name + ".summoners")));
-                OverkillManager.AddToMenu(
-                    SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MO"), SFXMenu.Name + ".overkill")));
 
-                var settingsMenu =
-                    SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_Settings"), SFXMenu.Name + ".settings"));
-                LanguageMenu.AddToMenu(settingsMenu);
-                DebugMenu.AddToMenu(settingsMenu, Spells);
+                var miscMenu =
+                    SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), SFXMenu.Name + ".miscellaneous"));
+                SpellQueueManager.AddToMenu(
+                    miscMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MSQ"), miscMenu.Name + ".spell-queue")));
+                OverkillManager.AddToMenu(
+                    miscMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MO"), miscMenu.Name + ".overkill")));
+                DebugMenu.AddToMenu(miscMenu, Spells);
+
+                LanguageMenu.AddToMenu(
+                    SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_Settings"), SFXMenu.Name + ".settings")));
 
                 InfoMenu.AddToMenu(SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_Info"), SFXMenu.Name + ".info")));
 

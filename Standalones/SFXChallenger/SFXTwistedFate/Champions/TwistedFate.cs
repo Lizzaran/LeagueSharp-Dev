@@ -966,7 +966,7 @@ namespace SFXTwistedFate.Champions
 
             public static bool ShouldWait
             {
-                get { return LeagueSharp.Common.Utils.TickCount - _lastWSent > Delay; }
+                get { return LeagueSharp.Common.Utils.TickCount - _lastWSent <= Delay; }
             }
 
             public static int Delay { get; set; }
@@ -1007,11 +1007,10 @@ namespace SFXTwistedFate.Champions
                 try
                 {
                     if (ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Name == "PickACard" &&
-                        Status == SelectStatus.Ready && cards.Any())
+                        Status == SelectStatus.Ready)
                     {
-                        ShouldSelect.Clear();
                         ShouldSelect = cards;
-                        if (cards.Any())
+                        if (ShouldSelect.Any())
                         {
                             if (!ShouldWait)
                             {

@@ -740,24 +740,23 @@ namespace SFXChallenger.Wrappers
                 if (ActiveMode == OrbwalkingMode.LaneClear)
                 {
                     /* turrets */
-                    foreach (var turret in
-                        ObjectManager.Get<Obj_AI_Turret>().Where(t => t.IsValidTarget() && InAutoAttackRange(t)))
+                    foreach (
+                        var turret in GameObjects.EnemyTurrets.Where(t => t.IsValidTarget() && InAutoAttackRange(t)))
                     {
                         return turret;
                     }
 
                     /* inhibitor */
-                    foreach (var turret in
-                        ObjectManager.Get<Obj_BarracksDampener>().Where(t => t.IsValidTarget() && InAutoAttackRange(t)))
+                    foreach (
+                        var turret in GameObjects.EnemyInhibitors.Where(t => t.IsValidTarget() && InAutoAttackRange(t)))
                     {
                         return turret;
                     }
 
                     /* nexus */
-                    foreach (var nexus in
-                        ObjectManager.Get<Obj_HQ>().Where(t => t.IsValidTarget() && InAutoAttackRange(t)))
+                    if (GameObjects.EnemyNexus.IsValidTarget() && InAutoAttackRange(GameObjects.EnemyNexus))
                     {
-                        return nexus;
+                        return GameObjects.EnemyNexus;
                     }
                 }
 
@@ -824,7 +823,7 @@ namespace SFXChallenger.Wrappers
             {
                 try
                 {
-                    if (ActiveMode == OrbwalkingMode.None)
+                    if (ActiveMode == OrbwalkingMode.None || ActiveMode == OrbwalkingMode.Flee)
                     {
                         return;
                     }
