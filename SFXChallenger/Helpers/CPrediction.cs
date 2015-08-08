@@ -58,7 +58,7 @@ namespace SFXChallenger.Helpers
                 var hits = new List<Obj_AI_Hero>();
                 var center = Vector3.Zero;
                 var radius = float.MaxValue;
-                var range = spell.Range + (spell.Width * 0.9f) +
+                var range = spell.Range + (spell.Width * 0.85f) +
                             (boundingRadius ? target.BoundingRadius * BoundingRadiusMultiplicator : 0);
                 var positions = (from t in GameObjects.EnemyHeroes
                     where t.IsValidTarget(range * 1.5f, true, spell.RangeCheckFrom)
