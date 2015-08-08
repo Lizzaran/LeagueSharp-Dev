@@ -534,6 +534,22 @@ namespace SFXChallenger.Champions
             var w = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady();
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
             var r = UltimateManager.Combo() && R.IsReady();
+
+            if (!r && Game.Time >= _lastAutoAttack + Player.AttackDelay && HasQBuff() &&
+                GameObjects.EnemyHeroes.Any(x => x.IsValidTarget() && Orbwalking.InAutoAttackRange(x)))
+            {
+                var targets = TargetSelector.GetTargets(Player.AttackRange + Player.BoundingRadius * 3f);
+                if (targets.Any())
+                {
+                    var target = targets.FirstOrDefault(Orbwalking.InAutoAttackRange);
+                    if (target != null)
+                    {
+                        Orbwalker.ForceTarget(target);
+                        Player.IssueOrder(GameObjectOrder.AttackUnit, target);
+                    }
+                }
+            }
+
             var qCasted = false;
             if (e)
             {
