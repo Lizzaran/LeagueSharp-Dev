@@ -302,7 +302,8 @@ namespace SFXChallenger.Champions
                             {
                                 var health = HealthPrediction.GetHealthPrediction(
                                     minion, (int) (Q.ArrivalTime(minion) * 1000));
-                                if (health > 0 && Math.Abs(health - minion.Health) > 10 && Q.GetDamage(minion) * 0.85f > health)
+                                if (health > 0 && Math.Abs(health - minion.Health) > 10 &&
+                                    Q.GetDamage(minion) * 0.85f > health)
                                 {
                                     if (Q.CastOnUnit(minion))
                                     {
@@ -374,7 +375,7 @@ namespace SFXChallenger.Champions
                             R.Instance.Name.Equals("ViktorChaosStorm", StringComparison.OrdinalIgnoreCase) &&
                             GameObjects.EnemyHeroes.Any(Orbwalking.InAutoAttackRange) &&
                             (RLogicDuel(true, Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true) ||
-                             GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(R.Range + R.Width))
+                             GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(R.Range + R.Width + e.BoundingRadius))
                                  .Any(
                                      e =>
                                          RLogic(
@@ -386,9 +387,9 @@ namespace SFXChallenger.Champions
                             return;
                         }
                     }
-                    if (args.Target.Type != GameObjectType.obj_AI_Hero)
+                    if (!(args.Target is Obj_AI_Hero))
                     {
-                        var targets = TargetSelector.GetTargets(Player.AttackRange + Player.BoundingRadius * 3f);
+                        var targets = TargetSelector.GetTargets(Player.AttackRange + Player.BoundingRadius * 4f);
                         if (targets != null && targets.Any())
                         {
                             var hero = targets.FirstOrDefault(Orbwalking.InAutoAttackRange);
@@ -396,6 +397,19 @@ namespace SFXChallenger.Champions
                             {
                                 Orbwalker.ForceTarget(hero);
                                 args.Process = false;
+                            }
+                            else if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
+                                     Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
+                            {
+                                if (
+                                    targets.Any(
+                                        t =>
+                                            t.Distance(Player) <
+                                            (Player.BoundingRadius + t.BoundingRadius + 600f) *
+                                            (IsSpellUpgraded(Q) ? 1.4f : 1.2f)))
+                                {
+                                    args.Process = false;
+                                }
                             }
                         }
                     }
