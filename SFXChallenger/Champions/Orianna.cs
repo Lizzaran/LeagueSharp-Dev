@@ -114,10 +114,10 @@ namespace SFXChallenger.Champions
             var ultimateMenu = UltimateManager.AddToMenu(Menu, true, true, false, false, false, true, true, true, true);
 
             ultimateMenu.AddItem(
-                new MenuItem(ultimateMenu.Name + ".range", Global.Lang.Get("G_Range")).SetValue(
+                new MenuItem(ultimateMenu.Name + ".width", Global.Lang.Get("G_Width")).SetValue(
                     new Slider(350, 250, 400))).ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
                     {
-                        R.Range = args.GetNewValue<Slider>().Value;
+                        R.Width = args.GetNewValue<Slider>().Value;
                         DrawingManager.Update(
                             "R " + Global.Lang.Get("G_Flash"),
                             args.GetNewValue<Slider>().Value + SummonerManager.Flash.Range);
@@ -143,7 +143,7 @@ namespace SFXChallenger.Champions
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".block-r", Global.Lang.Get("G_BlockMissing") + " R").SetValue(true));
 
-            DrawingManager.Add("R " + Global.Lang.Get("G_Flash"), R.Range + SummonerManager.Flash.Range);
+            DrawingManager.Add("R " + Global.Lang.Get("G_Flash"), R.Width + SummonerManager.Flash.Range);
 
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
             IndicatorManager.Add(Q);
@@ -156,12 +156,18 @@ namespace SFXChallenger.Champions
             _ballPositionRadius = DrawingManager.Add(Global.Lang.Get("Orianna_BallRadius"), new Slider(125, 0, 300));
             _ballPositionCircle = DrawingManager.Add(
                 Global.Lang.Get("Orianna_BallPosition"), new Circle(false, Color.OrangeRed));
+
+            R.Width = Menu.Item(ultimateMenu.Name + ".width").GetValue<Slider>().Value;
         }
 
         private void OnDrawingDraw(EventArgs args)
         {
             try
             {
+                var enemy = GameObjects.EnemyHeroes.First();
+                Render.Circle.DrawCircle(Ball.Position, W.Width, Color.Brown);
+                Render.Circle.DrawCircle(enemy.Position, enemy.BoundingRadius, Color.Coral);
+
                 var circle = _ballPositionCircle.GetValue<Circle>();
                 if (circle.Active)
                 {
@@ -239,16 +245,16 @@ namespace SFXChallenger.Champions
         protected override void SetupSpells()
         {
             Q = new Spell(SpellSlot.Q, 825f, DamageType.Magical);
-            Q.SetSkillshot(0.25f, 110f, 1350f, false, SkillshotType.SkillshotCircle);
+            Q.SetSkillshot(0.15f, 120f, 1375f, false, SkillshotType.SkillshotCircle);
 
-            W = new Spell(SpellSlot.W, 220f, DamageType.Magical);
-            W.SetSkillshot(0.1f, 230f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            W = new Spell(SpellSlot.W, float.MaxValue, DamageType.Magical);
+            W.SetSkillshot(0.1f, 240f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E, 1095f, DamageType.Magical);
             E.SetSkillshot(0.25f, 125f, 1700f, false, SkillshotType.SkillshotLine);
 
-            R = new Spell(SpellSlot.R, 400f, DamageType.Magical);
-            R.SetSkillshot(0.60f, 350f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            R = new Spell(SpellSlot.R, float.MaxValue, DamageType.Magical);
+            R.SetSkillshot(0.6f, 350f, float.MaxValue, false, SkillshotType.SkillshotCircle);
         }
 
         private void OnCorePostUpdate(EventArgs args)
@@ -277,10 +283,10 @@ namespace SFXChallenger.Champions
                         return;
                     }
                     var target = TargetSelector.GetTarget(
-                        (R.Range + SummonerManager.Flash.Range) * 1.2f, DamageType.Magical);
+                        (R.Width + SummonerManager.Flash.Range) * 1.2f, DamageType.Magical);
                     if (target != null && !target.IsDashing() &&
                         (Prediction.GetPrediction(target, R.Delay + 0.3f).UnitPosition.Distance(Player.Position)) >
-                        R.Range * 1.025f)
+                        R.Width * 1.025f)
                     {
                         var min = Menu.Item(Menu.Name + ".ultimate.flash.min").GetValue<Slider>().Value;
                         var flashPos = Player.Position.Extend(target.Position, SummonerManager.Flash.Range);
@@ -731,11 +737,7 @@ namespace SFXChallenger.Champions
                             (position.Hero.Distance(Ball.Position) >= 100f &&
                              position.Hero.Position.Distance(Ball.Position) >
                              position.Hero.GetDashInfo().EndPos.Distance(Ball.Position) - 50f)
-                        where
-                            new Geometry.Polygon.Circle(
-                                position.UnitPosition,
-                                (position.Hero.BoundingRadius * CPrediction.BoundingRadiusMultiplicator)).Points.Any(
-                                    p => circle.IsInside(p))
+                        where circle.IsInside(position.UnitPosition)
                         select position.Hero);
                     return new Tuple<int, List<Obj_AI_Hero>>(hits.Count, hits);
                 }
@@ -910,8 +912,8 @@ namespace SFXChallenger.Champions
                         var distance = Q.From.Distance(mec.Center.To3D());
                         if (distance < range)
                         {
-                            if (mec.Radius < R.Range * 0.85f && possibility.Count >= 3 && rReady ||
-                                mec.Radius < W.Range * 0.9f && possibility.Count >= 2 && wReady ||
+                            if (mec.Radius < R.Width * 0.85f && possibility.Count >= 3 && rReady ||
+                                mec.Radius < W.Width * 0.9f && possibility.Count >= 2 && wReady ||
                                 mec.Radius < Q.Width * 0.9f && possibility.Count >= 1)
                             {
                                 var lHits = new List<Obj_AI_Hero>();
@@ -990,8 +992,8 @@ namespace SFXChallenger.Champions
             {
                 if (w)
                 {
-                    var qLocation = Q.GetCircularFarmLocation(allMinions, W.Range);
-                    var q2Location = Q.GetCircularFarmLocation(rangedMinions, W.Range);
+                    var qLocation = Q.GetCircularFarmLocation(allMinions, W.Width);
+                    var q2Location = Q.GetCircularFarmLocation(rangedMinions, W.Width);
                     var bestLocation = (qLocation.MinionsHit > q2Location.MinionsHit + 1) ? qLocation : q2Location;
 
                     if (bestLocation.MinionsHit > 0)
@@ -1018,7 +1020,7 @@ namespace SFXChallenger.Champions
             }
             if (w && W.IsReady())
             {
-                if (allMinions.Where(m => m.Distance(Ball.Position) <= W.Range).Count(m => W.GetDamage(m) > m.Health) >=
+                if (allMinions.Where(m => m.Distance(Ball.Position) <= W.Width).Count(m => W.GetDamage(m) > m.Health) >=
                     3)
                 {
                     W.Cast(Player.Position);
