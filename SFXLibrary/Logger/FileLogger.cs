@@ -29,6 +29,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using LeagueSharp;
 using SFXLibrary.Extensions.NET;
 
 #endregion
@@ -90,6 +91,23 @@ namespace SFXLibrary.Logger
 
         public event EventHandler OnItemAdded;
 
+        private void AddData(Exception ex)
+        {
+            if (ex != null)
+            {
+                if (GameObjects.Heroes != null && GameObjects.Heroes.Any())
+                {
+                    ex.Data.Add("Champion", ObjectManager.Player.ChampionName);
+                    ex.Data.Add(
+                        "Champions", string.Join(", ", GameObjects.Heroes.Select(e => e.ChampionName).ToArray()));
+                }
+                ex.Data.Add("Version", Game.Version);
+                ex.Data.Add("Region", Game.Region);
+                ex.Data.Add("MapId", Game.MapId);
+                ex.Data.Add("Type", Game.Type);
+            }
+        }
+
         protected override void ProcessItem(LogItem item)
         {
             if (item == null || string.IsNullOrWhiteSpace(item.Exception.ToString()))
@@ -110,6 +128,8 @@ namespace SFXLibrary.Logger
                     return;
                 }
 
+                AddData(item.Exception);
+
                 if (OutputConsole)
                 {
                     Console.ForegroundColor = ConsoleColor.Yellow;
@@ -126,9 +146,9 @@ namespace SFXLibrary.Logger
                         var text = item.Exception.ToString();
                         text = item.Exception.Data.Cast<DictionaryEntry>()
                             .Aggregate(
-                                text,
+                                text + Environment.NewLine + Environment.NewLine,
                                 (current, entry) =>
-                                    current + string.Format("{0}{1}: {2}", Environment.NewLine, entry.Key, entry.Value));
+                                    current + string.Format("{0}: {1}", entry.Key, entry.Value + Environment.NewLine));
 
                         if (string.IsNullOrWhiteSpace(text.Trim()))
                         {
