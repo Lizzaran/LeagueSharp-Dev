@@ -164,10 +164,6 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                var enemy = GameObjects.EnemyHeroes.First();
-                Render.Circle.DrawCircle(Ball.Position, W.Width, Color.Brown);
-                Render.Circle.DrawCircle(enemy.Position, enemy.BoundingRadius, Color.Coral);
-
                 var circle = _ballPositionCircle.GetValue<Circle>();
                 if (circle.Active)
                 {
