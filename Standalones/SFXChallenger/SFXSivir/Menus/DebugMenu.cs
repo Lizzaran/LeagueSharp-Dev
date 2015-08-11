@@ -184,7 +184,7 @@ namespace SFXSivir.Menus
                                     entry.Key.ChargedMaxRange = entry.Value.ChargedMaxRange;
 
                                     var name = _menu.Name + ObjectManager.Player.ChampionName + entry.Key.Slot;
-                                    if (Math.Abs(entry.Key.Speed - float.MaxValue) > 1 && entry.Key.Range > 0)
+                                    if (Math.Abs(entry.Key.Range - float.MaxValue) > 1 && entry.Key.Range > 0)
                                     {
                                         _menu.Item(name + ".range")
                                             .SetValue(
@@ -200,7 +200,7 @@ namespace SFXSivir.Menus
                                                     (int) entry.Key.Speed, (int) (entry.Key.Speed * MinMultiplicator),
                                                     (int) (entry.Key.Speed * MaxMultiplicator)));
                                     }
-                                    if (Math.Abs(entry.Key.Speed - float.MaxValue) > 1 && entry.Key.Width > 0)
+                                    if (Math.Abs(entry.Key.Width - float.MaxValue) > 1 && entry.Key.Width > 0)
                                     {
                                         _menu.Item(name + ".width")
                                             .SetValue(

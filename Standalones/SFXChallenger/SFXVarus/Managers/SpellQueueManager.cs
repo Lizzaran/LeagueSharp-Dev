@@ -34,7 +34,8 @@ namespace SFXVarus.Managers
     public class SpellQueueManager
     {
         private static float _sendTime;
-        private static bool Enabled { get; set; }
+        public static bool Enabled { get; set; }
+        public static bool DisableOnce { get; set; }
 
         private static bool IsBusy
         {
@@ -98,9 +99,10 @@ namespace SFXVarus.Managers
                         case SpellSlot.W:
                         case SpellSlot.E:
                         case SpellSlot.R:
-                            if (IsReady)
+                            if (IsReady || DisableOnce)
                             {
                                 _sendTime = Game.Time;
+                                DisableOnce = false;
                             }
                             else
                             {

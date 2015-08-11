@@ -70,10 +70,18 @@ namespace SFXKalista.Managers
                     var target = args.Target as Obj_AI_Hero;
                     if (target != null)
                     {
-                        Damages.Clean();
-                        if (Damages.IsDying(target))
+                        switch (args.Slot)
                         {
-                            args.Process = false;
+                            case SpellSlot.Q:
+                            case SpellSlot.W:
+                            case SpellSlot.E:
+                            case SpellSlot.R:
+                                Damages.Clean();
+                                if (Damages.IsDying(target))
+                                {
+                                    args.Process = false;
+                                }
+                                break;
                         }
                     }
                 }
@@ -110,7 +118,7 @@ namespace SFXKalista.Managers
                             if (slot != SpellSlot.Unknown && slot == target.GetSpellSlot("SummonerDot"))
                             {
                                 Damages.Add(
-                                    target.NetworkId, Game.Time + 3,
+                                    target.NetworkId, Game.Time + 2,
                                     (float) target.GetSummonerSpellDamage(target, Damage.SummonerSpell.Ignite));
                             }
                         }
@@ -127,7 +135,7 @@ namespace SFXKalista.Managers
                             if (args.Target != null && args.Target.IsEnemy)
                             {
                                 Damages.Add(
-                                    args.Target.NetworkId, Game.Time + 2,
+                                    args.Target.NetworkId, Game.Time + 1,
                                     (float) hero.GetSpellDamage(args.Target as Obj_AI_Hero, slot));
                             }
                             else if (args.Target == null)
@@ -137,13 +145,13 @@ namespace SFXKalista.Managers
                                         e => e.IsValidTarget() && e.Distance(args.Start) < 300))
                                 {
                                     var length = (int) (args.Start.Distance(args.End));
-                                    for (int i = 0, l = length > 300 ? 300 : length; i < l; i = i + 25)
+                                    for (int i = 0, l = length > 300 ? 300 : length; i < l; i = i + 50)
                                     {
                                         var pos = args.Start.Extend(args.End, i);
-                                        if (enemy.Distance(pos) <= 25)
+                                        if (enemy.Distance(pos) <= 50)
                                         {
                                             Damages.Add(
-                                                enemy.NetworkId, Game.Time + 2, (float) hero.GetSpellDamage(enemy, slot));
+                                                enemy.NetworkId, Game.Time + 1, (float) hero.GetSpellDamage(enemy, slot));
                                             break;
                                         }
                                     }
@@ -209,7 +217,6 @@ namespace SFXKalista.Managers
                     {
                         Units[networkId] = new ConcurrentDictionary<float, float>();
                     }
-
                     ConcurrentDictionary<float, float> unit;
                     if (Units.TryGetValue(networkId, out unit))
                     {
@@ -234,7 +241,7 @@ namespace SFXKalista.Managers
             {
                 try
                 {
-                    return TotalDamage(target.NetworkId) * 0.9f > target.Health + target.HPRegenRate;
+                    return TotalDamage(target.NetworkId) * 0.8f > target.Health + target.HPRegenRate;
                 }
                 catch (Exception ex)
                 {

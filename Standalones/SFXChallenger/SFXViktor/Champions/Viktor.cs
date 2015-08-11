@@ -96,7 +96,6 @@ namespace SFXViktor.Champions
         protected override void AddToMenu()
         {
             DrawingManager.Add("E " + Global.Lang.Get("G_Max"), MaxERange);
-            DrawingManager.Add("R " + Global.Lang.Get("G_Max"), R.Range + (R.Width / 2f));
 
             var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), Menu.Name + ".combo"));
             HitchanceManager.AddToMenu(
@@ -167,7 +166,7 @@ namespace SFXViktor.Champions
                         damage += Q.GetDamage(hero);
                         damage += CalcPassiveDamage(hero);
                     }
-                    else if (Player.HasBuff("viktorpowertransferreturn"))
+                    else if (HasQBuff())
                     {
                         damage += CalcPassiveDamage(hero);
                     }
@@ -303,7 +302,8 @@ namespace SFXViktor.Champions
                             {
                                 var health = HealthPrediction.GetHealthPrediction(
                                     minion, (int) (Q.ArrivalTime(minion) * 1000));
-                                if (health > 0 && Math.Abs(health - minion.Health) > 10 && Q.GetDamage(minion) > health)
+                                if (health > 0 && Math.Abs(health - minion.Health) > 10 &&
+                                    Q.GetDamage(minion) * 0.85f > health)
                                 {
                                     if (Q.CastOnUnit(minion))
                                     {
@@ -362,20 +362,15 @@ namespace SFXViktor.Champions
         {
             try
             {
-                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Flee)
-                {
-                    args.Process = false;
-                    return;
-                }
-                if (Player.HasBuff("viktorpowertransferreturn"))
+                if (HasQBuff())
                 {
                     if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
                     {
-                        if (R.IsReady() &&
+                        if (R.IsReady() && (_rObject == null || !_rObject.IsValid) &&
                             R.Instance.Name.Equals("ViktorChaosStorm", StringComparison.OrdinalIgnoreCase) &&
                             GameObjects.EnemyHeroes.Any(Orbwalking.InAutoAttackRange) &&
                             (RLogicDuel(true, Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true) ||
-                             GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(R.Range + R.Width))
+                             GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(R.Range + R.Width + e.BoundingRadius))
                                  .Any(
                                      e =>
                                          RLogic(
@@ -387,9 +382,9 @@ namespace SFXViktor.Champions
                             return;
                         }
                     }
-                    if (args.Target.Type != GameObjectType.obj_AI_Hero)
+                    if (!(args.Target is Obj_AI_Hero))
                     {
-                        var targets = TargetSelector.GetTargets(Player.AttackRange + Player.BoundingRadius * 3f);
+                        var targets = TargetSelector.GetTargets(Player.AttackRange + Player.BoundingRadius * 4f);
                         if (targets != null && targets.Any())
                         {
                             var hero = targets.FirstOrDefault(Orbwalking.InAutoAttackRange);
@@ -398,17 +393,31 @@ namespace SFXViktor.Champions
                                 Orbwalker.ForceTarget(hero);
                                 args.Process = false;
                             }
+                            else if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
+                                     Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
+                            {
+                                if (
+                                    targets.Any(
+                                        t =>
+                                            t.Distance(Player) <
+                                            (Player.BoundingRadius + t.BoundingRadius + Player.AttackRange) *
+                                            (IsSpellUpgraded(Q) ? 1.4f : 1.2f)))
+                                {
+                                    args.Process = false;
+                                }
+                            }
                         }
                     }
                 }
                 else
                 {
-                    if (args.Target.Type == GameObjectType.obj_AI_Hero &&
+                    if ((args.Target is Obj_AI_Hero) &&
                         (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
-                         Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed))
+                         Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed) &&
+                        (Q.IsReady() && Player.Mana >= Q.Instance.ManaCost ||
+                         E.IsReady() && Player.Mana >= E.Instance.ManaCost))
                     {
-                        args.Process = (!Q.IsReady() || Player.Mana < Q.Instance.ManaCost) &&
-                                       (!E.IsReady() || Player.Mana < E.Instance.ManaCost);
+                        args.Process = false;
                     }
                 }
                 if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit ||
@@ -510,28 +519,43 @@ namespace SFXViktor.Champions
             }
         }
 
+        private bool HasQBuff()
+        {
+            return Player.HasBuff("viktorpowertransferreturn");
+        }
+
         protected override void Combo()
         {
             var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady();
             var w = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady();
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
             var r = UltimateManager.Combo() && R.IsReady();
-            var eCasted = false;
-            var eTarget = true;
+
+            if (!r && Game.Time >= _lastAutoAttack + Player.AttackDelay && HasQBuff() &&
+                GameObjects.EnemyHeroes.Any(x => x.IsValidTarget() && Orbwalking.InAutoAttackRange(x)))
+            {
+                var targets = TargetSelector.GetTargets(Player.AttackRange + Player.BoundingRadius * 3f);
+                if (targets.Any())
+                {
+                    var target = targets.FirstOrDefault(Orbwalking.InAutoAttackRange);
+                    if (target != null)
+                    {
+                        Orbwalker.ForceTarget(target);
+                        Player.IssueOrder(GameObjectOrder.AttackUnit, target);
+                    }
+                }
+            }
+
             var qCasted = false;
             if (e)
             {
                 var target = TargetSelector.GetTarget((MaxERange + E.Width) * 1.1f, E.DamageType);
                 if (target != null)
                 {
-                    eCasted = ELogic(target, GameObjects.EnemyHeroes.ToList(), E.GetHitChance("combo"));
-                }
-                else
-                {
-                    eTarget = false;
+                    ELogic(target, GameObjects.EnemyHeroes.ToList(), E.GetHitChance("combo"));
                 }
             }
-            if (q && (eCasted || !e || !eTarget || !E.IsReady()))
+            if (q)
             {
                 var target = TargetSelector.GetTarget(Q.Range, Q.DamageType);
                 if (target != null)
@@ -547,10 +571,10 @@ namespace SFXViktor.Champions
                     WLogic(target, W.GetHitChance("combo"));
                 }
             }
-            if (r && (Player.HasBuff("viktorpowertransferreturn") || (qCasted || !q || !Q.IsReady())))
+            if (r)
             {
                 var target = TargetSelector.GetTarget(R);
-                if (target != null &&
+                if (target != null && (HasQBuff() || (qCasted || !q || !Q.IsReady()) || R.IsKillable(target)) &&
                     !RLogic(target, Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value, q, e))
                 {
                     if (Menu.Item(Menu.Name + ".ultimate.combo.duel").GetValue<bool>())
@@ -601,7 +625,7 @@ namespace SFXViktor.Champions
                     return 0;
                 }
                 var damage = 0f;
-                if (Player.HasBuff("viktorpowertransferreturn") && Orbwalking.InAutoAttackRange(target))
+                if (HasQBuff() && Orbwalking.InAutoAttackRange(target))
                 {
                     damage += CalcPassiveDamage(target);
                 }

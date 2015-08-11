@@ -323,7 +323,7 @@ namespace SFXViktor.Managers
         {
             try
             {
-                if (_menu == null)
+                if (_menu == null || hits == null || !hits.Any())
                 {
                     return false;
                 }

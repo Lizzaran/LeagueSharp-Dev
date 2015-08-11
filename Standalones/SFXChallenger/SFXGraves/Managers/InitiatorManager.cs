@@ -55,6 +55,7 @@ namespace SFXGraves.Managers
                     new SpellData("Elise", SpellSlot.E, "EliseSpiderEInitial"),
                     new SpellData("FiddleSticks", SpellSlot.R),
                     new SpellData("Fiora", SpellSlot.Q),
+                    new SpellData("Gnar", SpellSlot.E, "GnarBigE"),
                     new SpellData("Gragas", SpellSlot.E),
                     new SpellData("Hecarim", SpellSlot.R),
                     new SpellData("Irelia", SpellSlot.Q),
@@ -94,6 +95,7 @@ namespace SFXGraves.Managers
                     new SpellData("Warwick", SpellSlot.R),
                     new SpellData("Yasuo", SpellSlot.R),
                     new SpellData("Zac", SpellSlot.E),
+                    new SpellData("Zed", SpellSlot.R),
                     new SpellData("Flash", SpellSlot.Unknown, SummonerManager.Flash.Name, true)
                 };
                 Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;

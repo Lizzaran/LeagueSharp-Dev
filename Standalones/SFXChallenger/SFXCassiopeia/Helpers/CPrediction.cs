@@ -39,7 +39,7 @@ namespace SFXCassiopeia.Helpers
 {
     internal class CPrediction
     {
-        private static float _boundingRadiusMultiplicator = 0.85f;
+        private static float _boundingRadiusMultiplicator = 0.65f;
 
         public static float BoundingRadiusMultiplicator
         {
@@ -58,10 +58,10 @@ namespace SFXCassiopeia.Helpers
                 var hits = new List<Obj_AI_Hero>();
                 var center = Vector3.Zero;
                 var radius = float.MaxValue;
-                var range = spell.Range + spell.Width +
+                var range = spell.Range + (spell.Width * 0.85f) +
                             (boundingRadius ? target.BoundingRadius * BoundingRadiusMultiplicator : 0);
                 var positions = (from t in GameObjects.EnemyHeroes
-                    where t.IsValidTarget(range, true, spell.RangeCheckFrom)
+                    where t.IsValidTarget(range * 1.5f, true, spell.RangeCheckFrom)
                     let prediction = spell.GetPrediction(t)
                     where prediction.Hitchance >= hitChance
                     select new Position(t, prediction.UnitPosition)).ToList();

@@ -23,6 +23,7 @@
 #region
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
@@ -56,11 +57,11 @@ namespace SFXGraves.Wrappers
 
         public enum OrbwalkingMode
         {
+            Flee,
             LastHit,
             Mixed,
             LaneClear,
             Combo,
-            Flee,
             None
         }
 
@@ -106,6 +107,7 @@ namespace SFXGraves.Wrappers
         private static float _minDistance = 400;
         private static bool _missileLaunched;
         private static readonly Random Random = new Random(DateTime.Now.Millisecond);
+        private static float _reduceAttackRange;
 
         static Orbwalking()
         {
@@ -214,12 +216,17 @@ namespace SFXGraves.Wrappers
         /// </summary>
         public static float GetRealAutoAttackRange(AttackableUnit target)
         {
-            var result = Player.AttackRange + Player.BoundingRadius;
+            var result = Player.AttackRange + Player.BoundingRadius - _reduceAttackRange;
             if (target.IsValidTarget())
             {
                 return result + target.BoundingRadius;
             }
             return result;
+        }
+
+        public static void ReduceAttackRangeBy(float value)
+        {
+            _reduceAttackRange = value;
         }
 
         /// <summary>
@@ -306,13 +313,14 @@ namespace SFXGraves.Wrappers
 
             LastMoveCommandT = Utils.GameTimeTickCount;
 
-            if (Player.ServerPosition.Distance(position, true) < holdAreaRadius * holdAreaRadius)
+            var playerPosition = Player.ServerPosition;
+
+            if (playerPosition.Distance(position, true) < holdAreaRadius * holdAreaRadius)
             {
-                if (Player.Path.Count() > 1)
+                if (Player.Path.Length > 0)
                 {
-                    Player.IssueOrder((GameObjectOrder) 10, Player.ServerPosition);
-                    Player.IssueOrder(GameObjectOrder.HoldPosition, Player.ServerPosition);
-                    LastMoveCommandPosition = Player.ServerPosition;
+                    Player.IssueOrder(GameObjectOrder.Stop, playerPosition);
+                    LastMoveCommandPosition = playerPosition;
                 }
                 return;
             }
@@ -320,25 +328,20 @@ namespace SFXGraves.Wrappers
             var point = position;
             if (useFixedDistance)
             {
-                point = Player.ServerPosition +
-                        (randomizeMinDistance ? (Random.NextFloat(0.6f, 1) + 0.2f) * _minDistance : _minDistance) *
-                        (position.To2D() - Player.ServerPosition.To2D()).Normalized().To3D();
+                point = playerPosition.Extend(
+                    position, (randomizeMinDistance ? (Random.NextFloat(0.6f, 1) + 0.2f) * _minDistance : _minDistance));
             }
             else
             {
                 if (randomizeMinDistance)
                 {
-                    point = Player.ServerPosition +
-                            (Random.NextFloat(0.6f, 1) + 0.2f) * _minDistance *
-                            (position.To2D() - Player.ServerPosition.To2D()).Normalized().To3D();
+                    point = playerPosition.Extend(position, (Random.NextFloat(0.6f, 1) + 0.2f) * _minDistance);
                 }
-                else if (Player.ServerPosition.Distance(position) > _minDistance)
+                else if (playerPosition.Distance(position) > _minDistance)
                 {
-                    point = Player.ServerPosition +
-                            _minDistance * (position.To2D() - Player.ServerPosition.To2D()).Normalized().To3D();
+                    point = playerPosition.Extend(position, _minDistance);
                 }
             }
-
             Player.IssueOrder(GameObjectOrder.MoveTo, point);
             LastMoveCommandPosition = point;
         }
@@ -367,13 +370,20 @@ namespace SFXGraves.Wrappers
                             LastAaTick = Utils.GameTimeTickCount + Game.Ping + 100 -
                                          (int) (ObjectManager.Player.AttackCastDelay * 1000f);
                             _missileLaunched = false;
+
+                            if (ObjectManager.Player.Distance(target) > GetRealAutoAttackRange(target) - 75)
+                            {
+                                LastAaTick = Utils.GameTimeTickCount;
+                            }
                         }
-                        Player.IssueOrder(GameObjectOrder.AttackUnit, target);
-                        _lastTarget = target;
-                        return;
+                        if (InAutoAttackRange(target))
+                        {
+                            Player.IssueOrder(GameObjectOrder.AttackUnit, target);
+                            _lastTarget = target;
+                            return;
+                        }
                     }
                 }
-
                 if (CanMove(extraWindup))
                 {
                     MoveTo(position, holdAreaRadius, false, useFixedDistance, randomizeMinDistance);
@@ -432,10 +442,9 @@ namespace SFXGraves.Wrappers
                     LastAaTick = Utils.GameTimeTickCount - Game.Ping / 2;
                     _missileLaunched = false;
 
-                    var @base = spell.Target as Obj_AI_Base;
-                    if (@base != null)
+                    var target = spell.Target as Obj_AI_Base;
+                    if (target != null)
                     {
-                        var target = @base;
                         if (target.IsValid)
                         {
                             FireOnTargetSwitch(target);
@@ -481,6 +490,7 @@ namespace SFXGraves.Wrappers
         {
             private const float LaneClearWaitTimeMod = 2f;
             private static Menu _config;
+            public static List<Orbwalker> Instances = new List<Orbwalker>();
             private readonly Obj_AI_Hero _player;
             private Obj_AI_Base _forcedTarget;
             private OrbwalkingMode _mode = OrbwalkingMode.None;
@@ -507,21 +517,15 @@ namespace SFXGraves.Wrappers
                 var misc = new Menu("Misc", "Misc");
                 misc.AddItem(
                     new MenuItem("HoldPosRadius", "Hold Position Radius").SetShared().SetValue(new Slider(0, 0, 250)));
-                misc.AddItem(new MenuItem("PriorizeFarm", "Priorize farm over harass").SetShared().SetValue(true));
                 misc.AddItem(
-                    new MenuItem("FreezeHealth", "LaneFreeze Damage %").SetShared().SetValue(new Slider(50, 50)));
-                misc.AddItem(new MenuItem("PermaShow", "PermaShow").SetShared().SetValue(true)).ValueChanged +=
-                    (s, args) =>
+                    new MenuItem("ReducedAttackRange", "Reduced Attack Range").SetShared()
+                        .SetValue(new Slider(0, 0, 50))).ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
                     {
-                        if (args.GetNewValue<bool>())
-                        {
-                            _config.Item("Freeze").Permashow(true, "Freeze");
-                        }
-                        else
-                        {
-                            _config.Item("Freeze").Permashow(false);
-                        }
+                        ReduceAttackRangeBy(args.GetNewValue<Slider>().Value);
                     };
+                misc.AddItem(new MenuItem("PriorizeFarm", "Priorize farm over harass").SetShared().SetValue(true));
+
                 _config.AddSubMenu(misc);
 
                 /* Missile check */
@@ -553,23 +557,15 @@ namespace SFXGraves.Wrappers
                 _config.AddItem(
                     new MenuItem("Orbwalk2", "Combo Alternate").SetShared().SetValue(new KeyBind(32, KeyBindType.Press)));
 
-                _config.AddItem(
-                    new MenuItem("Freeze", "Lane Freeze (Toggle)").SetShared()
-                        .SetValue(new KeyBind('H', KeyBindType.Toggle)));
-
-                _config.Item("Freeze").Permashow(_config.Item("PermaShow").GetValue<bool>(), "Freeze");
 
                 _delay = _config.Item("MovementDelay").GetValue<Slider>().Value;
 
+                ReduceAttackRangeBy(_config.Item("ReducedAttackRange").GetValue<Slider>().Value);
 
                 _player = ObjectManager.Player;
                 Game.OnUpdate += GameOnOnGameUpdate;
                 Drawing.OnDraw += DrawingOnOnDraw;
-            }
-
-            public int HoldAreaRadius
-            {
-                get { return _config.Item("HoldPosRadius").GetValue<Slider>().Value; }
+                Instances.Add(this);
             }
 
             private int FarmDelay
@@ -580,6 +576,11 @@ namespace SFXGraves.Wrappers
             public static bool MissileCheck
             {
                 get { return _config.Item("MissileCheck").GetValue<bool>(); }
+            }
+
+            public int HoldAreaRadius
+            {
+                get { return _config.Item("HoldPosRadius").GetValue<Slider>().Value; }
             }
 
             public OrbwalkingMode ActiveMode
@@ -689,8 +690,6 @@ namespace SFXGraves.Wrappers
                 if (ActiveMode == OrbwalkingMode.LaneClear || ActiveMode == OrbwalkingMode.Mixed ||
                     ActiveMode == OrbwalkingMode.LastHit)
                 {
-                    var freezeActive = _config.Item("Freeze").GetValue<KeyBind>().Active &&
-                                       (ActiveMode != OrbwalkingMode.LaneClear);
                     var minionList =
                         MinionManager.GetMinions(Player.Position, float.MaxValue)
                             .Where(
@@ -703,29 +702,17 @@ namespace SFXGraves.Wrappers
 
                     foreach (var minion in minionList)
                     {
-                        var freezeDamage = _player.GetAutoAttackDamage(minion) *
-                                           (_config.Item("FreezeHealth").GetValue<Slider>().Value / 100f);
                         var t = (int) (_player.AttackCastDelay * 1000) - 100 + Game.Ping / 2 +
                                 1000 * (int) _player.Distance(minion) / (int) GetMyProjectileSpeed();
                         var predHealth = HealthPrediction.GetHealthPrediction(minion, t, FarmDelay);
-
-                        if (freezeActive && predHealth.Equals(minion.Health))
+                        if (predHealth <= 0)
                         {
-                            continue;
+                            FireOnNonKillableMinion(minion);
                         }
 
-                        if (minion.Team != GameObjectTeam.Neutral && MinionManager.IsMinion(minion, true))
+                        if (predHealth > 0 && predHealth <= _player.GetAutoAttackDamage(minion, true))
                         {
-                            if (predHealth <= 0)
-                            {
-                                FireOnNonKillableMinion(minion);
-                            }
-
-                            if (predHealth > 0 &&
-                                predHealth <= (freezeActive ? freezeDamage : _player.GetAutoAttackDamage(minion, true)))
-                            {
-                                return minion;
-                            }
+                            return minion;
                         }
                     }
                 }
@@ -740,21 +727,22 @@ namespace SFXGraves.Wrappers
                 if (ActiveMode == OrbwalkingMode.LaneClear)
                 {
                     /* turrets */
-                    foreach (
-                        var turret in GameObjects.EnemyTurrets.Where(t => t.IsValidTarget() && InAutoAttackRange(t)))
+                    foreach (var turret in
+                        GameObjects.EnemyTurrets.Where(t => t.IsValidTarget() && InAutoAttackRange(t)))
                     {
                         return turret;
                     }
 
                     /* inhibitor */
-                    foreach (
-                        var turret in GameObjects.EnemyInhibitors.Where(t => t.IsValidTarget() && InAutoAttackRange(t)))
+                    foreach (var turret in
+                        GameObjects.EnemyInhibitors.Where(t => t.IsValidTarget() && InAutoAttackRange(t)))
                     {
                         return turret;
                     }
 
                     /* nexus */
-                    if (GameObjects.EnemyNexus.IsValidTarget() && InAutoAttackRange(GameObjects.EnemyNexus))
+                    if (GameObjects.EnemyNexus != null && GameObjects.EnemyNexus.IsValidTarget() &&
+                        InAutoAttackRange(GameObjects.EnemyNexus))
                     {
                         return GameObjects.EnemyNexus;
                     }
@@ -777,6 +765,7 @@ namespace SFXGraves.Wrappers
                         MinionManager.GetMinions(Player.Position, float.MaxValue, MinionTypes.All, MinionTeam.Neutral)
                             .Where(InAutoAttackRange)
                             .MaxOrDefault(mob => mob.MaxHealth);
+
                     if (result != null)
                     {
                         return result;
@@ -858,7 +847,7 @@ namespace SFXGraves.Wrappers
                 if (_config.Item("AACircle2").GetValue<Circle>().Active)
                 {
                     foreach (var target in
-                        GameObjects.EnemyHeroes.Where(target => target.IsValidTarget(1175)))
+                        HeroManager.Enemies.FindAll(target => target.IsValidTarget(1175)))
                     {
                         Render.Circle.DrawCircle(
                             target.Position, GetRealAutoAttackRange(target) + 65,
@@ -870,7 +859,7 @@ namespace SFXGraves.Wrappers
                 {
                     Render.Circle.DrawCircle(
                         _player.Position, _config.Item("HoldPosRadius").GetValue<Slider>().Value,
-                        _config.Item("HoldZone").GetValue<Circle>().Color);
+                        _config.Item("HoldZone").GetValue<Circle>().Color, 5, true);
                 }
             }
         }

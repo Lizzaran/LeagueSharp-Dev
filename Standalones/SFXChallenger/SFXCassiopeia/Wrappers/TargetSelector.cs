@@ -126,19 +126,18 @@ namespace SFXCassiopeia.Wrappers
                 new WeightedItem(
                     "attack-damage", Global.Lang.Get("TS_AttackDamage"), 10, false, delegate(Obj_AI_Hero t)
                     {
-                        var ad = (t.BaseAttackDamage + t.FlatPhysicalDamageMod);
+                        var ad = t.FlatPhysicalDamageMod;
                         ad += ad / 100 * (t.Crit * 100) * (t.HasItem(ItemData.Infinity_Edge.Id) ? 2.5f : 2f);
-                        var averageArmor = GameObjects.AllyHeroes.Average(a => a.Armor) *
-                                           ObjectManager.Player.PercentArmorPenetrationMod - t.FlatArmorPenetrationMod;
+                        var averageArmor = GameObjects.AllyHeroes.Average(a => a.Armor) * t.PercentArmorPenetrationMod -
+                                           t.FlatArmorPenetrationMod;
                         return (ad * (100 / (100 + (averageArmor > 0 ? averageArmor : 0)))) * t.AttackSpeedMod;
                     }),
                 new WeightedItem(
                     "ability-power", Global.Lang.Get("TS_AbilityPower"), 10, false, delegate(Obj_AI_Hero t)
                     {
-                        var averageMr = GameObjects.AllyHeroes.Average(a => a.SpellBlock) *
-                                        ObjectManager.Player.PercentMagicPenetrationMod - t.FlatMagicPenetrationMod;
-                        return (t.BaseAbilityDamage + t.FlatMagicDamageMod) *
-                               (100 / (100 + (averageMr > 0 ? averageMr : 0)));
+                        var averageMr = GameObjects.AllyHeroes.Average(a => a.SpellBlock) * t.PercentMagicPenetrationMod -
+                                        t.FlatMagicPenetrationMod;
+                        return t.FlatMagicDamageMod * (100 / (100 + (averageMr > 0 ? averageMr : 0)));
                     }),
                 new WeightedItem(
                     "low-resists", Global.Lang.Get("TS_LowResists"), 6, true,

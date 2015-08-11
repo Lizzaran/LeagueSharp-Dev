@@ -985,11 +985,6 @@ namespace SFXTwistedFate.Champions
                        ObjectManager.Player.HasBuff("bluecardpreattack");
             }
 
-            private static void SendWPacket()
-            {
-                ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, false);
-            }
-
             public static void Select(CardColor card)
             {
                 try
@@ -1014,6 +1009,7 @@ namespace SFXTwistedFate.Champions
                         {
                             if (!ShouldWait)
                             {
+                                SpellQueueManager.DisableOnce = true;
                                 if (ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, ObjectManager.Player))
                                 {
                                     _lastWSent = LeagueSharp.Common.Utils.TickCount;
@@ -1056,7 +1052,8 @@ namespace SFXTwistedFate.Champions
                                 s == CardColor.Gold && wName == "goldcardlock" ||
                                 s == CardColor.Red && wName == "redcardlock"))
                     {
-                        SendWPacket();
+                        SpellQueueManager.DisableOnce = true;
+                        ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, false);
                     }
                 }
                 catch (Exception ex)
