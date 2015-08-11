@@ -362,16 +362,11 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Flee)
-                {
-                    args.Process = false;
-                    return;
-                }
                 if (HasQBuff())
                 {
                     if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
                     {
-                        if (R.IsReady() &&
+                        if (R.IsReady() && (_rObject == null || !_rObject.IsValid) &&
                             R.Instance.Name.Equals("ViktorChaosStorm", StringComparison.OrdinalIgnoreCase) &&
                             GameObjects.EnemyHeroes.Any(Orbwalking.InAutoAttackRange) &&
                             (RLogicDuel(true, Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true) ||
@@ -383,6 +378,7 @@ namespace SFXChallenger.Champions
                                              Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                                              Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true))))
                         {
+                            Console.WriteLine("1");
                             args.Process = false;
                             return;
                         }
@@ -395,6 +391,7 @@ namespace SFXChallenger.Champions
                             var hero = targets.FirstOrDefault(Orbwalking.InAutoAttackRange);
                             if (hero != null)
                             {
+                                Console.WriteLine("2");
                                 Orbwalker.ForceTarget(hero);
                                 args.Process = false;
                             }
@@ -405,9 +402,10 @@ namespace SFXChallenger.Champions
                                     targets.Any(
                                         t =>
                                             t.Distance(Player) <
-                                            (Player.BoundingRadius + t.BoundingRadius + 600f) *
+                                            (Player.BoundingRadius + t.BoundingRadius + Player.AttackRange) *
                                             (IsSpellUpgraded(Q) ? 1.4f : 1.2f)))
                                 {
+                                    Console.WriteLine("3");
                                     args.Process = false;
                                 }
                             }
@@ -416,12 +414,13 @@ namespace SFXChallenger.Champions
                 }
                 else
                 {
-                    if (args.Target.Type == GameObjectType.obj_AI_Hero &&
+                    if ((args.Target is Obj_AI_Hero) &&
                         (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
-                         Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed))
+                         Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed) &&
+                        (Q.IsReady() && Player.Mana >= Q.Instance.ManaCost ||
+                         E.IsReady() && Player.Mana >= E.Instance.ManaCost))
                     {
-                        args.Process = (!Q.IsReady() || Player.Mana < Q.Instance.ManaCost) &&
-                                       (!E.IsReady() || Player.Mana < E.Instance.ManaCost);
+                        args.Process = false;
                     }
                 }
                 if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit ||
@@ -437,6 +436,7 @@ namespace SFXChallenger.Champions
                     }
                     if (_lastQKillableTarget != null && _lastQKillableTarget.NetworkId == args.Target.NetworkId)
                     {
+                        Console.WriteLine("5");
                         args.Process = false;
                     }
                 }

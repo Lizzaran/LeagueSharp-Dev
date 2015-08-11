@@ -111,14 +111,14 @@ namespace SFXLibrary
 
         public static bool IsMinion(Obj_AI_Minion minion, bool includeWards = false)
         {
-            var name = minion.CharData.BaseSkinName.ToLower();
-            return name.Contains("minion") || (includeWards && (name.Contains("ward") || name.Contains("trinket")));
+            return IsMinion(minion as Obj_AI_Base);
         }
 
         public static bool IsMinion(Obj_AI_Base minion, bool includeWards = false)
         {
             var name = minion.CharData.BaseSkinName.ToLower();
-            return name.Contains("minion") || (includeWards && (name.Contains("ward") || name.Contains("trinket")));
+            return name.Contains("minion") || name.Contains("bilge") || name.Contains("bw_") ||
+                   (includeWards && (name.Contains("ward") || name.Contains("trinket")));
         }
 
         /// <summary>
@@ -187,6 +187,9 @@ namespace SFXLibrary
             var minionCount = 0;
             var startPos = ObjectManager.Player.ServerPosition.To2D();
 
+            var posiblePositions = new List<Vector2>();
+            posiblePositions.AddRange(minionPositions);
+
             var max = minionPositions.Count;
             for (var i = 0; i < max; i++)
             {
@@ -194,12 +197,12 @@ namespace SFXLibrary
                 {
                     if (minionPositions[j] != minionPositions[i])
                     {
-                        minionPositions.Add((minionPositions[j] + minionPositions[i]) / 2);
+                        posiblePositions.Add((minionPositions[j] + minionPositions[i]) / 2);
                     }
                 }
             }
 
-            foreach (var pos in minionPositions)
+            foreach (var pos in posiblePositions)
             {
                 if (pos.Distance(startPos, true) <= range * range)
                 {
@@ -251,6 +254,13 @@ namespace SFXLibrary
                 select pos.UnitPosition.To2D()).ToList();
         }
 
+        /*
+         from: https://stackoverflow.com/questions/10515449/generate-all-combinations-for-a-list-of-strings :^)
+         */
+
+        /// <summary>
+        ///     Returns all the subgroup combinations that can be made from a group
+        /// </summary>
         private static List<List<Vector2>> GetCombinations(List<Vector2> allValues)
         {
             var collection = new List<List<Vector2>>();
