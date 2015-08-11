@@ -95,6 +95,7 @@ namespace SFXChallenger.Managers
                     new SpellData("Warwick", SpellSlot.R),
                     new SpellData("Yasuo", SpellSlot.R),
                     new SpellData("Zac", SpellSlot.E),
+                    new SpellData("Zed", SpellSlot.R),
                     new SpellData("Flash", SpellSlot.Unknown, SummonerManager.Flash.Name, true)
                 };
                 Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
