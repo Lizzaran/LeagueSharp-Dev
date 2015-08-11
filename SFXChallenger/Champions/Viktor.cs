@@ -370,7 +370,7 @@ namespace SFXChallenger.Champions
                             R.Instance.Name.Equals("ViktorChaosStorm", StringComparison.OrdinalIgnoreCase) &&
                             GameObjects.EnemyHeroes.Any(Orbwalking.InAutoAttackRange) &&
                             (RLogicDuel(true, Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true) ||
-                             GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(R.Range + R.Width + e.BoundingRadius))
+                             GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(R.Range + R.Width))
                                  .Any(
                                      e =>
                                          RLogic(
@@ -384,7 +384,7 @@ namespace SFXChallenger.Champions
                     }
                     if (!(args.Target is Obj_AI_Hero))
                     {
-                        var targets = TargetSelector.GetTargets(Player.AttackRange + Player.BoundingRadius * 4f);
+                        var targets = TargetSelector.GetTargets(Player.AttackRange + Player.BoundingRadius * 3f);
                         if (targets != null && targets.Any())
                         {
                             var hero = targets.FirstOrDefault(Orbwalking.InAutoAttackRange);
@@ -393,8 +393,7 @@ namespace SFXChallenger.Champions
                                 Orbwalker.ForceTarget(hero);
                                 args.Process = false;
                             }
-                            else if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
-                                     Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
+                            else if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
                             {
                                 if (
                                     targets.Any(
