@@ -55,7 +55,7 @@ namespace SFXChallenger.Managers
                     new SpellData("Elise", SpellSlot.E, "EliseSpiderEInitial"),
                     new SpellData("FiddleSticks", SpellSlot.R),
                     new SpellData("Fiora", SpellSlot.Q),
-                    new SpellData("Gnar", SpellSlot.E),
+                    new SpellData("Gnar", SpellSlot.E, "GnarBigE"),
                     new SpellData("Gragas", SpellSlot.E),
                     new SpellData("Hecarim", SpellSlot.R),
                     new SpellData("Irelia", SpellSlot.Q),
