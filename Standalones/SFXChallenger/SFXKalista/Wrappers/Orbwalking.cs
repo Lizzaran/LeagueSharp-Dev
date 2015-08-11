@@ -107,7 +107,6 @@ namespace SFXKalista.Wrappers
         private static float _minDistance = 400;
         private static bool _missileLaunched;
         private static readonly Random Random = new Random(DateTime.Now.Millisecond);
-        private static float _reduceAttackRange;
 
         static Orbwalking()
         {
@@ -216,17 +215,12 @@ namespace SFXKalista.Wrappers
         /// </summary>
         public static float GetRealAutoAttackRange(AttackableUnit target)
         {
-            var result = Player.AttackRange + Player.BoundingRadius - _reduceAttackRange;
+            var result = Player.AttackRange + Player.BoundingRadius;
             if (target.IsValidTarget())
             {
                 return result + target.BoundingRadius;
             }
             return result;
-        }
-
-        public static void ReduceAttackRangeBy(float value)
-        {
-            _reduceAttackRange = value;
         }
 
         /// <summary>
@@ -517,13 +511,6 @@ namespace SFXKalista.Wrappers
                 var misc = new Menu("Misc", "Misc");
                 misc.AddItem(
                     new MenuItem("HoldPosRadius", "Hold Position Radius").SetShared().SetValue(new Slider(0, 0, 250)));
-                misc.AddItem(
-                    new MenuItem("ReducedAttackRange", "Reduced Attack Range").SetShared()
-                        .SetValue(new Slider(0, 0, 50))).ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        ReduceAttackRangeBy(args.GetNewValue<Slider>().Value);
-                    };
                 misc.AddItem(new MenuItem("PriorizeFarm", "Priorize farm over harass").SetShared().SetValue(true));
 
                 _config.AddSubMenu(misc);
@@ -557,10 +544,7 @@ namespace SFXKalista.Wrappers
                 _config.AddItem(
                     new MenuItem("Orbwalk2", "Combo Alternate").SetShared().SetValue(new KeyBind(32, KeyBindType.Press)));
 
-
                 _delay = _config.Item("MovementDelay").GetValue<Slider>().Value;
-
-                ReduceAttackRangeBy(_config.Item("ReducedAttackRange").GetValue<Slider>().Value);
 
                 _player = ObjectManager.Player;
                 Game.OnUpdate += GameOnOnGameUpdate;
