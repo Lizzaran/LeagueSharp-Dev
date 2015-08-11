@@ -70,10 +70,18 @@ namespace SFXChallenger.Managers
                     var target = args.Target as Obj_AI_Hero;
                     if (target != null)
                     {
-                        Damages.Clean();
-                        if (Damages.IsDying(target))
+                        switch (args.Slot)
                         {
-                            args.Process = false;
+                            case SpellSlot.Q:
+                            case SpellSlot.W:
+                            case SpellSlot.E:
+                            case SpellSlot.R:
+                                Damages.Clean();
+                                if (Damages.IsDying(target))
+                                {
+                                    args.Process = false;
+                                }
+                                break;
                         }
                     }
                 }

@@ -378,7 +378,6 @@ namespace SFXChallenger.Champions
                                              Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                                              Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true))))
                         {
-                            Console.WriteLine("1");
                             args.Process = false;
                             return;
                         }
@@ -391,7 +390,6 @@ namespace SFXChallenger.Champions
                             var hero = targets.FirstOrDefault(Orbwalking.InAutoAttackRange);
                             if (hero != null)
                             {
-                                Console.WriteLine("2");
                                 Orbwalker.ForceTarget(hero);
                                 args.Process = false;
                             }
@@ -405,7 +403,6 @@ namespace SFXChallenger.Champions
                                             (Player.BoundingRadius + t.BoundingRadius + Player.AttackRange) *
                                             (IsSpellUpgraded(Q) ? 1.4f : 1.2f)))
                                 {
-                                    Console.WriteLine("3");
                                     args.Process = false;
                                 }
                             }
@@ -436,7 +433,6 @@ namespace SFXChallenger.Champions
                     }
                     if (_lastQKillableTarget != null && _lastQKillableTarget.NetworkId == args.Target.NetworkId)
                     {
-                        Console.WriteLine("5");
                         args.Process = false;
                     }
                 }
