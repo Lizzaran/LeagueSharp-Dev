@@ -101,7 +101,8 @@ namespace SFXOrianna.Champions
             HitchanceManager.AddToMenu(
                 harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
                 new Dictionary<string, int> { { "Q", 2 } });
-            ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
+            ManaManager.AddToMenu(harassMenu, "harass-q", ManaCheckType.Minimum, ManaValueType.Percent, "Q");
+            ManaManager.AddToMenu(harassMenu, "harass-w", ManaCheckType.Minimum, ManaValueType.Percent, "W");
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
@@ -241,10 +242,10 @@ namespace SFXOrianna.Champions
         protected override void SetupSpells()
         {
             Q = new Spell(SpellSlot.Q, 825f, DamageType.Magical);
-            Q.SetSkillshot(0.15f, 120f, 1375f, false, SkillshotType.SkillshotCircle);
+            Q.SetSkillshot(0.15f, 110f, 1375f, false, SkillshotType.SkillshotCircle);
 
             W = new Spell(SpellSlot.W, float.MaxValue, DamageType.Magical);
-            W.SetSkillshot(0.1f, 230f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            W.SetSkillshot(0.1f, 210f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E, 1095f, DamageType.Magical);
             E.SetSkillshot(0.25f, 125f, 1700f, false, SkillshotType.SkillshotLine);
@@ -477,12 +478,12 @@ namespace SFXOrianna.Champions
 
         protected override void Harass()
         {
-            if (!ManaManager.Check("harass") || Ball.IsMoving)
+            if (Ball.IsMoving)
             {
                 return;
             }
-            var q = Menu.Item(Menu.Name + ".harass.q").GetValue<bool>();
-            var w = Menu.Item(Menu.Name + ".harass.w").GetValue<bool>();
+            var q = Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && ManaManager.Check("harass-q");
+            var w = Menu.Item(Menu.Name + ".harass.w").GetValue<bool>() && ManaManager.Check("harass-w");
             var e = Menu.Item(Menu.Name + ".harass.e").GetValue<bool>();
             if (w && W.IsReady())
             {

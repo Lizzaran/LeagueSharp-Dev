@@ -103,10 +103,15 @@ namespace SFXKalista.Wrappers
         public static Vector3 LastMoveCommandPosition = Vector3.Zero;
         private static AttackableUnit _lastTarget;
         private static readonly Obj_AI_Hero Player;
-        private static int _delay;
+        private static int _currentMoveDelay;
+        private static int _minMoveDelay;
+        private static int _maxMoveDelay;
         private static float _minDistance = 400;
         private static bool _missileLaunched;
         private static readonly Random Random = new Random(DateTime.Now.Millisecond);
+        private static int _minAttackDelay;
+        private static int _maxAttackDelay;
+        private static int _currentAttackDelay;
 
         static Orbwalking()
         {
@@ -274,9 +279,24 @@ namespace SFXKalista.Wrappers
                    (Utils.GameTimeTickCount + Game.Ping / 2 >= LastAaTick + Player.AttackCastDelay * 1000 + extraWindup);
         }
 
-        public static void SetMovementDelay(int delay)
+        public static void SetMinimumMovementDelay(int delay)
         {
-            _delay = delay;
+            _minMoveDelay = delay;
+        }
+
+        public static void SetMaximumMovementDelay(int delay)
+        {
+            _maxMoveDelay = delay;
+        }
+
+        public static void SetMinimumAttackDelay(int delay)
+        {
+            _minAttackDelay = delay;
+        }
+
+        public static void SetMaximumAttackDelay(int delay)
+        {
+            _maxAttackDelay = delay;
         }
 
         public static void SetMinimumOrbwalkDistance(float d)
@@ -300,10 +320,13 @@ namespace SFXKalista.Wrappers
             bool useFixedDistance = true,
             bool randomizeMinDistance = true)
         {
-            if (Utils.GameTimeTickCount - LastMoveCommandT < _delay && !overrideTimer)
+            if (Utils.GameTimeTickCount - LastMoveCommandT < _currentMoveDelay && !overrideTimer)
             {
                 return;
             }
+
+            _currentMoveDelay = new Random().Next(
+                Math.Min(_minMoveDelay, _maxMoveDelay + 1), Math.Max(_minMoveDelay, _maxMoveDelay));
 
             LastMoveCommandT = Utils.GameTimeTickCount;
 
@@ -352,8 +375,13 @@ namespace SFXKalista.Wrappers
         {
             try
             {
-                if (target.IsValidTarget() && CanAttack())
+                if (target.IsValidTarget() &&
+                    Utils.GameTimeTickCount + Game.Ping / 2 + 25 >=
+                    LastAaTick + Player.AttackDelay * 1000 + _currentAttackDelay && Attack)
                 {
+                    _currentAttackDelay = new Random().Next(
+                        Math.Min(_minAttackDelay, _maxAttackDelay + 1), Math.Max(_minAttackDelay, _maxAttackDelay));
+
                     DisableNextAttack = false;
                     FireBeforeAttack(target);
 
@@ -523,9 +551,17 @@ namespace SFXKalista.Wrappers
                     new MenuItem("ExtraWindup", "Extra windup time").SetShared().SetValue(new Slider(80, 0, 200)));
                 _config.AddItem(new MenuItem("FarmDelay", "Farm delay").SetShared().SetValue(new Slider(0, 0, 200)));
                 _config.AddItem(
-                    new MenuItem("MovementDelay", "Movement delay").SetShared().SetValue(new Slider(30, 0, 250)))
-                    .ValueChanged += (sender, args) => SetMovementDelay(args.GetNewValue<Slider>().Value);
-
+                    new MenuItem("MovementDelayMin", "Min. Movement delay").SetShared().SetValue(new Slider(25, 0, 250)))
+                    .ValueChanged += (sender, args) => SetMinimumMovementDelay(args.GetNewValue<Slider>().Value);
+                _config.AddItem(
+                    new MenuItem("MovementDelayMax", "Max. Movement delay").SetShared().SetValue(new Slider(45, 0, 250)))
+                    .ValueChanged += (sender, args) => SetMaximumMovementDelay(args.GetNewValue<Slider>().Value);
+                _config.AddItem(
+                    new MenuItem("AttackDelayMin", "Min. Attack delay").SetShared().SetValue(new Slider(0, 0, 250)))
+                    .ValueChanged += (sender, args) => SetMinimumAttackDelay(args.GetNewValue<Slider>().Value);
+                _config.AddItem(
+                    new MenuItem("AttackDelayMax", "Max. Attack delay").SetShared().SetValue(new Slider(0, 0, 250)))
+                    .ValueChanged += (sender, args) => SetMaximumAttackDelay(args.GetNewValue<Slider>().Value);
 
                 /*Load the menu*/
                 _config.AddItem(new MenuItem("Flee", "Flee").SetShared().SetValue(new KeyBind('G', KeyBindType.Press)));
@@ -544,7 +580,11 @@ namespace SFXKalista.Wrappers
                 _config.AddItem(
                     new MenuItem("Orbwalk2", "Combo Alternate").SetShared().SetValue(new KeyBind(32, KeyBindType.Press)));
 
-                _delay = _config.Item("MovementDelay").GetValue<Slider>().Value;
+                SetMinimumMovementDelay(_config.Item("MovementDelayMin").GetValue<Slider>().Value);
+                SetMaximumMovementDelay(_config.Item("MovementDelayMax").GetValue<Slider>().Value);
+
+                SetMinimumAttackDelay(_config.Item("AttackDelayMin").GetValue<Slider>().Value);
+                SetMaximumAttackDelay(_config.Item("AttackDelayMax").GetValue<Slider>().Value);
 
                 _player = ObjectManager.Player;
                 Game.OnUpdate += GameOnOnGameUpdate;

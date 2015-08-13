@@ -375,15 +375,10 @@ namespace SFXChallenger.Wrappers
         {
             try
             {
-                if (target.IsValidTarget())
+                if (target.IsValidTarget() &&
+                    Utils.GameTimeTickCount + Game.Ping / 2 + 25 >=
+                    LastAaTick + Player.AttackDelay * 1000 + _currentAttackDelay && Attack)
                 {
-                    if (
-                        !(Utils.GameTimeTickCount + Game.Ping / 2 + 25 >=
-                          LastAaTick + Player.AttackDelay * 1000 + _currentAttackDelay && Attack))
-                    {
-                        return;
-                    }
-
                     _currentAttackDelay = new Random().Next(
                         Math.Min(_minAttackDelay, _maxAttackDelay + 1), Math.Max(_minAttackDelay, _maxAttackDelay));
 
