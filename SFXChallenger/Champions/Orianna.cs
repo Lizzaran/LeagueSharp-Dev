@@ -188,7 +188,7 @@ namespace SFXChallenger.Champions
                 {
                     if (Ball.IsMoving || Menu.Item(Menu.Name + ".miscellaneous.block-r").GetValue<bool>())
                     {
-                        args.Process = GameObjects.EnemyHeroes.Any(e => e.Distance(Ball.Position) < R.Width * 2);
+                        args.Process = GetHits(R).Item1 > 0;
                     }
                 }
             }

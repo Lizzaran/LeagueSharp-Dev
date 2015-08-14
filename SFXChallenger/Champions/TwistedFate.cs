@@ -111,8 +111,6 @@ namespace SFXChallenger.Champions
                 new MenuItem(
                     comboMenu.Name + ".red-min", "W " + Global.Lang.Get("TF_Red") + " " + Global.Lang.Get("G_Min"))
                     .SetValue(new Slider(3, 1, 5)));
-            comboMenu.AddItem(
-                new MenuItem(comboMenu.Name + ".q-stunned", "Q " + Global.Lang.Get("G_OnlyStunned")).SetValue(false));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
 
@@ -129,8 +127,6 @@ namespace SFXChallenger.Champions
                     new StringList(Global.Lang.GetList("TF_Cards"))));
             harassMenu.AddItem(
                 new MenuItem(harassMenu.Name + ".w-auto", Global.Lang.Get("TF_AutoSelect")).SetValue(true));
-            harassMenu.AddItem(
-                new MenuItem(harassMenu.Name + ".q-stunned", "Q " + Global.Lang.Get("G_OnlyStunned")).SetValue(false));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
 
@@ -173,9 +169,6 @@ namespace SFXChallenger.Champions
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r-card", Global.Lang.Get("TF_RCard")).SetValue(true));
 
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Stunned"), miscMenu.Name + "q-stunned")),
-                "q-stunned", false, false, true, false);
-            HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "q-gapcloser")),
                 "q-gapcloser", false, false, true, false);
 
@@ -197,7 +190,7 @@ namespace SFXChallenger.Champions
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
             IndicatorManager.Add(Q);
             IndicatorManager.Add(W);
-            IndicatorManager.Add("E", hero => E.Level > 0 && HasEBuff() ? E.GetDamage(hero) : 0);
+            IndicatorManager.Add("E", hero => E.Level > 0 && GetEStacks() >= 2 ? E.GetDamage(hero) : 0);
             IndicatorManager.Finale();
 
             _eStacks = DrawingManager.Add("E " + Global.Lang.Get("G_Stacks"), true);
@@ -229,8 +222,17 @@ namespace SFXChallenger.Champions
                     {
                         if (Cards.Has(CardColor.Gold))
                         {
-                            _qDelay = Game.Time + W.Delay / 2f +
-                                      hero.Distance(Player) * 1.5f / Player.BasicAttack.MissileSpeed;
+                            var delay = 0f;
+                            var pos = hero.ServerPosition;
+                            if (hero.IsDashing())
+                            {
+                                var dash = hero.GetDashInfo();
+                                delay = dash.EndTick / 1000f;
+                                pos = dash.EndPos.To3D();
+                            }
+                            _qDelay = Game.Time + Game.Ping / 2000f +
+                                      pos.Distance(Player.Position) * 1.5f / Player.BasicAttack.MissileSpeed + delay +
+                                      Player.AttackDelay;
                             _qTarget = hero;
 
                             var target = TargetSelector.GetTarget(W, false);
@@ -284,7 +286,6 @@ namespace SFXChallenger.Champions
                         if (target != null)
                         {
                             Orbwalker.ForceTarget(target);
-                            Player.IssueOrder(GameObjectOrder.AttackUnit, target);
                         }
                     }
                 }
@@ -305,21 +306,6 @@ namespace SFXChallenger.Champions
                     if (Menu.Item(Menu.Name + ".manual.gold").GetValue<KeyBind>().Active)
                     {
                         Cards.Select(CardColor.Gold);
-                    }
-                }
-                if (Q.IsReady())
-                {
-                    var target =
-                        GameObjects.Heroes.FirstOrDefault(
-                            t => Q.IsInRange(t) && HeroListManager.Check("q-stunned", t) && Utils.IsStunned(t));
-                    if (target != null)
-                    {
-                        var best = BestQPosition(
-                            target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("harass"));
-                        if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
-                        {
-                            Q.Cast(best.Item2);
-                        }
                     }
                 }
             }
@@ -548,7 +534,37 @@ namespace SFXChallenger.Champions
             }
             if (q && Q.IsReady())
             {
-                QLogic("combo");
+                if (Cards.Has(CardColor.Gold))
+                {
+                    return;
+                }
+                if ((Cards.Has() || HasEBuff()) &&
+                    GameObjects.EnemyHeroes.Any(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget()))
+                {
+                    return;
+                }
+                var target = TargetSelector.GetTarget(Q, false);
+                if (_qTarget != null && _qTarget.IsValidTarget(Q.Range) && _qDelay >= Game.Time)
+                {
+                    target = _qTarget;
+                }
+                if (target != null &&
+                    (_qTarget == null || (!target.NetworkId.Equals(_qTarget.NetworkId) && _qTarget.IsDead) ||
+                     (Game.Time > _qDelay || Utils.IsStunned(target))))
+                {
+                    var cd = W.Instance.CooldownExpires - Game.Time;
+                    var outOfRange = target.Distance(Player) >=
+                                     Menu.Item(Menu.Name + ".miscellaneous.q-min-range").GetValue<Slider>().Value;
+                    if (outOfRange || (cd >= 2 || W.Level == 0) || Utils.IsStunned(target))
+                    {
+                        var best = BestQPosition(
+                            target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("combo"));
+                        if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
+                        {
+                            Q.Cast(best.Item2);
+                        }
+                    }
+                }
             }
         }
 
@@ -571,15 +587,6 @@ namespace SFXChallenger.Champions
             }
             if (ManaManager.Check("harass") && q && Q.IsReady())
             {
-                QLogic("harass");
-            }
-        }
-
-        private void QLogic(string mode)
-        {
-            try
-            {
-                var hitChance = Q.GetHitChance(mode);
                 if (Cards.Has(CardColor.Gold))
                 {
                     return;
@@ -590,16 +597,12 @@ namespace SFXChallenger.Champions
                     return;
                 }
                 var target = TargetSelector.GetTarget(Q, false);
-                if (_qTarget != null && _qTarget.IsValidTarget(Q.Range) && _qDelay + 0.5f > Game.Time)
+                if (_qTarget != null && _qTarget.IsValidTarget(Q.Range) && _qDelay >= Game.Time)
                 {
                     target = _qTarget;
                 }
-                if (Menu.Item(Menu.Name + "." + mode + ".q-stunned").GetValue<bool>() && !Utils.IsStunned(target))
-                {
-                    return;
-                }
                 if (target != null &&
-                    (_qTarget == null || !target.NetworkId.Equals(_qTarget.NetworkId) ||
+                    (_qTarget == null || (!target.NetworkId.Equals(_qTarget.NetworkId) && _qTarget.IsDead) ||
                      (Game.Time > _qDelay || Utils.IsStunned(target))))
                 {
                     var cd = W.Instance.CooldownExpires - Game.Time;
@@ -608,17 +611,13 @@ namespace SFXChallenger.Champions
                     if (outOfRange || (cd >= 2 || W.Level == 0) || Utils.IsStunned(target))
                     {
                         var best = BestQPosition(
-                            target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), hitChance);
+                            target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("harass"));
                         if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
                         {
                             Q.Cast(best.Item2);
                         }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -665,6 +664,11 @@ namespace SFXChallenger.Champions
         private bool HasEBuff()
         {
             return Player.HasBuff("cardmasterstackparticle");
+        }
+
+        private int GetEStacks()
+        {
+            return Player.GetBuffCount("cardmasterstackparticle");
         }
 
         protected override void Flee()
@@ -1009,7 +1013,6 @@ namespace SFXChallenger.Champions
                         {
                             if (!ShouldWait)
                             {
-                                SpellQueueManager.DisableOnce = true;
                                 if (ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, ObjectManager.Player))
                                 {
                                     _lastWSent = LeagueSharp.Common.Utils.TickCount;
@@ -1052,7 +1055,6 @@ namespace SFXChallenger.Champions
                                 s == CardColor.Gold && wName == "goldcardlock" ||
                                 s == CardColor.Red && wName == "redcardlock"))
                     {
-                        SpellQueueManager.DisableOnce = true;
                         ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, false);
                     }
                 }
