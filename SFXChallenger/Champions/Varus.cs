@@ -223,7 +223,7 @@ namespace SFXChallenger.Champions
                             TargetSelector.GetTarget(R), R.GetHitChance("combo"),
                             Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value,
                             Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
-                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady()))
+                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), "auto"))
                     {
                         RLogicDuel(
                             Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
@@ -505,7 +505,7 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private bool RLogic(Obj_AI_Hero target, HitChance hitChance, int min, bool q, bool e)
+        private bool RLogic(Obj_AI_Hero target, HitChance hitChance, int min, bool q, bool e, string mode = "combo")
         {
             try
             {
@@ -517,7 +517,7 @@ namespace SFXChallenger.Champions
                 if (pred.Hitchance >= hitChance)
                 {
                     var hits = GameObjects.EnemyHeroes.Where(x => x.Distance(target) <= _rSpreadRadius).ToList();
-                    if (UltimateManager.Check(min, hits, hero => CalcComboDamage(hero, q, e, true)))
+                    if (UltimateManager.Check(mode, min, hits, hero => CalcComboDamage(hero, q, e, true)))
                     {
                         R.Cast(pred.CastPosition);
                         return true;

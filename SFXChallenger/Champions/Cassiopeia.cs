@@ -277,7 +277,7 @@ namespace SFXChallenger.Champions
                             var hits =
                                 GameObjects.EnemyHeroes.Where(enemy => R.WillHit(enemy, pred.CastPosition)).ToList();
                             if (UltimateManager.Check(
-                                min, hits,
+                                "combo", min, hits,
                                 hero =>
                                     CalcComboDamage(
                                         hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
@@ -295,7 +295,7 @@ namespace SFXChallenger.Champions
                             else if (Menu.Item(Menu.Name + ".ultimate.flash.duel").GetValue<bool>())
                             {
                                 if (UltimateManager.Check(
-                                    1, hits,
+                                    "combo", 1, hits,
                                     hero =>
                                         CalcComboDamage(
                                             hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
@@ -358,7 +358,7 @@ namespace SFXChallenger.Champions
                             Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value,
                             Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                             Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
-                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady()))
+                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), "auto"))
                     {
                         if (Menu.Item(Menu.Name + ".ultimate.auto.duel").GetValue<bool>())
                         {
@@ -652,7 +652,7 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private bool RLogic(HitChance hitChance, int min, bool q, bool w, bool e)
+        private bool RLogic(HitChance hitChance, int min, bool q, bool w, bool e, string mode = "combo")
         {
             try
             {
@@ -662,7 +662,7 @@ namespace SFXChallenger.Champions
                     if (pred.Hitchance >= hitChance)
                     {
                         var hits = GameObjects.EnemyHeroes.Where(enemy => R.WillHit(enemy, pred.CastPosition)).ToList();
-                        if (UltimateManager.Check(min, hits, hero => CalcComboDamage(hero, q, w, e, true)))
+                        if (UltimateManager.Check(mode, min, hits, hero => CalcComboDamage(hero, q, w, e, true)))
                         {
                             R.Cast(pred.CastPosition);
                             return true;

@@ -161,7 +161,7 @@ namespace SFXChallenger.Champions
                         !RLogic(
                             TargetSelector.GetTarget(R),
                             Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value,
-                            Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady()))
+                            Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(), "auto"))
                     {
                         RLogicDuel(Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady());
                     }
@@ -248,12 +248,12 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private bool RLogic(Obj_AI_Hero target, int min, bool q)
+        private bool RLogic(Obj_AI_Hero target, int min, bool q, string mode = "combo")
         {
             try
             {
                 var hits = GetRHits(target);
-                if (UltimateManager.Check(min, hits.Item2, hero => CalcComboDamage(hero, q, true)))
+                if (UltimateManager.Check(mode, min, hits.Item2, hero => CalcComboDamage(hero, q, true)))
                 {
                     R.Cast(hits.Item3);
                     return true;
