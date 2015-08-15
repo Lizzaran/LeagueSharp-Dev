@@ -208,6 +208,9 @@ namespace SFXChallenger.Managers
                         ultimateMenu.AddSubMenu(
                             new Menu(Global.Lang.Get("UM_RequiredTarget"), ultimateMenu.Name + ".required"));
                     uRequiredListMenu.AddItem(
+                        new MenuItem(uRequiredListMenu.Name + ".mode", Global.Lang.Get("G_Mode")).SetValue(
+                            new StringList(Global.Lang.GetList("UM_OrAndList"))).DontSave());
+                    uRequiredListMenu.AddItem(
                         new MenuItem(uRequiredListMenu.Name + ".range-check", Global.Lang.Get("UM_RangeCheck")).SetValue
                             (new Slider(2000, 1000, 3000)));
                     HeroListManager.AddToMenu(uRequiredListMenu, "ultimate-required", true, false, true, false, true);
@@ -218,9 +221,6 @@ namespace SFXChallenger.Managers
                     var uForceMenu =
                         ultimateMenu.AddSubMenu(
                             new Menu(Global.Lang.Get("UM_ForceTarget"), ultimateMenu.Name + ".force"));
-                    uForceMenu.AddItem(
-                        new MenuItem(uForceMenu.Name + ".mode", Global.Lang.Get("G_Mode")).SetValue(
-                            new StringList(Global.Lang.GetList("UM_OrAndList"))).DontSave());
                     uForceMenu.AddItem(
                         new MenuItem(uForceMenu.Name + ".additional", Global.Lang.Get("UM_AdditionalTargets")).SetValue(
                             new Slider(0, 0, 4)).DontSave());
@@ -333,44 +333,43 @@ namespace SFXChallenger.Managers
 
                 if (_force && HeroListManager.Enabled("ultimate-force"))
                 {
-                    var mode = _menu.Item(_menu.Name + ".ultimate.force.mode").GetValue<StringList>().SelectedIndex;
                     var killable = _menu.Item(_menu.Name + ".ultimate.force.combo-killable").GetValue<bool>();
                     var additional = _menu.Item(_menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value;
-                    if (mode == 1)
+                    if (
+                        hits.Any(
+                            hit =>
+                                HeroListManager.Check("ultimate-force", hit) &&
+                                (!killable || calcDamage == null || calcDamage(hit) > hit.Health)) &&
+                        hits.Count >= additional + 1)
                     {
-                        if (
-                            hits.Any(
-                                hit =>
-                                    HeroListManager.Check("ultimate-force", hit) &&
-                                    (!killable || calcDamage == null || calcDamage(hit) > hit.Health)) &&
-                            hits.Count >= additional + 1)
-                        {
-                            return true;
-                        }
-                    }
-                    else if (mode == 2)
-                    {
-                        var enabledHeroes = HeroListManager.GetEnabledHeroes("ultimate-force");
-                        if (enabledHeroes.All(e => hits.Any(h => h.NetworkId.Equals(e.NetworkId))))
-                        {
-                            if (hits.Any(hit => (!killable || calcDamage == null || calcDamage(hit) > hit.Health)) &&
-                                (hits.Count - enabledHeroes.Count) >= additional)
-                            {
-                                return true;
-                            }
-                        }
+                        return true;
                     }
                 }
 
                 if (_required && HeroListManager.Enabled("ultimate-required"))
                 {
-                    if (!hits.Any(hit => HeroListManager.Check("ultimate-required", hit)))
+                    var mode = _menu.Item(_menu.Name + ".ultimate.required.mode").GetValue<StringList>().SelectedIndex;
+                    var range = _menu.Item(_menu.Name + ".ultimate.required.range-check").GetValue<Slider>().Value;
+                    if (mode == 1)
                     {
-                        var range = _menu.Item(_menu.Name + ".ultimate.required.range-check").GetValue<Slider>().Value;
+                        if (!hits.Any(hit => HeroListManager.Check("ultimate-required", hit)))
+                        {
+                            if (
+                                GameObjects.EnemyHeroes.Where(
+                                    h => !h.IsDead && h.IsVisible && h.Distance(ObjectManager.Player) <= range)
+                                    .Any(h => HeroListManager.Check("ultimate-required", h)))
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                    else if (mode == 2)
+                    {
+                        var enabledHeroes = HeroListManager.GetEnabledHeroes("ultimate-required");
                         if (
-                            GameObjects.EnemyHeroes.Where(
-                                h => !h.IsDead && h.IsVisible && h.Distance(ObjectManager.Player) <= range)
-                                .Any(h => HeroListManager.Check("ultimate-required", h)))
+                            !(enabledHeroes.Where(
+                                e => !e.IsDead && e.IsVisible && e.Distance(ObjectManager.Player) <= range)
+                                .All(e => hits.Any(h => h.NetworkId.Equals(e.NetworkId)))))
                         {
                             return false;
                         }
