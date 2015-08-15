@@ -470,11 +470,7 @@ namespace SFXChallenger.Champions
                 {
                     if (args.EndPos.Distance(Player.Position) < W.Range)
                     {
-                        var target = TargetSelector.GetTarget(W.Range * 0.85f, W.DamageType);
-                        if (target == null || sender.NetworkId.Equals(target.NetworkId))
-                        {
-                            W.Cast(args.EndPos);
-                        }
+                        W.Cast(args.EndPos);
                     }
                 }
             }
@@ -512,11 +508,7 @@ namespace SFXChallenger.Champions
                 {
                     if (args.End.Distance(Player.Position) < W.Range)
                     {
-                        var target = TargetSelector.GetTarget(W.Range * 0.85f, W.DamageType);
-                        if (target == null || args.Sender.NetworkId.Equals(target.NetworkId))
-                        {
-                            W.Cast(args.End);
-                        }
+                        W.Cast(args.End);
                     }
                 }
             }
