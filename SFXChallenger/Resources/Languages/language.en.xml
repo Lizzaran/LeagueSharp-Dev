@@ -209,7 +209,8 @@
 
   <!-- START: UltimateManager -->
   <entry key="F_Ultimate">Ultimate</entry>
-  <entry key="UM_OrAndList">Or|And</entry>
+  <entry key="UM_Any">Any</entry>
+  <entry key="UM_All">All</entry>
   <entry key="UM_ComboKillable">Combo Killable</entry>
   <entry key="UM_Duel">Duel</entry>
   <entry key="UM_Auto">Auto</entry>
