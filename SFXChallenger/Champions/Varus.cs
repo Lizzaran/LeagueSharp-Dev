@@ -249,7 +249,11 @@ namespace SFXChallenger.Champions
                 if (HeroListManager.Check("e-gapcloser", args.Sender) && args.End.Distance(Player.Position) < E.Range &&
                     E.IsReady())
                 {
-                    E.Cast(args.End);
+                    var target = TargetSelector.GetTarget(E.Range * 0.85f, E.DamageType);
+                    if (target == null || args.Sender.NetworkId.Equals(target.NetworkId))
+                    {
+                        E.Cast(args.End);
+                    }
                 }
                 if (UltimateManager.Gapcloser(args.Sender))
                 {

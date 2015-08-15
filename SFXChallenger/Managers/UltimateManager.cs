@@ -219,11 +219,14 @@ namespace SFXChallenger.Managers
                         ultimateMenu.AddSubMenu(
                             new Menu(Global.Lang.Get("UM_ForceTarget"), ultimateMenu.Name + ".force"));
                     uForceMenu.AddItem(
+                        new MenuItem(uForceMenu.Name + ".mode", Global.Lang.Get("G_Mode")).SetValue(
+                            new StringList(Global.Lang.GetList("UM_OrAndList"))).DontSave());
+                    uForceMenu.AddItem(
                         new MenuItem(uForceMenu.Name + ".additional", Global.Lang.Get("UM_AdditionalTargets")).SetValue(
                             new Slider(0, 0, 4)).DontSave());
                     uForceMenu.AddItem(
                         new MenuItem(uForceMenu.Name + ".combo-killable", Global.Lang.Get("UM_ComboKillable")).SetValue(
-                            true).DontSave());
+                            false).DontSave());
                     HeroListManager.AddToMenu(uForceMenu, "ultimate-force", true, false, true, false, true);
                 }
 
@@ -330,16 +333,32 @@ namespace SFXChallenger.Managers
 
                 if (_force && HeroListManager.Enabled("ultimate-force"))
                 {
+                    var mode = _menu.Item(_menu.Name + ".ultimate.force.mode").GetValue<StringList>().SelectedIndex;
                     var killable = _menu.Item(_menu.Name + ".ultimate.force.combo-killable").GetValue<bool>();
-                    if (
-                        hits.Any(
-                            hit =>
-                                HeroListManager.Check("ultimate-force", hit) &&
-                                (!killable || calcDamage == null || calcDamage(hit) > hit.Health)) &&
-                        hits.Count >=
-                        (_menu.Item(_menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1))
+                    var additional = _menu.Item(_menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value;
+                    if (mode == 1)
                     {
-                        return true;
+                        if (
+                            hits.Any(
+                                hit =>
+                                    HeroListManager.Check("ultimate-force", hit) &&
+                                    (!killable || calcDamage == null || calcDamage(hit) > hit.Health)) &&
+                            hits.Count >= additional + 1)
+                        {
+                            return true;
+                        }
+                    }
+                    else if (mode == 2)
+                    {
+                        var enabledHeroes = HeroListManager.GetEnabledHeroes("ultimate-force");
+                        if (enabledHeroes.All(e => hits.Any(h => h.NetworkId.Equals(e.NetworkId))))
+                        {
+                            if (hits.Any(hit => (!killable || calcDamage == null || calcDamage(hit) > hit.Health)) &&
+                                (hits.Count - enabledHeroes.Count) >= additional)
+                            {
+                                return true;
+                            }
+                        }
                     }
                 }
 

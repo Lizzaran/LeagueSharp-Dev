@@ -116,6 +116,7 @@
   <entry key="G_Enemies">Enemies</entry>
   <entry key="G_Damage">Damage</entry>
   <entry key="G_Target">Target</entry>
+  <entry key="G_Width">Width</entry>
   <!-- END: GLOBAL -->
 
   <!-- START: Settings -->
@@ -208,6 +209,7 @@
 
   <!-- START: UltimateManager -->
   <entry key="F_Ultimate">Ultimate</entry>
+  <entry key="UM_OrAndList">Or|And</entry>
   <entry key="UM_ComboKillable">Combo Killable</entry>
   <entry key="UM_Duel">Duel</entry>
   <entry key="UM_Auto">Auto</entry>

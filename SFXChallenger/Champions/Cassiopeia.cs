@@ -449,16 +449,20 @@ namespace SFXChallenger.Champions
                 var wCasted = false;
                 if (HeroListManager.Check("w-gapcloser", hero) && Player.Distance(args.EndPos) <= W.Range && W.IsReady())
                 {
-                    var delay = (int) (endTick - Game.Time - W.Delay - 0.1f);
-                    if (delay > 0)
+                    var target = TargetSelector.GetTarget(W.Range * 0.85f, W.DamageType);
+                    if (target == null || sender.NetworkId.Equals(target.NetworkId))
                     {
-                        Utility.DelayAction.Add(delay * 1000, () => W.Cast(args.EndPos));
+                        var delay = (int) (endTick - Game.Time - W.Delay - 0.1f);
+                        if (delay > 0)
+                        {
+                            Utility.DelayAction.Add(delay * 1000, () => W.Cast(args.EndPos));
+                        }
+                        else
+                        {
+                            W.Cast(args.EndPos);
+                        }
+                        wCasted = true;
                     }
-                    else
-                    {
-                        W.Cast(args.EndPos);
-                    }
-                    wCasted = true;
                 }
 
                 if (!wCasted && HeroListManager.Check("q-gapcloser", hero) && Player.Distance(args.EndPos) <= Q.Range &&
@@ -516,8 +520,12 @@ namespace SFXChallenger.Champions
                 if (HeroListManager.Check("w-gapcloser", args.Sender) && Player.Distance(args.End) <= W.Range &&
                     W.IsReady())
                 {
-                    W.Cast(args.End);
-                    wCasted = true;
+                    var target = TargetSelector.GetTarget(W.Range * 0.85f, W.DamageType);
+                    if (target == null || args.Sender.NetworkId.Equals(target.NetworkId))
+                    {
+                        W.Cast(args.End);
+                        wCasted = true;
+                    }
                 }
 
                 if (!wCasted && HeroListManager.Check("q-gapcloser", args.Sender) &&

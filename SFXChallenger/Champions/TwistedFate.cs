@@ -148,14 +148,6 @@ namespace SFXChallenger.Champions
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
             miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".q-range", "Q " + Global.Lang.Get("G_Range")).SetValue(
-                    new Slider((int) Q.Range, 950, 1450))).ValueChanged +=
-                delegate(object sender, OnValueChangeEventArgs args) { Q.Range = args.GetNewValue<Slider>().Value; };
-            miscMenu.AddItem(
-                new MenuItem(
-                    miscMenu.Name + ".q-min-range", "Q " + Global.Lang.Get("G_Min") + " " + Global.Lang.Get("G_Range"))
-                    .SetValue(new Slider(800, 600, 1000)));
-            miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".w-range", "W " + Global.Lang.Get("G_Range")).SetValue(
                     new Slider((int) W.Range, 500, 1000))).ValueChanged +=
                 delegate(object sender, OnValueChangeEventArgs args) { W.Range = args.GetNewValue<Slider>().Value; };
@@ -183,7 +175,6 @@ namespace SFXChallenger.Champions
                 new MenuItem(manualMenu.Name + ".gold", Global.Lang.Get("G_Hotkey") + " " + Global.Lang.Get("TF_Gold"))
                     .SetValue(new KeyBind('I', KeyBindType.Press)));
 
-            Q.Range = Menu.Item(Menu.Name + ".miscellaneous.q-range").GetValue<Slider>().Value;
             W.Range = Menu.Item(Menu.Name + ".miscellaneous.w-range").GetValue<Slider>().Value;
             Cards.Delay = Menu.Item(Menu.Name + ".miscellaneous.w-delay").GetValue<Slider>().Value;
 
@@ -486,7 +477,11 @@ namespace SFXChallenger.Champions
                 }
                 if (HeroListManager.Check("q-gapcloser", hero) && Player.Distance(args.EndPos) <= Q.Range && Q.IsReady())
                 {
-                    Q.Cast(args.EndPos);
+                    var target = TargetSelector.GetTarget(Q.Range * 0.85f, Q.DamageType);
+                    if (target == null || sender.NetworkId.Equals(target.NetworkId))
+                    {
+                        Q.Cast(args.EndPos);
+                    }
                 }
             }
             catch (Exception ex)
@@ -506,7 +501,11 @@ namespace SFXChallenger.Champions
                 if (HeroListManager.Check("q-gapcloser", args.Sender) && args.End.Distance(Player.Position) < Q.Range &&
                     Q.IsReady())
                 {
-                    Q.Cast(args.End);
+                    var target = TargetSelector.GetTarget(Q.Range * 0.85f, Q.DamageType);
+                    if (target == null || args.Sender.NetworkId.Equals(target.NetworkId))
+                    {
+                        Q.Cast(args.End);
+                    }
                 }
             }
             catch (Exception ex)
@@ -544,18 +543,15 @@ namespace SFXChallenger.Champions
                     return;
                 }
                 var target = TargetSelector.GetTarget(Q, false);
-                if (_qTarget != null && _qTarget.IsValidTarget(Q.Range) && _qDelay >= Game.Time)
+                if (_qTarget != null && _qTarget.IsValidTarget(Q.Range) && _qDelay >= Game.Time &&
+                    _qTarget.IsValidTarget())
                 {
                     target = _qTarget;
                 }
-                if (target != null &&
-                    (_qTarget == null || (!target.NetworkId.Equals(_qTarget.NetworkId) && _qTarget.IsDead) ||
-                     (Game.Time > _qDelay || Utils.IsStunned(target))))
+                if (target != null)
                 {
                     var cd = W.Instance.CooldownExpires - Game.Time;
-                    var outOfRange = target.Distance(Player) >=
-                                     Menu.Item(Menu.Name + ".miscellaneous.q-min-range").GetValue<Slider>().Value;
-                    if (outOfRange || (cd >= 2 || W.Level == 0) || Utils.IsStunned(target))
+                    if ((cd >= 2 || W.Level == 0) || Utils.IsStunned(target))
                     {
                         var best = BestQPosition(
                             target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("combo"));
@@ -597,18 +593,16 @@ namespace SFXChallenger.Champions
                     return;
                 }
                 var target = TargetSelector.GetTarget(Q, false);
-                if (_qTarget != null && _qTarget.IsValidTarget(Q.Range) && _qDelay >= Game.Time)
+                var qTarget = false;
+                if (_qTarget != null && _qTarget.IsValidTarget(Q.Range) && _qDelay >= Game.Time &&
+                    _qTarget.IsValidTarget())
                 {
+                    qTarget = true;
                     target = _qTarget;
                 }
-                if (target != null &&
-                    (_qTarget == null || (!target.NetworkId.Equals(_qTarget.NetworkId) && _qTarget.IsDead) ||
-                     (Game.Time > _qDelay || Utils.IsStunned(target))))
+                if (target != null)
                 {
-                    var cd = W.Instance.CooldownExpires - Game.Time;
-                    var outOfRange = target.Distance(Player) >=
-                                     Menu.Item(Menu.Name + ".miscellaneous.q-min-range").GetValue<Slider>().Value;
-                    if (outOfRange || (cd >= 2 || W.Level == 0) || Utils.IsStunned(target))
+                    if (!qTarget || Utils.IsStunned(target))
                     {
                         var best = BestQPosition(
                             target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("harass"));
