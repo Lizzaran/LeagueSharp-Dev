@@ -551,7 +551,10 @@ namespace SFXChallenger.Champions
                 if (target != null)
                 {
                     var cd = W.Instance.CooldownExpires - Game.Time;
-                    if ((cd >= 2 || W.Level == 0) || Utils.IsStunned(target))
+                    if ((_qTarget == null || _qTarget.NetworkId.Equals(target.NetworkId) && _qDelay < Game.Time) ||
+                        Utils.IsStunned(target) ||
+                        ((_qTarget == null || !_qTarget.NetworkId.Equals(target.NetworkId) || _qDelay < Game.Time) &&
+                         (cd >= 2 || W.Level == 0)))
                     {
                         var best = BestQPosition(
                             target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("combo"));
@@ -593,16 +596,15 @@ namespace SFXChallenger.Champions
                     return;
                 }
                 var target = TargetSelector.GetTarget(Q, false);
-                var qTarget = false;
                 if (_qTarget != null && _qTarget.IsValidTarget(Q.Range) && _qDelay >= Game.Time &&
                     _qTarget.IsValidTarget())
                 {
-                    qTarget = true;
                     target = _qTarget;
                 }
                 if (target != null)
                 {
-                    if (!qTarget || Utils.IsStunned(target))
+                    if ((_qTarget == null || _qTarget.NetworkId.Equals(target.NetworkId) && _qDelay < Game.Time) ||
+                        Utils.IsStunned(target))
                     {
                         var best = BestQPosition(
                             target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("harass"));
