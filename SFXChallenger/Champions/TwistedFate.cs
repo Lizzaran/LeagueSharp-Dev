@@ -349,7 +349,7 @@ namespace SFXChallenger.Champions
                 foreach (var h in enemies)
                 {
                     var ePred = Q.GetPrediction(h);
-                    if (ePred.Hitchance >= (hitChance - 1))
+                    if (ePred.Hitchance >= hitChance)
                     {
                         circle.Add(Player.Position.Extend(ePred.UnitPosition, Player.BoundingRadius).To2D());
                         enemyPositions.Add(new Tuple<Obj_AI_Base, Vector3>(h, ePred.UnitPosition));
@@ -587,13 +587,26 @@ namespace SFXChallenger.Champions
                     if (Utils.IsStunned(target) || (!wTarget && (cd >= 2 || W.Level == 0)) ||
                         target.Distance(Player) < 200)
                     {
-                        var best = BestQPosition(
-                            target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("combo"));
-                        if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
+                        if (!wTarget)
                         {
-                            Q.Cast(best.Item2);
-                            _wDelay = 0;
-                            _wTarget = null;
+                            var best = BestQPosition(
+                                target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("combo"));
+                            if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
+                            {
+                                Q.Cast(best.Item2);
+                                _wDelay = 0;
+                                _wTarget = null;
+                            }
+                        }
+                        else
+                        {
+                            var pred = Q.GetPrediction(target);
+                            if (pred.Hitchance >= Q.GetHitChance("combo"))
+                            {
+                                Q.Cast(pred.CastPosition);
+                                _wDelay = 0;
+                                _wTarget = null;
+                            }
                         }
                     }
                 }
@@ -641,13 +654,26 @@ namespace SFXChallenger.Champions
                 {
                     if (!wTarget || Utils.IsStunned(target) || target.Distance(Player) < 200)
                     {
-                        var best = BestQPosition(
-                            target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("harass"));
-                        if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
+                        if (!wTarget)
                         {
-                            Q.Cast(best.Item2);
-                            _wDelay = 0;
-                            _wTarget = null;
+                            var best = BestQPosition(
+                                target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("harass"));
+                            if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
+                            {
+                                Q.Cast(best.Item2);
+                                _wDelay = 0;
+                                _wTarget = null;
+                            }
+                        }
+                        else
+                        {
+                            var pred = Q.GetPrediction(target);
+                            if (pred.Hitchance >= Q.GetHitChance("harass"))
+                            {
+                                Q.Cast(pred.CastPosition);
+                                _wDelay = 0;
+                                _wTarget = null;
+                            }
                         }
                     }
                 }

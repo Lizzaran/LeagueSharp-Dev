@@ -112,6 +112,7 @@ namespace SFXChallenger.Wrappers
         private static int _minAttackDelay;
         private static int _maxAttackDelay;
         private static int _currentAttackDelay;
+        private static bool _preventStuttering;
 
         static Orbwalking()
         {
@@ -223,9 +224,22 @@ namespace SFXChallenger.Wrappers
             var result = Player.AttackRange + Player.BoundingRadius;
             if (target.IsValidTarget())
             {
-                return result + target.BoundingRadius;
+                result += target.BoundingRadius;
+            }
+            if (_preventStuttering)
+            {
+                var hero = target as Obj_AI_Hero;
+                if (hero != null && !hero.IsFacing(Player))
+                {
+                    result -= 10;
+                }
             }
             return result;
+        }
+
+        public static void PreventStuttering(bool val)
+        {
+            _preventStuttering = val;
         }
 
         /// <summary>
@@ -540,6 +554,12 @@ namespace SFXChallenger.Wrappers
                 misc.AddItem(
                     new MenuItem("HoldPosRadius", "Hold Position Radius").SetShared().SetValue(new Slider(0, 0, 250)));
                 misc.AddItem(new MenuItem("PriorizeFarm", "Priorize farm over harass").SetShared().SetValue(true));
+                misc.AddItem(new MenuItem("PreventStutter", "Prevent possible stutter").SetShared().SetValue(false))
+                    .ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        PreventStuttering(args.GetNewValue<bool>());
+                    };
 
                 _config.AddSubMenu(misc);
 
@@ -585,6 +605,8 @@ namespace SFXChallenger.Wrappers
 
                 SetMinimumAttackDelay(_config.Item("AttackDelayMin").GetValue<Slider>().Value);
                 SetMaximumAttackDelay(_config.Item("AttackDelayMax").GetValue<Slider>().Value);
+
+                PreventStuttering(_config.Item("PreventStutter").GetValue<bool>());
 
                 _player = ObjectManager.Player;
                 Game.OnUpdate += GameOnOnGameUpdate;
