@@ -554,12 +554,6 @@ namespace SFXChallenger.Wrappers
                 misc.AddItem(
                     new MenuItem("HoldPosRadius", "Hold Position Radius").SetShared().SetValue(new Slider(0, 0, 250)));
                 misc.AddItem(new MenuItem("PriorizeFarm", "Priorize farm over harass").SetShared().SetValue(true));
-                misc.AddItem(new MenuItem("PreventStutter", "Prevent possible stutter").SetShared().SetValue(false))
-                    .ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        PreventStuttering(args.GetNewValue<bool>());
-                    };
 
                 _config.AddSubMenu(misc);
 
@@ -605,8 +599,6 @@ namespace SFXChallenger.Wrappers
 
                 SetMinimumAttackDelay(_config.Item("AttackDelayMin").GetValue<Slider>().Value);
                 SetMaximumAttackDelay(_config.Item("AttackDelayMax").GetValue<Slider>().Value);
-
-                PreventStuttering(_config.Item("PreventStutter").GetValue<bool>());
 
                 _player = ObjectManager.Player;
                 Game.OnUpdate += GameOnOnGameUpdate;

@@ -281,6 +281,7 @@ namespace SFXChallenger.Champions
                         Casting.SkillShot(target, W, W.GetHitChance("combo"));
                     }
                 }
+                
                 if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit ||
                     Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
                 {
@@ -315,6 +316,8 @@ namespace SFXChallenger.Champions
                         }
                     }
                 }
+
+                Orbwalking.PreventStuttering(HasQBuff());
             }
             catch (Exception ex)
             {
