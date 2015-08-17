@@ -232,10 +232,12 @@ namespace SFXChallenger.Champions
                                 delay = dash.EndTick / 1000f;
                                 pos = dash.EndPos.To3D();
                             }
-                            _wStart = Game.Time + Player.AttackDelay + Game.Ping / 2000f + 0.1f;
-                            _wDelay = Game.Time + Game.Ping / 2000f +
-                                      pos.Distance(Player.Position) * 1.4f / Player.BasicAttack.MissileSpeed + delay +
-                                      Player.AttackDelay;
+                            _wStart = Game.Time + Player.AttackDelay + Game.Ping / 2000f + 2f;
+                            _wDelay = Math.Max(
+                                1.5f,
+                                Game.Time + Game.Ping / 2000f +
+                                pos.Distance(Player.Position) * 1.75f / Player.BasicAttack.MissileSpeed + delay +
+                                Player.AttackDelay);
                             _wTarget = hero;
 
                             var target = TargetSelector.GetTarget(W, false);
@@ -596,6 +598,7 @@ namespace SFXChallenger.Champions
                                 Q.Cast(best.Item2);
                                 _wDelay = 0;
                                 _wTarget = null;
+                                _wStart = 0;
                             }
                         }
                         else
@@ -606,6 +609,7 @@ namespace SFXChallenger.Champions
                                 Q.Cast(pred.CastPosition);
                                 _wDelay = 0;
                                 _wTarget = null;
+                                _wStart = 0;
                             }
                         }
                     }
@@ -663,6 +667,7 @@ namespace SFXChallenger.Champions
                                 Q.Cast(best.Item2);
                                 _wDelay = 0;
                                 _wTarget = null;
+                                _wStart = 0;
                             }
                         }
                         else
@@ -673,6 +678,7 @@ namespace SFXChallenger.Champions
                                 Q.Cast(pred.CastPosition);
                                 _wDelay = 0;
                                 _wTarget = null;
+                                _wStart = 0;
                             }
                         }
                     }
