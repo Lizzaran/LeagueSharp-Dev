@@ -222,7 +222,7 @@ namespace SFXChallenger.Champions
                                 pos = dash.EndPos.To3D();
                             }
                             _qDelay = Game.Time + Game.Ping / 2000f +
-                                      pos.Distance(Player.Position) * 1.5f / Player.BasicAttack.MissileSpeed + delay +
+                                      pos.Distance(Player.Position) * 1.4f / Player.BasicAttack.MissileSpeed + delay +
                                       Player.AttackDelay;
                             _qTarget = hero;
 
@@ -562,8 +562,7 @@ namespace SFXChallenger.Champions
                 }
                 var target = TargetSelector.GetTarget(Q, false);
                 var qTarget = false;
-                if (_qTarget != null && _qTarget.IsValidTarget(Q.Range) && _qDelay >= Game.Time &&
-                    _qTarget.IsValidTarget())
+                if (_qTarget != null && _qTarget.IsValidTarget(Q.Range) && _qDelay >= Game.Time)
                 {
                     qTarget = true;
                     target = _qTarget;
@@ -578,6 +577,8 @@ namespace SFXChallenger.Champions
                         if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
                         {
                             Q.Cast(best.Item2);
+                            _qDelay = 0;
+                            _qTarget = null;
                         }
                     }
                 }
@@ -614,8 +615,7 @@ namespace SFXChallenger.Champions
                 }
                 var target = TargetSelector.GetTarget(Q, false);
                 var qTarget = false;
-                if (_qTarget != null && _qTarget.IsValidTarget(Q.Range) && _qDelay >= Game.Time &&
-                    _qTarget.IsValidTarget())
+                if (_qTarget != null && _qTarget.IsValidTarget(Q.Range) && _qDelay >= Game.Time)
                 {
                     qTarget = true;
                     target = _qTarget;
@@ -629,6 +629,8 @@ namespace SFXChallenger.Champions
                         if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
                         {
                             Q.Cast(best.Item2);
+                            _qDelay = 0;
+                            _qTarget = null;
                         }
                     }
                 }
