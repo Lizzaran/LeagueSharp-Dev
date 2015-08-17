@@ -706,19 +706,9 @@ namespace SFXChallenger.Champions
 
         protected override void Flee()
         {
-            if (Menu.Item(Menu.Name + ".flee.w").GetValue<bool>() && W.IsReady())
+            if (Menu.Item(Menu.Name + ".flee.w").GetValue<bool>())
             {
-                if (Cards.Has())
-                {
-                    var target =
-                        GameObjects.EnemyHeroes.OrderBy(e => e.Distance(Player))
-                            .FirstOrDefault(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget());
-                    if (target != null)
-                    {
-                        Orbwalking.Orbwalk(target, Game.CursorPos);
-                    }
-                }
-                else
+                if (W.IsReady() || Cards.Status == SelectStatus.Ready)
                 {
                     var target = TargetSelector.GetTarget(W, false);
                     if (target != null)
@@ -729,6 +719,17 @@ namespace SFXChallenger.Champions
                             Cards.Select(best);
                             Orbwalker.ForceTarget(target);
                         }
+                    }
+                }
+                if (Player.CanAttack && (Cards.Has(CardColor.Red) || Cards.Has(CardColor.Gold)))
+                {
+                    var target =
+                        GameObjects.EnemyHeroes.Where(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget())
+                            .OrderBy(e => e.Distance(Player))
+                            .FirstOrDefault();
+                    if (target != null)
+                    {
+                        Player.IssueOrder(GameObjectOrder.AttackUnit, target);
                     }
                 }
             }
