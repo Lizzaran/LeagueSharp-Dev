@@ -584,8 +584,8 @@ namespace SFXChallenger.Champions
                 if (target != null)
                 {
                     var cd = W.Instance.CooldownExpires - Game.Time;
-                    if (Utils.IsStunned(target) || (!wTarget && (cd >= 2 || W.Level == 0)) ||
-                        target.Distance(Player) < 200)
+                    if ((Utils.IsStunned(target) || (!wTarget && (cd >= 2 || W.Level == 0))) &&
+                        target.Distance(Player) > Player.BoundingRadius)
                     {
                         if (!wTarget)
                         {
@@ -652,7 +652,7 @@ namespace SFXChallenger.Champions
                 }
                 if (target != null)
                 {
-                    if (!wTarget || Utils.IsStunned(target) || target.Distance(Player) < 200)
+                    if ((!wTarget || Utils.IsStunned(target)) && target.Distance(Player) > Player.BoundingRadius)
                     {
                         if (!wTarget)
                         {
