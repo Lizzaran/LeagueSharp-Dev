@@ -235,6 +235,24 @@ namespace SFXChallenger.Champions
                         }
                     }
                 }
+                else
+                {
+                    if (Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.Flee &&
+                        Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.None)
+                    {
+                        if (Cards.Has(CardColor.Gold) || Cards.Has(CardColor.Blue))
+                        {
+                            var targets = TargetSelector.GetTargets(
+                                Orbwalking.GetRealAutoAttackRange(null) * 1.25f, DamageType.Magical);
+                            var target = targets.FirstOrDefault(Orbwalking.InAutoAttackRange);
+                            if (target != null)
+                            {
+                                Orbwalker.ForceTarget(target);
+                                args.Process = false;
+                            }
+                        }
+                    }
+                }
                 if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear ||
                     Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
                 {
@@ -543,18 +561,17 @@ namespace SFXChallenger.Champions
                     return;
                 }
                 var target = TargetSelector.GetTarget(Q, false);
+                var qTarget = false;
                 if (_qTarget != null && _qTarget.IsValidTarget(Q.Range) && _qDelay >= Game.Time &&
                     _qTarget.IsValidTarget())
                 {
+                    qTarget = true;
                     target = _qTarget;
                 }
                 if (target != null)
                 {
                     var cd = W.Instance.CooldownExpires - Game.Time;
-                    if ((_qTarget == null || _qTarget.NetworkId.Equals(target.NetworkId) && _qDelay < Game.Time) ||
-                        Utils.IsStunned(target) ||
-                        ((_qTarget == null || !_qTarget.NetworkId.Equals(target.NetworkId) || _qDelay < Game.Time) &&
-                         (cd >= 2 || W.Level == 0)))
+                    if (Utils.IsStunned(target) || (!qTarget && (cd >= 2 || W.Level == 0)))
                     {
                         var best = BestQPosition(
                             target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("combo"));
@@ -596,15 +613,16 @@ namespace SFXChallenger.Champions
                     return;
                 }
                 var target = TargetSelector.GetTarget(Q, false);
+                var qTarget = false;
                 if (_qTarget != null && _qTarget.IsValidTarget(Q.Range) && _qDelay >= Game.Time &&
                     _qTarget.IsValidTarget())
                 {
+                    qTarget = true;
                     target = _qTarget;
                 }
                 if (target != null)
                 {
-                    if ((_qTarget == null || _qTarget.NetworkId.Equals(target.NetworkId) && _qDelay < Game.Time) ||
-                        Utils.IsStunned(target))
+                    if (!qTarget || Utils.IsStunned(target))
                     {
                         var best = BestQPosition(
                             target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("harass"));
@@ -792,6 +810,10 @@ namespace SFXChallenger.Champions
                 if (!burst &&
                     (mode == "combo" || mode == "harass" && Menu.Item(Menu.Name + ".harass.w-auto").GetValue<bool>()))
                 {
+                    if (Q.Level == 0)
+                    {
+                        return new List<CardColor> { CardColor.Blue };
+                    }
                     gold++;
                     if (target.Distance(Player) > W.Range * 0.8f)
                     {
@@ -843,6 +865,10 @@ namespace SFXChallenger.Champions
                 }
                 if (mode == "combo" && !cards.Any())
                 {
+                    if (Q.Level == 0)
+                    {
+                        return new List<CardColor> { CardColor.Blue };
+                    }
                     var distance = target.Distance(Player);
                     var damage = ItemManager.CalculateComboDamage(target) - target.HPRegenRate * 2f - 10;
                     if (HasEBuff())
