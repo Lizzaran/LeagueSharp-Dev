@@ -368,7 +368,7 @@ namespace SFXChallenger.Champions
                                     Type = R.Type,
                                     Unit = target
                                 });
-                        if (pred.Hitchance >= R.GetHitChance("combo"))
+                        if (pred.Hitchance >= HitChance.High)
                         {
                             R.UpdateSourcePosition(flashPos, flashPos);
                             var hits = GameObjects.EnemyHeroes.Where(x => R.WillHit(x, pred.CastPosition)).ToList();

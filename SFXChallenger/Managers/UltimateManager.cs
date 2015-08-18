@@ -363,7 +363,7 @@ namespace SFXChallenger.Managers
                     }
                 }
 
-                if (_required && HeroListManager.Enabled("ultimate-required"))
+                if (_required && HeroListManager.Enabled("ultimate-required-" + mode))
                 {
                     var minReq = _menu.Item(_menu.Name + ".ultimate.required." + mode + ".min").GetValue<Slider>().Value;
                     var range = _menu.Item(_menu.Name + ".ultimate.required.range-check").GetValue<Slider>().Value;

@@ -258,11 +258,14 @@ namespace SFXChallenger.Champions
                         {
                             var targets = TargetSelector.GetTargets(
                                 Orbwalking.GetRealAutoAttackRange(null) * 1.25f, DamageType.Magical);
-                            var target = targets.FirstOrDefault(Orbwalking.InAutoAttackRange);
-                            if (target != null)
+                            if (targets != null)
                             {
-                                Orbwalker.ForceTarget(target);
-                                args.Process = false;
+                                var target = targets.FirstOrDefault(Orbwalking.InAutoAttackRange);
+                                if (target != null)
+                                {
+                                    Orbwalker.ForceTarget(target);
+                                    args.Process = false;
+                                }
                             }
                         }
                     }
@@ -526,7 +529,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (!args.Sender.IsEnemy)
+                if (!args.Sender.IsEnemy || !args.Sender.IsValid)
                 {
                     return;
                 }
