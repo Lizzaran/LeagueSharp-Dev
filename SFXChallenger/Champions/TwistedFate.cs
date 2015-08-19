@@ -564,13 +564,9 @@ namespace SFXChallenger.Champions
                 var target = TargetSelector.GetTarget(Q, false);
                 var goldCardTarget = (_qTarget != null && _qTarget.IsValidTarget(Q.Range));
                 var aDelay = (int)_realDelay;
-                if (Cards.Has(CardColor.Gold))
-                    {
-                        return;
-                    }
-                if ((target.Distance(Player) < 100))
+                if (Cards.Has(CardColor.Gold) || (target.Distance(Player) < 100))
                 {
-                    return;
+                        return;
                 }
                 if (!goldCardTarget && !Utils.IsStunned(target) && (Cards.Has() || HasEBuff())
                     && GameObjects.EnemyHeroes.Any(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget()))
