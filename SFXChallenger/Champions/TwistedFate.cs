@@ -522,7 +522,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (!args.Sender.IsEnemy)
+                if (!args.Sender.IsEnemy) || !args.Sender.IsValid)
                 {
                     return;
                 }
@@ -912,7 +912,7 @@ namespace SFXChallenger.Champions
                     var blueMana1 = (ObjectManager.Player.Mana < (W.Instance.ManaCost + Q.Instance.ManaCost) && 
                                      ObjectManager.Player.Mana > (Q.Instance.ManaCost - 10));
                     var blueMana2 = (ObjectManager.Player.Mana < (W.Instance.ManaCost + Q.Instance.ManaCost) && 
-                                      ObjectManager.Player.Mana > (Q.Instance.ManaCost - 20));
+                                     ObjectManager.Player.Mana > (Q.Instance.ManaCost - 20));
                     var blueMana3 = (ObjectManager.Player.Mana < (W.Instance.ManaCost + Q.Instance.ManaCost));
                     if (!cards.Any())
                     {
