@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -56,10 +56,10 @@ namespace SFXChallenger.Champions
         private readonly float _qAngle = 28 * (float) Math.PI / 180;
         private readonly float _wRedRadius = 200f;
         private MenuItem _eStacks;
+        private float _qDelay;
+        private float _realDelay;
+        private Obj_AI_Hero _qTarget;
         private MenuItem _rMinimap;
-        private float _wDelay;
-        private float _wStart;
-        private Obj_AI_Hero _wTarget;
 
         protected override ItemFlags ItemFlags
         {
@@ -222,23 +222,19 @@ namespace SFXChallenger.Champions
                     args.Process = Cards.Status != SelectStatus.Selecting && !Cards.ShouldWait;
                     if (args.Process)
                     {
-                        if (Cards.Has(CardColor.Gold) && W.IsReady() && Game.Time > _wStart)
+                        if (Cards.Has(CardColor.Gold))
                         {
-                            var delay = 0f;
+                            var dashDelay = 0f;
                             var pos = hero.ServerPosition;
                             if (hero.IsDashing())
                             {
                                 var dash = hero.GetDashInfo();
-                                delay = dash.EndTick / 1000f;
+                                dashDelay = dash.EndTick / 1000f;
                                 pos = dash.EndPos.To3D();
                             }
-                            _wStart = Game.Time + Player.AttackDelay + Game.Ping / 2000f + 2f;
-                            _wDelay = Math.Max(
-                                1.5f,
-                                Game.Time + Game.Ping / 2000f +
-                                pos.Distance(Player.Position) * 1.75f / Player.BasicAttack.MissileSpeed + delay +
-                                Player.AttackDelay);
-                            _wTarget = hero;
+                            _realDelay = ((pos.Distance(Player.Position) * 4f) / (Player.BasicAttack.MissileSpeed + Player.AttackDelay + dashDelay) * 250f);
+                            _qTarget = hero;
+                            
 
                             var target = TargetSelector.GetTarget(W, false);
                             if (target != null && !target.NetworkId.Equals(hero.NetworkId))
@@ -258,14 +254,11 @@ namespace SFXChallenger.Champions
                         {
                             var targets = TargetSelector.GetTargets(
                                 Orbwalking.GetRealAutoAttackRange(null) * 1.25f, DamageType.Magical);
-                            if (targets != null)
+                            var target = targets.FirstOrDefault(Orbwalking.InAutoAttackRange);
+                            if (target != null)
                             {
-                                var target = targets.FirstOrDefault(Orbwalking.InAutoAttackRange);
-                                if (target != null)
-                                {
-                                    Orbwalker.ForceTarget(target);
-                                    args.Process = false;
-                                }
+                                Orbwalker.ForceTarget(target);
+                                args.Process = false;
                             }
                         }
                     }
@@ -529,7 +522,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (!args.Sender.IsEnemy || !args.Sender.IsValid)
+                if (!args.Sender.IsEnemy)
                 {
                     return;
                 }
@@ -568,51 +561,50 @@ namespace SFXChallenger.Champions
             }
             if (q && Q.IsReady())
             {
-                var wTarget = _wTarget != null && _wTarget.IsValidTarget(Q.Range) && _wDelay >= Game.Time;
-                if (!wTarget)
-                {
-                    if (Cards.Has(CardColor.Gold))
-                    {
-                        return;
-                    }
-                    if ((Cards.Has() || HasEBuff()) &&
-                        GameObjects.EnemyHeroes.Any(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget()))
-                    {
-                        return;
-                    }
-                }
                 var target = TargetSelector.GetTarget(Q, false);
-                if (wTarget)
+                var goldCardTarget = (_qTarget != null && _qTarget.IsValidTarget(Q.Range));
+                var aDelay = (int)_realDelay;
+                if (Cards.Has(CardColor.Gold))
+                    {
+                        return;
+                    }
+                if ((target.Distance(Player) < 100))
                 {
-                    target = _wTarget;
+                    return;
+                }
+                if (!goldCardTarget && !Utils.IsStunned(target) && (Cards.Has() || HasEBuff())
+                    && GameObjects.EnemyHeroes.Any(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget()))
+                {
+                    return;
+                }
+                if (goldCardTarget)
+                {
+                    target = _qTarget;
+                //  Game.PrintChat(target.ChampionName + " is Gold card target");
                 }
                 if (target != null)
                 {
                     var cd = W.Instance.CooldownExpires - Game.Time;
-                    if ((Utils.IsStunned(target) || (!wTarget && (cd >= 2 || W.Level == 0))) &&
-                        target.Distance(Player) > Player.BoundingRadius)
+                    if ((cd >= 2 || W.Level == 0) || Utils.IsStunned(target))
                     {
-                        if (!wTarget)
+                        if (!goldCardTarget && !Utils.IsStunned(target))
                         {
                             var best = BestQPosition(
-                                target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("combo"));
+                                target,
+                                GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(),
+                                Q.GetHitChance("combo"));
                             if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
                             {
                                 Q.Cast(best.Item2);
-                                _wDelay = 0;
-                                _wTarget = null;
-                                _wStart = 0;
+                            //  Game.PrintChat("Casting Q on unstunned " + target.ChampionName);
                             }
                         }
                         else
                         {
-                            var pred = Q.GetPrediction(target);
-                            if (pred.Hitchance >= Q.GetHitChance("combo"))
-                            {
-                                Q.Cast(pred.CastPosition);
-                                _wDelay = 0;
-                                _wTarget = null;
-                                _wStart = 0;
+                            {       
+                                Utility.DelayAction.Add((aDelay), () => Q.Cast(_qTarget));
+                            //  Console.WriteLine("delay is " + aDelay);
+                            //  Game.PrintChat("Casting Q on stunned " + target.ChampionName);
                             }
                         }
                     }
@@ -639,50 +631,15 @@ namespace SFXChallenger.Champions
             }
             if (ManaManager.Check("harass") && q && Q.IsReady())
             {
-                var wTarget = _wTarget != null && _wTarget.IsValidTarget(Q.Range) && _wDelay >= Game.Time;
-                if (!wTarget)
-                {
-                    if (Cards.Has(CardColor.Gold))
-                    {
-                        return;
-                    }
-                    if ((Cards.Has() || HasEBuff()) &&
-                        GameObjects.EnemyHeroes.Any(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget()))
-                    {
-                        return;
-                    }
-                }
                 var target = TargetSelector.GetTarget(Q, false);
-                if (wTarget)
-                {
-                    target = _wTarget;
-                }
                 if (target != null)
                 {
-                    if ((!wTarget || Utils.IsStunned(target)) && target.Distance(Player) > Player.BoundingRadius)
                     {
-                        if (!wTarget)
+                        var best = BestQPosition(
+                            target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("harass"));
+                        if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
                         {
-                            var best = BestQPosition(
-                                target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("harass"));
-                            if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
-                            {
-                                Q.Cast(best.Item2);
-                                _wDelay = 0;
-                                _wTarget = null;
-                                _wStart = 0;
-                            }
-                        }
-                        else
-                        {
-                            var pred = Q.GetPrediction(target);
-                            if (pred.Hitchance >= Q.GetHitChance("harass"))
-                            {
-                                Q.Cast(pred.CastPosition);
-                                _wDelay = 0;
-                                _wTarget = null;
-                                _wStart = 0;
-                            }
+                            Q.Cast(best.Item2);
                         }
                     }
                 }
@@ -842,15 +799,15 @@ namespace SFXChallenger.Champions
             }
             try
             {
-                if (IsWKillable(target, 2))
+                if (IsWKillable(target, 2) && !target.IsDead)
                 {
                     cards.Add(CardColor.Gold);
                 }
-                if (IsWKillable(target))
+                if (IsWKillable(target) && !target.IsDead)
                 {
                     cards.Add(CardColor.Blue);
                 }
-                if (IsWKillable(target, 1))
+                if (IsWKillable(target, 1) && !target.IsDead)
                 {
                     cards.Add(CardColor.Red);
                 }
@@ -949,6 +906,14 @@ namespace SFXChallenger.Champions
                             cards.Add(CardColor.Red);
                         }
                     }
+
+
+
+                    var blueMana1 = (ObjectManager.Player.Mana < (W.Instance.ManaCost + Q.Instance.ManaCost) && 
+                                     ObjectManager.Player.Mana > (Q.Instance.ManaCost - 10));
+                    var blueMana2 = (ObjectManager.Player.Mana < (W.Instance.ManaCost + Q.Instance.ManaCost) && 
+                                      ObjectManager.Player.Mana > (Q.Instance.ManaCost - 20));
+                    var blueMana3 = (ObjectManager.Player.Mana < (W.Instance.ManaCost + Q.Instance.ManaCost));
                     if (!cards.Any())
                     {
                         if (ObjectManager.Player.HealthPercent <=
@@ -956,7 +921,7 @@ namespace SFXChallenger.Champions
                         {
                             cards.Add(CardColor.Gold);
                         }
-                        else if (!ManaManager.Check("combo-blue"))
+                        else if ((!ManaManager.Check("combo-blue") || (W.Level == 1 && blueMana1) || W.Level == 2 && blueMana2) || W.Level > 2 && blueMana3)
                         {
                             cards.Add(CardColor.Blue);
                         }
@@ -1033,7 +998,7 @@ namespace SFXChallenger.Champions
         {
             public static List<CardColor> ShouldSelect;
             public static CardColor LastCard;
-            private static int _lastWSent;
+            private static int lastWSent;
 
             static Cards()
             {
@@ -1047,7 +1012,7 @@ namespace SFXChallenger.Champions
 
             public static bool ShouldWait
             {
-                get { return LeagueSharp.Common.Utils.TickCount - _lastWSent <= Delay; }
+                get { return LeagueSharp.Common.Utils.TickCount - lastWSent <= Delay; }
             }
 
             public static int Delay { get; set; }
@@ -1092,7 +1057,7 @@ namespace SFXChallenger.Champions
                             {
                                 if (ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, ObjectManager.Player))
                                 {
-                                    _lastWSent = LeagueSharp.Common.Utils.TickCount;
+                                    lastWSent = LeagueSharp.Common.Utils.TickCount;
                                 }
                             }
                         }
