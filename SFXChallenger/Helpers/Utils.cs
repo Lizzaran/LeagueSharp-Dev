@@ -87,11 +87,10 @@ namespace SFXChallenger.Helpers
                 {
                     var predTarget = Prediction.GetPrediction(
                         target,
-                        delay + (sender.ServerPosition.Distance(target.ServerPosition) * 1.1f / (speed)) + additional);
-                    return delay +
-                           (sender.ServerPosition.Distance(predTarget.UnitPosition) * 1.1f / (speed) + additional);
+                        delay + (sender.ServerPosition.Distance(target.ServerPosition) * 1.1f / speed) + additional);
+                    return delay + (sender.ServerPosition.Distance(predTarget.UnitPosition) * 1.1f / speed + additional);
                 }
-                return delay + (sender.ServerPosition.Distance(target.ServerPosition) / (speed) + additional);
+                return delay + (sender.ServerPosition.Distance(target.ServerPosition) / speed + additional);
             }
             catch (Exception ex)
             {
