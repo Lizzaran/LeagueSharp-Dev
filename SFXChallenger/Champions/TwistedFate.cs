@@ -592,7 +592,7 @@ namespace SFXChallenger.Champions
                 var goldCardTarget = wTarget != null && wTarget.IsValidTarget(Q.Range);
                 var aDelay = (int)qDelay;
 
-                if ((!goldCardTarget && Utils.IsStunned(target)) && (Cards.Has() || HasEBuff())
+                if (!goldCardTarget && Utils.IsStunned(target) && (Cards.Has() || HasEBuff())
                     && GameObjects.EnemyHeroes.Any(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget()))
                 {
                     return;
