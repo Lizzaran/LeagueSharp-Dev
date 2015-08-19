@@ -513,7 +513,7 @@ namespace SFXVarus.Wrappers
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
-            return null;
+            return new List<Obj_AI_Hero>();
         }
 
         public static void SetMode(TargetSelectorModeType mode)

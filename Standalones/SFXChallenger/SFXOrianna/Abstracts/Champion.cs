@@ -303,18 +303,12 @@ namespace SFXOrianna.Abstracts
                 SummonerManager.AddToMenu(
                     SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MS"), SFXMenu.Name + ".summoners")));
 
-                var miscMenu =
-                    SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), SFXMenu.Name + ".miscellaneous"));
-                SpellQueueManager.AddToMenu(
-                    miscMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MSQ"), miscMenu.Name + ".spell-queue")));
-                OverkillManager.AddToMenu(
-                    miscMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MO"), miscMenu.Name + ".overkill")));
-                DebugMenu.AddToMenu(miscMenu, Spells);
-
                 LanguageMenu.AddToMenu(
                     SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_Settings"), SFXMenu.Name + ".settings")));
 
                 InfoMenu.AddToMenu(SFXMenu.AddSubMenu(new Menu(Global.Lang.Get("F_Info"), SFXMenu.Name + ".info")));
+
+                DebugMenu.AddToMenu(SFXMenu, Spells);
 
                 TickMenu.AddToMenu(SFXMenu);
 

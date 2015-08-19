@@ -36,8 +36,8 @@ namespace SFXVarus.Managers
 {
     internal class HeroListManager
     {
-        private static readonly Dictionary<string, Tuple<Menu, bool>> Menues =
-            new Dictionary<string, Tuple<Menu, bool>>();
+        private static readonly Dictionary<string, Tuple<Menu, bool, bool, bool>> Menues =
+            new Dictionary<string, Tuple<Menu, bool, bool, bool>>();
 
         public static void AddToMenu(Menu menu,
             string uniqueId,
@@ -77,7 +77,7 @@ namespace SFXVarus.Managers
                     new MenuItem(menu.Name + ".hero-list-" + uniqueId + ".enabled", Global.Lang.Get("G_Enabled"))
                         .SetValue(true));
 
-                Menues[uniqueId] = new Tuple<Menu, bool>(menu, whitelist);
+                Menues[uniqueId] = new Tuple<Menu, bool, bool, bool>(menu, whitelist, ally, enemy);
             }
             catch (Exception ex)
             {
@@ -89,7 +89,7 @@ namespace SFXVarus.Managers
         {
             try
             {
-                Tuple<Menu, bool> tuple;
+                Tuple<Menu, bool, bool, bool> tuple;
                 if (Menues.TryGetValue(uniqueId, out tuple))
                 {
                     return tuple.Item1.Item(tuple.Item1.Name + ".hero-list-" + uniqueId + ".enabled").GetValue<bool>();
@@ -103,6 +103,39 @@ namespace SFXVarus.Managers
             return false;
         }
 
+        public static List<Obj_AI_Hero> GetEnabledHeroes(string uniqueId)
+        {
+            var heroes = new List<Obj_AI_Hero>();
+            try
+            {
+                Tuple<Menu, bool, bool, bool> tuple;
+                if (Menues.TryGetValue(uniqueId, out tuple))
+                {
+                    if (tuple.Item1.Item(tuple.Item1.Name + ".hero-list-" + uniqueId + ".enabled").GetValue<bool>())
+                    {
+                        heroes.AddRange(
+                            from hero in
+                                GameObjects.Heroes.Where(h => (tuple.Item3 && h.IsAlly) || (tuple.Item4 && h.IsEnemy))
+                            let item =
+                                tuple.Item1.Item(
+                                    tuple.Item1.Name + ".hero-list-" + uniqueId + hero.ChampionName.ToLower())
+                            where item != null && item.GetValue<bool>()
+                            select hero);
+                    }
+                }
+                else
+                {
+                    throw new KeyNotFoundException(
+                        string.Format("HeroListManager: UniqueID \"{0}\" not found.", uniqueId));
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return heroes;
+        }
+
         public static bool Check(string uniqueId, Obj_AI_Hero hero)
         {
             return Check(uniqueId, hero.ChampionName);
@@ -112,7 +145,7 @@ namespace SFXVarus.Managers
         {
             try
             {
-                Tuple<Menu, bool> tuple;
+                Tuple<Menu, bool, bool, bool> tuple;
                 if (Menues.TryGetValue(uniqueId, out tuple))
                 {
                     if (tuple.Item1.Item(tuple.Item1.Name + ".hero-list-" + uniqueId + ".enabled").GetValue<bool>())

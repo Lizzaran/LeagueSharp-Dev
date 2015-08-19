@@ -873,7 +873,7 @@ namespace SFXKalista.Champions
             public static BuffInstance GetBuff(Obj_AI_Base target)
             {
                 return
-                    target.Buffs.Find(
+                    target.Buffs.FirstOrDefault(
                         b =>
                             b.Caster.IsMe && b.IsValid &&
                             b.DisplayName.Equals("KalistaExpungeMarker", StringComparison.OrdinalIgnoreCase));

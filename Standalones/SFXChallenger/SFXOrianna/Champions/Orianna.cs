@@ -74,6 +74,8 @@ namespace SFXOrianna.Champions
             InitiatorManager.OnAllyInitiator += OnAllyInitiator;
             Spellbook.OnCastSpell += OnSpellbookCastSpell;
             Ball.OnPositionChange += OnBallPositionChange;
+            AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
+            CustomEvents.Unit.OnDash += OnUnitDash;
             Drawing.OnDraw += OnDrawingDraw;
         }
 
@@ -84,6 +86,8 @@ namespace SFXOrianna.Champions
             InitiatorManager.OnAllyInitiator -= OnAllyInitiator;
             Spellbook.OnCastSpell -= OnSpellbookCastSpell;
             Ball.OnPositionChange -= OnBallPositionChange;
+            AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
+            CustomEvents.Unit.OnDash -= OnUnitDash;
             Drawing.OnDraw -= OnDrawingDraw;
         }
 
@@ -135,6 +139,9 @@ namespace SFXOrianna.Champions
             initiatorMenu.AddItem(new MenuItem(initiatorMenu.Name + ".use-e", Global.Lang.Get("G_UseE")).SetValue(true));
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
+            HeroListManager.AddToMenu(
+                miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "q-gapcloser")),
+                "q-gapcloser", false, false, true, false);
             ManaManager.AddToMenu(
                 miscMenu, "e-self", ManaCheckType.Minimum, ManaValueType.Percent, "E " + Global.Lang.Get("G_Self"));
             ManaManager.AddToMenu(
@@ -180,6 +187,64 @@ namespace SFXOrianna.Champions
             }
         }
 
+        private void OnUnitDash(Obj_AI_Base sender, Dash.DashItem args)
+        {
+            try
+            {
+                var hero = sender as Obj_AI_Hero;
+                if (!sender.IsEnemy || hero == null)
+                {
+                    return;
+                }
+                var endTick = Game.Time - Game.Ping / 2000f + (args.EndPos.Distance(args.StartPos) / args.Speed);
+                if (HeroListManager.Check("q-gapcloser", hero) && Ball.Position.Distance(args.EndPos.To3D()) <= Q.Range &&
+                    Q.IsReady())
+                {
+                    var target = TargetSelector.GetTarget(Q.Range * 0.85f, Q.DamageType);
+                    if (target == null || sender.NetworkId.Equals(target.NetworkId))
+                    {
+                        var delay = (int) (endTick - Game.Time - Q.Delay - 0.1f);
+                        if (delay > 0)
+                        {
+                            Utility.DelayAction.Add(delay * 1000, () => Q.Cast(args.EndPos));
+                        }
+                        else
+                        {
+                            Q.Cast(args.EndPos);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void OnEnemyGapcloser(ActiveGapcloser args)
+        {
+            try
+            {
+                if (!args.Sender.IsEnemy)
+                {
+                    return;
+                }
+                if (HeroListManager.Check("q-gapcloser", args.Sender) && Ball.Position.Distance(args.End) <= Q.Range &&
+                    Q.IsReady())
+                {
+                    var target = TargetSelector.GetTarget(Q.Range * 0.85f, Q.DamageType);
+                    if (target == null || args.Sender.NetworkId.Equals(target.NetworkId))
+                    {
+                        Q.Cast(args.End);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
         private void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
         {
             try
@@ -188,7 +253,7 @@ namespace SFXOrianna.Champions
                 {
                     if (Ball.IsMoving || Menu.Item(Menu.Name + ".miscellaneous.block-r").GetValue<bool>())
                     {
-                        args.Process = GameObjects.EnemyHeroes.Any(e => e.Distance(Ball.Position) < R.Width * 2);
+                        args.Process = GetHits(R).Item1 > 0;
                     }
                 }
             }
@@ -303,12 +368,12 @@ namespace SFXOrianna.Champions
                                     Type = R.Type,
                                     Unit = target
                                 });
-                        if (pred.Hitchance >= R.GetHitChance("combo"))
+                        if (pred.Hitchance >= HitChance.High)
                         {
                             R.UpdateSourcePosition(flashPos, flashPos);
                             var hits = GameObjects.EnemyHeroes.Where(x => R.WillHit(x, pred.CastPosition)).ToList();
                             if (UltimateManager.Check(
-                                min, hits,
+                                "combo", min, hits,
                                 hero =>
                                     CalcComboDamage(
                                         hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
@@ -323,7 +388,7 @@ namespace SFXOrianna.Champions
                             else if (Menu.Item(Menu.Name + ".ultimate.flash.duel").GetValue<bool>())
                             {
                                 if (UltimateManager.Check(
-                                    1, hits,
+                                    "combo", 1, hits,
                                     hero =>
                                         CalcComboDamage(
                                             hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
@@ -395,7 +460,7 @@ namespace SFXOrianna.Champions
                             Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value,
                             Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                             Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
-                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady()))
+                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), "auto"))
                     {
                         if (Menu.Item(Menu.Name + ".ultimate.auto.duel").GetValue<bool>())
                         {
@@ -677,12 +742,12 @@ namespace SFXOrianna.Champions
             }
         }
 
-        private bool RLogic(int min, bool q, bool w, bool e)
+        private bool RLogic(int min, bool q, bool w, bool e, string mode = "combo")
         {
             try
             {
                 var hits = GetHits(R);
-                if (UltimateManager.Check(min, hits.Item2, hero => CalcComboDamage(hero, q, w, e, true)))
+                if (UltimateManager.Check(mode, min, hits.Item2, hero => CalcComboDamage(hero, q, w, e, true)))
                 {
                     R.Cast(Player.Position);
                     return true;

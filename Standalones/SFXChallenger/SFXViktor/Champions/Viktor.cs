@@ -247,7 +247,7 @@ namespace SFXViktor.Champions
                         !RLogic(
                             target, Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value,
                             Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
-                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady()))
+                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), false, "auto"))
                     {
                         if (Menu.Item(Menu.Name + ".ultimate.auto.duel").GetValue<bool>())
                         {
@@ -281,6 +281,7 @@ namespace SFXViktor.Champions
                         Casting.SkillShot(target, W, W.GetHitChance("combo"));
                     }
                 }
+
                 if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit ||
                     Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
                 {
@@ -315,6 +316,8 @@ namespace SFXViktor.Champions
                         }
                     }
                 }
+
+                Orbwalking.PreventStuttering(HasQBuff());
             }
             catch (Exception ex)
             {
@@ -734,7 +737,7 @@ namespace SFXViktor.Champions
             return false;
         }
 
-        private bool RLogic(Obj_AI_Hero target, int min, bool q, bool e, bool simulated = false)
+        private bool RLogic(Obj_AI_Hero target, int min, bool q, bool e, bool simulated = false, string mode = "combo")
         {
             try
             {
@@ -744,7 +747,7 @@ namespace SFXViktor.Champions
                 }
                 var pred = CPrediction.Circle(R, target, HitChance.High, false);
                 if (pred.TotalHits > 0 &&
-                    UltimateManager.Check(min, pred.Hits, hero => CalcComboDamage(hero, q, e, true)))
+                    UltimateManager.Check(mode, min, pred.Hits, hero => CalcComboDamage(hero, q, e, true)))
                 {
                     if (!simulated)
                     {

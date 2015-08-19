@@ -112,6 +112,7 @@ namespace SFXViktor.Wrappers
         private static int _minAttackDelay;
         private static int _maxAttackDelay;
         private static int _currentAttackDelay;
+        private static bool _preventStuttering;
 
         static Orbwalking()
         {
@@ -223,9 +224,22 @@ namespace SFXViktor.Wrappers
             var result = Player.AttackRange + Player.BoundingRadius;
             if (target.IsValidTarget())
             {
-                return result + target.BoundingRadius;
+                result += target.BoundingRadius;
+            }
+            if (_preventStuttering)
+            {
+                var hero = target as Obj_AI_Hero;
+                if (hero != null && !hero.IsFacing(Player))
+                {
+                    result -= 10;
+                }
             }
             return result;
+        }
+
+        public static void PreventStuttering(bool val)
+        {
+            _preventStuttering = val;
         }
 
         /// <summary>

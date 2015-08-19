@@ -277,7 +277,7 @@ namespace SFXCassiopeia.Champions
                             var hits =
                                 GameObjects.EnemyHeroes.Where(enemy => R.WillHit(enemy, pred.CastPosition)).ToList();
                             if (UltimateManager.Check(
-                                min, hits,
+                                "combo", min, hits,
                                 hero =>
                                     CalcComboDamage(
                                         hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
@@ -295,7 +295,7 @@ namespace SFXCassiopeia.Champions
                             else if (Menu.Item(Menu.Name + ".ultimate.flash.duel").GetValue<bool>())
                             {
                                 if (UltimateManager.Check(
-                                    1, hits,
+                                    "combo", 1, hits,
                                     hero =>
                                         CalcComboDamage(
                                             hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
@@ -358,7 +358,7 @@ namespace SFXCassiopeia.Champions
                             Menu.Item(Menu.Name + ".ultimate.auto.min").GetValue<Slider>().Value,
                             Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                             Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
-                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady()))
+                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), "auto"))
                     {
                         if (Menu.Item(Menu.Name + ".ultimate.auto.duel").GetValue<bool>())
                         {
@@ -449,16 +449,20 @@ namespace SFXCassiopeia.Champions
                 var wCasted = false;
                 if (HeroListManager.Check("w-gapcloser", hero) && Player.Distance(args.EndPos) <= W.Range && W.IsReady())
                 {
-                    var delay = (int) (endTick - Game.Time - W.Delay - 0.1f);
-                    if (delay > 0)
+                    var target = TargetSelector.GetTarget(W.Range * 0.85f, W.DamageType);
+                    if (target == null || sender.NetworkId.Equals(target.NetworkId))
                     {
-                        Utility.DelayAction.Add(delay * 1000, () => W.Cast(args.EndPos));
+                        var delay = (int) (endTick - Game.Time - W.Delay - 0.1f);
+                        if (delay > 0)
+                        {
+                            Utility.DelayAction.Add(delay * 1000, () => W.Cast(args.EndPos));
+                        }
+                        else
+                        {
+                            W.Cast(args.EndPos);
+                        }
+                        wCasted = true;
                     }
-                    else
-                    {
-                        W.Cast(args.EndPos);
-                    }
-                    wCasted = true;
                 }
 
                 if (!wCasted && HeroListManager.Check("q-gapcloser", hero) && Player.Distance(args.EndPos) <= Q.Range &&
@@ -516,8 +520,12 @@ namespace SFXCassiopeia.Champions
                 if (HeroListManager.Check("w-gapcloser", args.Sender) && Player.Distance(args.End) <= W.Range &&
                     W.IsReady())
                 {
-                    W.Cast(args.End);
-                    wCasted = true;
+                    var target = TargetSelector.GetTarget(W.Range * 0.85f, W.DamageType);
+                    if (target == null || args.Sender.NetworkId.Equals(target.NetworkId))
+                    {
+                        W.Cast(args.End);
+                        wCasted = true;
+                    }
                 }
 
                 if (!wCasted && HeroListManager.Check("q-gapcloser", args.Sender) &&
@@ -644,7 +652,7 @@ namespace SFXCassiopeia.Champions
             }
         }
 
-        private bool RLogic(HitChance hitChance, int min, bool q, bool w, bool e)
+        private bool RLogic(HitChance hitChance, int min, bool q, bool w, bool e, string mode = "combo")
         {
             try
             {
@@ -654,7 +662,7 @@ namespace SFXCassiopeia.Champions
                     if (pred.Hitchance >= hitChance)
                     {
                         var hits = GameObjects.EnemyHeroes.Where(enemy => R.WillHit(enemy, pred.CastPosition)).ToList();
-                        if (UltimateManager.Check(min, hits, hero => CalcComboDamage(hero, q, w, e, true)))
+                        if (UltimateManager.Check(mode, min, hits, hero => CalcComboDamage(hero, q, w, e, true)))
                         {
                             R.Cast(pred.CastPosition);
                             return true;

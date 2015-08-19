@@ -87,11 +87,10 @@ namespace SFXViktor.Helpers
                 {
                     var predTarget = Prediction.GetPrediction(
                         target,
-                        delay + (sender.ServerPosition.Distance(target.ServerPosition) * 1.1f / (speed)) + additional);
-                    return delay +
-                           (sender.ServerPosition.Distance(predTarget.UnitPosition) * 1.1f / (speed) + additional);
+                        delay + (sender.ServerPosition.Distance(target.ServerPosition) * 1.1f / speed) + additional);
+                    return delay + (sender.ServerPosition.Distance(predTarget.UnitPosition) * 1.1f / speed + additional);
                 }
-                return delay + (sender.ServerPosition.Distance(target.ServerPosition) / (speed) + additional);
+                return delay + (sender.ServerPosition.Distance(target.ServerPosition) / speed + additional);
             }
             catch (Exception ex)
             {
@@ -135,10 +134,9 @@ namespace SFXViktor.Helpers
 
         public static bool IsStunned(Obj_AI_Base t)
         {
-            return t.HasBuffOfType(BuffType.Charm) || t.HasBuffOfType(BuffType.Snare) ||
+            return t.HasBuffOfType(BuffType.Stun) || t.HasBuffOfType(BuffType.Charm) || t.HasBuffOfType(BuffType.Snare) ||
                    t.HasBuffOfType(BuffType.Knockup) || t.HasBuffOfType(BuffType.Polymorph) ||
-                   t.HasBuffOfType(BuffType.Fear) || t.HasBuffOfType(BuffType.Taunt) || t.HasBuffOfType(BuffType.Stun) ||
-                   t.IsStunned;
+                   t.HasBuffOfType(BuffType.Fear) || t.HasBuffOfType(BuffType.Taunt) || t.IsStunned;
         }
 
         public static bool IsSlowed(Obj_AI_Base t)

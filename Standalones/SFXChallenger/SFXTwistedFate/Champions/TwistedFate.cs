@@ -53,12 +53,13 @@ namespace SFXTwistedFate.Champions
 {
     internal class TwistedFate : Champion
     {
-        private readonly float _qAngle = 28 * (float) Math.PI / 180;
-        private readonly float _wRedRadius = 200f;
+        private const float QAngle = 28 * (float) Math.PI / 180;
+        private const float WRedRadius = 200f;
         private MenuItem _eStacks;
-        private float _qDelay;
-        private Obj_AI_Hero _qTarget;
+        private int _qDelay;
         private MenuItem _rMinimap;
+        private Obj_AI_Hero _wTarget;
+        private float _wTargetEndTime;
 
         protected override ItemFlags ItemFlags
         {
@@ -111,8 +112,6 @@ namespace SFXTwistedFate.Champions
                 new MenuItem(
                     comboMenu.Name + ".red-min", "W " + Global.Lang.Get("TF_Red") + " " + Global.Lang.Get("G_Min"))
                     .SetValue(new Slider(3, 1, 5)));
-            comboMenu.AddItem(
-                new MenuItem(comboMenu.Name + ".q-stunned", "Q " + Global.Lang.Get("G_OnlyStunned")).SetValue(false));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
 
@@ -129,8 +128,6 @@ namespace SFXTwistedFate.Champions
                     new StringList(Global.Lang.GetList("TF_Cards"))));
             harassMenu.AddItem(
                 new MenuItem(harassMenu.Name + ".w-auto", Global.Lang.Get("TF_AutoSelect")).SetValue(true));
-            harassMenu.AddItem(
-                new MenuItem(harassMenu.Name + ".q-stunned", "Q " + Global.Lang.Get("G_OnlyStunned")).SetValue(false));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
 
@@ -152,14 +149,6 @@ namespace SFXTwistedFate.Champions
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
             miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".q-range", "Q " + Global.Lang.Get("G_Range")).SetValue(
-                    new Slider((int) Q.Range, 950, 1450))).ValueChanged +=
-                delegate(object sender, OnValueChangeEventArgs args) { Q.Range = args.GetNewValue<Slider>().Value; };
-            miscMenu.AddItem(
-                new MenuItem(
-                    miscMenu.Name + ".q-min-range", "Q " + Global.Lang.Get("G_Min") + " " + Global.Lang.Get("G_Range"))
-                    .SetValue(new Slider(800, 600, 1000)));
-            miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".w-range", "W " + Global.Lang.Get("G_Range")).SetValue(
                     new Slider((int) W.Range, 500, 1000))).ValueChanged +=
                 delegate(object sender, OnValueChangeEventArgs args) { W.Range = args.GetNewValue<Slider>().Value; };
@@ -172,9 +161,6 @@ namespace SFXTwistedFate.Champions
                     new StringList(Global.Lang.GetList("TF_Modes"))));
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r-card", Global.Lang.Get("TF_RCard")).SetValue(true));
 
-            HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Stunned"), miscMenu.Name + "q-stunned")),
-                "q-stunned", false, false, true, false);
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "q-gapcloser")),
                 "q-gapcloser", false, false, true, false);
@@ -190,14 +176,23 @@ namespace SFXTwistedFate.Champions
                 new MenuItem(manualMenu.Name + ".gold", Global.Lang.Get("G_Hotkey") + " " + Global.Lang.Get("TF_Gold"))
                     .SetValue(new KeyBind('I', KeyBindType.Press)));
 
-            Q.Range = Menu.Item(Menu.Name + ".miscellaneous.q-range").GetValue<Slider>().Value;
             W.Range = Menu.Item(Menu.Name + ".miscellaneous.w-range").GetValue<Slider>().Value;
             Cards.Delay = Menu.Item(Menu.Name + ".miscellaneous.w-delay").GetValue<Slider>().Value;
 
             IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
             IndicatorManager.Add(Q);
-            IndicatorManager.Add(W);
-            IndicatorManager.Add("E", hero => E.Level > 0 && HasEBuff() ? E.GetDamage(hero) : 0);
+            IndicatorManager.Add(
+                "W",
+                hero =>
+                    (W.IsReady() || Cards.Status == SelectStatus.Selecting || Cards.Status == SelectStatus.Ready) &&
+                    Cards.Status != SelectStatus.Selected
+                        ? W.GetDamage(hero)
+                        : (Cards.Status == SelectStatus.Selected
+                            ? (Cards.Has(CardColor.Blue)
+                                ? W.GetDamage(hero)
+                                : (Cards.Has(CardColor.Red) ? W.GetDamage(hero, 1) : W.GetDamage(hero, 2)))
+                            : 0));
+            IndicatorManager.Add("E", hero => E.Level > 0 && GetEStacks() >= 2 ? E.GetDamage(hero) : 0);
             IndicatorManager.Finale();
 
             _eStacks = DrawingManager.Add("E " + Global.Lang.Get("G_Stacks"), true);
@@ -229,15 +224,40 @@ namespace SFXTwistedFate.Champions
                     {
                         if (Cards.Has(CardColor.Gold))
                         {
-                            _qDelay = Game.Time + W.Delay / 2f +
-                                      hero.Distance(Player) * 1.5f / Player.BasicAttack.MissileSpeed;
-                            _qTarget = hero;
+                            _qDelay =
+                                (int)
+                                    (((hero.ServerPosition.Distance(Player.ServerPosition) *
+                                       (hero.IsFacing(Player) ? 0.9f : 1.1f) / Orbwalking.GetMyProjectileSpeed() +
+                                       ObjectManager.Player.AttackCastDelay) * 1000f + Game.Ping / 2f) * 0.8f);
+                            _wTarget = hero;
+                            _wTargetEndTime = Game.Time + (Game.Ping / 2000f) + 3f;
 
                             var target = TargetSelector.GetTarget(W, false);
                             if (target != null && !target.NetworkId.Equals(hero.NetworkId))
                             {
                                 Orbwalker.ForceTarget(target);
                                 args.Process = false;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if (Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.Flee &&
+                        Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.None)
+                    {
+                        if (Cards.Has(CardColor.Gold) || Cards.Has(CardColor.Blue))
+                        {
+                            var targets = TargetSelector.GetTargets(
+                                Orbwalking.GetRealAutoAttackRange(null) * 1.25f, DamageType.Magical);
+                            if (targets != null)
+                            {
+                                var target = targets.FirstOrDefault(Orbwalking.InAutoAttackRange);
+                                if (target != null)
+                                {
+                                    Orbwalker.ForceTarget(target);
+                                    args.Process = false;
+                                }
                             }
                         }
                     }
@@ -284,7 +304,6 @@ namespace SFXTwistedFate.Champions
                         if (target != null)
                         {
                             Orbwalker.ForceTarget(target);
-                            Player.IssueOrder(GameObjectOrder.AttackUnit, target);
                         }
                     }
                 }
@@ -307,21 +326,6 @@ namespace SFXTwistedFate.Champions
                         Cards.Select(CardColor.Gold);
                     }
                 }
-                if (Q.IsReady())
-                {
-                    var target =
-                        GameObjects.Heroes.FirstOrDefault(
-                            t => Q.IsInRange(t) && HeroListManager.Check("q-stunned", t) && Utils.IsStunned(t));
-                    if (target != null)
-                    {
-                        var best = BestQPosition(
-                            target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("harass"));
-                        if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
-                        {
-                            Q.Cast(best.Item2);
-                        }
-                    }
-                }
             }
             catch (Exception ex)
             {
@@ -342,7 +346,7 @@ namespace SFXTwistedFate.Champions
                 foreach (var h in enemies)
                 {
                     var ePred = Q.GetPrediction(h);
-                    if (ePred.Hitchance >= (hitChance - 1))
+                    if (ePred.Hitchance >= hitChance)
                     {
                         circle.Add(Player.Position.Extend(ePred.UnitPosition, Player.BoundingRadius).To2D());
                         enemyPositions.Add(new Tuple<Obj_AI_Base, Vector3>(h, ePred.UnitPosition));
@@ -383,10 +387,10 @@ namespace SFXTwistedFate.Champions
                         Player.Position, Player.Position.Extend(Player.Position + direction.To3D(), Q.Range), Q.Width);
                     var rect2 = new Geometry.Polygon.Rectangle(
                         Player.Position,
-                        Player.Position.Extend(Player.Position + direction.Rotated(_qAngle).To3D(), Q.Range), Q.Width);
+                        Player.Position.Extend(Player.Position + direction.Rotated(QAngle).To3D(), Q.Range), Q.Width);
                     var rect3 = new Geometry.Polygon.Rectangle(
                         Player.Position,
-                        Player.Position.Extend(Player.Position + direction.Rotated(-_qAngle).To3D(), Q.Range), Q.Width);
+                        Player.Position.Extend(Player.Position + direction.Rotated(-QAngle).To3D(), Q.Range), Q.Width);
                     foreach (var enemy in enemyPositions)
                     {
                         var bounding = new Geometry.Polygon.Circle(enemy.Item2, enemy.Item1.BoundingRadius * 0.85f);
@@ -427,7 +431,7 @@ namespace SFXTwistedFate.Champions
                     var pred = W.GetPrediction(target);
                     if (pred.Hitchance >= HitChance.Medium)
                     {
-                        var circle = new Geometry.Polygon.Circle(pred.UnitPosition, target.BoundingRadius + _wRedRadius);
+                        var circle = new Geometry.Polygon.Circle(pred.UnitPosition, target.BoundingRadius + WRedRadius);
                         return 1 + (from t in targets.Where(x => x.NetworkId != target.NetworkId)
                             let pred2 = W.GetPrediction(t)
                             where pred2.Hitchance >= HitChance.Medium
@@ -500,7 +504,11 @@ namespace SFXTwistedFate.Champions
                 }
                 if (HeroListManager.Check("q-gapcloser", hero) && Player.Distance(args.EndPos) <= Q.Range && Q.IsReady())
                 {
-                    Q.Cast(args.EndPos);
+                    var target = TargetSelector.GetTarget(Q.Range * 0.85f, Q.DamageType);
+                    if (target == null || sender.NetworkId.Equals(target.NetworkId))
+                    {
+                        Q.Cast(args.EndPos);
+                    }
                 }
             }
             catch (Exception ex)
@@ -520,7 +528,11 @@ namespace SFXTwistedFate.Champions
                 if (HeroListManager.Check("q-gapcloser", args.Sender) && args.End.Distance(Player.Position) < Q.Range &&
                     Q.IsReady())
                 {
-                    Q.Cast(args.End);
+                    var target = TargetSelector.GetTarget(Q.Range * 0.85f, Q.DamageType);
+                    if (target == null || args.Sender.NetworkId.Equals(target.NetworkId))
+                    {
+                        Q.Cast(args.End);
+                    }
                 }
             }
             catch (Exception ex)
@@ -548,7 +560,51 @@ namespace SFXTwistedFate.Champions
             }
             if (q && Q.IsReady())
             {
-                QLogic("combo");
+                var target = TargetSelector.GetTarget(Q);
+                var goldCardTarget = _wTarget != null && _wTarget.IsValidTarget(Q.Range) && Game.Time <= _wTargetEndTime;
+                if (goldCardTarget)
+                {
+                    target = _wTarget;
+                }
+                if (target == null || target.Distance(Player) < Player.BoundingRadius)
+                {
+                    return;
+                }
+                if (!goldCardTarget && (Cards.Has() || HasEBuff()) &&
+                    GameObjects.EnemyHeroes.Any(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget()))
+                {
+                    return;
+                }
+                var cd = W.Instance.CooldownExpires - Game.Time;
+                if (goldCardTarget)
+                {
+                    Utility.DelayAction.Add(
+                        (Utils.IsStunned(target) ? 1 : _qDelay), delegate
+                        {
+                            if (Q.IsReady())
+                            {
+                                var best = BestQPosition(
+                                    target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(),
+                                    (Q.GetHitChance("combo") - 1));
+                                if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
+                                {
+                                    Q.Cast(best.Item2);
+                                    _wTarget = null;
+                                    _qDelay = 0;
+                                    _wTargetEndTime = 0;
+                                }
+                            }
+                        });
+                }
+                else if (Utils.IsStunned(target) || cd >= 2 || W.Level == 0)
+                {
+                    var best = BestQPosition(
+                        target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("combo"));
+                    if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
+                    {
+                        Q.Cast(best.Item2);
+                    }
+                }
             }
         }
 
@@ -571,54 +627,18 @@ namespace SFXTwistedFate.Champions
             }
             if (ManaManager.Check("harass") && q && Q.IsReady())
             {
-                QLogic("harass");
-            }
-        }
-
-        private void QLogic(string mode)
-        {
-            try
-            {
-                var hitChance = Q.GetHitChance(mode);
-                if (Cards.Has(CardColor.Gold))
-                {
-                    return;
-                }
-                if ((Cards.Has() || HasEBuff()) &&
-                    GameObjects.EnemyHeroes.Any(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget()))
-                {
-                    return;
-                }
                 var target = TargetSelector.GetTarget(Q, false);
-                if (_qTarget != null && _qTarget.IsValidTarget(Q.Range) && _qDelay + 0.5f > Game.Time)
+                if (target != null)
                 {
-                    target = _qTarget;
-                }
-                if (Menu.Item(Menu.Name + "." + mode + ".q-stunned").GetValue<bool>() && !Utils.IsStunned(target))
-                {
-                    return;
-                }
-                if (target != null &&
-                    (_qTarget == null || !target.NetworkId.Equals(_qTarget.NetworkId) ||
-                     (Game.Time > _qDelay || Utils.IsStunned(target))))
-                {
-                    var cd = W.Instance.CooldownExpires - Game.Time;
-                    var outOfRange = target.Distance(Player) >=
-                                     Menu.Item(Menu.Name + ".miscellaneous.q-min-range").GetValue<Slider>().Value;
-                    if (outOfRange || (cd >= 2 || W.Level == 0) || Utils.IsStunned(target))
                     {
                         var best = BestQPosition(
-                            target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), hitChance);
+                            target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("harass"));
                         if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
                         {
                             Q.Cast(best.Item2);
                         }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -667,21 +687,16 @@ namespace SFXTwistedFate.Champions
             return Player.HasBuff("cardmasterstackparticle");
         }
 
+        private int GetEStacks()
+        {
+            return HasEBuff() ? 3 : Player.GetBuffCount("cardmasterstackholder");
+        }
+
         protected override void Flee()
         {
-            if (Menu.Item(Menu.Name + ".flee.w").GetValue<bool>() && W.IsReady())
+            if (Menu.Item(Menu.Name + ".flee.w").GetValue<bool>())
             {
-                if (Cards.Has())
-                {
-                    var target =
-                        GameObjects.EnemyHeroes.OrderBy(e => e.Distance(Player))
-                            .FirstOrDefault(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget());
-                    if (target != null)
-                    {
-                        Orbwalking.Orbwalk(target, Game.CursorPos);
-                    }
-                }
-                else
+                if (W.IsReady() || Cards.Status == SelectStatus.Ready)
                 {
                     var target = TargetSelector.GetTarget(W, false);
                     if (target != null)
@@ -692,6 +707,17 @@ namespace SFXTwistedFate.Champions
                             Cards.Select(best);
                             Orbwalker.ForceTarget(target);
                         }
+                    }
+                }
+                if (Player.CanAttack && (Cards.Has(CardColor.Red) || Cards.Has(CardColor.Gold)))
+                {
+                    var target =
+                        GameObjects.EnemyHeroes.Where(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget())
+                            .OrderBy(e => e.Distance(Player))
+                            .FirstOrDefault();
+                    if (target != null)
+                    {
+                        Player.IssueOrder(GameObjectOrder.AttackUnit, target);
                     }
                 }
             }
@@ -769,15 +795,15 @@ namespace SFXTwistedFate.Champions
             }
             try
             {
-                if (IsWKillable(target, 2))
+                if (IsWKillable(target, 2) && !target.IsDead)
                 {
                     cards.Add(CardColor.Gold);
                 }
-                if (IsWKillable(target))
+                if (IsWKillable(target) && !target.IsDead)
                 {
                     cards.Add(CardColor.Blue);
                 }
-                if (IsWKillable(target, 1))
+                if (IsWKillable(target, 1) && !target.IsDead)
                 {
                     cards.Add(CardColor.Red);
                 }
@@ -792,6 +818,10 @@ namespace SFXTwistedFate.Champions
                 if (!burst &&
                     (mode == "combo" || mode == "harass" && Menu.Item(Menu.Name + ".harass.w-auto").GetValue<bool>()))
                 {
+                    if (Q.Level == 0)
+                    {
+                        return new List<CardColor> { CardColor.Blue };
+                    }
                     gold++;
                     if (target.Distance(Player) > W.Range * 0.8f)
                     {
@@ -843,6 +873,10 @@ namespace SFXTwistedFate.Champions
                 }
                 if (mode == "combo" && !cards.Any())
                 {
+                    if (Q.Level == 0)
+                    {
+                        return new List<CardColor> { CardColor.Blue };
+                    }
                     var distance = target.Distance(Player);
                     var damage = ItemManager.CalculateComboDamage(target) - target.HPRegenRate * 2f - 10;
                     if (HasEBuff())
@@ -868,6 +902,12 @@ namespace SFXTwistedFate.Champions
                             cards.Add(CardColor.Red);
                         }
                     }
+
+                    var blueMana1 = (ObjectManager.Player.Mana < (W.Instance.ManaCost + Q.Instance.ManaCost) &&
+                                     ObjectManager.Player.Mana > (Q.Instance.ManaCost - 10));
+                    var blueMana2 = (ObjectManager.Player.Mana < (W.Instance.ManaCost + Q.Instance.ManaCost) &&
+                                     ObjectManager.Player.Mana > (Q.Instance.ManaCost - 20));
+                    var blueMana3 = (ObjectManager.Player.Mana < (W.Instance.ManaCost + Q.Instance.ManaCost));
                     if (!cards.Any())
                     {
                         if (ObjectManager.Player.HealthPercent <=
@@ -875,7 +915,8 @@ namespace SFXTwistedFate.Champions
                         {
                             cards.Add(CardColor.Gold);
                         }
-                        else if (!ManaManager.Check("combo-blue"))
+                        else if ((!ManaManager.Check("combo-blue") || (W.Level == 1 && blueMana1) ||
+                                  W.Level == 2 && blueMana2) || W.Level > 2 && blueMana3)
                         {
                             cards.Add(CardColor.Blue);
                         }
@@ -934,17 +975,24 @@ namespace SFXTwistedFate.Champions
         internal enum CardColor
         {
             Red,
+
             Gold,
+
             Blue,
+
             None
         }
 
         internal enum SelectStatus
         {
             Selecting,
+
             Selected,
+
             Ready,
+
             Cooldown,
+
             None
         }
 
@@ -1009,7 +1057,6 @@ namespace SFXTwistedFate.Champions
                         {
                             if (!ShouldWait)
                             {
-                                SpellQueueManager.DisableOnce = true;
                                 if (ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, ObjectManager.Player))
                                 {
                                     _lastWSent = LeagueSharp.Common.Utils.TickCount;
@@ -1052,7 +1099,6 @@ namespace SFXTwistedFate.Champions
                                 s == CardColor.Gold && wName == "goldcardlock" ||
                                 s == CardColor.Red && wName == "redcardlock"))
                     {
-                        SpellQueueManager.DisableOnce = true;
                         ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, false);
                     }
                 }
