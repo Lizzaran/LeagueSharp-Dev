@@ -51,15 +51,18 @@ using Utils = SFXChallenger.Helpers.Utils;
 
 namespace SFXChallenger.Champions
 {
+    using System.Diagnostics;
+
     internal class TwistedFate : Champion
     {
-        private readonly float _qAngle = 28 * (float) Math.PI / 180;
-        private readonly float _wRedRadius = 200f;
-        private MenuItem _eStacks;
-        private float _qDelay;
-        private float _realDelay;
-        private Obj_AI_Hero _qTarget;
-        private MenuItem _rMinimap;
+        private const float QAngle = 28 * (float)Math.PI / 180;
+
+        private const float WRedRadius = 200f;
+
+        private MenuItem eStacks;
+        private float qDelay;
+        private Obj_AI_Hero wTarget;
+        private MenuItem rMinimap;
 
         protected override ItemFlags ItemFlags
         {
@@ -195,8 +198,8 @@ namespace SFXChallenger.Champions
             IndicatorManager.Add("E", hero => E.Level > 0 && GetEStacks() >= 2 ? E.GetDamage(hero) : 0);
             IndicatorManager.Finale();
 
-            _eStacks = DrawingManager.Add("E " + Global.Lang.Get("G_Stacks"), true);
-            _rMinimap = DrawingManager.Add("R " + Global.Lang.Get("G_Minimap"), true);
+            eStacks = DrawingManager.Add("E " + Global.Lang.Get("G_Stacks"), true);
+            rMinimap = DrawingManager.Add("R " + Global.Lang.Get("G_Minimap"), true);
         }
 
         protected override void SetupSpells()
@@ -232,10 +235,9 @@ namespace SFXChallenger.Champions
                                 dashDelay = dash.EndTick / 1000f;
                                 pos = dash.EndPos.To3D();
                             }
-                            _realDelay = ((pos.Distance(Player.Position) * 4f) / (Player.BasicAttack.MissileSpeed + Player.AttackDelay + dashDelay) * 250f);
-                            _qTarget = hero;
+                            qDelay = ((pos.Distance(Player.Position) * 3f) / (Player.BasicAttack.MissileSpeed + Player.AttackDelay + dashDelay) * 250f);
+                            wTarget = hero;
                             
-
                             var target = TargetSelector.GetTarget(W, false);
                             if (target != null && !target.NetworkId.Equals(hero.NetworkId))
                             {
@@ -247,18 +249,22 @@ namespace SFXChallenger.Champions
                 }
                 else
                 {
-                    if (Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.Flee &&
-                        Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.None)
+                    if (Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.Flee
+                        && Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.None)
                     {
                         if (Cards.Has(CardColor.Gold) || Cards.Has(CardColor.Blue))
                         {
                             var targets = TargetSelector.GetTargets(
-                                Orbwalking.GetRealAutoAttackRange(null) * 1.25f, DamageType.Magical);
-                            var target = targets.FirstOrDefault(Orbwalking.InAutoAttackRange);
-                            if (target != null)
+                                Orbwalking.GetRealAutoAttackRange(null) * 1.25f,
+                                DamageType.Magical);
+                            if (targets != null)
                             {
-                                Orbwalker.ForceTarget(target);
-                                args.Process = false;
+                                var target = targets.FirstOrDefault(Orbwalking.InAutoAttackRange);
+                                if (target != null)
+                                {
+                                    Orbwalker.ForceTarget(target);
+                                    args.Process = false;
+                                }
                             }
                         }
                     }
@@ -388,10 +394,10 @@ namespace SFXChallenger.Champions
                         Player.Position, Player.Position.Extend(Player.Position + direction.To3D(), Q.Range), Q.Width);
                     var rect2 = new Geometry.Polygon.Rectangle(
                         Player.Position,
-                        Player.Position.Extend(Player.Position + direction.Rotated(_qAngle).To3D(), Q.Range), Q.Width);
+                        Player.Position.Extend(Player.Position + direction.Rotated(QAngle).To3D(), Q.Range), Q.Width);
                     var rect3 = new Geometry.Polygon.Rectangle(
                         Player.Position,
-                        Player.Position.Extend(Player.Position + direction.Rotated(-_qAngle).To3D(), Q.Range), Q.Width);
+                        Player.Position.Extend(Player.Position + direction.Rotated(-QAngle).To3D(), Q.Range), Q.Width);
                     foreach (var enemy in enemyPositions)
                     {
                         var bounding = new Geometry.Polygon.Circle(enemy.Item2, enemy.Item1.BoundingRadius * 0.85f);
@@ -432,7 +438,7 @@ namespace SFXChallenger.Champions
                     var pred = W.GetPrediction(target);
                     if (pred.Hitchance >= HitChance.Medium)
                     {
-                        var circle = new Geometry.Polygon.Circle(pred.UnitPosition, target.BoundingRadius + _wRedRadius);
+                        var circle = new Geometry.Polygon.Circle(pred.UnitPosition, target.BoundingRadius + WRedRadius);
                         return 1 + (from t in targets.Where(x => x.NetworkId != target.NetworkId)
                             let pred2 = W.GetPrediction(t)
                             where pred2.Hitchance >= HitChance.Medium
@@ -522,7 +528,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (!args.Sender.IsEnemy) || !args.Sender.IsValid)
+                if (!args.Sender.IsEnemy)
                 {
                     return;
                 }
@@ -562,28 +568,40 @@ namespace SFXChallenger.Champions
             if (q && Q.IsReady())
             {
                 var target = TargetSelector.GetTarget(Q, false);
-                var goldCardTarget = (_qTarget != null && _qTarget.IsValidTarget(Q.Range));
-                var aDelay = (int)_realDelay;
-                if (Cards.Has(CardColor.Gold) || (target.Distance(Player) < 100))
+                var goldCardTarget = wTarget != null && wTarget.IsValidTarget(Q.Range);
+                var aDelay = (int)qDelay;
+
+                if ((!goldCardTarget && Utils.IsStunned(target)) && (Cards.Has() || HasEBuff())
+                    && GameObjects.EnemyHeroes.Any(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget()))
                 {
                     return;
                 }
-                if (!goldCardTarget && !Utils.IsStunned(target) && (Cards.Has() || HasEBuff())
-                    && GameObjects.EnemyHeroes.Any(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget()))
+                if (target.Distance(Player) < 100)
                 {
                     return;
                 }
                 if (goldCardTarget)
                 {
-                    target = _qTarget;
-                //  Game.PrintChat(target.ChampionName + " is Gold card target");
+                    target = wTarget;
                 }
                 if (target != null)
                 {
                     var cd = W.Instance.CooldownExpires - Game.Time;
-                    if ((cd >= 2 || W.Level == 0) || Utils.IsStunned(target))
+                    if ((Utils.IsStunned(target) || (!goldCardTarget && (cd >= 2 || W.Level == 0))))
                     {
-                        if (!goldCardTarget && !Utils.IsStunned(target))
+                        if (goldCardTarget)
+                        {
+                            Utility.DelayAction.Add((aDelay), () => Q.Cast(wTarget));
+                            //  Game.PrintChat("Delay is " + aDelay);
+                            //  Game.PrintChat("Casting Q on Gold card stunned " + target.ChampionName);
+                        }
+                        else if (Utils.IsStunned(target))
+                        {
+                            Utility.DelayAction.Add((aDelay), () => Q.Cast(target));
+                            //  Game.PrintChat("Delay is " + aDelay);
+                            //  Game.PrintChat("Casting Q on stunned " + target.ChampionName);
+                        }
+                        else
                         {
                             var best = BestQPosition(
                                 target,
@@ -592,15 +610,7 @@ namespace SFXChallenger.Champions
                             if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
                             {
                                 Q.Cast(best.Item2);
-                            //  Game.PrintChat("Casting Q on unstunned " + target.ChampionName);
-                            }
-                        }
-                        else
-                        {
-                            {       
-                                Utility.DelayAction.Add((aDelay), () => Q.Cast(_qTarget));
-                            //  Console.WriteLine("delay is " + aDelay);
-                            //  Game.PrintChat("Casting Q on stunned " + target.ChampionName);
+                                //  Game.PrintChat("Casting Q on unstunned " + target.ChampionName);
                             }
                         }
                     }
@@ -737,7 +747,7 @@ namespace SFXChallenger.Champions
                 var x = Player.HPBarPosition.X + 45;
                 var y = Player.HPBarPosition.Y - 25;
 
-                if (E.Level > 0 && _eStacks != null && _eStacks.GetValue<bool>())
+                if (E.Level > 0 && eStacks != null && eStacks.GetValue<bool>())
                 {
                     var stacks = HasEBuff() ? 3 : Player.GetBuffCount("cardmasterstackholder") - 1;
                     if (stacks > -1)
@@ -760,7 +770,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (_rMinimap.GetValue<bool>() && R.Level > 0 && (R.Instance.CooldownExpires - Game.Time) < 3 &&
+                if (rMinimap.GetValue<bool>() && R.Level > 0 && (R.Instance.CooldownExpires - Game.Time) < 3 &&
                     !Player.IsDead)
                 {
                     Utility.DrawCircle(Player.Position, R.Range, Color.White, 1, 30, true);
@@ -908,7 +918,7 @@ namespace SFXChallenger.Champions
                     var blueMana1 = (ObjectManager.Player.Mana < (W.Instance.ManaCost + Q.Instance.ManaCost) && 
                                      ObjectManager.Player.Mana > (Q.Instance.ManaCost - 10));
                     var blueMana2 = (ObjectManager.Player.Mana < (W.Instance.ManaCost + Q.Instance.ManaCost) && 
-                                     ObjectManager.Player.Mana > (Q.Instance.ManaCost - 20));
+                                      ObjectManager.Player.Mana > (Q.Instance.ManaCost - 20));
                     var blueMana3 = (ObjectManager.Player.Mana < (W.Instance.ManaCost + Q.Instance.ManaCost));
                     if (!cards.Any())
                     {
