@@ -1,49 +1,6 @@
-#region License
-
-/*
- Copyright 2014 - 2015 Nikita Bernthaler
- TwistedFate.cs is part of SFXChallenger.
-
- SFXChallenger is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- SFXChallenger is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with SFXChallenger. If not, see <http://www.gnu.org/licenses/>.
-*/
-
-#endregion License
-
 #region
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using LeagueSharp;
-using LeagueSharp.Common;
-using SFXChallenger.Abstracts;
-using SFXChallenger.Enumerations;
-using SFXChallenger.Managers;
-using SFXLibrary;
-using SFXLibrary.Extensions.NET;
-using SFXLibrary.Logger;
-using SharpDX;
-using Color = System.Drawing.Color;
-using DamageType = SFXChallenger.Enumerations.DamageType;
-using MinionManager = SFXLibrary.MinionManager;
-using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
-using MinionTeam = SFXLibrary.MinionTeam;
-using MinionTypes = SFXLibrary.MinionTypes;
-using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
-using Spell = SFXChallenger.Wrappers.Spell;
-using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
-using Utils = SFXChallenger.Helpers.Utils;
+
 
 #endregion
 
@@ -51,7 +8,37 @@ using Utils = SFXChallenger.Helpers.Utils;
 
 namespace SFXChallenger.Champions
 {
-    using System.Diagnostics;
+    #region
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
+    using LeagueSharp;
+    using LeagueSharp.Common;
+
+    using SFXChallenger.Abstracts;
+    using SFXChallenger.Enumerations;
+    using SFXChallenger.Managers;
+
+    using SFXLibrary;
+    using SFXLibrary.Extensions.NET;
+    using SFXLibrary.Logger;
+
+    using SharpDX;
+
+    using Color = System.Drawing.Color;
+    using DamageType = SFXChallenger.Enumerations.DamageType;
+    using MinionManager = SFXLibrary.MinionManager;
+    using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
+    using MinionTeam = SFXLibrary.MinionTeam;
+    using MinionTypes = SFXLibrary.MinionTypes;
+    using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+    using Spell = SFXChallenger.Wrappers.Spell;
+    using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
+    using Utils = SFXChallenger.Helpers.Utils;
+
+    #endregion
 
     internal class TwistedFate : Champion
     {
@@ -60,18 +47,27 @@ namespace SFXChallenger.Champions
         private const float WRedRadius = 200f;
 
         private MenuItem eStacks;
+
         private float qDelay;
-        private Obj_AI_Hero wTarget;
+
         private MenuItem rMinimap;
+
+        private Obj_AI_Hero wTarget;
 
         protected override ItemFlags ItemFlags
         {
-            get { return ItemFlags.Offensive | ItemFlags.Defensive | ItemFlags.Flee; }
+            get
+            {
+                return ItemFlags.Offensive | ItemFlags.Defensive | ItemFlags.Flee;
+            }
         }
 
         protected override ItemUsageType ItemUsage
         {
-            get { return ItemUsageType.Custom; }
+            get
+            {
+                return ItemUsageType.Custom;
+            }
         }
 
         protected override void OnLoad()
@@ -102,10 +98,15 @@ namespace SFXChallenger.Champions
         {
             var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), Menu.Name + ".combo"));
             HitchanceManager.AddToMenu(
-                comboMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), comboMenu.Name + ".hitchance")), "combo",
+                comboMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), comboMenu.Name + ".hitchance")),
+                "combo",
                 new Dictionary<string, int> { { "Q", 1 } });
             ManaManager.AddToMenu(
-                comboMenu, "combo-blue", ManaCheckType.Minimum, ManaValueType.Percent, "W " + Global.Lang.Get("TF_Blue"));
+                comboMenu,
+                "combo-blue",
+                ManaCheckType.Minimum,
+                ManaValueType.Percent,
+                "W " + Global.Lang.Get("TF_Blue"));
             comboMenu.AddItem(
                 new MenuItem(
                     comboMenu.Name + ".gold-percent",
@@ -113,19 +114,24 @@ namespace SFXChallenger.Champions
                         new Slider(20, 5, 75)));
             comboMenu.AddItem(
                 new MenuItem(
-                    comboMenu.Name + ".red-min", "W " + Global.Lang.Get("TF_Red") + " " + Global.Lang.Get("G_Min"))
-                    .SetValue(new Slider(3, 1, 5)));
+                    comboMenu.Name + ".red-min",
+                    "W " + Global.Lang.Get("TF_Red") + " " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
 
             var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Harass"), Menu.Name + ".harass"));
             HitchanceManager.AddToMenu(
-                harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
+                harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")),
+                "harass",
                 new Dictionary<string, int> { { "Q", 1 } });
             ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
             ManaManager.AddToMenu(
-                harassMenu, "harass-blue", ManaCheckType.Minimum, ManaValueType.Percent,
-                "W " + Global.Lang.Get("TF_Blue"), 50);
+                harassMenu,
+                "harass-blue",
+                ManaCheckType.Minimum,
+                ManaValueType.Percent,
+                "W " + Global.Lang.Get("TF_Blue"),
+                50);
             harassMenu.AddItem(
                 new MenuItem(harassMenu.Name + ".w-card", "W " + Global.Lang.Get("TF_Card")).SetValue(
                     new StringList(Global.Lang.GetList("TF_Cards"))));
@@ -137,8 +143,12 @@ namespace SFXChallenger.Champions
             var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LaneClear"), Menu.Name + ".lane-clear"));
             ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
             ManaManager.AddToMenu(
-                laneclearMenu, "lane-clear-blue", ManaCheckType.Minimum, ManaValueType.Percent,
-                "W " + Global.Lang.Get("TF_Blue"), 50);
+                laneclearMenu,
+                "lane-clear-blue",
+                ManaCheckType.Minimum,
+                ManaValueType.Percent,
+                "W " + Global.Lang.Get("TF_Blue"),
+                50);
             laneclearMenu.AddItem(
                 new MenuItem(laneclearMenu.Name + ".q-min", "Q " + Global.Lang.Get("G_Min")).SetValue(
                     new Slider(3, 1, 5)));
@@ -153,7 +163,7 @@ namespace SFXChallenger.Champions
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".w-range", "W " + Global.Lang.Get("G_Range")).SetValue(
-                    new Slider((int) W.Range, 500, 1000))).ValueChanged +=
+                    new Slider((int)W.Range, 500, 1000))).ValueChanged +=
                 delegate(object sender, OnValueChangeEventArgs args) { W.Range = args.GetNewValue<Slider>().Value; };
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".w-delay", "W " + Global.Lang.Get("G_Delay")).SetValue(
@@ -166,7 +176,11 @@ namespace SFXChallenger.Champions
 
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "q-gapcloser")),
-                "q-gapcloser", false, false, true, false);
+                "q-gapcloser",
+                false,
+                false,
+                true,
+                false);
 
             var manualMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Manual"), Menu.Name + ".manual"));
             manualMenu.AddItem(
@@ -187,14 +201,14 @@ namespace SFXChallenger.Champions
             IndicatorManager.Add(
                 "W",
                 hero =>
-                    (W.IsReady() || Cards.Status == SelectStatus.Selecting || Cards.Status == SelectStatus.Ready) &&
-                    Cards.Status != SelectStatus.Selected
-                        ? W.GetDamage(hero)
-                        : (Cards.Status == SelectStatus.Selected
-                            ? (Cards.Has(CardColor.Blue)
-                                ? W.GetDamage(hero)
-                                : (Cards.Has(CardColor.Red) ? W.GetDamage(hero, 1) : W.GetDamage(hero, 2)))
-                            : 0));
+                (W.IsReady() || Cards.Status == SelectStatus.Selecting || Cards.Status == SelectStatus.Ready)
+                && Cards.Status != SelectStatus.Selected
+                    ? W.GetDamage(hero)
+                    : (Cards.Status == SelectStatus.Selected
+                           ? (Cards.Has(CardColor.Blue)
+                                  ? W.GetDamage(hero)
+                                  : (Cards.Has(CardColor.Red) ? W.GetDamage(hero, 1) : W.GetDamage(hero, 2)))
+                           : 0));
             IndicatorManager.Add("E", hero => E.Level > 0 && GetEStacks() >= 2 ? E.GetDamage(hero) : 0);
             IndicatorManager.Finale();
 
@@ -235,9 +249,10 @@ namespace SFXChallenger.Champions
                                 dashDelay = dash.EndTick / 1000f;
                                 pos = dash.EndPos.To3D();
                             }
-                            qDelay = ((pos.Distance(Player.Position) * 3f) / (Player.BasicAttack.MissileSpeed + Player.AttackDelay + dashDelay) * 250f);
+                            qDelay = ((pos.Distance(Player.Position) * 3f)
+                                      / (Player.BasicAttack.MissileSpeed + Player.AttackDelay + dashDelay) * 250f);
                             wTarget = hero;
-                            
+
                             var target = TargetSelector.GetTarget(W, false);
                             if (target != null && !target.NetworkId.Equals(hero.NetworkId))
                             {
@@ -269,8 +284,8 @@ namespace SFXChallenger.Champions
                         }
                     }
                 }
-                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear ||
-                    Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
+                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear
+                    || Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
                 {
                     if (Cards.Has(CardColor.Red))
                     {
@@ -297,8 +312,8 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear ||
-                    Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
+                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear
+                    || Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
                 {
                     if (Cards.Has(CardColor.Red))
                     {
@@ -306,7 +321,9 @@ namespace SFXChallenger.Champions
                         var minions = MinionManager.GetMinions(range, MinionTypes.All, MinionTeam.NotAlly);
                         var pred =
                             MinionManager.GetBestCircularFarmLocation(
-                                minions.Select(m => m.Position.To2D()).ToList(), 500, range);
+                                minions.Select(m => m.Position.To2D()).ToList(),
+                                500,
+                                range);
                         var target = minions.OrderBy(m => m.Distance(pred.Position)).FirstOrDefault();
                         if (target != null)
                         {
@@ -391,13 +408,17 @@ namespace SFXChallenger.Champions
                     var containsTarget = false;
                     var direction = Q.Range * (point.To3D() - ObjectManager.Player.Position).Normalized().To2D();
                     var rect1 = new Geometry.Polygon.Rectangle(
-                        Player.Position, Player.Position.Extend(Player.Position + direction.To3D(), Q.Range), Q.Width);
+                        Player.Position,
+                        Player.Position.Extend(Player.Position + direction.To3D(), Q.Range),
+                        Q.Width);
                     var rect2 = new Geometry.Polygon.Rectangle(
                         Player.Position,
-                        Player.Position.Extend(Player.Position + direction.Rotated(QAngle).To3D(), Q.Range), Q.Width);
+                        Player.Position.Extend(Player.Position + direction.Rotated(QAngle).To3D(), Q.Range),
+                        Q.Width);
                     var rect3 = new Geometry.Polygon.Rectangle(
                         Player.Position,
-                        Player.Position.Extend(Player.Position + direction.Rotated(-QAngle).To3D(), Q.Range), Q.Width);
+                        Player.Position.Extend(Player.Position + direction.Rotated(-QAngle).To3D(), Q.Range),
+                        Q.Width);
                     foreach (var enemy in enemyPositions)
                     {
                         var bounding = new Geometry.Polygon.Circle(enemy.Item2, enemy.Item1.BoundingRadius * 0.85f);
@@ -440,10 +461,10 @@ namespace SFXChallenger.Champions
                     {
                         var circle = new Geometry.Polygon.Circle(pred.UnitPosition, target.BoundingRadius + WRedRadius);
                         return 1 + (from t in targets.Where(x => x.NetworkId != target.NetworkId)
-                            let pred2 = W.GetPrediction(t)
-                            where pred2.Hitchance >= HitChance.Medium
-                            select new Geometry.Polygon.Circle(pred2.UnitPosition, t.BoundingRadius * 0.9f)).Count(
-                                circle2 => circle2.Points.Any(p => circle.IsInside(p)));
+                                    let pred2 = W.GetPrediction(t)
+                                    where pred2.Hitchance >= HitChance.Medium
+                                    select new Geometry.Polygon.Circle(pred2.UnitPosition, t.BoundingRadius * 0.9f))
+                                       .Count(circle2 => circle2.Points.Any(p => circle.IsInside(p)));
                     }
                 }
                 if (W.IsInRange(target))
@@ -484,8 +505,8 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (sender != null && sender.IsEnemy && args.DangerLevel == Interrupter2.DangerLevel.High &&
-                    Orbwalking.InAutoAttackRange(sender))
+                if (sender != null && sender.IsEnemy && args.DangerLevel == Interrupter2.DangerLevel.High
+                    && Orbwalking.InAutoAttackRange(sender))
                 {
                     if (Cards.Has(CardColor.Gold))
                     {
@@ -532,8 +553,8 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
-                if (HeroListManager.Check("q-gapcloser", args.Sender) && args.End.Distance(Player.Position) < Q.Range &&
-                    Q.IsReady())
+                if (HeroListManager.Check("q-gapcloser", args.Sender) && args.End.Distance(Player.Position) < Q.Range
+                    && Q.IsReady())
                 {
                     var target = TargetSelector.GetTarget(Q.Range * 0.85f, Q.DamageType);
                     if (target == null || args.Sender.NetworkId.Equals(target.NetworkId))
@@ -642,7 +663,9 @@ namespace SFXChallenger.Champions
                 {
                     {
                         var best = BestQPosition(
-                            target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("harass"));
+                            target,
+                            GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(),
+                            Q.GetHitChance("harass"));
                         if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
                         {
                             Q.Cast(best.Item2);
@@ -661,7 +684,10 @@ namespace SFXChallenger.Champions
             if (ManaManager.Check("lane-clear") && q && Q.IsReady())
             {
                 var minions = MinionManager.GetMinions(
-                    Q.Range * 1.2f, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+                    Q.Range * 1.2f,
+                    MinionTypes.All,
+                    MinionTeam.NotAlly,
+                    MinionOrderTypes.MaxHealth);
                 var m = minions.OrderBy(x => x.Distance(Player)).FirstOrDefault();
                 if (m == null)
                 {
@@ -684,7 +710,10 @@ namespace SFXChallenger.Champions
             if (w && W.IsReady())
             {
                 var minions = MinionManager.GetMinions(
-                    W.Range * 1.2f, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+                    W.Range * 1.2f,
+                    MinionTypes.All,
+                    MinionTeam.NotAlly,
+                    MinionOrderTypes.MaxHealth);
                 if (minions.Any())
                 {
                     Cards.Select(!ManaManager.Check("lane-clear-blue") ? CardColor.Blue : CardColor.Red);
@@ -733,7 +762,9 @@ namespace SFXChallenger.Champions
             }
         }
 
-        protected override void Killsteal() {}
+        protected override void Killsteal()
+        {
+        }
 
         private void OnDrawingDraw(EventArgs args)
         {
@@ -755,7 +786,12 @@ namespace SFXChallenger.Champions
                         for (var i = 0; 3 > i; i++)
                         {
                             Drawing.DrawLine(
-                                x + (i * 20), y, x + (i * 20) + 10, y, 10, (i > stacks ? Color.DarkGray : Color.Orange));
+                                x + (i * 20),
+                                y,
+                                x + (i * 20) + 10,
+                                y,
+                                10,
+                                (i > stacks ? Color.DarkGray : Color.Orange));
                         }
                     }
                 }
@@ -770,8 +806,8 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (rMinimap.GetValue<bool>() && R.Level > 0 && (R.Instance.CooldownExpires - Game.Time) < 3 &&
-                    !Player.IsDead)
+                if (rMinimap.GetValue<bool>() && R.Level > 0 && (R.Instance.CooldownExpires - Game.Time) < 3
+                    && !Player.IsDead)
                 {
                     Utility.DrawCircle(Player.Position, R.Range, Color.White, 1, 30, true);
                 }
@@ -825,8 +861,8 @@ namespace SFXChallenger.Champions
                 var red = 0;
                 var blue = 0;
                 var gold = 0;
-                if (!burst &&
-                    (mode == "combo" || mode == "harass" && Menu.Item(Menu.Name + ".harass.w-auto").GetValue<bool>()))
+                if (!burst
+                    && (mode == "combo" || mode == "harass" && Menu.Item(Menu.Name + ".harass.w-auto").GetValue<bool>()))
                 {
                     if (Q.Level == 0)
                     {
@@ -913,28 +949,29 @@ namespace SFXChallenger.Champions
                         }
                     }
 
-
-
-                    var blueMana1 = (ObjectManager.Player.Mana < (W.Instance.ManaCost + Q.Instance.ManaCost) && 
-                                     ObjectManager.Player.Mana > (Q.Instance.ManaCost - 10));
-                    var blueMana2 = (ObjectManager.Player.Mana < (W.Instance.ManaCost + Q.Instance.ManaCost) && 
-                                      ObjectManager.Player.Mana > (Q.Instance.ManaCost - 20));
+                    var blueMana1 = (ObjectManager.Player.Mana < (W.Instance.ManaCost + Q.Instance.ManaCost)
+                                     && ObjectManager.Player.Mana > (Q.Instance.ManaCost - 10));
+                    var blueMana2 = (ObjectManager.Player.Mana < (W.Instance.ManaCost + Q.Instance.ManaCost)
+                                     && ObjectManager.Player.Mana > (Q.Instance.ManaCost - 20));
                     var blueMana3 = (ObjectManager.Player.Mana < (W.Instance.ManaCost + Q.Instance.ManaCost));
                     if (!cards.Any())
                     {
-                        if (ObjectManager.Player.HealthPercent <=
-                            Menu.Item(Menu.Name + ".combo.gold-percent").GetValue<Slider>().Value)
+                        if (ObjectManager.Player.HealthPercent
+                            <= Menu.Item(Menu.Name + ".combo.gold-percent").GetValue<Slider>().Value)
                         {
                             cards.Add(CardColor.Gold);
                         }
-                        else if ((!ManaManager.Check("combo-blue") || (W.Level == 1 && blueMana1) || W.Level == 2 && blueMana2) || W.Level > 2 && blueMana3)
+                        else if ((!ManaManager.Check("combo-blue") || (W.Level == 1 && blueMana1)
+                                  || W.Level == 2 && blueMana2) || W.Level > 2 && blueMana3)
                         {
                             cards.Add(CardColor.Blue);
                         }
                         else
                         {
                             var redHits = GetWHits(
-                                target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), CardColor.Red);
+                                target,
+                                GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(),
+                                CardColor.Red);
                             if (redHits >= Menu.Item(Menu.Name + ".combo.red-min").GetValue<Slider>().Value)
                             {
                                 cards.Add(CardColor.Red);
@@ -955,9 +992,9 @@ namespace SFXChallenger.Champions
                     else
                     {
                         var card = !ManaManager.Check("harass-blue")
-                            ? CardColor.Blue
-                            : GetSelectedCardColor(
-                                Menu.Item(Menu.Name + ".harass.w-card").GetValue<StringList>().SelectedIndex);
+                                       ? CardColor.Blue
+                                       : GetSelectedCardColor(
+                                           Menu.Item(Menu.Name + ".harass.w-card").GetValue<StringList>().SelectedIndex);
                         if (card != CardColor.None)
                         {
                             cards.Add(card);
@@ -986,24 +1023,33 @@ namespace SFXChallenger.Champions
         internal enum CardColor
         {
             Red,
+
             Gold,
+
             Blue,
+
             None
         }
 
         internal enum SelectStatus
         {
             Selecting,
+
             Selected,
+
             Ready,
+
             Cooldown,
+
             None
         }
 
         public static class Cards
         {
             public static List<CardColor> ShouldSelect;
+
             public static CardColor LastCard;
+
             private static int lastWSent;
 
             static Cards()
@@ -1018,23 +1064,26 @@ namespace SFXChallenger.Champions
 
             public static bool ShouldWait
             {
-                get { return LeagueSharp.Common.Utils.TickCount - lastWSent <= Delay; }
+                get
+                {
+                    return LeagueSharp.Common.Utils.TickCount - lastWSent <= Delay;
+                }
             }
 
             public static int Delay { get; set; }
 
             public static bool Has(CardColor color)
             {
-                return color == CardColor.Gold && ObjectManager.Player.HasBuff("goldcardpreattack") ||
-                       color == CardColor.Red && ObjectManager.Player.HasBuff("redcardpreattack") ||
-                       color == CardColor.Blue && ObjectManager.Player.HasBuff("bluecardpreattack");
+                return color == CardColor.Gold && ObjectManager.Player.HasBuff("goldcardpreattack")
+                       || color == CardColor.Red && ObjectManager.Player.HasBuff("redcardpreattack")
+                       || color == CardColor.Blue && ObjectManager.Player.HasBuff("bluecardpreattack");
             }
 
             public static bool Has()
             {
-                return ObjectManager.Player.HasBuff("goldcardpreattack") ||
-                       ObjectManager.Player.HasBuff("redcardpreattack") ||
-                       ObjectManager.Player.HasBuff("bluecardpreattack");
+                return ObjectManager.Player.HasBuff("goldcardpreattack")
+                       || ObjectManager.Player.HasBuff("redcardpreattack")
+                       || ObjectManager.Player.HasBuff("bluecardpreattack");
             }
 
             public static void Select(CardColor card)
@@ -1053,8 +1102,8 @@ namespace SFXChallenger.Champions
             {
                 try
                 {
-                    if (ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Name == "PickACard" &&
-                        Status == SelectStatus.Ready)
+                    if (ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Name == "PickACard"
+                        && Status == SelectStatus.Ready)
                     {
                         ShouldSelect = cards;
                         if (ShouldSelect.Any())
@@ -1082,8 +1131,8 @@ namespace SFXChallenger.Champions
                     var wName = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Name;
                     var wState = ObjectManager.Player.Spellbook.CanUseSpell(SpellSlot.W);
 
-                    if ((wState == SpellState.Ready && wName == "PickACard" &&
-                         (Status != SelectStatus.Selecting || !ShouldWait)) || ObjectManager.Player.IsDead)
+                    if ((wState == SpellState.Ready && wName == "PickACard"
+                         && (Status != SelectStatus.Selecting || !ShouldWait)) || ObjectManager.Player.IsDead)
                     {
                         Status = SelectStatus.Ready;
                     }
@@ -1099,9 +1148,9 @@ namespace SFXChallenger.Champions
                     if (
                         ShouldSelect.Any(
                             s =>
-                                s == CardColor.Blue && wName == "bluecardlock" ||
-                                s == CardColor.Gold && wName == "goldcardlock" ||
-                                s == CardColor.Red && wName == "redcardlock"))
+                            s == CardColor.Blue && wName == "bluecardlock"
+                            || s == CardColor.Gold && wName == "goldcardlock"
+                            || s == CardColor.Red && wName == "redcardlock"))
                     {
                         ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, false);
                     }
@@ -1112,7 +1161,9 @@ namespace SFXChallenger.Champions
                 }
             }
 
-            private static void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
+            private static void OnObjAiBaseProcessSpellCast(
+                Obj_AI_Base sender,
+                GameObjectProcessSpellCastEventArgs args)
             {
                 try
                 {
