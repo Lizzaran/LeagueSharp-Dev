@@ -406,11 +406,6 @@ namespace SFXChallenger.Wrappers
                             LastAaTick = Utils.GameTimeTickCount + Game.Ping + 100 -
                                          (int) (ObjectManager.Player.AttackCastDelay * 1000f);
                             _missileLaunched = false;
-
-                            if (ObjectManager.Player.Distance(target) > GetRealAutoAttackRange(target) - 75)
-                            {
-                                LastAaTick = Utils.GameTimeTickCount;
-                            }
                         }
                         if (InAutoAttackRange(target))
                         {

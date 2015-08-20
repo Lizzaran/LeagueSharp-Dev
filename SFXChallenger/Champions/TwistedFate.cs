@@ -56,7 +56,6 @@ namespace SFXChallenger.Champions
         private const float QAngle = 28 * (float) Math.PI / 180;
         private const float WRedRadius = 200f;
         private MenuItem _eStacks;
-        private int _qDelay;
         private MenuItem _rMinimap;
         private Obj_AI_Hero _wTarget;
         private float _wTargetEndTime;
@@ -224,13 +223,8 @@ namespace SFXChallenger.Champions
                     {
                         if (Cards.Has(CardColor.Gold))
                         {
-                            _qDelay =
-                                (int)
-                                    (((hero.ServerPosition.Distance(Player.ServerPosition) *
-                                       (hero.IsFacing(Player) ? 0.9f : 1.1f) / Orbwalking.GetMyProjectileSpeed() +
-                                       ObjectManager.Player.AttackCastDelay) * 1000f + Game.Ping / 2f) * 0.8f);
                             _wTarget = hero;
-                            _wTargetEndTime = Game.Time + (Game.Ping / 2000f) + 3f;
+                            _wTargetEndTime = Game.Time + 5f;
 
                             var target = TargetSelector.GetTarget(W, false);
                             if (target != null && !target.NetworkId.Equals(hero.NetworkId))
@@ -561,7 +555,7 @@ namespace SFXChallenger.Champions
             if (q && Q.IsReady())
             {
                 var target = TargetSelector.GetTarget(Q);
-                var goldCardTarget = _wTarget != null && _wTarget.IsValidTarget(Q.Range) && Game.Time <= _wTargetEndTime;
+                var goldCardTarget = _wTarget != null && _wTarget.IsValidTarget(Q.Range) && _wTargetEndTime > Game.Time;
                 if (goldCardTarget)
                 {
                     target = _wTarget;
@@ -575,28 +569,22 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
-                var cd = W.Instance.CooldownExpires - Game.Time;
                 if (goldCardTarget)
                 {
-                    Utility.DelayAction.Add(
-                        (Utils.IsStunned(target) ? 1 : _qDelay), delegate
-                        {
-                            if (Q.IsReady())
-                            {
-                                var best = BestQPosition(
-                                    target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(),
-                                    (Q.GetHitChance("combo") - 1));
-                                if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
-                                {
-                                    Q.Cast(best.Item2);
-                                    _wTarget = null;
-                                    _qDelay = 0;
-                                    _wTargetEndTime = 0;
-                                }
-                            }
-                        });
+                    if (target.Distance(Player) > 300 && !Utils.IsStunned(target))
+                    {
+                        return;
+                    }
+                    var best = BestQPosition(
+                        target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("combo"));
+                    if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
+                    {
+                        Q.Cast(best.Item2);
+                        _wTarget = null;
+                        _wTargetEndTime = 0;
+                    }
                 }
-                else if (Utils.IsStunned(target) || cd >= 2 || W.Level == 0)
+                else if (Utils.IsStunned(target) || (W.Instance.CooldownExpires - Game.Time) >= 2 || W.Level == 0)
                 {
                     var best = BestQPosition(
                         target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("combo"));
@@ -789,21 +777,21 @@ namespace SFXChallenger.Champions
         private List<CardColor> GetBestCard(Obj_AI_Hero target, string mode)
         {
             var cards = new List<CardColor>();
-            if (target == null || !target.IsValid)
+            if (target == null || !target.IsValid || target.IsDead)
             {
                 return cards;
             }
             try
             {
-                if (IsWKillable(target, 2) && !target.IsDead)
+                if (IsWKillable(target, 2))
                 {
                     cards.Add(CardColor.Gold);
                 }
-                if (IsWKillable(target) && !target.IsDead)
+                if (IsWKillable(target))
                 {
                     cards.Add(CardColor.Blue);
                 }
-                if (IsWKillable(target, 1) && !target.IsDead)
+                if (IsWKillable(target, 1))
                 {
                     cards.Add(CardColor.Red);
                 }

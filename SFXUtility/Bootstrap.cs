@@ -139,7 +139,6 @@ namespace SFXUtility
                             new Humanize(others),
                             new MoveTo(others),
                             new Ping(others),
-                            new SkinChanger(others),
                             new TurnAround(others),
                             new Ability(timers),
                             new Altar(timers),

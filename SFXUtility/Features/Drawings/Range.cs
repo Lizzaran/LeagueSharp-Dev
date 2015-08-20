@@ -77,7 +77,10 @@ namespace SFXUtility.Features.Drawings
                                 (hero.IsAlly && drawAlly || hero.IsMe && drawSelf || hero.IsEnemy && drawEnemy) &&
                                 !(hero.IsMe && !drawSelf)))
                 {
-                    var radius = hero.BoundingRadius + hero.AttackRange;
+                    var radius = hero.BoundingRadius + hero.AttackRange +
+                                 (hero.IsAlly
+                                     ? GameObjects.EnemyHeroes.Average(e => e.BoundingRadius)
+                                     : ObjectManager.Player.BoundingRadius);
                     if (hero.Position.IsOnScreen(radius))
                     {
                         Render.Circle.DrawCircle(

@@ -110,7 +110,6 @@
     <Compile Include="Data\Items.cs" />
     <Compile Include="Data\Relics.cs" />
     <Compile Include="Data\Jungle.cs" />
-    <Compile Include="Data\Models.cs" />
     <Compile Include="Data\Summoners.cs" />
     <Compile Include="Features\Activators\Activators.cs" />
     <Compile Include="Features\Activators\KillSteal.cs" />
@@ -138,7 +137,6 @@
     <Compile Include="Features\Others\Others.cs" />
     <Compile Include="Features\Drawings\PerfectWard.cs" />
     <Compile Include="Features\Others\Ping.cs" />
-    <Compile Include="Features\Others\SkinChanger.cs" />
     <Compile Include="Features\Others\TurnAround.cs" />
     <Compile Include="Features\Timers\Altar.cs" />
     <Compile Include="Features\Timers\Relic.cs" />
