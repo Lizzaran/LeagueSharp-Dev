@@ -560,18 +560,19 @@ namespace SFXChallenger.Champions
                 {
                     target = _wTarget;
                 }
-                if (target == null || target.Distance(Player) < Player.BoundingRadius)
+                if (target == null || target.Distance(Player) < Player.BoundingRadius && !Utils.IsStunned(target))
                 {
                     return;
                 }
                 if (!goldCardTarget && (Cards.Has() || HasEBuff()) &&
-                    GameObjects.EnemyHeroes.Any(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget()))
+                    GameObjects.EnemyHeroes.Any(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget()) ||
+                    Cards.Has(CardColor.Gold))
                 {
                     return;
                 }
                 if (goldCardTarget)
                 {
-                    if (target.Distance(Player) > 300 && !Utils.IsStunned(target))
+                    if (target.Distance(Player) > 250 && !Utils.IsStunned(target))
                     {
                         return;
                     }
