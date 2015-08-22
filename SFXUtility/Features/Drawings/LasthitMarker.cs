@@ -89,10 +89,7 @@ namespace SFXUtility.Features.Drawings
                     if (hpBar)
                     {
                         var barPos = minion.HPBarPosition;
-                        var barWidth =
-                            minion.Buffs.Any(b => b.Name.Equals("turretshield", StringComparison.OrdinalIgnoreCase))
-                                ? 88
-                                : 63;
+                        var barWidth = minion.CharData.BaseSkinName.Contains("Siege") ? 88 : 63;
                         var offset = (float) (barWidth / (minion.MaxHealth / aaDamage));
                         offset = offset < barWidth ? offset : barWidth;
                         Drawing.DrawLine(

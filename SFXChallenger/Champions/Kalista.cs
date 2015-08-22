@@ -479,12 +479,28 @@ namespace SFXChallenger.Champions
                 {
                     if (target.Distance(Player) > Orbwalking.GetRealAutoAttackRange(target))
                     {
-                        var minion =
-                            GameObjects.EnemyMinions.FirstOrDefault(
-                                m => m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)) && Rend.IsKillable(m, true));
-                        if (minion != null)
+                        if (
+                            GameObjects.EnemyMinions.Any(
+                                m => m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)) && Rend.IsKillable(m, true)))
                         {
                             E.Cast();
+                        }
+                        else
+                        {
+                            var minion =
+                                GetDashObjects(
+                                    GameObjects.EnemyMinions.Where(
+                                        m => m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)))
+                                        .Cast<Obj_AI_Base>()
+                                        .ToList())
+                                    .Find(
+                                        m =>
+                                            m.Health > Player.GetAutoAttackDamage(m) &&
+                                            m.Health < Player.GetAutoAttackDamage(m) + Rend.GetDamage(m, 1));
+                            if (minion != null)
+                            {
+                                Orbwalker.ForceTarget(minion);
+                            }
                         }
                     }
                     else if (E.IsInRange(target))
@@ -678,6 +694,29 @@ namespace SFXChallenger.Champions
             return null;
         }
 
+        public static List<Obj_AI_Base> GetDashObjects(List<Obj_AI_Base> targets)
+        {
+            try
+            {
+                var apexPoint = ObjectManager.Player.ServerPosition.To2D() +
+                                (ObjectManager.Player.ServerPosition.To2D() - Game.CursorPos.To2D()).Normalized() *
+                                Orbwalking.GetRealAutoAttackRange(ObjectManager.Player);
+
+                return
+                    targets.Where(
+                        o =>
+                            Utils.IsLyingInCone(
+                                o.ServerPosition.To2D(), apexPoint, ObjectManager.Player.ServerPosition.To2D(), Math.PI))
+                        .OrderBy(o => o.Distance(apexPoint, true))
+                        .ToList();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return null;
+        }
+
         internal class SoulBound
         {
             private static readonly ConcurrentDictionary<float, float> Damages =
@@ -754,7 +793,7 @@ namespace SFXChallenger.Champions
                     {
                         if (target.Health < 100 && target is Obj_AI_Minion)
                         {
-                            if (HealthPrediction.GetHealthPrediction(target, 250) <= 0)
+                            if (HealthPrediction.GetHealthPrediction(target, 250 + Game.Ping / 2) <= 0)
                             {
                                 return false;
                             }

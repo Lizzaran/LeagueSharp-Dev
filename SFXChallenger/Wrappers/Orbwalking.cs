@@ -391,7 +391,7 @@ namespace SFXChallenger.Wrappers
             {
                 if (target.IsValidTarget() &&
                     Utils.GameTimeTickCount + Game.Ping / 2 + 25 >=
-                    LastAaTick + Player.AttackDelay * 1000 + _currentAttackDelay && Attack)
+                    LastAaTick + Player.AttackDelay * 1000 + _currentAttackDelay && Attack && InAutoAttackRange(target))
                 {
                     _currentAttackDelay = new Random().Next(
                         Math.Min(_minAttackDelay, _maxAttackDelay + 1), Math.Max(_minAttackDelay, _maxAttackDelay));
@@ -407,12 +407,14 @@ namespace SFXChallenger.Wrappers
                                          (int) (ObjectManager.Player.AttackCastDelay * 1000f);
                             _missileLaunched = false;
                         }
-                        if (InAutoAttackRange(target))
+
+                        if (!Player.IssueOrder(GameObjectOrder.AttackUnit, target))
                         {
-                            Player.IssueOrder(GameObjectOrder.AttackUnit, target);
-                            _lastTarget = target;
-                            return;
+                            ResetAutoAttackTimer();
                         }
+
+                        _lastTarget = target;
+                        return;
                     }
                 }
                 if (CanMove(extraWindup))
@@ -731,7 +733,10 @@ namespace SFXChallenger.Wrappers
                                     minion.Health <
                                     2 *
                                     (ObjectManager.Player.BaseAttackDamage + ObjectManager.Player.FlatPhysicalDamageMod))
-                            .OrderByDescending(m => m.MaxHealth);
+                            .OrderByDescending(minion => minion.CharData.BaseSkinName.Contains("Siege"))
+                            .ThenBy(minion => minion.CharData.BaseSkinName.Contains("Super"))
+                            .ThenByDescending(minion => minion.MaxHealth)
+                            .ThenBy(minion => minion.Health);
 
                     foreach (var minion in minionList)
                     {

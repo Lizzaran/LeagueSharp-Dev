@@ -826,7 +826,7 @@ namespace SFXChallenger.Champions
                 {
                     bool containsTarget;
                     var lTarget = target;
-                    if (target.Distance(Player.Position) < E.Range)
+                    if (target.Distance(Player.Position) <= E.Range)
                     {
                         containsTarget = mainTarget == null || lTarget.NetworkId == mainTarget.NetworkId;
                         var cCastPos = target.Position;
