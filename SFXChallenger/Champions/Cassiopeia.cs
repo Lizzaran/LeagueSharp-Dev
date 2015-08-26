@@ -106,6 +106,8 @@ namespace SFXChallenger.Champions
                 new Dictionary<string, int> { { "Q", 2 }, { "W", 1 } });
             ManaManager.AddToMenu(
                 harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Total, string.Empty, 70, 0, 750);
+            harassMenu.AddItem(
+                new MenuItem(harassMenu.Name + ".auto-attack", Global.Lang.Get("G_UseAutoAttacks")).SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
@@ -391,6 +393,12 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed &&
+                    !Menu.Item(Menu.Name + ".harass.auto-attack").GetValue<bool>())
+                {
+                    args.Process = false;
+                    return;
+                }
                 var t = args.Target as Obj_AI_Hero;
                 if (t != null &&
                     (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||

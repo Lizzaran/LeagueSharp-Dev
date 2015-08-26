@@ -72,6 +72,7 @@ namespace SFXChallenger.Champions
             Core.OnPostUpdate += OnCorePostUpdate;
             AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
             Drawing.OnDraw += OnDrawingDraw;
+            Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
         }
 
         protected override void OnUnload()
@@ -79,6 +80,7 @@ namespace SFXChallenger.Champions
             Core.OnPostUpdate -= OnCorePostUpdate;
             AntiGapcloser.OnEnemyGapcloser -= OnEnemyGapcloser;
             Drawing.OnDraw -= OnDrawingDraw;
+            Orbwalking.BeforeAttack -= OnOrbwalkingBeforeAttack;
         }
 
         protected override void AddToMenu()
@@ -112,6 +114,8 @@ namespace SFXChallenger.Champions
                 harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
                 new Dictionary<string, int> { { "Q", 1 }, { "E", 1 } });
             ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
+            harassMenu.AddItem(
+                new MenuItem(harassMenu.Name + ".auto-attack", Global.Lang.Get("G_UseAutoAttacks")).SetValue(true));
             harassMenu.AddItem(
                 new MenuItem(harassMenu.Name + ".q-fast-cast-min", Global.Lang.Get("Varus_FastCastMin")).SetValue(
                     new Slider(25)));
@@ -189,6 +193,22 @@ namespace SFXChallenger.Champions
 
             R = new Spell(SpellSlot.R, 1075f);
             R.SetSkillshot(0.25f, 120f, 1950f, false, SkillshotType.SkillshotLine);
+        }
+
+        private void OnOrbwalkingBeforeAttack(Orbwalking.BeforeAttackEventArgs args)
+        {
+            try
+            {
+                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed &&
+                    !Menu.Item(Menu.Name + ".harass.auto-attack").GetValue<bool>())
+                {
+                    args.Process = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnCorePostUpdate(EventArgs args)

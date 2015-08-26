@@ -339,8 +339,32 @@ namespace SFXChallenger.Wrappers
                 return;
             }
 
-            _currentMoveDelay = new Random().Next(
-                Math.Min(_minMoveDelay, _maxMoveDelay + 1), Math.Max(_minMoveDelay, _maxMoveDelay));
+            if (Random.Next(0, 100) >= 70)
+            {
+                _currentMoveDelay = Random.Next(
+                    Math.Min((int) (_minMoveDelay * 0.7f), _maxMoveDelay), Math.Max(_minMoveDelay, _maxMoveDelay));
+            }
+            else
+            {
+                _currentMoveDelay = Random.Next(
+                    Math.Min((int) (_minMoveDelay * 0.9f), (int) (_maxMoveDelay * 0.9f)),
+                    Math.Max((int) (_minMoveDelay * 1.1f), (int) (_maxMoveDelay * 1.1f)));
+            }
+
+            if (Random.Next(0, 100) >= 70)
+            {
+                _currentAttackDelay = Random.Next(
+                    Math.Min((int) (_minAttackDelay * 0.7f), _maxAttackDelay),
+                    Math.Max(_minAttackDelay, _maxAttackDelay));
+            }
+            else
+            {
+                _currentAttackDelay =
+                    _currentAttackDelay =
+                        Random.Next(
+                            Math.Min((int) (_minAttackDelay * 0.9f), (int) (_maxAttackDelay * 0.9f)),
+                            Math.Max((int) (_minAttackDelay * 1.1f), (int) (_maxAttackDelay * 1.1f)));
+            }
 
             LastMoveCommandT = Utils.GameTimeTickCount;
 
@@ -393,8 +417,20 @@ namespace SFXChallenger.Wrappers
                     Utils.GameTimeTickCount + Game.Ping / 2 + 25 >=
                     LastAaTick + Player.AttackDelay * 1000 + _currentAttackDelay && Attack && InAutoAttackRange(target))
                 {
-                    _currentAttackDelay = new Random().Next(
-                        Math.Min(_minAttackDelay, _maxAttackDelay + 1), Math.Max(_minAttackDelay, _maxAttackDelay));
+                    if (Random.Next(0, 100) >= 70)
+                    {
+                        _currentAttackDelay = Random.Next(
+                            Math.Min((int) (_minAttackDelay * 0.7f), _maxAttackDelay),
+                            Math.Max(_minAttackDelay, _maxAttackDelay));
+                    }
+                    else
+                    {
+                        _currentAttackDelay =
+                            _currentAttackDelay =
+                                Random.Next(
+                                    Math.Min((int) (_minAttackDelay * 0.9f), (int) (_maxAttackDelay * 0.9f)),
+                                    Math.Max((int) (_minAttackDelay * 1.1f), (int) (_maxAttackDelay * 1.1f)));
+                    }
 
                     DisableNextAttack = false;
                     FireBeforeAttack(target);
