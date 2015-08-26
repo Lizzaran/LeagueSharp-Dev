@@ -301,7 +301,7 @@ namespace SFXChallenger.Wrappers
                 if (_selectedTarget != null && _selectedTarget.IsValidTarget() && focusSelected && selected.Active)
                 {
                     Render.Circle.DrawCircle(
-                        _selectedTarget.Position, _selectedTarget.BoundingRadius + SelectClickBuffer, selected.Color,
+                        _selectedTarget.Position, _selectedTarget.BoundingRadius + 25, selected.Color,
                         circleThickness);
                 }
 
@@ -314,7 +314,7 @@ namespace SFXChallenger.Wrappers
                                 h.IsValidTarget(assassinRange) && h.Position.IsOnScreen()))
                     {
                         Render.Circle.DrawCircle(
-                            target.Position, target.BoundingRadius + SelectClickBuffer, assassinColor.Color,
+                            target.Position, target.BoundingRadius + 25, assassinColor.Color,
                             circleThickness);
                     }
                     Render.Circle.DrawCircle(
@@ -326,7 +326,7 @@ namespace SFXChallenger.Wrappers
                         _lastTarget.Position.IsOnScreen())
                     {
                         Render.Circle.DrawCircle(
-                            _lastTarget.Position, _lastTarget.BoundingRadius + SelectClickBuffer, lastTarget.Color,
+                            _lastTarget.Position, _lastTarget.BoundingRadius + 25, lastTarget.Color,
                             circleThickness);
                     }
                 }
@@ -400,7 +400,7 @@ namespace SFXChallenger.Wrappers
                     if (bestGroupTarget.Active && bestTarget != null && enemies.Count > 1)
                     {
                         Render.Circle.DrawCircle(
-                            bestTarget.Position, bestTarget.BoundingRadius + SelectClickBuffer, bestGroupTarget.Color,
+                            bestTarget.Position, bestTarget.BoundingRadius + 25, bestGroupTarget.Color,
                             circleThickness);
                     }
                 }
