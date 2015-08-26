@@ -236,6 +236,7 @@
 
   <!-- START: TargetSelector -->
   <entry key="F_TargetSelector">Target Selector</entry>
+  <entry key="TS_BestGroupTarget">Best Group Target</entry>
   <entry key="TS_RangeCheck">Range Check</entry>
   <entry key="TS_WeightMode">Mode</entry>
   <entry key="TS_WeightModes">Absolute|Linear</entry>
