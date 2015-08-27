@@ -253,7 +253,7 @@ namespace SFXChallenger.Champions
                 {
                     if (Ball.IsMoving || Menu.Item(Menu.Name + ".miscellaneous.block-r").GetValue<bool>())
                     {
-                        args.Process = GetHits(R).Item1 > 0;
+                        args.Process = GetHits(R, 400f).Item1 > 0;
                     }
                 }
             }
@@ -779,19 +779,20 @@ namespace SFXChallenger.Champions
             return false;
         }
 
-        private Tuple<int, List<Obj_AI_Hero>> GetHits(Spell spell)
+        private Tuple<int, List<Obj_AI_Hero>> GetHits(Spell spell, float overrideWidth = -1f)
         {
             try
             {
+                var width = overrideWidth > 0 ? overrideWidth : spell.Width;
                 var hits = new List<Obj_AI_Hero>();
                 var positions = (from t in GameObjects.EnemyHeroes
-                    where t.IsValidTarget(spell.Width * 4, true, spell.RangeCheckFrom)
+                    where t.IsValidTarget(width * 4, true, spell.RangeCheckFrom)
                     let prediction = spell.GetPrediction(t)
                     where prediction.Hitchance >= HitChance.High
                     select new CPrediction.Position(t, prediction.UnitPosition)).ToList();
                 if (positions.Any())
                 {
-                    var circle = new Geometry.Polygon.Circle(Ball.Position, spell.Width);
+                    var circle = new Geometry.Polygon.Circle(Ball.Position, width);
                     hits.AddRange(
                         from position in positions
                         where
