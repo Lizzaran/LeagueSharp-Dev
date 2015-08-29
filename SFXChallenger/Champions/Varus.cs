@@ -88,7 +88,12 @@ namespace SFXChallenger.Champions
             var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), Menu.Name + ".combo"));
             HitchanceManager.AddToMenu(
                 comboMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), comboMenu.Name + ".hitchance")), "combo",
-                new Dictionary<string, int> { { "Q", 1 }, { "E", 1 }, { "R", 2 } });
+                new Dictionary<string, HitChance>
+                {
+                    { "Q", HitChance.High },
+                    { "E", HitChance.High },
+                    { "R", HitChance.VeryHigh }
+                });
             comboMenu.AddItem(
                 new MenuItem(comboMenu.Name + ".q-fast-cast-min", Global.Lang.Get("Varus_FastCastMin")).SetValue(
                     new Slider(25)));
@@ -112,7 +117,7 @@ namespace SFXChallenger.Champions
             var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Harass"), Menu.Name + ".harass"));
             HitchanceManager.AddToMenu(
                 harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
-                new Dictionary<string, int> { { "Q", 1 }, { "E", 1 } });
+                new Dictionary<string, HitChance> { { "Q", HitChance.High }, { "E", HitChance.High } });
             ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
             harassMenu.AddItem(
                 new MenuItem(harassMenu.Name + ".auto-attack", Global.Lang.Get("G_UseAutoAttacks")).SetValue(true));
@@ -171,7 +176,7 @@ namespace SFXChallenger.Champions
             TargetSelector.AddWeightedItem(
                 new WeightedItem("w-stacks", "W " + Global.Lang.Get("G_Stacks"), 13, true, t => GetWStacks(t) + 1));
 
-            IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
+            IndicatorManager.AddToMenu(DrawingManager.Menu, true);
             IndicatorManager.Add("Q", hero => Q.IsReady() ? Q.GetDamage(hero, 1) : 0);
             IndicatorManager.Add(E);
             IndicatorManager.Add(R);

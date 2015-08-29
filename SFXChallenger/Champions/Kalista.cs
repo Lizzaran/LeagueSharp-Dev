@@ -99,7 +99,7 @@ namespace SFXChallenger.Champions
             ManaManager.AddToMenu(comboMenu, "combo-q", ManaCheckType.Minimum, ManaValueType.Percent, "Q");
             HitchanceManager.AddToMenu(
                 comboMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), comboMenu.Name + ".hitchance")), "combo",
-                new Dictionary<string, int> { { "Q", 2 } });
+                new Dictionary<string, HitChance> { { "Q", HitChance.VeryHigh } });
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
             comboMenu.AddItem(
@@ -108,7 +108,7 @@ namespace SFXChallenger.Champions
             var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Harass"), Menu.Name + ".harass"));
             HitchanceManager.AddToMenu(
                 harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
-                new Dictionary<string, int> { { "Q", 2 } });
+                new Dictionary<string, HitChance> { { "Q", HitChance.VeryHigh } });
             ManaManager.AddToMenu(harassMenu, "harass-q", ManaCheckType.Minimum, ManaValueType.Percent, "Q");
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             ManaManager.AddToMenu(comboMenu, "harass-e", ManaCheckType.Minimum, ManaValueType.Percent, "E");
@@ -181,7 +181,7 @@ namespace SFXChallenger.Champions
                 new MenuItem(miscMenu.Name + ".w-dragon", Global.Lang.Get("Kalista_WDragon")).SetValue(
                     new KeyBind('K', KeyBindType.Press)));
 
-            IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
+            IndicatorManager.AddToMenu(DrawingManager.Menu, true);
             IndicatorManager.Add(Q);
             IndicatorManager.Add(W);
             IndicatorManager.Add("E", Rend.GetDamage);
@@ -520,6 +520,39 @@ namespace SFXChallenger.Champions
                                     E.Cast();
                                 }
                             }
+                        }
+                    }
+                }
+            }
+            if (!GameObjects.EnemyHeroes.Any(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget()))
+            {
+                var enemy =
+                    GameObjects.EnemyHeroes.Where(e => e.IsValidTarget())
+                        .OrderBy(e => e.Distance(Player))
+                        .FirstOrDefault();
+                if (enemy != null)
+                {
+                    var dashObjects = GetDashObjects();
+                    if (dashObjects.Any())
+                    {
+                        var line = new Geometry.Polygon.Line(
+                            Player.Position,
+                            enemy.Position.Extend(
+                                Player.Position, enemy.Distance(Player) + Orbwalking.GetRealAutoAttackRange(null)));
+                        Obj_AI_Base dashObj = null;
+                        var objDistance = float.MaxValue;
+                        foreach (var obj in dashObjects)
+                        {
+                            var lowestDistance = line.Points.Min(e => obj.Distance(e));
+                            if (lowestDistance < objDistance)
+                            {
+                                objDistance = lowestDistance;
+                                dashObj = obj;
+                            }
+                        }
+                        if (dashObj != null)
+                        {
+                            Orbwalker.ForceTarget(dashObj);
                         }
                     }
                 }

@@ -99,7 +99,7 @@ namespace SFXChallenger.Champions
             var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), Menu.Name + ".combo"));
             HitchanceManager.AddToMenu(
                 comboMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), comboMenu.Name + ".hitchance")), "combo",
-                new Dictionary<string, int> { { "Q", 1 } });
+                new Dictionary<string, HitChance> { { "Q", HitChance.High } });
             ManaManager.AddToMenu(
                 comboMenu, "combo-blue", ManaCheckType.Minimum, ManaValueType.Percent, "W " + Global.Lang.Get("TF_Blue"));
             comboMenu.AddItem(
@@ -117,7 +117,7 @@ namespace SFXChallenger.Champions
             var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Harass"), Menu.Name + ".harass"));
             HitchanceManager.AddToMenu(
                 harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
-                new Dictionary<string, int> { { "Q", 1 } });
+                new Dictionary<string, HitChance> { { "Q", HitChance.VeryHigh } });
             ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
             ManaManager.AddToMenu(
                 harassMenu, "harass-blue", ManaCheckType.Minimum, ManaValueType.Percent,
@@ -178,7 +178,7 @@ namespace SFXChallenger.Champions
             W.Range = Menu.Item(Menu.Name + ".miscellaneous.w-range").GetValue<Slider>().Value;
             Cards.Delay = Menu.Item(Menu.Name + ".miscellaneous.w-delay").GetValue<Slider>().Value;
 
-            IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
+            IndicatorManager.AddToMenu(DrawingManager.Menu, true);
             IndicatorManager.Add(Q);
             IndicatorManager.Add(
                 "W",
@@ -560,7 +560,7 @@ namespace SFXChallenger.Champions
                 {
                     target = _wTarget;
                 }
-                if (target == null || target.Distance(Player) < Player.BoundingRadius && !Utils.IsStunned(target))
+                if (target == null || target.Distance(Player) < Player.BoundingRadius && !Utils.IsImmobile(target))
                 {
                     return;
                 }
@@ -572,7 +572,7 @@ namespace SFXChallenger.Champions
                 }
                 if (goldCardTarget)
                 {
-                    if (target.Distance(Player) > 250 && !Utils.IsStunned(target))
+                    if (target.Distance(Player) > 250 && !Utils.IsImmobile(target))
                     {
                         return;
                     }
@@ -585,7 +585,7 @@ namespace SFXChallenger.Champions
                         _wTargetEndTime = 0;
                     }
                 }
-                else if (Utils.IsStunned(target) || (W.Instance.CooldownExpires - Game.Time) >= 2 || W.Level == 0)
+                else if (Utils.IsImmobile(target) || (W.Instance.CooldownExpires - Game.Time) >= 2 || W.Level == 0)
                 {
                     var best = BestQPosition(
                         target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("combo"));
@@ -872,7 +872,7 @@ namespace SFXChallenger.Champions
                     {
                         damage += E.GetDamage(target);
                     }
-                    if (Q.IsReady() && (Utils.GetStunTime(target) > 0.5f || distance < Q.Range / 4f))
+                    if (Q.IsReady() && (Utils.GetImmobileTime(target) > 0.5f || distance < Q.Range / 4f))
                     {
                         damage += Q.GetDamage(target);
                     }

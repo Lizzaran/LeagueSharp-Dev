@@ -84,13 +84,17 @@
     <Compile Include="Bootstrap.cs" />
     <Compile Include="Abstracts\TChampion.cs" />
     <Compile Include="Champions\Cassiopeia.cs" />
+    <Compile Include="Champions\Corki.cs" />
     <Compile Include="Champions\Graves.cs" />
     <Compile Include="Champions\Kalista.cs" />
+    <Compile Include="Champions\KogMaw.cs" />
     <Compile Include="Champions\Orianna.cs" />
     <Compile Include="Champions\Sivir.cs" />
     <Compile Include="Champions\TwistedFate.cs" />
+    <Compile Include="Champions\Twitch.cs" />
     <Compile Include="Champions\Varus.cs" />
     <Compile Include="Champions\Viktor.cs" />
+    <Compile Include="Champions\Vladimir.cs" />
     <Compile Include="Enumerations\CastType.cs" />
     <Compile Include="Enumerations\CombatFlags.cs" />
     <Compile Include="Enumerations\EffectFlags.cs" />

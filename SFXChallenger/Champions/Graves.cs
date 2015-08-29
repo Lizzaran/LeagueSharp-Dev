@@ -74,7 +74,12 @@ namespace SFXChallenger.Champions
             var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), Menu.Name + ".combo"));
             HitchanceManager.AddToMenu(
                 comboMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), comboMenu.Name + ".hitchance")), "combo",
-                new Dictionary<string, int> { { "Q", 2 }, { "W", 1 }, { "R", 2 } });
+                new Dictionary<string, HitChance>
+                {
+                    { "Q", HitChance.High },
+                    { "W", HitChance.High },
+                    { "R", HitChance.High }
+                });
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
@@ -82,7 +87,7 @@ namespace SFXChallenger.Champions
             var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Harass"), Menu.Name + ".harass"));
             HitchanceManager.AddToMenu(
                 harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
-                new Dictionary<string, int> { { "Q", 2 } });
+                new Dictionary<string, HitChance> { { "Q", HitChance.High } });
             ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
 
@@ -110,7 +115,7 @@ namespace SFXChallenger.Champions
                 miscMenu.AddSubMenu(new Menu("E " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "e-gapcloser")),
                 "e-gapcloser", false, false, true, false);
 
-            IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
+            IndicatorManager.AddToMenu(DrawingManager.Menu, true);
             IndicatorManager.Add(Q);
             IndicatorManager.Add(W);
             IndicatorManager.Add(R);
@@ -189,9 +194,9 @@ namespace SFXChallenger.Champions
                         W.Cast(args.End);
                     }
                 }
-                if (HeroListManager.Check("e-gapcloser", args.Sender))
+                if (HeroListManager.Check("e-gapcloser", args.Sender) && E.IsInRange(args.End))
                 {
-                    E.Cast(args.End.Extend(Player.Position, E.Range));
+                    E.Cast(args.End);
                 }
             }
             catch (Exception ex)
@@ -392,7 +397,7 @@ namespace SFXChallenger.Champions
                 var fPredEnemy =
                     GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(Q.Range * 1.2f) && Q.IsKillable(e))
                         .Select(enemy => Q.GetPrediction(enemy, true))
-                        .FirstOrDefault(pred => pred.Hitchance >= Q.GetHitChance("harass"));
+                        .FirstOrDefault(pred => pred.Hitchance >= HitChance.High);
                 if (fPredEnemy != null)
                 {
                     Q.Cast(fPredEnemy.CastPosition);

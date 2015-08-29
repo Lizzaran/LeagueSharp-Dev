@@ -3,6 +3,10 @@
 <!-- ReSharper disable MarkupTextTypo -->
 <language lang="en">
 
+  <!-- START: Vladimir -->
+  <entry key="Vladimir_AutoEStacking">Auto E Stacking</entry>
+  <!-- START: Vladimir -->
+
   <!-- START: Viktor -->
   <entry key="Viktor_AutoFollow">Auto Follow</entry>
   <!-- START: Viktor -->
@@ -48,7 +52,6 @@
   <entry key="G_UpdateAvailable">Update available</entry>
   <entry key="G_Enabled">Enabled</entry>
   <entry key="G_Drawing">Drawing</entry>
-  <entry key="G_OnlyStunned">Only Stunned</entry>
   <entry key="G_CircleThickness">Circle Thickness</entry>
   <entry key="G_Debug">Debug</entry>
   <entry key="G_Range">Range</entry>
@@ -73,7 +76,7 @@
   <entry key="G_UseR">Use R</entry>
   <entry key="G_Flash">Flash</entry>
   <entry key="G_Killsteal">Killsteal</entry>
-  <entry key="G_Stunned">Stunned</entry>
+  <entry key="G_Immobile">Immobile</entry>
   <entry key="G_Dash">Dash</entry>
   <entry key="G_Fleeing">Fleeing</entry>
   <entry key="G_Killable">Killable</entry>
