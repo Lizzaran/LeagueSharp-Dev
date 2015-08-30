@@ -99,6 +99,42 @@ namespace SFXOrianna.Helpers
             spell.CastOnUnit(target);
         }
 
+        public static void FarmSelfAoe(Spell spell,
+            int minHit = 3,
+            float overrideWidth = -1f,
+            List<Obj_AI_Base> minions = null)
+        {
+            if (!spell.IsReady())
+            {
+                return;
+            }
+            var spellWidth = overrideWidth > 0 ? overrideWidth : (spell.Width > 25f ? spell.Width : spell.Range);
+
+            if (minions == null)
+            {
+                minions = MinionManager.GetMinions(
+                    spellWidth, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+            }
+
+            if (minions.Count == 0)
+            {
+                return;
+            }
+
+            if (minHit > 1)
+            {
+                var nearest = minions.OrderBy(m => m.Distance(ObjectManager.Player)).FirstOrDefault();
+                if (nearest != null && nearest.Team == GameObjectTeam.Neutral)
+                {
+                    minHit = 1;
+                }
+            }
+            if (minions.Count >= minHit)
+            {
+                spell.Cast();
+            }
+        }
+
         public static void Farm(Spell spell,
             int minHit = 3,
             float overrideWidth = -1f,
@@ -132,18 +168,33 @@ namespace SFXOrianna.Helpers
                     minHit = 1;
                 }
             }
-
-            if (spell.Type == SkillshotType.SkillshotCircle)
+            if (spell.IsSkillshot)
             {
-                CircleFarm(spell, minions, minHit, overrideWidth);
+                if (spell.Type == SkillshotType.SkillshotCircle)
+                {
+                    CircleFarm(spell, minions, minHit, overrideWidth);
+                }
+                else if (spell.Type == SkillshotType.SkillshotLine)
+                {
+                    LineFarm(spell, minions, minHit, overrideWidth);
+                }
+                else if (spell.Type == SkillshotType.SkillshotCone)
+                {
+                    ConeFarm(spell, minions, minHit, overrideWidth);
+                }
             }
-            else if (spell.Type == SkillshotType.SkillshotLine)
+            else
             {
-                LineFarm(spell, minions, minHit, overrideWidth);
-            }
-            else if (spell.Type == SkillshotType.SkillshotCone)
-            {
-                ConeFarm(spell, minions, minHit, overrideWidth);
+                var minion =
+                    minions.OrderBy(m => spell.IsKillable(m))
+                        .FirstOrDefault(
+                            m =>
+                                spell.IsInRange(m) && spell.GetDamage(m) > m.Health ||
+                                m.Health - spell.GetDamage(m) > m.MaxHealth * 0.25f);
+                if (minion != null)
+                {
+                    spell.CastOnUnit(minion);
+                }
             }
         }
 

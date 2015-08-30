@@ -723,6 +723,12 @@ namespace SFXChallenger.Wrappers
                     }
                 }
 
+                //Forced target
+                if (_forcedTarget.IsValidTarget() && InAutoAttackRange(_forcedTarget))
+                {
+                    return _forcedTarget;
+                }
+
                 /*Killable Minion*/
                 if (ActiveMode == OrbwalkingMode.LaneClear || ActiveMode == OrbwalkingMode.Mixed ||
                     ActiveMode == OrbwalkingMode.LastHit)
@@ -755,12 +761,6 @@ namespace SFXChallenger.Wrappers
                             return minion;
                         }
                     }
-                }
-
-                //Forced target
-                if (_forcedTarget.IsValidTarget() && InAutoAttackRange(_forcedTarget))
-                {
-                    return _forcedTarget;
                 }
 
                 /* turrets / inhibitors / nexus */

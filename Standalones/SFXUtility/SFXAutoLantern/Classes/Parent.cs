@@ -52,7 +52,7 @@ namespace SFXAutoLantern.Classes
 
                 Global.SFX.Menu.AddSubMenu(Menu);
 
-                RaiseOnInitialized();
+                OnInitialize();
             }
             catch (Exception ex)
             {

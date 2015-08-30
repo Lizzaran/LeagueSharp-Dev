@@ -181,6 +181,12 @@
   <entry key="MM_MaxMana">Max. Mana</entry>
   <!-- END: ManaManager -->
 
+  <!-- START: HealthManager -->
+  <entry key="F_MM">Health Manager</entry>
+  <entry key="MH_MinHealth">Min. Health</entry>
+  <entry key="MH_MaxHealth">Max. Health</entry>
+  <!-- END: HealthManager -->
+
   <!-- START: KillstealManager -->
   <entry key="F_MK">Killsteal</entry>
   <entry key="MK_UseItems">Use Items</entry>

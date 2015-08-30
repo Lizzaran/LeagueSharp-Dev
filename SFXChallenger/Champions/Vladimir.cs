@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
@@ -47,6 +48,8 @@ namespace SFXChallenger.Champions
 {
     internal class Vladimir : Champion
     {
+        private MenuItem _eStacks;
+
         protected override ItemFlags ItemFlags
         {
             get { return ItemFlags.Offensive | ItemFlags.Defensive | ItemFlags.Flee; }
@@ -62,6 +65,7 @@ namespace SFXChallenger.Champions
             Core.OnPostUpdate += OnCorePostUpdate;
             AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
             CustomEvents.Unit.OnDash += OnUnitDash;
+            Drawing.OnDraw += OnDrawingDraw;
         }
 
         protected override void OnUnload()
@@ -69,19 +73,24 @@ namespace SFXChallenger.Champions
             Core.OnPostUpdate -= OnCorePostUpdate;
             AntiGapcloser.OnEnemyGapcloser -= OnEnemyGapcloser;
             CustomEvents.Unit.OnDash -= OnUnitDash;
+            Drawing.OnDraw -= OnDrawingDraw;
         }
 
         protected override void AddToMenu()
         {
             var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), Menu.Name + ".combo"));
+            HealthManager.AddToMenu(comboMenu, "combo-e", HealthCheckType.Minimum, HealthValueType.Percent, "E", 0);
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
             var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Harass"), Menu.Name + ".harass"));
+            HealthManager.AddToMenu(harassMenu, "harass-e", HealthCheckType.Minimum, HealthValueType.Percent, "E");
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
             var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LaneClear"), Menu.Name + ".lane-clear"));
+            HealthManager.AddToMenu(
+                laneclearMenu, "lane-clear-e", HealthCheckType.Minimum, HealthValueType.Percent, "E");
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", Global.Lang.Get("G_UseW")).SetValue(true));
             laneclearMenu.AddItem(
@@ -103,14 +112,17 @@ namespace SFXChallenger.Champions
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "w-gapcloser")),
                 "w-gapcloser", false, false, true, false);
+            HealthManager.AddToMenu(miscMenu, "auto-e", HealthCheckType.Minimum, HealthValueType.Percent, "E");
             miscMenu.AddItem(
-                new MenuItem(fleeMenu.Name + ".e-auto", Global.Lang.Get("Vladimir_AutoEStacking")).SetValue(false));
+                new MenuItem(miscMenu.Name + ".e-auto", Global.Lang.Get("Vladimir_AutoEStacking")).SetValue(false));
 
             IndicatorManager.AddToMenu(DrawingManager.Menu, true);
             IndicatorManager.Add(Q);
             IndicatorManager.Add(E);
             IndicatorManager.Add(R);
             IndicatorManager.Finale();
+
+            _eStacks = DrawingManager.Add("E " + Global.Lang.Get("G_Stacks"), true);
         }
 
         private void OnUnitDash(Obj_AI_Base sender, Dash.DashItem args)
@@ -162,7 +174,9 @@ namespace SFXChallenger.Champions
 
             W = new Spell(SpellSlot.W, 175f, DamageType.Magical);
 
-            E = new Spell(SpellSlot.E, 610f, DamageType.Magical);
+            E = new Spell(SpellSlot.E, 600f, DamageType.Magical);
+            E.Delay = E.Instance.SData.CastFrame / 30f;
+            E.Width = E.Range;
 
             R = new Spell(SpellSlot.R, 700f, DamageType.Magical);
             R.SetSkillshot(0.25f, 175f, float.MaxValue, false, SkillshotType.SkillshotCircle);
@@ -225,11 +239,9 @@ namespace SFXChallenger.Champions
                 }
 
                 if (Menu.Item(Menu.Name + ".miscellaneous.e-auto").GetValue<bool>() && E.IsReady() &&
-                    !Player.IsRecalling() && !Player.InFountain())
+                    HealthManager.Check("auto-e") && !Player.IsRecalling() && !Player.InFountain())
                 {
-                    var buff =
-                        Player.Buffs.FirstOrDefault(
-                            b => b.Name.Equals("vladimirtidesofbloodcost", StringComparison.OrdinalIgnoreCase));
+                    var buff = GetEBuff();
                     if (buff == null || (buff.EndTime - Game.Time) <= Game.Ping / 2000f + 0.5f)
                     {
                         E.Cast();
@@ -242,23 +254,31 @@ namespace SFXChallenger.Champions
             }
         }
 
+        private BuffInstance GetEBuff()
+        {
+            try
+            {
+                return
+                    Player.Buffs.FirstOrDefault(
+                        b => b.Name.Equals("vladimirtidesofbloodcost", StringComparison.OrdinalIgnoreCase));
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return null;
+        }
+
         private Tuple<int, List<Obj_AI_Hero>> GetEHits()
         {
             try
             {
-                var hits = new List<Obj_AI_Hero>();
-                var positions = (from t in GameObjects.EnemyHeroes
-                    where t.IsValidTarget(E.Width * 1.2f, true, Player.Position)
-                    let prediction = E.GetPrediction(t)
-                    where prediction.Hitchance >= HitChance.High
-                    select new CPrediction.Position(t, prediction.UnitPosition)).ToList();
-                if (positions.Any())
-                {
-                    var circle = new Geometry.Polygon.Circle(Player.Position, E.Width);
-                    hits.AddRange(
-                        from position in positions where circle.IsInside(position.UnitPosition) select position.Hero);
-                    return new Tuple<int, List<Obj_AI_Hero>>(hits.Count, hits);
-                }
+                var hits =
+                    GameObjects.EnemyHeroes.Where(
+                        e =>
+                            e.IsValidTarget() && e.Distance(Player) < E.Width * 0.8f ||
+                            e.Distance(Player) < E.Width && e.IsFacing(Player)).ToList();
+                return new Tuple<int, List<Obj_AI_Hero>>(hits.Count, hits);
             }
             catch (Exception ex)
             {
@@ -270,7 +290,7 @@ namespace SFXChallenger.Champions
         protected override void Combo()
         {
             var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady();
-            var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
+            var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady() && HealthManager.Check("combo-e");
             var r = UltimateManager.Combo();
 
             if (q)
@@ -306,7 +326,8 @@ namespace SFXChallenger.Champions
         protected override void Harass()
         {
             var q = Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && Q.IsReady();
-            var e = Menu.Item(Menu.Name + ".harass.e").GetValue<bool>() && E.IsReady();
+            var e = Menu.Item(Menu.Name + ".harass.e").GetValue<bool>() && E.IsReady() &&
+                    HealthManager.Check("harass-e");
 
             if (q)
             {
@@ -396,7 +417,8 @@ namespace SFXChallenger.Champions
         protected override void LaneClear()
         {
             var q = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
-            var e = Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady();
+            var e = Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady() &&
+                    HealthManager.Check("lane-clear-e");
             var eMin = Menu.Item(Menu.Name + ".lane-clear.e-min").GetValue<Slider>().Value;
 
             if (q)
@@ -414,7 +436,7 @@ namespace SFXChallenger.Champions
             if (Menu.Item(Menu.Name + ".flee.q").GetValue<bool>() && Q.IsReady())
             {
                 var target =
-                    GameObjects.EnemyHeroes.Cast<Obj_AI_Base>()
+                    GameObjects.EnemyHeroes.Select(e => e as Obj_AI_Base)
                         .Concat(GameObjects.EnemyMinions)
                         .Where(e => e.IsValidTarget(Q.Range))
                         .OrderBy(e => e is Obj_AI_Hero)
@@ -435,6 +457,32 @@ namespace SFXChallenger.Champions
                 {
                     Casting.TargetSkill(target, Q);
                 }
+            }
+        }
+
+        private void OnDrawingDraw(EventArgs args)
+        {
+            try
+            {
+                if (E.Level > 0 && _eStacks != null && _eStacks.GetValue<bool>() && !Player.IsDead)
+                {
+                    var buff = GetEBuff();
+                    var stacks = buff != null ? buff.Count - 1 : -1;
+                    if (stacks > -1)
+                    {
+                        var x = Player.HPBarPosition.X + 40;
+                        var y = Player.HPBarPosition.Y - 25;
+                        for (var i = 0; 4 > i; i++)
+                        {
+                            Drawing.DrawLine(
+                                x + (i * 20), y, x + (i * 20) + 10, y, 10, (i > stacks ? Color.DarkGray : Color.Orange));
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
     }

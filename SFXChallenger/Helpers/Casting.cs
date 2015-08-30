@@ -108,7 +108,7 @@ namespace SFXChallenger.Helpers
             {
                 return;
             }
-            var spellWidth = overrideWidth > 0 ? overrideWidth : spell.Width;
+            var spellWidth = overrideWidth > 0 ? overrideWidth : (spell.Width > 25f ? spell.Width : spell.Range);
 
             if (minions == null)
             {

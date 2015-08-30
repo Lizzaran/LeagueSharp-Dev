@@ -121,13 +121,14 @@ namespace SFXChallenger.Champions
 
             ultimateMenu.AddItem(
                 new MenuItem(ultimateMenu.Name + ".width", Global.Lang.Get("G_Width")).SetValue(
-                    new Slider(350, 250, 400))).ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        R.Width = args.GetNewValue<Slider>().Value;
-                        DrawingManager.Update(
-                            "R " + Global.Lang.Get("G_Flash"),
-                            args.GetNewValue<Slider>().Value + SummonerManager.Flash.Range);
-                    };
+                    new Slider((int) R.Width, 250, 400))).ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args)
+                {
+                    R.Width = args.GetNewValue<Slider>().Value;
+                    DrawingManager.Update(
+                        "R " + Global.Lang.Get("G_Flash"),
+                        args.GetNewValue<Slider>().Value + SummonerManager.Flash.Range);
+                };
 
             var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Flee"), Menu.Name + ".flee"));
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
@@ -311,13 +312,13 @@ namespace SFXChallenger.Champions
             Q.SetSkillshot(0.15f, 110f, 1375f, false, SkillshotType.SkillshotCircle);
 
             W = new Spell(SpellSlot.W, float.MaxValue, DamageType.Magical);
-            W.SetSkillshot(0f, 210f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            W.SetSkillshot(0f, 220f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E, 1095f, DamageType.Magical);
             E.SetSkillshot(0.25f, 125f, 1700f, false, SkillshotType.SkillshotLine);
 
             R = new Spell(SpellSlot.R, float.MaxValue, DamageType.Magical);
-            R.SetSkillshot(0.6f, 350f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            R.SetSkillshot(0.75f, 375f, float.MaxValue, false, SkillshotType.SkillshotCircle);
         }
 
         private void OnCorePostUpdate(EventArgs args)
@@ -1066,7 +1067,8 @@ namespace SFXChallenger.Champions
                     var q2Location = Q.GetCircularFarmLocation(rangedMinions, W.Width);
                     var bestLocation = (qLocation.MinionsHit > q2Location.MinionsHit + 1) ? qLocation : q2Location;
 
-                    if (bestLocation.MinionsHit > 0)
+                    if (bestLocation.MinionsHit > 0 && Ball.Status != BallStatus.Fixed ||
+                        bestLocation.Position.Distance(Ball.Position) > 30)
                     {
                         Q.Cast(bestLocation.Position);
                         return;

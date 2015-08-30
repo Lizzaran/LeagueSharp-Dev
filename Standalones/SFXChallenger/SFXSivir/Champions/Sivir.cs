@@ -77,14 +77,14 @@ namespace SFXSivir.Champions
             var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), Menu.Name + ".combo"));
             HitchanceManager.AddToMenu(
                 comboMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), comboMenu.Name + ".hitchance")), "combo",
-                new Dictionary<string, int> { { "Q", 2 } });
+                new Dictionary<string, HitChance> { { "Q", HitChance.VeryHigh } });
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
 
             var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Harass"), Menu.Name + ".harass"));
             HitchanceManager.AddToMenu(
                 harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
-                new Dictionary<string, int> { { "Q", 2 } });
+                new Dictionary<string, HitChance> { { "Q", HitChance.VeryHigh } });
             ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
@@ -113,10 +113,10 @@ namespace SFXSivir.Champions
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Stunned"), miscMenu.Name + "q-stunned")),
-                "q-stunned", false, false, true, false);
+                miscMenu.AddSubMenu(new Menu("Q " + Global.Lang.Get("G_Immobile"), miscMenu.Name + "q-immobile")),
+                "q-immobile", false, false, true, false);
 
-            IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
+            IndicatorManager.AddToMenu(DrawingManager.Menu, true);
             IndicatorManager.Add(Q);
             IndicatorManager.Add(W);
             IndicatorManager.Finale();
@@ -181,7 +181,7 @@ namespace SFXSivir.Champions
                     var target =
                         GameObjects.EnemyHeroes.OrderBy(e => e.Distance(Player))
                             .Where(e => Q.IsInRange(e))
-                            .FirstOrDefault(t => HeroListManager.Check("q-stunned", t) && Utils.IsStunned(t));
+                            .FirstOrDefault(t => HeroListManager.Check("q-immobile", t) && Utils.IsImmobile(t));
                     if (target != null)
                     {
                         Q.Cast(target.Position);

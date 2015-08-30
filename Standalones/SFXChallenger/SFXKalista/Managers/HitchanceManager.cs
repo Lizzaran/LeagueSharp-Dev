@@ -37,7 +37,7 @@ namespace SFXKalista.Managers
     {
         private static readonly Dictionary<string, Menu> Menues = new Dictionary<string, Menu>();
 
-        public static void AddToMenu(Menu menu, string uniqueId, Dictionary<string, int> hitChances)
+        public static void AddToMenu(Menu menu, string uniqueId, Dictionary<string, HitChance> hitChances)
         {
             try
             {
@@ -56,7 +56,8 @@ namespace SFXKalista.Managers
                                 {
                                     Global.Lang.Get("MH_Medium"), Global.Lang.Get("MH_High"),
                                     Global.Lang.Get("MH_VeryHigh")
-                                }, hit.Value)));
+                                },
+                                hit.Value == HitChance.Medium ? 0 : (hit.Value == HitChance.High ? 1 : 2))));
                 }
 
                 Menues[uniqueId] = menu;

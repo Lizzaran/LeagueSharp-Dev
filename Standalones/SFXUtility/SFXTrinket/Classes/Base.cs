@@ -59,7 +59,10 @@ namespace SFXTrinket.Classes
                 {
                     OnInitialize();
                 }
-                OnEnabled.RaiseEvent(null, null);
+                if (Initialized && !Enabled)
+                {
+                    OnEnabled.RaiseEvent(null, null);
+                }
             }
             catch (Exception ex)
             {
@@ -68,25 +71,6 @@ namespace SFXTrinket.Classes
         }
 
         protected virtual void OnInitialize()
-        {
-            try
-            {
-                if (Unloaded)
-                {
-                    return;
-                }
-                if (!Initialized)
-                {
-                    RaiseOnInitialized();
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        protected virtual void RaiseOnInitialized()
         {
             try
             {

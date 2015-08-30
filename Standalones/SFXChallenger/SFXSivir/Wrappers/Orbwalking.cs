@@ -339,8 +339,9 @@ namespace SFXSivir.Wrappers
                 return;
             }
 
-            _currentMoveDelay = new Random().Next(
-                Math.Min(_minMoveDelay, _maxMoveDelay + 1), Math.Max(_minMoveDelay, _maxMoveDelay));
+            _currentMoveDelay = Random.Next(0, 100) >= 70
+                ? Random.Next((int) (_maxMoveDelay * 0.7f), Math.Max(_minMoveDelay, _maxMoveDelay))
+                : Random.Next((int) (_minMoveDelay * 0.9f), (int) (_minMoveDelay * 1.1f));
 
             LastMoveCommandT = Utils.GameTimeTickCount;
 
@@ -391,10 +392,11 @@ namespace SFXSivir.Wrappers
             {
                 if (target.IsValidTarget() &&
                     Utils.GameTimeTickCount + Game.Ping / 2 + 25 >=
-                    LastAaTick + Player.AttackDelay * 1000 + _currentAttackDelay && Attack)
+                    LastAaTick + Player.AttackDelay * 1000 + _currentAttackDelay && Attack && InAutoAttackRange(target))
                 {
-                    _currentAttackDelay = new Random().Next(
-                        Math.Min(_minAttackDelay, _maxAttackDelay + 1), Math.Max(_minAttackDelay, _maxAttackDelay));
+                    _currentAttackDelay = Random.Next(0, 100) >= 70
+                        ? Random.Next((int) (_maxAttackDelay * 0.7f), Math.Max(_minAttackDelay, _maxAttackDelay))
+                        : Random.Next((int) (_minAttackDelay * 0.9f), (int) (_minAttackDelay * 1.1f));
 
                     DisableNextAttack = false;
                     FireBeforeAttack(target);
@@ -406,18 +408,15 @@ namespace SFXSivir.Wrappers
                             LastAaTick = Utils.GameTimeTickCount + Game.Ping + 100 -
                                          (int) (ObjectManager.Player.AttackCastDelay * 1000f);
                             _missileLaunched = false;
+                        }
 
-                            if (ObjectManager.Player.Distance(target) > GetRealAutoAttackRange(target) - 75)
-                            {
-                                LastAaTick = Utils.GameTimeTickCount;
-                            }
-                        }
-                        if (InAutoAttackRange(target))
+                        if (!Player.IssueOrder(GameObjectOrder.AttackUnit, target))
                         {
-                            Player.IssueOrder(GameObjectOrder.AttackUnit, target);
-                            _lastTarget = target;
-                            return;
+                            ResetAutoAttackTimer();
                         }
+
+                        _lastTarget = target;
+                        return;
                     }
                 }
                 if (CanMove(extraWindup))
@@ -724,6 +723,12 @@ namespace SFXSivir.Wrappers
                     }
                 }
 
+                //Forced target
+                if (_forcedTarget.IsValidTarget() && InAutoAttackRange(_forcedTarget))
+                {
+                    return _forcedTarget;
+                }
+
                 /*Killable Minion*/
                 if (ActiveMode == OrbwalkingMode.LaneClear || ActiveMode == OrbwalkingMode.Mixed ||
                     ActiveMode == OrbwalkingMode.LastHit)
@@ -736,7 +741,10 @@ namespace SFXSivir.Wrappers
                                     minion.Health <
                                     2 *
                                     (ObjectManager.Player.BaseAttackDamage + ObjectManager.Player.FlatPhysicalDamageMod))
-                            .OrderByDescending(m => m.MaxHealth);
+                            .OrderByDescending(minion => minion.CharData.BaseSkinName.Contains("Siege"))
+                            .ThenBy(minion => minion.CharData.BaseSkinName.Contains("Super"))
+                            .ThenByDescending(minion => minion.MaxHealth)
+                            .ThenBy(minion => minion.Health);
 
                     foreach (var minion in minionList)
                     {
@@ -753,12 +761,6 @@ namespace SFXSivir.Wrappers
                             return minion;
                         }
                     }
-                }
-
-                //Forced target
-                if (_forcedTarget.IsValidTarget() && InAutoAttackRange(_forcedTarget))
-                {
-                    return _forcedTarget;
                 }
 
                 /* turrets / inhibitors / nexus */

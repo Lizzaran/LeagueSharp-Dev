@@ -45,6 +45,7 @@ using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXOrianna.Wrappers.Orbwalking;
 using Spell = SFXOrianna.Wrappers.Spell;
 using TargetSelector = SFXOrianna.Wrappers.TargetSelector;
+using Utils = SFXOrianna.Helpers.Utils;
 
 #endregion
 
@@ -96,7 +97,7 @@ namespace SFXOrianna.Champions
             var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), Menu.Name + ".combo"));
             HitchanceManager.AddToMenu(
                 comboMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), comboMenu.Name + ".hitchance")), "combo",
-                new Dictionary<string, int> { { "Q", 2 } });
+                new Dictionary<string, HitChance> { { "Q", HitChance.High } });
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
@@ -104,7 +105,7 @@ namespace SFXOrianna.Champions
             var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Harass"), Menu.Name + ".harass"));
             HitchanceManager.AddToMenu(
                 harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
-                new Dictionary<string, int> { { "Q", 2 } });
+                new Dictionary<string, HitChance> { { "Q", HitChance.VeryHigh } });
             ManaManager.AddToMenu(harassMenu, "harass-q", ManaCheckType.Minimum, ManaValueType.Percent, "Q");
             ManaManager.AddToMenu(harassMenu, "harass-w", ManaCheckType.Minimum, ManaValueType.Percent, "W");
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
@@ -120,13 +121,14 @@ namespace SFXOrianna.Champions
 
             ultimateMenu.AddItem(
                 new MenuItem(ultimateMenu.Name + ".width", Global.Lang.Get("G_Width")).SetValue(
-                    new Slider(350, 250, 400))).ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        R.Width = args.GetNewValue<Slider>().Value;
-                        DrawingManager.Update(
-                            "R " + Global.Lang.Get("G_Flash"),
-                            args.GetNewValue<Slider>().Value + SummonerManager.Flash.Range);
-                    };
+                    new Slider((int) R.Width, 250, 400))).ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args)
+                {
+                    R.Width = args.GetNewValue<Slider>().Value;
+                    DrawingManager.Update(
+                        "R " + Global.Lang.Get("G_Flash"),
+                        args.GetNewValue<Slider>().Value + SummonerManager.Flash.Range);
+                };
 
             var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Flee"), Menu.Name + ".flee"));
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
@@ -153,7 +155,7 @@ namespace SFXOrianna.Champions
 
             DrawingManager.Add("R " + Global.Lang.Get("G_Flash"), R.Width + SummonerManager.Flash.Range);
 
-            IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
+            IndicatorManager.AddToMenu(DrawingManager.Menu, true);
             IndicatorManager.Add(Q);
             IndicatorManager.Add(W);
             IndicatorManager.Add(E);
@@ -253,7 +255,7 @@ namespace SFXOrianna.Champions
                 {
                     if (Ball.IsMoving || Menu.Item(Menu.Name + ".miscellaneous.block-r").GetValue<bool>())
                     {
-                        args.Process = GetHits(R).Item1 > 0;
+                        args.Process = GetHits(R, 400f).Item1 > 0;
                     }
                 }
             }
@@ -310,13 +312,13 @@ namespace SFXOrianna.Champions
             Q.SetSkillshot(0.15f, 110f, 1375f, false, SkillshotType.SkillshotCircle);
 
             W = new Spell(SpellSlot.W, float.MaxValue, DamageType.Magical);
-            W.SetSkillshot(0.1f, 210f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            W.SetSkillshot(0f, 220f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E, 1095f, DamageType.Magical);
             E.SetSkillshot(0.25f, 125f, 1700f, false, SkillshotType.SkillshotLine);
 
             R = new Spell(SpellSlot.R, float.MaxValue, DamageType.Magical);
-            R.SetSkillshot(0.6f, 350f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            R.SetSkillshot(0.75f, 375f, float.MaxValue, false, SkillshotType.SkillshotCircle);
         }
 
         private void OnCorePostUpdate(EventArgs args)
@@ -581,7 +583,10 @@ namespace SFXOrianna.Champions
                 {
                     damage += W.GetDamage(target);
                 }
-                if (e) {}
+                if (e)
+                {
+                    damage += E.GetDamage(target) * 0.75f;
+                }
                 if (r && R.IsReady())
                 {
                     damage += R.GetDamage(target);
@@ -779,19 +784,23 @@ namespace SFXOrianna.Champions
             return false;
         }
 
-        private Tuple<int, List<Obj_AI_Hero>> GetHits(Spell spell)
+        private Tuple<int, List<Obj_AI_Hero>> GetHits(Spell spell, float overrideWidth = -1f)
         {
             try
             {
+                var width = overrideWidth > 0 ? overrideWidth : spell.Width;
                 var hits = new List<Obj_AI_Hero>();
                 var positions = (from t in GameObjects.EnemyHeroes
-                    where t.IsValidTarget(spell.Width * 4, true, spell.RangeCheckFrom)
+                    where t.IsValidTarget(width * 4, true, spell.RangeCheckFrom)
                     let prediction = spell.GetPrediction(t)
                     where prediction.Hitchance >= HitChance.High
+                    where
+                        Utils.IsImmobile(t) || Utils.IsSlowed(t) || t.Distance(Ball.Position) < spell.Width * 0.75 ||
+                        t.Distance(Ball.Position) < spell.Width && t.IsFacing(Ball.Position, 120f)
                     select new CPrediction.Position(t, prediction.UnitPosition)).ToList();
                 if (positions.Any())
                 {
-                    var circle = new Geometry.Polygon.Circle(Ball.Position, spell.Width);
+                    var circle = new Geometry.Polygon.Circle(Ball.Position, width);
                     hits.AddRange(
                         from position in positions
                         where
@@ -1058,7 +1067,8 @@ namespace SFXOrianna.Champions
                     var q2Location = Q.GetCircularFarmLocation(rangedMinions, W.Width);
                     var bestLocation = (qLocation.MinionsHit > q2Location.MinionsHit + 1) ? qLocation : q2Location;
 
-                    if (bestLocation.MinionsHit > 0)
+                    if (bestLocation.MinionsHit > 0 && Ball.Status != BallStatus.Fixed ||
+                        bestLocation.Position.Distance(Ball.Position) > 30)
                     {
                         Q.Cast(bestLocation.Position);
                         return;

@@ -132,7 +132,7 @@ namespace SFXVarus.Helpers
             return GameObjects.AllyTurrets.Any(t => t.Distance(position) < 925f);
         }
 
-        public static bool IsStunned(Obj_AI_Base t)
+        public static bool IsImmobile(Obj_AI_Base t)
         {
             return t.HasBuffOfType(BuffType.Stun) || t.HasBuffOfType(BuffType.Charm) || t.HasBuffOfType(BuffType.Snare) ||
                    t.HasBuffOfType(BuffType.Knockup) || t.HasBuffOfType(BuffType.Polymorph) ||
@@ -144,7 +144,7 @@ namespace SFXVarus.Helpers
             return t.HasBuffOfType(BuffType.Slow);
         }
 
-        public static float GetStunTime(Obj_AI_Base target)
+        public static float GetImmobileTime(Obj_AI_Base target)
         {
             var buffs =
                 target.Buffs.Where(
@@ -157,6 +157,15 @@ namespace SFXVarus.Helpers
                 return buffs.Max(t => t.EndTime) - Game.Time;
             }
             return 0f;
+        }
+
+        public static bool IsFacing(this Obj_AI_Base source, Vector3 position, float angle = 90)
+        {
+            if (source == null || position.Equals(Vector3.Zero))
+            {
+                return false;
+            }
+            return source.Direction.To2D().Perpendicular().AngleBetween((position - source.Position).To2D()) < angle;
         }
     }
 }

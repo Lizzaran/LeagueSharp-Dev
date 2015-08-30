@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- kalista.cs is part of SFXKalista.
+ Kalista.cs is part of SFXKalista.
 
  SFXKalista is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -99,7 +99,7 @@ namespace SFXKalista.Champions
             ManaManager.AddToMenu(comboMenu, "combo-q", ManaCheckType.Minimum, ManaValueType.Percent, "Q");
             HitchanceManager.AddToMenu(
                 comboMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), comboMenu.Name + ".hitchance")), "combo",
-                new Dictionary<string, int> { { "Q", 2 } });
+                new Dictionary<string, HitChance> { { "Q", HitChance.VeryHigh } });
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
             comboMenu.AddItem(
@@ -108,7 +108,7 @@ namespace SFXKalista.Champions
             var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Harass"), Menu.Name + ".harass"));
             HitchanceManager.AddToMenu(
                 harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
-                new Dictionary<string, int> { { "Q", 2 } });
+                new Dictionary<string, HitChance> { { "Q", HitChance.VeryHigh } });
             ManaManager.AddToMenu(harassMenu, "harass-q", ManaCheckType.Minimum, ManaValueType.Percent, "Q");
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             ManaManager.AddToMenu(comboMenu, "harass-e", ManaCheckType.Minimum, ManaValueType.Percent, "E");
@@ -181,7 +181,7 @@ namespace SFXKalista.Champions
                 new MenuItem(miscMenu.Name + ".w-dragon", Global.Lang.Get("Kalista_WDragon")).SetValue(
                     new KeyBind('K', KeyBindType.Press)));
 
-            IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
+            IndicatorManager.AddToMenu(DrawingManager.Menu, true);
             IndicatorManager.Add(Q);
             IndicatorManager.Add(W);
             IndicatorManager.Add("E", Rend.GetDamage);
@@ -479,12 +479,28 @@ namespace SFXKalista.Champions
                 {
                     if (target.Distance(Player) > Orbwalking.GetRealAutoAttackRange(target))
                     {
-                        var minion =
-                            GameObjects.EnemyMinions.FirstOrDefault(
-                                m => m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)) && Rend.IsKillable(m, true));
-                        if (minion != null)
+                        if (
+                            GameObjects.EnemyMinions.Any(
+                                m => m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)) && Rend.IsKillable(m, true)))
                         {
                             E.Cast();
+                        }
+                        else
+                        {
+                            var minion =
+                                GetDashObjects(
+                                    GameObjects.EnemyMinions.Where(
+                                        m => m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)))
+                                        .Cast<Obj_AI_Base>()
+                                        .ToList())
+                                    .Find(
+                                        m =>
+                                            m.Health > Player.GetAutoAttackDamage(m) &&
+                                            m.Health < Player.GetAutoAttackDamage(m) + Rend.GetDamage(m, 1));
+                            if (minion != null)
+                            {
+                                Orbwalker.ForceTarget(minion);
+                            }
                         }
                     }
                     else if (E.IsInRange(target))
@@ -504,6 +520,39 @@ namespace SFXKalista.Champions
                                     E.Cast();
                                 }
                             }
+                        }
+                    }
+                }
+            }
+            if (!GameObjects.EnemyHeroes.Any(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget()))
+            {
+                var enemy =
+                    GameObjects.EnemyHeroes.Where(e => e.IsValidTarget())
+                        .OrderBy(e => e.Distance(Player))
+                        .FirstOrDefault();
+                if (enemy != null)
+                {
+                    var dashObjects = GetDashObjects();
+                    if (dashObjects.Any())
+                    {
+                        var line = new Geometry.Polygon.Line(
+                            Player.Position,
+                            enemy.Position.Extend(
+                                Player.Position, enemy.Distance(Player) + Orbwalking.GetRealAutoAttackRange(null)));
+                        Obj_AI_Base dashObj = null;
+                        var objDistance = float.MaxValue;
+                        foreach (var obj in dashObjects)
+                        {
+                            var lowestDistance = line.Points.Min(e => obj.Distance(e));
+                            if (lowestDistance < objDistance)
+                            {
+                                objDistance = lowestDistance;
+                                dashObj = obj;
+                            }
+                        }
+                        if (dashObj != null)
+                        {
+                            Orbwalker.ForceTarget(dashObj);
                         }
                     }
                 }
@@ -660,7 +709,10 @@ namespace SFXKalista.Champions
             try
             {
                 var objects =
-                    GameObjects.Enemy.Where(o => o.IsValidTarget(Orbwalking.GetRealAutoAttackRange(o))).ToList();
+                    GameObjects.Enemy.Concat(GameObjects.EnemyWards)
+                        .Concat(GameObjects.Jungle)
+                        .Where(o => o.IsValidTarget(Orbwalking.GetRealAutoAttackRange(o)))
+                        .ToList();
                 var apexPoint = ObjectManager.Player.ServerPosition.To2D() +
                                 (ObjectManager.Player.ServerPosition.To2D() - Game.CursorPos.To2D()).Normalized() *
                                 Orbwalking.GetRealAutoAttackRange(ObjectManager.Player);
@@ -670,6 +722,29 @@ namespace SFXKalista.Champions
                             Utils.IsLyingInCone(
                                 o.ServerPosition.To2D(), apexPoint, ObjectManager.Player.ServerPosition.To2D(), Math.PI))
                         .OrderBy(o => o.Distance(apexPoint, true));
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return null;
+        }
+
+        public static List<Obj_AI_Base> GetDashObjects(List<Obj_AI_Base> targets)
+        {
+            try
+            {
+                var apexPoint = ObjectManager.Player.ServerPosition.To2D() +
+                                (ObjectManager.Player.ServerPosition.To2D() - Game.CursorPos.To2D()).Normalized() *
+                                Orbwalking.GetRealAutoAttackRange(ObjectManager.Player);
+
+                return
+                    targets.Where(
+                        o =>
+                            Utils.IsLyingInCone(
+                                o.ServerPosition.To2D(), apexPoint, ObjectManager.Player.ServerPosition.To2D(), Math.PI))
+                        .OrderBy(o => o.Distance(apexPoint, true))
+                        .ToList();
             }
             catch (Exception ex)
             {
@@ -754,7 +829,7 @@ namespace SFXKalista.Champions
                     {
                         if (target.Health < 100 && target is Obj_AI_Minion)
                         {
-                            if (HealthPrediction.GetHealthPrediction(target, 250) <= 0)
+                            if (HealthPrediction.GetHealthPrediction(target, 250 + Game.Ping / 2) <= 0)
                             {
                                 return false;
                             }

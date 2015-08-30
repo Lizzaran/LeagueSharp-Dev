@@ -35,6 +35,7 @@ using SFXLibrary;
 using SFXLibrary.Logger;
 using DamageType = SFXChallenger.Enumerations.DamageType;
 using Spell = SFXChallenger.Wrappers.Spell;
+using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
 using Utils = SFXChallenger.Helpers.Utils;
 
 #endregion
@@ -141,7 +142,7 @@ namespace SFXChallenger.Champions
                 Player.AttackRange + Player.BoundingRadius +
                 GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(50).Average(), DamageType.Magical);
 
-            E = new Spell(SpellSlot.E, 425f, DamageType.Magical);
+            E = new Spell(SpellSlot.E, 1200f, DamageType.Magical);
             E.SetSkillshot(0.25f, 120f, 1400f, false, SkillshotType.SkillshotLine);
 
             R = new Spell(SpellSlot.R, 1200f, DamageType.Magical);
@@ -236,9 +237,15 @@ namespace SFXChallenger.Champions
             {
                 Casting.SkillShot(E, E.GetHitChance("combo"));
             }
-            if (useR && Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value < GetRBuffCount())
+            if (useR && Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value > GetRBuffCount())
             {
-                Casting.SkillShot(R, R.GetHitChance("combo"));
+                var target = TargetSelector.GetTarget(R);
+                if (target != null &&
+                    (Player.FlatMagicDamageMod > 50 ||
+                     !GameObjects.Enemy.Any(e => e.IsValidTarget() && Orbwalking.InAutoAttackRange(e))))
+                {
+                    Casting.SkillShot(R, R.GetHitChance("combo"));
+                }
             }
         }
 
@@ -276,9 +283,15 @@ namespace SFXChallenger.Champions
             if (ManaManager.Check("harass-r"))
             {
                 var useR = Menu.Item(Menu.Name + ".harass.r").GetValue<bool>() && R.IsReady();
-                if (useR && Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value < GetRBuffCount())
+                if (useR && Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value > GetRBuffCount())
                 {
-                    Casting.SkillShot(R, R.GetHitChance("harass"));
+                    var target = TargetSelector.GetTarget(R);
+                    if (target != null &&
+                        (Player.FlatMagicDamageMod > 50 ||
+                         !GameObjects.Enemy.Any(e => e.IsValidTarget() && Orbwalking.InAutoAttackRange(e))))
+                    {
+                        Casting.SkillShot(R, R.GetHitChance("harass"));
+                    }
                 }
             }
         }

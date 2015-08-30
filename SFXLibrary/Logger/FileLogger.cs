@@ -144,11 +144,13 @@ namespace SFXLibrary.Logger
                     using (Stream gzStream = new GZipStream(fileStream, CompressionMode.Compress, false))
                     {
                         var text = item.Exception.ToString();
-                        text = item.Exception.Data.Cast<DictionaryEntry>()
-                            .Aggregate(
-                                text + Environment.NewLine + Environment.NewLine,
-                                (current, entry) =>
-                                    current + string.Format("{0}: {1}", entry.Key, entry.Value + Environment.NewLine));
+                        text =
+                            item.Exception.Data.Cast<DictionaryEntry>()
+                                .Aggregate(
+                                    text + Environment.NewLine + Environment.NewLine,
+                                    (current, entry) =>
+                                        current +
+                                        string.Format("{0}: {1}", entry.Key, entry.Value + Environment.NewLine));
 
                         if (string.IsNullOrWhiteSpace(text.Trim()))
                         {

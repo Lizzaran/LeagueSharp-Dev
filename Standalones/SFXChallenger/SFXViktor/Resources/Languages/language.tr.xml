@@ -38,7 +38,7 @@
   <entry key="G_Flash">Flash</entry>
   <entry key="G_Auto">Otomatik</entry>
   <entry key="G_Killsteal">Killsteal</entry>
-  <entry key="G_Stunned">Stunned</entry>
+  <entry key="G_Immobile">Stunned</entry>
   <entry key="G_Dash">Dash</entry>
   <entry key="G_Fleeing">Fleeing</entry>
   <entry key="G_Killable">Öldürülebilir</entry>

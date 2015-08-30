@@ -518,7 +518,7 @@ namespace SFXGraves.Managers
                                         t.Position.Distance(ObjectManager.Player.Position, true) <
                                         Math.Pow(localItem.Range, 2)))
                         {
-                            if (!Utils.IsStunned(enemy) && !Utils.IsSlowed(enemy))
+                            if (!Utils.IsImmobile(enemy) && !Utils.IsSlowed(enemy))
                             {
                                 switch (localItem.CastType)
                                 {

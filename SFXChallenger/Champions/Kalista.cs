@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- kalista.cs is part of SFXChallenger.
+ Kalista.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -709,7 +709,10 @@ namespace SFXChallenger.Champions
             try
             {
                 var objects =
-                    GameObjects.Enemy.Where(o => o.IsValidTarget(Orbwalking.GetRealAutoAttackRange(o))).ToList();
+                    GameObjects.Enemy.Concat(GameObjects.EnemyWards)
+                        .Concat(GameObjects.Jungle)
+                        .Where(o => o.IsValidTarget(Orbwalking.GetRealAutoAttackRange(o)))
+                        .ToList();
                 var apexPoint = ObjectManager.Player.ServerPosition.To2D() +
                                 (ObjectManager.Player.ServerPosition.To2D() - Game.CursorPos.To2D()).Normalized() *
                                 Orbwalking.GetRealAutoAttackRange(ObjectManager.Player);

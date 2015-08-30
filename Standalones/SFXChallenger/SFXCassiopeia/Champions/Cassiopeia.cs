@@ -95,7 +95,12 @@ namespace SFXCassiopeia.Champions
             var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), Menu.Name + ".combo"));
             HitchanceManager.AddToMenu(
                 comboMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), comboMenu.Name + ".hitchance")), "combo",
-                new Dictionary<string, int> { { "Q", 2 }, { "W", 1 }, { "R", 2 } });
+                new Dictionary<string, HitChance>
+                {
+                    { "Q", HitChance.VeryHigh },
+                    { "W", HitChance.High },
+                    { "R", HitChance.VeryHigh }
+                });
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
@@ -103,9 +108,11 @@ namespace SFXCassiopeia.Champions
             var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Harass"), Menu.Name + ".harass"));
             HitchanceManager.AddToMenu(
                 harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
-                new Dictionary<string, int> { { "Q", 2 }, { "W", 1 } });
+                new Dictionary<string, HitChance> { { "Q", HitChance.VeryHigh }, { "W", HitChance.High } });
             ManaManager.AddToMenu(
                 harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Total, string.Empty, 70, 0, 750);
+            harassMenu.AddItem(
+                new MenuItem(harassMenu.Name + ".auto-attack", Global.Lang.Get("G_UseAutoAttacks")).SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
@@ -162,8 +169,8 @@ namespace SFXCassiopeia.Champions
                 miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "w-gapcloser")),
                 "w-gapcloser", false, false, true, false);
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Stunned"), miscMenu.Name + "w-stunned")),
-                "w-stunned", false, false, true, false);
+                miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Immobile"), miscMenu.Name + "w-immobile")),
+                "w-immobile", false, false, true, false);
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("W " + Global.Lang.Get("G_Fleeing"), miscMenu.Name + "w-fleeing")),
                 "w-fleeing", false, false, true, false);
@@ -173,7 +180,7 @@ namespace SFXCassiopeia.Champions
                 "R " + Global.Lang.Get("G_Flash"),
                 Menu.Item(Menu.Name + ".ultimate.range").GetValue<Slider>().Value + SummonerManager.Flash.Range);
 
-            IndicatorManager.AddToMenu(DrawingManager.GetMenu(), true);
+            IndicatorManager.AddToMenu(DrawingManager.Menu, true);
             IndicatorManager.Add(Q);
             IndicatorManager.Add(W);
             IndicatorManager.Add("E", hero => E.GetDamage(hero) * 5);
@@ -371,10 +378,10 @@ namespace SFXCassiopeia.Champions
                     }
                 }
 
-                if (HeroListManager.Enabled("w-stunned") && W.IsReady())
+                if (HeroListManager.Enabled("w-immobile") && W.IsReady())
                 {
-                    var target = Targets.FirstOrDefault(
-                        t => HeroListManager.Check("w-stunned", t) && Utils.IsStunned(t));
+                    var target =
+                        Targets.FirstOrDefault(t => HeroListManager.Check("w-immobile", t) && Utils.IsImmobile(t));
                     if (target != null)
                     {
                         Casting.SkillShot(target, W, W.GetHitChance("harass"));
@@ -391,6 +398,12 @@ namespace SFXCassiopeia.Champions
         {
             try
             {
+                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed &&
+                    !Menu.Item(Menu.Name + ".harass.auto-attack").GetValue<bool>())
+                {
+                    args.Process = false;
+                    return;
+                }
                 var t = args.Target as Obj_AI_Hero;
                 if (t != null &&
                     (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||

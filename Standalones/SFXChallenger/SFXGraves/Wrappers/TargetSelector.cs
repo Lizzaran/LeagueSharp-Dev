@@ -296,12 +296,13 @@ namespace SFXGraves.Wrappers
                 var circleThickness = _menu.Item(_menu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value;
                 var focusSelected = _menu.Item(_menu.Name + ".focus-selected").GetValue<bool>();
                 var selected = _menu.Item(_menu.Name + ".drawing.selected-color").GetValue<Circle>();
+                var bestGroupTarget = _menu.Item(_menu.Name + ".drawing.weights-group-target").GetValue<Circle>();
 
                 if (_selectedTarget != null && _selectedTarget.IsValidTarget() && focusSelected && selected.Active)
                 {
                     Render.Circle.DrawCircle(
-                        _selectedTarget.Position, _selectedTarget.BoundingRadius + SelectClickBuffer, selected.Color,
-                        circleThickness);
+                        _selectedTarget.Position, _selectedTarget.BoundingRadius + 25, selected.Color, circleThickness,
+                        true);
                 }
 
                 if (assassin && assassinColor.Active)
@@ -313,8 +314,7 @@ namespace SFXGraves.Wrappers
                                 h.IsValidTarget(assassinRange) && h.Position.IsOnScreen()))
                     {
                         Render.Circle.DrawCircle(
-                            target.Position, target.BoundingRadius + SelectClickBuffer, assassinColor.Color,
-                            circleThickness);
+                            target.Position, target.BoundingRadius + 25, assassinColor.Color, circleThickness);
                     }
                     Render.Circle.DrawCircle(
                         ObjectManager.Player.Position, assassinRange, assassinColor.Color, circleThickness);
@@ -325,20 +325,27 @@ namespace SFXGraves.Wrappers
                         _lastTarget.Position.IsOnScreen())
                     {
                         Render.Circle.DrawCircle(
-                            _lastTarget.Position, _lastTarget.BoundingRadius + SelectClickBuffer, lastTarget.Color,
-                            circleThickness);
+                            _lastTarget.Position, _lastTarget.BoundingRadius + 25, lastTarget.Color, circleThickness,
+                            true);
                     }
                 }
-                if ((weightsSimple || weightsAdvanced) && _tsMode == TargetSelectorModeType.Weights)
+                if ((bestGroupTarget.Active || weightsSimple || weightsAdvanced) &&
+                    _tsMode == TargetSelectorModeType.Weights)
                 {
                     var enemies =
                         GameObjects.EnemyHeroes.Where(
-                            h => h.IsValidTarget(weightsRange ? _debugRange : float.MaxValue) && h.Position.IsOnScreen())
+                            h =>
+                                h.IsValidTarget(
+                                    bestGroupTarget.Active
+                                        ? Math.Max(1750f, _debugRange)
+                                        : (weightsRange ? _debugRange : float.MaxValue)) && h.Position.IsOnScreen())
                             .ToList();
                     foreach (var weight in WeightedItems.Where(w => w.Weight > 0))
                     {
                         weight.UpdateSimulatedMaxValue(enemies);
                     }
+                    Obj_AI_Hero bestTarget = null;
+                    var bestTargetWeight = float.MinValue;
                     foreach (var target in enemies)
                     {
                         var position = Drawing.WorldToScreen(target.Position);
@@ -380,6 +387,20 @@ namespace SFXGraves.Wrappers
                                 target.HPBarPosition.X + 55f, target.HPBarPosition.Y - 20f, Color.White,
                                 totalWeight.ToString("0.0").Replace(",", "."));
                         }
+                        if (bestGroupTarget.Active)
+                        {
+                            if (totalWeight > bestTargetWeight)
+                            {
+                                bestTargetWeight = totalWeight;
+                                bestTarget = target;
+                            }
+                        }
+                    }
+                    if (bestGroupTarget.Active && bestTarget != null && enemies.Count > 1)
+                    {
+                        Render.Circle.DrawCircle(
+                            bestTarget.Position, bestTarget.BoundingRadius + 25, bestGroupTarget.Color, circleThickness,
+                            true);
                     }
                 }
             }
@@ -473,7 +494,7 @@ namespace SFXGraves.Wrappers
             {
                 var assassin = _menu != null && _menu.Item(_menu.Name + ".assassin-mode.enabled").GetValue<bool>();
                 var aRange = assassin ? _menu.Item(_menu.Name + ".assassin-mode.range").GetValue<Slider>().Value : range;
-                _debugRange = aRange > _debugRange ? aRange : _debugRange;
+                _debugRange = Math.Min(2000f, Math.Max(aRange, _debugRange));
 
                 if (_menu != null && SelectedTarget != null &&
                     IsValidTarget(
@@ -656,6 +677,11 @@ namespace SFXGraves.Wrappers
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + ".last-target", Global.Lang.Get("TS_LastTarget")).SetValue(
                         new Circle(false, Color.Orange)));
+                drawingMenu.AddItem(
+                    new MenuItem(
+                        drawingMenu.Name + ".weights-group-target",
+                        Global.Lang.Get("TS_Weights") + " " + Global.Lang.Get("TS_BestGroupTarget")).SetValue(
+                            new Circle(false, Color.HotPink)));
                 drawingMenu.AddItem(
                     new MenuItem(
                         drawingMenu.Name + ".weights-simple",

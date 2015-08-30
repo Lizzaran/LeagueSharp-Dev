@@ -38,43 +38,43 @@ namespace SFXTwistedFate.Managers
 {
     internal class DrawingManager
     {
-        private static Menu _menu;
         private static IChampion _champion;
         private static bool _separator;
         private static readonly Dictionary<string, float> Customs = new Dictionary<string, float>();
         private static readonly Dictionary<string, MenuItem> Others = new Dictionary<string, MenuItem>();
+        public static Menu Menu { get; private set; }
 
         public static void AddToMenu(Menu menu, IChampion champion)
         {
             try
             {
                 _champion = champion;
-                _menu = menu;
+                Menu = menu;
 
-                _menu.AddItem(
-                    new MenuItem(_menu.Name + ".circle-thickness", Global.Lang.Get("G_CircleThickness")).SetValue(
+                Menu.AddItem(
+                    new MenuItem(Menu.Name + ".circle-thickness", Global.Lang.Get("G_CircleThickness")).SetValue(
                         new Slider(2, 0, 10)));
 
                 foreach (var spell in _champion.Spells.Where(s => s != null && s.Range > 0 && s.Range < 5000))
                 {
                     if (spell.IsChargedSpell)
                     {
-                        _menu.AddItem(
+                        Menu.AddItem(
                             new MenuItem(
-                                _menu.Name + "." + spell.Slot.ToString().ToLower() + "-min",
+                                Menu.Name + "." + spell.Slot.ToString().ToLower() + "-min",
                                 spell.Slot.ToString().ToUpper() + " " + Global.Lang.Get("G_Min")).SetValue(
                                     new Circle(false, Color.White)));
-                        _menu.AddItem(
+                        Menu.AddItem(
                             new MenuItem(
-                                _menu.Name + "." + spell.Slot.ToString().ToLower() + "-max",
+                                Menu.Name + "." + spell.Slot.ToString().ToLower() + "-max",
                                 spell.Slot.ToString().ToUpper() + " " + Global.Lang.Get("G_Max")).SetValue(
                                     new Circle(false, Color.White)));
                     }
                     else
                     {
-                        _menu.AddItem(
+                        Menu.AddItem(
                             new MenuItem(
-                                _menu.Name + "." + spell.Slot.ToString().ToLower(), spell.Slot.ToString().ToUpper())
+                                Menu.Name + "." + spell.Slot.ToString().ToLower(), spell.Slot.ToString().ToUpper())
                                 .SetValue(new Circle(false, Color.White)));
                     }
                 }
@@ -85,18 +85,13 @@ namespace SFXTwistedFate.Managers
             }
         }
 
-        public static Menu GetMenu()
-        {
-            return _menu;
-        }
-
         public static void Add(string name, float range)
         {
             try
             {
                 if (!_separator)
                 {
-                    _menu.AddItem(new MenuItem(_menu.Name + ".separator", string.Empty));
+                    Menu.AddItem(new MenuItem(Menu.Name + ".separator", string.Empty));
                     _separator = true;
                 }
                 var key = name.Trim().ToLower();
@@ -105,7 +100,7 @@ namespace SFXTwistedFate.Managers
                     throw new ArgumentException(string.Format("DrawingManager: Name \"{0}\" already exist.", name));
                 }
 
-                _menu.AddItem(new MenuItem(_menu.Name + "." + key, name).SetValue(new Circle(false, Color.White)));
+                Menu.AddItem(new MenuItem(Menu.Name + "." + key, name).SetValue(new Circle(false, Color.White)));
 
                 Customs[key] = range;
             }
@@ -121,7 +116,7 @@ namespace SFXTwistedFate.Managers
             {
                 if (!_separator)
                 {
-                    _menu.AddItem(new MenuItem(_menu.Name + ".separator", string.Empty));
+                    Menu.AddItem(new MenuItem(Menu.Name + ".separator", string.Empty));
                     _separator = true;
                 }
                 var key = name.Trim().ToLower();
@@ -129,8 +124,8 @@ namespace SFXTwistedFate.Managers
                 {
                     throw new ArgumentException(string.Format("DrawingManager: Name \"{0}\" already exist.", name));
                 }
-                var item = new MenuItem(_menu.Name + "." + key, name).SetValue(value);
-                _menu.AddItem(item);
+                var item = new MenuItem(Menu.Name + "." + key, name).SetValue(value);
+                Menu.AddItem(item);
 
                 Others[key] = item;
 
@@ -183,21 +178,21 @@ namespace SFXTwistedFate.Managers
         {
             try
             {
-                if (_menu == null || _champion.Spells == null || ObjectManager.Player.IsDead)
+                if (Menu == null || _champion.Spells == null || ObjectManager.Player.IsDead)
                 {
                     return;
                 }
 
-                var circleThickness = _menu.Item(_menu.Name + ".circle-thickness").GetValue<Slider>().Value;
+                var circleThickness = Menu.Item(Menu.Name + ".circle-thickness").GetValue<Slider>().Value;
                 foreach (
                     var spell in _champion.Spells.Where(s => s != null && s.Range > 0 && s.Range < 5000 && s.Level > 0))
                 {
                     if (spell.IsChargedSpell)
                     {
                         var min =
-                            _menu.Item(_menu.Name + "." + spell.Slot.ToString().ToLower() + "-min").GetValue<Circle>();
+                            Menu.Item(Menu.Name + "." + spell.Slot.ToString().ToLower() + "-min").GetValue<Circle>();
                         var max =
-                            _menu.Item(_menu.Name + "." + spell.Slot.ToString().ToLower() + "-max").GetValue<Circle>();
+                            Menu.Item(Menu.Name + "." + spell.Slot.ToString().ToLower() + "-max").GetValue<Circle>();
                         if (min.Active && ObjectManager.Player.Position.IsOnScreen(spell.ChargedMinRange))
                         {
                             Render.Circle.DrawCircle(
@@ -211,7 +206,7 @@ namespace SFXTwistedFate.Managers
                     }
                     else
                     {
-                        var item = _menu.Item(_menu.Name + "." + spell.Slot.ToString().ToLower()).GetValue<Circle>();
+                        var item = Menu.Item(Menu.Name + "." + spell.Slot.ToString().ToLower()).GetValue<Circle>();
                         if (item.Active && ObjectManager.Player.Position.IsOnScreen(spell.Range))
                         {
                             Render.Circle.DrawCircle(
@@ -222,7 +217,7 @@ namespace SFXTwistedFate.Managers
 
                 foreach (var custom in Customs)
                 {
-                    var item = _menu.Item(_menu.Name + "." + custom.Key).GetValue<Circle>();
+                    var item = Menu.Item(Menu.Name + "." + custom.Key).GetValue<Circle>();
                     if (item.Active && ObjectManager.Player.Position.IsOnScreen(custom.Value))
                     {
                         Render.Circle.DrawCircle(

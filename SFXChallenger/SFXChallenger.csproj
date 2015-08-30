@@ -64,16 +64,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="LeagueSharp">
-      <HintPath>E:\LeagueSharp\System\LeagueSharp.dll</HintPath>
+      <HintPath>F:\LeagueSharp\System\LeagueSharp.dll</HintPath>
     </Reference>
     <Reference Include="LeagueSharp.Common">
-      <HintPath>E:\LeagueSharp\System\LeagueSharp.Common.dll</HintPath>
+      <HintPath>F:\LeagueSharp\System\LeagueSharp.Common.dll</HintPath>
     </Reference>
     <Reference Include="SFXLibrary">
-      <HintPath>E:\LeagueSharp\System\SFXLibrary.dll</HintPath>
+      <HintPath>F:\LeagueSharp\System\SFXLibrary.dll</HintPath>
     </Reference>
     <Reference Include="SharpDX">
-      <HintPath>E:\LeagueSharp\System\SharpDX.dll</HintPath>
+      <HintPath>F:\LeagueSharp\System\SharpDX.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -99,7 +99,9 @@
     <Compile Include="Enumerations\CombatFlags.cs" />
     <Compile Include="Enumerations\EffectFlags.cs" />
     <Compile Include="Enumerations\ItemUsageType.cs" />
+    <Compile Include="Enumerations\HealthCheckType.cs" />
     <Compile Include="Enumerations\ManaCheckType.cs" />
+    <Compile Include="Enumerations\HealthValueType.cs" />
     <Compile Include="Enumerations\ManaValueType.cs" />
     <Compile Include="Enumerations\TargetSelectorModeType.cs" />
     <Compile Include="Enumerations\TargetSelectorPriorityType.cs" />
@@ -117,6 +119,7 @@
     <Compile Include="Managers\IndicatorManager.cs" />
     <Compile Include="Managers\InitiatorManager.cs" />
     <Compile Include="Managers\KillstealManager.cs" />
+    <Compile Include="Managers\HealthManager.cs" />
     <Compile Include="Managers\OverkillManager.cs" />
     <Compile Include="Managers\TargetSpellManager.cs" />
     <Compile Include="Managers\UltimateManager.cs" />
