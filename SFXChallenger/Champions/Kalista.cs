@@ -524,38 +524,20 @@ namespace SFXChallenger.Champions
                     }
                 }
             }
-            if (!GameObjects.EnemyHeroes.Any(e => Orbwalking.InAutoAttackRange(e) && e.IsValidTarget()))
+            if (
+                !GameObjects.EnemyHeroes.Any(
+                    e => e.IsValidTarget() && e.Distance(Player) < Orbwalking.GetRealAutoAttackRange(e) * 1.2f) &&
+                !Player.IsWindingUp && !Player.IsDashing())
             {
-                var enemy =
-                    GameObjects.EnemyHeroes.Where(e => e.IsValidTarget())
-                        .OrderBy(e => e.Distance(Player))
-                        .FirstOrDefault();
-                if (enemy != null)
+                var obj = GetDashObjects().FirstOrDefault();
+                if (obj != null)
                 {
-                    var dashObjects = GetDashObjects();
-                    if (dashObjects.Any())
-                    {
-                        var line = new Geometry.Polygon.Line(
-                            Player.Position,
-                            enemy.Position.Extend(
-                                Player.Position, enemy.Distance(Player) + Orbwalking.GetRealAutoAttackRange(null)));
-                        Obj_AI_Base dashObj = null;
-                        var objDistance = float.MaxValue;
-                        foreach (var obj in dashObjects)
-                        {
-                            var lowestDistance = line.Points.Min(e => obj.Distance(e));
-                            if (lowestDistance < objDistance)
-                            {
-                                objDistance = lowestDistance;
-                                dashObj = obj;
-                            }
-                        }
-                        if (dashObj != null)
-                        {
-                            Orbwalker.ForceTarget(dashObj);
-                        }
-                    }
+                    Orbwalker.ForceTarget(obj);
                 }
+            }
+            else
+            {
+                Orbwalker.ForceTarget(null);
             }
         }
 
