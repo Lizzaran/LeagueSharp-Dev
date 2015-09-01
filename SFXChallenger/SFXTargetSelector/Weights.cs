@@ -91,12 +91,11 @@ namespace SFXChallenger.SFXTargetSelector
                                 .DefaultIfEmpty(0)
                                 .Sum()),
                     new Item(
-                        "focus-me", Global.Lang.Get("TS_FocusMe"), 3, false,
-                        t =>
-                            Aggro.Items.FirstOrDefault(
-                                a =>
-                                    a.Key.Equals(t.NetworkId) &&
-                                    a.Value.Target.Hero.NetworkId.Equals(ObjectManager.Player.NetworkId)).Value.Value),
+                        "focus-me", Global.Lang.Get("TS_FocusMe"), 3, false, delegate(Obj_AI_Hero t)
+                        {
+                            var entry = Aggro.GetSenderTargetEntry(t, ObjectManager.Player);
+                            return entry != null ? entry.Value + 1f : 0;
+                        }),
                     new Item(
                         "hard-cc", Global.Lang.Get("TS_HardCC"), 5, false, delegate(Obj_AI_Hero t)
                         {

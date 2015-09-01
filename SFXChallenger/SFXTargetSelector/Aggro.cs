@@ -45,6 +45,22 @@ namespace SFXChallenger.SFXTargetSelector
         public static Dictionary<int, Item> Items { get; private set; }
         public static float FadeTime { get; set; }
 
+        public static Item GetSenderTargetEntry(Obj_AI_Base sender, Obj_AI_Base target)
+        {
+            return GetSenderEntries(sender)
+                .FirstOrDefault(entry => entry.Target.Hero.NetworkId.Equals(target.NetworkId));
+        }
+
+        public static IEnumerable<Item> GetSenderEntries(Obj_AI_Base sender)
+        {
+            return Items.Where(i => i.Key.Equals(sender.NetworkId)).Select(i => i.Value);
+        }
+
+        public static IEnumerable<Item> GetTargetEntries(Obj_AI_Base target)
+        {
+            return Items.Where(i => i.Value.Target.Hero.NetworkId.Equals(target.NetworkId)).Select(i => i.Value);
+        }
+
         private static void OnObjAiBaseAggro(Obj_AI_Base sender, GameObjectAggroEventArgs args)
         {
             try
@@ -64,7 +80,7 @@ namespace SFXChallenger.SFXTargetSelector
                     }
                     else
                     {
-                        Items[target.Hero.NetworkId] = new Item(target);
+                        Items[target.Hero.NetworkId] = new Item(hero, target);
                     }
                 }
             }
@@ -76,8 +92,9 @@ namespace SFXChallenger.SFXTargetSelector
 
         public class Item
         {
-            public Item(Targets.Item target)
+            public Item(Obj_AI_Hero sender, Targets.Item target)
             {
+                Sender = sender;
                 Target = target;
                 Timestamp = Game.Time;
             }
@@ -87,6 +104,7 @@ namespace SFXChallenger.SFXTargetSelector
                 get { return Math.Max(0f, FadeTime - (Game.Time - Timestamp)); }
             }
 
+            public Obj_AI_Hero Sender { get; set; }
             public Targets.Item Target { get; set; }
             public float Timestamp { get; private set; }
         }

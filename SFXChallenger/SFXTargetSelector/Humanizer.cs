@@ -47,10 +47,10 @@ namespace SFXChallenger.SFXTargetSelector
                     _mainMenu.AddSubMenu(new Menu(Global.Lang.Get("TS_Humanizer"), _mainMenu.Name + ".humanizer"));
                 humanizerMenu.AddItem(
                     new MenuItem(humanizerMenu.Name + ".fow", Global.Lang.Get("TS_HumanizerFoW")).SetValue(
-                        new Slider(350, 0, 1500)));
+                        new Slider(500, 0, 1500)));
                 humanizerMenu.AddItem(
                     new MenuItem(humanizerMenu.Name + ".switch", Global.Lang.Get("TS_HumanizerSwitch")).SetValue(
-                        new Slider(350, 0, 1500)));
+                        new Slider(500, 0, 1500)));
                 humanizerMenu.AddItem(
                     new MenuItem(humanizerMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
             }
@@ -83,6 +83,7 @@ namespace SFXChallenger.SFXTargetSelector
                             .Where(
                                 item =>
                                     lastTarget == null || lastTarget.Hero.NetworkId.Equals(item.Hero.NetworkId) ||
+                                    (Selected.Target != null && Selected.Target.NetworkId.Equals(item.Hero.NetworkId)) ||
                                     Game.Time - lastTarget.LastTargetSwitch > switchDelay || switchDelay <= 0.0f));
                     return filtered;
                 }
