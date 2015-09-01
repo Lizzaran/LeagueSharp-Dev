@@ -34,6 +34,7 @@ using DamageType = SFXChallenger.Enumerations.DamageType;
 using MinionManager = SFXLibrary.MinionManager;
 using MinionTeam = SFXLibrary.MinionTeam;
 using MinionTypes = SFXLibrary.MinionTypes;
+using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
 using Utils = LeagueSharp.Common.Utils;
 
 #endregion
@@ -408,6 +409,12 @@ namespace SFXChallenger.Wrappers
                             LastAaTick = Utils.GameTimeTickCount + Game.Ping + 100 -
                                          (int) (ObjectManager.Player.AttackCastDelay * 1000f);
                             _missileLaunched = false;
+
+                            var d = GetRealAutoAttackRange(target) - 65;
+                            if (Player.Distance(target, true) > d * d)
+                            {
+                                LastAaTick += 300;
+                            }
                         }
 
                         if (!Player.IssueOrder(GameObjectOrder.AttackUnit, target))

@@ -31,11 +31,12 @@ using SFXChallenger.Enumerations;
 using SFXChallenger.Interfaces;
 using SFXChallenger.Managers;
 using SFXChallenger.Menus;
+using SFXChallenger.SFXTargetSelector;
 using SFXLibrary;
 using SFXLibrary.Logger;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
-using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
+using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
 
 #endregion
 
@@ -177,6 +178,8 @@ namespace SFXChallenger.Abstracts
                 OnLoad();
                 SetupSpells();
                 SetupMenu();
+
+                Weights.Range = Spells.Select(e => e.Range).DefaultIfEmpty(800f).Max();
 
                 if (ItemUsage == ItemUsageType.AfterAttack)
                 {

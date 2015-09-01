@@ -31,7 +31,7 @@ using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
-using SFXChallenger.Wrappers;
+using SFXChallenger.SFXTargetSelector;
 using SFXLibrary;
 using SFXLibrary.Logger;
 using SharpDX;
@@ -44,7 +44,7 @@ using MinionTeam = SFXLibrary.MinionTeam;
 using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
-using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
+using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
 using Utils = SFXChallenger.Helpers.Utils;
 
 #endregion
@@ -173,8 +173,8 @@ namespace SFXChallenger.Champions
                 miscMenu.AddSubMenu(new Menu("E " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "e-gapcloser")),
                 "e-gapcloser", false, false, true, false);
 
-            TargetSelector.AddWeightedItem(
-                new WeightedItem("w-stacks", "W " + Global.Lang.Get("G_Stacks"), 13, true, t => GetWStacks(t) + 1));
+            Weights.AddItem(
+                new Weights.Item("w-stacks", "W " + Global.Lang.Get("G_Stacks"), 13, true, t => GetWStacks(t) + 1));
 
             IndicatorManager.AddToMenu(DrawingManager.Menu, true);
             IndicatorManager.Add("Q", hero => Q.IsReady() ? Q.GetDamage(hero, 1) : 0);

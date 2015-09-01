@@ -37,7 +37,7 @@ using SharpDX;
 using DamageType = SFXChallenger.Enumerations.DamageType;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
-using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
+using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
 
 #endregion
 

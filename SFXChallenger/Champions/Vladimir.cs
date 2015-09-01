@@ -40,7 +40,7 @@ using MinionTeam = SFXLibrary.MinionTeam;
 using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
-using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
+using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
 
 #endregion
 

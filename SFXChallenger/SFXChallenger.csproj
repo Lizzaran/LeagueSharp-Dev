@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.7.1.0</AssemblyVersion>
+    <AssemblyVersion>0.7.5.14</AssemblyVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -136,10 +136,16 @@
     <Compile Include="Interfaces\IChampion.cs" />
     <Compile Include="Core.cs" />
     <Compile Include="Enumerations\ItemFlags.cs" />
+    <Compile Include="SFXTargetSelector\Aggro.cs" />
+    <Compile Include="SFXTargetSelector\Humanizer.cs" />
+    <Compile Include="SFXTargetSelector\Priorities.cs" />
+    <Compile Include="SFXTargetSelector\Selected.cs" />
+    <Compile Include="SFXTargetSelector\TargetSelector.cs" />
+    <Compile Include="SFXTargetSelector\Weights.cs" />
     <Compile Include="Wrappers\Invulnerable.cs" />
     <Compile Include="Wrappers\Orbwalking.cs" />
     <Compile Include="Wrappers\Spell.cs" />
-    <Compile Include="Wrappers\TargetSelector.cs" />
+    <Compile Include="SFXTargetSelector\Targets.cs" />
     <Compile Include="Managers\ItemManager.cs" />
     <Compile Include="Managers\ManaManager.cs" />
     <Compile Include="Managers\SummonerManager.cs" />

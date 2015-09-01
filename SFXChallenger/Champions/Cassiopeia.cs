@@ -31,7 +31,7 @@ using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
-using SFXChallenger.Wrappers;
+using SFXChallenger.SFXTargetSelector;
 using SFXLibrary;
 using SFXLibrary.Extensions.NET;
 using SFXLibrary.Logger;
@@ -42,7 +42,7 @@ using MinionTeam = SFXLibrary.MinionTeam;
 using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
-using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
+using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
 using Utils = SFXChallenger.Helpers.Utils;
 
 #endregion
@@ -187,8 +187,8 @@ namespace SFXChallenger.Champions
             IndicatorManager.Add(R);
             IndicatorManager.Finale();
 
-            TargetSelector.AddWeightedItem(
-                new WeightedItem(
+            Weights.AddItem(
+                new Weights.Item(
                     "poison-time", Global.Lang.Get("Cassiopeia_PoisonTime"), 10, true,
                     hero => GetPoisonBuffEndTime(hero) + 1));
         }

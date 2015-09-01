@@ -35,7 +35,7 @@ using SFXLibrary;
 using SFXLibrary.Logger;
 using DamageType = SFXChallenger.Enumerations.DamageType;
 using Spell = SFXChallenger.Wrappers.Spell;
-using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
+using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
 using Utils = SFXChallenger.Helpers.Utils;
 
 #endregion

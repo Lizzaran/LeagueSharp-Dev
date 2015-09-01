@@ -38,10 +38,10 @@ namespace SFXChallenger.Wrappers
             : base(
                 slot, range,
                 damageType == DamageType.Physical
-                    ? LeagueSharp.Common.TargetSelector.DamageType.Physical
+                    ? TargetSelector.DamageType.Physical
                     : (damageType == DamageType.Magical
-                        ? LeagueSharp.Common.TargetSelector.DamageType.Magical
-                        : LeagueSharp.Common.TargetSelector.DamageType.True)) {}
+                        ? TargetSelector.DamageType.Magical
+                        : TargetSelector.DamageType.True)) {}
 
         public new DamageType DamageType
         {
@@ -49,32 +49,32 @@ namespace SFXChallenger.Wrappers
             set { base.DamageType = ConvertDamageType(value); }
         }
 
-        private DamageType ConvertDamageType(LeagueSharp.Common.TargetSelector.DamageType type)
+        private DamageType ConvertDamageType(TargetSelector.DamageType type)
         {
             switch (type)
             {
-                case LeagueSharp.Common.TargetSelector.DamageType.Physical:
+                case TargetSelector.DamageType.Physical:
                     return DamageType.Physical;
-                case LeagueSharp.Common.TargetSelector.DamageType.Magical:
+                case TargetSelector.DamageType.Magical:
                     return DamageType.Magical;
-                case LeagueSharp.Common.TargetSelector.DamageType.True:
+                case TargetSelector.DamageType.True:
                     return DamageType.True;
             }
             return DamageType.True;
         }
 
-        private LeagueSharp.Common.TargetSelector.DamageType ConvertDamageType(DamageType type)
+        private TargetSelector.DamageType ConvertDamageType(DamageType type)
         {
             switch (type)
             {
                 case DamageType.Physical:
-                    return LeagueSharp.Common.TargetSelector.DamageType.Physical;
+                    return TargetSelector.DamageType.Physical;
                 case DamageType.Magical:
-                    return LeagueSharp.Common.TargetSelector.DamageType.Magical;
+                    return TargetSelector.DamageType.Magical;
                 case DamageType.True:
-                    return LeagueSharp.Common.TargetSelector.DamageType.True;
+                    return TargetSelector.DamageType.True;
             }
-            return LeagueSharp.Common.TargetSelector.DamageType.Physical;
+            return TargetSelector.DamageType.Physical;
         }
 
         public float ArrivalTime(Obj_AI_Base target)

@@ -32,6 +32,7 @@ using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Helpers;
 using SFXChallenger.Managers;
+using SFXChallenger.SFXTargetSelector;
 using SFXChallenger.Wrappers;
 using SFXLibrary;
 using SFXLibrary.Logger;
@@ -44,7 +45,7 @@ using MinionTeam = SFXLibrary.MinionTeam;
 using MinionTypes = SFXLibrary.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
-using TargetSelector = SFXChallenger.Wrappers.TargetSelector;
+using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
 using Utils = SFXChallenger.Helpers.Utils;
 
 #endregion
@@ -187,9 +188,9 @@ namespace SFXChallenger.Champions
             IndicatorManager.Add("E", Rend.GetDamage);
             IndicatorManager.Finale();
 
-            TargetSelector.OverwriteWeightFunction("low-health", hero => hero.Health - Rend.GetDamage(hero));
-            TargetSelector.AddWeightedItem(
-                new WeightedItem(
+            Weights.GetItem("low-health").GetValueFunc = hero => hero.Health - Rend.GetDamage(hero);
+            Weights.AddItem(
+                new Weights.Item(
                     "w-stack", "W " + Global.Lang.Get("G_Stack"), 10, false,
                     hero => hero.HasBuff("kalistacoopstrikemarkally") ? 10 : 0));
         }
@@ -491,7 +492,7 @@ namespace SFXChallenger.Champions
                                 GetDashObjects(
                                     GameObjects.EnemyMinions.Where(
                                         m => m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)))
-                                        .Cast<Obj_AI_Base>()
+                                        .Select(e => e as Obj_AI_Base)
                                         .ToList())
                                     .Find(
                                         m =>
@@ -523,21 +524,6 @@ namespace SFXChallenger.Champions
                         }
                     }
                 }
-            }
-            if (
-                !GameObjects.EnemyHeroes.Any(
-                    e => e.IsValidTarget() && e.Distance(Player) < Orbwalking.GetRealAutoAttackRange(e) * 1.2f) &&
-                !Player.IsWindingUp && !Player.IsDashing())
-            {
-                var obj = GetDashObjects().FirstOrDefault();
-                if (obj != null)
-                {
-                    Orbwalker.ForceTarget(obj);
-                }
-            }
-            else
-            {
-                Orbwalker.ForceTarget(null);
             }
         }
 
@@ -691,8 +677,7 @@ namespace SFXChallenger.Champions
             try
             {
                 var objects =
-                    GameObjects.Enemy.Concat(GameObjects.EnemyWards)
-                        .Concat(GameObjects.Jungle)
+                    GameObjects.Enemy.Concat(GameObjects.Jungle)
                         .Where(o => o.IsValidTarget(Orbwalking.GetRealAutoAttackRange(o)))
                         .ToList();
                 var apexPoint = ObjectManager.Player.ServerPosition.To2D() +
