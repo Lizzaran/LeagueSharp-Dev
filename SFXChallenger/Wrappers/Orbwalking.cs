@@ -205,7 +205,7 @@ namespace SFXChallenger.Wrappers
         /// </summary>
         public static bool IsMelee(this Obj_AI_Base unit)
         {
-            return unit.CombatType == GameObjectCombatType.Melee;
+            return unit.CombatType == GameObjectCombatType.Melee || Player.IsMelee;
         }
 
         /// <summary>
@@ -410,10 +410,13 @@ namespace SFXChallenger.Wrappers
                                          (int) (ObjectManager.Player.AttackCastDelay * 1000f);
                             _missileLaunched = false;
 
-                            var d = GetRealAutoAttackRange(target) - 65;
-                            if (Player.Distance(target, true) > d * d)
+                            if (!IsMelee(Player))
                             {
-                                LastAaTick += 300;
+                                var d = GetRealAutoAttackRange(target) - 65;
+                                if (Player.Distance(target, true) > d * d)
+                                {
+                                    LastAaTick += 300;
+                                }
                             }
                         }
 

@@ -120,12 +120,12 @@ namespace SFXChallenger.SFXTargetSelector
                                         x.Type == BuffType.Slow || x.Type == BuffType.Silence ||
                                         x.Type == BuffType.Snare || x.Type == BuffType.Polymorph).ToList();
                             return buffs.Any() ? buffs.Max(x => x.EndTime) + 1f : 0f;
-                        }),
+                        })/*,
                     new Item(
                         "gold", Global.Lang.Get("TS_Gold"), 7, false,
                         t =>
-                            (t.MinionsKilled /*+ t.NeutralMinionsKilled*/) * 22.35f + t.ChampionsKilled * 300f +
-                            t.Assists * 95f)
+                            (t.MinionsKilled + t.NeutralMinionsKilled) * 22.35f + t.ChampionsKilled * 300f +
+                            t.Assists * 95f)*/ //Bug: Bugsplatting currently 
                 };
 
                 Average = (float) Items.Average(w => w.Weight);
