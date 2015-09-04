@@ -26,8 +26,8 @@ using System;
 using System.Drawing;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXLibrary.Logger;
 using SFXUtility.Classes;
+using SFXUtility.Library.Logger;
 
 #endregion
 

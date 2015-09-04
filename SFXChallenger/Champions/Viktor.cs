@@ -30,16 +30,16 @@ using LeagueSharp.Common;
 using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Helpers;
+using SFXChallenger.Library;
+using SFXChallenger.Library.Extensions.NET;
+using SFXChallenger.Library.Logger;
 using SFXChallenger.Managers;
-using SFXLibrary;
-using SFXLibrary.Extensions.NET;
-using SFXLibrary.Logger;
 using SharpDX;
 using DamageType = SFXChallenger.Enumerations.DamageType;
-using MinionManager = SFXLibrary.MinionManager;
-using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
-using MinionTeam = SFXLibrary.MinionTeam;
-using MinionTypes = SFXLibrary.MinionTypes;
+using MinionManager = SFXChallenger.Library.MinionManager;
+using MinionOrderTypes = SFXChallenger.Library.MinionOrderTypes;
+using MinionTeam = SFXChallenger.Library.MinionTeam;
+using MinionTypes = SFXChallenger.Library.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
@@ -110,8 +110,6 @@ namespace SFXChallenger.Champions
                 harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
                 new Dictionary<string, HitChance> { { "E", HitChance.VeryHigh } });
             ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
-            harassMenu.AddItem(
-                new MenuItem(harassMenu.Name + ".auto-attack", Global.Lang.Get("G_UseAutoAttacks")).SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
@@ -389,8 +387,9 @@ namespace SFXChallenger.Champions
                     }
                     if (!(args.Target is Obj_AI_Hero))
                     {
-                        var targets = TargetSelector.GetTargets(Player.AttackRange + Player.BoundingRadius * 3f);
-                        if (targets != null && targets.Any())
+                        var targets =
+                            TargetSelector.GetTargets(Player.AttackRange + Player.BoundingRadius * 3f).ToList();
+                        if (targets.Any())
                         {
                             var hero = targets.FirstOrDefault(Orbwalking.InAutoAttackRange);
                             if (hero != null)
@@ -415,12 +414,6 @@ namespace SFXChallenger.Champions
                 }
                 else
                 {
-                    if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed &&
-                        !Menu.Item(Menu.Name + ".harass.auto-attack").GetValue<bool>())
-                    {
-                        args.Process = false;
-                        return;
-                    }
                     if ((args.Target is Obj_AI_Hero) &&
                         (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
                          Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed) &&

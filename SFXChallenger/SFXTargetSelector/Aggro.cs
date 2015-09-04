@@ -27,7 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using SFXChallenger.Enumerations;
-using SFXLibrary.Logger;
+using SFXChallenger.Library.Logger;
 
 #endregion
 

@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Kalista.cs is part of SFXChallenger.
+ kalista.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -31,18 +31,18 @@ using LeagueSharp.Common;
 using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Helpers;
+using SFXChallenger.Library;
+using SFXChallenger.Library.Logger;
 using SFXChallenger.Managers;
 using SFXChallenger.SFXTargetSelector;
 using SFXChallenger.Wrappers;
-using SFXLibrary;
-using SFXLibrary.Logger;
 using SharpDX;
 using Collision = LeagueSharp.Common.Collision;
 using DamageType = SFXChallenger.Enumerations.DamageType;
-using MinionManager = SFXLibrary.MinionManager;
-using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
-using MinionTeam = SFXLibrary.MinionTeam;
-using MinionTypes = SFXLibrary.MinionTypes;
+using MinionManager = SFXChallenger.Library.MinionManager;
+using MinionOrderTypes = SFXChallenger.Library.MinionOrderTypes;
+using MinionTeam = SFXChallenger.Library.MinionTeam;
+using MinionTypes = SFXChallenger.Library.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
@@ -135,6 +135,9 @@ namespace SFXChallenger.Champions
                     new Slider(2, 1, 5)));
             laneclearMenu.AddItem(
                 new MenuItem(laneclearMenu.Name + ".e-jungle", "E " + Global.Lang.Get("G_Jungle")).SetValue(true));
+            laneclearMenu.AddItem(
+                new MenuItem(laneclearMenu.Name + ".e-jungler-check", "E " + Global.Lang.Get("Kalista_JunglerChecks"))
+                    .SetValue(true));
 
             var lasthitMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LastHit"), Menu.Name + ".lasthit"));
             ManaManager.AddToMenu(lasthitMenu, "lasthit", ManaCheckType.Minimum, ManaValueType.Percent);
@@ -525,6 +528,22 @@ namespace SFXChallenger.Champions
                     }
                 }
             }
+
+            if (
+                !GameObjects.EnemyHeroes.Any(
+                    e => e.IsValidTarget() && e.Distance(Player) < Orbwalking.GetRealAutoAttackRange(e) * 1.1f) &&
+                !Player.IsWindingUp && !Player.IsDashing())
+            {
+                var obj = GetDashObjects().FirstOrDefault();
+                if (obj != null)
+                {
+                    Orbwalker.ForceTarget(obj);
+                }
+            }
+            else
+            {
+                Orbwalker.ForceTarget(null);
+            }
         }
 
         protected override void Harass()
@@ -640,6 +659,21 @@ namespace SFXChallenger.Champions
             }
             if (useE)
             {
+                if (Menu.Item(Menu.Name + ".lane-clear.e-jungler-check").GetValue<bool>())
+                {
+                    var enemySmites =
+                        GameObjects.EnemyHeroes.Where(
+                            e => !e.IsDead && e.Distance(Player) < 1250 && SummonerManager.IsSmiteReady(e));
+                    var allySmites =
+                        GameObjects.AllyHeroes.Where(
+                            e => !e.IsDead && e.Distance(Player) < 1000 && SummonerManager.IsSmiteReady(e));
+
+                    if ((!enemySmites.Any() && allySmites.Any() && Player.CountEnemiesInRange(1000) <= 1) ||
+                        Player.Level <= 3)
+                    {
+                        return;
+                    }
+                }
                 var killable = minions.Where(m => E.IsInRange(m) && Rend.IsKillable(m, false)).ToList();
                 if (killable.Count >= minE ||
                     (killable.Count >= 1 && Menu.Item(Menu.Name + ".lane-clear.e-jungle").GetValue<bool>() &&

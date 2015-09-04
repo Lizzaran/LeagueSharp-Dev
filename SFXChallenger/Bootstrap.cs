@@ -32,8 +32,8 @@ using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Helpers;
 using SFXChallenger.Interfaces;
-using SFXLibrary;
-using SFXLibrary.Logger;
+using SFXChallenger.Library;
+using SFXChallenger.Library.Logger;
 
 #endregion
 
@@ -47,8 +47,6 @@ namespace SFXChallenger
         {
             try
             {
-                var upvoteItem = Upvote.Initialize(Global.Name, 7);
-
                 AppDomain.CurrentDomain.UnhandledException +=
                     delegate(object sender, UnhandledExceptionEventArgs eventArgs)
                     {
@@ -90,11 +88,6 @@ namespace SFXChallenger
                             }
                             Core.Init(_champion, 50);
                             Core.Boot();
-
-                            if (_champion.SFXMenu != null && upvoteItem != null)
-                            {
-                                _champion.SFXMenu.SubMenu(_champion.SFXMenu.Name + ".settings").AddItem(upvoteItem);
-                            }
                         }
                     }
                     catch (Exception ex)

@@ -27,10 +27,10 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXLibrary;
-using SFXLibrary.Extensions.SharpDX;
-using SFXLibrary.Logger;
 using SFXUtility.Classes;
+using SFXUtility.Library;
+using SFXUtility.Library.Extensions.SharpDX;
+using SFXUtility.Library.Logger;
 using SharpDX;
 using SharpDX.Direct3D9;
 

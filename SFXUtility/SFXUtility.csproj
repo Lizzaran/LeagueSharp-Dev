@@ -24,7 +24,7 @@
     <AssemblyVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyVersionSettings>
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
-    <AssemblyVersion>0.8.4.0</AssemblyVersion>
+    <AssemblyVersion>0.8.4.8</AssemblyVersion>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -75,17 +75,11 @@
     <RunPostBuildEvent>Always</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="clipper_library">
-      <HintPath>F:\LeagueSharp\System\clipper_library.dll</HintPath>
-    </Reference>
     <Reference Include="LeagueSharp">
       <HintPath>F:\LeagueSharp\System\LeagueSharp.dll</HintPath>
     </Reference>
     <Reference Include="LeagueSharp.Common">
       <HintPath>F:\LeagueSharp\System\LeagueSharp.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="SFXLibrary">
-      <HintPath>F:\LeagueSharp\System\SFXLibrary.dll</HintPath>
     </Reference>
     <Reference Include="SharpDX">
       <HintPath>F:\LeagueSharp\System\SharpDX.dll</HintPath>
@@ -97,7 +91,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Web" />
-    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bootstrap.cs" />
@@ -160,6 +154,31 @@
     <Compile Include="Classes\Child.cs" />
     <Compile Include="Global.cs" />
     <Compile Include="Interfaces\IChild.cs" />
+    <Compile Include="Library\Draw.cs" />
+    <Compile Include="Library\Extensions\LeagueSharp\Obj_AI_HeroExtensions.cs" />
+    <Compile Include="Library\Extensions\NET\BitmapExtensions.cs" />
+    <Compile Include="Library\Extensions\NET\CharExtensions.cs" />
+    <Compile Include="Library\Extensions\NET\ColorExtensions.cs" />
+    <Compile Include="Library\Extensions\NET\DictionaryExtensions.cs" />
+    <Compile Include="Library\Extensions\NET\FloatExtensions.cs" />
+    <Compile Include="Library\Extensions\NET\IntegerExtensions.cs" />
+    <Compile Include="Library\Extensions\NET\ListExtensions.cs" />
+    <Compile Include="Library\Extensions\NET\ObjectExtensions.cs" />
+    <Compile Include="Library\Extensions\NET\OtherExtensions.cs" />
+    <Compile Include="Library\Extensions\NET\StringExtensions.cs" />
+    <Compile Include="Library\Extensions\SharpDX\FontExtension.cs" />
+    <Compile Include="Library\Extensions\SharpDX\SpriteExtension.cs" />
+    <Compile Include="Library\Extensions\SharpDX\VectorExtensions.cs" />
+    <Compile Include="Library\GameObjects.cs" />
+    <Compile Include="Library\Language.cs" />
+    <Compile Include="Library\Logger\ConsoleLogger.cs" />
+    <Compile Include="Library\Logger\FileLogger.cs" />
+    <Compile Include="Library\Logger\ILogger.cs" />
+    <Compile Include="Library\Logger\SimpleFileLogger.cs" />
+    <Compile Include="Library\MinionManager.cs" />
+    <Compile Include="Library\ProducerConsumer.cs" />
+    <Compile Include="Library\Update.cs" />
+    <Compile Include="Library\Utils.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">

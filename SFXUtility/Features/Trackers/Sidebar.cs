@@ -28,11 +28,11 @@ using System.Drawing;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXLibrary;
-using SFXLibrary.Extensions.NET;
-using SFXLibrary.Extensions.SharpDX;
-using SFXLibrary.Logger;
 using SFXUtility.Classes;
+using SFXUtility.Library;
+using SFXUtility.Library.Extensions.NET;
+using SFXUtility.Library.Extensions.SharpDX;
+using SFXUtility.Library.Logger;
 using SFXUtility.Properties;
 using SharpDX;
 using SharpDX.Direct3D9;
@@ -260,7 +260,7 @@ namespace SFXUtility.Features.Trackers
                         Color.White, true);
 
                     _text18.DrawTextCentered(
-                        (enemy.Unit.MinionsKilled + enemy.Unit.NeutralMinionsKilled).ToStringLookUp(),
+                        (enemy.Unit.MinionsKilled /*+ enemy.Unit.NeutralMinionsKilled*/).ToStringLookUp(),
                         new Vector2(offsetRight - hudWidth * 0.275f, offsetTop + hudHeight * 0.24f + offset),
                         Color.White);
 

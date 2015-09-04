@@ -26,7 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
-using SFXLibrary.Logger;
+using SFXUtility.Library.Logger;
 using SharpDX.Direct3D9;
 
 #endregion

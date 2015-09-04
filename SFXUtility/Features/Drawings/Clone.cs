@@ -28,9 +28,9 @@ using System.Drawing;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXLibrary;
-using SFXLibrary.Logger;
 using SFXUtility.Classes;
+using SFXUtility.Library;
+using SFXUtility.Library.Logger;
 
 #endregion
 

@@ -85,6 +85,11 @@ namespace SFXLibrary
         private static readonly HashSet<Obj_AI_Minion> AllyMinionsList = new HashSet<Obj_AI_Minion>();
 
         /// <summary>
+        ///     The ally attackable list.
+        /// </summary>
+        private static readonly HashSet<AttackableUnit> AllyAttackableList = new HashSet<AttackableUnit>();
+
+        /// <summary>
         ///     The ally shops list.
         /// </summary>
         private static readonly HashSet<Obj_Shop> AllyShopsList = new HashSet<Obj_Shop>();
@@ -123,6 +128,11 @@ namespace SFXLibrary
         ///     The enemy minions list.
         /// </summary>
         private static readonly HashSet<Obj_AI_Minion> EnemyMinionsList = new HashSet<Obj_AI_Minion>();
+
+        /// <summary>
+        ///     The enemy attackable list.
+        /// </summary>
+        private static readonly HashSet<AttackableUnit> EnemyAttackableList = new HashSet<AttackableUnit>();
 
         /// <summary>
         ///     The enemy shops list.
@@ -168,6 +178,11 @@ namespace SFXLibrary
         ///     The minions list.
         /// </summary>
         private static readonly HashSet<Obj_AI_Minion> MinionsList = new HashSet<Obj_AI_Minion>();
+
+        /// <summary>
+        ///     The attackable list.
+        /// </summary>
+        private static readonly HashSet<AttackableUnit> AttackableList = new HashSet<AttackableUnit>();
 
         /// <summary>
         ///     The shops list.
@@ -236,6 +251,14 @@ namespace SFXLibrary
         }
 
         /// <summary>
+        ///     Gets the ally attackables.
+        /// </summary>
+        public static IEnumerable<AttackableUnit> AllyAttackables
+        {
+            get { return AllyAttackableList; }
+        }
+
+        /// <summary>
         ///     Gets the ally shops.
         /// </summary>
         public static IEnumerable<Obj_Shop> AllyShops
@@ -300,6 +323,14 @@ namespace SFXLibrary
         }
 
         /// <summary>
+        ///     Gets the enemy attackables.
+        /// </summary>
+        public static IEnumerable<AttackableUnit> EnemyAttackables
+        {
+            get { return EnemyAttackableList; }
+        }
+
+        /// <summary>
         ///     Gets the enemy shops.
         /// </summary>
         public static IEnumerable<Obj_Shop> EnemyShops
@@ -361,6 +392,14 @@ namespace SFXLibrary
         public static IEnumerable<Obj_AI_Minion> Minions
         {
             get { return MinionsList; }
+        }
+
+        /// <summary>
+        ///     Gets the attackables.
+        /// </summary>
+        public static IEnumerable<AttackableUnit> Attackables
+        {
+            get { return AttackableList; }
         }
 
         /// <summary>
@@ -450,6 +489,7 @@ namespace SFXLibrary
                                 o =>
                                     o.Team != GameObjectTeam.Neutral && !o.Name.Contains("ward") &&
                                     !o.Name.Contains("trinket")));
+                    AttackableList.UnionWith(ObjectManager.Get<AttackableUnit>());
                     InhibitorsList.UnionWith(ObjectManager.Get<Obj_BarracksDampener>());
                     TurretsList.UnionWith(ObjectManager.Get<Obj_AI_Turret>());
                     JungleList.UnionWith(
@@ -465,6 +505,7 @@ namespace SFXLibrary
                     EnemyMinionsList.UnionWith(MinionsList.Where(o => o.IsEnemy));
                     EnemyInhibitorsList.UnionWith(InhibitorsList.Where(o => o.IsEnemy));
                     EnemyTurretsList.UnionWith(TurretsList.Where(o => o.IsEnemy));
+                    EnemyAttackableList.UnionWith(AttackableList.Where(o => o.IsEnemy));
                     EnemyList.UnionWith(
                         EnemyHeroesList.Concat(EnemyMinionsList.Cast<Obj_AI_Base>()).Concat(EnemyTurretsList));
 
@@ -472,6 +513,7 @@ namespace SFXLibrary
                     AllyMinionsList.UnionWith(MinionsList.Where(o => o.IsAlly));
                     AllyInhibitorsList.UnionWith(InhibitorsList.Where(o => o.IsAlly));
                     AllyTurretsList.UnionWith(TurretsList.Where(o => o.IsAlly));
+                    AllyAttackableList.UnionWith(AttackableList.Where(o => o.IsAlly));
                     AllyList.UnionWith(
                         AllyHeroesList.Concat(AllyMinionsList.Cast<Obj_AI_Base>()).Concat(AllyTurretsList));
 
@@ -507,6 +549,20 @@ namespace SFXLibrary
         private static void OnGameObjectCreate(GameObject sender, EventArgs args)
         {
             GameObjectsList.Add(sender);
+
+            var attackable = sender as AttackableUnit;
+            if (attackable != null)
+            {
+                AttackableList.Add(attackable);
+                if (attackable.IsEnemy)
+                {
+                    EnemyAttackableList.Add(attackable);
+                }
+                else
+                {
+                    AllyAttackableList.Add(attackable);
+                }
+            }
 
             var hero = sender as Obj_AI_Hero;
             if (hero != null)
@@ -642,6 +698,20 @@ namespace SFXLibrary
         private static void OnGameObjectDelete(GameObject sender, EventArgs args)
         {
             GameObjectsList.Remove(sender);
+
+            var attackable = sender as AttackableUnit;
+            if (attackable != null)
+            {
+                AttackableList.Remove(attackable);
+                if (attackable.IsEnemy)
+                {
+                    EnemyAttackableList.Remove(attackable);
+                }
+                else
+                {
+                    AllyAttackableList.Remove(attackable);
+                }
+            }
 
             var hero = sender as Obj_AI_Hero;
             if (hero != null)
@@ -779,6 +849,13 @@ namespace SFXLibrary
         /// </param>
         private static void OnGameUpdate(EventArgs args)
         {
+            foreach (var attackable in AttackableList.Where(m => !m.IsValid).ToArray())
+            {
+                AttackableList.Remove(attackable);
+                AllyAttackableList.Remove(attackable);
+                EnemyAttackableList.Remove(attackable);
+            }
+
             foreach (var minion in MinionsList.Where(m => !m.IsValid).ToArray())
             {
                 MinionsList.Remove(minion);

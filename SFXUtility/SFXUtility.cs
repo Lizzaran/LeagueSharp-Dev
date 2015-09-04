@@ -27,9 +27,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using LeagueSharp.Common;
-using SFXLibrary.Extensions.NET;
-using SFXLibrary.Logger;
 using SFXUtility.Classes;
+using SFXUtility.Library.Extensions.NET;
+using SFXUtility.Library.Logger;
 using Version = System.Version;
 
 #endregion

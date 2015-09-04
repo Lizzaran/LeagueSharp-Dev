@@ -27,7 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXLibrary.Logger;
+using SFXUtility.Library.Logger;
 using ItemData = LeagueSharp.Common.Data.ItemData;
 
 #endregion

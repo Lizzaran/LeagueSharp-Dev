@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.7.5.14</AssemblyVersion>
+    <AssemblyVersion>0.7.5.36</AssemblyVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -69,15 +69,16 @@
     <Reference Include="LeagueSharp.Common">
       <HintPath>F:\LeagueSharp\System\LeagueSharp.Common.dll</HintPath>
     </Reference>
-    <Reference Include="SFXLibrary">
-      <HintPath>F:\LeagueSharp\System\SFXLibrary.dll</HintPath>
-    </Reference>
     <Reference Include="SharpDX">
       <HintPath>F:\LeagueSharp\System\SharpDX.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.Direct3D9">
+      <HintPath>F:\LeagueSharp\System\SharpDX.Direct3D9.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Abstracts\Champion.cs" />
@@ -112,6 +113,31 @@
     <Compile Include="Helpers\CPrediction.cs" />
     <Compile Include="Helpers\DynamicInitializer.cs" />
     <Compile Include="Helpers\Utils.cs" />
+    <Compile Include="Library\Draw.cs" />
+    <Compile Include="Library\Extensions\LeagueSharp\Obj_AI_HeroExtensions.cs" />
+    <Compile Include="Library\Extensions\NET\BitmapExtensions.cs" />
+    <Compile Include="Library\Extensions\NET\CharExtensions.cs" />
+    <Compile Include="Library\Extensions\NET\ColorExtensions.cs" />
+    <Compile Include="Library\Extensions\NET\DictionaryExtensions.cs" />
+    <Compile Include="Library\Extensions\NET\FloatExtensions.cs" />
+    <Compile Include="Library\Extensions\NET\IntegerExtensions.cs" />
+    <Compile Include="Library\Extensions\NET\ListExtensions.cs" />
+    <Compile Include="Library\Extensions\NET\ObjectExtensions.cs" />
+    <Compile Include="Library\Extensions\NET\OtherExtensions.cs" />
+    <Compile Include="Library\Extensions\NET\StringExtensions.cs" />
+    <Compile Include="Library\Extensions\SharpDX\FontExtension.cs" />
+    <Compile Include="Library\Extensions\SharpDX\SpriteExtension.cs" />
+    <Compile Include="Library\Extensions\SharpDX\VectorExtensions.cs" />
+    <Compile Include="Library\GameObjects.cs" />
+    <Compile Include="Library\Language.cs" />
+    <Compile Include="Library\Logger\ConsoleLogger.cs" />
+    <Compile Include="Library\Logger\FileLogger.cs" />
+    <Compile Include="Library\Logger\ILogger.cs" />
+    <Compile Include="Library\Logger\SimpleFileLogger.cs" />
+    <Compile Include="Library\MinionManager.cs" />
+    <Compile Include="Library\ProducerConsumer.cs" />
+    <Compile Include="Library\Update.cs" />
+    <Compile Include="Library\Utils.cs" />
     <Compile Include="Managers\DelayManager.cs" />
     <Compile Include="Managers\DrawingManager.cs" />
     <Compile Include="Managers\HeroListManager.cs" />
@@ -142,7 +168,7 @@
     <Compile Include="SFXTargetSelector\Selected.cs" />
     <Compile Include="SFXTargetSelector\TargetSelector.cs" />
     <Compile Include="SFXTargetSelector\Weights.cs" />
-    <Compile Include="Wrappers\Invulnerable.cs" />
+    <Compile Include="Helpers\Invulnerable.cs" />
     <Compile Include="Wrappers\Orbwalking.cs" />
     <Compile Include="Wrappers\Spell.cs" />
     <Compile Include="SFXTargetSelector\Targets.cs" />
@@ -189,6 +215,7 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -28,7 +28,7 @@ using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Enumerations;
-using SFXLibrary.Logger;
+using SFXChallenger.Library.Logger;
 using SharpDX;
 
 #endregion
@@ -42,9 +42,9 @@ namespace SFXChallenger.Managers
         public float Range { get; set; }
         public CastType CastType { get; set; }
 
-        public SpellSlot Slot
+        public SpellSlot GetSlot(Obj_AI_Hero hero)
         {
-            get { return (SpellSlot) (_slot ?? (_slot = ObjectManager.Player.GetSpellSlot(Name))); }
+            return (SpellSlot) (_slot ?? (_slot = hero.GetSpellSlot(Name)));
         }
     }
 
@@ -115,9 +115,10 @@ namespace SFXChallenger.Managers
             }
         }
 
-        public static bool IsReady(this SummonerSpell spell)
+        public static bool IsReady(this SummonerSpell spell, Obj_AI_Hero sender = null)
         {
-            return (spell.Slot != SpellSlot.Unknown && spell.Slot.IsReady());
+            return (spell.GetSlot(sender ?? ObjectManager.Player) != SpellSlot.Unknown &&
+                    spell.GetSlot(sender ?? ObjectManager.Player).IsReady());
         }
 
         public static List<SummonerSpell> AvailableSummoners()
@@ -125,24 +126,25 @@ namespace SFXChallenger.Managers
             return SummonerSpells.Where(ss => ss.Exists()).ToList();
         }
 
-        public static bool Exists(this SummonerSpell spell)
+        public static bool Exists(this SummonerSpell spell, Obj_AI_Hero sender = null)
         {
-            return spell.Slot != SpellSlot.Unknown;
+            return spell.GetSlot(sender ?? ObjectManager.Player) != SpellSlot.Unknown;
         }
 
-        public static void Cast(this SummonerSpell spell)
+        public static void Cast(this SummonerSpell spell, Obj_AI_Hero sender = null)
         {
-            ObjectManager.Player.Spellbook.CastSpell(spell.Slot);
+            (sender ?? ObjectManager.Player).Spellbook.CastSpell(spell.GetSlot(sender ?? ObjectManager.Player));
         }
 
-        public static void Cast(this SummonerSpell spell, Obj_AI_Hero target)
+        public static void Cast(this SummonerSpell spell, Obj_AI_Hero target, Obj_AI_Hero sender = null)
         {
-            ObjectManager.Player.Spellbook.CastSpell(spell.Slot, target);
+            (sender ?? ObjectManager.Player).Spellbook.CastSpell(spell.GetSlot(sender ?? ObjectManager.Player), target);
         }
 
-        public static void Cast(this SummonerSpell spell, Vector3 position)
+        public static void Cast(this SummonerSpell spell, Vector3 position, Obj_AI_Hero sender = null)
         {
-            ObjectManager.Player.Spellbook.CastSpell(spell.Slot, position);
+            (sender ?? ObjectManager.Player).Spellbook.CastSpell(
+                spell.GetSlot(sender ?? ObjectManager.Player), position);
         }
 
         public static float CalculateBlueSmiteDamage()
@@ -196,6 +198,16 @@ namespace SFXChallenger.Managers
                 Global.Logger.AddItem(new LogItem(ex));
             }
             return 0f;
+        }
+
+        public static bool HasSmite(Obj_AI_Hero hero)
+        {
+            return Smite.Exists(hero) || BlueSmite.Exists(hero) || RedSmite.Exists(hero);
+        }
+
+        public static bool IsSmiteReady(Obj_AI_Hero hero)
+        {
+            return Smite.IsReady(hero) || BlueSmite.IsReady(hero) || RedSmite.IsReady(hero);
         }
 
         public static void UseComboSummoners(Obj_AI_Hero target)

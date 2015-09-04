@@ -30,9 +30,9 @@ using System.Linq;
 using System.Reflection;
 using System.Resources;
 using LeagueSharp.Common;
-using SFXLibrary;
-using SFXLibrary.Logger;
 using SFXUtility.Interfaces;
+using SFXUtility.Library;
+using SFXUtility.Library.Logger;
 
 #region Usings-Features
 
@@ -56,12 +56,6 @@ namespace SFXUtility
         {
             try
             {
-                #region Upvote
-
-                var upvoteItem = Upvote.Initialize(Global.Name, 7);
-
-                #endregion Upvote
-
                 AppDomain.CurrentDomain.UnhandledException +=
                     delegate(object sender, UnhandledExceptionEventArgs eventArgs)
                     {
@@ -89,12 +83,6 @@ namespace SFXUtility
 
                 Global.SFX = new SFXUtility();
 
-                #region Upvote
-
-                Global.SFX.Menu.SubMenu(Global.SFX.Name + "Settings").AddItem(upvoteItem);
-
-                #endregion Upvote
-
                 #region Parents
 
                 var activators = new Activators();
@@ -113,44 +101,45 @@ namespace SFXUtility
                         new List<IChild>
                         {
                             #region Features
-                            new KillSteal(activators),
-                            new Potion(activators),
-                            new Revealer(activators),
-                            new Smite(activators),
-                            new Gank(detectors),
-                            new Replay(detectors),
-                            new Teleport(detectors),
-                            new Clock(drawings),
-                            new Clone(drawings),
-                            new DamageIndicator(drawings),
-                            new Health(drawings),
-                            new LasthitMarker(drawings),
-                            new PerfectWard(drawings),
-                            new Range(drawings),
-                            new SafeJungleSpot(drawings),
-                            new WallJumpSpot(drawings),
-                            new Waypoint(drawings),
-                            new AutoLeveler(events),
-                            new Game(events),
-                            new Trinket(events),
-                            new AntiFountain(others),
-                            new AutoLantern(others),
-                            new Flash(others),
-                            new Humanize(others),
-                            new MoveTo(others),
-                            new Ping(others),
-                            new TurnAround(others),
-                            new Ability(timers),
-                            new Altar(timers),
-                            new Cooldown(timers),
-                            new Relic(timers),
-                            new Inhibitor(timers),
-                            new Jungle(timers),
-                            new GoldEfficiency(trackers),
-                            new Destination(trackers),
-                            new LastPosition(trackers),
-                            new Sidebar(trackers),
-                            new Ward(trackers)
+
+                            //new KillSteal(activators),
+                            //new Potion(activators),
+                            //new Revealer(activators),
+                            //new Smite(activators),
+                            //new Gank(detectors),
+                            //new Replay(detectors),
+                            //new Teleport(detectors),
+                            //new Clock(drawings),
+                            //new Clone(drawings),
+                            //new DamageIndicator(drawings),
+                            //new Health(drawings),
+                            //new LasthitMarker(drawings),
+                            //new PerfectWard(drawings),
+                            //new Range(drawings),
+                            //new SafeJungleSpot(drawings),
+                            //new WallJumpSpot(drawings),
+                            //new Waypoint(drawings),
+                            //new AutoLeveler(events),
+                            //new Game(events),
+                            //new Trinket(events),
+                            //new AntiFountain(others),
+                            //new AutoLantern(others),
+                            //new Flash(others),
+                            //new Humanize(others),
+                            //new MoveTo(others),
+                            //new Ping(others),
+                            //new TurnAround(others),
+                            //new Ability(timers),
+                            //new Altar(timers),
+                            //new Cooldown(timers),
+                            //new Relic(timers),
+                            //new Inhibitor(timers),
+                            //new Jungle(timers),
+                            //new GoldEfficiency(trackers),
+                            //new Destination(trackers),
+                            //new LastPosition(trackers),
+                            new Sidebar(trackers)
+                            //new Ward(trackers)
                             #endregion Features
                         });
                     foreach (var feature in Global.Features)

@@ -27,8 +27,8 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
 using LeagueSharp;
-using SFXLibrary.Extensions.NET;
-using SFXLibrary.Logger;
+using SFXUtility.Library.Extensions.NET;
+using SFXUtility.Library.Logger;
 using SFXUtility.Properties;
 
 #endregion

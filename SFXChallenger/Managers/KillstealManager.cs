@@ -26,9 +26,9 @@ using System;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXChallenger.Library;
+using SFXChallenger.Library.Logger;
 using SFXChallenger.Wrappers;
-using SFXLibrary;
-using SFXLibrary.Logger;
 
 #endregion
 

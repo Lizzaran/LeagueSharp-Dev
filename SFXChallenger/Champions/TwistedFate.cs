@@ -29,17 +29,17 @@ using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
+using SFXChallenger.Library;
+using SFXChallenger.Library.Extensions.NET;
+using SFXChallenger.Library.Logger;
 using SFXChallenger.Managers;
-using SFXLibrary;
-using SFXLibrary.Extensions.NET;
-using SFXLibrary.Logger;
 using SharpDX;
 using Color = System.Drawing.Color;
 using DamageType = SFXChallenger.Enumerations.DamageType;
-using MinionManager = SFXLibrary.MinionManager;
-using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
-using MinionTeam = SFXLibrary.MinionTeam;
-using MinionTypes = SFXLibrary.MinionTypes;
+using MinionManager = SFXChallenger.Library.MinionManager;
+using MinionOrderTypes = SFXChallenger.Library.MinionOrderTypes;
+using MinionTeam = SFXChallenger.Library.MinionTeam;
+using MinionTypes = SFXChallenger.Library.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
@@ -577,7 +577,7 @@ namespace SFXChallenger.Champions
                         return;
                     }
                     var best = BestQPosition(
-                        target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("combo"));
+                        target, GameObjects.EnemyHeroes.Select(e => e as Obj_AI_Base).ToList(), Q.GetHitChance("combo"));
                     if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
                     {
                         Q.Cast(best.Item2);
@@ -588,7 +588,7 @@ namespace SFXChallenger.Champions
                 else if (Utils.IsImmobile(target) || (W.Instance.CooldownExpires - Game.Time) >= 2 || W.Level == 0)
                 {
                     var best = BestQPosition(
-                        target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("combo"));
+                        target, GameObjects.EnemyHeroes.Select(e => e as Obj_AI_Base).ToList(), Q.GetHitChance("combo"));
                     if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
                     {
                         Q.Cast(best.Item2);
@@ -621,7 +621,8 @@ namespace SFXChallenger.Champions
                 {
                     {
                         var best = BestQPosition(
-                            target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), Q.GetHitChance("harass"));
+                            target, GameObjects.EnemyHeroes.Select(e => e as Obj_AI_Base).ToList(),
+                            Q.GetHitChance("harass"));
                         if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
                         {
                             Q.Cast(best.Item2);

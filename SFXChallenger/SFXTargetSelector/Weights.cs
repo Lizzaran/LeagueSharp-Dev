@@ -29,12 +29,16 @@ using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Enumerations;
-using SFXLibrary;
-using SFXLibrary.Extensions.LeagueSharp;
-using SFXLibrary.Logger;
+using SFXChallenger.Library;
+using SFXChallenger.Library.Extensions.LeagueSharp;
+using SFXChallenger.Library.Logger;
 using ItemData = LeagueSharp.Common.Data.ItemData;
 
 #endregion
+
+/*
+ * Don't copy paste this without asking & giving credits fuckers :^) 
+ */
 
 namespace SFXChallenger.SFXTargetSelector
 {
@@ -120,7 +124,7 @@ namespace SFXChallenger.SFXTargetSelector
                     new Item(
                         "gold", Global.Lang.Get("TS_Gold"), 7, false,
                         t =>
-                            (t.MinionsKilled + t.NeutralMinionsKilled) * 22.35f + t.ChampionsKilled * 300f +
+                            (t.MinionsKilled /*+ t.NeutralMinionsKilled*/) * 22.35f + t.ChampionsKilled * 300f +
                             t.Assists * 95f)
                 };
 
@@ -198,9 +202,10 @@ namespace SFXChallenger.SFXTargetSelector
                         Color.HotPink));
                 drawingWeightsGroupMenu.AddItem(
                     new MenuItem(drawingWeightsGroupMenu.Name + ".radius", Global.Lang.Get("G_Radius")).SetValue(
-                        new Slider(0)));
+                        new Slider(25)));
                 drawingWeightsGroupMenu.AddItem(
-                    new MenuItem(drawingWeightsGroupMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
+                    new MenuItem(drawingWeightsGroupMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(
+                        false));
 
                 drawingWeightsMenu.AddItem(
                     new MenuItem(

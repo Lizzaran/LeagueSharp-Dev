@@ -27,13 +27,13 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXLibrary;
+using SFXChallenger.Library;
 using SharpDX;
 using Color = System.Drawing.Color;
 using DamageType = SFXChallenger.Enumerations.DamageType;
-using MinionManager = SFXLibrary.MinionManager;
-using MinionTeam = SFXLibrary.MinionTeam;
-using MinionTypes = SFXLibrary.MinionTypes;
+using MinionManager = SFXChallenger.Library.MinionManager;
+using MinionTeam = SFXChallenger.Library.MinionTeam;
+using MinionTypes = SFXChallenger.Library.MinionTypes;
 using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
 using Utils = LeagueSharp.Common.Utils;
 

@@ -27,9 +27,9 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXLibrary;
-using SFXLibrary.Extensions.NET;
-using SFXLibrary.Logger;
+using SFXChallenger.Library;
+using SFXChallenger.Library.Extensions.NET;
+using SFXChallenger.Library.Logger;
 using SharpDX;
 using Spell = SFXChallenger.Wrappers.Spell;
 

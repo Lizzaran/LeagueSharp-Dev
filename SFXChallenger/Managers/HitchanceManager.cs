@@ -26,7 +26,7 @@ using System;
 using System.Collections.Generic;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXLibrary.Logger;
+using SFXChallenger.Library.Logger;
 using Spell = SFXChallenger.Wrappers.Spell;
 
 #endregion

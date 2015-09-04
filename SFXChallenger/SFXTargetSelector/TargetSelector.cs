@@ -28,15 +28,18 @@ using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Enumerations;
+using SFXChallenger.Library.Logger;
 using SFXChallenger.Wrappers;
-using SFXLibrary.Logger;
 using SharpDX;
-using Color = System.Drawing.Color;
 using DamageType = SFXChallenger.Enumerations.DamageType;
 using Orbwalking = LeagueSharp.Common.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
 
 #endregion
+
+/*
+ * Don't copy paste this without asking & giving credits fuckers :^) 
+ */
 
 namespace SFXChallenger.SFXTargetSelector
 {
@@ -255,15 +258,6 @@ namespace SFXChallenger.SFXTargetSelector
 
                 var drawingMenu = _menu.AddSubMenu(new Menu(Global.Lang.Get("G_Drawing"), menu.Name + ".drawing"));
 
-                var drawingLastMenu =
-                    drawingMenu.AddSubMenu(new Menu(Global.Lang.Get("TS_LastTarget"), drawingMenu.Name + ".last"));
-                drawingLastMenu.AddItem(
-                    new MenuItem(drawingLastMenu.Name + ".color", Global.Lang.Get("G_Color")).SetValue(Color.Orange));
-                drawingLastMenu.AddItem(
-                    new MenuItem(drawingLastMenu.Name + ".radius", Global.Lang.Get("G_Radius")).SetValue(new Slider(25)));
-                drawingLastMenu.AddItem(
-                    new MenuItem(drawingLastMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
-
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + ".circle-thickness", Global.Lang.Get("G_CircleThickness")).SetValue(
                         new Slider(2, 1, 10)));
@@ -290,38 +284,6 @@ namespace SFXChallenger.SFXTargetSelector
                     };
 
                 Mode = GetModeByMenuValue(_menu.Item(menu.Name + ".mode").GetValue<StringList>().SelectedValue);
-
-                Drawing.OnDraw += OnDrawingDraw;
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private static void OnDrawingDraw(EventArgs args)
-        {
-            try
-            {
-                if (_menu == null)
-                {
-                    return;
-                }
-
-                if (LastTarget != null && LastTarget.IsValidTarget() && LastTarget.Position.IsOnScreen())
-                {
-                    var lastEnabled = _menu.Item(_menu.Name + ".drawing.last.enabled").GetValue<bool>();
-                    var lastRadius = _menu.Item(_menu.Name + ".drawing.last.radius").GetValue<Slider>().Value;
-                    var lastColor = _menu.Item(_menu.Name + ".drawing.last.color").GetValue<Color>();
-                    var circleThickness = _menu.Item(_menu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value;
-
-                    if (lastEnabled)
-                    {
-                        Render.Circle.DrawCircle(
-                            LastTarget.Position, LastTarget.BoundingRadius + lastRadius, lastColor, circleThickness,
-                            true);
-                    }
-                }
             }
             catch (Exception ex)
             {

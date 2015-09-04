@@ -29,8 +29,8 @@ using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Interfaces;
-using SFXLibrary.Extensions.SharpDX;
-using SFXLibrary.Logger;
+using SFXChallenger.Library.Extensions.SharpDX;
+using SFXChallenger.Library.Logger;
 
 #endregion
 

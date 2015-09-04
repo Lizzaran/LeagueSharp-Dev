@@ -27,9 +27,10 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXLibrary;
-using SFXLibrary.Logger;
+using SFXChallenger.Library;
+using SFXChallenger.Library.Logger;
 using SharpDX;
+using SharpDX.Direct3D9;
 using Color = System.Drawing.Color;
 using Spell = SFXChallenger.Wrappers.Spell;
 
@@ -41,11 +42,13 @@ namespace SFXChallenger.Managers
     {
         private const int BarWidth = 104;
         private const int LineThickness = 9;
-        private static readonly Vector2 BarOffset = new Vector2(10f, 25f);
+        private static readonly Vector2 BarOffset = new Vector2(10f, 29f);
         private static Menu _menu;
 
         private static readonly Dictionary<string, Func<Obj_AI_Hero, float>> Functions =
             new Dictionary<string, Func<Obj_AI_Hero, float>>();
+
+        private static Line _line;
 
         public static void AddToMenu(Menu menu, bool subMenu)
         {
@@ -84,7 +87,92 @@ namespace SFXChallenger.Managers
                 if (_menu != null)
                 {
                     _menu.AddItem(new MenuItem(_menu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
-                    Drawing.OnDraw += OnDrawingDraw;
+
+                    _line = new Line(Drawing.Direct3DDevice) { Width = LineThickness };
+
+                    Drawing.OnPreReset += OnDrawingPreReset;
+                    Drawing.OnPostReset += OnDrawingPostReset;
+                    Drawing.OnEndScene += DrawingOnEndScene;
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private static void OnDrawingPreReset(EventArgs args)
+        {
+            try
+            {
+                if (_line != null && !_line.IsDisposed)
+                {
+                    _line.OnLostDevice();
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private static void OnDrawingPostReset(EventArgs args)
+        {
+            try
+            {
+                if (_line != null && !_line.IsDisposed)
+                {
+                    _line.OnResetDevice();
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private static void DrawingOnEndScene(EventArgs args)
+        {
+            try
+            {
+                if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
+                {
+                    return;
+                }
+
+                if (_line != null && !_line.IsDisposed)
+                {
+                    if (_menu == null || !_menu.Item(_menu.Name + ".enabled").GetValue<bool>())
+                    {
+                        return;
+                    }
+                    var drawingName = _menu.Name.Replace(ObjectManager.Player.ChampionName, string.Empty);
+                    var color = _menu.Item(drawingName + ".drawing.color").GetValue<Color>();
+                    var alpha =
+                        (byte) (_menu.Item(drawingName + ".drawing.opacity").GetValue<Slider>().Value * 255 / 100);
+                    var sharpColor = new ColorBGRA(color.R, color.G, color.B, alpha);
+                    foreach (var unit in
+                        GameObjects.EnemyHeroes.Where(
+                            u => u.IsHPBarRendered && u.Position.IsOnScreen() && u.IsValidTarget()))
+                    {
+                        var damage = CalculateDamage(unit);
+                        if (damage <= 0)
+                        {
+                            continue;
+                        }
+                        var damagePercentage = ((unit.Health - damage) > 0 ? (unit.Health - damage) : 0) /
+                                               unit.MaxHealth;
+                        var currentHealthPercentage = unit.Health / unit.MaxHealth;
+                        var startPoint =
+                            new Vector2(
+                                (int) (unit.HPBarPosition.X + BarOffset.X + damagePercentage * BarWidth),
+                                (int) (unit.HPBarPosition.Y + BarOffset.Y) - 5);
+                        var endPoint =
+                            new Vector2(
+                                (int) (unit.HPBarPosition.X + BarOffset.X + currentHealthPercentage * BarWidth) + 1,
+                                (int) (unit.HPBarPosition.Y + BarOffset.Y) - 5);
+                        _line.Draw(new[] { startPoint, endPoint }, sharpColor);
+                    }
                 }
             }
             catch (Exception ex)
@@ -154,46 +242,6 @@ namespace SFXChallenger.Managers
                 Global.Logger.AddItem(new LogItem(ex));
             }
             return damage;
-        }
-
-        private static void OnDrawingDraw(EventArgs args)
-        {
-            try
-            {
-                if (_menu == null || !_menu.Item(_menu.Name + ".enabled").GetValue<bool>())
-                {
-                    return;
-                }
-                var drawingName = _menu.Name.Replace(ObjectManager.Player.ChampionName, string.Empty);
-                var color = _menu.Item(drawingName + ".drawing.color").GetValue<Color>();
-                color = Color.FromArgb(
-                    _menu.Item(drawingName + ".drawing.opacity").GetValue<Slider>().Value * 255 / 100, color);
-                foreach (var unit in
-                    GameObjects.EnemyHeroes.Where(
-                        u => u.IsHPBarRendered && u.Position.IsOnScreen() && u.IsValidTarget()))
-                {
-                    var damage = CalculateDamage(unit);
-                    if (damage <= 0)
-                    {
-                        continue;
-                    }
-                    var damagePercentage = ((unit.Health - damage) > 0 ? (unit.Health - damage) : 0) / unit.MaxHealth;
-                    var currentHealthPercentage = unit.Health / unit.MaxHealth;
-                    var startPoint =
-                        new Vector2(
-                            (int) (unit.HPBarPosition.X + BarOffset.X + damagePercentage * BarWidth),
-                            (int) (unit.HPBarPosition.Y + BarOffset.Y) - 5);
-                    var endPoint =
-                        new Vector2(
-                            (int) (unit.HPBarPosition.X + BarOffset.X + currentHealthPercentage * BarWidth) + 1,
-                            (int) (unit.HPBarPosition.Y + BarOffset.Y) - 5);
-                    Drawing.DrawLine(startPoint, endPoint, LineThickness, color);
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
         }
     }
 }

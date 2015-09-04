@@ -27,12 +27,12 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXLibrary.Extensions.NET;
+using SFXChallenger.Library.Extensions.NET;
 using SharpDX;
-using MinionManager = SFXLibrary.MinionManager;
-using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
-using MinionTeam = SFXLibrary.MinionTeam;
-using MinionTypes = SFXLibrary.MinionTypes;
+using MinionManager = SFXChallenger.Library.MinionManager;
+using MinionOrderTypes = SFXChallenger.Library.MinionOrderTypes;
+using MinionTeam = SFXChallenger.Library.MinionTeam;
+using MinionTypes = SFXChallenger.Library.MinionTypes;
 using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
 

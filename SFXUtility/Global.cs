@@ -26,9 +26,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using SFXLibrary;
-using SFXLibrary.Logger;
 using SFXUtility.Interfaces;
+using SFXUtility.Library;
+using SFXUtility.Library.Logger;
 
 #endregion
 

@@ -30,18 +30,18 @@ using LeagueSharp.Common;
 using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Helpers;
+using SFXChallenger.Library;
+using SFXChallenger.Library.Logger;
 using SFXChallenger.Managers;
 using SFXChallenger.SFXTargetSelector;
-using SFXLibrary;
-using SFXLibrary.Logger;
 using SharpDX;
 using Collision = LeagueSharp.Common.Collision;
 using Color = System.Drawing.Color;
 using DamageType = SFXChallenger.Enumerations.DamageType;
-using MinionManager = SFXLibrary.MinionManager;
-using MinionOrderTypes = SFXLibrary.MinionOrderTypes;
-using MinionTeam = SFXLibrary.MinionTeam;
-using MinionTypes = SFXLibrary.MinionTypes;
+using MinionManager = SFXChallenger.Library.MinionManager;
+using MinionOrderTypes = SFXChallenger.Library.MinionOrderTypes;
+using MinionTeam = SFXChallenger.Library.MinionTeam;
+using MinionTypes = SFXChallenger.Library.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
@@ -72,7 +72,6 @@ namespace SFXChallenger.Champions
             Core.OnPostUpdate += OnCorePostUpdate;
             AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
             Drawing.OnDraw += OnDrawingDraw;
-            Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
         }
 
         protected override void OnUnload()
@@ -80,7 +79,6 @@ namespace SFXChallenger.Champions
             Core.OnPostUpdate -= OnCorePostUpdate;
             AntiGapcloser.OnEnemyGapcloser -= OnEnemyGapcloser;
             Drawing.OnDraw -= OnDrawingDraw;
-            Orbwalking.BeforeAttack -= OnOrbwalkingBeforeAttack;
         }
 
         protected override void AddToMenu()
@@ -119,8 +117,6 @@ namespace SFXChallenger.Champions
                 harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
                 new Dictionary<string, HitChance> { { "Q", HitChance.High }, { "E", HitChance.High } });
             ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
-            harassMenu.AddItem(
-                new MenuItem(harassMenu.Name + ".auto-attack", Global.Lang.Get("G_UseAutoAttacks")).SetValue(true));
             harassMenu.AddItem(
                 new MenuItem(harassMenu.Name + ".q-fast-cast-min", Global.Lang.Get("Varus_FastCastMin")).SetValue(
                     new Slider(25)));
@@ -198,22 +194,6 @@ namespace SFXChallenger.Champions
 
             R = new Spell(SpellSlot.R, 1075f);
             R.SetSkillshot(0.25f, 120f, 1950f, false, SkillshotType.SkillshotLine);
-        }
-
-        private void OnOrbwalkingBeforeAttack(Orbwalking.BeforeAttackEventArgs args)
-        {
-            try
-            {
-                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed &&
-                    !Menu.Item(Menu.Name + ".harass.auto-attack").GetValue<bool>())
-                {
-                    args.Process = false;
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
         }
 
         private void OnCorePostUpdate(EventArgs args)

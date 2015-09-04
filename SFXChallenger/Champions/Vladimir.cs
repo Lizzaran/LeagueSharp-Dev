@@ -31,13 +31,13 @@ using LeagueSharp.Common;
 using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Helpers;
+using SFXChallenger.Library;
+using SFXChallenger.Library.Logger;
 using SFXChallenger.Managers;
-using SFXLibrary;
-using SFXLibrary.Logger;
 using DamageType = SFXChallenger.Enumerations.DamageType;
-using MinionManager = SFXLibrary.MinionManager;
-using MinionTeam = SFXLibrary.MinionTeam;
-using MinionTypes = SFXLibrary.MinionTypes;
+using MinionManager = SFXChallenger.Library.MinionManager;
+using MinionTeam = SFXChallenger.Library.MinionTeam;
+using MinionTypes = SFXChallenger.Library.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
@@ -66,6 +66,7 @@ namespace SFXChallenger.Champions
             AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
             CustomEvents.Unit.OnDash += OnUnitDash;
             Drawing.OnDraw += OnDrawingDraw;
+            Orbwalking.OnNonKillableMinion += OnOrbwalkingNonKillableMinion;
         }
 
         protected override void OnUnload()
@@ -74,6 +75,7 @@ namespace SFXChallenger.Champions
             AntiGapcloser.OnEnemyGapcloser -= OnEnemyGapcloser;
             CustomEvents.Unit.OnDash -= OnUnitDash;
             Drawing.OnDraw -= OnDrawingDraw;
+            Orbwalking.OnNonKillableMinion -= OnOrbwalkingNonKillableMinion;
         }
 
         protected override void AddToMenu()
@@ -99,6 +101,8 @@ namespace SFXChallenger.Champions
 
             var lasthitMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LastHit"), Menu.Name + ".lasthit"));
             lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
+            lasthitMenu.AddItem(
+                new MenuItem(lasthitMenu.Name + ".q-unkillable", "Q " + Global.Lang.Get("G_Unkillable")).SetValue(true));
 
             UltimateManager.AddToMenu(Menu, true, false, false, false, false, false, true, true, true);
 
@@ -123,6 +127,25 @@ namespace SFXChallenger.Champions
             IndicatorManager.Finale();
 
             _eStacks = DrawingManager.Add("E " + Global.Lang.Get("G_Stacks"), true);
+        }
+
+        private void OnOrbwalkingNonKillableMinion(AttackableUnit unit)
+        {
+            try
+            {
+                if (Menu.Item(Menu.Name + ".lasthit.q-unkillable").GetValue<bool>() && Q.IsReady() && Q.IsInRange(unit))
+                {
+                    var target = unit as Obj_AI_Base;
+                    if (target != null && HealthPrediction.GetHealthPrediction(target, (int) (Q.Delay * 1000f)) > 0)
+                    {
+                        Q.CastOnUnit(target);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnUnitDash(Obj_AI_Base sender, Dash.DashItem args)
@@ -291,8 +314,19 @@ namespace SFXChallenger.Champions
         {
             var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady();
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady() && HealthManager.Check("combo-e");
-            var r = UltimateManager.Combo();
+            var r = UltimateManager.Combo() && R.IsReady();
 
+            var rTarget = TargetSelector.GetTarget(R);
+            if (r)
+            {
+                if (!RLogic(rTarget, Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value, q, e))
+                {
+                    if (Menu.Item(Menu.Name + ".ultimate.combo.duel").GetValue<bool>())
+                    {
+                        RLogicDuel(q, e);
+                    }
+                }
+            }
             if (q)
             {
                 Casting.TargetSkill(Q);
@@ -302,18 +336,6 @@ namespace SFXChallenger.Champions
                 if (GetEHits().Item1 > 0)
                 {
                     E.Cast();
-                }
-            }
-
-            var rTarget = TargetSelector.GetTarget(R);
-            if (r && R.IsReady())
-            {
-                if (!RLogic(rTarget, Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value, q, e))
-                {
-                    if (Menu.Item(Menu.Name + ".ultimate.combo.duel").GetValue<bool>())
-                    {
-                        RLogicDuel(q, e);
-                    }
                 }
             }
             if (rTarget != null && CalcComboDamage(rTarget, q, e, r) > rTarget.Health)

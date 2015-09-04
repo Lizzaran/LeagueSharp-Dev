@@ -24,14 +24,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXLibrary;
-using SFXLibrary.Extensions.NET;
-using SFXLibrary.Logger;
 using SFXUtility.Classes;
+using SFXUtility.Library;
+using SFXUtility.Library.Logger;
+using SharpDX;
+using SharpDX.Direct3D9;
+using Color = System.Drawing.Color;
 
 #endregion
 
@@ -39,6 +40,10 @@ namespace SFXUtility.Features.Drawings
 {
     internal class DamageIndicator : Child<Drawings>
     {
+        private const int BarWidth = 104;
+        private const int LineThickness = 9;
+        private static readonly Vector2 BarOffset = new Vector2(10f, 29f);
+
         private readonly List<Spell> _spells = new List<Spell>
         {
             new Spell(SpellSlot.Q),
@@ -46,6 +51,8 @@ namespace SFXUtility.Features.Drawings
             new Spell(SpellSlot.E),
             new Spell(SpellSlot.R)
         };
+
+        private Line _line;
 
         public DamageIndicator(Drawings parent) : base(parent)
         {
@@ -57,29 +64,43 @@ namespace SFXUtility.Features.Drawings
             get { return Global.Lang.Get("F_DamageIndicator"); }
         }
 
-        private void OnDrawingDraw(EventArgs args)
+        private void OnDrawingEndScene(EventArgs args)
         {
             try
             {
-                var lineColor = Menu.Item(Name + "DrawingLineColor").GetValue<Color>();
-                var fillColor = Menu.Item(Name + "DrawingFillColor").GetValue<Color>();
-
-                foreach (var enemy in
-                    GameObjects.EnemyHeroes.Where(
-                        e => e.IsValid && !e.IsDead && e.IsHPBarRendered && e.Position.IsOnScreen()))
+                if (Drawing.Direct3DDevice == null || Drawing.Direct3DDevice.IsDisposed)
                 {
-                    var barPos = enemy.HPBarPosition;
-                    var damage = (float) CalculateComboDamage(enemy);
-                    if (damage > 1)
-                    {
-                        var percentHealthAfterDamage = Math.Max(0, enemy.Health - damage) / enemy.MaxHealth;
-                        var yPos = barPos.Y + 20;
-                        var xPosDamage = barPos.X + 10 + 103 * percentHealthAfterDamage;
-                        var xPosCurrentHp = barPos.X + 10 + 103 * enemy.Health / enemy.MaxHealth;
-                        var posX = barPos.X + 9 + (107 * percentHealthAfterDamage);
+                    return;
+                }
 
-                        Drawing.DrawLine(xPosDamage, yPos, xPosDamage, yPos + 8, 2, lineColor);
-                        Drawing.DrawLine(posX, yPos, posX + (xPosCurrentHp - xPosDamage), yPos, 8, fillColor);
+                if (_line != null && !_line.IsDisposed)
+                {
+                    var color = Menu.Item(Name + "DrawingColor").GetValue<Color>();
+                    var alpha = (byte) (Menu.Item(Name + "DrawingOpacity").GetValue<Slider>().Value * 255 / 100);
+                    var sharpColor = new ColorBGRA(color.R, color.G, color.B, alpha);
+
+                    foreach (var unit in
+                        GameObjects.EnemyHeroes.Where(
+                            e => e.IsValid && !e.IsDead && e.IsHPBarRendered && e.Position.IsOnScreen()))
+                    {
+                        var damage = CalculateComboDamage(unit);
+                        if (damage <= 0)
+                        {
+                            continue;
+                        }
+                        var damagePercentage = ((unit.Health - damage) > 0 ? (unit.Health - damage) : 0) /
+                                               unit.MaxHealth;
+                        var currentHealthPercentage = unit.Health / unit.MaxHealth;
+                        var startPoint =
+                            new Vector2(
+                                (int) (unit.HPBarPosition.X + BarOffset.X + damagePercentage * BarWidth),
+                                (int) (unit.HPBarPosition.Y + BarOffset.Y) - 5);
+                        var endPoint =
+                            new Vector2(
+                                (int) (unit.HPBarPosition.X + BarOffset.X + currentHealthPercentage * BarWidth) + 1,
+                                (int) (unit.HPBarPosition.Y + BarOffset.Y) - 5);
+
+                        _line.Draw(new[] { startPoint, endPoint }, sharpColor);
                     }
                 }
             }
@@ -91,13 +112,13 @@ namespace SFXUtility.Features.Drawings
 
         protected override void OnEnable()
         {
-            Drawing.OnDraw += OnDrawingDraw;
+            Drawing.OnEndScene += OnDrawingEndScene;
             base.OnEnable();
         }
 
         protected override void OnDisable()
         {
-            Drawing.OnDraw -= OnDrawingDraw;
+            Drawing.OnEndScene -= OnDrawingEndScene;
             base.OnDisable();
         }
 
@@ -108,13 +129,9 @@ namespace SFXUtility.Features.Drawings
                 Menu = new Menu(Name, Name);
                 var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
                 drawingMenu.AddItem(
-                    new MenuItem(
-                        drawingMenu.Name + "LineColor", Global.Lang.Get("G_Line") + " " + Global.Lang.Get("G_Color"))
-                        .SetValue(Color.DarkRed.ToArgb(90)));
+                    new MenuItem(drawingMenu.Name + "Color", Global.Lang.Get("G_Color")).SetValue(Color.DarkRed));
                 drawingMenu.AddItem(
-                    new MenuItem(
-                        drawingMenu.Name + "FillColor", Global.Lang.Get("G_Fill") + " " + Global.Lang.Get("G_Color"))
-                        .SetValue(Color.Red.ToArgb(90)));
+                    new MenuItem(drawingMenu.Name + "Opacity", Global.Lang.Get("G_Opacity")).SetValue(new Slider(60, 5)));
 
                 Menu.AddSubMenu(drawingMenu);
 
@@ -122,6 +139,8 @@ namespace SFXUtility.Features.Drawings
                     new MenuItem(Name + "AutoAttacks", Global.Lang.Get("DamageIndicator_AutoAttacks")).SetValue(
                         new Slider(2, 0, 5)));
                 Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+
+                _line = MDrawing.GetLine(LineThickness);
 
                 Parent.Menu.AddSubMenu(Menu);
             }

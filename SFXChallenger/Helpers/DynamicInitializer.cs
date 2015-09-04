@@ -24,7 +24,7 @@
 
 using System;
 using System.Reflection.Emit;
-using SFXLibrary.Logger;
+using SFXChallenger.Library.Logger;
 
 #endregion
 

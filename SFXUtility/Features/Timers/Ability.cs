@@ -27,9 +27,9 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXLibrary.Extensions.NET;
-using SFXLibrary.Logger;
 using SFXUtility.Classes;
+using SFXUtility.Library.Extensions.NET;
+using SFXUtility.Library.Logger;
 using SharpDX;
 using SharpDX.Direct3D9;
 
