@@ -198,3 +198,4 @@ FakesAssemblies/
 
 # Custom
 *.exe
+/SFXActivator
