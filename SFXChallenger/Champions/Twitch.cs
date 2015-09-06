@@ -79,24 +79,9 @@
 //                comboMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), comboMenu.Name + ".hitchance")), "combo",
 //                new Dictionary<string, HitChance> { { "W", HitChance.VeryHigh } });
 //            comboMenu.AddItem(
-//                new MenuItem(comboMenu.Name + ".q-fast-cast-min", Global.Lang.Get("Varus_FastCastMin")).SetValue(
-//                    new Slider(25)));
+//                new MenuItem(comboMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
 //            comboMenu.AddItem(
-//                new MenuItem(comboMenu.Name + ".q-range", "Q " + Global.Lang.Get("G_OutOfRange")).SetValue(true));
-//            comboMenu.AddItem(
-//                new MenuItem(comboMenu.Name + ".q-always", "Q " + Global.Lang.Get("G_Always")).SetValue(false));
-//            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q-stacks", "Q " + Global.Lang.Get("G_StacksIsOrMore")))
-//                .SetValue(new Slider(3, 1, 3));
-//            comboMenu.AddItem(
-//                new MenuItem(comboMenu.Name + ".q-min", "Q " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 3)));
-//            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
-//            comboMenu.AddItem(
-//                new MenuItem(comboMenu.Name + ".e-always", "E " + Global.Lang.Get("G_Always")).SetValue(true));
-//            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e-stacks", "E " + Global.Lang.Get("G_StacksIsOrMore")))
-//                .SetValue(new Slider(3, 1, 3));
-//            comboMenu.AddItem(
-//                new MenuItem(comboMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 3)));
-//            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
+//                new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
 //            var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Harass"), Menu.Name + ".harass"));
 //            HitchanceManager.AddToMenu(
@@ -104,49 +89,28 @@
 //                new Dictionary<string, HitChance> { { "W", HitChance.High } });
 //            ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
 //            harassMenu.AddItem(
-//                new MenuItem(harassMenu.Name + ".q-fast-cast-min", Global.Lang.Get("Varus_FastCastMin")).SetValue(
-//                    new Slider(25)));
+//                new MenuItem(harassMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
 //            harassMenu.AddItem(
-//                new MenuItem(harassMenu.Name + ".q-range", "Q " + Global.Lang.Get("G_OutOfRange")).SetValue(true));
-//            harassMenu.AddItem(
-//                new MenuItem(harassMenu.Name + ".q-always", "Q " + Global.Lang.Get("G_Always")).SetValue(false));
-//            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q-stacks", "Q " + Global.Lang.Get("G_StacksIsOrMore")))
-//                .SetValue(new Slider(3, 1, 3));
-//            harassMenu.AddItem(
-//                new MenuItem(harassMenu.Name + ".q-min", "Q " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 3)));
-//            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
-//            harassMenu.AddItem(
-//                new MenuItem(harassMenu.Name + ".e-always", "E " + Global.Lang.Get("G_Always")).SetValue(false));
-//            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e-stacks", "E " + Global.Lang.Get("G_StacksIsOrMore")))
-//                .SetValue(new Slider(3, 1, 3));
-//            harassMenu.AddItem(
-//                new MenuItem(harassMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 3)));
-//            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
+//                new MenuItem(harassMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
 //            var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LaneClear"), Menu.Name + ".lane-clear"));
 //            ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
-//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
-//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
+//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(false));
 //            laneclearMenu.AddItem(
 //                new MenuItem(laneclearMenu.Name + ".min", Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
 
-//            var ultimateMenu = UltimateManager.AddToMenu(Menu, true, false, false, true, false, false, true, true, true);
+//            var ultimateMenu = UltimateManager.AddToMenu(Menu, false, false, false, false, false, false, true, true, true);
 
 //            var killstealMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Killsteal"), Menu.Name + ".killsteal"));
-//            killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
-//            killstealMenu.AddItem(
-//                new MenuItem(killstealMenu.Name + ".range", Global.Lang.Get("G_OutOfRange")).SetValue(true));
+//            killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
 
 //            var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Flee"), Menu.Name + ".flee"));
-//            fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
+//            fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".w", Global.Lang.Get("G_UseW")).SetValue(true));
 
 //            var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
 //            HeroListManager.AddToMenu(
 //                miscMenu.AddSubMenu(new Menu("E " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "e-gapcloser")),
 //                "e-gapcloser", false, false, true, false);
-
-//            Weights.AddItem(
-//                new Weights.Item("w-stacks", "W " + Global.Lang.Get("G_Stacks"), 13, true, t => GetWStacks(t) + 1));
 
 //            IndicatorManager.AddToMenu(DrawingManager.Menu, true);
 //            IndicatorManager.Add(E);
@@ -393,7 +357,7 @@
 //                }
 //                damage -= reduce;
 //            }
-//            return (float) Player.CalcDamage(target, Damage.DamageType.Physical, damage);
+//            return (float)Player.CalcDamage(target, Damage.DamageType.Physical, damage);
 //        }
 
 //        private int GetQCollisionsCount(Obj_AI_Hero target, Vector3 castPos)
@@ -481,7 +445,7 @@
 
 //        private bool RLogic(Obj_AI_Hero target, HitChance hitChance, int min, bool q, bool e, string mode = "combo")
 //        {
-//            try {}
+//            try { }
 //            catch (Exception ex)
 //            {
 //                Global.Logger.AddItem(new LogItem(ex));
@@ -531,7 +495,7 @@
 //                {
 //                    damage += R.GetDamage(target);
 //                }
-//                damage += 5f * (float) Player.GetAutoAttackDamage(target);
+//                damage += 5f * (float)Player.GetAutoAttackDamage(target);
 //                damage += ItemManager.CalculateComboDamage(target);
 //                damage += SummonerManager.CalculateComboDamage(target);
 //                return damage;
@@ -543,7 +507,7 @@
 //            return 0;
 //        }
 
-//        protected override void LaneClear() {}
+//        protected override void LaneClear() { }
 
 //        protected override void Flee()
 //        {
@@ -580,7 +544,7 @@
 
 //        private void OnDrawingDraw(EventArgs args)
 //        {
-//            try {}
+//            try { }
 //            catch (Exception ex)
 //            {
 //                Global.Logger.AddItem(new LogItem(ex));

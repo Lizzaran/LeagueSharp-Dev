@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- kalista.cs is part of SFXChallenger.
+ Kalista.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -66,28 +66,24 @@ namespace SFXChallenger.Champions
 
         protected override void OnLoad()
         {
-            Obj_AI_Base.OnBuffAdd += OnObjAiBaseBuffAdd;
+            //Obj_AI_Base.OnBuffAdd += OnObjAiBaseBuffAdd; Bug: Bugsplatting
             Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
             Spellbook.OnCastSpell += OnSpellbookCastSpell;
             Orbwalking.OnNonKillableMinion += OnOrbwalkingNonKillableMinion;
             Core.OnPreUpdate += OnCorePreUpdate;
 
-            var buffHero =
+            SoulBound.Unit =
                 GameObjects.AllyHeroes.FirstOrDefault(
                     a =>
                         a.Buffs.Any(
                             b =>
                                 b.Caster.IsMe &&
                                 b.Name.Equals("kalistacoopstrikeally", StringComparison.OrdinalIgnoreCase)));
-            if (buffHero != null)
-            {
-                SoulBound.Unit = buffHero;
-            }
         }
 
         protected override void OnUnload()
         {
-            Obj_AI_Base.OnBuffAdd -= OnObjAiBaseBuffAdd;
+            //Obj_AI_Base.OnBuffAdd -= OnObjAiBaseBuffAdd;
             Obj_AI_Base.OnProcessSpellCast -= OnObjAiBaseProcessSpellCast;
             Spellbook.OnCastSpell -= OnSpellbookCastSpell;
             Orbwalking.OnNonKillableMinion -= OnOrbwalkingNonKillableMinion;

@@ -85,11 +85,6 @@ namespace SFXUtility.Library
         private static readonly HashSet<Obj_AI_Minion> AllyMinionsList = new HashSet<Obj_AI_Minion>();
 
         /// <summary>
-        ///     The ally attackable list.
-        /// </summary>
-        private static readonly HashSet<AttackableUnit> AllyAttackableList = new HashSet<AttackableUnit>();
-
-        /// <summary>
         ///     The ally shops list.
         /// </summary>
         private static readonly HashSet<Obj_Shop> AllyShopsList = new HashSet<Obj_Shop>();
@@ -128,11 +123,6 @@ namespace SFXUtility.Library
         ///     The enemy minions list.
         /// </summary>
         private static readonly HashSet<Obj_AI_Minion> EnemyMinionsList = new HashSet<Obj_AI_Minion>();
-
-        /// <summary>
-        ///     The enemy attackable list.
-        /// </summary>
-        private static readonly HashSet<AttackableUnit> EnemyAttackableList = new HashSet<AttackableUnit>();
 
         /// <summary>
         ///     The enemy shops list.
@@ -178,11 +168,6 @@ namespace SFXUtility.Library
         ///     The minions list.
         /// </summary>
         private static readonly HashSet<Obj_AI_Minion> MinionsList = new HashSet<Obj_AI_Minion>();
-
-        /// <summary>
-        ///     The attackable list.
-        /// </summary>
-        private static readonly HashSet<AttackableUnit> AttackableList = new HashSet<AttackableUnit>();
 
         /// <summary>
         ///     The shops list.
@@ -251,14 +236,6 @@ namespace SFXUtility.Library
         }
 
         /// <summary>
-        ///     Gets the ally attackables.
-        /// </summary>
-        public static IEnumerable<AttackableUnit> AllyAttackables
-        {
-            get { return AllyAttackableList; }
-        }
-
-        /// <summary>
         ///     Gets the ally shops.
         /// </summary>
         public static IEnumerable<Obj_Shop> AllyShops
@@ -323,14 +300,6 @@ namespace SFXUtility.Library
         }
 
         /// <summary>
-        ///     Gets the enemy attackables.
-        /// </summary>
-        public static IEnumerable<AttackableUnit> EnemyAttackables
-        {
-            get { return EnemyAttackableList; }
-        }
-
-        /// <summary>
         ///     Gets the enemy shops.
         /// </summary>
         public static IEnumerable<Obj_Shop> EnemyShops
@@ -392,14 +361,6 @@ namespace SFXUtility.Library
         public static IEnumerable<Obj_AI_Minion> Minions
         {
             get { return MinionsList; }
-        }
-
-        /// <summary>
-        ///     Gets the attackables.
-        /// </summary>
-        public static IEnumerable<AttackableUnit> Attackables
-        {
-            get { return AttackableList; }
         }
 
         /// <summary>
@@ -487,16 +448,19 @@ namespace SFXUtility.Library
                         ObjectManager.Get<Obj_AI_Minion>()
                             .Where(
                                 o =>
-                                    o.Team != GameObjectTeam.Neutral && !o.Name.Contains("ward") &&
-                                    !o.Name.Contains("trinket")));
-                    AttackableList.UnionWith(ObjectManager.Get<AttackableUnit>());
+                                    o.Team != GameObjectTeam.Neutral &&
+                                    !o.CharData.BaseSkinName.ToLower().Contains("ward") &&
+                                    !o.CharData.BaseSkinName.ToLower().Contains("trinket")));
                     InhibitorsList.UnionWith(ObjectManager.Get<Obj_BarracksDampener>());
                     TurretsList.UnionWith(ObjectManager.Get<Obj_AI_Turret>());
                     JungleList.UnionWith(
                         ObjectManager.Get<Obj_AI_Minion>().Where(o => o.Team == GameObjectTeam.Neutral));
                     WardsList.UnionWith(
                         ObjectManager.Get<Obj_AI_Minion>()
-                            .Where(o => o.Name.Contains("ward") || o.Name.Contains("trinket")));
+                            .Where(
+                                o =>
+                                    o.CharData.BaseSkinName.ToLower().Contains("ward") ||
+                                    o.CharData.BaseSkinName.ToLower().Contains("trinket")));
                     ShopsList.UnionWith(ObjectManager.Get<Obj_Shop>());
                     SpawnPointsList.UnionWith(ObjectManager.Get<Obj_SpawnPoint>());
                     GameObjectsList.UnionWith(ObjectManager.Get<GameObject>());
@@ -505,7 +469,6 @@ namespace SFXUtility.Library
                     EnemyMinionsList.UnionWith(MinionsList.Where(o => o.IsEnemy));
                     EnemyInhibitorsList.UnionWith(InhibitorsList.Where(o => o.IsEnemy));
                     EnemyTurretsList.UnionWith(TurretsList.Where(o => o.IsEnemy));
-                    EnemyAttackableList.UnionWith(AttackableList.Where(o => o.IsEnemy));
                     EnemyList.UnionWith(
                         EnemyHeroesList.Concat(EnemyMinionsList.Cast<Obj_AI_Base>()).Concat(EnemyTurretsList));
 
@@ -513,7 +476,6 @@ namespace SFXUtility.Library
                     AllyMinionsList.UnionWith(MinionsList.Where(o => o.IsAlly));
                     AllyInhibitorsList.UnionWith(InhibitorsList.Where(o => o.IsAlly));
                     AllyTurretsList.UnionWith(TurretsList.Where(o => o.IsAlly));
-                    AllyAttackableList.UnionWith(AttackableList.Where(o => o.IsAlly));
                     AllyList.UnionWith(
                         AllyHeroesList.Concat(AllyMinionsList.Cast<Obj_AI_Base>()).Concat(AllyTurretsList));
 
@@ -550,20 +512,6 @@ namespace SFXUtility.Library
         {
             GameObjectsList.Add(sender);
 
-            var attackable = sender as AttackableUnit;
-            if (attackable != null)
-            {
-                AttackableList.Add(attackable);
-                if (attackable.IsEnemy)
-                {
-                    EnemyAttackableList.Add(attackable);
-                }
-                else
-                {
-                    AllyAttackableList.Add(attackable);
-                }
-            }
-
             var hero = sender as Obj_AI_Hero;
             if (hero != null)
             {
@@ -587,7 +535,8 @@ namespace SFXUtility.Library
             {
                 if (minion.Team != GameObjectTeam.Neutral)
                 {
-                    if (!minion.Name.Contains("ward") || !minion.Name.Contains("trinket"))
+                    if (!minion.CharData.BaseSkinName.Contains("ward") ||
+                        !minion.CharData.BaseSkinName.Contains("trinket"))
                     {
                         MinionsList.Add(minion);
                         if (minion.IsEnemy)
@@ -699,20 +648,6 @@ namespace SFXUtility.Library
         {
             GameObjectsList.Remove(sender);
 
-            var attackable = sender as AttackableUnit;
-            if (attackable != null)
-            {
-                AttackableList.Remove(attackable);
-                if (attackable.IsEnemy)
-                {
-                    EnemyAttackableList.Remove(attackable);
-                }
-                else
-                {
-                    AllyAttackableList.Remove(attackable);
-                }
-            }
-
             var hero = sender as Obj_AI_Hero;
             if (hero != null)
             {
@@ -736,7 +671,8 @@ namespace SFXUtility.Library
             {
                 if (minion.Team != GameObjectTeam.Neutral)
                 {
-                    if (!minion.Name.Contains("ward") || !minion.Name.Contains("trinket"))
+                    if (!minion.CharData.BaseSkinName.Contains("ward") ||
+                        !minion.CharData.BaseSkinName.Contains("trinket"))
                     {
                         MinionsList.Remove(minion);
                         if (minion.IsEnemy)
@@ -849,13 +785,6 @@ namespace SFXUtility.Library
         /// </param>
         private static void OnGameUpdate(EventArgs args)
         {
-            foreach (var attackable in AttackableList.Where(m => !m.IsValid).ToArray())
-            {
-                AttackableList.Remove(attackable);
-                AllyAttackableList.Remove(attackable);
-                EnemyAttackableList.Remove(attackable);
-            }
-
             foreach (var minion in MinionsList.Where(m => !m.IsValid).ToArray())
             {
                 MinionsList.Remove(minion);

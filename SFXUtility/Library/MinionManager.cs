@@ -111,7 +111,7 @@ namespace SFXUtility.Library
 
         public static bool IsMinion(Obj_AI_Minion minion, bool includeWards = false)
         {
-            return IsMinion(minion as Obj_AI_Base);
+            return IsMinion(minion as Obj_AI_Base, includeWards);
         }
 
         public static bool IsMinion(Obj_AI_Base minion, bool includeWards = false)

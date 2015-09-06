@@ -23,11 +23,13 @@
 #region
 
 using System;
-using System.Drawing;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Library.Logger;
+using SharpDX;
+using Color = System.Drawing.Color;
+using DamageType = SFXChallenger.Enumerations.DamageType;
 
 #endregion
 
@@ -46,19 +48,32 @@ namespace SFXChallenger.SFXTargetSelector
         public static float ClickBuffer { get; set; }
         public static Obj_AI_Hero Target { get; set; }
 
+        public static bool ForceFocus
+        {
+            get
+            {
+                return _mainMenu != null && _mainMenu.Item(_mainMenu.Name + ".selected.force-focus").GetValue<bool>();
+            }
+        }
+
+        public static bool Focus
+        {
+            get { return _mainMenu != null && _mainMenu.Item(_mainMenu.Name + ".selected.focus").GetValue<bool>(); }
+        }
+
         internal static void AddToMenu(Menu mainMenu, Menu drawingMenu)
         {
             try
             {
                 _mainMenu = mainMenu;
 
-                _mainMenu.AddItem(
-                    new MenuItem(_mainMenu.Name + ".focus-selected", Global.Lang.Get("TS_FocusSelectedTarget")).SetValue
-                        (true));
-                _mainMenu.AddItem(
-                    new MenuItem(
-                        _mainMenu.Name + ".force-focus-selected", Global.Lang.Get("TS_OnlyAttackSelectedTarget"))
-                        .SetValue(false));
+                var selectedMenu =
+                    mainMenu.AddSubMenu(new Menu(Global.Lang.Get("TS_Selected"), mainMenu.Name + ".selected"));
+                selectedMenu.AddItem(
+                    new MenuItem(selectedMenu.Name + ".focus", Global.Lang.Get("TS_FocusTarget")).SetValue(true));
+                selectedMenu.AddItem(
+                    new MenuItem(selectedMenu.Name + ".force-focus", Global.Lang.Get("TS_OnlyAttackTarget")).SetValue(
+                        false));
 
                 var drawingSelectedMenu =
                     drawingMenu.AddSubMenu(
@@ -79,6 +94,17 @@ namespace SFXChallenger.SFXTargetSelector
             }
         }
 
+        public static Obj_AI_Hero GetTarget(float range, DamageType damageType, bool ignoreShields, Vector3 from)
+        {
+            if (Target != null &&
+                TargetSelector.IsValidTarget(
+                    Target, ForceFocus ? float.MaxValue : range, damageType, ignoreShields, from))
+            {
+                return Target;
+            }
+            return null;
+        }
+
         private static void OnDrawingDraw(EventArgs args)
         {
             try
@@ -88,17 +114,16 @@ namespace SFXChallenger.SFXTargetSelector
                     return;
                 }
 
-                if (Target != null && Target.IsValidTarget() && Target.Position.IsOnScreen())
+                if (Target != null && Target.IsValidTarget() && Target.Position.IsOnScreen() && Focus)
                 {
                     var selectedEnabled = _mainMenu.Item(_mainMenu.Name + ".drawing.selected.enabled").GetValue<bool>();
                     var selectedRadius =
                         _mainMenu.Item(_mainMenu.Name + ".drawing.selected.radius").GetValue<Slider>().Value;
                     var selectedColor = _mainMenu.Item(_mainMenu.Name + ".drawing.selected.color").GetValue<Color>();
-                    var focusSelected = _mainMenu.Item(_mainMenu.Name + ".focus-selected").GetValue<bool>();
                     var circleThickness =
                         _mainMenu.Item(_mainMenu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value;
 
-                    if (selectedEnabled && focusSelected)
+                    if (selectedEnabled)
                     {
                         Render.Circle.DrawCircle(
                             Target.Position, Target.BoundingRadius + selectedRadius, selectedColor, circleThickness,

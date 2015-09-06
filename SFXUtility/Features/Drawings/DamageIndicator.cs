@@ -99,8 +99,9 @@ namespace SFXUtility.Features.Drawings
                             new Vector2(
                                 (int) (unit.HPBarPosition.X + BarOffset.X + currentHealthPercentage * BarWidth) + 1,
                                 (int) (unit.HPBarPosition.Y + BarOffset.Y) - 5);
-
+                        _line.Begin();
                         _line.Draw(new[] { startPoint, endPoint }, sharpColor);
+                        _line.End();
                     }
                 }
             }

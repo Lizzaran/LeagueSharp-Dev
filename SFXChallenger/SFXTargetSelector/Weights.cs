@@ -24,7 +24,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
@@ -32,6 +31,9 @@ using SFXChallenger.Enumerations;
 using SFXChallenger.Library;
 using SFXChallenger.Library.Extensions.LeagueSharp;
 using SFXChallenger.Library.Logger;
+using SharpDX;
+using Color = System.Drawing.Color;
+using DamageType = SFXChallenger.Enumerations.DamageType;
 using ItemData = LeagueSharp.Common.Data.ItemData;
 
 #endregion
@@ -120,7 +122,7 @@ namespace SFXChallenger.SFXTargetSelector
                                         x.Type == BuffType.Slow || x.Type == BuffType.Silence ||
                                         x.Type == BuffType.Snare || x.Type == BuffType.Polymorph).ToList();
                             return buffs.Any() ? buffs.Max(x => x.EndTime) + 1f : 0f;
-                        })/*,
+                        }) /*,
                     new Item(
                         "gold", Global.Lang.Get("TS_Gold"), 7, false,
                         t =>
@@ -154,6 +156,15 @@ namespace SFXChallenger.SFXTargetSelector
 
         public static float MaxRange { get; set; }
 
+        public static bool ForceFocus
+        {
+            get
+            {
+                return _mainMenu != null && _weightsMenu != null &&
+                       _mainMenu.Item(_weightsMenu.Name + ".force-focus").GetValue<bool>();
+            }
+        }
+
         internal static void AddToMenu(Menu mainMenu, Menu drawingMenu)
         {
             try
@@ -165,15 +176,11 @@ namespace SFXChallenger.SFXTargetSelector
                 var heroesMenu =
                     _weightsMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Heroes"), _weightsMenu.Name + ".heroes"));
 
-                heroesMenu.AddItem(
-                    new MenuItem(heroesMenu.Name + ".weight-multiplicator", Global.Lang.Get("TS_WeightMultiplicator"))
-                        .SetValue(new Slider(1, MinMultiplicator, MaxMultiplicator)));
-
                 foreach (var enemy in Targets.Items)
                 {
                     heroesMenu.AddItem(
                         new MenuItem(heroesMenu.Name + "." + enemy.Hero.ChampionName, enemy.Hero.ChampionName).SetValue(
-                            new Slider(1, MinMultiplicator, MaxMultiplicator)));
+                            new Slider(1, MinMultiplicator, MaxMultiplicator)).DontSave());
                 }
 
                 foreach (var item in Items)
@@ -190,6 +197,10 @@ namespace SFXChallenger.SFXTargetSelector
                         };
                     item.Weight = mainMenu.Item(_weightsMenu.Name + "." + item.Name).GetValue<Slider>().Value;
                 }
+
+                _weightsMenu.AddItem(
+                    new MenuItem(_weightsMenu.Name + ".force-focus", Global.Lang.Get("TS_OnlyAttackBestTarget"))
+                        .SetValue(false));
 
                 var drawingWeightsMenu =
                     drawingMenu.AddSubMenu(new Menu(Global.Lang.Get("TS_Weights"), drawingMenu.Name + ".weights"));
@@ -248,8 +259,6 @@ namespace SFXChallenger.SFXTargetSelector
                 var weightsSimple = _mainMenu.Item(_mainMenu.Name + ".drawing.weights.simple").GetValue<bool>();
                 var weightsAdvanced = _mainMenu.Item(_mainMenu.Name + ".drawing.weights.advanced").GetValue<bool>();
 
-                var weightMultiplicator =
-                    _mainMenu.Item(_mainMenu.Name + ".weights.heroes.weight-multiplicator").GetValue<Slider>().Value;
                 var circleThickness =
                     _mainMenu.Item(_mainMenu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value;
 
@@ -287,10 +296,6 @@ namespace SFXChallenger.SFXTargetSelector
                                     if (heroMultiplicator > 1)
                                     {
                                         lastWeight += Average * heroMultiplicator;
-                                    }
-                                    if (weightMultiplicator > 1)
-                                    {
-                                        lastWeight *= weightMultiplicator;
                                     }
                                 }
                                 if (weightsAdvanced)
@@ -440,6 +445,21 @@ namespace SFXChallenger.SFXTargetSelector
             }
         }
 
+        public static IEnumerable<Targets.Item> FilterTargets(IEnumerable<Targets.Item> targets,
+            float range,
+            DamageType damageType,
+            bool ignoreShields,
+            Vector3 from)
+        {
+            var target = targets.FirstOrDefault();
+            if (target != null &&
+                TargetSelector.IsValidTarget(target.Hero, ForceFocus ? Range : range, damageType, ignoreShields, from))
+            {
+                return new List<Targets.Item> { target };
+            }
+            return new List<Targets.Item>();
+        }
+
         public static IEnumerable<Targets.Item> OrderChampions(List<Targets.Item> targets)
         {
             try
@@ -449,9 +469,6 @@ namespace SFXChallenger.SFXTargetSelector
                     UpdateMaxMinValue(item, targets);
                 }
 
-                var multiplicator = _mainMenu != null
-                    ? _mainMenu.Item(_mainMenu.Name + ".weights.heroes.weight-multiplicator").GetValue<Slider>().Value
-                    : 1;
                 foreach (var target in targets)
                 {
                     var tmpWeight = Items.Where(w => w.Weight > 0).Sum(w => CalculatedWeight(w, target));
@@ -465,10 +482,6 @@ namespace SFXChallenger.SFXTargetSelector
                         if (heroMultiplicator > 1)
                         {
                             tmpWeight += Average * heroMultiplicator;
-                        }
-                        if (multiplicator > 1)
-                        {
-                            tmpWeight *= multiplicator;
                         }
                     }
 
@@ -491,6 +504,7 @@ namespace SFXChallenger.SFXTargetSelector
                 Name = name;
                 DisplayName = displayName;
                 Weight = weight;
+                DefaultWeight = weight;
                 Inverted = inverted;
             }
 
@@ -498,6 +512,7 @@ namespace SFXChallenger.SFXTargetSelector
             public string Name { get; set; }
             public string DisplayName { get; set; }
             public int Weight { get; set; }
+            public int DefaultWeight { get; private set; }
             public bool Inverted { get; set; }
             public float MaxValue { get; set; }
             public float MinValue { get; set; }

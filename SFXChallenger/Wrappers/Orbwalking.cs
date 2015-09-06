@@ -32,8 +32,6 @@ using SharpDX;
 using Color = System.Drawing.Color;
 using DamageType = SFXChallenger.Enumerations.DamageType;
 using MinionManager = SFXChallenger.Library.MinionManager;
-using MinionTeam = SFXChallenger.Library.MinionTeam;
-using MinionTypes = SFXChallenger.Library.MinionTypes;
 using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
 using Utils = LeagueSharp.Common.Utils;
 
@@ -56,6 +54,12 @@ namespace SFXChallenger.Wrappers
 
         public delegate void OnTargetChangeH(AttackableUnit oldTarget, AttackableUnit newTarget);
 
+        public enum OrbwalkingDelay
+        {
+            Move,
+            Attack
+        }
+
         public enum OrbwalkingMode
         {
             Flee,
@@ -74,7 +78,7 @@ namespace SFXChallenger.Wrappers
             "monkeykingdoubleattack", "mordekaisermaceofspades", "nasusq", "nautiluspiercinggaze", "netherblade",
             "parley", "poppydevastatingblow", "powerfist", "renektonpreexecute", "rengarq", "shyvanadoubleattack",
             "sivirw", "takedown", "talonnoxiandiplomacy", "trundletrollsmash", "vaynetumble", "vie", "volibearq",
-            "xenzhaocombotarget", "yorickspectral", "reksaiq"
+            "xenzhaocombotarget", "yorickspectral", "reksaiq", "itemtitanichydracleave"
         };
 
         //Spells that are not attacks even if they have the "attack" word in their name.
@@ -104,16 +108,11 @@ namespace SFXChallenger.Wrappers
         public static Vector3 LastMoveCommandPosition = Vector3.Zero;
         private static AttackableUnit _lastTarget;
         private static readonly Obj_AI_Hero Player;
-        private static int _currentMoveDelay;
-        private static int _minMoveDelay;
-        private static int _maxMoveDelay;
         private static float _minDistance = 400;
         private static bool _missileLaunched;
         private static readonly Random Random = new Random(DateTime.Now.Millisecond);
-        private static int _minAttackDelay;
-        private static int _maxAttackDelay;
-        private static int _currentAttackDelay;
         private static bool _preventStuttering;
+        private static readonly Dictionary<OrbwalkingDelay, Delay> Delays = new Dictionary<OrbwalkingDelay, Delay>();
 
         static Orbwalking()
         {
@@ -270,9 +269,10 @@ namespace SFXChallenger.Wrappers
         /// <summary>
         ///     Returns if the player's auto-attack is ready.
         /// </summary>
-        public static bool CanAttack()
+        public static bool CanAttack(float extraDelay = 0f)
         {
-            return Utils.GameTimeTickCount + Game.Ping / 2 + 25 >= LastAaTick + Player.AttackDelay * 1000 && Attack;
+            return Utils.GameTimeTickCount + Game.Ping / 2 + 25 >= LastAaTick + Player.AttackDelay * 1000 + extraDelay &&
+                   Attack;
         }
 
         /// <summary>
@@ -294,24 +294,83 @@ namespace SFXChallenger.Wrappers
                    (Utils.GameTimeTickCount + Game.Ping / 2 >= LastAaTick + Player.AttackCastDelay * 1000 + extraWindup);
         }
 
-        public static void SetMinimumMovementDelay(int delay)
+        public static void SetDelay(float value, OrbwalkingDelay delay)
         {
-            _minMoveDelay = delay;
+            Delay delayEntry;
+            if (Delays.TryGetValue(delay, out delayEntry))
+            {
+                delayEntry.Default = value;
+            }
+            else
+            {
+                Delays[delay] = new Delay { Default = value };
+            }
         }
 
-        public static void SetMaximumMovementDelay(int delay)
+        public static void SetMinDelay(float value, OrbwalkingDelay delay)
         {
-            _maxMoveDelay = delay;
+            Delay delayEntry;
+            if (Delays.TryGetValue(delay, out delayEntry))
+            {
+                delayEntry.MinDelay = value;
+            }
+            else
+            {
+                Delays[delay] = new Delay { MinDelay = value };
+            }
         }
 
-        public static void SetMinimumAttackDelay(int delay)
+        public static void SetMaxDelay(float value, OrbwalkingDelay delay)
         {
-            _minAttackDelay = delay;
+            Delay delayEntry;
+            if (Delays.TryGetValue(delay, out delayEntry))
+            {
+                delayEntry.MaxDelay = value;
+            }
+            else
+            {
+                Delays[delay] = new Delay { MaxDelay = value };
+            }
         }
 
-        public static void SetMaximumAttackDelay(int delay)
+        public static void SetDelayFrequency(float value, OrbwalkingDelay delay)
         {
-            _maxAttackDelay = delay;
+            Delay delayEntry;
+            if (Delays.TryGetValue(delay, out delayEntry))
+            {
+                delayEntry.Frequency = value;
+            }
+            else
+            {
+                Delays[delay] = new Delay { Frequency = value };
+            }
+        }
+
+        public static void SetDelayRandomize(bool value, OrbwalkingDelay delay)
+        {
+            Delay delayEntry;
+            if (Delays.TryGetValue(delay, out delayEntry))
+            {
+                delayEntry.Randomize = value;
+            }
+            else
+            {
+                Delays[delay] = new Delay { Randomize = value };
+            }
+        }
+
+        private static void SetCurrentDelay(Delay delay)
+        {
+            if (delay.Randomize && Random.Next(0, 101) >= (100 - delay.Frequency))
+            {
+                var min = (delay.Default / 100f) * delay.MinDelay;
+                var max = (delay.Default / 100f) * delay.MaxDelay;
+                delay.CurrentDelay = Random.Next((int) Math.Min(min, max), (int) Math.Max(min, max) + 1);
+            }
+            else
+            {
+                delay.CurrentDelay = delay.Default;
+            }
         }
 
         public static void SetMinimumOrbwalkDistance(float d)
@@ -335,14 +394,14 @@ namespace SFXChallenger.Wrappers
             bool useFixedDistance = true,
             bool randomizeMinDistance = true)
         {
-            if (Utils.GameTimeTickCount - LastMoveCommandT < _currentMoveDelay && !overrideTimer)
+            var delay = Delays[OrbwalkingDelay.Move];
+
+            if (Utils.GameTimeTickCount - LastMoveCommandT < delay.CurrentDelay && !overrideTimer)
             {
                 return;
             }
 
-            _currentMoveDelay = Random.Next(0, 100) >= 70
-                ? Random.Next((int) (_maxMoveDelay * 0.7f), Math.Max(_minMoveDelay, _maxMoveDelay))
-                : Random.Next((int) (_minMoveDelay * 0.9f), (int) (_minMoveDelay * 1.1f));
+            SetCurrentDelay(delay);
 
             LastMoveCommandT = Utils.GameTimeTickCount;
 
@@ -391,14 +450,10 @@ namespace SFXChallenger.Wrappers
         {
             try
             {
-                if (target.IsValidTarget() &&
-                    Utils.GameTimeTickCount + Game.Ping / 2 + 25 >=
-                    LastAaTick + Player.AttackDelay * 1000 + _currentAttackDelay && Attack && InAutoAttackRange(target))
+                var delay = Delays[OrbwalkingDelay.Attack];
+                if (target.IsValidTarget() && CanAttack(delay.CurrentDelay))
                 {
-                    _currentAttackDelay = Random.Next(0, 100) >= 70
-                        ? Random.Next((int) (_maxAttackDelay * 0.7f), Math.Max(_minAttackDelay, _maxAttackDelay))
-                        : Random.Next((int) (_minAttackDelay * 0.9f), (int) (_minAttackDelay * 1.1f));
-
+                    SetCurrentDelay(delay);
                     DisableNextAttack = false;
                     FireBeforeAttack(target);
 
@@ -420,10 +475,7 @@ namespace SFXChallenger.Wrappers
                             }
                         }
 
-                        if (!Player.IssueOrder(GameObjectOrder.AttackUnit, target))
-                        {
-                            ResetAutoAttackTimer();
-                        }
+                        Player.IssueOrder(GameObjectOrder.AttackUnit, target);
 
                         _lastTarget = target;
                         return;
@@ -536,7 +588,6 @@ namespace SFXChallenger.Wrappers
             private const float LaneClearWaitTimeMod = 2f;
             private static Menu _config;
             public static List<Orbwalker> Instances = new List<Orbwalker>();
-            private readonly Obj_AI_Hero _player;
             private Obj_AI_Base _forcedTarget;
             private OrbwalkingMode _mode = OrbwalkingMode.None;
             private Vector3 _orbwalkingPoint;
@@ -566,25 +617,100 @@ namespace SFXChallenger.Wrappers
 
                 _config.AddSubMenu(misc);
 
-                /* Missile check */
-                _config.AddItem(new MenuItem("MissileCheck", "Use Missile Check").SetShared().SetValue(true));
+                var delays = new Menu("Delays", "Delays");
+                delays.AddItem(new MenuItem("ExtraWindup", "Windup Delay").SetShared().SetValue(new Slider(80, 0, 200)));
+                delays.AddItem(new MenuItem("FarmDelay", "Farm Delay").SetShared().SetValue(new Slider(0, 0, 200)));
 
-                /* Delay sliders */
-                _config.AddItem(
-                    new MenuItem("ExtraWindup", "Extra windup time").SetShared().SetValue(new Slider(80, 0, 200)));
-                _config.AddItem(new MenuItem("FarmDelay", "Farm delay").SetShared().SetValue(new Slider(0, 0, 200)));
-                _config.AddItem(
-                    new MenuItem("MovementDelayMin", "Min. Movement delay").SetShared().SetValue(new Slider(25, 0, 250)))
-                    .ValueChanged += (sender, args) => SetMinimumMovementDelay(args.GetNewValue<Slider>().Value);
-                _config.AddItem(
-                    new MenuItem("MovementDelayMax", "Max. Movement delay").SetShared().SetValue(new Slider(45, 0, 250)))
-                    .ValueChanged += (sender, args) => SetMaximumMovementDelay(args.GetNewValue<Slider>().Value);
-                _config.AddItem(
-                    new MenuItem("AttackDelayMin", "Min. Attack delay").SetShared().SetValue(new Slider(0, 0, 250)))
-                    .ValueChanged += (sender, args) => SetMinimumAttackDelay(args.GetNewValue<Slider>().Value);
-                _config.AddItem(
-                    new MenuItem("AttackDelayMax", "Max. Attack delay").SetShared().SetValue(new Slider(0, 0, 250)))
-                    .ValueChanged += (sender, args) => SetMaximumAttackDelay(args.GetNewValue<Slider>().Value);
+                var delayMovement = new Menu("Movement", "Movement");
+                delayMovement.AddItem(
+                    new MenuItem("MovementDelay", "Delay").SetShared().SetValue(new Slider(25, 0, 250))).ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        SetDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
+                    };
+                delayMovement.AddItem(
+                    new MenuItem("MovementMinDelay", "Min. % Delay").SetShared().SetValue(new Slider(170, 100, 300)))
+                    .ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        SetMinDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
+                    };
+                delayMovement.AddItem(
+                    new MenuItem("MovementMaxDelay", "Max. % Delay").SetShared().SetValue(new Slider(220, 100, 300)))
+                    .ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        SetMaxDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
+                    };
+                delayMovement.AddItem(
+                    new MenuItem("MovementFrequency", "Frequency %").SetShared().SetValue(new Slider(30))).ValueChanged
+                    +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        SetDelayFrequency(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
+                    };
+                delayMovement.AddItem(new MenuItem("MovementRandomize", "Randomize").SetShared().SetValue(false))
+                    .ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        SetDelayRandomize(args.GetNewValue<bool>(), OrbwalkingDelay.Move);
+                    };
+
+                var delayAttack = new Menu("Attack", "Attack");
+                delayAttack.AddItem(new MenuItem("AttackDelay", "Delay").SetShared().SetValue(new Slider(25, 0, 250)))
+                    .ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        SetDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
+                    };
+                delayAttack.AddItem(
+                    new MenuItem("AttackMinDelay", "Min. % Delay").SetShared().SetValue(new Slider(170, 100, 300)))
+                    .ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        SetMinDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
+                    };
+                delayAttack.AddItem(
+                    new MenuItem("AttackMaxDelay", "Max. % Delay").SetShared().SetValue(new Slider(220, 100, 300)))
+                    .ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        SetMaxDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
+                    };
+                delayAttack.AddItem(new MenuItem("AttackFrequency", "Frequency %").SetShared().SetValue(new Slider(30)))
+                    .ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        SetDelayFrequency(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
+                    };
+                delayAttack.AddItem(new MenuItem("AttackRandomize", "Randomize").SetShared().SetValue(false))
+                    .ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        SetDelayRandomize(args.GetNewValue<bool>(), OrbwalkingDelay.Attack);
+                    };
+
+                delays.AddSubMenu(delayMovement);
+                delays.AddSubMenu(delayAttack);
+
+                _config.AddSubMenu(delays);
+
+                var attackables = new Menu("Attackable Objects", "Attackables");
+                attackables.AddItem(new MenuItem("AttackWard", "Ward").SetShared().SetValue(true));
+                attackables.AddItem(new MenuItem("AttackZyra", "Zyra Plant").SetShared().SetValue(true));
+                attackables.AddItem(new MenuItem("AttackHeimer", "Heimer Turret").SetShared().SetValue(true));
+                attackables.AddItem(new MenuItem("AttackShaco", "Shaco Box").SetShared().SetValue(true));
+                attackables.AddItem(new MenuItem("AttackTeemo", "Teemo Shroom").SetShared().SetValue(true));
+                attackables.AddItem(new MenuItem("AttackGangplank", "Gangplank Barrel").SetShared().SetValue(true));
+                attackables.AddItem(new MenuItem("AttackAnnie", "Annie Tibbers").SetShared().SetValue(true));
+                attackables.AddItem(new MenuItem("AttackYorick", "Yorick Ghost").SetShared().SetValue(true));
+                attackables.AddItem(new MenuItem("AttackMordekaiser", "Mordekaiser Ghost").SetShared().SetValue(true));
+                attackables.AddItem(new MenuItem("AttackClone", "Clones").SetShared().SetValue(true));
+
+                _config.AddSubMenu(attackables);
+
+                /* Missile check */
+                _config.AddItem(new MenuItem("MissileCheck", "Missile Check").SetShared().SetValue(true));
 
                 /*Load the menu*/
                 _config.AddItem(new MenuItem("Flee", "Flee").SetShared().SetValue(new KeyBind('G', KeyBindType.Press)));
@@ -603,13 +729,18 @@ namespace SFXChallenger.Wrappers
                 _config.AddItem(
                     new MenuItem("Orbwalk2", "Combo Alternate").SetShared().SetValue(new KeyBind(32, KeyBindType.Press)));
 
-                SetMinimumMovementDelay(_config.Item("MovementDelayMin").GetValue<Slider>().Value);
-                SetMaximumMovementDelay(_config.Item("MovementDelayMax").GetValue<Slider>().Value);
+                SetDelay(_config.Item("MovementDelay").GetValue<Slider>().Value, OrbwalkingDelay.Move);
+                SetMinDelay(_config.Item("MovementMinDelay").GetValue<Slider>().Value, OrbwalkingDelay.Move);
+                SetMaxDelay(_config.Item("MovementMaxDelay").GetValue<Slider>().Value, OrbwalkingDelay.Move);
+                SetDelayFrequency(_config.Item("MovementFrequency").GetValue<Slider>().Value, OrbwalkingDelay.Move);
+                SetDelayRandomize(_config.Item("MovementRandomize").GetValue<bool>(), OrbwalkingDelay.Move);
 
-                SetMinimumAttackDelay(_config.Item("AttackDelayMin").GetValue<Slider>().Value);
-                SetMaximumAttackDelay(_config.Item("AttackDelayMax").GetValue<Slider>().Value);
+                SetDelay(_config.Item("AttackDelay").GetValue<Slider>().Value, OrbwalkingDelay.Attack);
+                SetMinDelay(_config.Item("AttackMinDelay").GetValue<Slider>().Value, OrbwalkingDelay.Attack);
+                SetMaxDelay(_config.Item("AttackMaxDelay").GetValue<Slider>().Value, OrbwalkingDelay.Attack);
+                SetDelayFrequency(_config.Item("AttackFrequency").GetValue<Slider>().Value, OrbwalkingDelay.Attack);
+                SetDelayRandomize(_config.Item("AttackRandomize").GetValue<bool>(), OrbwalkingDelay.Attack);
 
-                _player = ObjectManager.Player;
                 Game.OnUpdate += GameOnOnGameUpdate;
                 Drawing.OnDraw += DrawingOnOnDraw;
                 Instances.Add(this);
@@ -715,8 +846,8 @@ namespace SFXChallenger.Wrappers
                             minion =>
                                 InAutoAttackRange(minion) &&
                                 HealthPrediction.LaneClearHealthPrediction(
-                                    minion, (int) ((_player.AttackDelay * 1000) * LaneClearWaitTimeMod), FarmDelay) <=
-                                _player.GetAutoAttackDamage(minion));
+                                    minion, (int) ((Player.AttackDelay * 1000) * LaneClearWaitTimeMod), FarmDelay) <=
+                                Player.GetAutoAttackDamage(minion));
             }
 
             public virtual AttackableUnit GetTarget()
@@ -739,36 +870,53 @@ namespace SFXChallenger.Wrappers
                     return _forcedTarget;
                 }
 
+                var minions = new List<Obj_AI_Minion>();
+                if (ActiveMode != OrbwalkingMode.None && ActiveMode != OrbwalkingMode.Flee)
+                {
+                    minions = GetMinions(
+                        _config.Item("AttackWard").GetValue<bool>(), _config.Item("AttackZyra").GetValue<bool>(),
+                        _config.Item("AttackHeimer").GetValue<bool>(), _config.Item("AttackClone").GetValue<bool>(),
+                        _config.Item("AttackAnnie").GetValue<bool>(), _config.Item("AttackTeemo").GetValue<bool>(),
+                        _config.Item("AttackShaco").GetValue<bool>(), _config.Item("AttackGangplank").GetValue<bool>(),
+                        _config.Item("AttackYorick").GetValue<bool>(),
+                        _config.Item("AttackMordekaiser").GetValue<bool>());
+                }
+
                 /*Killable Minion*/
                 if (ActiveMode == OrbwalkingMode.LaneClear || ActiveMode == OrbwalkingMode.Mixed ||
                     ActiveMode == OrbwalkingMode.LastHit)
                 {
                     var minionList =
-                        MinionManager.GetMinions(Player.Position, float.MaxValue)
-                            .Where(
-                                minion =>
-                                    InAutoAttackRange(minion) &&
-                                    minion.Health <
-                                    2 *
-                                    (ObjectManager.Player.BaseAttackDamage + ObjectManager.Player.FlatPhysicalDamageMod))
-                            .OrderByDescending(minion => minion.CharData.BaseSkinName.Contains("Siege"))
+                        minions.OrderByDescending(minion => minion.CharData.BaseSkinName.Contains("Siege"))
                             .ThenBy(minion => minion.CharData.BaseSkinName.Contains("Super"))
                             .ThenByDescending(minion => minion.MaxHealth)
                             .ThenBy(minion => minion.Health);
 
                     foreach (var minion in minionList)
                     {
-                        var t = (int) (_player.AttackCastDelay * 1000) - 100 + Game.Ping / 2 +
-                                1000 * (int) _player.Distance(minion) / (int) GetMyProjectileSpeed();
-                        var predHealth = HealthPrediction.GetHealthPrediction(minion, t, FarmDelay);
-                        if (predHealth <= 0)
-                        {
-                            FireOnNonKillableMinion(minion);
-                        }
+                        var t = (int) (Player.AttackCastDelay * 1000) - 100 + Game.Ping / 2 +
+                                1000 * (int) Math.Max(0, Player.Distance(minion) - Player.BoundingRadius) /
+                                (int) GetMyProjectileSpeed();
 
-                        if (predHealth > 0 && predHealth <= _player.GetAutoAttackDamage(minion, true))
+                        if (minion.MaxHealth <= 10)
                         {
-                            return minion;
+                            if (minion.Health <= 1)
+                            {
+                                return minion;
+                            }
+                        }
+                        else
+                        {
+                            var predHealth = HealthPrediction.GetHealthPrediction(minion, t, FarmDelay);
+                            if (predHealth <= 0)
+                            {
+                                FireOnNonKillableMinion(minion);
+                            }
+
+                            if (predHealth > 0 && predHealth <= Player.GetAutoAttackDamage(minion, true))
+                            {
+                                return minion;
+                            }
                         }
                     }
                 }
@@ -808,20 +956,6 @@ namespace SFXChallenger.Wrappers
                     }
                 }
 
-                /*Jungle minions*/
-                if (ActiveMode == OrbwalkingMode.LaneClear || ActiveMode == OrbwalkingMode.Mixed)
-                {
-                    result =
-                        MinionManager.GetMinions(Player.Position, float.MaxValue, MinionTypes.All, MinionTeam.Neutral)
-                            .Where(InAutoAttackRange)
-                            .MaxOrDefault(mob => mob.MaxHealth);
-
-                    if (result != null)
-                    {
-                        return result;
-                    }
-                }
-
                 /*Lane Clear minions*/
                 if (ActiveMode == OrbwalkingMode.LaneClear)
                 {
@@ -829,24 +963,39 @@ namespace SFXChallenger.Wrappers
                     {
                         if (_prevMinion.IsValidTarget() && InAutoAttackRange(_prevMinion))
                         {
+                            if (_prevMinion.MaxHealth <= 10)
+                            {
+                                return _prevMinion;
+                            }
                             var predHealth = HealthPrediction.LaneClearHealthPrediction(
-                                _prevMinion, (int) ((_player.AttackDelay * 1000) * LaneClearWaitTimeMod), FarmDelay);
-                            if (predHealth >= 2 * _player.GetAutoAttackDamage(_prevMinion) ||
+                                _prevMinion, (int) ((Player.AttackDelay * 1000) * LaneClearWaitTimeMod), FarmDelay);
+                            if (predHealth >= 2 * Player.GetAutoAttackDamage(_prevMinion) ||
                                 Math.Abs(predHealth - _prevMinion.Health) < float.Epsilon)
                             {
                                 return _prevMinion;
                             }
                         }
 
-                        result = (from minion in
-                            MinionManager.GetMinions(Player.Position, float.MaxValue).Where(InAutoAttackRange)
-                            let predHealth =
-                                HealthPrediction.LaneClearHealthPrediction(
-                                    minion, (int) ((_player.AttackDelay * 1000) * LaneClearWaitTimeMod), FarmDelay)
-                            where
-                                predHealth >= 2 * _player.GetAutoAttackDamage(minion) ||
-                                Math.Abs(predHealth - minion.Health) < float.Epsilon
-                            select minion).MaxOrDefault(m => m.Health);
+                        foreach (var minion in minions.Where(m => m.Team != GameObjectTeam.Neutral))
+                        {
+                            if (minion.MaxHealth <= 10)
+                            {
+                                result = minion;
+                            }
+                            else
+                            {
+                                var predHealth = HealthPrediction.LaneClearHealthPrediction(
+                                    minion, (int) ((Player.AttackDelay * 1000) * LaneClearWaitTimeMod), FarmDelay);
+                                if (predHealth >= 2 * Player.GetAutoAttackDamage(minion) ||
+                                    Math.Abs(predHealth - minion.Health) < float.Epsilon)
+                                {
+                                    if (result == null || minion.Health > result.Health && result.MaxHealth > 10)
+                                    {
+                                        result = minion;
+                                    }
+                                }
+                            }
+                        }
 
                         if (result != null)
                         {
@@ -855,7 +1004,131 @@ namespace SFXChallenger.Wrappers
                     }
                 }
 
+                /*Jungle minions*/
+                if (ActiveMode == OrbwalkingMode.LaneClear || ActiveMode == OrbwalkingMode.Mixed)
+                {
+                    result = minions.Where(m => m.Team == GameObjectTeam.Neutral).MaxOrDefault(mob => mob.MaxHealth);
+                    if (result != null)
+                    {
+                        return result;
+                    }
+                }
+
+                if (result == null && ActiveMode == OrbwalkingMode.Combo)
+                {
+                    if (
+                        !GameObjects.EnemyHeroes.Any(
+                            e => e.IsValidTarget() && e.Distance(Player) < GetRealAutoAttackRange(e) * 1.2f))
+                    {
+                        return minions.FirstOrDefault(m => !MinionManager.IsMinion(m, true));
+                    }
+                }
+
                 return result;
+            }
+
+            private List<Obj_AI_Minion> GetMinions(bool ward,
+                bool zyra,
+                bool heimer,
+                bool clone,
+                bool annie,
+                bool teemo,
+                bool shaco,
+                bool gangplank,
+                bool yorick,
+                bool mordekaiser)
+            {
+                var targets = new List<Obj_AI_Minion>();
+                var minions = new List<Obj_AI_Minion>();
+                var clones = new List<Obj_AI_Minion>();
+
+                var units = ward ? GameObjects.EnemyMinions.Concat(GameObjects.EnemyWards) : GameObjects.EnemyMinions;
+                foreach (var minion in units.Where(u => u.IsValidTarget() && InAutoAttackRange(u)))
+                {
+                    var baseName = minion.CharData.BaseSkinName.ToLower();
+                    if (MinionManager.IsMinion(minion, ward)) //minions & wards
+                    {
+                        minions.Add(minion);
+                        continue;
+                    }
+                    if (zyra) //zyra plant
+                    {
+                        if (baseName.Contains("zyra") && baseName.Contains("plant"))
+                        {
+                            targets.Add(minion);
+                            continue;
+                        }
+                    }
+                    if (heimer) //heimer turret
+                    {
+                        if (baseName.Contains("heimert"))
+                        {
+                            targets.Add(minion);
+                            continue;
+                        }
+                    }
+                    if (annie) //annie tibber
+                    {
+                        if (baseName.Contains("annietibbers"))
+                        {
+                            targets.Add(minion);
+                            continue;
+                        }
+                    }
+                    if (teemo) //teemo shroom
+                    {
+                        if (baseName.Contains("teemomushroom"))
+                        {
+                            targets.Add(minion);
+                            continue;
+                        }
+                    }
+                    if (shaco) //shaco box
+                    {
+                        if (baseName.Contains("shacobox"))
+                        {
+                            targets.Add(minion);
+                            continue;
+                        }
+                    }
+                    if (gangplank) //gangplank barrel
+                    {
+                        if (baseName.Contains("gangplankbarrel"))
+                        {
+                            targets.Add(minion);
+                            continue;
+                        }
+                    }
+                    if (yorick) //yorick ghouls
+                    {
+                        if (baseName.Contains("yorick") && baseName.Contains("ghoul"))
+                        {
+                            targets.Add(minion);
+                            continue;
+                        }
+                    }
+                    if (clone) //clones
+                    {
+                        if (baseName.Contains("shaco") || baseName.Contains("leblanc") ||
+                            baseName.Contains("monkeyking"))
+                        {
+                            clones.Add(minion);
+                            continue;
+                        }
+                    }
+                    if (mordekaiser) //Mordekaiser Ghost
+                    {
+                        if (GameObjects.AllyHeroes.Any(e => e.CharData.BaseSkinName.ToLower().Equals(baseName)))
+                        {
+                            targets.Add(minion);
+                        }
+                    }
+                }
+                return
+                    targets.Concat(minions)
+                        .Concat(GameObjects.Jungle.Where(u => u.IsValidTarget() && InAutoAttackRange(u)))
+                        .Concat(clones)
+                        .ToList();
             }
 
             private void GameOnOnGameUpdate(EventArgs args)
@@ -868,7 +1141,7 @@ namespace SFXChallenger.Wrappers
                     }
 
                     //Prevent canceling important spells
-                    if (_player.IsCastingInterruptableSpell(true))
+                    if (Player.IsCastingInterruptableSpell(true))
                     {
                         return;
                     }
@@ -890,7 +1163,7 @@ namespace SFXChallenger.Wrappers
                 if (_config.Item("AACircle").GetValue<Circle>().Active)
                 {
                     Render.Circle.DrawCircle(
-                        _player.Position, GetRealAutoAttackRange(null) + 65,
+                        Player.Position, GetRealAutoAttackRange(null) + 65,
                         _config.Item("AACircle").GetValue<Circle>().Color);
                 }
 
@@ -908,10 +1181,20 @@ namespace SFXChallenger.Wrappers
                 if (_config.Item("HoldZone").GetValue<Circle>().Active)
                 {
                     Render.Circle.DrawCircle(
-                        _player.Position, _config.Item("HoldPosRadius").GetValue<Slider>().Value,
+                        Player.Position, _config.Item("HoldPosRadius").GetValue<Slider>().Value,
                         _config.Item("HoldZone").GetValue<Circle>().Color, 5, true);
                 }
             }
         }
+    }
+
+    internal class Delay
+    {
+        public float Default { get; set; }
+        public float MinDelay { get; set; }
+        public float MaxDelay { get; set; }
+        public float Frequency { get; set; }
+        public bool Randomize { get; set; }
+        public float CurrentDelay { get; set; }
     }
 }

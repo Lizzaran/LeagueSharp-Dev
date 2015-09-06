@@ -60,7 +60,7 @@ namespace SFXChallenger.SFXTargetSelector
             get { return _lastTarget != null ? _lastTarget.Hero : null; }
         }
 
-        private static bool IsValidTarget(Obj_AI_Hero target,
+        internal static bool IsValidTarget(Obj_AI_Hero target,
             float range,
             DamageType damageType,
             bool ignoreShields = true,
@@ -211,13 +211,10 @@ namespace SFXChallenger.SFXTargetSelector
             {
                 Weights.Range = Math.Max(range, Weights.Range);
 
-                if (_menu != null && Selected.Target != null &&
-                    IsValidTarget(
-                        Selected.Target,
-                        _menu.Item(_menu.Name + ".force-focus-selected").GetValue<bool>() ? float.MaxValue : range,
-                        damageType, ignoreShields, from))
+                var selectedTarget = Selected.GetTarget(range, damageType, ignoreShields, from);
+                if (selectedTarget != null)
                 {
-                    return new List<Obj_AI_Hero> { Selected.Target };
+                    return new List<Obj_AI_Hero> { selectedTarget };
                 }
 
                 var targets =
@@ -230,10 +227,13 @@ namespace SFXChallenger.SFXTargetSelector
                 if (targets.Count > 0)
                 {
                     var t = GetOrderedChampions(targets).ToList();
-                    if (t.Any())
+                    if (Mode == TargetSelectorModeType.Weights && Weights.ForceFocus)
                     {
-                        if (_menu != null && Selected.Target != null &&
-                            _menu.Item(_menu.Name + ".focus-selected").GetValue<bool>())
+                        t = Weights.FilterTargets(t, range, damageType, ignoreShields, from).ToList();
+                    }
+                    if (t.Count > 0)
+                    {
+                        if (Selected.Target != null && Selected.Focus && t.Count > 1)
                         {
                             t = t.OrderByDescending(x => x.Hero.NetworkId.Equals(Selected.Target.NetworkId)).ToList();
                         }

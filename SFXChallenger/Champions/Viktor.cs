@@ -166,9 +166,14 @@ namespace SFXChallenger.Champions
                         damage += Q.GetDamage(hero);
                         damage += CalcPassiveDamage(hero);
                     }
-                    else if (HasQBuff())
+                    else
                     {
-                        damage += CalcPassiveDamage(hero);
+                        var qInstance = Q.Instance;
+                        if (HasQBuff() ||
+                            qInstance.Level > 0 && qInstance.CooldownExpires - Game.Time > qInstance.Cooldown - 1f)
+                        {
+                            damage += CalcPassiveDamage(hero);
+                        }
                     }
                     return damage;
                 });

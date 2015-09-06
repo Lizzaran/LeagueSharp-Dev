@@ -64,7 +64,6 @@ namespace SFXChallenger.SFXTargetSelector
         {
             if (_mainMenu.Item(_mainMenu.Name + ".humanizer.enabled").GetValue<bool>())
             {
-                var filtered = new List<Targets.Item>();
                 var fowDelay = (float) _mainMenu.Item(_mainMenu.Name + ".humanizer.fow").GetValue<Slider>().Value;
                 if (fowDelay > 0)
                 {
@@ -75,17 +74,16 @@ namespace SFXChallenger.SFXTargetSelector
                 {
                     switchDelay = fowDelay / 1000f;
                 }
-                if (fowDelay > 0 || switchDelay > 0)
+                if (fowDelay > 0.0f || switchDelay > 0.0f)
                 {
                     var lastTarget = Targets.Items.OrderByDescending(i => i.LastTargetSwitch).FirstOrDefault();
-                    filtered.AddRange(
+                    return
                         targets.Where(item => Game.Time - item.LastVisibleChange > fowDelay || fowDelay <= 0.0f)
                             .Where(
                                 item =>
                                     lastTarget == null || lastTarget.Hero.NetworkId.Equals(item.Hero.NetworkId) ||
                                     (Selected.Target != null && Selected.Target.NetworkId.Equals(item.Hero.NetworkId)) ||
-                                    Game.Time - lastTarget.LastTargetSwitch > switchDelay || switchDelay <= 0.0f));
-                    return filtered;
+                                    Game.Time - lastTarget.LastTargetSwitch > switchDelay || switchDelay <= 0.0f);
                 }
             }
             return targets;

@@ -137,7 +137,6 @@ namespace SFXUtility.Features.Detectors
                         foreach (var teleport in teleports.Where(t => t.Duration > 0 && !t.Hero.IsDead))
                         {
                             var scale = barWidth / teleport.Duration;
-                            var hPercent = ((int) ((teleport.Hero.Health / teleport.Hero.MaxHealth) * 100)).ToString();
                             var color = teleport.ToColor();
                             var width = (int) (scale * teleport.Countdown);
                             width = width > barWidth ? barWidth : width;
@@ -177,11 +176,12 @@ namespace SFXUtility.Features.Detectors
                                 new ColorBGRA(color.R, color.G, color.B, color.A));
 
                             _barText.DrawTextCentered(
-                                hPercent, posX + width - 1,
+                                ((int) (teleport.Hero.HealthPercent)).ToString(), posX + width - 1,
                                 (top
                                     ? posY - barHeight - 3 - seperatorHeight - _barText.Description.Height + 3
                                     : posY + barHeight * 2 + 3 + seperatorHeight * 2 + _barText.Description.Height - 1),
                                 new ColorBGRA(color.R, color.G, color.B, color.A));
+
                             top = !top;
                         }
                         if (teleports.Any())
@@ -458,17 +458,17 @@ namespace SFXUtility.Features.Detectors
                             case Packet.S2C.Teleport.Status.Start:
                                 return string.Format(
                                     "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Recalling"), Hero.ChampionName,
-                                    (int) Hero.HealthPercent, time);
+                                    (int) (Hero.HealthPercent), time);
 
                             case Packet.S2C.Teleport.Status.Finish:
                                 return string.Format(
                                     "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Recalled"), Hero.ChampionName,
-                                    (int) Hero.HealthPercent, time);
+                                    (int) (Hero.HealthPercent), time);
 
                             case Packet.S2C.Teleport.Status.Abort:
                                 return string.Format(
                                     "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Aborted"), Hero.ChampionName,
-                                    (int) Hero.HealthPercent, time);
+                                    (int) (Hero.HealthPercent), time);
                         }
                         break;
 
@@ -478,17 +478,17 @@ namespace SFXUtility.Features.Detectors
                             case Packet.S2C.Teleport.Status.Start:
                                 return string.Format(
                                     "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Teleporting"),
-                                    Hero.ChampionName, (int) Hero.HealthPercent, time);
+                                    Hero.ChampionName, (int) (Hero.HealthPercent), time);
 
                             case Packet.S2C.Teleport.Status.Finish:
                                 return string.Format(
                                     "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Teleported"),
-                                    Hero.ChampionName, (int) Hero.HealthPercent, time);
+                                    Hero.ChampionName, (int) (Hero.HealthPercent), time);
 
                             case Packet.S2C.Teleport.Status.Abort:
                                 return string.Format(
                                     "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Aborted"), Hero.ChampionName,
-                                    (int) Hero.HealthPercent, time);
+                                    (int) (Hero.HealthPercent), time);
                         }
                         break;
 
@@ -499,17 +499,17 @@ namespace SFXUtility.Features.Detectors
                             case Packet.S2C.Teleport.Status.Start:
                                 return string.Format(
                                     "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Transporting"),
-                                    Hero.ChampionName, (int) Hero.HealthPercent, time);
+                                    Hero.ChampionName, (int) (Hero.HealthPercent), time);
 
                             case Packet.S2C.Teleport.Status.Finish:
                                 return string.Format(
                                     "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Transported"),
-                                    Hero.ChampionName, (int) Hero.HealthPercent, time);
+                                    Hero.ChampionName, (int) (Hero.HealthPercent), time);
 
                             case Packet.S2C.Teleport.Status.Abort:
                                 return string.Format(
                                     "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Aborted"), Hero.ChampionName,
-                                    (int) Hero.HealthPercent, time);
+                                    (int) (Hero.HealthPercent), time);
                         }
                         break;
                 }

@@ -111,7 +111,7 @@ namespace SFXChallenger.Library
 
         public static bool IsMinion(Obj_AI_Minion minion, bool includeWards = false)
         {
-            return IsMinion(minion as Obj_AI_Base);
+            return IsMinion(minion as Obj_AI_Base, includeWards);
         }
 
         public static bool IsMinion(Obj_AI_Base minion, bool includeWards = false)
@@ -253,10 +253,6 @@ namespace SFXChallenger.Library
                 where pos.Hitchance >= HitChance.High
                 select pos.UnitPosition.To2D()).ToList();
         }
-
-        /*
-         from: https://stackoverflow.com/questions/10515449/generate-all-combinations-for-a-list-of-strings :^)
-         */
 
         /// <summary>
         ///     Returns all the subgroup combinations that can be made from a group
