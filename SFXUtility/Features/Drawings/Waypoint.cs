@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -51,7 +51,7 @@ namespace SFXUtility.Features.Drawings
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_Waypoint"); }
+            get { return "Waypoint"; }
         }
 
         protected override void OnEnable()
@@ -139,21 +139,16 @@ namespace SFXUtility.Features.Drawings
             try
             {
                 Menu = new Menu(Name, Name);
-                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
+                var drawingMenu = new Menu("Drawing", Name + "Drawing");
                 drawingMenu.AddItem(
-                    new MenuItem(
-                        drawingMenu.Name + "CrossColor", Global.Lang.Get("G_Cross") + " " + Global.Lang.Get("G_Color"))
-                        .SetValue(Color.DarkRed));
-                drawingMenu.AddItem(
-                    new MenuItem(
-                        drawingMenu.Name + "LineColor", Global.Lang.Get("G_Line") + " " + Global.Lang.Get("G_Color"))
-                        .SetValue(Color.White));
+                    new MenuItem(drawingMenu.Name + "CrossColor", "Cross Color").SetValue(Color.DarkRed));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "LineColor", "Line Color").SetValue(Color.White));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "DrawAlly", Global.Lang.Get("G_Ally")).SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "DrawEnemy", Global.Lang.Get("G_Enemy")).SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "DrawAlly", "Ally").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "DrawEnemy", "Enemy").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Menu.Item(Name + "DrawAlly").ValueChanged += delegate
                 {

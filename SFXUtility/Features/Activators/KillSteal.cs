@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -45,7 +45,7 @@ namespace SFXUtility.Features.Activators
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_KillSteal"); }
+            get { return "KillSteal"; }
         }
 
         protected override void OnEnable()
@@ -65,10 +65,10 @@ namespace SFXUtility.Features.Activators
             try
             {
                 Menu = new Menu(Name, Name);
-                Menu.AddItem(new MenuItem(Name + "Summoners", Global.Lang.Get("KillSteal_Summoners")).SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "Items", Global.Lang.Get("KillSteal_Items")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Summoners", "Summoners").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Items", "Items").SetValue(false));
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
             }

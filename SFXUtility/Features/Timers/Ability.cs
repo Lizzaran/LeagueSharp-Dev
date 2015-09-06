@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -57,7 +57,7 @@ namespace SFXUtility.Features.Timers
             { "ekko_base_w_indicator.troy", new AbilityItem("ekko", "W", 3f) },
             { "diplomaticimmunity_buf.troy", new AbilityItem("poppy", "R", 8f) },
             { "dr_mundo_heal.troy", new AbilityItem("mundo", "R", 12f) },
-            { "eggtimer.troy", new AbilityItem("anivia", Global.Lang.Get("Ability_Passive"), 6f) },
+            { "eggtimer.troy", new AbilityItem("anivia", "Passive", 6f) },
             { "eyeforaneye_cas.troy", new AbilityItem("kayle", "R", 3f) },
             { "eyeforaneye_self.troy", new AbilityItem("kayle", "R", 3f) },
             { "galio_talion_channel.troy", new AbilityItem("galio", "R", 2f) },
@@ -79,7 +79,7 @@ namespace SFXUtility.Features.Timers
             { "rumble_ult_impact_burn_teamid_red.troy", new AbilityItem("rumble", "R", 5f) },
             { "leblanc_base_rw_return_indicator.troy", new AbilityItem("leblanc", "R W", 4f) },
             { "leblanc_base_w_return_indicator.troy", new AbilityItem("leblanc", "W", 4f) },
-            { "lifeaura.troy", new AbilityItem("items", Global.Lang.Get("Ability_Guardian"), 4f) },
+            { "lifeaura.troy", new AbilityItem("items", "Guardian", 4f) },
             { "lissandra_base_r_iceblock.troy", new AbilityItem("lissandra", "R", 2.5f) },
             { "lissandra_base_r_ring_green.troy", new AbilityItem("lissandra", "R", 1.5f) },
             { "lissandra_base_r_ring_red.troy", new AbilityItem("lissandra", "R", 1.5f) },
@@ -95,7 +95,7 @@ namespace SFXUtility.Features.Timers
             { "pantheon_base_r_cas.troy", new AbilityItem("pantheon", "R", 2f) },
             { "pantheon_base_r_indicator_green.troy", new AbilityItem("pantheon", "R", 4.5f) },
             { "pantheon_base_r_indicator_red.troy", new AbilityItem("pantheon", "R", 4.5f) },
-            { "passive_death_activate.troy", new AbilityItem("aatrox", Global.Lang.Get("Ability_Passive"), 3f) },
+            { "passive_death_activate.troy", new AbilityItem("aatrox", "Passive", 3f) },
             { "pirate_cannonbarrage_aoe_indicator_green.troy", new AbilityItem("gangplank", "R", 7f) },
             { "pirate_cannonbarrage_aoe_indicator_red.troy", new AbilityItem("gangplank", "R", 7f) },
             { "reapthewhirlwind_green_cas.troy", new AbilityItem("janna", "R", 3f) },
@@ -125,7 +125,7 @@ namespace SFXUtility.Features.Timers
             { "zac_r_tar.troy", new AbilityItem("zac", "R", 4f) },
             { "zed_base_r_cloneswap_buf.troy", new AbilityItem("zed", "R", 7f) },
             { "zed_base_w_cloneswap_buf.troy", new AbilityItem("zed", "W", 4.5f) },
-            { "zilean_base_r_buf.troy", new AbilityItem("zilean", "R " + Global.Lang.Get("Ability_Revive"), 3f) },
+            { "zilean_base_r_buf.troy", new AbilityItem("zilean", "R " + "Revive", 3f) },
             { "zyra_r_cast_green_team.troy", new AbilityItem("zyra", "R", 2f) },
             { "zyra_r_cast_red_team.troy", new AbilityItem("zyra", "R", 2f) },
             { "jester_copy.troy", new AbilityItem("shaco", "R", 18f) },
@@ -148,7 +148,7 @@ namespace SFXUtility.Features.Timers
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_Ability"); }
+            get { return "Ability"; }
         }
 
         protected override void OnEnable()
@@ -261,32 +261,23 @@ namespace SFXUtility.Features.Timers
             try
             {
                 Menu = new Menu(Name, Name);
-                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
+                var drawingMenu = new Menu("Drawing", Name + "Drawing");
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(
-                        new Slider(30, 10, 40)));
+                    new MenuItem(drawingMenu.Name + "FontSize", "Font Size").SetValue(new Slider(30, 10, 40)));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "OffsetTop", "Offset Top").SetValue(new Slider(0)));
                 drawingMenu.AddItem(
-                    new MenuItem(
-                        drawingMenu.Name + "OffsetTop", Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Top"))
-                        .SetValue(new Slider(0)));
-                drawingMenu.AddItem(
-                    new MenuItem(
-                        drawingMenu.Name + "OffsetLeft", Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Left"))
-                        .SetValue(new Slider(0)));
-                drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "Outline", Global.Lang.Get("G_Outline")).SetValue(true));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Self", Global.Lang.Get("G_Self")).SetValue(false));
-                drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "Enemy", Global.Lang.Get("G_Enemy")).SetValue(false));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Ally", Global.Lang.Get("G_Ally")).SetValue(false));
+                    new MenuItem(drawingMenu.Name + "OffsetLeft", "Offset Left").SetValue(new Slider(0)));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Outline", "Outline").SetValue(true));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Self", "Self").SetValue(false));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Enemy", "Enemy").SetValue(false));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Ally", "Ally").SetValue(false));
 
                 Menu.AddSubMenu(drawingMenu);
 
                 var group = 1;
                 var counter = 0;
 
-                var spellMenu =
-                    Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Spell") + " " + group, Name + "Spell" + group));
+                var spellMenu = Menu.AddSubMenu(new Menu("Spell " + group, Name + "Spell" + group));
                 var listItems = _abilities.OrderBy(a => a.Value.Champ).GroupBy(a => a.Value.Champ).ToList();
                 foreach (var items in listItems)
                 {
@@ -321,12 +312,11 @@ namespace SFXUtility.Features.Timers
                     {
                         counter = 0;
                         group++;
-                        spellMenu =
-                            Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Spell") + " " + group, Name + "Spell" + group));
+                        spellMenu = Menu.AddSubMenu(new Menu("Spell " + group, Name + "Spell" + group));
                     }
                 }
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
 

@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -32,7 +32,7 @@ namespace SFXUtility.Features.Timers
     {
         public override string Name
         {
-            get { return Global.Lang.Get("F_Timers"); }
+            get { return "Timers"; }
         }
     }
 }

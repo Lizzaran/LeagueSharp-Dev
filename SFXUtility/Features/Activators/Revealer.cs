@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -57,7 +57,7 @@ namespace SFXUtility.Features.Activators
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_Revealer"); }
+            get { return "Revealer"; }
         }
 
         protected override void OnEnable()
@@ -84,11 +84,9 @@ namespace SFXUtility.Features.Activators
             {
                 Menu = new Menu(Name, Name);
 
-                Menu.AddItem(new MenuItem(Name + "Bush", Global.Lang.Get("Revealer_Bush")).SetValue(false));
-                Menu.AddItem(
-                    new MenuItem(Name + "Hotkey", Global.Lang.Get("G_Hotkey")).SetValue(
-                        new KeyBind(32, KeyBindType.Press)));
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Bush", "Bush").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Hotkey", "Hotkey").SetValue(new KeyBind(32, KeyBindType.Press)));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
             }
@@ -124,7 +122,7 @@ namespace SFXUtility.Features.Activators
                 var menuList =
                     spellList.OrderBy(s => s.Hero).GroupBy(s => s.Hero).Select(h => new { Hero = h.Key }).ToList();
 
-                var invisibleMenu = new Menu(Global.Lang.Get("Revealer_Invisible"), Name + "Invisible");
+                var invisibleMenu = new Menu("Invisible", Name + "Invisible");
                 foreach (var spell in menuList)
                 {
                     invisibleMenu.AddItem(

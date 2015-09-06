@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -109,11 +109,9 @@ namespace SFXChallenger.SFXTargetSelector
             {
                 _mainMenu = mainMenu;
 
-                var prioritiesMenu =
-                    _mainMenu.AddSubMenu(new Menu(Global.Lang.Get("TS_Priorities"), _mainMenu.Name + ".priorities"));
+                var prioritiesMenu = _mainMenu.AddSubMenu(new Menu("Priorities", _mainMenu.Name + ".priorities"));
 
-                var autoPriority =
-                    new MenuItem(prioritiesMenu.Name + ".auto", Global.Lang.Get("TS_AutoPriority")).SetValue(false);
+                var autoPriority = new MenuItem(prioritiesMenu.Name + ".auto", "Auto Priority").SetValue(false);
 
                 foreach (var enemy in Targets.Items)
                 {

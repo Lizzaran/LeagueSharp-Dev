@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -42,8 +42,7 @@ namespace SFXChallenger.Managers
         {
             try
             {
-                menu.AddItem(new MenuItem(menu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(false))
-                    .ValueChanged +=
+                menu.AddItem(new MenuItem(menu.Name + ".enabled", "Enabled").SetValue(false)).ValueChanged +=
                     delegate(object sender, OnValueChangeEventArgs args) { Enabled = args.GetNewValue<bool>(); };
 
                 Enabled = menu.Item(menu.Name + ".enabled").GetValue<bool>();

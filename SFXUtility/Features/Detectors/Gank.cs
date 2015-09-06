@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -54,7 +54,7 @@ namespace SFXUtility.Features.Detectors
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_Gank"); }
+            get { return "Gank"; }
         }
 
         protected override void OnEnable()
@@ -188,37 +188,31 @@ namespace SFXUtility.Features.Detectors
             try
             {
                 Menu = new Menu(Name, Name);
-                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
+                var drawingMenu = new Menu("Drawing", Name + "Drawing");
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(
-                        new Slider(25, 10, 40)));
+                    new MenuItem(drawingMenu.Name + "FontSize", "Font Size").SetValue(new Slider(25, 10, 40)));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "Color", Global.Lang.Get("G_Color")).SetValue(
-                        System.Drawing.Color.White));
+                    new MenuItem(drawingMenu.Name + "Color", "Color").SetValue(System.Drawing.Color.White));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "Thickness", Global.Lang.Get("G_Thickness")).SetValue(
-                        new Slider(5, 2, 10))).ValueChanged += delegate(object o, OnValueChangeEventArgs args)
+                    new MenuItem(drawingMenu.Name + "Thickness", "Thickness").SetValue(new Slider(5, 2, 10)))
+                    .ValueChanged += delegate(object o, OnValueChangeEventArgs args)
+                    {
+                        if (_line != null)
                         {
-                            if (_line != null)
-                            {
-                                _line.Width = args.GetNewValue<Slider>().Value;
-                            }
-                        };
+                            _line.Width = args.GetNewValue<Slider>().Value;
+                        }
+                    };
 
-                drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "ChampionName", Global.Lang.Get("Gank_ChampionName")).SetValue(true));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "ChampionName", "Champion Name").SetValue(true));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(
-                    new MenuItem(Name + "Range", Global.Lang.Get("G_Range")).SetValue(new Slider(3000, 500, 5000)));
-                Menu.AddItem(
-                    new MenuItem(Name + "Cooldown", Global.Lang.Get("Gank_Cooldown")).SetValue(new Slider(10, 0, 30)));
-                Menu.AddItem(
-                    new MenuItem(Name + "Duration", Global.Lang.Get("Gank_Duration")).SetValue(new Slider(10, 0, 30)));
-                Menu.AddItem(new MenuItem(Name + "Ping", Global.Lang.Get("G_Ping")).SetValue(true));
+                Menu.AddItem(new MenuItem(Name + "Range", "Range").SetValue(new Slider(3000, 500, 5000)));
+                Menu.AddItem(new MenuItem(Name + "Cooldown", "Cooldown").SetValue(new Slider(10, 0, 30)));
+                Menu.AddItem(new MenuItem(Name + "Duration", "Duration").SetValue(new Slider(10, 0, 30)));
+                Menu.AddItem(new MenuItem(Name + "Ping", "Ping").SetValue(true));
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
 
@@ -235,9 +229,9 @@ namespace SFXUtility.Features.Detectors
         {
             try
             {
-                var enemyMenu = new Menu(Global.Lang.Get("G_Enemy"), Name + "Enemies");
+                var enemyMenu = new Menu("Enemy", Name + "Enemies");
                 enemyMenu.AddItem(
-                    new MenuItem(enemyMenu.Name + "Smite", Global.Lang.Get("Gank_OnlySmite")).SetValue(
+                    new MenuItem(enemyMenu.Name + "Smite", "Only Smite").SetValue(
                         new Circle(false, System.Drawing.Color.DarkViolet.ToArgb(125)))).ValueChanged +=
                     delegate { Utility.DelayAction.Add(0, MenuValueChanged); };
                 foreach (var enemy in GameObjects.EnemyHeroes)
@@ -250,9 +244,9 @@ namespace SFXUtility.Features.Detectors
 
                 Menu.AddSubMenu(enemyMenu);
 
-                var allyMenu = new Menu(Global.Lang.Get("G_Ally"), Name + "Allies");
+                var allyMenu = new Menu("Ally", Name + "Allies");
                 allyMenu.AddItem(
-                    new MenuItem(allyMenu.Name + "Smite", Global.Lang.Get("Gank_OnlySmite")).SetValue(
+                    new MenuItem(allyMenu.Name + "Smite", "Only Smite").SetValue(
                         new Circle(false, System.Drawing.Color.DodgerBlue.ToArgb(125)))).ValueChanged +=
                     delegate { Utility.DelayAction.Add(0, MenuValueChanged); };
                 foreach (var ally in GameObjects.AllyHeroes.Where(a => !a.IsMe))

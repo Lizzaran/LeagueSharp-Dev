@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -25,7 +25,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using SFXChallenger.Library;
 using SFXChallenger.Library.Logger;
 
 #endregion
@@ -38,7 +37,6 @@ namespace SFXChallenger
         public static ILogger Logger;
         public static string LogDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Name + " - Logs");
         public static string UpdatePath = "Lizzaran/LeagueSharp-Dev/master/SFXChallenger";
-        public static Language Lang = new Language();
 
         static Global()
         {

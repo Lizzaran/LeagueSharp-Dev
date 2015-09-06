@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -42,7 +42,7 @@ namespace SFXUtility.Features.Drawings
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_Clock"); }
+            get { return "Clock"; }
         }
 
         private void OnDrawingDraw(EventArgs args)
@@ -77,21 +77,16 @@ namespace SFXUtility.Features.Drawings
             try
             {
                 Menu = new Menu(Name, Name);
-                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
+                var drawingMenu = new Menu("Drawing", Name + "Drawing");
                 drawingMenu.AddItem(
-                    new MenuItem(
-                        drawingMenu.Name + "OffsetTop", Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Top"))
-                        .SetValue(new Slider(75, 0, 500)));
+                    new MenuItem(drawingMenu.Name + "OffsetTop", "Offset Top").SetValue(new Slider(75, 0, 500)));
                 drawingMenu.AddItem(
-                    new MenuItem(
-                        drawingMenu.Name + "OffsetRight", Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Right"))
-                        .SetValue(new Slider(100, 0, 500)));
-                drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "Color", Global.Lang.Get("G_Color")).SetValue(Color.Gold));
+                    new MenuItem(drawingMenu.Name + "OffsetRight", "Offset Right").SetValue(new Slider(100, 0, 500)));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Color", "Color").SetValue(Color.Gold));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
             }

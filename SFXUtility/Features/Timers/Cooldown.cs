@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -71,7 +71,7 @@ namespace SFXUtility.Features.Timers
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_Cooldown"); }
+            get { return "Cooldown"; }
         }
 
         protected override void OnEnable()
@@ -128,21 +128,19 @@ namespace SFXUtility.Features.Timers
             try
             {
                 Menu = new Menu(Name, Name);
-                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
+                var drawingMenu = new Menu("Drawing", Name + "Drawing");
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "TimeFormat", Global.Lang.Get("G_TimeFormat")).SetValue(
+                    new MenuItem(drawingMenu.Name + "TimeFormat", "Time Format").SetValue(
                         new StringList(new[] { "mm:ss", "ss" })));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(
-                        new Slider(13, 3, 30)));
-                drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "Enemy", Global.Lang.Get("G_Enemy")).SetValue(false));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Ally", Global.Lang.Get("G_Ally")).SetValue(false));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Self", Global.Lang.Get("G_Self")).SetValue(false));
+                    new MenuItem(drawingMenu.Name + "FontSize", "Font Size").SetValue(new Slider(13, 3, 30)));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Enemy", "Enemy").SetValue(false));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Ally", "Ally").SetValue(false));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Self", "Self").SetValue(false));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Menu.Item(Name + "DrawingEnemy").ValueChanged += delegate(object o, OnValueChangeEventArgs args)
                 {

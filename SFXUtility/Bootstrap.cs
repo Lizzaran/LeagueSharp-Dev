@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -24,11 +24,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Resources;
 using LeagueSharp.Common;
 using SFXUtility.Interfaces;
 using SFXUtility.Library;
@@ -72,8 +68,6 @@ namespace SFXUtility
                             Console.WriteLine(ex);
                         }
                     };
-
-                SetupLanguage();
 
                 #region GameObjects
 
@@ -164,57 +158,6 @@ namespace SFXUtility
                         Global.Logger.AddItem(new LogItem(ex));
                     }
                 };
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private static void SetupLanguage()
-        {
-            try
-            {
-                Global.Lang.Default = "en";
-
-                var currentAsm = Assembly.GetExecutingAssembly();
-                foreach (var resName in currentAsm.GetManifestResourceNames())
-                {
-                    ResourceReader resReader = null;
-                    using (var stream = currentAsm.GetManifestResourceStream(resName))
-                    {
-                        if (stream != null)
-                        {
-                            resReader = new ResourceReader(stream);
-                        }
-
-                        if (resReader != null)
-                        {
-                            var en = resReader.GetEnumerator();
-
-                            while (en.MoveNext())
-                            {
-                                if (en.Key.ToString().StartsWith("language_"))
-                                {
-                                    Global.Lang.Parse(en.Value.ToString());
-                                }
-                            }
-                        }
-                    }
-                }
-
-                var lang =
-                    Directory.GetFiles(
-                        AppDomain.CurrentDomain.BaseDirectory, string.Format(@"{0}.language.*", Global.Name.ToLower()),
-                        SearchOption.TopDirectoryOnly).Select(Path.GetExtension).FirstOrDefault();
-                if (lang != null && Global.Lang.Languages.Any(l => l.Equals(lang.Substring(1))))
-                {
-                    Global.Lang.Current = lang.Substring(1);
-                }
-                else
-                {
-                    Global.Lang.Current = CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
-                }
             }
             catch (Exception ex)
             {

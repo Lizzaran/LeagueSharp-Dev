@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -57,8 +57,7 @@ namespace SFXChallenger.Managers
 
                 menu.AddItem(
                     new MenuItem(
-                        menu.Name + ".hero-list-" + uniqueId + ".header",
-                        Global.Lang.Get(whitelist ? "G_Whitelist" : "G_Blacklist")));
+                        menu.Name + ".hero-list-" + uniqueId + ".header", (whitelist ? "Whitelist" : "Blacklist")));
 
                 foreach (var hero in GameObjects.Heroes.Where(h => ally && h.IsAlly || enemy && h.IsEnemy))
                 {
@@ -73,9 +72,7 @@ namespace SFXChallenger.Managers
                     }
                 }
 
-                menu.AddItem(
-                    new MenuItem(menu.Name + ".hero-list-" + uniqueId + ".enabled", Global.Lang.Get("G_Enabled"))
-                        .SetValue(true));
+                menu.AddItem(new MenuItem(menu.Name + ".hero-list-" + uniqueId + ".enabled", "Enabled").SetValue(true));
 
                 Menues[uniqueId] = new Tuple<Menu, bool, bool, bool>(menu, whitelist, ally, enemy);
             }

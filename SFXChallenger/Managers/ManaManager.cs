@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -58,9 +58,7 @@ namespace SFXChallenger.Managers
                     new MenuItem(
                         menu.Name + ".mana-" + uniqueId,
                         (!string.IsNullOrEmpty(prefix) ? prefix + " " : string.Empty) +
-                        (checkType == ManaCheckType.Minimum
-                            ? Global.Lang.Get("MM_MinMana")
-                            : Global.Lang.Get("MM_MaxMana")) +
+                        (checkType == ManaCheckType.Minimum ? "Min. Mana" : "Max. Mana") +
                         (valueType == ManaValueType.Percent ? " %" : string.Empty)).SetValue(
                             new Slider(value, minValue, maxValue)));
 

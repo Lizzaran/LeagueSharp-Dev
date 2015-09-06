@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -201,7 +201,7 @@ namespace SFXUtility.Features.Drawings
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_PerfectWard"); }
+            get { return "Perfect Ward"; }
         }
 
         protected override void OnEnable()
@@ -227,26 +227,20 @@ namespace SFXUtility.Features.Drawings
             try
             {
                 Menu = new Menu(Name, Name);
-                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
+                var drawingMenu = new Menu("Drawing", Name + "Drawing");
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Color", "Color").SetValue(Color.GreenYellow));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "Color", Global.Lang.Get("G_Color")).SetValue(Color.GreenYellow));
+                    new MenuItem(drawingMenu.Name + "Radius", "Radius").SetValue(new Slider(60, 10, 200)));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "Radius", Global.Lang.Get("G_Radius")).SetValue(
-                        new Slider(60, 10, 200)));
-                drawingMenu.AddItem(
-                    new MenuItem(
-                        drawingMenu.Name + "CircleThickness",
-                        Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Thickness")).SetValue(
-                            new Slider(2, 1, 10)));
+                    new MenuItem(drawingMenu.Name + "CircleThickness", "Circle Thickness").SetValue(
+                        new Slider(2, 1, 10)));
 
 
-                Menu.AddItem(
-                    new MenuItem(Name + "Hotkey", Global.Lang.Get("G_Hotkey")).SetValue(
-                        new KeyBind('Z', KeyBindType.Press)));
+                Menu.AddItem(new MenuItem(Name + "Hotkey", "Hotkey").SetValue(new KeyBind('Z', KeyBindType.Press)));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
             }

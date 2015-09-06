@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -54,7 +54,7 @@ namespace SFXUtility.Features.Trackers
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_Destination"); }
+            get { return "Destination"; }
         }
 
         protected override void OnEnable()
@@ -78,22 +78,17 @@ namespace SFXUtility.Features.Trackers
             try
             {
                 Menu = new Menu(Name, Name);
-                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
+                var drawingMenu = new Menu("Drawing", Name + "Drawing");
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Color", "Color").SetValue(Color.YellowGreen));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "Color", Global.Lang.Get("G_Color")).SetValue(Color.YellowGreen));
+                    new MenuItem(drawingMenu.Name + "CircleRadius", "Circle Radius").SetValue(new Slider(30)));
                 drawingMenu.AddItem(
-                    new MenuItem(
-                        drawingMenu.Name + "CircleRadius",
-                        Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Radius")).SetValue(new Slider(30)));
-                drawingMenu.AddItem(
-                    new MenuItem(
-                        drawingMenu.Name + "CircleThickness",
-                        Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Thickness")).SetValue(
-                            new Slider(2, 1, 10)));
+                    new MenuItem(drawingMenu.Name + "CircleThickness", "Circle Thickness").SetValue(
+                        new Slider(2, 1, 10)));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
 

@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -80,7 +80,7 @@ namespace SFXUtility.Features.Trackers
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_Ward"); }
+            get { return "Ward"; }
         }
 
         protected override void OnEnable()
@@ -114,55 +114,29 @@ namespace SFXUtility.Features.Trackers
             try
             {
                 Menu = new Menu(Name, Name);
-                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
+                var drawingMenu = new Menu("Drawing", Name + "Drawing");
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "TimeFormat", Global.Lang.Get("G_TimeFormat")).SetValue(
+                    new MenuItem(drawingMenu.Name + "TimeFormat", "Time Format").SetValue(
                         new StringList(new[] { "mm:ss", "ss" })));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(
-                        new Slider(13, 3, 30)));
+                    new MenuItem(drawingMenu.Name + "FontSize", "Font Size").SetValue(new Slider(13, 3, 30)));
                 drawingMenu.AddItem(
-                    new MenuItem(
-                        drawingMenu.Name + "CircleRadius",
-                        Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Radius")).SetValue(
-                            new Slider(150, 25, 300)));
+                    new MenuItem(drawingMenu.Name + "CircleRadius", "Circle Radius").SetValue(new Slider(150, 25, 300)));
                 drawingMenu.AddItem(
-                    new MenuItem(
-                        drawingMenu.Name + "CircleThickness",
-                        Global.Lang.Get("G_Circle") + " " + Global.Lang.Get("G_Thickness")).SetValue(
-                            new Slider(2, 1, 10)));
-                drawingMenu.AddItem(
-                    new MenuItem(
-                        drawingMenu.Name + "GreenCircle",
-                        Global.Lang.Get("Ward_Green") + " " + Global.Lang.Get("G_Circle")).SetValue(true));
-                drawingMenu.AddItem(
-                    new MenuItem(
-                        drawingMenu.Name + "GreenColor",
-                        Global.Lang.Get("Ward_Green") + " " + Global.Lang.Get("G_Color")).SetValue(Color.Lime));
-                drawingMenu.AddItem(
-                    new MenuItem(
-                        drawingMenu.Name + "PinkColor", Global.Lang.Get("Ward_Pink") + " " + Global.Lang.Get("G_Color"))
-                        .SetValue(Color.Magenta));
-                drawingMenu.AddItem(
-                    new MenuItem(
-                        drawingMenu.Name + "TrapColor", Global.Lang.Get("Ward_Trap") + " " + Global.Lang.Get("G_Color"))
-                        .SetValue(Color.Red));
-                drawingMenu.AddItem(
-                    new MenuItem(
-                        drawingMenu.Name + "VisionRange",
-                        Global.Lang.Get("Ward_Vision") + " " + Global.Lang.Get("G_Range")).SetValue(true));
-                drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "Minimap", Global.Lang.Get("G_Minimap")).SetValue(true));
+                    new MenuItem(drawingMenu.Name + "CircleThickness", "Circle Thickness").SetValue(
+                        new Slider(2, 1, 10)));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "GreenCircle", "Green Circle").SetValue(true));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "GreenColor", "Green Color").SetValue(Color.Lime));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "PinkColor", "Pink Color").SetValue(Color.Magenta));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "TrapColor", "Trap Color").SetValue(Color.Red));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "VisionRange", "Vision Range").SetValue(true));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Minimap", "Minimap").SetValue(true));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(
-                    new MenuItem(Name + "FilterWards", Global.Lang.Get("Ward_FilterWards")).SetValue(
-                        new Slider(250, 0, 600)));
-                Menu.AddItem(
-                    new MenuItem(Name + "Hotkey", Global.Lang.Get("G_Hotkey")).SetValue(
-                        new KeyBind(16, KeyBindType.Press)));
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "FilterWards", "Filter Wards").SetValue(new Slider(250, 0, 600)));
+                Menu.AddItem(new MenuItem(Name + "Hotkey", "Hotkey").SetValue(new KeyBind(16, KeyBindType.Press)));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
 

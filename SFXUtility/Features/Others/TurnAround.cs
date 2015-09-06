@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -55,7 +55,7 @@ namespace SFXUtility.Features.Others
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_TurnAround"); }
+            get { return "Turn Around"; }
         }
 
         protected override void OnEnable()
@@ -137,7 +137,7 @@ namespace SFXUtility.Features.Others
             try
             {
                 Menu = new Menu(Name, Name);
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
             }

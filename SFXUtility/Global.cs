@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -27,7 +27,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SFXUtility.Interfaces;
-using SFXUtility.Library;
 using SFXUtility.Library.Logger;
 
 #endregion
@@ -37,7 +36,6 @@ namespace SFXUtility
     public class Global
     {
         public static ILogger Logger;
-        public static Language Lang = new Language();
         public static string DefaultFont = "Calibri";
         public static string Name = "SFXUtility";
         public static string UpdatePath = "Lizzaran/LeagueSharp-Dev/master/SFXUtility";

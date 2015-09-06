@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -67,40 +67,40 @@
 
 //        protected override void AddToMenu()
 //        {
-//            var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), Menu.Name + ".combo"));
+//            var comboMenu = Menu.AddSubMenu(new Menu("Combo", Menu.Name + ".combo"));
 //            HitchanceManager.AddToMenu(
-//                comboMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), comboMenu.Name + ".hitchance")), "combo",
+//                comboMenu.AddSubMenu(new Menu("Hitchance", comboMenu.Name + ".hitchance")), "combo",
 //                new Dictionary<string, HitChance>
 //                {
 //                    { "Q", HitChance.VeryHigh },
 //                    { "R", HitChance.VeryHigh }
 //                });
-//            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
-//            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
-//            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
+//            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", "Use Q").SetValue(true));
+//            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", "Use E").SetValue(true));
+//            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r", "Use R").SetValue(true));
 
-//            var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Harass"), Menu.Name + ".harass"));
+//            var harassMenu = Menu.AddSubMenu(new Menu("Harass", Menu.Name + ".harass"));
 //            HitchanceManager.AddToMenu(
-//                harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
+//                harassMenu.AddSubMenu(new Menu("Hitchance", harassMenu.Name + ".hitchance")), "harass",
 //                new Dictionary<string, HitChance> {
 //                    { "Q", HitChance.High },
 //                    { "R", HitChance.High } });
 //            ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
-//            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
-//            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(false));
-//            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
+//            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", "Use Q").SetValue(true));
+//            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", "Use E").SetValue(false));
+//            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".r", "Use R").SetValue(true));
 
-//            var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LaneClear"), Menu.Name + ".lane-clear"));
+//            var laneclearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
 //            ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
 //            laneclearMenu.AddItem(
-//                new MenuItem(laneclearMenu.Name + ".q-min", "Q " + Global.Lang.Get("G_Min")).SetValue(
+//                new MenuItem(laneclearMenu.Name + ".q-min", "Q " + "Min").SetValue(
 //                    new Slider(3, 1, 5)));
-//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
-//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
-//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
+//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
+//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", "Use E").SetValue(true));
+//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".r", "Use R").SetValue(true));
 
-//            var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Flee"), Menu.Name + ".flee"));
-//            fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".w", Global.Lang.Get("G_UseE")).SetValue(true));
+//            var fleeMenu = Menu.AddSubMenu(new Menu("Flee", Menu.Name + ".flee"));
+//            fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".w", "Use E").SetValue(true));
 
 //            IndicatorManager.AddToMenu(DrawingManager.Menu, true);
 //            IndicatorManager.Add(Q);

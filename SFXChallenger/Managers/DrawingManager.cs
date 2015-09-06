@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -52,8 +52,7 @@ namespace SFXChallenger.Managers
                 Menu = menu;
 
                 Menu.AddItem(
-                    new MenuItem(Menu.Name + ".circle-thickness", Global.Lang.Get("G_CircleThickness")).SetValue(
-                        new Slider(2, 0, 10)));
+                    new MenuItem(Menu.Name + ".circle-thickness", "Circle Thickness").SetValue(new Slider(2, 0, 10)));
 
                 foreach (var spell in _champion.Spells.Where(s => s != null && s.Range > 0 && s.Range < 5000))
                 {
@@ -62,13 +61,11 @@ namespace SFXChallenger.Managers
                         Menu.AddItem(
                             new MenuItem(
                                 Menu.Name + "." + spell.Slot.ToString().ToLower() + "-min",
-                                spell.Slot.ToString().ToUpper() + " " + Global.Lang.Get("G_Min")).SetValue(
-                                    new Circle(false, Color.White)));
+                                spell.Slot.ToString().ToUpper() + " Min").SetValue(new Circle(false, Color.White)));
                         Menu.AddItem(
                             new MenuItem(
                                 Menu.Name + "." + spell.Slot.ToString().ToLower() + "-max",
-                                spell.Slot.ToString().ToUpper() + " " + Global.Lang.Get("G_Max")).SetValue(
-                                    new Circle(false, Color.White)));
+                                spell.Slot.ToString().ToUpper() + " Max").SetValue(new Circle(false, Color.White)));
                     }
                     else
                     {

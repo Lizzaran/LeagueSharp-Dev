@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -24,7 +24,6 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using LeagueSharp.Common;
 using SFXUtility.Classes;
@@ -46,19 +45,15 @@ namespace SFXUtility
             {
                 Menu = new Menu(Name, Name, true);
 
-                var infoMenu = new Menu(Global.Lang.Get("SFX_Info"), Name + "Info");
+                var infoMenu = new Menu("Info", Name + "Info");
 
-                infoMenu.AddItem(
-                    new MenuItem(
-                        infoMenu.Name + "Version", string.Format("{0}: {1}", Global.Lang.Get("SFX_Version"), Version)));
-                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Forum", Global.Lang.Get("SFX_Forum") + ": Lizzaran"));
-                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Github", Global.Lang.Get("SFX_GitHub") + ": Lizzaran"));
-                infoMenu.AddItem(new MenuItem(infoMenu.Name + "IRC", Global.Lang.Get("SFX_IRC") + ": Appril"));
-                infoMenu.AddItem(
-                    new MenuItem(
-                        infoMenu.Name + "Exception", string.Format("{0}: {1}", Global.Lang.Get("SFX_Exception"), 0)));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Version", string.Format("{0}: {1}", "Version", Version)));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Forum", "Forum" + ": Lizzaran"));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Github", "GitHub" + ": Lizzaran"));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "IRC", "IRC" + ": Appril"));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Exception", string.Format("{0}: {1}", "Exception", 0)));
 
-                var globalMenu = new Menu(Global.Lang.Get("SFX_Settings"), Name + "Settings");
+                var globalMenu = new Menu("Settings", Name + "Settings");
 
                 #region Fonts
 
@@ -66,7 +61,6 @@ namespace SFXUtility
 
                 #endregion Fonts
 
-                AddLanguage(globalMenu);
                 AddReport(globalMenu);
 
                 Menu.AddSubMenu(infoMenu);
@@ -87,90 +81,12 @@ namespace SFXUtility
 
         public string Name
         {
-            get { return Global.Lang.Get("F_SFX"); }
+            get { return "SFXUtility"; }
         }
 
         public Version Version
         {
             get { return Assembly.GetExecutingAssembly().GetName().Version; }
-        }
-
-        private void AddLanguage(Menu menu)
-        {
-            try
-            {
-                menu.AddItem(
-                    new MenuItem(menu.Name + "Language", Global.Lang.Get("SFX_Language")).SetValue(
-                        new StringList(
-                            new[] { Global.Lang.Get("Language_Auto") }.Concat(Global.Lang.Languages.ToArray()).ToArray())))
-                    .ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        try
-                        {
-                            var preName = string.Format("{0}.language.", Global.Name.ToLower());
-                            var autoName = Global.Lang.Get("Language_Auto");
-                            var files = Directory.GetFiles(
-                                AppDomain.CurrentDomain.BaseDirectory, preName + "*", SearchOption.TopDirectoryOnly);
-                            var selectedLanguage = args.GetNewValue<StringList>().SelectedValue;
-                            foreach (var file in files)
-                            {
-                                try
-                                {
-                                    File.Delete(file);
-                                }
-                                catch
-                                {
-                                    // ignored
-                                }
-                            }
-                            if (!selectedLanguage.Equals(autoName, StringComparison.OrdinalIgnoreCase))
-                            {
-                                File.Create(
-                                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, preName + selectedLanguage));
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Global.Logger.AddItem(new LogItem(ex));
-                        }
-                    };
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            try
-            {
-                var file =
-                    Directory.GetFiles(
-                        AppDomain.CurrentDomain.BaseDirectory,
-                        string.Format("{0}.language.", Global.Name.ToLower()) + "*", SearchOption.TopDirectoryOnly)
-                        .FirstOrDefault();
-                if (file != null && Global.Lang.Languages.Any(l => l.Equals(file.Substring(1))))
-                {
-                    string ext = null;
-                    var splitted = file.Split('.');
-                    if (splitted.Any())
-                    {
-                        ext = splitted.Last();
-                    }
-                    if (!string.IsNullOrEmpty(ext))
-                    {
-                        menu.Item(menu.Name + "Language")
-                            .SetValue(
-                                new StringList(
-                                    new[] { ext }.Concat(
-                                        menu.Item(menu.Name + "Language")
-                                            .GetValue<StringList>()
-                                            .SList.Where(val => !val.Equals(ext, StringComparison.OrdinalIgnoreCase))
-                                            .ToArray()).ToArray()));
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
         }
 
         public event EventHandler<UnloadEventArgs> OnUnload;
@@ -204,7 +120,7 @@ namespace SFXUtility
             {
                 Menu.AddToMainMenu();
 
-                var errorText = Global.Lang.Get("SFX_Exception");
+                var errorText = "Exception";
                 Global.Logger.OnItemAdded += delegate
                 {
                     try
@@ -233,8 +149,8 @@ namespace SFXUtility
         {
             try
             {
-                menu.AddItem(new MenuItem(menu.Name + "Report", Global.Lang.Get("SFX_GenerateReport")).SetValue(false))
-                    .ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
+                menu.AddItem(new MenuItem(menu.Name + "Report", "Generate Report").SetValue(false)).ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
                     {
                         try
                         {
@@ -246,7 +162,7 @@ namespace SFXUtility
                             File.WriteAllText(
                                 Path.Combine(Global.BaseDir, string.Format("{0}.report.txt", Global.Name.ToLower())),
                                 GenerateReport.Generate());
-                            Notifications.AddNotification(Global.Lang.Get("SFX_ReportGenerated"), 5000);
+                            Notifications.AddNotification("Report Generated", 5000);
                         }
                         catch (Exception ex)
                         {
@@ -267,7 +183,7 @@ namespace SFXUtility
             try
             {
                 menu.AddItem(
-                    new MenuItem(menu.Name + "Font", Global.Lang.Get("SFX_Font")).SetValue(
+                    new MenuItem(menu.Name + "Font", "Font").SetValue(
                         new StringList(
                             new[]
                             {

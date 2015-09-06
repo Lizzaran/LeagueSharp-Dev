@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -40,16 +40,13 @@ namespace SFXChallenger.Menus
                 menu.AddItem(
                     new MenuItem(
                         menu.Name + ".version",
-                        string.Format(
-                            "{0}: {1}", Global.Lang.Get("Info_Version"), Assembly.GetEntryAssembly().GetName().Version)));
-                menu.AddItem(new MenuItem(menu.Name + ".forum", Global.Lang.Get("Info_Forum") + ": Lizzaran"));
-                menu.AddItem(new MenuItem(menu.Name + ".github", Global.Lang.Get("Info_GitHub") + ": Lizzaran"));
-                menu.AddItem(new MenuItem(menu.Name + ".irc", Global.Lang.Get("Info_IRC") + ": Appril"));
-                menu.AddItem(
-                    new MenuItem(
-                        menu.Name + ".exception", string.Format("{0}: {1}", Global.Lang.Get("Info_Exception"), 0)));
+                        string.Format("{0}: {1}", "Version", Assembly.GetEntryAssembly().GetName().Version)));
+                menu.AddItem(new MenuItem(menu.Name + ".forum", "Forum" + ": Lizzaran"));
+                menu.AddItem(new MenuItem(menu.Name + ".github", "GitHub" + ": Lizzaran"));
+                menu.AddItem(new MenuItem(menu.Name + ".irc", "IRC" + ": Appril"));
+                menu.AddItem(new MenuItem(menu.Name + ".exception", string.Format("{0}: {1}", "Exception", 0)));
 
-                var errorText = Global.Lang.Get("Info_Exception");
+                var errorText = "Exception";
                 Global.Logger.OnItemAdded += delegate
                 {
                     try

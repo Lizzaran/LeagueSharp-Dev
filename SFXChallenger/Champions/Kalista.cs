@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -90,93 +90,80 @@ namespace SFXChallenger.Champions
 
         protected override void AddToMenu()
         {
-            var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), Menu.Name + ".combo"));
+            var comboMenu = Menu.AddSubMenu(new Menu("Combo", Menu.Name + ".combo"));
             ManaManager.AddToMenu(comboMenu, "combo-q", ManaCheckType.Minimum, ManaValueType.Percent, "Q");
             HitchanceManager.AddToMenu(
-                comboMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), comboMenu.Name + ".hitchance")), "combo",
+                comboMenu.AddSubMenu(new Menu("Hitchance", comboMenu.Name + ".hitchance")), "combo",
                 new Dictionary<string, HitChance> { { "Q", HitChance.VeryHigh } });
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
-            comboMenu.AddItem(
-                new MenuItem(comboMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(new Slider(10, 1, 20)));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", "Use Q").SetValue(true));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", "Use E").SetValue(true));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e-min", "E " + "Min").SetValue(new Slider(10, 1, 20)));
 
-            var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Harass"), Menu.Name + ".harass"));
+            var harassMenu = Menu.AddSubMenu(new Menu("Harass", Menu.Name + ".harass"));
             HitchanceManager.AddToMenu(
-                harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
+                harassMenu.AddSubMenu(new Menu("Hitchance", harassMenu.Name + ".hitchance")), "harass",
                 new Dictionary<string, HitChance> { { "Q", HitChance.VeryHigh } });
             ManaManager.AddToMenu(harassMenu, "harass-q", ManaCheckType.Minimum, ManaValueType.Percent, "Q");
-            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", "Use Q").SetValue(true));
             ManaManager.AddToMenu(comboMenu, "harass-e", ManaCheckType.Minimum, ManaValueType.Percent, "E");
-            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
-            harassMenu.AddItem(
-                new MenuItem(harassMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(new Slider(5, 1, 15)));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", "Use E").SetValue(true));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e-min", "E " + "Min").SetValue(new Slider(5, 1, 15)));
 
-            var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LaneClear"), Menu.Name + ".lane-clear"));
+            var laneclearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
             ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
             laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".q-min-1", "Q " + Global.Lang.Get("G_Min") + " <= 4").SetValue(
-                    new Slider(2, 1, 5)));
+                new MenuItem(laneclearMenu.Name + ".q-min-1", "Q " + "Min" + " <= 4").SetValue(new Slider(2, 1, 5)));
             laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".q-min-2", "Q " + Global.Lang.Get("G_Min") + " <= 7").SetValue(
-                    new Slider(3, 1, 5)));
+                new MenuItem(laneclearMenu.Name + ".q-min-2", "Q " + "Min" + " <= 7").SetValue(new Slider(3, 1, 5)));
             laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".q-min-3", "Q " + Global.Lang.Get("G_Min") + " >= 10").SetValue(
-                    new Slider(5, 1, 5)));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(false));
+                new MenuItem(laneclearMenu.Name + ".q-min-3", "Q " + "Min" + " >= 10").SetValue(new Slider(5, 1, 5)));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", "Use E").SetValue(false));
             laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(
-                    new Slider(2, 1, 5)));
+                new MenuItem(laneclearMenu.Name + ".e-min", "E " + "Min").SetValue(new Slider(2, 1, 5)));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e-jungle", "E " + "Jungle").SetValue(true));
             laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".e-jungle", "E " + Global.Lang.Get("G_Jungle")).SetValue(true));
-            laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".e-jungler-check", "E " + Global.Lang.Get("Kalista_JunglerChecks"))
-                    .SetValue(true));
+                new MenuItem(laneclearMenu.Name + ".e-jungler-check", "E " + "[Kalista_JunglerChecks]").SetValue(true));
 
-            var lasthitMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LastHit"), Menu.Name + ".lasthit"));
+            var lasthitMenu = Menu.AddSubMenu(new Menu("Lasthit", Menu.Name + ".lasthit"));
             ManaManager.AddToMenu(lasthitMenu, "lasthit", ManaCheckType.Minimum, ManaValueType.Percent);
-            lasthitMenu.AddItem(
-                new MenuItem(lasthitMenu.Name + ".e-big", "E " + Global.Lang.Get("G_Big")).SetValue(true));
-            lasthitMenu.AddItem(
-                new MenuItem(lasthitMenu.Name + ".e-unkillable", "E " + Global.Lang.Get("G_Unkillable")).SetValue(true));
-            lasthitMenu.AddItem(
-                new MenuItem(lasthitMenu.Name + ".e-turret", "E " + Global.Lang.Get("G_Turret")).SetValue(true));
+            lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".e-big", "E " + "Big").SetValue(true));
+            lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".e-unkillable", "E " + "Unkillable").SetValue(true));
+            lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".e-turret", "E " + "Turret").SetValue(true));
 
-            var killstealMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Killsteal"), Menu.Name + ".killsteal"));
-            killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
+            var killstealMenu = Menu.AddSubMenu(new Menu("Killsteal", Menu.Name + ".killsteal"));
+            killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".e", "Use E").SetValue(true));
 
-            var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Flee"), Menu.Name + ".flee"));
-            fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".aa", Global.Lang.Get("G_UseAutoAttacks")).SetValue(true));
+            var fleeMenu = Menu.AddSubMenu(new Menu("Flee", Menu.Name + ".flee"));
+            fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".aa", "Use AutoAttacks").SetValue(true));
 
-            var ultimateMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("F_Ultimate"), Menu.Name + ".ultimate"));
+            var ultimateMenu = Menu.AddSubMenu(new Menu("Ultimate", Menu.Name + ".ultimate"));
 
             var blitzMenu = ultimateMenu.AddSubMenu(new Menu("Blitzcrank", ultimateMenu.Name + ".blitzcrank"));
 
             HeroListManager.AddToMenu(
-                blitzMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Blacklist"), blitzMenu.Name + ".blacklist")),
-                "blitzcrank", false, false, true, false);
+                blitzMenu.AddSubMenu(new Menu("Blacklist", blitzMenu.Name + ".blacklist")), "blitzcrank", false, false,
+                true, false);
 
-            blitzMenu.AddItem(new MenuItem(blitzMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
+            blitzMenu.AddItem(new MenuItem(blitzMenu.Name + ".r", "Use R").SetValue(true));
 
             var tahmMenu = ultimateMenu.AddSubMenu(new Menu("Tahm Kench", ultimateMenu.Name + ".tahm-kench"));
 
             HeroListManager.AddToMenu(
-                tahmMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Blacklist"), tahmMenu.Name + ".blacklist")),
-                "tahm-kench", false, false, true, false);
+                tahmMenu.AddSubMenu(new Menu("Blacklist", tahmMenu.Name + ".blacklist")), "tahm-kench", false, false,
+                true, false);
 
-            tahmMenu.AddItem(new MenuItem(tahmMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(true));
+            tahmMenu.AddItem(new MenuItem(tahmMenu.Name + ".r", "Use R").SetValue(true));
 
-            ultimateMenu.AddItem(new MenuItem(ultimateMenu.Name + ".save", Global.Lang.Get("G_Save")).SetValue(true));
+            ultimateMenu.AddItem(new MenuItem(ultimateMenu.Name + ".save", "Save").SetValue(true));
 
-            var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
+            var miscMenu = Menu.AddSubMenu(new Menu("Miscellaneous", Menu.Name + ".miscellaneous"));
             ManaManager.AddToMenu(miscMenu, "misc", ManaCheckType.Minimum, ManaValueType.Percent);
+            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".e-reset", "E Harass Reset").SetValue(true));
             miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".e-reset", Global.Lang.Get("Kalista_EHarassReset")).SetValue(true));
+                new MenuItem(miscMenu.Name + ".w-baron", "Hotkey W Baron").SetValue(new KeyBind('J', KeyBindType.Press)));
             miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".w-baron", Global.Lang.Get("Kalista_WBaron")).SetValue(
-                    new KeyBind('J', KeyBindType.Press)));
-            miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".w-dragon", Global.Lang.Get("Kalista_WDragon")).SetValue(
+                new MenuItem(miscMenu.Name + ".w-dragon", "Hotkey W Dragon").SetValue(
                     new KeyBind('K', KeyBindType.Press)));
 
             IndicatorManager.AddToMenu(DrawingManager.Menu, true);
@@ -188,8 +175,7 @@ namespace SFXChallenger.Champions
             Weights.GetItem("low-health").GetValueFunc = hero => hero.Health - Rend.GetDamage(hero);
             Weights.AddItem(
                 new Weights.Item(
-                    "w-stack", "W " + Global.Lang.Get("G_Stack"), 10, false,
-                    hero => hero.HasBuff("kalistacoopstrikemarkally") ? 10 : 0));
+                    "w-stack", "W " + "Stack", 10, false, hero => hero.HasBuff("kalistacoopstrikemarkally") ? 10 : 0));
         }
 
         protected override void SetupSpells()
@@ -400,10 +386,8 @@ namespace SFXChallenger.Champions
                 {
                     var blitz = Menu.Item(Menu.Name + ".ultimate.blitzcrank.r").GetValue<bool>();
                     var tahm = Menu.Item(Menu.Name + ".ultimate.tahm-kench.r").GetValue<bool>();
-                    foreach (
-                        var enemy in
-                            GameObjects.EnemyHeroes.Where(
-                                e => (blitz || tahm) && !e.IsDead && e.Distance(Player) < 3000))
+                    foreach (var enemy in
+                        GameObjects.EnemyHeroes.Where(e => (blitz || tahm) && !e.IsDead && e.Distance(Player) < 3000))
                     {
                         if (blitz)
                         {

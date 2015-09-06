@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -54,25 +54,19 @@ namespace SFXChallenger.Managers
         {
             try
             {
-                _menu = subMenu ? menu.AddSubMenu(new Menu(Global.Lang.Get("F_IDM"), menu.Name + ".indicator")) : menu;
+                _menu = subMenu ? menu.AddSubMenu(new Menu("Damage Indicator", menu.Name + ".indicator")) : menu;
 
                 var drawingMenu =
                     _menu.AddSubMenu(
                         new Menu(
-                            Global.Lang.Get("G_Drawing"),
-                            _menu.Name.Replace(ObjectManager.Player.ChampionName, string.Empty) + ".drawing"));
-                drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + ".color", Global.Lang.Get("G_Color")).SetValue(Color.Orange));
-                drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + ".opacity", Global.Lang.Get("G_Opacity")).SetValue(
-                        new Slider(60, 5)));
+                            "Drawing", _menu.Name.Replace(ObjectManager.Player.ChampionName, string.Empty) + ".drawing"));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".color", "Color").SetValue(Color.Orange));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".opacity", "Opacity").SetValue(new Slider(60, 5)));
 
-                _menu.AddItem(
-                    new MenuItem(_menu.Name + ".attacks", Global.Lang.Get("G_UseAutoAttacks")).SetValue(
-                        new Slider(2, 0, 10)));
+                _menu.AddItem(new MenuItem(_menu.Name + ".attacks", "Use AutoAttacks").SetValue(new Slider(2, 0, 10)));
 
-                Add(Global.Lang.Get("IDM_Items"), hero => ItemManager.CalculateComboDamage(hero, false));
-                Add(Global.Lang.Get("IDM_Summoners"), hero => SummonerManager.CalculateComboDamage(hero, false));
+                Add("Items", hero => ItemManager.CalculateComboDamage(hero, false));
+                Add("Summoners", hero => SummonerManager.CalculateComboDamage(hero, false));
             }
             catch (Exception ex)
             {
@@ -86,7 +80,7 @@ namespace SFXChallenger.Managers
             {
                 if (_menu != null)
                 {
-                    _menu.AddItem(new MenuItem(_menu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
+                    _menu.AddItem(new MenuItem(_menu.Name + ".enabled", "Enabled").SetValue(true));
 
                     _line = new Line(Drawing.Direct3DDevice) { Width = LineThickness };
 

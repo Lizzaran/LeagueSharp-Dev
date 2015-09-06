@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -48,7 +48,7 @@ namespace SFXUtility.Features.Others
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_Ping"); }
+            get { return "Ping"; }
         }
 
         protected override void OnEnable()
@@ -72,14 +72,13 @@ namespace SFXUtility.Features.Others
             try
             {
                 Menu = new Menu(Name, Name);
-                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
+                var drawingMenu = new Menu("Drawing", Name + "Drawing");
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(
-                        new Slider(25, 10, 30)));
+                    new MenuItem(drawingMenu.Name + "FontSize", "Font Size").SetValue(new Slider(25, 10, 30)));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
 

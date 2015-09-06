@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -50,7 +50,7 @@ namespace SFXUtility.Features.Events
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_AutoLeveler"); }
+            get { return "Auto Leveler"; }
         }
 
         protected override void OnEnable()
@@ -88,31 +88,22 @@ namespace SFXUtility.Features.Events
             {
                 Menu = new Menu(Name, Name + ObjectManager.Player.ChampionName);
 
-                var earlyMenu = new Menu(Global.Lang.Get("AutoLeveler_Early"), Menu.Name + "Early");
+                var earlyMenu = new Menu("Early", Menu.Name + "Early");
                 earlyMenu.AddItem(
                     new MenuItem(earlyMenu.Name + "1", "1: ").SetValue(
-                        new StringList(
-                            new[] { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" })));
+                        new StringList(new[] { "None", "Priority", "Q", "W", "E" })));
                 earlyMenu.AddItem(
                     new MenuItem(earlyMenu.Name + "2", "2: ").SetValue(
-                        new StringList(
-                            new[] { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" },
-                            2)));
+                        new StringList(new[] { "None", "Priority", "Q", "W", "E" }, 2)));
                 earlyMenu.AddItem(
                     new MenuItem(earlyMenu.Name + "3", "3: ").SetValue(
-                        new StringList(
-                            new[] { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" },
-                            4)));
+                        new StringList(new[] { "None", "Priority", "Q", "W", "E" }, 4)));
                 earlyMenu.AddItem(
                     new MenuItem(earlyMenu.Name + "4", "4: ").SetValue(
-                        new StringList(
-                            new[] { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" },
-                            2)));
+                        new StringList(new[] { "None", "Priority", "Q", "W", "E" }, 2)));
                 earlyMenu.AddItem(
                     new MenuItem(earlyMenu.Name + "5", "5: ").SetValue(
-                        new StringList(
-                            new[] { Global.Lang.Get("G_None"), Global.Lang.Get("AutoLeveler_Priority"), "Q", "W", "E" },
-                            3)));
+                        new StringList(new[] { "None", "Priority", "Q", "W", "E" }, 3)));
 
                 Menu.AddSubMenu(earlyMenu);
 
@@ -120,9 +111,9 @@ namespace SFXUtility.Features.Events
                 Menu.AddItem(new MenuItem(Menu.Name + "W", "W").SetValue(new Slider(1, 3, 1)));
                 Menu.AddItem(new MenuItem(Menu.Name + "E", "E").SetValue(new Slider(2, 3, 1)));
 
-                Menu.AddItem(new MenuItem(Menu.Name + "OnlyR", Global.Lang.Get("AutoLeveler_OnlyR")).SetValue(false));
+                Menu.AddItem(new MenuItem(Menu.Name + "OnlyR", "Only R").SetValue(false));
 
-                Menu.AddItem(new MenuItem(Menu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Menu.Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
             }

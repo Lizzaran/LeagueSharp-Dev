@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -57,7 +57,7 @@ namespace SFXUtility.Features.Detectors
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_Replay"); }
+            get { return "Replay op.gg"; }
         }
 
         protected override void OnEnable()
@@ -118,19 +118,18 @@ namespace SFXUtility.Features.Detectors
             try
             {
                 Menu = new Menu(Name, Name);
-                Menu.AddItem(new MenuItem(Name + "DoRecord", Global.Lang.Get("Replay_DoRecord")).SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "IsRecording", Global.Lang.Get("Replay_NotifyRecord")).SetValue(false));
-                Menu.AddItem(
-                    new MenuItem(Name + "CheckInterval", Global.Lang.Get("Replay_CheckInterval")).SetValue(
-                        new Slider(3, 1, 10))).ValueChanged += delegate(object o, OnValueChangeEventArgs args)
+                Menu.AddItem(new MenuItem(Name + "DoRecord", "Do Record").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "IsRecording", "Notify Record").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "CheckInterval", "Check Interval").SetValue(new Slider(3, 1, 10)))
+                    .ValueChanged += delegate(object o, OnValueChangeEventArgs args)
+                    {
+                        if (_timer != null)
                         {
-                            if (_timer != null)
-                            {
-                                _timer.Interval = args.GetNewValue<Slider>().Value * 60 * 1000;
-                            }
-                        };
+                            _timer.Interval = args.GetNewValue<Slider>().Value * 60 * 1000;
+                        }
+                    };
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
 

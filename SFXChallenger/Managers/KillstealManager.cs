@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -44,9 +44,9 @@ namespace SFXChallenger.Managers
             try
             {
                 _menu = menu;
-                menu.AddItem(new MenuItem(menu.Name + ".items", Global.Lang.Get("MK_UseItems")).SetValue(true));
-                menu.AddItem(new MenuItem(menu.Name + ".summoners", Global.Lang.Get("MK_UseSummoners")).SetValue(true));
-                menu.AddItem(new MenuItem(menu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                menu.AddItem(new MenuItem(menu.Name + ".items", "Use Items").SetValue(true));
+                menu.AddItem(new MenuItem(menu.Name + ".summoners", "Use Summoners").SetValue(true));
+                menu.AddItem(new MenuItem(menu.Name + ".enabled", "Enabled").SetValue(false));
 
                 MaxRange = Math.Max(ItemManager.MaxRange, SummonerManager.MaxRange);
             }

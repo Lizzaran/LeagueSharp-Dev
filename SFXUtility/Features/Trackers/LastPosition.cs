@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -58,7 +58,7 @@ namespace SFXUtility.Features.Trackers
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_LastPosition"); }
+            get { return "Last Position"; }
         }
 
         protected override void OnEnable()
@@ -161,23 +161,19 @@ namespace SFXUtility.Features.Trackers
             try
             {
                 Menu = new Menu(Name, Name);
-                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
+                var drawingMenu = new Menu("Drawing", Name + "Drawing");
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "TimeFormat", Global.Lang.Get("G_TimeFormat")).SetValue(
+                    new MenuItem(drawingMenu.Name + "TimeFormat", "Time Format").SetValue(
                         new StringList(new[] { "mm:ss", "ss" })));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(
-                        new Slider(13, 3, 30)));
+                    new MenuItem(drawingMenu.Name + "FontSize", "Font Size").SetValue(new Slider(13, 3, 30)));
                 drawingMenu.AddItem(
-                    new MenuItem(
-                        drawingMenu.Name + "SSTimerOffset",
-                        Global.Lang.Get("LastPosition_SSTimer") + " " + Global.Lang.Get("G_Offset")).SetValue(
-                            new Slider(5, 0, 20)));
+                    new MenuItem(drawingMenu.Name + "SSTimerOffset", "SS Timer Offset").SetValue(new Slider(5, 0, 20)));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "SSTimer", Global.Lang.Get("LastPosition_SSTimer")).SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "SSTimer", "SS Timer").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
 

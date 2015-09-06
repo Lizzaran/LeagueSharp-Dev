@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -61,7 +61,7 @@ namespace SFXUtility.Features.Drawings
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_DamageIndicator"); }
+            get { return "Damage Indicator"; }
         }
 
         private void OnDrawingEndScene(EventArgs args)
@@ -128,18 +128,14 @@ namespace SFXUtility.Features.Drawings
             try
             {
                 Menu = new Menu(Name, Name);
-                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
-                drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "Color", Global.Lang.Get("G_Color")).SetValue(Color.DarkRed));
-                drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "Opacity", Global.Lang.Get("G_Opacity")).SetValue(new Slider(60, 5)));
+                var drawingMenu = new Menu("Drawing", Name + "Drawing");
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Color", "Color").SetValue(Color.DarkRed));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Opacity", "Opacity").SetValue(new Slider(60, 5)));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(
-                    new MenuItem(Name + "AutoAttacks", Global.Lang.Get("DamageIndicator_AutoAttacks")).SetValue(
-                        new Slider(2, 0, 5)));
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "AutoAttacks", "Auto Attacks").SetValue(new Slider(2, 0, 5)));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 _line = MDrawing.GetLine(LineThickness);
 

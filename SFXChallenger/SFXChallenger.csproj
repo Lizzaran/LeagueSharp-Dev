@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.7.5.39</AssemblyVersion>
+    <AssemblyVersion>0.7.5.45</AssemblyVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -129,7 +129,6 @@
     <Compile Include="Library\Extensions\SharpDX\SpriteExtension.cs" />
     <Compile Include="Library\Extensions\SharpDX\VectorExtensions.cs" />
     <Compile Include="Library\GameObjects.cs" />
-    <Compile Include="Library\Language.cs" />
     <Compile Include="Library\Logger\ConsoleLogger.cs" />
     <Compile Include="Library\Logger\FileLogger.cs" />
     <Compile Include="Library\Logger\ILogger.cs" />
@@ -151,17 +150,16 @@
     <Compile Include="Managers\UltimateManager.cs" />
     <Compile Include="Menus\DebugMenu.cs" />
     <Compile Include="Menus\InfoMenu.cs" />
-    <Compile Include="Menus\LanguageMenu.cs" />
     <Compile Include="Menus\TickMenu.cs" />
     <Compile Include="Helpers\Casting.cs" />
+    <Compile Include="Interfaces\IChampion.cs" />
+    <Compile Include="Core.cs" />
+    <Compile Include="Enumerations\ItemFlags.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Interfaces\IChampion.cs" />
-    <Compile Include="Core.cs" />
-    <Compile Include="Enumerations\ItemFlags.cs" />
     <Compile Include="SFXTargetSelector\Aggro.cs" />
     <Compile Include="SFXTargetSelector\Humanizer.cs" />
     <Compile Include="SFXTargetSelector\Priorities.cs" />
@@ -186,10 +184,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
-    <Content Include="Resources\Languages\language.en.xml">
-      <SubType>Designer</SubType>
-    </Content>
-    <Content Include="Resources\Languages\language.tr.xml" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5">
@@ -211,8 +205,8 @@
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup />

@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -45,7 +45,7 @@ namespace SFXUtility.Features.Others
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_Humanize"); }
+            get { return "Humanize"; }
         }
 
         protected override void OnEnable()
@@ -67,16 +67,14 @@ namespace SFXUtility.Features.Others
             try
             {
                 Menu = new Menu(Name, Name);
-                var delayMenu = new Menu(Global.Lang.Get("G_Delay"), Name + "Delay");
+                var delayMenu = new Menu("Delay", Name + "Delay");
+                delayMenu.AddItem(new MenuItem(delayMenu.Name + "Spell", "Spell").SetValue(new Slider(50, 0, 250)));
                 delayMenu.AddItem(
-                    new MenuItem(delayMenu.Name + "Spell", Global.Lang.Get("G_Spell")).SetValue(new Slider(50, 0, 250)));
-                delayMenu.AddItem(
-                    new MenuItem(delayMenu.Name + "Movement", Global.Lang.Get("G_Movement")).SetValue(
-                        new Slider(50, 0, 250)));
+                    new MenuItem(delayMenu.Name + "Movement", "Movement").SetValue(new Slider(50, 0, 250)));
 
                 Menu.AddSubMenu(delayMenu);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
             }

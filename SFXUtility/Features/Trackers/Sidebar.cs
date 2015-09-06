@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -88,7 +88,7 @@ namespace SFXUtility.Features.Trackers
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_Sidebar"); }
+            get { return "Sidebar"; }
         }
 
         protected override void OnEnable()
@@ -294,25 +294,22 @@ namespace SFXUtility.Features.Trackers
             {
                 Menu = new Menu(Name, Name);
 
-                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
+                var drawingMenu = new Menu("Drawing", Name + "Drawing");
 
                 drawingMenu.AddItem(
-                    new MenuItem(
-                        drawingMenu.Name + "OffsetTop", Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Top"))
-                        .SetValue(new Slider(150, 0, Drawing.Height)));
+                    new MenuItem(drawingMenu.Name + "OffsetTop", "Offset Top").SetValue(
+                        new Slider(150, 0, Drawing.Height)));
 
                 drawingMenu.AddItem(
-                    new MenuItem(
-                        drawingMenu.Name + "OffsetRight", Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Right"))
-                        .SetValue(new Slider(0, 0, Drawing.Width)));
+                    new MenuItem(drawingMenu.Name + "OffsetRight", "Offset Right").SetValue(
+                        new Slider(0, 0, Drawing.Width)));
 
-                drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "Scale", Global.Lang.Get("G_Scale")).SetValue(new Slider(10, 5, 15)));
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Scale", "Scale").SetValue(new Slider(10, 5, 15)));
 
                 Menu.AddSubMenu(drawingMenu);
-                Menu.AddItem(new MenuItem(Name + "Clickable", Global.Lang.Get("Sidebar_Clickable")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Clickable", "Clickable").SetValue(false));
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
 

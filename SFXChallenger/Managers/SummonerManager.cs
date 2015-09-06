@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -254,9 +254,9 @@ namespace SFXChallenger.Managers
             try
             {
                 _menu = menu;
-                menu.AddItem(new MenuItem(_menu.Name + ".ignite", Global.Lang.Get("MS_UseIgnite")).SetValue(true));
-                menu.AddItem(new MenuItem(_menu.Name + ".smite", Global.Lang.Get("MS_UseSmite")).SetValue(true));
-                menu.AddItem(new MenuItem(menu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                menu.AddItem(new MenuItem(_menu.Name + ".ignite", "Use Ignite").SetValue(true));
+                menu.AddItem(new MenuItem(_menu.Name + ".smite", "Use Smite").SetValue(true));
+                menu.AddItem(new MenuItem(menu.Name + ".enabled", "Enabled").SetValue(false));
             }
             catch (Exception ex)
             {

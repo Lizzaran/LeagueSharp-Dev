@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -52,7 +52,7 @@ namespace SFXUtility.Features.Drawings
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_Health"); }
+            get { return "Health"; }
         }
 
         protected override void OnEnable()
@@ -112,19 +112,17 @@ namespace SFXUtility.Features.Drawings
             try
             {
                 Menu = new Menu(Name, Name);
-                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
+                var drawingMenu = new Menu("Drawing", Name + "Drawing");
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Percent", "Percent").SetValue(false));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "Percent", Global.Lang.Get("G_Percent")).SetValue(false));
-                drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(
-                        new Slider(13, 3, 30)));
+                    new MenuItem(drawingMenu.Name + "FontSize", "Font Size").SetValue(new Slider(13, 3, 30)));
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "Turret", Global.Lang.Get("G_Turret")).SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "Inhibitor", Global.Lang.Get("G_Inhibitor")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Turret", "Turret").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Inhibitor", "Inhibitor").SetValue(false));
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
 

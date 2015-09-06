@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -43,7 +43,7 @@ namespace SFXUtility.Features.Others
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_Flash"); }
+            get { return "Flash"; }
         }
 
         protected override void OnEnable()
@@ -64,11 +64,11 @@ namespace SFXUtility.Features.Others
             {
                 Menu = new Menu(Name, Name);
 
-                Menu.AddItem(new MenuItem(Name + "WallCheck", Global.Lang.Get("Flash_WallCheck")).SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "IgniteCheck", Global.Lang.Get("Flash_IgniteCheck")).SetValue(false));
-                Menu.AddItem(new MenuItem(Name + "Extend", Global.Lang.Get("Flash_Extend")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "WallCheck", "Wall Check").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "IgniteCheck", "Ignite Check").SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Extend", "Extend").SetValue(false));
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
             }

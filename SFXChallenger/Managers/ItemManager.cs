@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -79,7 +79,7 @@ namespace SFXChallenger.Managers
                 Youmuu = new CustomItem
                 {
                     Name = "youmuus-ghostblade",
-                    DisplayName = Global.Lang.Get("MI_YoumuusGhostblade"),
+                    DisplayName = "Youmuu's Ghostblade",
                     Item = ItemData.Youmuus_Ghostblade.GetItem(),
                     Flags = ItemFlags.Offensive | ItemFlags.Flee,
                     CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
@@ -95,7 +95,7 @@ namespace SFXChallenger.Managers
                 Tiamat = new CustomItem
                 {
                     Name = "tiamat",
-                    DisplayName = Global.Lang.Get("MI_Tiamat"),
+                    DisplayName = "Tiamat",
                     Item = ItemData.Tiamat_Melee_Only.GetItem(),
                     Flags = ItemFlags.Offensive,
                     CombatFlags = CombatFlags.Melee,
@@ -109,7 +109,7 @@ namespace SFXChallenger.Managers
                 Hydra = new CustomItem
                 {
                     Name = "hydra",
-                    DisplayName = Global.Lang.Get("MI_Hydra"),
+                    DisplayName = "Hydra",
                     Item = ItemData.Ravenous_Hydra_Melee_Only.GetItem(),
                     Flags = ItemFlags.Offensive,
                     CombatFlags = CombatFlags.Melee,
@@ -122,7 +122,7 @@ namespace SFXChallenger.Managers
                 BilgewaterCutlass = new CustomItem
                 {
                     Name = "bilgewater-cutlass",
-                    DisplayName = Global.Lang.Get("MI_BilgewaterCutlass"),
+                    DisplayName = "Bilgewater Cutlass",
                     Item = ItemData.Bilgewater_Cutlass.GetItem(),
                     Flags = ItemFlags.Offensive | ItemFlags.Flee,
                     CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
@@ -136,7 +136,7 @@ namespace SFXChallenger.Managers
                 BladeRuinedKing = new CustomItem
                 {
                     Name = "blade-ruined-king",
-                    DisplayName = Global.Lang.Get("MI_BladeRuinedKing"),
+                    DisplayName = "Blade of the Ruined King",
                     Item = ItemData.Blade_of_the_Ruined_King.GetItem(),
                     Flags = ItemFlags.Offensive | ItemFlags.Flee,
                     CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
@@ -150,7 +150,7 @@ namespace SFXChallenger.Managers
                 HextechGunblade = new CustomItem
                 {
                     Name = "hextech-gunblade",
-                    DisplayName = Global.Lang.Get("MI_HextechGunblade"),
+                    DisplayName = "Hextech Gunblade",
                     Item = ItemData.Hextech_Gunblade.GetItem(),
                     Flags = ItemFlags.Offensive | ItemFlags.Flee,
                     CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
@@ -164,7 +164,7 @@ namespace SFXChallenger.Managers
                 MikaelsCrucible = new CustomItem
                 {
                     Name = "mikaels-crucible",
-                    DisplayName = Global.Lang.Get("MI_MikaelsCrucible"),
+                    DisplayName = "Mikael's Crucible",
                     Item = ItemData.Mikaels_Crucible.GetItem(),
                     Flags = ItemFlags.Supportive | ItemFlags.Defensive,
                     CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
@@ -177,7 +177,7 @@ namespace SFXChallenger.Managers
                 LocketIronSolari = new CustomItem
                 {
                     Name = "locket-iron-solari",
-                    DisplayName = Global.Lang.Get("MI_LocketIronSolari"),
+                    DisplayName = "Locket of the Iron Solari",
                     Item = ItemData.Locket_of_the_Iron_Solari.GetItem(),
                     Flags = ItemFlags.Supportive | ItemFlags.Defensive,
                     CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
@@ -190,7 +190,7 @@ namespace SFXChallenger.Managers
                 Sightstone = new CustomItem
                 {
                     Name = "sightstone",
-                    DisplayName = Global.Lang.Get("MI_Sightstone"),
+                    DisplayName = "Sightstone",
                     Item = ItemData.Sightstone.GetItem(),
                     Flags = ItemFlags.Supportive,
                     CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
@@ -202,7 +202,7 @@ namespace SFXChallenger.Managers
                 RubySightstone = new CustomItem
                 {
                     Name = "ruby-sightstone",
-                    DisplayName = Global.Lang.Get("MI_RubySightstone"),
+                    DisplayName = "Ruby Sightstone",
                     Item = ItemData.Ruby_Sightstone.GetItem(),
                     Flags = ItemFlags.Supportive,
                     CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
@@ -252,59 +252,52 @@ namespace SFXChallenger.Managers
                         var itemMenu = _menu.AddSubMenu(new Menu(item.DisplayName, _menu.Name + "." + item.Name));
 
                         itemMenu.AddItem(
-                            new MenuItem(itemMenu.Name + ".min-enemies-range", Global.Lang.Get("MI_MinEnemiesRange"))
-                                .SetValue(new Slider(1, 0, 5)));
+                            new MenuItem(itemMenu.Name + ".min-enemies-range", "Min. Enemies in Range").SetValue(
+                                new Slider(1, 0, 5)));
                         itemMenu.AddItem(
-                            new MenuItem(
-                                itemMenu.Name + ".player-health-below", Global.Lang.Get("MI_PlayerHealthBelow"))
-                                .SetValue(new Slider(100)));
+                            new MenuItem(itemMenu.Name + ".player-health-below", "Player Health % <=").SetValue(
+                                new Slider(100)));
                         itemMenu.AddItem(
-                            new MenuItem(
-                                itemMenu.Name + ".player-health-above", Global.Lang.Get("MI_PlayerHealthAbove"))
-                                .SetValue(new Slider(0)));
+                            new MenuItem(itemMenu.Name + ".player-health-above", "Player Health % >=").SetValue(
+                                new Slider(0)));
                         itemMenu.AddItem(
-                            new MenuItem(
-                                itemMenu.Name + ".target-health-below", Global.Lang.Get("MI_TargetHealthBelow"))
-                                .SetValue(new Slider(100)));
+                            new MenuItem(itemMenu.Name + ".target-health-below", "Target Health % <=").SetValue(
+                                new Slider(100)));
                         itemMenu.AddItem(
-                            new MenuItem(
-                                itemMenu.Name + ".target-health-above", Global.Lang.Get("MI_TargetHealthAbove"))
-                                .SetValue(new Slider(0)));
+                            new MenuItem(itemMenu.Name + ".target-health-above", "Target Health % >=").SetValue(
+                                new Slider(0)));
 
                         if (item.Flags.HasFlag(ItemFlags.Flee))
                         {
-                            itemMenu.AddItem(
-                                new MenuItem(itemMenu.Name + ".flee", Global.Lang.Get("MI_UseFlee")).SetValue(true));
+                            itemMenu.AddItem(new MenuItem(itemMenu.Name + ".flee", "Use Flee").SetValue(true));
                         }
                         if (item.Flags.HasFlag(ItemFlags.Offensive))
                         {
-                            itemMenu.AddItem(
-                                new MenuItem(itemMenu.Name + ".combo", Global.Lang.Get("MI_UseCombo")).SetValue(true));
+                            itemMenu.AddItem(new MenuItem(itemMenu.Name + ".combo", "Use Combo").SetValue(true));
                         }
                     }
                 }
 
-                var muramanaMenu = _menu.AddSubMenu(new Menu(Global.Lang.Get("MI_Muramana"), _menu.Name + ".muramana"));
+                var muramanaMenu = _menu.AddSubMenu(new Menu("Muramana", _menu.Name + ".muramana"));
                 muramanaMenu.AddItem(
-                    new MenuItem(muramanaMenu.Name + ".min-enemies-range", Global.Lang.Get("MI_MinEnemiesRange"))
-                        .SetValue(new Slider(1, 0, 5)));
+                    new MenuItem(muramanaMenu.Name + ".min-enemies-range", "Min. Enemies in Range").SetValue(
+                        new Slider(1, 0, 5)));
                 muramanaMenu.AddItem(
-                    new MenuItem(muramanaMenu.Name + ".player-health-below", Global.Lang.Get("MI_PlayerHealthBelow"))
-                        .SetValue(new Slider(100)));
+                    new MenuItem(muramanaMenu.Name + ".player-health-below", "Player Health % <=").SetValue(
+                        new Slider(100)));
                 muramanaMenu.AddItem(
-                    new MenuItem(muramanaMenu.Name + ".player-health-above", Global.Lang.Get("MI_PlayerHealthAbove"))
-                        .SetValue(new Slider(0)));
+                    new MenuItem(muramanaMenu.Name + ".player-health-above", "Player Health % >=").SetValue(
+                        new Slider(0)));
                 muramanaMenu.AddItem(
-                    new MenuItem(muramanaMenu.Name + ".target-health-below", Global.Lang.Get("MI_TargetHealthBelow"))
-                        .SetValue(new Slider(100)));
+                    new MenuItem(muramanaMenu.Name + ".target-health-below", "Target Health % <=").SetValue(
+                        new Slider(100)));
                 muramanaMenu.AddItem(
-                    new MenuItem(muramanaMenu.Name + ".target-health-above", Global.Lang.Get("MI_TargetHealthAbove"))
-                        .SetValue(new Slider(0)));
+                    new MenuItem(muramanaMenu.Name + ".target-health-above", "Target Health % >=").SetValue(
+                        new Slider(0)));
 
-                muramanaMenu.AddItem(
-                    new MenuItem(muramanaMenu.Name + ".combo", Global.Lang.Get("MI_UseCombo")).SetValue(true));
+                muramanaMenu.AddItem(new MenuItem(muramanaMenu.Name + ".combo", "Use Combo").SetValue(true));
 
-                menu.AddItem(new MenuItem(menu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                menu.AddItem(new MenuItem(menu.Name + ".enabled", "Enabled").SetValue(false));
             }
             catch (Exception ex)
             {

@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -67,24 +67,19 @@ namespace SFXChallenger.SFXTargetSelector
             {
                 _mainMenu = mainMenu;
 
-                var selectedMenu =
-                    mainMenu.AddSubMenu(new Menu(Global.Lang.Get("TS_Selected"), mainMenu.Name + ".selected"));
+                var selectedMenu = mainMenu.AddSubMenu(new Menu("Selected", mainMenu.Name + ".selected"));
+                selectedMenu.AddItem(new MenuItem(selectedMenu.Name + ".focus", "Focus Target").SetValue(true));
                 selectedMenu.AddItem(
-                    new MenuItem(selectedMenu.Name + ".focus", Global.Lang.Get("TS_FocusTarget")).SetValue(true));
-                selectedMenu.AddItem(
-                    new MenuItem(selectedMenu.Name + ".force-focus", Global.Lang.Get("TS_OnlyAttackTarget")).SetValue(
-                        false));
+                    new MenuItem(selectedMenu.Name + ".force-focus", "Only Attack Target").SetValue(false));
 
                 var drawingSelectedMenu =
-                    drawingMenu.AddSubMenu(
-                        new Menu(Global.Lang.Get("TS_SelectedTarget"), drawingMenu.Name + ".selected"));
+                    drawingMenu.AddSubMenu(new Menu("Selected Target", drawingMenu.Name + ".selected"));
                 drawingSelectedMenu.AddItem(
-                    new MenuItem(drawingSelectedMenu.Name + ".color", Global.Lang.Get("G_Color")).SetValue(Color.Red));
+                    new MenuItem(drawingSelectedMenu.Name + ".color", "Color").SetValue(Color.Red));
                 drawingSelectedMenu.AddItem(
-                    new MenuItem(drawingSelectedMenu.Name + ".radius", Global.Lang.Get("G_Radius")).SetValue(
-                        new Slider(50)));
+                    new MenuItem(drawingSelectedMenu.Name + ".radius", "Radius").SetValue(new Slider(50)));
                 drawingSelectedMenu.AddItem(
-                    new MenuItem(drawingSelectedMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
+                    new MenuItem(drawingSelectedMenu.Name + ".enabled", "Enabled").SetValue(true));
 
                 Drawing.OnDraw += OnDrawingDraw;
             }

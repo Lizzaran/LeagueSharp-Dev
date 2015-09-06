@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -127,39 +127,39 @@ namespace SFXChallenger.SFXTargetSelector
             var mode = TargetSelectorModeType.Weights;
             try
             {
-                if (value.Equals(Global.Lang.Get("TS_Weights")))
+                if (value.Equals("Weigths"))
                 {
                     mode = TargetSelectorModeType.Weights;
                 }
-                else if (value.Equals(Global.Lang.Get("TS_Priorities")))
+                else if (value.Equals("Priorities"))
                 {
                     mode = TargetSelectorModeType.Priorities;
                 }
-                else if (value.Equals(Global.Lang.Get("TS_LessAttacksToKill")))
+                else if (value.Equals("Less Attacks To Kill"))
                 {
                     mode = TargetSelectorModeType.LessAttacksToKill;
                 }
-                else if (value.Equals(Global.Lang.Get("TS_MostAbilityPower")))
+                else if (value.Equals("Most Ability Power"))
                 {
                     mode = TargetSelectorModeType.MostAbilityPower;
                 }
-                else if (value.Equals(Global.Lang.Get("TS_MostAttackDamage")))
+                else if (value.Equals("Most Attack Damage"))
                 {
                     mode = TargetSelectorModeType.MostAttackDamage;
                 }
-                else if (value.Equals(Global.Lang.Get("TS_Closest")))
+                else if (value.Equals("Closest"))
                 {
                     mode = TargetSelectorModeType.Closest;
                 }
-                else if (value.Equals(Global.Lang.Get("TS_NearMouse")))
+                else if (value.Equals("Near Mouse"))
                 {
                     mode = TargetSelectorModeType.NearMouse;
                 }
-                else if (value.Equals(Global.Lang.Get("TS_LessCastPriority")))
+                else if (value.Equals("Less Cast Priority"))
                 {
                     mode = TargetSelectorModeType.LessCastPriority;
                 }
-                else if (value.Equals(Global.Lang.Get("TS_LeastHealth")))
+                else if (value.Equals("Least Health"))
                 {
                     mode = TargetSelectorModeType.LeastHealth;
                 }
@@ -256,10 +256,10 @@ namespace SFXChallenger.SFXTargetSelector
             {
                 _menu = menu;
 
-                var drawingMenu = _menu.AddSubMenu(new Menu(Global.Lang.Get("G_Drawing"), menu.Name + ".drawing"));
+                var drawingMenu = _menu.AddSubMenu(new Menu("Drawing", menu.Name + ".drawing"));
 
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + ".circle-thickness", Global.Lang.Get("G_CircleThickness")).SetValue(
+                    new MenuItem(drawingMenu.Name + ".circle-thickness", "Circle Thickness").SetValue(
                         new Slider(2, 1, 10)));
 
                 Selected.AddToMenu(_menu, drawingMenu);
@@ -268,16 +268,14 @@ namespace SFXChallenger.SFXTargetSelector
                 Humanizer.AddToMenu(_menu);
 
                 _menu.AddItem(
-                    new MenuItem(menu.Name + ".mode", Global.Lang.Get("TS_Mode")).SetValue(
+                    new MenuItem(menu.Name + ".mode", "Mode").SetValue(
                         new StringList(
                             new[]
                             {
-                                Global.Lang.Get("TS_Weights"), Global.Lang.Get("TS_Priorities"),
-                                Global.Lang.Get("TS_LessAttacksToKill"), Global.Lang.Get("TS_MostAbilityPower"),
-                                Global.Lang.Get("TS_MostAttackDamage"), Global.Lang.Get("TS_Closest"),
-                                Global.Lang.Get("TS_NearMouse"), Global.Lang.Get("TS_LessCastPriority"),
-                                Global.Lang.Get("TS_LeastHealth")
-                            }))).ValueChanged +=
+                                "Weigths", "Priorities", "Less Attacks To Kill", "Most Ability Power",
+                                "Most Attack Damage", "Closest", "Near Mouse", "Less Cast Priority", "Least Health"
+                            })))
+                    .ValueChanged +=
                     delegate(object sender, OnValueChangeEventArgs args)
                     {
                         Mode = GetModeByMenuValue(args.GetNewValue<StringList>().SelectedValue);

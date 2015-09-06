@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -83,9 +83,9 @@ namespace SFXChallenger.Champions
 
         protected override void AddToMenu()
         {
-            var comboMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Combo"), Menu.Name + ".combo"));
+            var comboMenu = Menu.AddSubMenu(new Menu("Combo", Menu.Name + ".combo"));
             HitchanceManager.AddToMenu(
-                comboMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), comboMenu.Name + ".hitchance")), "combo",
+                comboMenu.AddSubMenu(new Menu("Hitchance", comboMenu.Name + ".hitchance")), "combo",
                 new Dictionary<string, HitChance>
                 {
                     { "Q", HitChance.High },
@@ -93,62 +93,49 @@ namespace SFXChallenger.Champions
                     { "R", HitChance.VeryHigh }
                 });
             comboMenu.AddItem(
-                new MenuItem(comboMenu.Name + ".q-fast-cast-min", Global.Lang.Get("Varus_FastCastMin")).SetValue(
-                    new Slider(25)));
-            comboMenu.AddItem(
-                new MenuItem(comboMenu.Name + ".q-range", "Q " + Global.Lang.Get("G_OutOfRange")).SetValue(true));
-            comboMenu.AddItem(
-                new MenuItem(comboMenu.Name + ".q-always", "Q " + Global.Lang.Get("G_Always")).SetValue(false));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q-stacks", "Q " + Global.Lang.Get("G_StacksIsOrMore")))
+                new MenuItem(comboMenu.Name + ".q-fast-cast-min", "Fast Cast @ Health %").SetValue(new Slider(25)));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q-range", "Q " + "Out of Range").SetValue(true));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q-always", "Q " + "Always").SetValue(false));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q-stacks", "Q " + "Stacks >="))
                 .SetValue(new Slider(3, 1, 3));
-            comboMenu.AddItem(
-                new MenuItem(comboMenu.Name + ".q-min", "Q " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 3)));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
-            comboMenu.AddItem(
-                new MenuItem(comboMenu.Name + ".e-always", "E " + Global.Lang.Get("G_Always")).SetValue(true));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e-stacks", "E " + Global.Lang.Get("G_StacksIsOrMore")))
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q-min", "Q " + "Min").SetValue(new Slider(3, 1, 3)));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", "Use Q").SetValue(true));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e-always", "E " + "Always").SetValue(true));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e-stacks", "E " + "Stacks >="))
                 .SetValue(new Slider(3, 1, 3));
-            comboMenu.AddItem(
-                new MenuItem(comboMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 3)));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e-min", "E " + "Min").SetValue(new Slider(3, 1, 3)));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", "Use E").SetValue(true));
 
-            var harassMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Harass"), Menu.Name + ".harass"));
+            var harassMenu = Menu.AddSubMenu(new Menu("Harass", Menu.Name + ".harass"));
             HitchanceManager.AddToMenu(
-                harassMenu.AddSubMenu(new Menu(Global.Lang.Get("F_MH"), harassMenu.Name + ".hitchance")), "harass",
+                harassMenu.AddSubMenu(new Menu("Hitchance", harassMenu.Name + ".hitchance")), "harass",
                 new Dictionary<string, HitChance> { { "Q", HitChance.High }, { "E", HitChance.High } });
             ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
             harassMenu.AddItem(
-                new MenuItem(harassMenu.Name + ".q-fast-cast-min", Global.Lang.Get("Varus_FastCastMin")).SetValue(
-                    new Slider(25)));
-            harassMenu.AddItem(
-                new MenuItem(harassMenu.Name + ".q-range", "Q " + Global.Lang.Get("G_OutOfRange")).SetValue(true));
-            harassMenu.AddItem(
-                new MenuItem(harassMenu.Name + ".q-always", "Q " + Global.Lang.Get("G_Always")).SetValue(false));
-            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q-stacks", "Q " + Global.Lang.Get("G_StacksIsOrMore")))
+                new MenuItem(harassMenu.Name + ".q-fast-cast-min", "Fast Cast @ Health %").SetValue(new Slider(25)));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q-range", "Q " + "Out of Range").SetValue(true));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q-always", "Q " + "Always").SetValue(false));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q-stacks", "Q " + "Stacks >="))
                 .SetValue(new Slider(3, 1, 3));
-            harassMenu.AddItem(
-                new MenuItem(harassMenu.Name + ".q-min", "Q " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 3)));
-            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
-            harassMenu.AddItem(
-                new MenuItem(harassMenu.Name + ".e-always", "E " + Global.Lang.Get("G_Always")).SetValue(false));
-            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e-stacks", "E " + Global.Lang.Get("G_StacksIsOrMore")))
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q-min", "Q " + "Min").SetValue(new Slider(3, 1, 3)));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", "Use Q").SetValue(true));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e-always", "E " + "Always").SetValue(false));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e-stacks", "E " + "Stacks >="))
                 .SetValue(new Slider(3, 1, 3));
-            harassMenu.AddItem(
-                new MenuItem(harassMenu.Name + ".e-min", "E " + Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 3)));
-            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e-min", "E " + "Min").SetValue(new Slider(3, 1, 3)));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", "Use E").SetValue(true));
 
-            var laneclearMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_LaneClear"), Menu.Name + ".lane-clear"));
+            var laneclearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
             ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
-            laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".min", Global.Lang.Get("G_Min")).SetValue(new Slider(3, 1, 5)));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", "Use E").SetValue(true));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".min", "Min").SetValue(new Slider(3, 1, 5)));
 
             var ultimateMenu = UltimateManager.AddToMenu(Menu, true, false, false, true, false, false, true, true, true);
 
             ultimateMenu.AddItem(
-                new MenuItem(ultimateMenu.Name + ".radius", Global.Lang.Get("G_Range")).SetValue(
-                    new Slider(450, 100, 600))).ValueChanged +=
+                new MenuItem(ultimateMenu.Name + ".radius", "Range").SetValue(new Slider(450, 100, 600))).ValueChanged
+                +=
                 delegate(object sender, OnValueChangeEventArgs args)
                 {
                     _rSpreadRadius = args.GetNewValue<Slider>().Value;
@@ -156,21 +143,19 @@ namespace SFXChallenger.Champions
 
             _rSpreadRadius = Menu.Item(Menu.Name + ".ultimate.radius").GetValue<Slider>().Value;
 
-            var killstealMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Killsteal"), Menu.Name + ".killsteal"));
-            killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".q", Global.Lang.Get("G_UseQ")).SetValue(true));
-            killstealMenu.AddItem(
-                new MenuItem(killstealMenu.Name + ".range", Global.Lang.Get("G_OutOfRange")).SetValue(true));
+            var killstealMenu = Menu.AddSubMenu(new Menu("Killsteal", Menu.Name + ".killsteal"));
+            killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".q", "Use Q").SetValue(true));
+            killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".range", "Out of Range").SetValue(true));
 
-            var fleeMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Flee"), Menu.Name + ".flee"));
-            fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".e", Global.Lang.Get("G_UseE")).SetValue(true));
+            var fleeMenu = Menu.AddSubMenu(new Menu("Flee", Menu.Name + ".flee"));
+            fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".e", "Use E").SetValue(true));
 
-            var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
+            var miscMenu = Menu.AddSubMenu(new Menu("Miscellaneous", Menu.Name + ".miscellaneous"));
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("E " + Global.Lang.Get("G_Gapcloser"), miscMenu.Name + "e-gapcloser")),
-                "e-gapcloser", false, false, true, false);
+                miscMenu.AddSubMenu(new Menu("E " + "Gapcloser", miscMenu.Name + "e-gapcloser")), "e-gapcloser", false,
+                false, true, false);
 
-            Weights.AddItem(
-                new Weights.Item("w-stacks", "W " + Global.Lang.Get("G_Stacks"), 13, true, t => GetWStacks(t) + 1));
+            Weights.AddItem(new Weights.Item("w-stacks", "W " + "Stacks", 13, true, t => GetWStacks(t) + 1));
 
             IndicatorManager.AddToMenu(DrawingManager.Menu, true);
             IndicatorManager.Add("Q", hero => Q.IsReady() ? Q.GetDamage(hero, 1) : 0);
@@ -178,7 +163,7 @@ namespace SFXChallenger.Champions
             IndicatorManager.Add(R);
             IndicatorManager.Finale();
 
-            _wStacks = DrawingManager.Add("W " + Global.Lang.Get("G_Stacks"), true);
+            _wStacks = DrawingManager.Add("W " + "Stacks", true);
         }
 
         protected override void SetupSpells()

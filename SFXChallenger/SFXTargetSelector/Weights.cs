@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -61,10 +61,10 @@ namespace SFXChallenger.SFXTargetSelector
                 Items = new HashSet<Item>
                 {
                     new Item(
-                        "killable", Global.Lang.Get("TS_AAKillable"), 20, false,
+                        "killable", "AA Killable", 20, false,
                         t => t.Health < ObjectManager.Player.GetAutoAttackDamage(t, true) ? 10 : 0),
                     new Item(
-                        "attack-damage", Global.Lang.Get("TS_AttackDamage"), 10, false, delegate(Obj_AI_Hero t)
+                        "attack-damage", "Attack Damage", 10, false, delegate(Obj_AI_Hero t)
                         {
                             var ad = t.FlatPhysicalDamageMod;
                             ad += ad / 100 * (t.Crit * 100) * (t.HasItem(ItemData.Infinity_Edge.Id) ? 2.5f : 2f);
@@ -73,37 +73,35 @@ namespace SFXChallenger.SFXTargetSelector
                             return (ad * (100 / (100 + (averageArmor > 0 ? averageArmor : 0)))) * t.AttackSpeedMod;
                         }),
                     new Item(
-                        "ability-power", Global.Lang.Get("TS_AbilityPower"), 10, false, delegate(Obj_AI_Hero t)
+                        "ability-power", "Ability Power", 10, false, delegate(Obj_AI_Hero t)
                         {
                             var averageMr = GameObjects.AllyHeroes.Average(a => a.SpellBlock) *
                                             t.PercentMagicPenetrationMod - t.FlatMagicPenetrationMod;
                             return t.FlatMagicDamageMod * (100 / (100 + (averageMr > 0 ? averageMr : 0)));
                         }),
                     new Item(
-                        "low-resists", Global.Lang.Get("TS_LowResists"), 6, true,
+                        "low-resists", "[i] Resists", 6, true,
                         t =>
                             ObjectManager.Player.FlatPhysicalDamageMod >= ObjectManager.Player.FlatMagicDamageMod
                                 ? t.Armor
                                 : t.SpellBlock),
-                    new Item("low-health", Global.Lang.Get("TS_LowHealth"), 8, true, t => t.Health),
+                    new Item("low-health", "[i] Health", 8, true, t => t.Health),
+                    new Item("short-distance", "[i] Distance", 7, true, t => t.Distance(ObjectManager.Player)),
                     new Item(
-                        "short-distance", Global.Lang.Get("TS_ShortDistance"), 7, true,
-                        t => t.Distance(ObjectManager.Player)),
-                    new Item(
-                        "team-focus", Global.Lang.Get("TS_TeamFocus"), 3, false,
+                        "team-focus", "Team Focus", 3, false,
                         t =>
                             Aggro.Items.Where(a => a.Value.Target.Hero.NetworkId == t.NetworkId)
                                 .Select(a => a.Value.Value)
                                 .DefaultIfEmpty(0)
                                 .Sum()),
                     new Item(
-                        "focus-me", Global.Lang.Get("TS_FocusMe"), 3, false, delegate(Obj_AI_Hero t)
+                        "focus-me", "Focus Me", 3, false, delegate(Obj_AI_Hero t)
                         {
                             var entry = Aggro.GetSenderTargetEntry(t, ObjectManager.Player);
                             return entry != null ? entry.Value + 1f : 0;
                         }),
                     new Item(
-                        "hard-cc", Global.Lang.Get("TS_HardCC"), 5, false, delegate(Obj_AI_Hero t)
+                        "hard-cc", "Hard CCed", 5, false, delegate(Obj_AI_Hero t)
                         {
                             var buffs =
                                 t.Buffs.Where(
@@ -114,7 +112,7 @@ namespace SFXChallenger.SFXTargetSelector
                             return buffs.Any() ? buffs.Max(x => x.EndTime) + 1f : 0f;
                         }),
                     new Item(
-                        "soft-cc", Global.Lang.Get("TS_SoftCC"), 5, false, delegate(Obj_AI_Hero t)
+                        "soft-cc", "Soft CCed", 5, false, delegate(Obj_AI_Hero t)
                         {
                             var buffs =
                                 t.Buffs.Where(
@@ -124,7 +122,7 @@ namespace SFXChallenger.SFXTargetSelector
                             return buffs.Any() ? buffs.Max(x => x.EndTime) + 1f : 0f;
                         }) /*,
                     new Item(
-                        "gold", Global.Lang.Get("TS_Gold"), 7, false,
+                        "gold", "Gold", 7, false,
                         t =>
                             (t.MinionsKilled + t.NeutralMinionsKilled) * 22.35f + t.ChampionsKilled * 300f +
                             t.Assists * 95f)*/ //Bug: Bugsplatting currently 
@@ -171,10 +169,9 @@ namespace SFXChallenger.SFXTargetSelector
             {
                 _mainMenu = mainMenu;
 
-                _weightsMenu = mainMenu.AddSubMenu(new Menu(Global.Lang.Get("TS_Weights"), mainMenu.Name + ".weights"));
+                _weightsMenu = mainMenu.AddSubMenu(new Menu("Weigths", mainMenu.Name + ".weights"));
 
-                var heroesMenu =
-                    _weightsMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Heroes"), _weightsMenu.Name + ".heroes"));
+                var heroesMenu = _weightsMenu.AddSubMenu(new Menu("Heroes", _weightsMenu.Name + ".heroes"));
 
                 foreach (var enemy in Targets.Items)
                 {
@@ -199,37 +196,26 @@ namespace SFXChallenger.SFXTargetSelector
                 }
 
                 _weightsMenu.AddItem(
-                    new MenuItem(_weightsMenu.Name + ".force-focus", Global.Lang.Get("TS_OnlyAttackBestTarget"))
-                        .SetValue(false));
+                    new MenuItem(_weightsMenu.Name + ".force-focus", "Only Attack Best Target").SetValue(false));
 
-                var drawingWeightsMenu =
-                    drawingMenu.AddSubMenu(new Menu(Global.Lang.Get("TS_Weights"), drawingMenu.Name + ".weights"));
+                var drawingWeightsMenu = drawingMenu.AddSubMenu(new Menu("Weigths", drawingMenu.Name + ".weights"));
 
                 var drawingWeightsGroupMenu =
                     drawingWeightsMenu.AddSubMenu(
-                        new Menu(Global.Lang.Get("TS_BestGroupTarget"), drawingWeightsMenu.Name + ".group-target"));
+                        new Menu("Best Group Target", drawingWeightsMenu.Name + ".group-target"));
                 drawingWeightsGroupMenu.AddItem(
-                    new MenuItem(drawingWeightsGroupMenu.Name + ".color", Global.Lang.Get("G_Color")).SetValue(
-                        Color.HotPink));
+                    new MenuItem(drawingWeightsGroupMenu.Name + ".color", "Color").SetValue(Color.HotPink));
                 drawingWeightsGroupMenu.AddItem(
-                    new MenuItem(drawingWeightsGroupMenu.Name + ".radius", Global.Lang.Get("G_Radius")).SetValue(
-                        new Slider(25)));
+                    new MenuItem(drawingWeightsGroupMenu.Name + ".radius", "Radius").SetValue(new Slider(25)));
                 drawingWeightsGroupMenu.AddItem(
-                    new MenuItem(drawingWeightsGroupMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(
-                        false));
+                    new MenuItem(drawingWeightsGroupMenu.Name + ".enabled", "Enabled").SetValue(false));
 
                 drawingWeightsMenu.AddItem(
-                    new MenuItem(
-                        drawingWeightsMenu.Name + ".simple",
-                        Global.Lang.Get("TS_Weights") + " " + Global.Lang.Get("G_Simple")).SetValue(false));
+                    new MenuItem(drawingWeightsMenu.Name + ".simple", "Weigths Simple").SetValue(false));
                 drawingWeightsMenu.AddItem(
-                    new MenuItem(
-                        drawingWeightsMenu.Name + ".advanced",
-                        Global.Lang.Get("TS_Weights") + " " + Global.Lang.Get("G_Advanced")).SetValue(false));
+                    new MenuItem(drawingWeightsMenu.Name + ".advanced", "Weigths Advanced").SetValue(false));
                 drawingWeightsMenu.AddItem(
-                    new MenuItem(
-                        drawingWeightsMenu.Name + ".range-check",
-                        Global.Lang.Get("TS_Weights") + " " + Global.Lang.Get("TS_RangeCheck")).SetValue(false));
+                    new MenuItem(drawingWeightsMenu.Name + ".range-check", "Weigths Range Check").SetValue(false));
 
                 Drawing.OnDraw += OnDrawingDraw;
             }

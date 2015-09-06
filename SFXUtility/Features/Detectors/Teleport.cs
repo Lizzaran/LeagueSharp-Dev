@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -56,7 +56,7 @@ namespace SFXUtility.Features.Detectors
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_Teleport"); }
+            get { return "Teleport"; }
         }
 
         protected override void OnEnable()
@@ -224,74 +224,60 @@ namespace SFXUtility.Features.Detectors
             try
             {
                 Menu = new Menu(Name, Name);
-                var drawingMenu = new Menu(Global.Lang.Get("G_Drawing"), Name + "Drawing");
+                var drawingMenu = new Menu("Drawing", Name + "Drawing");
 
-                var drawingTextMenu = new Menu(Global.Lang.Get("G_Text"), drawingMenu.Name + "Text");
+                var drawingTextMenu = new Menu("Text", drawingMenu.Name + "Text");
                 drawingTextMenu.AddItem(
-                    new MenuItem(
-                        drawingTextMenu.Name + "OffsetTop", Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Top"))
-                        .SetValue(new Slider((int) (Drawing.Height * 0.75d), 0, Drawing.Height)));
+                    new MenuItem(drawingTextMenu.Name + "OffsetTop", "Offset Top").SetValue(
+                        new Slider((int) (Drawing.Height * 0.75d), 0, Drawing.Height)));
                 drawingTextMenu.AddItem(
-                    new MenuItem(
-                        drawingTextMenu.Name + "OffsetLeft",
-                        Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Left")).SetValue(
-                            new Slider((int) (Drawing.Width * 0.68d), 0, Drawing.Width)));
+                    new MenuItem(drawingTextMenu.Name + "OffsetLeft", "Offset Left").SetValue(
+                        new Slider((int) (Drawing.Width * 0.68d), 0, Drawing.Width)));
                 drawingTextMenu.AddItem(
-                    new MenuItem(drawingTextMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(
-                        new Slider(15, 5, 30)));
+                    new MenuItem(drawingTextMenu.Name + "FontSize", "Font Size").SetValue(new Slider(15, 5, 30)));
                 drawingTextMenu.AddItem(
-                    new MenuItem(drawingTextMenu.Name + "AdditionalTime", Global.Lang.Get("Teleport_AdditionalTime"))
-                        .SetValue(new Slider(10, 0, 10))).ValueChanged +=
-                    delegate(object o, OnValueChangeEventArgs args)
-                    {
-                        if (_teleportObjects != null)
+                    new MenuItem(drawingTextMenu.Name + "AdditionalTime", "Additional Time").SetValue(
+                        new Slider(10, 0, 10))).ValueChanged += delegate(object o, OnValueChangeEventArgs args)
                         {
-                            _teleportObjects.ForEach(t => t.AdditionalTextTime = args.GetNewValue<Slider>().Value);
-                        }
-                    };
-                drawingTextMenu.AddItem(
-                    new MenuItem(drawingTextMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                            if (_teleportObjects != null)
+                            {
+                                _teleportObjects.ForEach(t => t.AdditionalTextTime = args.GetNewValue<Slider>().Value);
+                            }
+                        };
+                drawingTextMenu.AddItem(new MenuItem(drawingTextMenu.Name + "Enabled", "Enabled").SetValue(false));
 
-                var drawingBarMenu = new Menu(Global.Lang.Get("G_Bar"), drawingMenu.Name + "Bar");
+                var drawingBarMenu = new Menu("Bar", drawingMenu.Name + "Bar");
                 drawingBarMenu.AddItem(
-                    new MenuItem(drawingBarMenu.Name + "FontSize", Global.Lang.Get("G_FontSize")).SetValue(
-                        new Slider(13, 5, 30)));
+                    new MenuItem(drawingBarMenu.Name + "FontSize", "Font Size").SetValue(new Slider(13, 5, 30)));
                 drawingBarMenu.AddItem(
-                    new MenuItem(drawingBarMenu.Name + "Scale", Global.Lang.Get("G_Scale")).SetValue(
-                        new Slider(10, 1, 20)));
+                    new MenuItem(drawingBarMenu.Name + "Scale", "Scale").SetValue(new Slider(10, 1, 20)));
                 drawingBarMenu.AddItem(
-                    new MenuItem(drawingBarMenu.Name + "Height", Global.Lang.Get("G_Height")).SetValue(
-                        new Slider(10, 3, 20)));
+                    new MenuItem(drawingBarMenu.Name + "Height", "Height").SetValue(new Slider(10, 3, 20)));
                 drawingBarMenu.AddItem(
-                    new MenuItem(drawingBarMenu.Name + "Width", Global.Lang.Get("G_Width")).SetValue(
+                    new MenuItem(drawingBarMenu.Name + "Width", "Width").SetValue(
                         new Slider(475, 0, (int) (Drawing.Width / 1.5d))));
                 drawingBarMenu.AddItem(
-                    new MenuItem(
-                        drawingBarMenu.Name + "OffsetTop", Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Top"))
-                        .SetValue(new Slider((int) (Drawing.Height * 0.75d), 0, Drawing.Height)));
+                    new MenuItem(drawingBarMenu.Name + "OffsetTop", "Offset Top").SetValue(
+                        new Slider((int) (Drawing.Height * 0.75d), 0, Drawing.Height)));
                 drawingBarMenu.AddItem(
-                    new MenuItem(
-                        drawingBarMenu.Name + "OffsetLeft",
-                        Global.Lang.Get("G_Offset") + " " + Global.Lang.Get("G_Left")).SetValue(
-                            new Slider((int) (Drawing.Width * 0.425d), 0, Drawing.Width)));
+                    new MenuItem(drawingBarMenu.Name + "OffsetLeft", "Offset Left").SetValue(
+                        new Slider((int) (Drawing.Width * 0.425d), 0, Drawing.Width)));
                 drawingBarMenu.AddItem(
-                    new MenuItem(drawingBarMenu.Name + "AdditionalTime", Global.Lang.Get("Teleport_AdditionalTime"))
-                        .SetValue(new Slider(5, 0, 10))).ValueChanged += delegate(object o, OnValueChangeEventArgs args)
+                    new MenuItem(drawingBarMenu.Name + "AdditionalTime", "Additional Time").SetValue(
+                        new Slider(5, 0, 10))).ValueChanged += delegate(object o, OnValueChangeEventArgs args)
                         {
                             if (_teleportObjects != null)
                             {
                                 _teleportObjects.ForEach(t => t.AdditionalBarTime = args.GetNewValue<Slider>().Value);
                             }
                         };
-                drawingBarMenu.AddItem(
-                    new MenuItem(drawingBarMenu.Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                drawingBarMenu.AddItem(new MenuItem(drawingBarMenu.Name + "Enabled", "Enabled").SetValue(false));
 
                 drawingMenu.AddSubMenu(drawingTextMenu);
                 drawingMenu.AddSubMenu(drawingBarMenu);
 
-                drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "Debug", Global.Lang.Get("G_Debug")).SetValue(false)).ValueChanged
-                    += delegate
+                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Debug", "Debug").SetValue(false)).ValueChanged +=
+                    delegate
                     {
                         foreach (var teleport in _teleportObjects)
                         {
@@ -302,7 +288,7 @@ namespace SFXUtility.Features.Detectors
 
                 Menu.AddSubMenu(drawingMenu);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
 
@@ -457,18 +443,18 @@ namespace SFXUtility.Features.Detectors
                         {
                             case Packet.S2C.Teleport.Status.Start:
                                 return string.Format(
-                                    "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Recalling"), Hero.ChampionName,
+                                    "{1}({2}%) {0} ({3:0.00})", "Recalling", Hero.ChampionName,
                                     (int) (Hero.HealthPercent), time);
 
                             case Packet.S2C.Teleport.Status.Finish:
                                 return string.Format(
-                                    "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Recalled"), Hero.ChampionName,
+                                    "{1}({2}%) {0} ({3:0.00})", "Recalled", Hero.ChampionName,
                                     (int) (Hero.HealthPercent), time);
 
                             case Packet.S2C.Teleport.Status.Abort:
                                 return string.Format(
-                                    "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Aborted"), Hero.ChampionName,
-                                    (int) (Hero.HealthPercent), time);
+                                    "{1}({2}%) {0} ({3:0.00})", "Aborted", Hero.ChampionName, (int) (Hero.HealthPercent),
+                                    time);
                         }
                         break;
 
@@ -477,18 +463,18 @@ namespace SFXUtility.Features.Detectors
                         {
                             case Packet.S2C.Teleport.Status.Start:
                                 return string.Format(
-                                    "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Teleporting"),
-                                    Hero.ChampionName, (int) (Hero.HealthPercent), time);
+                                    "{1}({2}%) {0} ({3:0.00})", "Teleporting", Hero.ChampionName,
+                                    (int) (Hero.HealthPercent), time);
 
                             case Packet.S2C.Teleport.Status.Finish:
                                 return string.Format(
-                                    "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Teleported"),
-                                    Hero.ChampionName, (int) (Hero.HealthPercent), time);
+                                    "{1}({2}%) {0} ({3:0.00})", "Teleported", Hero.ChampionName,
+                                    (int) (Hero.HealthPercent), time);
 
                             case Packet.S2C.Teleport.Status.Abort:
                                 return string.Format(
-                                    "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Aborted"), Hero.ChampionName,
-                                    (int) (Hero.HealthPercent), time);
+                                    "{1}({2}%) {0} ({3:0.00})", "Aborted", Hero.ChampionName, (int) (Hero.HealthPercent),
+                                    time);
                         }
                         break;
 
@@ -498,18 +484,18 @@ namespace SFXUtility.Features.Detectors
                         {
                             case Packet.S2C.Teleport.Status.Start:
                                 return string.Format(
-                                    "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Transporting"),
-                                    Hero.ChampionName, (int) (Hero.HealthPercent), time);
+                                    "{1}({2}%) {0} ({3:0.00})", "Transporting", Hero.ChampionName,
+                                    (int) (Hero.HealthPercent), time);
 
                             case Packet.S2C.Teleport.Status.Finish:
                                 return string.Format(
-                                    "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Transported"),
-                                    Hero.ChampionName, (int) (Hero.HealthPercent), time);
+                                    "{1}({2}%) {0} ({3:0.00})", "Transported", Hero.ChampionName,
+                                    (int) (Hero.HealthPercent), time);
 
                             case Packet.S2C.Teleport.Status.Abort:
                                 return string.Format(
-                                    "{1}({2}%) {0} ({3:0.00})", Global.Lang.Get("Teleport_Aborted"), Hero.ChampionName,
-                                    (int) (Hero.HealthPercent), time);
+                                    "{1}({2}%) {0} ({3:0.00})", "Aborted", Hero.ChampionName, (int) (Hero.HealthPercent),
+                                    time);
                         }
                         break;
                 }

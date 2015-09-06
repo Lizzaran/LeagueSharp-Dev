@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
@@ -46,7 +46,7 @@ namespace SFXUtility.Features.Events
 
         public override string Name
         {
-            get { return Global.Lang.Get("F_Game"); }
+            get { return "Game"; }
         }
 
         protected override void OnEnable()
@@ -68,30 +68,23 @@ namespace SFXUtility.Features.Events
                 LeagueSharp.Game.OnStart += delegate { _onStartTriggerd = true; };
 
                 Menu = new Menu(Name, Name);
-                var startMenu = new Menu(Global.Lang.Get("Game_OnStart"), Name + "OnStart");
+                var startMenu = new Menu("OnStart", Name + "OnStart");
+                startMenu.AddItem(new MenuItem(startMenu.Name + "Delay", "Delay").SetValue(new Slider(20, 0, 75)));
                 startMenu.AddItem(
-                    new MenuItem(startMenu.Name + "Delay", Global.Lang.Get("G_Delay")).SetValue(new Slider(20, 0, 75)));
-                startMenu.AddItem(
-                    new MenuItem(startMenu.Name + "Greeting", Global.Lang.Get("Game_Greeting")).SetValue(
-                        new StringList(Global.Lang.GetList("Game_GreetingList"))));
-                startMenu.AddItem(
-                    new MenuItem(
-                        startMenu.Name + "SayGreeting",
-                        Global.Lang.Get("G_Say") + " " + Global.Lang.Get("Game_Greeting")).SetValue(false));
+                    new MenuItem(startMenu.Name + "Greeting", "Greeting").SetValue(
+                        new StringList(new[] { "gl & hf", "good luck & have fun" })));
+                startMenu.AddItem(new MenuItem(startMenu.Name + "SayGreeting", "Say Greeting").SetValue(false));
 
-                var endMenu = new Menu(Global.Lang.Get("Game_OnEnd"), Name + "OnEnd");
+                var endMenu = new Menu("OnEnd", Name + "OnEnd");
                 endMenu.AddItem(
-                    new MenuItem(endMenu.Name + "Ending", Global.Lang.Get("Game_Ending")).SetValue(
-                        new StringList(Global.Lang.GetList("Game_EndingList"))));
-                endMenu.AddItem(
-                    new MenuItem(
-                        endMenu.Name + "SayEnding", Global.Lang.Get("G_Say") + " " + Global.Lang.Get("Game_Ending"))
-                        .SetValue(false));
+                    new MenuItem(endMenu.Name + "Ending", "Goodbye").SetValue(
+                        new StringList(new[] { "gg", "gg wp", "good game", "well played" })));
+                endMenu.AddItem(new MenuItem(endMenu.Name + "SayEnding", "Say Goodbye").SetValue(false));
 
                 Menu.AddSubMenu(startMenu);
                 Menu.AddSubMenu(endMenu);
 
-                Menu.AddItem(new MenuItem(Name + "Enabled", Global.Lang.Get("G_Enabled")).SetValue(false));
+                Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
             }

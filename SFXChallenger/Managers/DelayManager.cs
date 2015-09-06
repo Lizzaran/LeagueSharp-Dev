@@ -1,8 +1,8 @@
-﻿#region License
+#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- delaymanager.cs is part of SFXChallenger.
+ DelayManager.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -46,8 +46,8 @@ namespace SFXChallenger.Managers
                 }
 
                 menu.AddItem(
-                    new MenuItem(menu.Name + ".delay-manager." + uniqueId, prefix + " " + Global.Lang.Get("G_Delay"))
-                        .SetValue(new Slider(value, min, max)));
+                    new MenuItem(menu.Name + ".delay-manager." + uniqueId, prefix + " Delay").SetValue(
+                        new Slider(value, min, max)));
 
                 Menues[uniqueId] = menu;
             }
