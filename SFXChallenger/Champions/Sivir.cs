@@ -29,7 +29,6 @@ using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Abstracts;
 using SFXChallenger.Enumerations;
-using SFXChallenger.Events;
 using SFXChallenger.Helpers;
 using SFXChallenger.Library;
 using SFXChallenger.Library.Logger;
@@ -61,14 +60,14 @@ namespace SFXChallenger.Champions
         protected override void OnLoad()
         {
             Core.OnPostUpdate += OnCorePostUpdate;
-            TargetSpellManager.OnEnemyTargetCast += OnEnemyTargetCast;
+            Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
             Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
         }
 
         protected override void OnUnload()
         {
             Core.OnPostUpdate -= OnCorePostUpdate;
-            TargetSpellManager.OnEnemyTargetCast -= OnEnemyTargetCast;
+            Obj_AI_Base.OnProcessSpellCast -= OnObjAiBaseProcessSpellCast;
             Orbwalking.AfterAttack -= OnOrbwalkingAfterAttack;
         }
 
@@ -105,10 +104,9 @@ namespace SFXChallenger.Champions
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".r", Global.Lang.Get("G_UseR")).SetValue(false));
 
             var shieldMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("Sivir_Shield"), Menu.Name + ".shield"));
-            TargetSpellManager.AddToMenu(
+            SpellBlockManager.AddToMenu(
                 shieldMenu.AddSubMenu(new Menu(Global.Lang.Get("G_Whitelist"), shieldMenu.Name + ".whitelist")), false,
-                true);
-            ManaManager.AddToMenu(shieldMenu, "shield", ManaCheckType.Minimum, ManaValueType.Percent, null, 0);
+                true, false);
             shieldMenu.AddItem(new MenuItem(shieldMenu.Name + ".enabled", Global.Lang.Get("G_Enabled")).SetValue(true));
 
             var miscMenu = Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Miscellaneous"), Menu.Name + ".miscellaneous"));
@@ -132,44 +130,56 @@ namespace SFXChallenger.Champions
             R = new Spell(SpellSlot.R, 1100f);
         }
 
-        private void OnEnemyTargetCast(object sender, TargetCastArgs args)
+        // Credits: Trees
+        private void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            try
+            if (sender == null || !sender.IsValid || !Menu.Item(Menu.Name + ".shield.enabled").GetValue<bool>())
             {
-                if (Menu.Item(Menu.Name + ".shield.enabled").GetValue<bool>() && args.Target.IsMe &&
-                    ManaManager.Check("shield"))
+                return;
+            }
+
+            var type = args.SData.TargettingType;
+            var unit = sender as Obj_AI_Hero;
+            if (unit == null || !unit.IsEnemy)
+            {
+                return;
+            }
+
+            Utility.DelayAction.Add(
+                50, () =>
                 {
-                    if (args.Type == SpellDataTargetType.SelfAoe)
+                    var blockableSpell = SpellBlockManager.Contains(unit, args, false);
+                    if (!blockableSpell || args.SData.IsAutoAttack())
+                    {
+                        return;
+                    }
+                    if ((type == SpellDataTargetType.Unit || type == SpellDataTargetType.SelfAndUnit) &&
+                        args.Target != null && args.Target.IsMe)
                     {
                         E.Cast();
                     }
-                    if (args.Type == SpellDataTargetType.Unit && args.Target != null && args.Target.IsMe)
+                    else if (unit.ChampionName.Equals("Riven") && unit.Distance(Player) < 400)
                     {
-                        var delay = (int) (Utils.SpellArrivalTime(args.Sender, Player, args.Delay, args.Speed, true)) *
-                                    1000;
-                        var ping = Game.Ping / 2000;
-                        if (delay - 200 - ping > 0)
+                        E.Cast();
+                    }
+                    else if (unit.ChampionName.Equals("Bard") && type.Equals(SpellDataTargetType.Location) &&
+                             args.End.Distance(Player.ServerPosition) < 300)
+                    {
+                        Utility.DelayAction.Add(400 + (int) (unit.Distance(Player) / 7f), () => E.Cast());
+                    }
+                    else if (type.Equals(SpellDataTargetType.SelfAoe) &&
+                             unit.Distance(Player.ServerPosition) < args.SData.CastRange + args.SData.CastRadius / 2)
+                    {
+                        E.Cast();
+                    }
+                    else if (type.Equals(SpellDataTargetType.Self))
+                    {
+                        if (unit.ChampionName.Equals("Zed") && Player.Distance(unit) < 300)
                         {
-                            Utility.DelayAction.Add(
-                                delay - 100 - ping, delegate
-                                {
-                                    if (E.IsReady())
-                                    {
-                                        E.Cast();
-                                    }
-                                });
-                        }
-                        else if (E.IsReady())
-                        {
-                            E.Cast();
+                            Utility.DelayAction.Add(200, () => E.Cast());
                         }
                     }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
+                });
         }
 
         private void OnCorePostUpdate(EventArgs args)

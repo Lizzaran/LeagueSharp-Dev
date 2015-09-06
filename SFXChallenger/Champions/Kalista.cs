@@ -66,7 +66,6 @@ namespace SFXChallenger.Champions
 
         protected override void OnLoad()
         {
-            //Obj_AI_Base.OnBuffAdd += OnObjAiBaseBuffAdd; Bug: Bugsplatting
             Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
             Spellbook.OnCastSpell += OnSpellbookCastSpell;
             Orbwalking.OnNonKillableMinion += OnOrbwalkingNonKillableMinion;
@@ -83,7 +82,6 @@ namespace SFXChallenger.Champions
 
         protected override void OnUnload()
         {
-            //Obj_AI_Base.OnBuffAdd -= OnObjAiBaseBuffAdd;
             Obj_AI_Base.OnProcessSpellCast -= OnObjAiBaseProcessSpellCast;
             Spellbook.OnCastSpell -= OnSpellbookCastSpell;
             Orbwalking.OnNonKillableMinion -= OnOrbwalkingNonKillableMinion;
@@ -204,63 +202,6 @@ namespace SFXChallenger.Champions
             E = new Spell(SpellSlot.E, 1000f);
 
             R = new Spell(SpellSlot.R, 1200f);
-        }
-
-        private void OnObjAiBaseBuffAdd(Obj_AI_Base sender, Obj_AI_BaseBuffAddEventArgs args)
-        {
-            try
-            {
-                if (args.Buff.Caster.IsMe && sender.IsAlly &&
-                    args.Buff.Name.Equals("kalistapaltarbuff", StringComparison.OrdinalIgnoreCase))
-                {
-                    var hero = sender as Obj_AI_Hero;
-                    if (hero != null)
-                    {
-                        SoulBound.Unit = hero;
-                    }
-                }
-                var target = sender as Obj_AI_Hero;
-                if (target != null)
-                {
-                    if (SoulBound.Unit != null && sender.IsEnemy &&
-                        args.Buff.Caster.NetworkId == SoulBound.Unit.NetworkId && args.Buff.IsActive &&
-                        SoulBound.Unit.Distance(Player) < R.Range && R.IsReady())
-                    {
-                        if (args.Buff.Name.Equals("rocketgrab2", StringComparison.OrdinalIgnoreCase))
-                        {
-                            if (Menu.Item(Menu.Name + ".ultimate.blitzcrank.r").GetValue<bool>() &&
-                                !HeroListManager.Check("blitzcrank", target))
-                            {
-                                if (!SoulBound.Unit.UnderTurret(false) && SoulBound.Unit.Distance(sender) > 750f &&
-                                    SoulBound.Unit.Distance(Player) > R.Range / 3f)
-                                {
-                                    R.Cast();
-                                }
-                            }
-                        }
-                        else if (args.Buff.Name.Equals("tahmkenchwdevoured", StringComparison.OrdinalIgnoreCase))
-                        {
-                            if (Menu.Item(Menu.Name + ".ultimate.tahm-kench.r").GetValue<bool>() &&
-                                !HeroListManager.Check("tahm-kench", target))
-                            {
-                                if (!SoulBound.Unit.UnderTurret(false) &&
-                                    (SoulBound.Unit.Distance(sender) > Player.AttackRange ||
-                                     GameObjects.AllyHeroes.Where(
-                                         a => a.NetworkId != SoulBound.Unit.NetworkId && a.NetworkId != Player.NetworkId)
-                                         .Any(t => t.Distance(Player) > 600) ||
-                                     GameObjects.AllyTurrets.Any(t => t.Distance(Player) < 600)))
-                                {
-                                    R.Cast();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
         }
 
         private void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
@@ -454,6 +395,62 @@ namespace SFXChallenger.Champions
                                     b =>
                                         b.Caster.IsMe &&
                                         b.Name.Equals("kalistacoopstrikeally", StringComparison.OrdinalIgnoreCase)));
+                }
+                if (SoulBound.Unit != null && SoulBound.Unit.Distance(Player) < R.Range && R.IsReady())
+                {
+                    var blitz = Menu.Item(Menu.Name + ".ultimate.blitzcrank.r").GetValue<bool>();
+                    var tahm = Menu.Item(Menu.Name + ".ultimate.tahm-kench.r").GetValue<bool>();
+                    foreach (
+                        var enemy in
+                            GameObjects.EnemyHeroes.Where(
+                                e => (blitz || tahm) && !e.IsDead && e.Distance(Player) < 3000))
+                    {
+                        if (blitz)
+                        {
+                            var blitzBuff =
+                                enemy.Buffs.FirstOrDefault(
+                                    b =>
+                                        b.IsActive && b.Caster.NetworkId.Equals(SoulBound.Unit.NetworkId) &&
+                                        b.Name.Equals("rocketgrab2", StringComparison.OrdinalIgnoreCase));
+                            if (blitzBuff != null)
+                            {
+                                if (!HeroListManager.Check("blitzcrank", enemy))
+                                {
+                                    if (!SoulBound.Unit.UnderTurret(false) && SoulBound.Unit.Distance(enemy) > 750f &&
+                                        SoulBound.Unit.Distance(Player) > R.Range / 3f)
+                                    {
+                                        R.Cast();
+                                    }
+                                }
+                                return;
+                            }
+                        }
+                        if (tahm)
+                        {
+                            var tahmBuff =
+                                enemy.Buffs.FirstOrDefault(
+                                    b =>
+                                        b.IsActive && b.Caster.NetworkId.Equals(SoulBound.Unit.NetworkId) &&
+                                        b.Name.Equals("tahmkenchwdevoured", StringComparison.OrdinalIgnoreCase));
+                            if (tahmBuff != null)
+                            {
+                                if (!HeroListManager.Check("tahm-kench", enemy))
+                                {
+                                    if (!SoulBound.Unit.UnderTurret(false) &&
+                                        (SoulBound.Unit.Distance(enemy) > Player.AttackRange ||
+                                         GameObjects.AllyHeroes.Where(
+                                             a =>
+                                                 a.NetworkId != SoulBound.Unit.NetworkId &&
+                                                 a.NetworkId != Player.NetworkId).Any(t => t.Distance(Player) > 600) ||
+                                         GameObjects.AllyTurrets.Any(t => t.Distance(Player) < 600)))
+                                    {
+                                        R.Cast();
+                                    }
+                                }
+                                return;
+                            }
+                        }
+                    }
                 }
             }
             catch (Exception ex)

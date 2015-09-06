@@ -153,14 +153,6 @@
   <entry key="MH_VeryHigh">Very High</entry>
   <!-- END: Hitchance -->
 
-  <!-- START: OverkillManager -->
-  <entry key="F_MO">Overkill Check</entry>
-  <!-- END: OverkillManager -->
-
-  <!-- START: SpellQueueManager -->
-  <entry key="F_MSQ">Spell Queue</entry>
-  <!-- END: SpellQueueManager -->
-
   <!-- START: InitiatorManager -->
   <entry key="F_IM">Initiator</entry>
   <!-- END: InitiatorManager -->

@@ -147,7 +147,7 @@
     <Compile Include="Managers\KillstealManager.cs" />
     <Compile Include="Managers\HealthManager.cs" />
     <Compile Include="Managers\OverkillManager.cs" />
-    <Compile Include="Managers\TargetSpellManager.cs" />
+    <Compile Include="Managers\SpellBlockManager.cs" />
     <Compile Include="Managers\UltimateManager.cs" />
     <Compile Include="Menus\DebugMenu.cs" />
     <Compile Include="Menus\InfoMenu.cs" />

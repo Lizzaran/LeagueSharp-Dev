@@ -1,4 +1,4 @@
-SFXUtility
+SFXUtility & SFXChallenger
 ===========
 
 License

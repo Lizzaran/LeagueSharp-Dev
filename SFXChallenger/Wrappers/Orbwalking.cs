@@ -587,7 +587,6 @@ namespace SFXChallenger.Wrappers
         {
             private const float LaneClearWaitTimeMod = 2f;
             private static Menu _config;
-            public static List<Orbwalker> Instances = new List<Orbwalker>();
             private Obj_AI_Base _forcedTarget;
             private OrbwalkingMode _mode = OrbwalkingMode.None;
             private Vector3 _orbwalkingPoint;
@@ -743,7 +742,6 @@ namespace SFXChallenger.Wrappers
 
                 Game.OnUpdate += GameOnOnGameUpdate;
                 Drawing.OnDraw += DrawingOnOnDraw;
-                Instances.Add(this);
             }
 
             private int FarmDelay

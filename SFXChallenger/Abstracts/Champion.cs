@@ -288,7 +288,7 @@ namespace SFXChallenger.Abstracts
             {
                 SFXMenu = new Menu(Global.Name, "sfx", true);
 
-                Menu = SFXMenu.AddSubMenu(new Menu(Player.ChampionName, "." + Player.ChampionName));
+                Menu = SFXMenu.AddSubMenu(new Menu(Player.ChampionName, /*SFXMenu.Name +*/ "." + Player.ChampionName));
 
                 DrawingManager.AddToMenu(
                     Menu.AddSubMenu(new Menu(Global.Lang.Get("G_Drawing"), Menu.Name + ".drawing")), this);
