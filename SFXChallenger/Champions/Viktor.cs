@@ -411,6 +411,17 @@ namespace SFXChallenger.Champions
                         }
                     }
                 }
+                else
+                {
+                    if ((args.Target is Obj_AI_Hero) &&
+                        (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
+                         Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed) &&
+                        (Q.IsReady() && Player.Mana >= Q.Instance.ManaCost ||
+                         E.IsReady() && Player.Mana >= E.Instance.ManaCost))
+                    {
+                        args.Process = false;
+                    }
+                }
                 if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit ||
                     Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
                 {
