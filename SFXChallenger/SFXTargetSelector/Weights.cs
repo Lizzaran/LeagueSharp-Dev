@@ -439,7 +439,8 @@ namespace SFXChallenger.SFXTargetSelector
         {
             var target = targets.FirstOrDefault();
             if (target != null &&
-                TargetSelector.IsValidTarget(target.Hero, ForceFocus ? Range : range, damageType, ignoreShields, from))
+                TargetSelector.IsValidTarget(
+                    target.Hero, ForceFocus ? Math.Max(range, Range) : range, damageType, ignoreShields, from))
             {
                 return new List<Targets.Item> { target };
             }

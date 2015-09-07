@@ -98,12 +98,12 @@ namespace SFXChallenger.Champions
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q-always", "Q " + "Always").SetValue(false));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q-stacks", "Q " + "Stacks >="))
                 .SetValue(new Slider(3, 1, 3));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q-min", "Q " + "Min").SetValue(new Slider(3, 1, 3)));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q-min", "Q Min").SetValue(new Slider(3, 1, 3)));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", "Use Q").SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e-always", "E " + "Always").SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e-stacks", "E " + "Stacks >="))
                 .SetValue(new Slider(3, 1, 3));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e-min", "E " + "Min").SetValue(new Slider(3, 1, 3)));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e-min", "E Min").SetValue(new Slider(3, 1, 3)));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", "Use E").SetValue(true));
 
             var harassMenu = Menu.AddSubMenu(new Menu("Harass", Menu.Name + ".harass"));
@@ -117,12 +117,12 @@ namespace SFXChallenger.Champions
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q-always", "Q " + "Always").SetValue(false));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q-stacks", "Q " + "Stacks >="))
                 .SetValue(new Slider(3, 1, 3));
-            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q-min", "Q " + "Min").SetValue(new Slider(3, 1, 3)));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q-min", "Q Min").SetValue(new Slider(3, 1, 3)));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", "Use Q").SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e-always", "E " + "Always").SetValue(false));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e-stacks", "E " + "Stacks >="))
                 .SetValue(new Slider(3, 1, 3));
-            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e-min", "E " + "Min").SetValue(new Slider(3, 1, 3)));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e-min", "E Min").SetValue(new Slider(3, 1, 3)));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", "Use E").SetValue(true));
 
             var laneclearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));

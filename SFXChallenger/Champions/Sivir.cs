@@ -91,10 +91,8 @@ namespace SFXChallenger.Champions
             var laneclearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
             ManaManager.AddToMenu(laneclearMenu, "lane-clear-q", ManaCheckType.Minimum, ManaValueType.Percent, "Q");
             ManaManager.AddToMenu(laneclearMenu, "lane-clear-w", ManaCheckType.Minimum, ManaValueType.Percent, "W");
-            laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".q-min", "Q " + "Min").SetValue(new Slider(3, 1, 5)));
-            laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".w-min", "W " + "Min").SetValue(new Slider(3, 1, 5)));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q-min", "Q Min").SetValue(new Slider(3, 1, 5)));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w-min", "W Min").SetValue(new Slider(3, 1, 5)));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", "Use W").SetValue(true));
 

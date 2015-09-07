@@ -86,7 +86,8 @@ namespace SFXChallenger.Wrappers
         {
             "jarvanivcataclysmattack", "monkeykingdoubleattack",
             "shyvanadoubleattack", "shyvanadoubleattackdragon", "zyragraspingplantattack", "zyragraspingplantattack2",
-            "zyragraspingplantattackfire", "zyragraspingplantattack2fire", "viktorpowertransfer", "sivirwattackbounce"
+            "zyragraspingplantattackfire", "zyragraspingplantattack2fire", "viktorpowertransfer", "sivirwattackbounce",
+            "elisespiderlingbasicattack"
         };
 
         //Spells that are attacks even if they dont have the "attack" word in their name.

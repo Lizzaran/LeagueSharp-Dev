@@ -95,7 +95,7 @@ namespace SFXChallenger.Champions
 
         protected override void AddToMenu()
         {
-            DrawingManager.Add("E " + "Max", MaxERange);
+            DrawingManager.Add("E Max", MaxERange);
 
             var comboMenu = Menu.AddSubMenu(new Menu("Combo", Menu.Name + ".combo"));
             HitchanceManager.AddToMenu(
@@ -119,8 +119,7 @@ namespace SFXChallenger.Champions
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
             ManaManager.AddToMenu(laneclearMenu, "lane-clear-e", ManaCheckType.Minimum, ManaValueType.Percent);
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", "Use E").SetValue(true));
-            laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".e-min", "E " + "Min").SetValue(new Slider(3, 1, 5)));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e-min", "E Min").SetValue(new Slider(3, 1, 5)));
 
             var lasthitMenu = Menu.AddSubMenu(new Menu("Lasthit", Menu.Name + ".lasthit"));
             ManaManager.AddToMenu(lasthitMenu, "lasthit", ManaCheckType.Minimum, ManaValueType.Percent);
@@ -412,17 +411,6 @@ namespace SFXChallenger.Champions
                         }
                     }
                 }
-                else
-                {
-                    if ((args.Target is Obj_AI_Hero) &&
-                        (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
-                         Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed) &&
-                        (Q.IsReady() && Player.Mana >= Q.Instance.ManaCost ||
-                         E.IsReady() && Player.Mana >= E.Instance.ManaCost))
-                    {
-                        args.Process = false;
-                    }
-                }
                 if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit ||
                     Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
                 {
@@ -537,7 +525,7 @@ namespace SFXChallenger.Champions
             var qCasted = false;
             if (e)
             {
-                var target = TargetSelector.GetTarget((MaxERange + E.Width) * 1.1f, E.DamageType);
+                var target = TargetSelector.GetTarget(MaxERange * 1.1f, E.DamageType);
                 if (target != null)
                 {
                     ELogic(target, GameObjects.EnemyHeroes.ToList(), E.GetHitChance("combo"));
@@ -910,10 +898,10 @@ namespace SFXChallenger.Champions
                             if (pred2.Hitchance >= hitChance)
                             {
                                 containsTarget = mainTarget == null || lTarget.NetworkId == mainTarget.NetworkId;
-                                var count = 1;
+                                var count = 0;
                                 var rect = new Geometry.Polygon.Rectangle(
                                     point, point.To3D().Extend(pred2.CastPosition, ELength).To2D(), E.Width);
-                                foreach (var c in targets.Where(t => t.NetworkId != lTarget.NetworkId))
+                                foreach (var c in targets)
                                 {
                                     input2.Unit = c;
                                     var cPredPos = c.Type == GameObjectType.obj_AI_Minion

@@ -20,6 +20,26 @@
 
 #endregion License
 
+///*
+// Copyright 2014 - 2015 Nikita Bernthaler
+// Corki.cs is part of SFXChallenger.
+
+// SFXChallenger is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// SFXChallenger is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with SFXChallenger. If not, see <http://www.gnu.org/licenses/>.
+//*/
+
+//#endregion License
+
 //#region
 
 //using System;
@@ -55,26 +75,16 @@
 //            get { return ItemUsageType.AfterAttack; }
 //        }
 
-//        protected override void OnLoad()
-//        {
+//        protected override void OnLoad() {}
 
-//        }
-
-//        protected override void OnUnload()
-//        {
-
-//        }
+//        protected override void OnUnload() {}
 
 //        protected override void AddToMenu()
 //        {
 //            var comboMenu = Menu.AddSubMenu(new Menu("Combo", Menu.Name + ".combo"));
 //            HitchanceManager.AddToMenu(
 //                comboMenu.AddSubMenu(new Menu("Hitchance", comboMenu.Name + ".hitchance")), "combo",
-//                new Dictionary<string, HitChance>
-//                {
-//                    { "Q", HitChance.VeryHigh },
-//                    { "R", HitChance.VeryHigh }
-//                });
+//                new Dictionary<string, HitChance> { { "Q", HitChance.VeryHigh }, { "R", HitChance.VeryHigh } });
 //            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", "Use Q").SetValue(true));
 //            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", "Use E").SetValue(true));
 //            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".r", "Use R").SetValue(true));
@@ -82,9 +92,7 @@
 //            var harassMenu = Menu.AddSubMenu(new Menu("Harass", Menu.Name + ".harass"));
 //            HitchanceManager.AddToMenu(
 //                harassMenu.AddSubMenu(new Menu("Hitchance", harassMenu.Name + ".hitchance")), "harass",
-//                new Dictionary<string, HitChance> {
-//                    { "Q", HitChance.High },
-//                    { "R", HitChance.High } });
+//                new Dictionary<string, HitChance> { { "Q", HitChance.High }, { "R", HitChance.High } });
 //            ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
 //            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", "Use Q").SetValue(true));
 //            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", "Use E").SetValue(false));
@@ -92,9 +100,7 @@
 
 //            var laneclearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
 //            ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
-//            laneclearMenu.AddItem(
-//                new MenuItem(laneclearMenu.Name + ".q-min", "Q " + "Min").SetValue(
-//                    new Slider(3, 1, 5)));
+//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q-min", "Q Min").SetValue(new Slider(3, 1, 5)));
 //            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
 //            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", "Use E").SetValue(true));
 //            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".r", "Use R").SetValue(true));
@@ -111,16 +117,16 @@
 
 //        protected override void SetupSpells()
 //        {
-//            Q = new Spell(SpellSlot.Q, 850f);
-//            Q.SetSkillshot(0.25f, 15f * (float)Math.PI / 180, 2000f, false, SkillshotType.SkillshotCone);
+//            Q = new Spell(SpellSlot.Q, 825f, DamageType.Magical);
+//            Q.SetSkillshot(0.40f, 250f, 1100f, false, SkillshotType.SkillshotCircle);
 
-//            W = new Spell(SpellSlot.W, 900f, DamageType.Magical);
-//            W.SetSkillshot(0.35f, 250f, 1650f, false, SkillshotType.SkillshotCircle);
+//            W = new Spell(SpellSlot.W, 800f, DamageType.Magical);
 
-//            E = new Spell(SpellSlot.E, 425f);
+//            E = new Spell(SpellSlot.E, 600f);
+//            E.SetSkillshot(0f, 35f * (float)Math.PI / 180, 2000f, false, SkillshotType.SkillshotCone);
 
-//            R = new Spell(SpellSlot.R, 1100f);
-//            R.SetSkillshot(0.25f, 110f, 2100f, false, SkillshotType.SkillshotLine);
+//            R = new Spell(SpellSlot.R, 1300f, DamageType.Magical);
+//            R.SetSkillshot(0.2f, 40f, 2000f, true, SkillshotType.SkillshotLine);
 //        }
 
 //        protected override void Combo()
@@ -228,7 +234,7 @@
 //                {
 //                    damage += R.GetDamage(target);
 //                }
-//                damage += 3 * (float)Player.GetAutoAttackDamage(target, true);
+//                damage += 3 * (float) Player.GetAutoAttackDamage(target, true);
 //                damage += ItemManager.CalculateComboDamage(target);
 //                damage += SummonerManager.CalculateComboDamage(target);
 //                return damage;
@@ -308,19 +314,6 @@
 //            }
 //        }
 
-//        protected override void Killsteal()
-//        {
-//            if (Menu.Item(Menu.Name + ".killsteal.q").GetValue<bool>() && Q.IsReady())
-//            {
-//                var fPredEnemy =
-//                    GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(Q.Range * 1.2f) && Q.IsKillable(e))
-//                        .Select(enemy => Q.GetPrediction(enemy, true))
-//                        .FirstOrDefault(pred => pred.Hitchance >= HitChance.High);
-//                if (fPredEnemy != null)
-//                {
-//                    Q.Cast(fPredEnemy.CastPosition);
-//                }
-//            }
-//        }
+//        protected override void Killsteal() {}
 //    }
 //}

@@ -70,7 +70,6 @@ namespace SFXChallenger.SFXTargetSelector
             public Item(Obj_AI_Hero hero)
             {
                 Hero = hero;
-                LastTargetSwitch = Game.Time;
                 LastVisibleChange = Game.Time;
                 Visible = false;
             }
@@ -79,7 +78,6 @@ namespace SFXChallenger.SFXTargetSelector
             public float Weight { get; set; }
             public float LastVisibleChange { get; set; }
             public bool Visible { get; set; }
-            public float LastTargetSwitch { get; set; }
         }
     }
 }

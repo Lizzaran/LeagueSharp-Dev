@@ -46,7 +46,6 @@ namespace SFXChallenger.SFXTargetSelector
     public static class TargetSelector
     {
         private static Menu _menu;
-        private static Targets.Item _lastTarget;
 
         static TargetSelector()
         {
@@ -54,11 +53,6 @@ namespace SFXChallenger.SFXTargetSelector
         }
 
         public static TargetSelectorModeType Mode { get; set; }
-
-        public static Obj_AI_Hero LastTarget
-        {
-            get { return _lastTarget != null ? _lastTarget.Hero : null; }
-        }
 
         internal static bool IsValidTarget(Obj_AI_Hero target,
             float range,
@@ -217,6 +211,8 @@ namespace SFXChallenger.SFXTargetSelector
                     return new List<Obj_AI_Hero> { selectedTarget };
                 }
 
+                range = Mode == TargetSelectorModeType.Weights && Weights.ForceFocus ? Weights.Range : range;
+
                 var targets =
                     Humanizer.FilterTargets(Targets.Items)
                         .Where(
@@ -237,8 +233,7 @@ namespace SFXChallenger.SFXTargetSelector
                         {
                             t = t.OrderByDescending(x => x.Hero.NetworkId.Equals(Selected.Target.NetworkId)).ToList();
                         }
-                        _lastTarget = t.First();
-                        _lastTarget.LastTargetSwitch = Game.Time;
+
                         return t.Select(h => h.Hero).ToList();
                     }
                 }

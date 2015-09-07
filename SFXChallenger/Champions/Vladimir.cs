@@ -95,8 +95,7 @@ namespace SFXChallenger.Champions
                 laneclearMenu, "lane-clear-e", HealthCheckType.Minimum, HealthValueType.Percent, "E");
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", "Use W").SetValue(true));
-            laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".e-min", "E " + "Min").SetValue(new Slider(3, 1, 5)));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e-min", "E Min").SetValue(new Slider(3, 1, 5)));
 
             var lasthitMenu = Menu.AddSubMenu(new Menu("Lasthit", Menu.Name + ".lasthit"));
             lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".q", "Use Q").SetValue(true));

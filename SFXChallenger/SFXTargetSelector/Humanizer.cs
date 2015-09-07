@@ -46,8 +46,6 @@ namespace SFXChallenger.SFXTargetSelector
                 var humanizerMenu = _mainMenu.AddSubMenu(new Menu("Humanizer", _mainMenu.Name + ".humanizer"));
                 humanizerMenu.AddItem(
                     new MenuItem(humanizerMenu.Name + ".fow", "FoW Delay").SetValue(new Slider(500, 0, 1500)));
-                humanizerMenu.AddItem(
-                    new MenuItem(humanizerMenu.Name + ".switch", "Switch Delay").SetValue(new Slider(500, 0, 1500)));
                 humanizerMenu.AddItem(new MenuItem(humanizerMenu.Name + ".enabled", "Enabled").SetValue(true));
             }
             catch (Exception ex)
@@ -65,21 +63,9 @@ namespace SFXChallenger.SFXTargetSelector
                 {
                     fowDelay = fowDelay / 1000f;
                 }
-                var switchDelay = (float) _mainMenu.Item(_mainMenu.Name + ".humanizer.fow").GetValue<Slider>().Value;
-                if (switchDelay > 0)
+                if (fowDelay > 0.0f)
                 {
-                    switchDelay = fowDelay / 1000f;
-                }
-                if (fowDelay > 0.0f || switchDelay > 0.0f)
-                {
-                    var lastTarget = Targets.Items.OrderByDescending(i => i.LastTargetSwitch).FirstOrDefault();
-                    return
-                        targets.Where(item => Game.Time - item.LastVisibleChange > fowDelay || fowDelay <= 0.0f)
-                            .Where(
-                                item =>
-                                    lastTarget == null || lastTarget.Hero.NetworkId.Equals(item.Hero.NetworkId) ||
-                                    (Selected.Target != null && Selected.Target.NetworkId.Equals(item.Hero.NetworkId)) ||
-                                    Game.Time - lastTarget.LastTargetSwitch > switchDelay || switchDelay <= 0.0f);
+                    return targets.Where(item => Game.Time - item.LastVisibleChange > fowDelay);
                 }
             }
             return targets;

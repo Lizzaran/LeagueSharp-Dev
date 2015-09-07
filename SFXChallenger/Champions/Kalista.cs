@@ -97,7 +97,8 @@ namespace SFXChallenger.Champions
                 new Dictionary<string, HitChance> { { "Q", HitChance.VeryHigh } });
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", "Use Q").SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", "Use E").SetValue(true));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e-min", "E " + "Min").SetValue(new Slider(10, 1, 20)));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e-min", "E Min.").SetValue(new Slider(10, 1, 20)));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".minions", "Attack Minions").SetValue(false));
 
             var harassMenu = Menu.AddSubMenu(new Menu("Harass", Menu.Name + ".harass"));
             HitchanceManager.AddToMenu(
@@ -107,23 +108,22 @@ namespace SFXChallenger.Champions
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", "Use Q").SetValue(true));
             ManaManager.AddToMenu(comboMenu, "harass-e", ManaCheckType.Minimum, ManaValueType.Percent, "E");
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", "Use E").SetValue(true));
-            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e-min", "E " + "Min").SetValue(new Slider(5, 1, 15)));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e-min", "E Min").SetValue(new Slider(5, 1, 15)));
 
             var laneclearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
             ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
             laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".q-min-1", "Q " + "Min" + " <= 4").SetValue(new Slider(2, 1, 5)));
+                new MenuItem(laneclearMenu.Name + ".q-min-1", "Q Min" + " <= 4").SetValue(new Slider(2, 1, 5)));
             laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".q-min-2", "Q " + "Min" + " <= 7").SetValue(new Slider(3, 1, 5)));
+                new MenuItem(laneclearMenu.Name + ".q-min-2", "Q Min" + " <= 7").SetValue(new Slider(3, 1, 5)));
             laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".q-min-3", "Q " + "Min" + " >= 10").SetValue(new Slider(5, 1, 5)));
+                new MenuItem(laneclearMenu.Name + ".q-min-3", "Q Min" + " >= 10").SetValue(new Slider(5, 1, 5)));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", "Use E").SetValue(false));
-            laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".e-min", "E " + "Min").SetValue(new Slider(2, 1, 5)));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e-min", "E Min").SetValue(new Slider(2, 1, 5)));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e-jungle", "E " + "Jungle").SetValue(true));
             laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".e-jungler-check", "E " + "[Kalista_JunglerChecks]").SetValue(true));
+                new MenuItem(laneclearMenu.Name + ".e-jungler-check", "E Jungler Checks").SetValue(true));
 
             var lasthitMenu = Menu.AddSubMenu(new Menu("Lasthit", Menu.Name + ".lasthit"));
             ManaManager.AddToMenu(lasthitMenu, "lasthit", ManaCheckType.Minimum, ManaValueType.Percent);
@@ -506,7 +506,7 @@ namespace SFXChallenger.Champions
                 }
             }
 
-            if (
+            if (Menu.Item(Menu.Name + ".combo.minions").GetValue<bool>() &&
                 !GameObjects.EnemyHeroes.Any(
                     e => e.IsValidTarget() && e.Distance(Player) < Orbwalking.GetRealAutoAttackRange(e) * 1.1f) &&
                 !Player.IsWindingUp && !Player.IsDashing())
@@ -688,8 +688,9 @@ namespace SFXChallenger.Champions
             try
             {
                 var objects =
-                    GameObjects.Enemy.Concat(GameObjects.Jungle)
+                    GameObjects.EnemyMinions.Concat(GameObjects.Jungle)
                         .Where(o => o.IsValidTarget(Orbwalking.GetRealAutoAttackRange(o)))
+                        .Select(o => o as Obj_AI_Base)
                         .ToList();
                 var apexPoint = ObjectManager.Player.ServerPosition.To2D() +
                                 (ObjectManager.Player.ServerPosition.To2D() - Game.CursorPos.To2D()).Normalized() *

@@ -70,7 +70,7 @@ namespace SFXChallenger.Managers
                 var ultimateMenu = menu.AddSubMenu(new Menu("Ultimate", menu.Name + ".ultimate"));
 
                 var uComboMenu = ultimateMenu.AddSubMenu(new Menu("Combo", ultimateMenu.Name + ".combo"));
-                uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".min", "R " + "Min").SetValue(new Slider(2, 1, 5)));
+                uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".min", "R Min").SetValue(new Slider(2, 1, 5)));
                 uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".duel", "Duel").SetValue(true));
                 uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".enabled", "Enabled").SetValue(true));
 
@@ -99,7 +99,7 @@ namespace SFXChallenger.Managers
                         }
                         HeroListManager.AddToMenu(autoGapcloserMenu, "ultimate-gapcloser", false, false, true, false);
                     }
-                    uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".min", "R " + "Min").SetValue(new Slider(3, 1, 5)));
+                    uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".min", "R Min").SetValue(new Slider(3, 1, 5)));
                     uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".duel", "Duel").SetValue(false));
                     uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".enabled", "Enabled").SetValue(true));
                 }
@@ -107,8 +107,7 @@ namespace SFXChallenger.Managers
                 if (flash)
                 {
                     var uFlashMenu = ultimateMenu.AddSubMenu(new Menu("Flash", ultimateMenu.Name + ".flash"));
-                    uFlashMenu.AddItem(
-                        new MenuItem(uFlashMenu.Name + ".min", "R " + "Min").SetValue(new Slider(3, 1, 5)));
+                    uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".min", "R Min").SetValue(new Slider(3, 1, 5)));
                     uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".duel", "Duel").SetValue(true));
                     uFlashMenu.AddItem(
                         new MenuItem(uFlashMenu.Name + ".hotkey", "Hotkey").SetValue(
@@ -121,7 +120,7 @@ namespace SFXChallenger.Managers
                 {
                     var uAssistedMenu = ultimateMenu.AddSubMenu(new Menu("Assisted", ultimateMenu.Name + ".assisted"));
                     uAssistedMenu.AddItem(
-                        new MenuItem(uAssistedMenu.Name + ".min", "R " + "Min").SetValue(new Slider(3, 1, 5)));
+                        new MenuItem(uAssistedMenu.Name + ".min", "R Min").SetValue(new Slider(3, 1, 5)));
                     uAssistedMenu.AddItem(new MenuItem(uAssistedMenu.Name + ".duel", "Duel").SetValue(true));
                     uAssistedMenu.AddItem(
                         new MenuItem(uAssistedMenu.Name + ".hotkey", "Hotkey").SetValue(
