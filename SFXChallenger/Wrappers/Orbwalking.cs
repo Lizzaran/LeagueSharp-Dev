@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Orbwalking.cs is part of SFXChallenger.
+ orbwalking.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -1019,7 +1019,7 @@ namespace SFXChallenger.Wrappers
                         !GameObjects.EnemyHeroes.Any(
                             e => e.IsValidTarget() && e.Distance(Player) < GetRealAutoAttackRange(e) * 1.2f))
                     {
-                        return minions.FirstOrDefault(m => !MinionManager.IsMinion(m, true));
+                        return minions.FirstOrDefault(m => !MinionManager.IsMinion(m, true) && m.Team != GameObjectTeam.Neutral);
                     }
                 }
 

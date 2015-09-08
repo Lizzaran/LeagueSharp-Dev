@@ -314,7 +314,7 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                var missile = sender as Obj_SpellMissile;
+                var missile = sender as MissileClient;
                 if (missile != null && missile.IsValid)
                 {
                     if (missile.SpellCaster != null && !missile.SpellCaster.IsAlly && missile.SData != null)
