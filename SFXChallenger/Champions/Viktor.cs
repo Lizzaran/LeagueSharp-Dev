@@ -867,13 +867,13 @@ namespace SFXChallenger.Champions
                             startPos = cCastPos;
                             if (IsSpellUpgraded(E))
                             {
-                                if (target.Path.Length > 0 && target.IsFacing(Player.ServerPosition, 120f))
+                                if (target.Path.Length > 0)
                                 {
-                                    startPos = target.ServerPosition.Extend(target.Path.First(), -(ELength / 9f));
+                                    startPos = target.ServerPosition.Extend(target.Path.First(), -50);
                                 }
                                 else if (target.IsFacing(Player))
                                 {
-                                    startPos = target.ServerPosition.Extend(Player.ServerPosition, -(ELength / 9f));
+                                    startPos = target.ServerPosition.Extend(Player.ServerPosition, -50);
                                 }
                                 else
                                 {
@@ -882,23 +882,20 @@ namespace SFXChallenger.Champions
                             }
                             if (startPos.Distance(Player.ServerPosition) > E.Range)
                             {
-                                startPos = target.ServerPosition.Distance(Player.ServerPosition) > E.Range
-                                    ? Player.ServerPosition.Extend(target.ServerPosition, E.Range)
-                                    : target.ServerPosition;
+                                startPos = Player.ServerPosition.Extend(startPos, E.Range);
                             }
                             if (target.Path.Length > 0)
                             {
-                                endPos = startPos.Extend(
-                                    (target.Path.Length > 0 ? target.Path.First() : cCastPos), ELength);
+                                endPos = startPos.Extend(target.Path.First(), ELength);
+                            }
+                            else if (target.IsFacing(Player))
+                            {
+                                endPos = startPos.Extend(Player.ServerPosition, ELength);
                             }
                             else
                             {
-                                endPos = target.IsFacing(Player)
-                                    ? startPos.Extend(Player.ServerPosition, ELength)
-                                    : Player.ServerPosition.Extend(
-                                        (startPos.Equals(cCastPos) ? target.ServerPosition : cCastPos),
-                                        (startPos.Equals(cCastPos) ? target.ServerPosition : cCastPos).Distance(
-                                            Player.ServerPosition) + ELength);
+                                endPos = Player.ServerPosition.Extend(
+                                    startPos, startPos.Distance(Player.ServerPosition) + ELength);
                             }
                             hits = 1;
                         }
@@ -914,11 +911,13 @@ namespace SFXChallenger.Champions
                         var circle =
                             new Geometry.Polygon.Circle(
                                 Player.ServerPosition, Math.Min(E.Range, unitPos.Distance(Player.ServerPosition)), 45)
-                                .Points.Where(p => p.Distance(unitPos) < ELength).OrderBy(p => p.Distance(lTarget));
+                                .Points.Where(p => p.Distance(unitPos) < ELength * 1.75f)
+                                .Select(p => p.To3D())
+                                .OrderBy(p => p.Distance(lTarget.ServerPosition));
                         foreach (var point in circle)
                         {
-                            input2.From = point.To3D();
-                            input2.RangeCheckFrom = point.To3D();
+                            input2.From = point;
+                            input2.RangeCheckFrom = point;
                             input2.Range = ELength;
                             var pred2 = Prediction.GetPrediction(input2);
                             if (pred2.Hitchance >= hitChance)
@@ -926,7 +925,7 @@ namespace SFXChallenger.Champions
                                 containsTarget = mainTarget == null || lTarget.NetworkId == mainTarget.NetworkId;
                                 var count = 1;
                                 var rect = new Geometry.Polygon.Rectangle(
-                                    point.To3D(), point.To3D().Extend(pred2.CastPosition, ELength), E.Width);
+                                    point, point.Extend(pred2.CastPosition, ELength), E.Width);
                                 foreach (var c in targets.Where(t => t.NetworkId != lTarget.NetworkId))
                                 {
                                     input2.Unit = c;
@@ -953,7 +952,7 @@ namespace SFXChallenger.Champions
                                      startPos.Distance(mainTarget.ServerPosition)) && containsTarget)
                                 {
                                     hits = count;
-                                    startPos = point.To3D();
+                                    startPos = point;
                                     endPos = startPos.Extend(pred2.CastPosition, ELength);
                                     if (hits == targetCount)
                                     {
