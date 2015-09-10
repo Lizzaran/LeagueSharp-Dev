@@ -295,11 +295,13 @@ namespace SFXChallenger.Managers
                 {
                     var killable = _menu.Item(_menu.Name + ".ultimate.force.combo-killable").GetValue<bool>();
                     var additional = _menu.Item(_menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value;
+                    var damageMulti =
+                        (_menu.Item(_menu.Name + ".ultimate.single.damage.percent").GetValue<Slider>().Value / 100f);
                     if (
                         hits.Any(
                             hit =>
                                 HeroListManager.Check("ultimate-force", hit) &&
-                                (!killable || calcDamage == null || calcDamage(hit) > hit.Health)) &&
+                                (!killable || calcDamage == null || calcDamage(hit) * damageMulti > hit.Health)) &&
                         hits.Count >= additional + 1)
                     {
                         return true;

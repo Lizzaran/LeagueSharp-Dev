@@ -333,7 +333,8 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (HasQBuff())
+                var forced = Orbwalker.ForcedTarget();
+                if (HasQBuff() && (forced == null || !forced.IsValidTarget()))
                 {
                     if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
                     {
@@ -416,17 +417,27 @@ namespace SFXChallenger.Champions
 
         private void OnOrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
         {
-            _lastAutoAttack = Game.Time;
-            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit ||
-                Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
+            try
             {
-                var bTarget = unit as Obj_AI_Base;
-                if (bTarget != null)
+                if (unit.IsMe)
                 {
-                    _lastAfterFarmTarget = bTarget;
+                    _lastAutoAttack = Game.Time;
+                    if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit ||
+                        Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
+                    {
+                        var bTarget = unit as Obj_AI_Base;
+                        if (bTarget != null)
+                        {
+                            _lastAfterFarmTarget = bTarget;
+                        }
+                    }
+                    Orbwalker.ForceTarget(null);
                 }
             }
-            Orbwalker.ForceTarget(null);
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         private void OnUnitDash(Obj_AI_Base sender, Dash.DashItem args)

@@ -111,18 +111,20 @@ namespace SFXChallenger.SFXTargetSelector
 
                 var prioritiesMenu = _mainMenu.AddSubMenu(new Menu("Priorities", _mainMenu.Name + ".priorities"));
 
-                var autoPriority = new MenuItem(prioritiesMenu.Name + ".auto", "Auto Priority").SetValue(false);
+                var autoPriority =
+                    new MenuItem(prioritiesMenu.Name + ".auto", "Auto Priority").SetShared().SetValue(false);
 
                 foreach (var enemy in Targets.Items)
                 {
                     var item =
                         new MenuItem(prioritiesMenu.Name + "." + enemy.Hero.ChampionName, enemy.Hero.ChampionName)
-                            .SetValue(new Slider(MinPriority, MinPriority, MaxPriority));
+                            .SetShared().SetValue(new Slider(MinPriority, MinPriority, MaxPriority));
                     prioritiesMenu.AddItem(item);
                     if (autoPriority.GetValue<bool>())
                     {
-                        item.SetValue(
-                            new Slider((int) GetDefaultPriority(enemy.Hero.ChampionName), MinPriority, MaxPriority));
+                        item.SetShared()
+                            .SetValue(
+                                new Slider((int) GetDefaultPriority(enemy.Hero.ChampionName), MinPriority, MaxPriority));
                     }
                 }
 
@@ -134,6 +136,7 @@ namespace SFXChallenger.SFXTargetSelector
                             foreach (var enemy in Targets.Items)
                             {
                                 _mainMenu.Item(prioritiesMenu.Name + "." + enemy.Hero.ChampionName)
+                                    .SetShared()
                                     .SetValue(
                                         new Slider(
                                             (int) GetDefaultPriority(enemy.Hero.ChampionName), MinPriority, MaxPriority));

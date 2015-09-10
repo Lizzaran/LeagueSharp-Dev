@@ -258,27 +258,28 @@ namespace SFXChallenger.SFXTargetSelector
                 var drawingMenu = _menu.AddSubMenu(new Menu("Drawings", menu.Name + ".drawing"));
 
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + ".circle-thickness", "Circle Thickness").SetValue(
-                        new Slider(2, 1, 10)));
+                    new MenuItem(drawingMenu.Name + ".circle-thickness", "Circle Thickness").SetShared()
+                        .SetValue(new Slider(2, 1, 10)));
 
                 Selected.AddToMenu(_menu, drawingMenu);
                 Weights.AddToMenu(_menu, drawingMenu);
                 Priorities.AddToMenu(_menu);
 
-                _menu.AddItem(new MenuItem(_menu.Name + ".focus", "Focus Selected Target").SetValue(true));
-                _menu.AddItem(new MenuItem(_menu.Name + ".force-focus", "Only Attack Selected Target").SetValue(false));
+                _menu.AddItem(new MenuItem(_menu.Name + ".focus", "Focus Selected Target").SetShared().SetValue(true));
+                _menu.AddItem(
+                    new MenuItem(_menu.Name + ".force-focus", "Only Attack Selected Target").SetShared().SetValue(false));
 
                 Humanizer.AddToMenu(_menu);
 
                 _menu.AddItem(
-                    new MenuItem(menu.Name + ".mode", "Mode").SetValue(
-                        new StringList(
-                            new[]
-                            {
-                                "Weigths", "Priorities", "Less Attacks To Kill", "Most Ability Power",
-                                "Most Attack Damage", "Closest", "Near Mouse", "Less Cast Priority", "Least Health"
-                            })))
-                    .ValueChanged +=
+                    new MenuItem(menu.Name + ".mode", "Mode").SetShared()
+                        .SetValue(
+                            new StringList(
+                                new[]
+                                {
+                                    "Weigths", "Priorities", "Less Attacks To Kill", "Most Ability Power",
+                                    "Most Attack Damage", "Closest", "Near Mouse", "Less Cast Priority", "Least Health"
+                                }))).ValueChanged +=
                     delegate(object sender, OnValueChangeEventArgs args)
                     {
                         Mode = GetModeByMenuValue(args.GetNewValue<StringList>().SelectedValue);

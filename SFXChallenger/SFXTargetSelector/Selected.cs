@@ -57,11 +57,11 @@ namespace SFXChallenger.SFXTargetSelector
                 var drawingSelectedMenu =
                     drawingMenu.AddSubMenu(new Menu("Selected Target", drawingMenu.Name + ".selected"));
                 drawingSelectedMenu.AddItem(
-                    new MenuItem(drawingSelectedMenu.Name + ".color", "Color").SetValue(Color.Aqua));
+                    new MenuItem(drawingSelectedMenu.Name + ".color", "Color").SetShared().SetValue(Color.Yellow));
                 drawingSelectedMenu.AddItem(
-                    new MenuItem(drawingSelectedMenu.Name + ".radius", "Radius").SetValue(new Slider(35)));
+                    new MenuItem(drawingSelectedMenu.Name + ".radius", "Radius").SetShared().SetValue(new Slider(35)));
                 drawingSelectedMenu.AddItem(
-                    new MenuItem(drawingSelectedMenu.Name + ".enabled", "Enabled").SetValue(true));
+                    new MenuItem(drawingSelectedMenu.Name + ".enabled", "Enabled").SetShared().SetValue(true));
 
                 Drawing.OnDraw += OnDrawingDraw;
             }

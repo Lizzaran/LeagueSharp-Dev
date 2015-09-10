@@ -40,6 +40,16 @@ namespace SFXChallenger.Managers
         private static readonly Dictionary<string, Tuple<Menu, bool, bool, bool>> Menues =
             new Dictionary<string, Tuple<Menu, bool, bool, bool>>();
 
+        public static Color WhitelistColor
+        {
+            get { return Color.SpringGreen; }
+        }
+
+        public static Color BlacklistColor
+        {
+            get { return new Color(255, 60, 60); }
+        }
+
         public static void AddToMenu(Menu menu,
             string uniqueId,
             bool whitelist,
@@ -57,7 +67,7 @@ namespace SFXChallenger.Managers
                         string.Format("HeroListManager: UniqueID \"{0}\" already exist.", uniqueId));
                 }
 
-                menu.Color = (whitelist ? Color.SpringGreen : new Color(214, 51, 51));
+                menu.Color = (whitelist ? WhitelistColor : BlacklistColor);
 
                 foreach (var hero in GameObjects.Heroes.Where(h => ally && h.IsAlly || enemy && h.IsEnemy))
                 {

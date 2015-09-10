@@ -44,7 +44,8 @@ namespace SFXChallenger.SFXTargetSelector
                 _mainMenu = mainMenu;
 
                 _mainMenu.AddItem(
-                    new MenuItem(_mainMenu.Name + ".fow", "Target Acquire Delay").SetValue(new Slider(400, 0, 1500)));
+                    new MenuItem(_mainMenu.Name + ".fow", "Target Acquire Delay").SetShared()
+                        .SetValue(new Slider(400, 0, 1500)));
             }
             catch (Exception ex)
             {

@@ -165,8 +165,8 @@ namespace SFXChallenger.SFXTargetSelector
                 {
                     var localItem = item;
                     _weightsMenu.AddItem(
-                        new MenuItem(_weightsMenu.Name + "." + item.Name, item.DisplayName).SetValue(
-                            new Slider(localItem.Weight, MinWeight, MaxWeight)));
+                        new MenuItem(_weightsMenu.Name + "." + item.Name, item.DisplayName).SetShared()
+                            .SetValue(new Slider(localItem.Weight, MinWeight, MaxWeight)));
                     _weightsMenu.Item(_weightsMenu.Name + "." + item.Name).ValueChanged +=
                         delegate(object sender, OnValueChangeEventArgs args)
                         {
@@ -182,17 +182,18 @@ namespace SFXChallenger.SFXTargetSelector
                     drawingWeightsMenu.AddSubMenu(
                         new Menu("Highest Weight Target", drawingWeightsMenu.Name + ".highest-target"));
                 drawingWeightsGroupMenu.AddItem(
-                    new MenuItem(drawingWeightsGroupMenu.Name + ".color", "Color").SetValue(Color.SpringGreen));
+                    new MenuItem(drawingWeightsGroupMenu.Name + ".color", "Color").SetShared()
+                        .SetValue(Color.SpringGreen));
                 drawingWeightsGroupMenu.AddItem(
-                    new MenuItem(drawingWeightsGroupMenu.Name + ".radius", "Radius").SetValue(new Slider(55)));
+                    new MenuItem(drawingWeightsGroupMenu.Name + ".radius", "Radius").SetShared()
+                        .SetValue(new Slider(55)));
                 drawingWeightsGroupMenu.AddItem(
-                    new MenuItem(drawingWeightsGroupMenu.Name + ".enabled", "Enabled").SetValue(true));
+                    new MenuItem(drawingWeightsGroupMenu.Name + ".enabled", "Enabled").SetShared().SetValue(true));
 
-                drawingWeightsMenu.AddItem(new MenuItem(drawingWeightsMenu.Name + ".simple", "Simple").SetValue(false));
                 drawingWeightsMenu.AddItem(
-                    new MenuItem(drawingWeightsMenu.Name + ".advanced", "Advanced").SetValue(false));
+                    new MenuItem(drawingWeightsMenu.Name + ".simple", "Simple").SetShared().SetValue(false));
                 drawingWeightsMenu.AddItem(
-                    new MenuItem(drawingWeightsMenu.Name + ".range-check", "Range Check").SetValue(true));
+                    new MenuItem(drawingWeightsMenu.Name + ".advanced", "Advanced").SetShared().SetValue(false));
 
                 Drawing.OnDraw += OnDrawingDraw;
             }
@@ -218,7 +219,6 @@ namespace SFXChallenger.SFXTargetSelector
                 var highestColor =
                     _mainMenu.Item(_mainMenu.Name + ".drawing.weights.highest-target.color").GetValue<Color>();
 
-                var weightsRangeCheck = _mainMenu.Item(_mainMenu.Name + ".drawing.weights.range-check").GetValue<bool>();
                 var weightsSimple = _mainMenu.Item(_mainMenu.Name + ".drawing.weights.simple").GetValue<bool>();
                 var weightsAdvanced = _mainMenu.Item(_mainMenu.Name + ".drawing.weights.advanced").GetValue<bool>();
 
@@ -228,17 +228,16 @@ namespace SFXChallenger.SFXTargetSelector
                 if ((highestEnabled || weightsSimple || weightsAdvanced) &&
                     TargetSelector.Mode == TargetSelectorModeType.Weights)
                 {
-                    var enemies =
-                        Targets.Items.Where(h => h.Hero.IsValidTarget(weightsRangeCheck ? Range : float.MaxValue))
-                            .ToList();
+                    var enemies = Targets.Items.Where(h => h.Hero.IsValidTarget(Range)).ToList();
                     foreach (var weight in Items.Where(w => w.Weight > 0))
                     {
                         UpdateMaxMinValue(weight, enemies, true);
                     }
                     Targets.Item bestTarget = null;
                     var bestTargetWeight = float.MinValue;
-                    foreach (var target in enemies.Where(e => e.Hero.Position.IsOnScreen()))
+                    foreach (var target in enemies)
                     {
+                        var onScreen = target.Hero.Position.IsOnScreen();
                         var position = Drawing.WorldToScreen(target.Hero.Position);
                         var totalWeight = 0f;
                         var offset = 0f;
@@ -258,7 +257,7 @@ namespace SFXChallenger.SFXTargetSelector
                                         lastWeight += Average * heroMultiplicator;
                                     }
                                 }
-                                if (weightsAdvanced)
+                                if (weightsAdvanced && onScreen)
                                 {
                                     Drawing.DrawText(
                                         position.X + target.Hero.BoundingRadius, position.Y - 100 + offset, Color.White,
@@ -268,7 +267,7 @@ namespace SFXChallenger.SFXTargetSelector
                                 totalWeight += lastWeight;
                             }
                         }
-                        if (weightsSimple)
+                        if (weightsSimple && onScreen)
                         {
                             Drawing.DrawText(
                                 target.Hero.HPBarPosition.X + 55f, target.Hero.HPBarPosition.Y - 20f, Color.White,
@@ -283,7 +282,7 @@ namespace SFXChallenger.SFXTargetSelector
                             }
                         }
                     }
-                    if (highestEnabled && bestTarget != null && enemies.Count >= 2)
+                    if (highestEnabled && bestTarget != null && enemies.Count(e => e.Hero.Position.IsOnScreen()) >= 2)
                     {
                         Render.Circle.DrawCircle(
                             bestTarget.Hero.Position, bestTarget.Hero.BoundingRadius + highestRadius, highestColor,

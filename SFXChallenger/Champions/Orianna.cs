@@ -37,6 +37,7 @@ using SFXChallenger.Library.Extensions.NET;
 using SFXChallenger.Library.Logger;
 using SFXChallenger.Managers;
 using SharpDX;
+using Color = System.Drawing.Color;
 using DamageType = SFXChallenger.Enumerations.DamageType;
 using MinionManager = SFXChallenger.Library.MinionManager;
 using MinionOrderTypes = SFXChallenger.Library.MinionOrderTypes;
@@ -122,7 +123,7 @@ namespace SFXChallenger.Champions
             var initiatorMenu = Menu.AddSubMenu(new Menu("Initiator", Menu.Name + ".initiator"));
             var initiatorWhitelistMenu =
                 initiatorMenu.AddSubMenu(new Menu("Whitelist", initiatorMenu.Name + ".whitelist"));
-            initiatorWhitelistMenu.Color = Color.SpringGreen;
+            initiatorWhitelistMenu.Color = HeroListManager.WhitelistColor;
             InitiatorManager.AddToMenu(initiatorWhitelistMenu, true, false);
             initiatorMenu.AddItem(new MenuItem(initiatorMenu.Name + ".use-e", "Use E").SetValue(true));
 
@@ -153,7 +154,7 @@ namespace SFXChallenger.Champions
 
             _ballPositionThickness = DrawingManager.Add("Ball Thickness", new Slider(7, 1, 10));
             _ballPositionRadius = DrawingManager.Add("Ball Radius", new Slider(95, 0, 300));
-            _ballPositionCircle = DrawingManager.Add("Ball Position", new Circle(false, System.Drawing.Color.Yellow));
+            _ballPositionCircle = DrawingManager.Add("Ball Position", new Circle(false, Color.Yellow));
 
             R.Width = Menu.Item(ultimateMenu.Name + ".width").GetValue<Slider>().Value;
         }
