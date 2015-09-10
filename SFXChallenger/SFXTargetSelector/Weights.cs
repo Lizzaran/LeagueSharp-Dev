@@ -186,13 +186,13 @@ namespace SFXChallenger.SFXTargetSelector
                 drawingWeightsGroupMenu.AddItem(
                     new MenuItem(drawingWeightsGroupMenu.Name + ".radius", "Radius").SetValue(new Slider(55)));
                 drawingWeightsGroupMenu.AddItem(
-                    new MenuItem(drawingWeightsGroupMenu.Name + ".enabled", "Enabled").SetValue(false));
+                    new MenuItem(drawingWeightsGroupMenu.Name + ".enabled", "Enabled").SetValue(true));
 
                 drawingWeightsMenu.AddItem(new MenuItem(drawingWeightsMenu.Name + ".simple", "Simple").SetValue(false));
                 drawingWeightsMenu.AddItem(
                     new MenuItem(drawingWeightsMenu.Name + ".advanced", "Advanced").SetValue(false));
                 drawingWeightsMenu.AddItem(
-                    new MenuItem(drawingWeightsMenu.Name + ".range-check", "Range Check").SetValue(false));
+                    new MenuItem(drawingWeightsMenu.Name + ".range-check", "Range Check").SetValue(true));
 
                 Drawing.OnDraw += OnDrawingDraw;
             }

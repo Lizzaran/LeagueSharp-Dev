@@ -869,11 +869,11 @@ namespace SFXChallenger.Champions
                                     startPos = cCastPos;
                                 }
                             }
-                            if (startPos.Distance(Player.Position) > ELength)
+                            if (startPos.Distance(Player.ServerPosition) > E.Range)
                             {
-                                startPos = target.Distance(Player.Position) > ELength
-                                    ? Player.Position.Extend(target.Position, ELength)
-                                    : target.Position;
+                                startPos = target.ServerPosition.Distance(Player.ServerPosition) > E.Range
+                                    ? Player.ServerPosition.Extend(target.ServerPosition, E.Range)
+                                    : target.ServerPosition;
                             }
                             if (target.Path.Length > 0)
                             {
@@ -959,6 +959,14 @@ namespace SFXChallenger.Champions
                 }
                 if (hits >= minHits && !startPos.Equals(Vector3.Zero) && !endPos.Equals(Vector3.Zero))
                 {
+                    if (startPos.Distance(Player.ServerPosition) > E.Range)
+                    {
+                        startPos = Player.ServerPosition.Extend(startPos, E.Range);
+                    }
+                    if (endPos.Distance(startPos) > ELength)
+                    {
+                        endPos = startPos.Extend(endPos, ELength);
+                    }
                     E.Cast(startPos, endPos);
                     return true;
                 }

@@ -78,8 +78,7 @@ namespace SFXChallenger.Managers
                     requiredComboMenu.AddItem(
                         new MenuItem(requiredComboMenu.Name + ".min", "Min. Required").SetValue(new Slider(1, 1, 5))
                             .DontSave());
-                    HeroListManager.AddToMenu(
-                        requiredComboMenu, "ultimate-required-combo", true, false, true, true, true, false);
+                    HeroListManager.AddToMenu(requiredComboMenu, "ultimate-required-combo", true, false, true, false);
                 }
                 uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".min", "Min. Hits").SetValue(new Slider(2, 1, 5)));
                 uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".single", "Single").SetValue(true));
@@ -95,8 +94,7 @@ namespace SFXChallenger.Managers
                         requiredAutoMenu.AddItem(
                             new MenuItem(requiredAutoMenu.Name + ".min", "Min. Required").SetValue(new Slider(1, 1, 5))
                                 .DontSave());
-                        HeroListManager.AddToMenu(
-                            requiredAutoMenu, "ultimate-required-auto", true, false, true, true, true, false);
+                        HeroListManager.AddToMenu(requiredAutoMenu, "ultimate-required-auto", true, false, true, false);
                     }
                     if (autoInterrupt)
                     {
@@ -313,12 +311,16 @@ namespace SFXChallenger.Managers
                     var minReq =
                         _menu.Item(_menu.Name + ".ultimate." + modeString + ".required.min").GetValue<Slider>().Value;
                     var enabledHeroes = HeroListManager.GetEnabledHeroes("ultimate-required-" + modeString);
-                    var count =
-                        enabledHeroes.Where(e => !e.IsDead && e.IsVisible && e.Distance(ObjectManager.Player) <= 2000)
-                            .Count(e => hits.Any(h => h.NetworkId.Equals(e.NetworkId)));
-                    if (count < minReq)
+                    if (minReq > 0 && enabledHeroes.Count > 0)
                     {
-                        return false;
+                        var count =
+                            enabledHeroes.Where(
+                                e => !e.IsDead && e.IsVisible && e.Distance(ObjectManager.Player) <= 2000)
+                                .Count(e => hits.Any(h => h.NetworkId.Equals(e.NetworkId)));
+                        if (count < minReq)
+                        {
+                            return false;
+                        }
                     }
                 }
 

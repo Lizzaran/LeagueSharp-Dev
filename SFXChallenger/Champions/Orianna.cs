@@ -122,13 +122,13 @@ namespace SFXChallenger.Champions
             var initiatorMenu = Menu.AddSubMenu(new Menu("Initiator", Menu.Name + ".initiator"));
             var initiatorWhitelistMenu =
                 initiatorMenu.AddSubMenu(new Menu("Whitelist", initiatorMenu.Name + ".whitelist"));
-            initiatorWhitelistMenu.Color = Color.Green;
+            initiatorWhitelistMenu.Color = Color.SpringGreen;
             InitiatorManager.AddToMenu(initiatorWhitelistMenu, true, false);
             initiatorMenu.AddItem(new MenuItem(initiatorMenu.Name + ".use-e", "Use E").SetValue(true));
 
             var shieldMenu = Menu.AddSubMenu(new Menu("Shield", Menu.Name + ".shield"));
             shieldMenu.AddItem(
-                new MenuItem(shieldMenu.Name + ".min-health", "Min. Health %").SetValue(new Slider(80, 1)));
+                new MenuItem(shieldMenu.Name + ".min-health", "Min. Health %").SetValue(new Slider(90, 1)));
             shieldMenu.AddItem(
                 new MenuItem(shieldMenu.Name + ".min-damage", "Min. Damage % Incoming").SetValue(new Slider(10, 1)));
             shieldMenu.AddItem(new MenuItem(shieldMenu.Name + ".enabled", "Enabled").SetValue(true));

@@ -602,13 +602,13 @@ namespace SFXChallenger.Wrappers
                     new MenuItem("CircleThickness", "Circle Thickness").SetShared().SetValue(new Slider(5, 1, 10)));
                 drawings.AddItem(
                     new MenuItem("AACircle", "AA Circle").SetShared()
-                        .SetValue(new Circle(true, Color.FromArgb(255, 255, 0, 255))));
+                        .SetValue(new Circle(false, Color.FromArgb(255, 255, 0, 255))));
                 drawings.AddItem(
                     new MenuItem("AACircle2", "Enemy AA Circle").SetShared()
                         .SetValue(new Circle(false, Color.FromArgb(255, 255, 0, 255))));
                 drawings.AddItem(
                     new MenuItem("HoldZone", "Hold Zone").SetShared()
-                        .SetValue(new Circle(true, Color.FromArgb(255, 255, 0, 255))));
+                        .SetValue(new Circle(false, Color.FromArgb(255, 255, 0, 255))));
                 _config.AddSubMenu(drawings);
 
                 var attackables = new Menu("Attackable Objects", "Attackables");
@@ -729,10 +729,10 @@ namespace SFXChallenger.Wrappers
                     new MenuItem("Farm", "Harass").SetShared().SetValue(new KeyBind('C', KeyBindType.Press)));
 
                 _config.AddItem(
-                    new MenuItem("LaneClear", "LaneClear").SetShared().SetValue(new KeyBind('V', KeyBindType.Press)));
+                    new MenuItem("LaneClear", "Lane Clear").SetShared().SetValue(new KeyBind('V', KeyBindType.Press)));
 
                 _config.AddItem(
-                    new MenuItem("Last Hit", "Last hit").SetShared().SetValue(new KeyBind('X', KeyBindType.Press)));
+                    new MenuItem("Last Hit", "Last Hit").SetShared().SetValue(new KeyBind('X', KeyBindType.Press)));
 
                 _config.AddItem(new MenuItem("Flee", "Flee").SetShared().SetValue(new KeyBind('Z', KeyBindType.Press)));
 

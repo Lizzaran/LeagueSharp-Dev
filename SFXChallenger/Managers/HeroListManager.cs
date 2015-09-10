@@ -57,7 +57,7 @@ namespace SFXChallenger.Managers
                         string.Format("HeroListManager: UniqueID \"{0}\" already exist.", uniqueId));
                 }
 
-                menu.Color = (whitelist ? Color.Green : Color.Red);
+                menu.Color = (whitelist ? Color.SpringGreen : new Color(214, 51, 51));
 
                 foreach (var hero in GameObjects.Heroes.Where(h => ally && h.IsAlly || enemy && h.IsEnemy))
                 {
