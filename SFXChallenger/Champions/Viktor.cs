@@ -807,10 +807,10 @@ namespace SFXChallenger.Champions
                 {
                     bool containsTarget;
                     var lTarget = target;
-                    if (target.Distance(Player.Position) <= E.Range)
+                    if (target.ServerPosition.Distance(Player.ServerPosition) <= E.Range)
                     {
                         containsTarget = mainTarget == null || lTarget.NetworkId == mainTarget.NetworkId;
-                        var cCastPos = target.Position;
+                        var cCastPos = target.ServerPosition;
                         foreach (var t in targets.Where(t => t.NetworkId != lTarget.NetworkId))
                         {
                             var count = 1;
@@ -867,13 +867,13 @@ namespace SFXChallenger.Champions
                             startPos = cCastPos;
                             if (IsSpellUpgraded(E))
                             {
-                                if (target.Path.Length > 0 && target.IsFacing(Player.Position, 120f))
+                                if (target.Path.Length > 0 && target.IsFacing(Player.ServerPosition, 120f))
                                 {
-                                    startPos = target.Position.Extend(target.Path.First(), -(ELength / 9f));
+                                    startPos = target.ServerPosition.Extend(target.Path.First(), -(ELength / 9f));
                                 }
                                 else if (target.IsFacing(Player))
                                 {
-                                    startPos = target.Position.Extend(Player.Position, -(ELength / 9f));
+                                    startPos = target.ServerPosition.Extend(Player.ServerPosition, -(ELength / 9f));
                                 }
                                 else
                                 {
@@ -894,11 +894,11 @@ namespace SFXChallenger.Champions
                             else
                             {
                                 endPos = target.IsFacing(Player)
-                                    ? startPos.Extend(Player.Position, ELength)
-                                    : Player.Position.Extend(
-                                        (startPos.Equals(cCastPos) ? target.Position : cCastPos),
-                                        (startPos.Equals(cCastPos) ? target.Position : cCastPos).Distance(
-                                            Player.Position) + ELength);
+                                    ? startPos.Extend(Player.ServerPosition, ELength)
+                                    : Player.ServerPosition.Extend(
+                                        (startPos.Equals(cCastPos) ? target.ServerPosition : cCastPos),
+                                        (startPos.Equals(cCastPos) ? target.ServerPosition : cCastPos).Distance(
+                                            Player.ServerPosition) + ELength);
                             }
                             hits = 1;
                         }
@@ -913,15 +913,15 @@ namespace SFXChallenger.Champions
                         }
                         var circle =
                             new Geometry.Polygon.Circle(
-                                Player.Position, Math.Min(E.Range, unitPos.Distance(Player.Position)), 45).Points.Where(
-                                    p => p.Distance(unitPos) < ELength).OrderBy(p => p.Distance(lTarget));
+                                Player.ServerPosition, Math.Min(E.Range, unitPos.Distance(Player.ServerPosition)), 45)
+                                .Points.Where(p => p.Distance(unitPos) < ELength).OrderBy(p => p.Distance(lTarget));
                         foreach (var point in circle)
                         {
                             input2.From = point.To3D();
                             input2.RangeCheckFrom = point.To3D();
                             input2.Range = ELength;
                             var pred2 = Prediction.GetPrediction(input2);
-                            if (pred2.Hitchance >= HitChance.High)
+                            if (pred2.Hitchance >= hitChance)
                             {
                                 containsTarget = mainTarget == null || lTarget.NetworkId == mainTarget.NetworkId;
                                 var count = 1;
@@ -949,8 +949,8 @@ namespace SFXChallenger.Champions
                                 }
                                 if ((count > hits ||
                                      count == hits && mainTarget != null &&
-                                     point.Distance(mainTarget.Position) < startPos.Distance(mainTarget.Position)) &&
-                                    containsTarget)
+                                     point.Distance(mainTarget.ServerPosition) <
+                                     startPos.Distance(mainTarget.ServerPosition)) && containsTarget)
                                 {
                                     hits = count;
                                     startPos = point.To3D();
