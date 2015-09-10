@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.7.7.3</AssemblyVersion>
+    <AssemblyVersion>0.7.7.18</AssemblyVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -107,6 +107,7 @@
     <Compile Include="Enumerations\TargetSelectorModeType.cs" />
     <Compile Include="Enumerations\TargetSelectorPriorityType.cs" />
     <Compile Include="Enumerations\DamageType.cs" />
+    <Compile Include="Enumerations\UltimateModeType.cs" />
     <Compile Include="Events\InitiatorArgs.cs" />
     <Compile Include="Events\TargetCastArgs.cs" />
     <Compile Include="Global.cs" />
@@ -150,7 +151,6 @@
     <Compile Include="Managers\UltimateManager.cs" />
     <Compile Include="Menus\DebugMenu.cs" />
     <Compile Include="Menus\InfoMenu.cs" />
-    <Compile Include="Menus\TickMenu.cs" />
     <Compile Include="Helpers\Casting.cs" />
     <Compile Include="Interfaces\IChampion.cs" />
     <Compile Include="Core.cs" />

@@ -28,11 +28,10 @@ using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Enumerations;
+using SFXChallenger.Helpers;
 using SFXChallenger.Library.Logger;
-using SFXChallenger.Wrappers;
 using SharpDX;
 using DamageType = SFXChallenger.Enumerations.DamageType;
-using Orbwalking = LeagueSharp.Common.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
 
 #endregion
@@ -54,6 +53,16 @@ namespace SFXChallenger.SFXTargetSelector
 
         public static TargetSelectorModeType Mode { get; set; }
 
+        public static bool ForceFocus
+        {
+            get { return _menu != null && _menu.Item(_menu.Name + ".force-focus").GetValue<bool>(); }
+        }
+
+        public static bool Focus
+        {
+            get { return _menu != null && _menu.Item(_menu.Name + ".focus").GetValue<bool>(); }
+        }
+
         internal static bool IsValidTarget(Obj_AI_Hero target,
             float range,
             DamageType damageType,
@@ -66,7 +75,7 @@ namespace SFXChallenger.SFXTargetSelector
                        target.Distance(
                            (from.Equals(default(Vector3)) ? ObjectManager.Player.ServerPosition : from), true) <
                        Math.Pow((range <= 0 ? Orbwalking.GetRealAutoAttackRange(target) : range), 2) &&
-                       !Invulnerable.HasBuff(target, damageType, ignoreShields);
+                       !Invulnerable.Check(target, damageType, ignoreShields);
             }
             catch (Exception ex)
             {
@@ -211,7 +220,7 @@ namespace SFXChallenger.SFXTargetSelector
                     return new List<Obj_AI_Hero> { selectedTarget };
                 }
 
-                range = Mode == TargetSelectorModeType.Weights && Weights.ForceFocus ? Weights.Range : range;
+                range = Mode == TargetSelectorModeType.Weights && ForceFocus ? Weights.Range : range;
 
                 var targets =
                     Humanizer.FilterTargets(Targets.Items)
@@ -223,17 +232,12 @@ namespace SFXChallenger.SFXTargetSelector
                 if (targets.Count > 0)
                 {
                     var t = GetOrderedChampions(targets).ToList();
-                    if (Mode == TargetSelectorModeType.Weights && Weights.ForceFocus)
-                    {
-                        t = Weights.FilterTargets(t, range, damageType, ignoreShields, from).ToList();
-                    }
                     if (t.Count > 0)
                     {
-                        if (Selected.Target != null && Selected.Focus && t.Count > 1)
+                        if (Selected.Target != null && Focus && t.Count > 1)
                         {
                             t = t.OrderByDescending(x => x.Hero.NetworkId.Equals(Selected.Target.NetworkId)).ToList();
                         }
-
                         return t.Select(h => h.Hero).ToList();
                     }
                 }
@@ -251,7 +255,7 @@ namespace SFXChallenger.SFXTargetSelector
             {
                 _menu = menu;
 
-                var drawingMenu = _menu.AddSubMenu(new Menu("Drawing", menu.Name + ".drawing"));
+                var drawingMenu = _menu.AddSubMenu(new Menu("Drawings", menu.Name + ".drawing"));
 
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + ".circle-thickness", "Circle Thickness").SetValue(
@@ -260,6 +264,10 @@ namespace SFXChallenger.SFXTargetSelector
                 Selected.AddToMenu(_menu, drawingMenu);
                 Weights.AddToMenu(_menu, drawingMenu);
                 Priorities.AddToMenu(_menu);
+
+                _menu.AddItem(new MenuItem(_menu.Name + ".focus", "Focus Selected Target").SetValue(true));
+                _menu.AddItem(new MenuItem(_menu.Name + ".force-focus", "Only Attack Selected Target").SetValue(false));
+
                 Humanizer.AddToMenu(_menu);
 
                 _menu.AddItem(

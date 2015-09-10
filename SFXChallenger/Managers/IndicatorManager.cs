@@ -56,14 +56,10 @@ namespace SFXChallenger.Managers
             {
                 _menu = subMenu ? menu.AddSubMenu(new Menu("Damage Indicator", menu.Name + ".indicator")) : menu;
 
-                var drawingMenu =
-                    _menu.AddSubMenu(
-                        new Menu(
-                            "Drawing", _menu.Name.Replace(ObjectManager.Player.ChampionName, string.Empty) + ".drawing"));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".color", "Color").SetValue(Color.Orange));
-                drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".opacity", "Opacity").SetValue(new Slider(60, 5)));
+                _menu.AddItem(new MenuItem(_menu.Name + ".color", "Color").SetValue(Color.Gold));
+                _menu.AddItem(new MenuItem(_menu.Name + ".opacity", "Opacity").SetValue(new Slider(85)));
 
-                _menu.AddItem(new MenuItem(_menu.Name + ".attacks", "Use AutoAttacks").SetValue(new Slider(2, 0, 10)));
+                _menu.AddItem(new MenuItem(_menu.Name + ".attacks", "Use Auto Attacks").SetValue(new Slider(0, 0, 10)));
 
                 Add("Items", hero => ItemManager.CalculateComboDamage(hero, false));
                 Add("Summoners", hero => SummonerManager.CalculateComboDamage(hero, false));
@@ -140,10 +136,8 @@ namespace SFXChallenger.Managers
                     {
                         return;
                     }
-                    var drawingName = _menu.Name.Replace(ObjectManager.Player.ChampionName, string.Empty);
-                    var color = _menu.Item(drawingName + ".drawing.color").GetValue<Color>();
-                    var alpha =
-                        (byte) (_menu.Item(drawingName + ".drawing.opacity").GetValue<Slider>().Value * 255 / 100);
+                    var color = _menu.Item(_menu.Name + ".color").GetValue<Color>();
+                    var alpha = (byte) (_menu.Item(_menu.Name + ".opacity").GetValue<Slider>().Value * 255 / 100);
                     var sharpColor = new ColorBGRA(color.R, color.G, color.B, alpha);
                     foreach (var unit in
                         GameObjects.EnemyHeroes.Where(
@@ -177,7 +171,7 @@ namespace SFXChallenger.Managers
             }
         }
 
-        public static void Add(string name, Func<Obj_AI_Hero, float> calcDamage)
+        public static void Add(string name, Func<Obj_AI_Hero, float> calcDamage, bool enabled = true)
         {
             try
             {
@@ -185,7 +179,7 @@ namespace SFXChallenger.Managers
                 {
                     return;
                 }
-                _menu.AddItem(new MenuItem(_menu.Name + "." + name, name).SetValue(false));
+                _menu.AddItem(new MenuItem(_menu.Name + "." + name, name).SetValue(enabled));
                 Functions.Add(name, calcDamage);
             }
             catch (Exception ex)
@@ -194,7 +188,7 @@ namespace SFXChallenger.Managers
             }
         }
 
-        public static void Add(Spell spell, bool readyCheck = true)
+        public static void Add(Spell spell, bool readyCheck = true, bool enabled = true)
         {
             try
             {
@@ -203,7 +197,7 @@ namespace SFXChallenger.Managers
                     return;
                 }
                 _menu.AddItem(
-                    new MenuItem(_menu.Name + "." + spell.Slot, spell.Slot.ToString().ToUpper()).SetValue(false));
+                    new MenuItem(_menu.Name + "." + spell.Slot, spell.Slot.ToString().ToUpper()).SetValue(enabled));
                 if (readyCheck)
                 {
                     Functions.Add(spell.Slot.ToString(), hero => spell.IsReady() ? spell.GetDamage(hero) : 0);

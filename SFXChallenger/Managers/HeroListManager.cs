@@ -29,6 +29,7 @@ using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Library;
 using SFXChallenger.Library.Logger;
+using SharpDX;
 
 #endregion
 
@@ -45,7 +46,8 @@ namespace SFXChallenger.Managers
             bool ally,
             bool enemy,
             bool defaultValue,
-            bool dontSave = false)
+            bool dontSave = false,
+            bool enabled = true)
         {
             try
             {
@@ -55,25 +57,25 @@ namespace SFXChallenger.Managers
                         string.Format("HeroListManager: UniqueID \"{0}\" already exist.", uniqueId));
                 }
 
-                menu.AddItem(
-                    new MenuItem(
-                        menu.Name + ".hero-list-" + uniqueId + ".header", (whitelist ? "Whitelist" : "Blacklist")));
+                menu.Color = (whitelist ? Color.Green : Color.Red);
 
                 foreach (var hero in GameObjects.Heroes.Where(h => ally && h.IsAlly || enemy && h.IsEnemy))
                 {
-                    var item =
-                        new MenuItem(
-                            menu.Name + ".hero-list-" + uniqueId + hero.ChampionName.ToLower(), hero.ChampionName)
-                            .SetValue(defaultValue);
-                    menu.AddItem(item);
+                    var item = new MenuItem(
+                        menu.Name + ".hero-list-" + uniqueId + hero.ChampionName.ToLower(), hero.ChampionName);
                     if (dontSave)
                     {
                         item.DontSave();
                     }
+                    menu.AddItem(item.SetValue(defaultValue));
                 }
 
-                menu.AddItem(new MenuItem(menu.Name + ".hero-list-" + uniqueId + ".enabled", "Enabled").SetValue(true));
-
+                var eItem = new MenuItem(menu.Name + ".hero-list-" + uniqueId + ".enabled", "Enabled");
+                if (dontSave)
+                {
+                    eItem.DontSave();
+                }
+                menu.AddItem(eItem.SetValue(enabled));
                 Menues[uniqueId] = new Tuple<Menu, bool, bool, bool>(menu, whitelist, ally, enemy);
             }
             catch (Exception ex)

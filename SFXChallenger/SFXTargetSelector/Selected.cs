@@ -48,36 +48,18 @@ namespace SFXChallenger.SFXTargetSelector
         public static float ClickBuffer { get; set; }
         public static Obj_AI_Hero Target { get; set; }
 
-        public static bool ForceFocus
-        {
-            get
-            {
-                return _mainMenu != null && _mainMenu.Item(_mainMenu.Name + ".selected.force-focus").GetValue<bool>();
-            }
-        }
-
-        public static bool Focus
-        {
-            get { return _mainMenu != null && _mainMenu.Item(_mainMenu.Name + ".selected.focus").GetValue<bool>(); }
-        }
-
         internal static void AddToMenu(Menu mainMenu, Menu drawingMenu)
         {
             try
             {
                 _mainMenu = mainMenu;
 
-                var selectedMenu = mainMenu.AddSubMenu(new Menu("Selected", mainMenu.Name + ".selected"));
-                selectedMenu.AddItem(new MenuItem(selectedMenu.Name + ".focus", "Focus Target").SetValue(true));
-                selectedMenu.AddItem(
-                    new MenuItem(selectedMenu.Name + ".force-focus", "Only Attack Target").SetValue(false));
-
                 var drawingSelectedMenu =
                     drawingMenu.AddSubMenu(new Menu("Selected Target", drawingMenu.Name + ".selected"));
                 drawingSelectedMenu.AddItem(
-                    new MenuItem(drawingSelectedMenu.Name + ".color", "Color").SetValue(Color.Red));
+                    new MenuItem(drawingSelectedMenu.Name + ".color", "Color").SetValue(Color.Aqua));
                 drawingSelectedMenu.AddItem(
-                    new MenuItem(drawingSelectedMenu.Name + ".radius", "Radius").SetValue(new Slider(50)));
+                    new MenuItem(drawingSelectedMenu.Name + ".radius", "Radius").SetValue(new Slider(35)));
                 drawingSelectedMenu.AddItem(
                     new MenuItem(drawingSelectedMenu.Name + ".enabled", "Enabled").SetValue(true));
 
@@ -93,7 +75,7 @@ namespace SFXChallenger.SFXTargetSelector
         {
             if (Target != null &&
                 TargetSelector.IsValidTarget(
-                    Target, ForceFocus ? float.MaxValue : range, damageType, ignoreShields, from))
+                    Target, TargetSelector.ForceFocus ? float.MaxValue : range, damageType, ignoreShields, from))
             {
                 return Target;
             }
@@ -109,7 +91,7 @@ namespace SFXChallenger.SFXTargetSelector
                     return;
                 }
 
-                if (Target != null && Target.IsValidTarget() && Target.Position.IsOnScreen() && Focus)
+                if (Target != null && Target.IsValidTarget() && Target.Position.IsOnScreen() && TargetSelector.Focus)
                 {
                     var selectedEnabled = _mainMenu.Item(_mainMenu.Name + ".drawing.selected.enabled").GetValue<bool>();
                     var selectedRadius =

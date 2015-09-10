@@ -52,7 +52,7 @@ namespace SFXChallenger.Managers
                 Menu = menu;
 
                 Menu.AddItem(
-                    new MenuItem(Menu.Name + ".circle-thickness", "Circle Thickness").SetValue(new Slider(2, 0, 10)));
+                    new MenuItem(Menu.Name + ".circle-thickness", "Circle Thickness").SetValue(new Slider(5, 1, 10)));
 
                 foreach (var spell in _champion.Spells.Where(s => s != null && s.Range > 0 && s.Range < 5000))
                 {
@@ -61,18 +61,19 @@ namespace SFXChallenger.Managers
                         Menu.AddItem(
                             new MenuItem(
                                 Menu.Name + "." + spell.Slot.ToString().ToLower() + "-min",
-                                spell.Slot.ToString().ToUpper() + " Min").SetValue(new Circle(false, Color.White)));
+                                spell.Slot.ToString().ToUpper() + " Min.").SetValue(
+                                    new Circle(false, Color.DeepSkyBlue)));
                         Menu.AddItem(
                             new MenuItem(
                                 Menu.Name + "." + spell.Slot.ToString().ToLower() + "-max",
-                                spell.Slot.ToString().ToUpper() + " Max").SetValue(new Circle(false, Color.White)));
+                                spell.Slot.ToString().ToUpper() + " Max").SetValue(new Circle(false, Color.DeepSkyBlue)));
                     }
                     else
                     {
                         Menu.AddItem(
                             new MenuItem(
                                 Menu.Name + "." + spell.Slot.ToString().ToLower(), spell.Slot.ToString().ToUpper())
-                                .SetValue(new Circle(false, Color.White)));
+                                .SetValue(new Circle(false, Color.DeepSkyBlue)));
                     }
                 }
             }
@@ -97,7 +98,7 @@ namespace SFXChallenger.Managers
                     throw new ArgumentException(string.Format("DrawingManager: Name \"{0}\" already exist.", name));
                 }
 
-                Menu.AddItem(new MenuItem(Menu.Name + "." + key, name).SetValue(new Circle(false, Color.White)));
+                Menu.AddItem(new MenuItem(Menu.Name + "." + key, name).SetValue(new Circle(false, Color.DeepSkyBlue)));
 
                 Customs[key] = range;
             }

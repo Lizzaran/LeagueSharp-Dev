@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXChallenger.Enumerations;
 using SFXChallenger.Library;
 using SFXChallenger.Library.Logger;
 
@@ -70,21 +71,41 @@ namespace SFXChallenger.Managers
                 var ultimateMenu = menu.AddSubMenu(new Menu("Ultimate", menu.Name + ".ultimate"));
 
                 var uComboMenu = ultimateMenu.AddSubMenu(new Menu("Combo", ultimateMenu.Name + ".combo"));
-                uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".min", "R Min").SetValue(new Slider(2, 1, 5)));
-                uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".duel", "Duel").SetValue(true));
+                if (required)
+                {
+                    var requiredComboMenu =
+                        uComboMenu.AddSubMenu(new Menu("Required Targets", uComboMenu.Name + ".required"));
+                    requiredComboMenu.AddItem(
+                        new MenuItem(requiredComboMenu.Name + ".min", "Min. Required").SetValue(new Slider(1, 1, 5))
+                            .DontSave());
+                    HeroListManager.AddToMenu(
+                        requiredComboMenu, "ultimate-required-combo", true, false, true, true, true, false);
+                }
+                uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".min", "Min. Hits").SetValue(new Slider(2, 1, 5)));
+                uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".single", "Single").SetValue(true));
                 uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".enabled", "Enabled").SetValue(true));
 
                 if (auto)
                 {
                     var uAutoMenu = ultimateMenu.AddSubMenu(new Menu("Auto", ultimateMenu.Name + ".auto"));
+                    if (required)
+                    {
+                        var requiredAutoMenu =
+                            uAutoMenu.AddSubMenu(new Menu("Required Targets", uAutoMenu.Name + ".required"));
+                        requiredAutoMenu.AddItem(
+                            new MenuItem(requiredAutoMenu.Name + ".min", "Min. Required").SetValue(new Slider(1, 1, 5))
+                                .DontSave());
+                        HeroListManager.AddToMenu(
+                            requiredAutoMenu, "ultimate-required-auto", true, false, true, true, true, false);
+                    }
                     if (autoInterrupt)
                     {
                         var autoInterruptMenu =
-                            uAutoMenu.AddSubMenu(new Menu("Interrupt Spell", uAutoMenu.Name + ".interrupt"));
+                            uAutoMenu.AddSubMenu(new Menu("Interrupt", uAutoMenu.Name + ".interrupt"));
                         if (interruptDelay)
                         {
                             DelayManager.AddToMenu(
-                                autoInterruptMenu, "ultimate-interrupt-delay", string.Empty, 250, 0, 1000);
+                                autoInterruptMenu, "ultimate-interrupt-delay", string.Empty, 0, 0, 500);
                         }
                         HeroListManager.AddToMenu(autoInterruptMenu, "ultimate-interrupt", false, false, true, false);
                     }
@@ -95,23 +116,24 @@ namespace SFXChallenger.Managers
                         if (gapcloserDelay)
                         {
                             DelayManager.AddToMenu(
-                                autoGapcloserMenu, "ultimate-gapcloser-delay", string.Empty, 250, 0, 1000);
+                                autoGapcloserMenu, "ultimate-gapcloser-delay", string.Empty, 0, 0, 500);
                         }
                         HeroListManager.AddToMenu(autoGapcloserMenu, "ultimate-gapcloser", false, false, true, false);
                     }
-                    uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".min", "R Min").SetValue(new Slider(3, 1, 5)));
-                    uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".duel", "Duel").SetValue(false));
+                    uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".min", "Min. Hits").SetValue(new Slider(3, 1, 5)));
+                    uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".single", "Single").SetValue(false));
                     uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".enabled", "Enabled").SetValue(true));
                 }
 
                 if (flash)
                 {
                     var uFlashMenu = ultimateMenu.AddSubMenu(new Menu("Flash", ultimateMenu.Name + ".flash"));
-                    uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".min", "R Min").SetValue(new Slider(3, 1, 5)));
-                    uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".duel", "Duel").SetValue(true));
+                    uFlashMenu.AddItem(
+                        new MenuItem(uFlashMenu.Name + ".min", "Min. Hits").SetValue(new Slider(1, 1, 5)));
+                    uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".single", "Single").SetValue(false));
                     uFlashMenu.AddItem(
                         new MenuItem(uFlashMenu.Name + ".hotkey", "Hotkey").SetValue(
-                            new KeyBind('U', KeyBindType.Press)));
+                            new KeyBind('Y', KeyBindType.Press)));
                     uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".move-cursor", "Move to Cursor").SetValue(true));
                     uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".enabled", "Enabled").SetValue(true));
                 }
@@ -120,84 +142,53 @@ namespace SFXChallenger.Managers
                 {
                     var uAssistedMenu = ultimateMenu.AddSubMenu(new Menu("Assisted", ultimateMenu.Name + ".assisted"));
                     uAssistedMenu.AddItem(
-                        new MenuItem(uAssistedMenu.Name + ".min", "R Min").SetValue(new Slider(3, 1, 5)));
-                    uAssistedMenu.AddItem(new MenuItem(uAssistedMenu.Name + ".duel", "Duel").SetValue(true));
+                        new MenuItem(uAssistedMenu.Name + ".min", "Min. Hits").SetValue(new Slider(1, 1, 5)));
+                    uAssistedMenu.AddItem(new MenuItem(uAssistedMenu.Name + ".single", "Single").SetValue(false));
                     uAssistedMenu.AddItem(
                         new MenuItem(uAssistedMenu.Name + ".hotkey", "Hotkey").SetValue(
-                            new KeyBind('R', KeyBindType.Press)));
+                            new KeyBind('T', KeyBindType.Press)));
                     uAssistedMenu.AddItem(
                         new MenuItem(uAssistedMenu.Name + ".move-cursor", "Move to Cursor").SetValue(true));
                     uAssistedMenu.AddItem(new MenuItem(uAssistedMenu.Name + ".enabled", "Enabled").SetValue(true));
                 }
 
-                var uDuelMenu = ultimateMenu.AddSubMenu(new Menu("Duel Settings", ultimateMenu.Name + ".duel"));
+                var uSingleMenu = ultimateMenu.AddSubMenu(new Menu("Single", ultimateMenu.Name + ".single"));
 
-                var uDuelAlliesMenu = uDuelMenu.AddSubMenu(new Menu("Allies", uDuelMenu.Name + ".allies"));
+                var uSingleAlliesMenu = uSingleMenu.AddSubMenu(new Menu("Allies", uSingleMenu.Name + ".allies"));
+                uSingleAlliesMenu.AddItem(
+                    new MenuItem(uSingleAlliesMenu.Name + ".min", "Min. Allies").SetValue(new Slider(0, 0, 4)));
+                uSingleAlliesMenu.AddItem(
+                    new MenuItem(uSingleAlliesMenu.Name + ".max", "Max. Allies").SetValue(new Slider(3, 0, 4)));
 
-                uDuelAlliesMenu.AddItem(
-                    new MenuItem(uDuelAlliesMenu.Name + ".range", "Max Allies Range").SetValue(
-                        new Slider(1500, 500, 3000)));
-                uDuelAlliesMenu.AddItem(
-                    new MenuItem(uDuelAlliesMenu.Name + ".min", "Min Allies").SetValue(new Slider(0, 0, 4)));
-                uDuelAlliesMenu.AddItem(
-                    new MenuItem(uDuelAlliesMenu.Name + ".max", "Max Allies").SetValue(new Slider(3, 0, 4)));
+                var uSingleEnemiesMenu = uSingleMenu.AddSubMenu(new Menu("Enemies", uSingleMenu.Name + ".enemies"));
+                uSingleEnemiesMenu.AddItem(
+                    new MenuItem(uSingleEnemiesMenu.Name + ".min", "Min. Enemies").SetValue(new Slider(1, 1, 5)));
+                uSingleEnemiesMenu.AddItem(
+                    new MenuItem(uSingleEnemiesMenu.Name + ".max", "Max. Enemies").SetValue(new Slider(1, 1, 5)));
 
-                var uDuelEnemiesMenu = uDuelMenu.AddSubMenu(new Menu("Enemies", uDuelMenu.Name + ".enemies"));
+                var uSingleTargetMenu = uSingleMenu.AddSubMenu(new Menu("Target", uSingleMenu.Name + ".target"));
 
-                uDuelEnemiesMenu.AddItem(
-                    new MenuItem(uDuelEnemiesMenu.Name + ".range", "Max Enemies Range").SetValue(
-                        new Slider(2500, 500, 3000)));
-                uDuelEnemiesMenu.AddItem(
-                    new MenuItem(uDuelEnemiesMenu.Name + ".min", "Min Enemies").SetValue(new Slider(1, 1, 5)));
-                uDuelEnemiesMenu.AddItem(
-                    new MenuItem(uDuelEnemiesMenu.Name + ".max", "Max Enemies").SetValue(new Slider(1, 1, 5)));
+                uSingleTargetMenu.AddItem(
+                    new MenuItem(uSingleTargetMenu.Name + ".min-health", "Min. Target Health %").SetValue(
+                        new Slider(20, 1)));
+                uSingleTargetMenu.AddItem(
+                    new MenuItem(uSingleTargetMenu.Name + ".max-health", "Max. Target Health %").SetValue(
+                        new Slider(100, 1)));
 
-                var uDuelTargetMenu = uDuelMenu.AddSubMenu(new Menu("Target", uDuelMenu.Name + ".target"));
+                var uSingleDamageMenu = uSingleMenu.AddSubMenu(new Menu("Damage", uSingleMenu.Name + ".damage"));
 
-                uDuelTargetMenu.AddItem(
-                    new MenuItem(uDuelTargetMenu.Name + ".min-health", "Min Target Health %").SetValue(
-                        new Slider(15, 10)));
-                uDuelTargetMenu.AddItem(
-                    new MenuItem(uDuelTargetMenu.Name + ".max-health", "Max Target Health %").SetValue(
-                        new Slider(100, 10)));
-
-                var uDuelDamageMenu = uDuelMenu.AddSubMenu(new Menu("Damage", uDuelMenu.Name + ".damage"));
-
-                uDuelDamageMenu.AddItem(
-                    new MenuItem(uDuelDamageMenu.Name + ".percent", "Combo Damage %").SetValue(new Slider(100, 1, 200)));
-
-                if (required)
-                {
-                    var uRequiredMenu =
-                        ultimateMenu.AddSubMenu(new Menu("Required Target", ultimateMenu.Name + ".required"));
-
-                    var requiredComboMenu = uRequiredMenu.AddSubMenu(new Menu("Combo", uRequiredMenu.Name + ".combo"));
-                    requiredComboMenu.AddItem(
-                        new MenuItem(requiredComboMenu.Name + ".min", "Min").SetValue(new Slider(0, 0, 5)).DontSave());
-                    HeroListManager.AddToMenu(
-                        requiredComboMenu, "ultimate-required-combo", true, false, true, false, true);
-
-                    var requiredAutoMenu = uRequiredMenu.AddSubMenu(new Menu("Auto", uRequiredMenu.Name + ".auto"));
-                    requiredAutoMenu.AddItem(
-                        new MenuItem(requiredAutoMenu.Name + ".min", "Min").SetValue(new Slider(0, 0, 5)).DontSave());
-                    HeroListManager.AddToMenu(
-                        requiredAutoMenu, "ultimate-required-auto", true, false, true, false, true);
-
-
-                    uRequiredMenu.AddItem(
-                        new MenuItem(uRequiredMenu.Name + ".range-check", "Range Check").SetValue(
-                            new Slider(2000, 1000, 3000)));
-                }
+                uSingleDamageMenu.AddItem(
+                    new MenuItem(uSingleDamageMenu.Name + ".percent", "Combo Damage %").SetValue(
+                        new Slider(100, 1, 200)));
 
                 if (force)
                 {
-                    var uForceMenu = ultimateMenu.AddSubMenu(new Menu("Force Target", ultimateMenu.Name + ".force"));
+                    var uForceMenu = ultimateMenu.AddSubMenu(new Menu("Force On", ultimateMenu.Name + ".force"));
+                    uForceMenu.AddItem(new MenuItem(uForceMenu.Name + ".combo-killable", "Killable").SetValue(false));
                     uForceMenu.AddItem(
                         new MenuItem(uForceMenu.Name + ".additional", "Additional Targets").SetValue(
                             new Slider(0, 0, 4)).DontSave());
-                    uForceMenu.AddItem(
-                        new MenuItem(uForceMenu.Name + ".combo-killable", "Combo Killable").SetValue(false).DontSave());
-                    HeroListManager.AddToMenu(uForceMenu, "ultimate-force", true, false, true, false, true);
+                    HeroListManager.AddToMenu(uForceMenu, "ultimate-force", true, false, true, false, true, false);
                 }
 
                 return ultimateMenu;
@@ -243,7 +234,7 @@ namespace SFXChallenger.Managers
                    _menu.Item(_menu.Name + ".ultimate.assisted.hotkey").GetValue<KeyBind>().Active;
         }
 
-        public static bool CheckDuel(Obj_AI_Hero target, float damage)
+        public static bool CheckSingle(Obj_AI_Hero target, float damage)
         {
             try
             {
@@ -252,18 +243,16 @@ namespace SFXChallenger.Managers
                     return false;
                 }
 
-                var alliesRange = _menu.Item(_menu.Name + ".ultimate.duel.allies.range").GetValue<Slider>().Value;
-                var alliesMin = _menu.Item(_menu.Name + ".ultimate.duel.allies.min").GetValue<Slider>().Value;
-                var alliesMax = _menu.Item(_menu.Name + ".ultimate.duel.allies.max").GetValue<Slider>().Value;
+                var alliesMin = _menu.Item(_menu.Name + ".ultimate.single.allies.min").GetValue<Slider>().Value;
+                var alliesMax = _menu.Item(_menu.Name + ".ultimate.single.allies.max").GetValue<Slider>().Value;
 
-                var enemiesRange = _menu.Item(_menu.Name + ".ultimate.duel.enemies.range").GetValue<Slider>().Value;
-                var enemiesMin = _menu.Item(_menu.Name + ".ultimate.duel.enemies.min").GetValue<Slider>().Value;
-                var enemiesMax = _menu.Item(_menu.Name + ".ultimate.duel.enemies.max").GetValue<Slider>().Value;
+                var enemiesMin = _menu.Item(_menu.Name + ".ultimate.single.enemies.min").GetValue<Slider>().Value;
+                var enemiesMax = _menu.Item(_menu.Name + ".ultimate.single.enemies.max").GetValue<Slider>().Value;
 
                 var targetMinHealth =
-                    _menu.Item(_menu.Name + ".ultimate.duel.target.min-health").GetValue<Slider>().Value;
+                    _menu.Item(_menu.Name + ".ultimate.single.target.min-health").GetValue<Slider>().Value;
                 var targetMaxHealth =
-                    _menu.Item(_menu.Name + ".ultimate.duel.target.max-health").GetValue<Slider>().Value;
+                    _menu.Item(_menu.Name + ".ultimate.single.target.max-health").GetValue<Slider>().Value;
 
                 if (target.HealthPercent >= targetMinHealth && target.HealthPercent <= targetMaxHealth)
                 {
@@ -271,17 +260,16 @@ namespace SFXChallenger.Managers
                         target.Position, ObjectManager.Player.Distance(target) / 2f);
 
                     var aCount =
-                        GameObjects.AllyHeroes.Count(
-                            h => h.IsValid && !h.IsMe && !h.IsDead && h.Distance(pos) <= alliesRange);
+                        GameObjects.AllyHeroes.Count(h => h.IsValid && !h.IsMe && !h.IsDead && h.Distance(pos) <= 1750);
                     var eCount =
                         GameObjects.EnemyHeroes.Count(
-                            h => h.IsValid && !h.IsDead && h.IsVisible && h.Distance(pos) <= enemiesRange);
+                            h => h.IsValid && !h.IsDead && h.IsVisible && h.Distance(pos) <= 1750);
 
                     if (aCount >= alliesMin && aCount <= alliesMax && eCount >= enemiesMin && eCount <= enemiesMax)
                     {
                         return damage *
-                               (_menu.Item(_menu.Name + ".ultimate.duel.damage.percent").GetValue<Slider>().Value / 100f) >
-                               target.Health;
+                               (_menu.Item(_menu.Name + ".ultimate.single.damage.percent").GetValue<Slider>().Value /
+                                100f) > target.Health;
                     }
                 }
             }
@@ -292,13 +280,14 @@ namespace SFXChallenger.Managers
             return false;
         }
 
-        public static bool Check(string mode,
+        public static bool Check(UltimateModeType mode,
             int min,
             List<Obj_AI_Hero> hits,
             Func<Obj_AI_Hero, float> calcDamage = null)
         {
             try
             {
+                var modeString = mode.ToString().ToLower();
                 if (_menu == null || hits == null || !hits.Any())
                 {
                     return false;
@@ -319,13 +308,13 @@ namespace SFXChallenger.Managers
                     }
                 }
 
-                if (_required && HeroListManager.Enabled("ultimate-required-" + mode))
+                if (_required && HeroListManager.Enabled("ultimate-required-" + modeString))
                 {
-                    var minReq = _menu.Item(_menu.Name + ".ultimate.required." + mode + ".min").GetValue<Slider>().Value;
-                    var range = _menu.Item(_menu.Name + ".ultimate.required.range-check").GetValue<Slider>().Value;
-                    var enabledHeroes = HeroListManager.GetEnabledHeroes("ultimate-required-" + mode);
+                    var minReq =
+                        _menu.Item(_menu.Name + ".ultimate." + modeString + ".required.min").GetValue<Slider>().Value;
+                    var enabledHeroes = HeroListManager.GetEnabledHeroes("ultimate-required-" + modeString);
                     var count =
-                        enabledHeroes.Where(e => !e.IsDead && e.IsVisible && e.Distance(ObjectManager.Player) <= range)
+                        enabledHeroes.Where(e => !e.IsDead && e.IsVisible && e.Distance(ObjectManager.Player) <= 2000)
                             .Count(e => hits.Any(h => h.NetworkId.Equals(e.NetworkId)));
                     if (count < minReq)
                     {

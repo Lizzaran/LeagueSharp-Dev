@@ -97,7 +97,7 @@
 //            ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
 //            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", "Use W").SetValue(false));
 //            laneclearMenu.AddItem(
-//                new MenuItem(laneclearMenu.Name + ".min", "Min").SetValue(new Slider(3, 1, 5)));
+//                new MenuItem(laneclearMenu.Name + ".min", "Min.").SetValue(new Slider(3, 1, 5)));
 
 //            var ultimateMenu = UltimateManager.AddToMenu(Menu, false, false, false, false, false, false, true, true, true);
 
@@ -107,9 +107,9 @@
 //            var fleeMenu = Menu.AddSubMenu(new Menu("Flee", Menu.Name + ".flee"));
 //            fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".w", "Use W").SetValue(true));
 
-//            var miscMenu = Menu.AddSubMenu(new Menu("Miscellaneous", Menu.Name + ".miscellaneous"));
+//            var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
 //            HeroListManager.AddToMenu(
-//                miscMenu.AddSubMenu(new Menu("E " + "Gapcloser", miscMenu.Name + "e-gapcloser")),
+//                miscMenu.AddSubMenu(new Menu("E Gapcloser", miscMenu.Name + "e-gapcloser")),
 //                "e-gapcloser", false, false, true, false);
 
 //            IndicatorManager.AddToMenu(DrawingManager.Menu, true);
@@ -129,7 +129,7 @@
 //            R = new Spell(SpellSlot.R, 850f);
 //        }
 
-//        private void OnCorePostUpdate(EventArgs args)
+//        protected override void OnPostUpdate()
 //        {
 //            try
 //            {
@@ -148,7 +148,7 @@
 //                            Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
 //                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady()))
 //                    {
-//                        RLogicDuel(
+//                        RLogicSingle(
 //                            Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
 //                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
 //                    }
@@ -163,7 +163,7 @@
 //                            Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
 //                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), "auto"))
 //                    {
-//                        RLogicDuel(
+//                        RLogicSingle(
 //                            Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
 //                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady());
 //                    }
@@ -260,9 +260,9 @@
 //                            Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
 //                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady()))
 //                    {
-//                        if (Menu.Item(Menu.Name + ".ultimate.combo.duel").GetValue<bool>())
+//                        if (Menu.Item(Menu.Name + ".ultimate.combo.single").GetValue<bool>())
 //                        {
-//                            RLogicDuel(q, e);
+//                            RLogicSingle(q, e);
 //                        }
 //                    }
 //                }
@@ -453,13 +453,13 @@
 //            return false;
 //        }
 
-//        private void RLogicDuel(bool q, bool e)
+//        private void RLogicSingle(bool q, bool e)
 //        {
 //            try
 //            {
 //                foreach (var t in GameObjects.EnemyHeroes)
 //                {
-//                    if (UltimateManager.CheckDuel(t, CalcComboDamage(t, q, e, true)))
+//                    if (UltimateManager.CheckSingle(t, CalcComboDamage(t, q, e, true)))
 //                    {
 //                        if (RLogic(t, R.GetHitChance("combo"), 1, q, e))
 //                        {

@@ -69,7 +69,7 @@ namespace SFXUtility.Features.Others
             try
             {
                 Menu = new Menu(Name, Name);
-                Menu.AddItem(new MenuItem(Name + "Percent", "Health Percent").SetValue(new Slider(20, 0, 50)));
+                Menu.AddItem(new MenuItem(Name + "Percent", "Health Percent").SetValue(new Slider(20)));
                 Menu.AddItem(new MenuItem(Name + "Hotkey", "Hotkey").SetValue(new KeyBind('U', KeyBindType.Press)));
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));

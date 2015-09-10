@@ -55,6 +55,8 @@ namespace SFXChallenger.Abstracts
         {
             Core.OnBoot += OnCoreBoot;
             Core.OnShutdown += OnCoreShutdown;
+            Core.OnPreUpdate += OnCorePreUpdate;
+            Core.OnPostUpdate += OnCorePostUpdate;
         }
 
         protected abstract ItemFlags ItemFlags { get; }
@@ -148,9 +150,32 @@ namespace SFXChallenger.Abstracts
             }
         }
 
+        protected void OnCorePreUpdate(EventArgs args)
+        {
+            try
+            {
+                OnPreUpdate();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        protected void OnCorePostUpdate(EventArgs args)
+        {
+            try
+            {
+                OnPostUpdate();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
         protected abstract void SetupSpells();
         protected abstract void OnLoad();
-        protected abstract void OnUnload();
         protected abstract void AddToMenu();
 
         protected void DrawingOnDraw(EventArgs args)
@@ -165,6 +190,8 @@ namespace SFXChallenger.Abstracts
             }
         }
 
+        protected abstract void OnPreUpdate();
+        protected abstract void OnPostUpdate();
         protected abstract void Combo();
         protected abstract void Harass();
         protected abstract void LaneClear();
@@ -272,8 +299,6 @@ namespace SFXChallenger.Abstracts
         {
             try
             {
-                OnUnload();
-
                 Drawing.OnDraw -= DrawingOnDraw;
             }
             catch (Exception ex)
@@ -288,9 +313,9 @@ namespace SFXChallenger.Abstracts
             {
                 SFXMenu = new Menu(Global.Name, "sfx", true);
 
-                Menu = SFXMenu.AddSubMenu(new Menu(Player.ChampionName, /*SFXMenu.Name +*/ "." + Player.ChampionName));
+                Menu = SFXMenu.AddSubMenu(new Menu(Player.ChampionName, SFXMenu.Name + "." + Player.ChampionName));
 
-                DrawingManager.AddToMenu(Menu.AddSubMenu(new Menu("Drawing", Menu.Name + ".drawing")), this);
+                DrawingManager.AddToMenu(Menu.AddSubMenu(new Menu("Drawings", Menu.Name + ".drawing")), this);
 
                 TargetSelector.AddToMenu(SFXMenu.AddSubMenu(new Menu("Target Selector", SFXMenu.Name + ".ts")));
 
@@ -302,8 +327,6 @@ namespace SFXChallenger.Abstracts
                 InfoMenu.AddToMenu(SFXMenu.AddSubMenu(new Menu("Info", SFXMenu.Name + ".info")));
 
                 DebugMenu.AddToMenu(SFXMenu, Spells);
-
-                TickMenu.AddToMenu(SFXMenu);
 
                 SFXMenu.AddToMainMenu();
 

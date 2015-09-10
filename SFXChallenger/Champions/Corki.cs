@@ -100,7 +100,7 @@
 
 //            var laneclearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
 //            ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
-//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q-min", "Q Min").SetValue(new Slider(3, 1, 5)));
+//            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q-min", "Q Min.").SetValue(new Slider(3, 1, 5)));
 //            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
 //            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", "Use E").SetValue(true));
 //            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".r", "Use R").SetValue(true));
@@ -168,9 +168,9 @@
 //                {
 //                    if (!RLogic(target, Menu.Item(Menu.Name + ".ultimate.combo.min").GetValue<Slider>().Value, useQ))
 //                    {
-//                        if (Menu.Item(Menu.Name + ".ultimate.combo.duel").GetValue<bool>())
+//                        if (Menu.Item(Menu.Name + ".ultimate.combo.single").GetValue<bool>())
 //                        {
-//                            RLogicDuel(useQ);
+//                            RLogicSingle(useQ);
 //                        }
 //                    }
 //                }
@@ -196,13 +196,13 @@
 //            return false;
 //        }
 
-//        private void RLogicDuel(bool q)
+//        private void RLogicSingle(bool q)
 //        {
 //            try
 //            {
 //                foreach (var t in GameObjects.EnemyHeroes)
 //                {
-//                    if (UltimateManager.CheckDuel(t, CalcComboDamage(t, q, true)))
+//                    if (UltimateManager.CheckSingle(t, CalcComboDamage(t, q, true)))
 //                    {
 //                        if (RLogic(t, 1, q))
 //                        {

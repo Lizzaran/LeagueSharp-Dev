@@ -59,14 +59,7 @@ namespace SFXChallenger.Champions
 
         protected override void OnLoad()
         {
-            Core.OnPostUpdate += OnCorePostUpdate;
             AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
-        }
-
-        protected override void OnUnload()
-        {
-            Core.OnPostUpdate -= OnCorePostUpdate;
-            AntiGapcloser.OnEnemyGapcloser -= OnEnemyGapcloser;
         }
 
         protected override void AddToMenu()
@@ -80,6 +73,7 @@ namespace SFXChallenger.Champions
                     { "E", HitChance.VeryHigh },
                     { "R", HitChance.VeryHigh }
                 });
+            ManaManager.AddToMenu(comboMenu, "combo-r", ManaCheckType.Minimum, ManaValueType.Percent, "R");
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", "Use Q").SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", "Use W").SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", "Use E").SetValue(true));
@@ -88,34 +82,39 @@ namespace SFXChallenger.Champions
             var harassMenu = Menu.AddSubMenu(new Menu("Harass", Menu.Name + ".harass"));
             HitchanceManager.AddToMenu(
                 harassMenu.AddSubMenu(new Menu("Hitchance", harassMenu.Name + ".hitchance")), "harass",
-                new Dictionary<string, HitChance> { { "Q", HitChance.VeryHigh }, { "R", HitChance.VeryHigh } });
+                new Dictionary<string, HitChance> { { "Q", HitChance.High }, { "R", HitChance.VeryHigh } });
             ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
-            ManaManager.AddToMenu(harassMenu, "harass-r", ManaCheckType.Minimum, ManaValueType.Percent, "R", 50);
-            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", "Use Q").SetValue(true));
+            ManaManager.AddToMenu(harassMenu, "harass-r", ManaCheckType.Minimum, ManaValueType.Percent, "R");
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", "Use Q").SetValue(false));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", "Use W").SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".r", "Use R").SetValue(true));
 
             var laneclearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
             ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w-min", "W Min").SetValue(new Slider(3, 1, 5)));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e-min", "E Min").SetValue(new Slider(3, 1, 5)));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", "Use W").SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", "Use E").SetValue(false));
-
-            var killstealMenu = Menu.AddSubMenu(new Menu("Killsteal", Menu.Name + ".killsteal"));
-            killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".R", "Use R").SetValue(true));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e-min", "E Min.").SetValue(new Slider(3, 1, 5)));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".r", "Use R").SetValue(false));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".r-min", "R Min.").SetValue(new Slider(3, 1, 5)));
 
             var fleeMenu = Menu.AddSubMenu(new Menu("Flee", Menu.Name + ".flee"));
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".e", "Use E").SetValue(true));
 
-            var miscMenu = Menu.AddSubMenu(new Menu("Miscellaneous", Menu.Name + ".miscellaneous"));
+            var killstealMenu = Menu.AddSubMenu(new Menu("Killsteal", Menu.Name + ".killsteal"));
+            killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".r", "Use R").SetValue(true));
+
+            var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("E " + "Gapcloser", miscMenu.Name + "e-gapcloser")), "e-gapcloser", false,
-                false, true, false);
+                miscMenu.AddSubMenu(new Menu("E Gapcloser", miscMenu.Name + "e-gapcloser")), "e-gapcloser", false, false,
+                true, false);
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("R " + "Immobile", miscMenu.Name + "r-immobile")), "r-immobile", false,
-                false, true, false);
-            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r-max", "R " + "Max Stacks").SetValue(new Slider(5, 1, 10)));
+                miscMenu.AddSubMenu(new Menu("R Immobile", miscMenu.Name + "r-immobile")), "r-immobile", false, false,
+                true, false);
+            HeroListManager.AddToMenu(
+                miscMenu.AddSubMenu(new Menu("R Gapcloser", miscMenu.Name + "r-gapcloser")), "r-gapcloser", false, false,
+                true, false);
+            miscMenu.AddItem(
+                new MenuItem(miscMenu.Name + ".r-max", "R " + "Max. Stacks").SetValue(new Slider(5, 1, 10)));
 
             IndicatorManager.AddToMenu(DrawingManager.Menu, true);
             IndicatorManager.Add(Q);
@@ -142,39 +141,32 @@ namespace SFXChallenger.Champions
             R.SetSkillshot(1.5f, 200f, float.MaxValue, false, SkillshotType.SkillshotCircle);
         }
 
-        private void OnCorePostUpdate(EventArgs args)
-        {
-            try
-            {
-                if (HeroListManager.Enabled("r-immobile") && R.IsReady())
-                {
-                    var target =
-                        GameObjects.EnemyHeroes.FirstOrDefault(
-                            t =>
-                                t.IsValidTarget(R.Range) && HeroListManager.Check("r-immobile", t) &&
-                                Utils.IsImmobile(t));
-                    if (target != null)
-                    {
-                        Casting.SkillShot(target, R, HitChance.VeryHigh);
-                    }
-                }
+        protected override void OnPreUpdate() {}
 
-                if (W.Level > _wLevel)
+        protected override void OnPostUpdate()
+        {
+            if (HeroListManager.Enabled("r-immobile") && R.IsReady())
+            {
+                var target =
+                    GameObjects.EnemyHeroes.FirstOrDefault(
+                        t => t.IsValidTarget(R.Range) && HeroListManager.Check("r-immobile", t) && Utils.IsImmobile(t));
+                if (target != null)
                 {
-                    _wLevel = W.Level;
-                    W.Range = Player.AttackRange + Player.BoundingRadius +
-                              GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(50).Average() +
-                              20f * _wLevel;
-                }
-                if (R.Level > _rLevel)
-                {
-                    _rLevel = R.Level;
-                    R.Range = 900f + 300f * _rLevel;
+                    Casting.SkillShot(target, R, HitChance.VeryHigh);
                 }
             }
-            catch (Exception ex)
+
+            if (W.Level > _wLevel)
             {
-                Global.Logger.AddItem(new LogItem(ex));
+                _wLevel = W.Level;
+                W.Range = Player.AttackRange + Player.BoundingRadius +
+                          GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(50).Average() +
+                          20f * _wLevel;
+            }
+            if (R.Level > _rLevel)
+            {
+                _rLevel = R.Level;
+                R.Range = 900f + 300f * _rLevel;
             }
         }
 
@@ -189,6 +181,11 @@ namespace SFXChallenger.Champions
                 if (HeroListManager.Check("e-gapcloser", args.Sender) && E.IsInRange(args.End))
                 {
                     E.Cast(args.End);
+                }
+                if (HeroListManager.Check("r-gapcloser", args.Sender) && R.IsInRange(args.End) &&
+                    Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value > GetRBuffCount())
+                {
+                    R.Cast(args.End);
                 }
             }
             catch (Exception ex)
@@ -230,7 +227,8 @@ namespace SFXChallenger.Champions
             {
                 Casting.SkillShot(E, E.GetHitChance("combo"));
             }
-            if (useR && Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value > GetRBuffCount())
+            if (useR && ManaManager.Check("combo-r") &&
+                Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value > GetRBuffCount())
             {
                 var target = TargetSelector.GetTarget(R);
                 if (target != null &&
@@ -297,17 +295,22 @@ namespace SFXChallenger.Champions
             }
 
             var useW = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>() && W.IsReady();
-            var minW = Menu.Item(Menu.Name + ".lane-clear.w-min").GetValue<Slider>().Value;
             var useE = Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady();
+            var useR = Menu.Item(Menu.Name + ".lane-clear.r").GetValue<bool>() && R.IsReady();
             var minE = Menu.Item(Menu.Name + ".lane-clear.e-min").GetValue<Slider>().Value;
+            var minR = Menu.Item(Menu.Name + ".lane-clear.r-min").GetValue<Slider>().Value;
 
             if (useW)
             {
-                Casting.FarmSelfAoe(W, minW, Player.AttackRange + Player.BoundingRadius * 1.25f + 20 * W.Level);
+                Casting.FarmSelfAoe(W, 1, Player.AttackRange + Player.BoundingRadius * 1.25f + 20 * W.Level);
             }
             if (useE)
             {
                 Casting.Farm(E, minE);
+            }
+            if (useR && Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value > GetRBuffCount())
+            {
+                Casting.Farm(R, minR);
             }
         }
 

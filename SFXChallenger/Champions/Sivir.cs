@@ -59,16 +59,8 @@ namespace SFXChallenger.Champions
 
         protected override void OnLoad()
         {
-            Core.OnPostUpdate += OnCorePostUpdate;
             Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
             Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
-        }
-
-        protected override void OnUnload()
-        {
-            Core.OnPostUpdate -= OnCorePostUpdate;
-            Obj_AI_Base.OnProcessSpellCast -= OnObjAiBaseProcessSpellCast;
-            Orbwalking.AfterAttack -= OnOrbwalkingAfterAttack;
         }
 
         protected override void AddToMenu()
@@ -83,18 +75,18 @@ namespace SFXChallenger.Champions
             var harassMenu = Menu.AddSubMenu(new Menu("Harass", Menu.Name + ".harass"));
             HitchanceManager.AddToMenu(
                 harassMenu.AddSubMenu(new Menu("Hitchance", harassMenu.Name + ".hitchance")), "harass",
-                new Dictionary<string, HitChance> { { "Q", HitChance.VeryHigh } });
+                new Dictionary<string, HitChance> { { "Q", HitChance.High } });
             ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", "Use Q").SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", "Use W").SetValue(true));
 
             var laneclearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
-            ManaManager.AddToMenu(laneclearMenu, "lane-clear-q", ManaCheckType.Minimum, ManaValueType.Percent, "Q");
-            ManaManager.AddToMenu(laneclearMenu, "lane-clear-w", ManaCheckType.Minimum, ManaValueType.Percent, "W");
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q-min", "Q Min").SetValue(new Slider(3, 1, 5)));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w-min", "W Min").SetValue(new Slider(3, 1, 5)));
+            ManaManager.AddToMenu(laneclearMenu, "lane-clear-q", ManaCheckType.Minimum, ManaValueType.Percent, "Q", 50);
+            ManaManager.AddToMenu(laneclearMenu, "lane-clear-w", ManaCheckType.Minimum, ManaValueType.Percent, "W", 40);
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q-min", "Q Min.").SetValue(new Slider(4, 1, 5)));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", "Use W").SetValue(true));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w-min", "W Min.").SetValue(new Slider(3, 1, 5)));
 
             var fleeMenu = Menu.AddSubMenu(new Menu("Flee", Menu.Name + ".flee"));
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".r", "Use R").SetValue(false));
@@ -104,7 +96,7 @@ namespace SFXChallenger.Champions
                 shieldMenu.AddSubMenu(new Menu("Whitelist", shieldMenu.Name + ".whitelist")), false, true, false);
             shieldMenu.AddItem(new MenuItem(shieldMenu.Name + ".enabled", "Enabled").SetValue(true));
 
-            var miscMenu = Menu.AddSubMenu(new Menu("Miscellaneous", Menu.Name + ".miscellaneous"));
+            var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("Q " + "Immobile", miscMenu.Name + "q-immobile")), "q-immobile", false,
                 false, true, false);
@@ -177,25 +169,20 @@ namespace SFXChallenger.Champions
                 });
         }
 
-        private void OnCorePostUpdate(EventArgs args)
+        protected override void OnPreUpdate() {}
+
+        protected override void OnPostUpdate()
         {
-            try
+            if (Q.IsReady())
             {
-                if (Q.IsReady())
+                var target =
+                    GameObjects.EnemyHeroes.OrderBy(e => e.Distance(Player))
+                        .Where(e => Q.IsInRange(e))
+                        .FirstOrDefault(t => HeroListManager.Check("q-immobile", t) && Utils.IsImmobile(t));
+                if (target != null)
                 {
-                    var target =
-                        GameObjects.EnemyHeroes.OrderBy(e => e.Distance(Player))
-                            .Where(e => Q.IsInRange(e))
-                            .FirstOrDefault(t => HeroListManager.Check("q-immobile", t) && Utils.IsImmobile(t));
-                    if (target != null)
-                    {
-                        Q.Cast(target.Position);
-                    }
+                    Q.Cast(target.Position);
                 }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 

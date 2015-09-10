@@ -28,38 +28,35 @@ using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Library.Logger;
 using DamageType = SFXChallenger.Enumerations.DamageType;
+using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 
 #endregion
 
-namespace SFXChallenger.Wrappers
+namespace SFXChallenger.Helpers
 {
     internal static class Invulnerable
     {
-        // ReSharper disable StringLiteralTypo
-        private static readonly HashSet<InvulnerableStruct> Invulnerables = new HashSet<InvulnerableStruct>
+        public static readonly HashSet<Item> Items = new HashSet<Item>
         {
-            new InvulnerableStruct(
+            new Item(
                 "Alistar", "FerociousHowl", null, false,
                 (target, type) =>
                     ObjectManager.Player.CountEnemiesInRange(Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)) >
                     1),
-            new InvulnerableStruct(
+            new Item(
                 "MasterYi", "Meditate", null, false,
                 (target, type) =>
                     ObjectManager.Player.CountEnemiesInRange(Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)) >
                     1),
-            new InvulnerableStruct("Tryndamere", "UndyingRage", null, false, (target, type) => target.HealthPercent < 5),
-            new InvulnerableStruct("Kayle", "JudicatorIntervention", null, false),
-            new InvulnerableStruct(null, "BlackShield", DamageType.Magical, true),
-            new InvulnerableStruct(null, "BansheesVeil", DamageType.Magical, true),
-            new InvulnerableStruct("Sivir", "SivirE", null, true),
-            new InvulnerableStruct("Nocturne", "ShroudofDarkness", null, true)
+            new Item("Tryndamere", "UndyingRage", null, false, (target, type) => target.HealthPercent < 5),
+            new Item("Kayle", "JudicatorIntervention", null, false),
+            new Item(null, "BlackShield", DamageType.Magical, true),
+            new Item(null, "BansheesVeil", DamageType.Magical, true),
+            new Item("Sivir", "SivirE", null, true),
+            new Item("Nocturne", "ShroudofDarkness", null, true)
         };
 
-        // ReSharper restore StringLiteralTypo
-        public static bool HasBuff(Obj_AI_Hero target,
-            DamageType damageType = DamageType.True,
-            bool ignoreShields = true)
+        public static bool Check(Obj_AI_Hero target, DamageType damageType = DamageType.True, bool ignoreShields = true)
         {
             try
             {
@@ -67,7 +64,7 @@ namespace SFXChallenger.Wrappers
                 {
                     return true;
                 }
-                foreach (var invulnerable in Invulnerables)
+                foreach (var invulnerable in Items)
                 {
                     if (invulnerable.Champion == null || invulnerable.Champion == target.ChampionName)
                     {
@@ -92,27 +89,27 @@ namespace SFXChallenger.Wrappers
             }
             return false;
         }
-    }
 
-    internal struct InvulnerableStruct
-    {
-        public InvulnerableStruct(string champion,
-            string buffName,
-            DamageType? damageType,
-            bool isShield,
-            Func<Obj_AI_Base, DamageType, bool> customCheck = null) : this()
+        public class Item
         {
-            Champion = champion;
-            BuffName = buffName;
-            DamageType = damageType;
-            IsShield = isShield;
-            CustomCheck = customCheck;
-        }
+            public Item(string champion,
+                string buffName,
+                DamageType? damageType,
+                bool isShield,
+                Func<Obj_AI_Base, DamageType, bool> customCheck = null)
+            {
+                Champion = champion;
+                BuffName = buffName;
+                DamageType = damageType;
+                IsShield = isShield;
+                CustomCheck = customCheck;
+            }
 
-        public string Champion { get; set; }
-        public string BuffName { get; private set; }
-        public DamageType? DamageType { get; private set; }
-        public bool IsShield { get; private set; }
-        public Func<Obj_AI_Base, DamageType, bool> CustomCheck { get; private set; }
+            public string Champion { get; set; }
+            public string BuffName { get; private set; }
+            public DamageType? DamageType { get; private set; }
+            public bool IsShield { get; private set; }
+            public Func<Obj_AI_Base, DamageType, bool> CustomCheck { get; private set; }
+        }
     }
 }

@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- orbwalking.cs is part of SFXChallenger.
+ Orbwalking.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -334,16 +334,16 @@ namespace SFXChallenger.Wrappers
             }
         }
 
-        public static void SetDelayFrequency(float value, OrbwalkingDelay delay)
+        public static void SetDelayProbability(float value, OrbwalkingDelay delay)
         {
             Delay delayEntry;
             if (Delays.TryGetValue(delay, out delayEntry))
             {
-                delayEntry.Frequency = value;
+                delayEntry.Probability = value;
             }
             else
             {
-                Delays[delay] = new Delay { Frequency = value };
+                Delays[delay] = new Delay { Probability = value };
             }
         }
 
@@ -362,7 +362,7 @@ namespace SFXChallenger.Wrappers
 
         private static void SetCurrentDelay(Delay delay)
         {
-            if (delay.Randomize && Random.Next(0, 101) >= (100 - delay.Frequency))
+            if (delay.Randomize && Random.Next(0, 101) >= (100 - delay.Probability))
             {
                 var min = (delay.Default / 100f) * delay.MinDelay;
                 var max = (delay.Default / 100f) * delay.MaxDelay;
@@ -599,101 +599,17 @@ namespace SFXChallenger.Wrappers
                 /* Drawings submenu */
                 var drawings = new Menu("Drawings", "drawings");
                 drawings.AddItem(
-                    new MenuItem("AACircle", "AACircle").SetShared()
+                    new MenuItem("CircleThickness", "Circle Thickness").SetShared().SetValue(new Slider(5, 1, 10)));
+                drawings.AddItem(
+                    new MenuItem("AACircle", "AA Circle").SetShared()
                         .SetValue(new Circle(true, Color.FromArgb(255, 255, 0, 255))));
                 drawings.AddItem(
-                    new MenuItem("AACircle2", "Enemy AA circle").SetShared()
+                    new MenuItem("AACircle2", "Enemy AA Circle").SetShared()
                         .SetValue(new Circle(false, Color.FromArgb(255, 255, 0, 255))));
                 drawings.AddItem(
-                    new MenuItem("HoldZone", "HoldZone").SetShared()
-                        .SetValue(new Circle(false, Color.FromArgb(255, 255, 0, 255))));
+                    new MenuItem("HoldZone", "Hold Zone").SetShared()
+                        .SetValue(new Circle(true, Color.FromArgb(255, 255, 0, 255))));
                 _config.AddSubMenu(drawings);
-
-                /* Misc options */
-                var misc = new Menu("Misc", "Misc");
-                misc.AddItem(
-                    new MenuItem("HoldPosRadius", "Hold Position Radius").SetShared().SetValue(new Slider(0, 0, 250)));
-                misc.AddItem(new MenuItem("PriorizeFarm", "Priorize farm over harass").SetShared().SetValue(true));
-
-                _config.AddSubMenu(misc);
-
-                var delays = new Menu("Delays", "Delays");
-                delays.AddItem(new MenuItem("ExtraWindup", "Windup Delay").SetShared().SetValue(new Slider(80, 0, 200)));
-                delays.AddItem(new MenuItem("FarmDelay", "Farm Delay").SetShared().SetValue(new Slider(0, 0, 200)));
-
-                var delayMovement = new Menu("Movement", "Movement");
-                delayMovement.AddItem(
-                    new MenuItem("MovementDelay", "Delay").SetShared().SetValue(new Slider(25, 0, 250))).ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        SetDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
-                    };
-                delayMovement.AddItem(
-                    new MenuItem("MovementMinDelay", "Min. % Delay").SetShared().SetValue(new Slider(170, 100, 300)))
-                    .ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        SetMinDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
-                    };
-                delayMovement.AddItem(
-                    new MenuItem("MovementMaxDelay", "Max. % Delay").SetShared().SetValue(new Slider(220, 100, 300)))
-                    .ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        SetMaxDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
-                    };
-                delayMovement.AddItem(
-                    new MenuItem("MovementFrequency", "Frequency %").SetShared().SetValue(new Slider(30))).ValueChanged
-                    +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        SetDelayFrequency(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
-                    };
-                delayMovement.AddItem(new MenuItem("MovementRandomize", "Randomize").SetShared().SetValue(false))
-                    .ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        SetDelayRandomize(args.GetNewValue<bool>(), OrbwalkingDelay.Move);
-                    };
-
-                var delayAttack = new Menu("Attack", "Attack");
-                delayAttack.AddItem(new MenuItem("AttackDelay", "Delay").SetShared().SetValue(new Slider(25, 0, 250)))
-                    .ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        SetDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
-                    };
-                delayAttack.AddItem(
-                    new MenuItem("AttackMinDelay", "Min. % Delay").SetShared().SetValue(new Slider(170, 100, 300)))
-                    .ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        SetMinDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
-                    };
-                delayAttack.AddItem(
-                    new MenuItem("AttackMaxDelay", "Max. % Delay").SetShared().SetValue(new Slider(220, 100, 300)))
-                    .ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        SetMaxDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
-                    };
-                delayAttack.AddItem(new MenuItem("AttackFrequency", "Frequency %").SetShared().SetValue(new Slider(30)))
-                    .ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        SetDelayFrequency(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
-                    };
-                delayAttack.AddItem(new MenuItem("AttackRandomize", "Randomize").SetShared().SetValue(false))
-                    .ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        SetDelayRandomize(args.GetNewValue<bool>(), OrbwalkingDelay.Attack);
-                    };
-
-                delays.AddSubMenu(delayMovement);
-                delays.AddSubMenu(delayAttack);
-
-                _config.AddSubMenu(delays);
 
                 var attackables = new Menu("Attackable Objects", "Attackables");
                 attackables.AddItem(new MenuItem("AttackWard", "Ward").SetShared().SetValue(true));
@@ -709,19 +625,99 @@ namespace SFXChallenger.Wrappers
 
                 _config.AddSubMenu(attackables);
 
-                /* Missile check */
-                _config.AddItem(new MenuItem("MissileCheck", "Missile Check").SetShared().SetValue(true));
+                var delays = new Menu("Delays", "Delays");
+                delays.AddItem(new MenuItem("ExtraWindup", "Windup Delay").SetShared().SetValue(new Slider(70, 0, 200)));
+
+                delays.AddItem(
+                    new MenuItem("MovementDelay", "Movement Delay").SetShared().SetValue(new Slider(70, 0, 250)))
+                    .ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        SetDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
+                    };
+
+                delays.AddItem(new MenuItem("AttackDelay", "Attack Delay").SetShared().SetValue(new Slider(0, 0, 250)))
+                    .ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        SetDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
+                    };
+
+                delays.AddItem(new MenuItem("FarmDelay", "Farm Delay").SetShared().SetValue(new Slider(0, 0, 200)));
+
+                _config.AddSubMenu(delays);
+
+                var delayMovement = new Menu("Movement Humanizer", "Movement");
+                delayMovement.AddItem(
+                    new MenuItem("MovementMinDelay", "Min. Multi % Delay").SetShared()
+                        .SetValue(new Slider(170, 100, 300))).ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        SetMinDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
+                    };
+                delayMovement.AddItem(
+                    new MenuItem("MovementMaxDelay", "Max. Multi % Delay").SetShared()
+                        .SetValue(new Slider(220, 100, 300))).ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        SetMaxDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
+                    };
+                delayMovement.AddItem(
+                    new MenuItem("MovementProbability", "Probability %").SetShared().SetValue(new Slider(30)))
+                    .ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        SetDelayProbability(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
+                    };
+                delayMovement.AddItem(new MenuItem("MovementEnabled", "Enabled").SetShared().SetValue(false))
+                    .ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        SetDelayRandomize(args.GetNewValue<bool>(), OrbwalkingDelay.Move);
+                    };
+
+                _config.AddSubMenu(delayMovement);
+
+                var delayAttack = new Menu("Attacks Humanizer", "Attack");
+                delayAttack.AddItem(
+                    new MenuItem("AttackMinDelay", "Min. Multi % Delay").SetShared().SetValue(new Slider(170, 100, 300)))
+                    .ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        SetMinDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
+                    };
+                delayAttack.AddItem(
+                    new MenuItem("AttackMaxDelay", "Max. Multi % Delay").SetShared().SetValue(new Slider(220, 100, 300)))
+                    .ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        SetMaxDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
+                    };
+                delayAttack.AddItem(
+                    new MenuItem("AttackProbability", "Probability %").SetShared().SetValue(new Slider(30)))
+                    .ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        SetDelayProbability(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
+                    };
+                delayAttack.AddItem(new MenuItem("AttackEnabled", "Enabled").SetShared().SetValue(false)).ValueChanged
+                    +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        SetDelayRandomize(args.GetNewValue<bool>(), OrbwalkingDelay.Attack);
+                    };
+
+                _config.AddSubMenu(delayAttack);
+
+                var misc = new Menu("Misc", "Misc");
+                misc.AddItem(
+                    new MenuItem("HoldPosRadius", "Hold Position Radius").SetShared().SetValue(new Slider(50, 0, 250)));
+                misc.AddItem(new MenuItem("PriorizeFarm", "Priorize farm over harass").SetShared().SetValue(true));
+                misc.AddItem(new MenuItem("MissileCheck", "Missile Check").SetShared().SetValue(true));
+
+                _config.AddSubMenu(misc);
 
                 /*Load the menu*/
-                _config.AddItem(new MenuItem("Flee", "Flee").SetShared().SetValue(new KeyBind('G', KeyBindType.Press)));
-
-                _config.AddItem(
-                    new MenuItem("LastHit", "Last hit").SetShared().SetValue(new KeyBind('X', KeyBindType.Press)));
-
-                _config.AddItem(new MenuItem("Farm", "Mixed").SetShared().SetValue(new KeyBind('C', KeyBindType.Press)));
-
-                _config.AddItem(
-                    new MenuItem("LaneClear", "LaneClear").SetShared().SetValue(new KeyBind('V', KeyBindType.Press)));
 
                 _config.AddItem(
                     new MenuItem("Orbwalk", "Combo").SetShared().SetValue(new KeyBind(32, KeyBindType.Press)));
@@ -729,17 +725,28 @@ namespace SFXChallenger.Wrappers
                 _config.AddItem(
                     new MenuItem("Orbwalk2", "Combo Alternate").SetShared().SetValue(new KeyBind(32, KeyBindType.Press)));
 
+                _config.AddItem(
+                    new MenuItem("Farm", "Harass").SetShared().SetValue(new KeyBind('C', KeyBindType.Press)));
+
+                _config.AddItem(
+                    new MenuItem("LaneClear", "LaneClear").SetShared().SetValue(new KeyBind('V', KeyBindType.Press)));
+
+                _config.AddItem(
+                    new MenuItem("Last Hit", "Last hit").SetShared().SetValue(new KeyBind('X', KeyBindType.Press)));
+
+                _config.AddItem(new MenuItem("Flee", "Flee").SetShared().SetValue(new KeyBind('Z', KeyBindType.Press)));
+
                 SetDelay(_config.Item("MovementDelay").GetValue<Slider>().Value, OrbwalkingDelay.Move);
                 SetMinDelay(_config.Item("MovementMinDelay").GetValue<Slider>().Value, OrbwalkingDelay.Move);
                 SetMaxDelay(_config.Item("MovementMaxDelay").GetValue<Slider>().Value, OrbwalkingDelay.Move);
-                SetDelayFrequency(_config.Item("MovementFrequency").GetValue<Slider>().Value, OrbwalkingDelay.Move);
-                SetDelayRandomize(_config.Item("MovementRandomize").GetValue<bool>(), OrbwalkingDelay.Move);
+                SetDelayProbability(_config.Item("MovementProbability").GetValue<Slider>().Value, OrbwalkingDelay.Move);
+                SetDelayRandomize(_config.Item("MovementEnabled").GetValue<bool>(), OrbwalkingDelay.Move);
 
                 SetDelay(_config.Item("AttackDelay").GetValue<Slider>().Value, OrbwalkingDelay.Attack);
                 SetMinDelay(_config.Item("AttackMinDelay").GetValue<Slider>().Value, OrbwalkingDelay.Attack);
                 SetMaxDelay(_config.Item("AttackMaxDelay").GetValue<Slider>().Value, OrbwalkingDelay.Attack);
-                SetDelayFrequency(_config.Item("AttackFrequency").GetValue<Slider>().Value, OrbwalkingDelay.Attack);
-                SetDelayRandomize(_config.Item("AttackRandomize").GetValue<bool>(), OrbwalkingDelay.Attack);
+                SetDelayProbability(_config.Item("AttackProbability").GetValue<Slider>().Value, OrbwalkingDelay.Attack);
+                SetDelayRandomize(_config.Item("AttackEnabled").GetValue<bool>(), OrbwalkingDelay.Attack);
 
                 Game.OnUpdate += GameOnOnGameUpdate;
                 Drawing.OnDraw += DrawingOnOnDraw;
@@ -785,7 +792,7 @@ namespace SFXChallenger.Wrappers
                         return OrbwalkingMode.Mixed;
                     }
 
-                    if (_config.Item("LastHit").GetValue<KeyBind>().Active)
+                    if (_config.Item("Last Hit").GetValue<KeyBind>().Active)
                     {
                         return OrbwalkingMode.LastHit;
                     }
@@ -1019,7 +1026,9 @@ namespace SFXChallenger.Wrappers
                         !GameObjects.EnemyHeroes.Any(
                             e => e.IsValidTarget() && e.Distance(Player) < GetRealAutoAttackRange(e) * 1.2f))
                     {
-                        return minions.FirstOrDefault(m => !MinionManager.IsMinion(m, true) && m.Team != GameObjectTeam.Neutral);
+                        return
+                            minions.FirstOrDefault(
+                                m => !MinionManager.IsMinion(m, true) && m.Team != GameObjectTeam.Neutral);
                     }
                 }
 
@@ -1159,11 +1168,12 @@ namespace SFXChallenger.Wrappers
 
             private void DrawingOnOnDraw(EventArgs args)
             {
+                var circleThickness = _config.Item("CircleThickness").GetValue<Slider>().Value;
                 if (_config.Item("AACircle").GetValue<Circle>().Active)
                 {
                     Render.Circle.DrawCircle(
                         Player.Position, GetRealAutoAttackRange(null) + 65,
-                        _config.Item("AACircle").GetValue<Circle>().Color);
+                        _config.Item("AACircle").GetValue<Circle>().Color, circleThickness);
                 }
 
                 if (_config.Item("AACircle2").GetValue<Circle>().Active)
@@ -1173,7 +1183,7 @@ namespace SFXChallenger.Wrappers
                     {
                         Render.Circle.DrawCircle(
                             target.Position, GetRealAutoAttackRange(target) + 65,
-                            _config.Item("AACircle2").GetValue<Circle>().Color);
+                            _config.Item("AACircle2").GetValue<Circle>().Color, circleThickness);
                     }
                 }
 
@@ -1181,7 +1191,7 @@ namespace SFXChallenger.Wrappers
                 {
                     Render.Circle.DrawCircle(
                         Player.Position, _config.Item("HoldPosRadius").GetValue<Slider>().Value,
-                        _config.Item("HoldZone").GetValue<Circle>().Color, 5, true);
+                        _config.Item("HoldZone").GetValue<Circle>().Color, circleThickness, true);
                 }
             }
         }
@@ -1192,7 +1202,7 @@ namespace SFXChallenger.Wrappers
         public float Default { get; set; }
         public float MinDelay { get; set; }
         public float MaxDelay { get; set; }
-        public float Frequency { get; set; }
+        public float Probability { get; set; }
         public bool Randomize { get; set; }
         public float CurrentDelay { get; set; }
     }

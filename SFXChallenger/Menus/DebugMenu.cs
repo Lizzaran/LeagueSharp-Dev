@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- OverkillManager.cs is part of SFXChallenger.
+ DebugMenu.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -142,7 +142,7 @@ namespace SFXChallenger.Menus
                                 lSpell.ChargeDuration = args.GetNewValue<Slider>().Value;
                             };
                         spellMenu.AddItem(
-                            new MenuItem(spellMenu.Name + ".min-range", "Min Range").SetValue(
+                            new MenuItem(spellMenu.Name + ".min-range", "Min. Range").SetValue(
                                 new Slider(
                                     minRange, (int) (minRange * MinMultiplicator), (int) (minRange * MaxMultiplicator))))
                             .ValueChanged +=
@@ -151,7 +151,7 @@ namespace SFXChallenger.Menus
                                 lSpell.ChargedMinRange = args.GetNewValue<Slider>().Value;
                             };
                         spellMenu.AddItem(
-                            new MenuItem(spellMenu.Name + ".max-range", "Max Range").SetValue(
+                            new MenuItem(spellMenu.Name + ".max-range", "Max. Range").SetValue(
                                 new Slider(
                                     maxRange, (int) (maxRange * MinMultiplicator), (int) (maxRange * MaxMultiplicator))))
                             .ValueChanged +=
@@ -165,6 +165,15 @@ namespace SFXChallenger.Menus
                         spell.ChargedMaxRange = _menu.Item(spellMenu.Name + ".max-range").GetValue<Slider>().Value;
                     }
                 }
+
+                _menu.AddItem(new MenuItem(_menu.Name + ".tick", "Tick").SetValue(new Slider(50, 1, 300))).ValueChanged
+                    +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        Core.SetInterval(args.GetNewValue<Slider>().Value);
+                    };
+                Core.SetInterval(_menu.Item(_menu.Name + ".tick").GetValue<Slider>().Value);
+
                 _menu.AddItem(new MenuItem(_menu.Name + ".reset", "Reset").SetValue(false)).ValueChanged +=
                     delegate(object sender, OnValueChangeEventArgs args)
                     {
@@ -238,6 +247,8 @@ namespace SFXChallenger.Menus
                                                     (int) (entry.Key.ChargedMaxRange * MaxMultiplicator)));
                                     }
                                 }
+
+                                _menu.Item(_menu.Name + ".tick").SetValue(new Slider(50, 1, 300));
                             }
                         }
                         catch (Exception ex)

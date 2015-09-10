@@ -35,10 +35,10 @@ using SFXChallenger.Library;
 using SFXChallenger.Library.Logger;
 using SFXChallenger.Managers;
 using SFXChallenger.SFXTargetSelector;
-using SFXChallenger.Wrappers;
 using SharpDX;
 using Collision = LeagueSharp.Common.Collision;
 using DamageType = SFXChallenger.Enumerations.DamageType;
+using ItemData = LeagueSharp.Common.Data.ItemData;
 using MinionManager = SFXChallenger.Library.MinionManager;
 using MinionOrderTypes = SFXChallenger.Library.MinionOrderTypes;
 using MinionTeam = SFXChallenger.Library.MinionTeam;
@@ -69,7 +69,6 @@ namespace SFXChallenger.Champions
             Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
             Spellbook.OnCastSpell += OnSpellbookCastSpell;
             Orbwalking.OnNonKillableMinion += OnOrbwalkingNonKillableMinion;
-            Core.OnPreUpdate += OnCorePreUpdate;
 
             SoulBound.Unit =
                 GameObjects.AllyHeroes.FirstOrDefault(
@@ -80,85 +79,69 @@ namespace SFXChallenger.Champions
                                 b.Name.Equals("kalistacoopstrikeally", StringComparison.OrdinalIgnoreCase)));
         }
 
-        protected override void OnUnload()
-        {
-            Obj_AI_Base.OnProcessSpellCast -= OnObjAiBaseProcessSpellCast;
-            Spellbook.OnCastSpell -= OnSpellbookCastSpell;
-            Orbwalking.OnNonKillableMinion -= OnOrbwalkingNonKillableMinion;
-            Core.OnPreUpdate -= OnCorePreUpdate;
-        }
-
         protected override void AddToMenu()
         {
+            var ultimateMenu = Menu.AddSubMenu(new Menu("Ultimate", Menu.Name + ".ultimate"));
+
+            var blitzMenu = ultimateMenu.AddSubMenu(new Menu("Blitzcrank", ultimateMenu.Name + ".blitzcrank"));
+            HeroListManager.AddToMenu(
+                blitzMenu.AddSubMenu(new Menu("Blacklist", blitzMenu.Name + ".blacklist")), "blitzcrank", false, false,
+                true, false);
+            blitzMenu.AddItem(new MenuItem(blitzMenu.Name + ".r", "Use R").SetValue(true));
+
+            var tahmMenu = ultimateMenu.AddSubMenu(new Menu("Tahm Kench", ultimateMenu.Name + ".tahm-kench"));
+            HeroListManager.AddToMenu(
+                tahmMenu.AddSubMenu(new Menu("Blacklist", tahmMenu.Name + ".blacklist")), "tahm-kench", false, false,
+                true, false);
+            tahmMenu.AddItem(new MenuItem(tahmMenu.Name + ".r", "Use R").SetValue(true));
+
+            ultimateMenu.AddItem(new MenuItem(ultimateMenu.Name + ".save", "Save Soulbound").SetValue(true));
+
             var comboMenu = Menu.AddSubMenu(new Menu("Combo", Menu.Name + ".combo"));
-            ManaManager.AddToMenu(comboMenu, "combo-q", ManaCheckType.Minimum, ManaValueType.Percent, "Q");
             HitchanceManager.AddToMenu(
                 comboMenu.AddSubMenu(new Menu("Hitchance", comboMenu.Name + ".hitchance")), "combo",
                 new Dictionary<string, HitChance> { { "Q", HitChance.VeryHigh } });
+            ManaManager.AddToMenu(comboMenu, "combo-q", ManaCheckType.Minimum, ManaValueType.Percent, "Q", 10);
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", "Use Q").SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", "Use E").SetValue(true));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e-min", "E Min.").SetValue(new Slider(10, 1, 20)));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e-min", "E Fleeing Min.").SetValue(new Slider(8, 1, 20)));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".minions", "Attack Minions").SetValue(false));
 
             var harassMenu = Menu.AddSubMenu(new Menu("Harass", Menu.Name + ".harass"));
             HitchanceManager.AddToMenu(
                 harassMenu.AddSubMenu(new Menu("Hitchance", harassMenu.Name + ".hitchance")), "harass",
-                new Dictionary<string, HitChance> { { "Q", HitChance.VeryHigh } });
+                new Dictionary<string, HitChance> { { "Q", HitChance.High } });
             ManaManager.AddToMenu(harassMenu, "harass-q", ManaCheckType.Minimum, ManaValueType.Percent, "Q");
+            ManaManager.AddToMenu(harassMenu, "harass-e", ManaCheckType.Minimum, ManaValueType.Percent, "E");
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", "Use Q").SetValue(true));
-            ManaManager.AddToMenu(comboMenu, "harass-e", ManaCheckType.Minimum, ManaValueType.Percent, "E");
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", "Use E").SetValue(true));
-            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e-min", "E Min").SetValue(new Slider(5, 1, 15)));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e-min", "E Min.").SetValue(new Slider(4, 1, 20)));
 
             var laneclearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
             ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(false));
             laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".q-min-1", "Q Min" + " <= 4").SetValue(new Slider(2, 1, 5)));
+                new MenuItem(laneclearMenu.Name + ".q-min-1", "Q Min." + " <= 4").SetValue(new Slider(2, 1, 5)));
             laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".q-min-2", "Q Min" + " <= 7").SetValue(new Slider(3, 1, 5)));
+                new MenuItem(laneclearMenu.Name + ".q-min-2", "Q Min." + " <= 7").SetValue(new Slider(3, 1, 5)));
             laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".q-min-3", "Q Min" + " >= 10").SetValue(new Slider(5, 1, 5)));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", "Use E").SetValue(false));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e-min", "E Min").SetValue(new Slider(2, 1, 5)));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e-jungle", "E " + "Jungle").SetValue(true));
-            laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".e-jungler-check", "E Jungler Checks").SetValue(true));
+                new MenuItem(laneclearMenu.Name + ".q-min-3", "Q Min." + " >= 10").SetValue(new Slider(5, 1, 5)));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", "Use E").SetValue(true));
 
-            var lasthitMenu = Menu.AddSubMenu(new Menu("Lasthit", Menu.Name + ".lasthit"));
+            var lasthitMenu = Menu.AddSubMenu(new Menu("Last Hit", Menu.Name + ".lasthit"));
+            lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".e-jungle", "E Jungle").SetValue(true));
+            lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".e-big", "E Dragon/Baron").SetValue(true));
+            lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".separator", string.Empty));
             ManaManager.AddToMenu(lasthitMenu, "lasthit", ManaCheckType.Minimum, ManaValueType.Percent);
-            lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".e-big", "E " + "Big").SetValue(true));
-            lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".e-unkillable", "E " + "Unkillable").SetValue(true));
-            lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".e-turret", "E " + "Turret").SetValue(true));
+            lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".e-siege", "E Siege Minion").SetValue(true));
+            lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".e-unkillable", "E Unkillable").SetValue(true));
+            lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".e-turret", "E Under Turret").SetValue(true));
 
             var killstealMenu = Menu.AddSubMenu(new Menu("Killsteal", Menu.Name + ".killsteal"));
             killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".e", "Use E").SetValue(true));
 
-            var fleeMenu = Menu.AddSubMenu(new Menu("Flee", Menu.Name + ".flee"));
-            fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".aa", "Use AutoAttacks").SetValue(true));
-
-            var ultimateMenu = Menu.AddSubMenu(new Menu("Ultimate", Menu.Name + ".ultimate"));
-
-            var blitzMenu = ultimateMenu.AddSubMenu(new Menu("Blitzcrank", ultimateMenu.Name + ".blitzcrank"));
-
-            HeroListManager.AddToMenu(
-                blitzMenu.AddSubMenu(new Menu("Blacklist", blitzMenu.Name + ".blacklist")), "blitzcrank", false, false,
-                true, false);
-
-            blitzMenu.AddItem(new MenuItem(blitzMenu.Name + ".r", "Use R").SetValue(true));
-
-            var tahmMenu = ultimateMenu.AddSubMenu(new Menu("Tahm Kench", ultimateMenu.Name + ".tahm-kench"));
-
-            HeroListManager.AddToMenu(
-                tahmMenu.AddSubMenu(new Menu("Blacklist", tahmMenu.Name + ".blacklist")), "tahm-kench", false, false,
-                true, false);
-
-            tahmMenu.AddItem(new MenuItem(tahmMenu.Name + ".r", "Use R").SetValue(true));
-
-            ultimateMenu.AddItem(new MenuItem(ultimateMenu.Name + ".save", "Save").SetValue(true));
-
-            var miscMenu = Menu.AddSubMenu(new Menu("Miscellaneous", Menu.Name + ".miscellaneous"));
-            ManaManager.AddToMenu(miscMenu, "misc", ManaCheckType.Minimum, ManaValueType.Percent);
+            var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
+            ManaManager.AddToMenu(miscMenu, "misc", ManaCheckType.Minimum, ManaValueType.Percent, "E");
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".e-reset", "E Harass Reset").SetValue(true));
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".w-baron", "Hotkey W Baron").SetValue(new KeyBind('J', KeyBindType.Press)));
@@ -167,15 +150,15 @@ namespace SFXChallenger.Champions
                     new KeyBind('K', KeyBindType.Press)));
 
             IndicatorManager.AddToMenu(DrawingManager.Menu, true);
-            IndicatorManager.Add(Q);
-            IndicatorManager.Add(W);
+            IndicatorManager.Add(Q, true, false);
+            IndicatorManager.Add(W, true, false);
             IndicatorManager.Add("E", Rend.GetDamage);
             IndicatorManager.Finale();
 
             Weights.GetItem("low-health").GetValueFunc = hero => hero.Health - Rend.GetDamage(hero);
             Weights.AddItem(
                 new Weights.Item(
-                    "w-stack", "W " + "Stack", 10, false, hero => hero.HasBuff("kalistacoopstrikemarkally") ? 10 : 0));
+                    "w-stack", "W Stack", 10, false, hero => hero.HasBuff("kalistacoopstrikemarkally") ? 10 : 0));
         }
 
         protected override void SetupSpells()
@@ -285,163 +268,184 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private void OnCorePreUpdate(EventArgs args)
+        protected override void OnPreUpdate()
         {
-            try
+            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear ||
+                Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
             {
-                if (Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.Combo &&
-                    Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.Flee)
+                var eBig = Menu.Item(Menu.Name + ".lasthit.e-big").GetValue<bool>();
+                var eJungle = Menu.Item(Menu.Name + ".lasthit.e-jungle").GetValue<bool>();
+                var eSiege = Menu.Item(Menu.Name + ".lasthit.e-siege").GetValue<bool>();
+                var eTurret = Menu.Item(Menu.Name + ".lasthit.e-turret").GetValue<bool>();
+                var eReset = Menu.Item(Menu.Name + ".miscellaneous.e-reset").GetValue<bool>();
+
+                IEnumerable<Obj_AI_Minion> minions = new HashSet<Obj_AI_Minion>();
+                if (eSiege || eTurret || eReset)
                 {
-                    var eBig = Menu.Item(Menu.Name + ".lasthit.e-big").GetValue<bool>();
-                    var eTurret = Menu.Item(Menu.Name + ".lasthit.e-turret").GetValue<bool>();
-                    var eReset = Menu.Item(Menu.Name + ".miscellaneous.e-reset").GetValue<bool>();
+                    minions = GameObjects.EnemyMinions.Where(e => e.IsValidTarget(E.Range) && Rend.IsKillable(e, true));
+                }
 
-                    IEnumerable<Obj_AI_Minion> minions = new HashSet<Obj_AI_Minion>();
-                    if (eBig || eTurret || eReset)
+                if (E.IsReady())
+                {
+                    if (ManaManager.Check("lasthit"))
                     {
-                        minions =
-                            GameObjects.EnemyMinions.Where(e => e.IsValidTarget(E.Range) && Rend.IsKillable(e, true));
+                        if (eSiege)
+                        {
+                            if (
+                                minions.Any(
+                                    m =>
+                                        (m.CharData.BaseSkinName.Contains("MinionSiege") ||
+                                         m.CharData.BaseSkinName.Contains("Super"))))
+                            {
+                                E.Cast();
+                                return;
+                            }
+                        }
+                        if (eTurret)
+                        {
+                            if (minions.Any(m => Utils.UnderAllyTurret(m.Position)))
+                            {
+                                E.Cast();
+                                return;
+                            }
+                        }
                     }
-
-                    if (E.IsReady())
+                    if (eBig || eJungle)
                     {
-                        if (eBig)
+                        var enemySmites =
+                            GameObjects.EnemyHeroes.Where(
+                                e =>
+                                    !e.IsDead && e.Distance(Player) < SummonerManager.Smite.Range * 1.5f &&
+                                    SummonerManager.IsSmiteReady(e));
+                        var allySmites =
+                            (from ally in
+                                GameObjects.AllyHeroes.Where(
+                                    e => !e.IsDead && e.Distance(Player) < SummonerManager.Smite.Range)
+                                let spell = SummonerManager.GetSmiteSpell(ally)
+                                where
+                                    spell != null &&
+                                    (spell.IsReady() || spell.Cooldown - spell.CooldownExpires - Game.Time <= 3)
+                                select ally).ToList();
+
+                        if (eJungle && Player.Level > 3 ||
+                            eBig && (enemySmites.Any() || !allySmites.Any() || Player.CountEnemiesInRange(1000) > 1))
                         {
                             var creeps =
                                 GameObjects.Jungle.Where(e => e.IsValidTarget(E.Range) && Rend.IsKillable(e, false))
-                                    .Concat(minions)
                                     .ToList();
-                            if (
+                            if (eJungle && creeps.Any() ||
+                                eBig &&
                                 creeps.Any(
                                     m =>
-                                        (m.CharData.BaseSkinName.Contains("MinionSiege") ||
-                                         m.CharData.BaseSkinName.Contains("Super") ||
-                                         m.CharData.BaseSkinName.StartsWith("SRU_Dragon") ||
+                                        (m.CharData.BaseSkinName.StartsWith("SRU_Dragon") ||
                                          m.CharData.BaseSkinName.StartsWith("SRU_Baron"))))
                             {
                                 E.Cast();
                                 return;
                             }
                         }
+                    }
+                }
 
-                        if (eTurret && ManaManager.Check("lasthit"))
+                if (eReset && E.IsReady() && ManaManager.Check("misc") &&
+                    GameObjects.EnemyHeroes.Any(e => Rend.HasBuff(e) && e.IsValidTarget(E.Range)))
+                {
+                    if (minions.Any())
+                    {
+                        E.Cast();
+                        return;
+                    }
+                }
+            }
+            if (Menu.Item(Menu.Name + ".ultimate.save").GetValue<bool>() && SoulBound.Unit != null && R.IsReady() &&
+                !SoulBound.Unit.InFountain())
+            {
+                SoulBound.Clean();
+                var enemies = SoulBound.Unit.CountEnemiesInRange(500);
+                if ((SoulBound.Unit.HealthPercent <= 10 && SoulBound.Unit.CountEnemiesInRange(500) > 0) ||
+                    (SoulBound.Unit.HealthPercent <= 5 && SoulBound.TotalDamage > SoulBound.Unit.Health && enemies == 0) ||
+                    (SoulBound.Unit.HealthPercent <= 50 && SoulBound.TotalDamage > SoulBound.Unit.Health && enemies > 0))
+                {
+                    R.Cast();
+                }
+            }
+            if (Menu.Item(Menu.Name + ".miscellaneous.w-baron").GetValue<KeyBind>().Active && W.IsReady() &&
+                Player.Distance(SummonersRift.River.Baron) <= W.Range)
+            {
+                W.Cast(SummonersRift.River.Baron);
+            }
+            if (Menu.Item(Menu.Name + ".miscellaneous.w-dragon").GetValue<KeyBind>().Active && W.IsReady() &&
+                Player.Distance(SummonersRift.River.Dragon) <= W.Range)
+            {
+                W.Cast(SummonersRift.River.Dragon);
+            }
+
+            if (SoulBound.Unit == null)
+            {
+                SoulBound.Unit =
+                    GameObjects.AllyHeroes.FirstOrDefault(
+                        a =>
+                            a.Buffs.Any(
+                                b =>
+                                    b.Caster.IsMe &&
+                                    b.Name.Equals("kalistacoopstrikeally", StringComparison.OrdinalIgnoreCase)));
+            }
+            if (SoulBound.Unit != null && SoulBound.Unit.Distance(Player) < R.Range && R.IsReady())
+            {
+                var blitz = Menu.Item(Menu.Name + ".ultimate.blitzcrank.r").GetValue<bool>();
+                var tahm = Menu.Item(Menu.Name + ".ultimate.tahm-kench.r").GetValue<bool>();
+                foreach (var enemy in
+                    GameObjects.EnemyHeroes.Where(e => (blitz || tahm) && !e.IsDead && e.Distance(Player) < 3000))
+                {
+                    if (blitz)
+                    {
+                        var blitzBuff =
+                            enemy.Buffs.FirstOrDefault(
+                                b =>
+                                    b.IsActive && b.Caster.NetworkId.Equals(SoulBound.Unit.NetworkId) &&
+                                    b.Name.Equals("rocketgrab2", StringComparison.OrdinalIgnoreCase));
+                        if (blitzBuff != null)
                         {
-                            var minion =
-                                minions.FirstOrDefault(
-                                    m => Utils.UnderAllyTurret(m.Position) && Rend.IsKillable(m, false));
-                            if (minion != null)
+                            if (!HeroListManager.Check("blitzcrank", enemy))
                             {
-                                E.Cast();
-                                return;
+                                if (!SoulBound.Unit.UnderTurret(false) && SoulBound.Unit.Distance(enemy) > 750f &&
+                                    SoulBound.Unit.Distance(Player) > R.Range / 3f)
+                                {
+                                    R.Cast();
+                                }
                             }
+                            return;
                         }
                     }
-
-                    if (eReset && E.IsReady() && ManaManager.Check("misc") &&
-                        GameObjects.EnemyHeroes.Any(e => Rend.HasBuff(e) && e.IsValidTarget(E.Range)))
+                    if (tahm)
                     {
-                        if (minions.Any())
+                        var tahmBuff =
+                            enemy.Buffs.FirstOrDefault(
+                                b =>
+                                    b.IsActive && b.Caster.NetworkId.Equals(SoulBound.Unit.NetworkId) &&
+                                    b.Name.Equals("tahmkenchwdevoured", StringComparison.OrdinalIgnoreCase));
+                        if (tahmBuff != null)
                         {
-                            E.Cast();
+                            if (!HeroListManager.Check("tahm-kench", enemy))
+                            {
+                                if (!SoulBound.Unit.UnderTurret(false) &&
+                                    (SoulBound.Unit.Distance(enemy) > Player.AttackRange ||
+                                     GameObjects.AllyHeroes.Where(
+                                         a => a.NetworkId != SoulBound.Unit.NetworkId && a.NetworkId != Player.NetworkId)
+                                         .Any(t => t.Distance(Player) > 600) ||
+                                     GameObjects.AllyTurrets.Any(t => t.Distance(Player) < 600)))
+                                {
+                                    R.Cast();
+                                }
+                            }
                             return;
                         }
                     }
                 }
-                if (Menu.Item(Menu.Name + ".ultimate.save").GetValue<bool>() && SoulBound.Unit != null && R.IsReady() &&
-                    !SoulBound.Unit.InFountain())
-                {
-                    SoulBound.Clean();
-                    var enemies = SoulBound.Unit.CountEnemiesInRange(500);
-                    if ((SoulBound.Unit.HealthPercent <= 10 && SoulBound.Unit.CountEnemiesInRange(500) > 0) ||
-                        (SoulBound.Unit.HealthPercent <= 5 && SoulBound.TotalDamage > SoulBound.Unit.Health &&
-                         enemies == 0) ||
-                        (SoulBound.Unit.HealthPercent <= 50 && SoulBound.TotalDamage > SoulBound.Unit.Health &&
-                         enemies > 0))
-                    {
-                        R.Cast();
-                    }
-                }
-                if (Menu.Item(Menu.Name + ".miscellaneous.w-baron").GetValue<KeyBind>().Active && W.IsReady() &&
-                    Player.Distance(SummonersRift.River.Baron) <= W.Range)
-                {
-                    W.Cast(SummonersRift.River.Baron);
-                }
-                if (Menu.Item(Menu.Name + ".miscellaneous.w-dragon").GetValue<KeyBind>().Active && W.IsReady() &&
-                    Player.Distance(SummonersRift.River.Dragon) <= W.Range)
-                {
-                    W.Cast(SummonersRift.River.Dragon);
-                }
-
-                if (SoulBound.Unit == null)
-                {
-                    SoulBound.Unit =
-                        GameObjects.AllyHeroes.FirstOrDefault(
-                            a =>
-                                a.Buffs.Any(
-                                    b =>
-                                        b.Caster.IsMe &&
-                                        b.Name.Equals("kalistacoopstrikeally", StringComparison.OrdinalIgnoreCase)));
-                }
-                if (SoulBound.Unit != null && SoulBound.Unit.Distance(Player) < R.Range && R.IsReady())
-                {
-                    var blitz = Menu.Item(Menu.Name + ".ultimate.blitzcrank.r").GetValue<bool>();
-                    var tahm = Menu.Item(Menu.Name + ".ultimate.tahm-kench.r").GetValue<bool>();
-                    foreach (var enemy in
-                        GameObjects.EnemyHeroes.Where(e => (blitz || tahm) && !e.IsDead && e.Distance(Player) < 3000))
-                    {
-                        if (blitz)
-                        {
-                            var blitzBuff =
-                                enemy.Buffs.FirstOrDefault(
-                                    b =>
-                                        b.IsActive && b.Caster.NetworkId.Equals(SoulBound.Unit.NetworkId) &&
-                                        b.Name.Equals("rocketgrab2", StringComparison.OrdinalIgnoreCase));
-                            if (blitzBuff != null)
-                            {
-                                if (!HeroListManager.Check("blitzcrank", enemy))
-                                {
-                                    if (!SoulBound.Unit.UnderTurret(false) && SoulBound.Unit.Distance(enemy) > 750f &&
-                                        SoulBound.Unit.Distance(Player) > R.Range / 3f)
-                                    {
-                                        R.Cast();
-                                    }
-                                }
-                                return;
-                            }
-                        }
-                        if (tahm)
-                        {
-                            var tahmBuff =
-                                enemy.Buffs.FirstOrDefault(
-                                    b =>
-                                        b.IsActive && b.Caster.NetworkId.Equals(SoulBound.Unit.NetworkId) &&
-                                        b.Name.Equals("tahmkenchwdevoured", StringComparison.OrdinalIgnoreCase));
-                            if (tahmBuff != null)
-                            {
-                                if (!HeroListManager.Check("tahm-kench", enemy))
-                                {
-                                    if (!SoulBound.Unit.UnderTurret(false) &&
-                                        (SoulBound.Unit.Distance(enemy) > Player.AttackRange ||
-                                         GameObjects.AllyHeroes.Where(
-                                             a =>
-                                                 a.NetworkId != SoulBound.Unit.NetworkId &&
-                                                 a.NetworkId != Player.NetworkId).Any(t => t.Distance(Player) > 600) ||
-                                         GameObjects.AllyTurrets.Any(t => t.Distance(Player) < 600)))
-                                    {
-                                        R.Cast();
-                                    }
-                                }
-                                return;
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
             }
         }
+
+        protected override void OnPostUpdate() {}
 
         protected override void Combo()
         {
@@ -496,7 +500,7 @@ namespace SFXChallenger.Champions
                             if (buff != null &&
                                 buff.Count >= Menu.Item(Menu.Name + ".combo.e-min").GetValue<Slider>().Value)
                             {
-                                if (target.Distance(Player) > E.Range * 0.8 || buff.EndTime - Game.Time < 0.3)
+                                if (target.Distance(Player) > E.Range * 0.8 && !target.IsFacing(Player))
                                 {
                                     E.Cast();
                                 }
@@ -589,7 +593,7 @@ namespace SFXChallenger.Champions
             var minQ1 = Menu.Item(Menu.Name + ".lane-clear.q-min-1").GetValue<Slider>().Value;
             var minQ2 = Menu.Item(Menu.Name + ".lane-clear.q-min-2").GetValue<Slider>().Value;
             var minQ3 = Menu.Item(Menu.Name + ".lane-clear.q-min-3").GetValue<Slider>().Value;
-            var minE = Menu.Item(Menu.Name + ".lane-clear.e-min").GetValue<Slider>().Value;
+            var minE = ItemData.Runaans_Hurricane_Ranged_Only.GetItem().IsOwned(Player) ? 3 : 2;
             var minQ = 0;
             var minions = MinionManager.GetMinions(
                 Q.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
@@ -636,25 +640,8 @@ namespace SFXChallenger.Champions
             }
             if (useE)
             {
-                if (Menu.Item(Menu.Name + ".lane-clear.e-jungler-check").GetValue<bool>())
-                {
-                    var enemySmites =
-                        GameObjects.EnemyHeroes.Where(
-                            e => !e.IsDead && e.Distance(Player) < 1250 && SummonerManager.IsSmiteReady(e));
-                    var allySmites =
-                        GameObjects.AllyHeroes.Where(
-                            e => !e.IsDead && e.Distance(Player) < 1000 && SummonerManager.IsSmiteReady(e));
-
-                    if ((!enemySmites.Any() && allySmites.Any() && Player.CountEnemiesInRange(1000) <= 1) ||
-                        Player.Level <= 3)
-                    {
-                        return;
-                    }
-                }
                 var killable = minions.Where(m => E.IsInRange(m) && Rend.IsKillable(m, false)).ToList();
-                if (killable.Count >= minE ||
-                    (killable.Count >= 1 && Menu.Item(Menu.Name + ".lane-clear.e-jungle").GetValue<bool>() &&
-                     killable.Any(m => m.Team == GameObjectTeam.Neutral)))
+                if (killable.Count >= minE)
                 {
                     E.Cast();
                 }
@@ -663,14 +650,11 @@ namespace SFXChallenger.Champions
 
         protected override void Flee()
         {
-            if (Menu.Item(Menu.Name + ".flee.aa").GetValue<bool>())
+            Orbwalker.SetAttack(true);
+            var dashObjects = GetDashObjects();
+            if (dashObjects != null && dashObjects.Any())
             {
-                Orbwalker.SetAttack(true);
-                var dashObjects = GetDashObjects();
-                if (dashObjects != null && dashObjects.Any())
-                {
-                    Orbwalking.Orbwalk(dashObjects.First(), Game.CursorPos);
-                }
+                Orbwalking.Orbwalk(dashObjects.First(), Game.CursorPos);
             }
         }
 
@@ -817,12 +801,12 @@ namespace SFXChallenger.Champions
                     var hero = target as Obj_AI_Hero;
                     if (hero != null)
                     {
-                        if (Invulnerable.HasBuff(hero, DamageType.Physical, false))
+                        if (Invulnerable.Check(hero, DamageType.Physical, false))
                         {
                             return false;
                         }
                     }
-                    return GetDamage(target) > target.Health; // + target.AttackShield;
+                    return GetDamage(target) > target.Health + target.PhysicalShield;
                 }
                 catch (Exception ex)
                 {

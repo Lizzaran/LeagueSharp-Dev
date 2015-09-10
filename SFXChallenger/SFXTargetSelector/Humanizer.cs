@@ -43,10 +43,8 @@ namespace SFXChallenger.SFXTargetSelector
             {
                 _mainMenu = mainMenu;
 
-                var humanizerMenu = _mainMenu.AddSubMenu(new Menu("Humanizer", _mainMenu.Name + ".humanizer"));
-                humanizerMenu.AddItem(
-                    new MenuItem(humanizerMenu.Name + ".fow", "FoW Delay").SetValue(new Slider(500, 0, 1500)));
-                humanizerMenu.AddItem(new MenuItem(humanizerMenu.Name + ".enabled", "Enabled").SetValue(true));
+                _mainMenu.AddItem(
+                    new MenuItem(_mainMenu.Name + ".fow", "Target Acquire Delay").SetValue(new Slider(500, 0, 1500)));
             }
             catch (Exception ex)
             {
@@ -56,17 +54,14 @@ namespace SFXChallenger.SFXTargetSelector
 
         public static IEnumerable<Targets.Item> FilterTargets(IEnumerable<Targets.Item> targets)
         {
-            if (_mainMenu.Item(_mainMenu.Name + ".humanizer.enabled").GetValue<bool>())
+            var fowDelay = (float) _mainMenu.Item(_mainMenu.Name + ".fow").GetValue<Slider>().Value;
+            if (fowDelay > 0)
             {
-                var fowDelay = (float) _mainMenu.Item(_mainMenu.Name + ".humanizer.fow").GetValue<Slider>().Value;
-                if (fowDelay > 0)
-                {
-                    fowDelay = fowDelay / 1000f;
-                }
-                if (fowDelay > 0.0f)
-                {
-                    return targets.Where(item => Game.Time - item.LastVisibleChange > fowDelay);
-                }
+                fowDelay = fowDelay / 1000f;
+            }
+            if (fowDelay > 0.0f)
+            {
+                return targets.Where(item => Game.Time - item.LastVisibleChange > fowDelay);
             }
             return targets;
         }

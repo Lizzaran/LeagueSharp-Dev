@@ -76,7 +76,12 @@ namespace SFXChallenger.Managers
                     CastType = CastType.Target,
                     Range = 750f
                 };
-                RedSmite = new SummonerSpell { Name = "s5_summonersmiteduel", CastType = CastType.Target, Range = 750f };
+                RedSmite = new SummonerSpell
+                {
+                    Name = "s5_summonersmiteSingle",
+                    CastType = CastType.Target,
+                    Range = 750f
+                };
                 Ghost = new SummonerSpell { Name = "SummonerHaste", CastType = CastType.Self, Range = float.MaxValue };
                 Clarity = new SummonerSpell { Name = "SummonerMana", CastType = CastType.Self, Range = 600f };
                 Heal = new SummonerSpell { Name = "SummonerHeal", CastType = CastType.Self, Range = 850f };
@@ -129,6 +134,12 @@ namespace SFXChallenger.Managers
         public static bool Exists(this SummonerSpell spell, Obj_AI_Hero sender = null)
         {
             return spell.GetSlot(sender ?? ObjectManager.Player) != SpellSlot.Unknown;
+        }
+
+        public static SpellDataInst GetSpell(this SummonerSpell spell, Obj_AI_Hero sender = null)
+        {
+            var slot = spell.GetSlot((sender ?? ObjectManager.Player));
+            return slot == SpellSlot.Unknown ? null : (sender ?? ObjectManager.Player).Spellbook.GetSpell(slot);
         }
 
         public static void Cast(this SummonerSpell spell, Obj_AI_Hero sender = null)
@@ -208,6 +219,21 @@ namespace SFXChallenger.Managers
         public static bool IsSmiteReady(Obj_AI_Hero hero)
         {
             return Smite.IsReady(hero) || BlueSmite.IsReady(hero) || RedSmite.IsReady(hero);
+        }
+
+        public static SpellDataInst GetSmiteSpell(Obj_AI_Hero hero)
+        {
+            var smite = Smite.GetSpell(hero);
+            if (smite != null)
+            {
+                return smite;
+            }
+            var blueSmite = BlueSmite.GetSpell(hero);
+            if (blueSmite != null)
+            {
+                return blueSmite;
+            }
+            return RedSmite.GetSpell(hero);
         }
 
         public static void UseComboSummoners(Obj_AI_Hero target)

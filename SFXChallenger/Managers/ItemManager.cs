@@ -28,9 +28,9 @@ using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Enumerations;
+using SFXChallenger.Helpers;
 using SFXChallenger.Library;
 using SFXChallenger.Library.Logger;
-using SFXChallenger.Wrappers;
 using ItemData = LeagueSharp.Common.Data.ItemData;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using Utils = SFXChallenger.Helpers.Utils;
@@ -262,7 +262,7 @@ namespace SFXChallenger.Managers
                                 new Slider(0)));
                         itemMenu.AddItem(
                             new MenuItem(itemMenu.Name + ".target-health-below", "Target Health % <=").SetValue(
-                                new Slider(100)));
+                                new Slider(90)));
                         itemMenu.AddItem(
                             new MenuItem(itemMenu.Name + ".target-health-above", "Target Health % >=").SetValue(
                                 new Slider(0)));
@@ -497,7 +497,7 @@ namespace SFXChallenger.Managers
                         foreach (var enemy in
                             GameObjects.EnemyHeroes.Where(
                                 t =>
-                                    t.IsValidTarget() && !Invulnerable.HasBuff(t) &&
+                                    t.IsValidTarget() && !Invulnerable.Check(t) &&
                                     t.HealthPercent <=
                                     _menu.Item(_menu.Name + "." + lItem.Name + ".target-health-below")
                                         .GetValue<Slider>()

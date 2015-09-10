@@ -72,7 +72,6 @@ namespace SFXChallenger.Champions
 
         protected override void OnLoad()
         {
-            Core.OnPostUpdate += OnCorePostUpdate;
             Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
             AntiGapcloser.OnEnemyGapcloser += OnAntiGapcloserEnemyGapcloser;
             CustomEvents.Unit.OnDash += OnUnitDash;
@@ -80,18 +79,6 @@ namespace SFXChallenger.Champions
             Drawing.OnEndScene += OnDrawingEndScene;
             Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
             Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
-        }
-
-        protected override void OnUnload()
-        {
-            Core.OnPostUpdate -= OnCorePostUpdate;
-            Interrupter2.OnInterruptableTarget -= OnInterruptableTarget;
-            AntiGapcloser.OnEnemyGapcloser -= OnAntiGapcloserEnemyGapcloser;
-            CustomEvents.Unit.OnDash -= OnUnitDash;
-            Drawing.OnDraw -= OnDrawingDraw;
-            Drawing.OnEndScene -= OnDrawingEndScene;
-            Obj_AI_Base.OnProcessSpellCast -= OnObjAiBaseProcessSpellCast;
-            Orbwalking.BeforeAttack -= OnOrbwalkingBeforeAttack;
         }
 
         protected override void AddToMenu()
@@ -104,7 +91,8 @@ namespace SFXChallenger.Champions
             comboMenu.AddItem(
                 new MenuItem(comboMenu.Name + ".gold-percent", "W " + "Gold Health Percent").SetValue(
                     new Slider(20, 5, 75)));
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".red-min", "W " + "Red Min").SetValue(new Slider(3, 1, 5)));
+            comboMenu.AddItem(
+                new MenuItem(comboMenu.Name + ".red-min", "W " + "Red Min.").SetValue(new Slider(3, 1, 5)));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", "Use Q").SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", "Use W").SetValue(true));
 
@@ -126,14 +114,14 @@ namespace SFXChallenger.Champions
             ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
             ManaManager.AddToMenu(
                 laneclearMenu, "lane-clear-blue", ManaCheckType.Minimum, ManaValueType.Percent, "W " + "Blue", 50);
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q-min", "Q Min").SetValue(new Slider(3, 1, 5)));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q-min", "Q Min.").SetValue(new Slider(3, 1, 5)));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", "Use W").SetValue(true));
 
             var fleeMenu = Menu.AddSubMenu(new Menu("Flee", Menu.Name + ".flee"));
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".w", "Use W Gold").SetValue(true));
 
-            var miscMenu = Menu.AddSubMenu(new Menu("Miscellaneous", Menu.Name + ".miscellaneous"));
+            var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".w-range", "W " + "Range").SetValue(new Slider((int) W.Range, 500, 1000)))
                 .ValueChanged +=
@@ -147,8 +135,8 @@ namespace SFXChallenger.Champions
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r-card", "Pick Card on R").SetValue(true));
 
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("Q " + "Gapcloser", miscMenu.Name + "q-gapcloser")), "q-gapcloser", false,
-                false, true, false);
+                miscMenu.AddSubMenu(new Menu("Q Gapcloser", miscMenu.Name + "q-gapcloser")), "q-gapcloser", false, false,
+                true, false);
 
             var manualMenu = Menu.AddSubMenu(new Menu("Manual", Menu.Name + ".manual"));
             manualMenu.AddItem(
@@ -263,50 +251,44 @@ namespace SFXChallenger.Champions
             return target != null && W.GetDamage(target, stage) - 5 > target.Health + target.HPRegenRate;
         }
 
-        private void OnCorePostUpdate(EventArgs args)
+        protected override void OnPreUpdate() {}
+
+        protected override void OnPostUpdate()
         {
-            try
+            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear ||
+                Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
             {
-                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear ||
-                    Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
+                if (Cards.Has(CardColor.Red))
                 {
-                    if (Cards.Has(CardColor.Red))
+                    var range = Player.AttackRange + Player.BoundingRadius * 1.5f;
+                    var minions = MinionManager.GetMinions(range, MinionTypes.All, MinionTeam.NotAlly);
+                    var pred = MinionManager.GetBestCircularFarmLocation(
+                        minions.Select(m => m.Position.To2D()).ToList(), 500, range);
+                    var target = minions.OrderBy(m => m.Distance(pred.Position)).FirstOrDefault();
+                    if (target != null)
                     {
-                        var range = Player.AttackRange + Player.BoundingRadius * 1.5f;
-                        var minions = MinionManager.GetMinions(range, MinionTypes.All, MinionTeam.NotAlly);
-                        var pred =
-                            MinionManager.GetBestCircularFarmLocation(
-                                minions.Select(m => m.Position.To2D()).ToList(), 500, range);
-                        var target = minions.OrderBy(m => m.Distance(pred.Position)).FirstOrDefault();
-                        if (target != null)
-                        {
-                            Orbwalker.ForceTarget(target);
-                        }
-                    }
-                }
-                if (!Cards.ShouldWait && Cards.Status != SelectStatus.Selecting && Cards.Status != SelectStatus.Selected)
-                {
-                    Orbwalker.ForceTarget(null);
-                }
-                if (Cards.Status != SelectStatus.Selected)
-                {
-                    if (Menu.Item(Menu.Name + ".manual.blue").GetValue<KeyBind>().Active)
-                    {
-                        Cards.Select(CardColor.Blue);
-                    }
-                    if (Menu.Item(Menu.Name + ".manual.red").GetValue<KeyBind>().Active)
-                    {
-                        Cards.Select(CardColor.Red);
-                    }
-                    if (Menu.Item(Menu.Name + ".manual.gold").GetValue<KeyBind>().Active)
-                    {
-                        Cards.Select(CardColor.Gold);
+                        Orbwalker.ForceTarget(target);
                     }
                 }
             }
-            catch (Exception ex)
+            if (!Cards.ShouldWait && Cards.Status != SelectStatus.Selecting && Cards.Status != SelectStatus.Selected)
             {
-                Global.Logger.AddItem(new LogItem(ex));
+                Orbwalker.ForceTarget(null);
+            }
+            if (Cards.Status != SelectStatus.Selected)
+            {
+                if (Menu.Item(Menu.Name + ".manual.blue").GetValue<KeyBind>().Active)
+                {
+                    Cards.Select(CardColor.Blue);
+                }
+                if (Menu.Item(Menu.Name + ".manual.red").GetValue<KeyBind>().Active)
+                {
+                    Cards.Select(CardColor.Red);
+                }
+                if (Menu.Item(Menu.Name + ".manual.gold").GetValue<KeyBind>().Active)
+                {
+                    Cards.Select(CardColor.Gold);
+                }
             }
         }
 
