@@ -342,11 +342,10 @@ namespace SFXChallenger.SFXTargetSelector
                 {
                     return 0;
                 }
-                return item.Inverted
-                    ? item.Weight -
-                      (item.Weight * (GetValue(item, target) - (simulation ? item.SimulationMinValue : item.MinValue)) /
-                       (simulation ? item.SimulationMaxValue : item.MaxValue))
-                    : item.Weight * GetValue(item, target) / (simulation ? item.SimulationMaxValue : item.MaxValue);
+
+                return item.Weight *
+                       (item.Inverted ? (simulation ? item.SimulationMinValue : item.MinValue) : GetValue(item, target)) /
+                       (item.Inverted ? GetValue(item, target) : item.MaxValue);
             }
             catch (Exception ex)
             {

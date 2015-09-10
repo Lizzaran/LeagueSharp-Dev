@@ -259,7 +259,7 @@ namespace SFXChallenger.SFXTargetSelector
 
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + ".circle-thickness", "Circle Thickness").SetShared()
-                        .SetValue(new Slider(2, 1, 10)));
+                        .SetValue(new Slider(5, 1, 10)));
 
                 Selected.AddToMenu(_menu, drawingMenu);
                 Weights.AddToMenu(_menu, drawingMenu);
