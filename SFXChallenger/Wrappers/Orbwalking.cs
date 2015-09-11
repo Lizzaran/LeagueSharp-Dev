@@ -1044,7 +1044,7 @@ namespace SFXChallenger.Wrappers
 
             private bool IsAttackableObject(string name)
             {
-                return _attackableObjects[name.ToLower()];
+                return _attackableObjects.ContainsKey(name.ToLower()) && _attackableObjects[name.ToLower()];
             }
 
             private List<Obj_AI_Minion> GetMinions(bool combo = false)
