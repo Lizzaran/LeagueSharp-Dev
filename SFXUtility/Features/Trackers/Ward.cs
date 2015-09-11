@@ -298,6 +298,7 @@ namespace SFXUtility.Features.Trackers
                 var ward = sender as Obj_AI_Base;
                 if (ward != null && sender.Name.Contains("Ward", StringComparison.OrdinalIgnoreCase))
                 {
+                    _wardObjects.RemoveAll(w => w.Object != null && w.Object.NetworkId == sender.NetworkId);
                     _wardObjects.RemoveAll(
                         w =>
                             (Math.Abs(w.Position.X - ward.Position.X) <= (w.IsFromMissile ? 25 : 10)) &&

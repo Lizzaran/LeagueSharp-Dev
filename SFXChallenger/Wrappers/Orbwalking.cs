@@ -588,6 +588,15 @@ namespace SFXChallenger.Wrappers
         {
             private const float LaneClearWaitTimeMod = 2f;
             private static Menu _config;
+            private readonly Dictionary<string, bool> _attackableObjects = new Dictionary<string, bool>();
+            private readonly string[] _attackleCloneChamps = { "Shaco", "LeBlanc", "Wukong" };
+
+            private readonly string[] _attackleObjectChamps =
+            {
+                "Zyra", "Heimerdinger", "Shaco", "Teemo", "Gangplank",
+                "Annie", "Yorick", "Mordekaiser"
+            };
+
             private Obj_AI_Base _forcedTarget;
             private OrbwalkingMode _mode = OrbwalkingMode.None;
             private Vector3 _orbwalkingPoint;
@@ -612,16 +621,26 @@ namespace SFXChallenger.Wrappers
                 _config.AddSubMenu(drawings);
 
                 var attackables = new Menu("Attackable Objects", "Attackables");
-                attackables.AddItem(new MenuItem("AttackWard", "Ward").SetShared().SetValue(true));
-                attackables.AddItem(new MenuItem("AttackZyra", "Zyra Plant").SetShared().SetValue(true));
-                attackables.AddItem(new MenuItem("AttackHeimer", "Heimer Turret").SetShared().SetValue(true));
-                attackables.AddItem(new MenuItem("AttackShaco", "Shaco Box").SetShared().SetValue(true));
-                attackables.AddItem(new MenuItem("AttackTeemo", "Teemo Shroom").SetShared().SetValue(true));
-                attackables.AddItem(new MenuItem("AttackGangplank", "Gangplank Barrel").SetShared().SetValue(true));
-                attackables.AddItem(new MenuItem("AttackAnnie", "Annie Tibbers").SetShared().SetValue(true));
-                attackables.AddItem(new MenuItem("AttackYorick", "Yorick Ghost").SetShared().SetValue(true));
-                attackables.AddItem(new MenuItem("AttackMordekaiser", "Mordekaiser Ghost").SetShared().SetValue(true));
-                attackables.AddItem(new MenuItem("AttackClone", "Clones").SetShared().SetValue(true));
+                attackables.AddItem(new MenuItem("AttackWard", "Ward").SetShared().SetValue(true)).ValueChanged +=
+                    (sender, args) => SetAttackableObject("ward", args.GetNewValue<bool>());
+                attackables.AddItem(new MenuItem("AttackZyra", "Zyra Plant").SetShared().SetValue(true)).ValueChanged +=
+                    (sender, args) => SetAttackableObject("zyra", args.GetNewValue<bool>());
+                attackables.AddItem(new MenuItem("AttackHeimerdinger", "Heimer Turret").SetShared().SetValue(true))
+                    .ValueChanged += (sender, args) => SetAttackableObject("heimerdinger", args.GetNewValue<bool>());
+                attackables.AddItem(new MenuItem("AttackShaco", "Shaco Box").SetShared().SetValue(true)).ValueChanged +=
+                    (sender, args) => SetAttackableObject("shaco", args.GetNewValue<bool>());
+                attackables.AddItem(new MenuItem("AttackTeemo", "Teemo Shroom").SetShared().SetValue(true)).ValueChanged
+                    += (sender, args) => SetAttackableObject("teemo", args.GetNewValue<bool>());
+                attackables.AddItem(new MenuItem("AttackGangplank", "Gangplank Barrel").SetShared().SetValue(true))
+                    .ValueChanged += (sender, args) => SetAttackableObject("gangplank", args.GetNewValue<bool>());
+                attackables.AddItem(new MenuItem("AttackAnnie", "Annie Tibbers").SetShared().SetValue(true))
+                    .ValueChanged += (sender, args) => SetAttackableObject("annie", args.GetNewValue<bool>());
+                attackables.AddItem(new MenuItem("AttackYorick", "Yorick Ghost").SetShared().SetValue(true))
+                    .ValueChanged += (sender, args) => SetAttackableObject("yorick", args.GetNewValue<bool>());
+                attackables.AddItem(new MenuItem("AttackMordekaiser", "Mordekaiser Ghost").SetShared().SetValue(true))
+                    .ValueChanged += (sender, args) => SetAttackableObject("mordekaiser", args.GetNewValue<bool>());
+                attackables.AddItem(new MenuItem("AttackClone", "Clones").SetShared().SetValue(true)).ValueChanged +=
+                    (sender, args) => SetAttackableObject("clone", args.GetNewValue<bool>());
 
                 _config.AddSubMenu(attackables);
 
@@ -630,18 +649,11 @@ namespace SFXChallenger.Wrappers
 
                 delays.AddItem(
                     new MenuItem("MovementDelay", "Movement Delay").SetShared().SetValue(new Slider(70, 0, 250)))
-                    .ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        SetDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
-                    };
+                    .ValueChanged += (sender, args) => SetDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
 
                 delays.AddItem(new MenuItem("AttackDelay", "Attack Delay").SetShared().SetValue(new Slider(0, 0, 250)))
                     .ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        SetDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
-                    };
+                    (sender, args) => SetDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
 
                 delays.AddItem(new MenuItem("FarmDelay", "Farm Delay").SetShared().SetValue(new Slider(0, 0, 200)));
 
@@ -651,61 +663,34 @@ namespace SFXChallenger.Wrappers
                 delayMovement.AddItem(
                     new MenuItem("MovementMinDelay", "Min. Multi % Delay").SetShared()
                         .SetValue(new Slider(170, 100, 300))).ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        SetMinDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
-                    };
+                    (sender, args) => SetMinDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
                 delayMovement.AddItem(
                     new MenuItem("MovementMaxDelay", "Max. Multi % Delay").SetShared()
                         .SetValue(new Slider(220, 100, 300))).ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        SetMaxDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
-                    };
+                    (sender, args) => SetMaxDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
                 delayMovement.AddItem(
                     new MenuItem("MovementProbability", "Probability %").SetShared().SetValue(new Slider(30)))
                     .ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        SetDelayProbability(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
-                    };
+                    (sender, args) => SetDelayProbability(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
                 delayMovement.AddItem(new MenuItem("MovementEnabled", "Enabled").SetShared().SetValue(false))
-                    .ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        SetDelayRandomize(args.GetNewValue<bool>(), OrbwalkingDelay.Move);
-                    };
-
+                    .ValueChanged += (sender, args) => SetDelayRandomize(args.GetNewValue<bool>(), OrbwalkingDelay.Move);
                 _config.AddSubMenu(delayMovement);
 
                 var delayAttack = new Menu("Attacks Humanizer", "Attack");
                 delayAttack.AddItem(
                     new MenuItem("AttackMinDelay", "Min. Multi % Delay").SetShared().SetValue(new Slider(170, 100, 300)))
                     .ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        SetMinDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
-                    };
+                    (sender, args) => SetMinDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
                 delayAttack.AddItem(
                     new MenuItem("AttackMaxDelay", "Max. Multi % Delay").SetShared().SetValue(new Slider(220, 100, 300)))
                     .ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        SetMaxDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
-                    };
+                    (sender, args) => SetMaxDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
                 delayAttack.AddItem(
                     new MenuItem("AttackProbability", "Probability %").SetShared().SetValue(new Slider(30)))
                     .ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        SetDelayProbability(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
-                    };
+                    (sender, args) => SetDelayProbability(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
                 delayAttack.AddItem(new MenuItem("AttackEnabled", "Enabled").SetShared().SetValue(false)).ValueChanged
-                    +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        SetDelayRandomize(args.GetNewValue<bool>(), OrbwalkingDelay.Attack);
-                    };
+                    += (sender, args) => SetDelayRandomize(args.GetNewValue<bool>(), OrbwalkingDelay.Attack);
 
                 _config.AddSubMenu(delayAttack);
 
@@ -748,6 +733,7 @@ namespace SFXChallenger.Wrappers
                 SetDelayProbability(_config.Item("AttackProbability").GetValue<Slider>().Value, OrbwalkingDelay.Attack);
                 SetDelayRandomize(_config.Item("AttackEnabled").GetValue<bool>(), OrbwalkingDelay.Attack);
 
+                CustomEvents.Game.OnGameLoad += GameOnOnGameLoad;
                 Game.OnUpdate += GameOnOnGameUpdate;
                 Drawing.OnDraw += DrawingOnOnDraw;
             }
@@ -805,6 +791,29 @@ namespace SFXChallenger.Wrappers
                     return OrbwalkingMode.None;
                 }
                 set { _mode = value; }
+            }
+
+            private void GameOnOnGameLoad(EventArgs args)
+            {
+                var clone = false;
+                foreach (var enemy in GameObjects.EnemyHeroes)
+                {
+                    if (_attackleObjectChamps.Any(v => v.Equals(enemy.ChampionName, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        _attackableObjects.Add(
+                            enemy.ChampionName.ToLower(), _config.Item("Attack" + enemy.ChampionName).GetValue<bool>());
+                    }
+                    if (!clone &&
+                        _attackleCloneChamps.Any(v => v.Equals(enemy.ChampionName, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        clone = true;
+                    }
+                }
+                if (clone)
+                {
+                    _attackableObjects.Add("clone", _config.Item("AttackClone").GetValue<bool>());
+                }
+                _attackableObjects.Add("ward", _config.Item("AttackWard").GetValue<bool>());
             }
 
             /// <summary>
@@ -879,13 +888,7 @@ namespace SFXChallenger.Wrappers
                 var minions = new List<Obj_AI_Minion>();
                 if (ActiveMode != OrbwalkingMode.None && ActiveMode != OrbwalkingMode.Flee)
                 {
-                    minions = GetMinions(
-                        _config.Item("AttackWard").GetValue<bool>(), _config.Item("AttackZyra").GetValue<bool>(),
-                        _config.Item("AttackHeimer").GetValue<bool>(), _config.Item("AttackClone").GetValue<bool>(),
-                        _config.Item("AttackAnnie").GetValue<bool>(), _config.Item("AttackTeemo").GetValue<bool>(),
-                        _config.Item("AttackShaco").GetValue<bool>(), _config.Item("AttackGangplank").GetValue<bool>(),
-                        _config.Item("AttackYorick").GetValue<bool>(),
-                        _config.Item("AttackMordekaiser").GetValue<bool>());
+                    minions = GetMinions(ActiveMode == OrbwalkingMode.Combo);
                 }
 
                 /*Killable Minion*/
@@ -1022,20 +1025,39 @@ namespace SFXChallenger.Wrappers
 
                 if (result == null && ActiveMode == OrbwalkingMode.Combo)
                 {
-                    if (
-                        !GameObjects.EnemyHeroes.Any(
-                            e => e.IsValidTarget() && e.Distance(Player) < GetRealAutoAttackRange(e) * 1.2f))
+                    if (!GameObjects.EnemyHeroes.Any(e => e.IsValidTarget(GetRealAutoAttackRange(e) * 1.2f)))
                     {
-                        return
-                            minions.FirstOrDefault(
-                                m => !MinionManager.IsMinion(m, true) && m.Team != GameObjectTeam.Neutral);
+                        return minions.FirstOrDefault();
                     }
                 }
 
                 return result;
             }
 
-            private List<Obj_AI_Minion> GetMinions(bool ward,
+            private void SetAttackableObject(string name, bool value)
+            {
+                if (_attackableObjects.ContainsKey(name.ToLower()))
+                {
+                    _attackableObjects[name.ToLower()] = value;
+                }
+            }
+
+            private bool IsAttackableObject(string name)
+            {
+                return _attackableObjects[name.ToLower()];
+            }
+
+            private List<Obj_AI_Minion> GetMinions(bool combo = false)
+            {
+                return GetMinions(
+                    !combo, IsAttackableObject("ward"), IsAttackableObject("zyra"), IsAttackableObject("heimerdinger"),
+                    IsAttackableObject("clone"), IsAttackableObject("annie"), IsAttackableObject("teemo"),
+                    IsAttackableObject("shaco"), IsAttackableObject("gangplank"), IsAttackableObject("yorick"),
+                    IsAttackableObject("mordekaiser"));
+            }
+
+            private List<Obj_AI_Minion> GetMinions(bool minion,
+                bool ward,
                 bool zyra,
                 bool heimer,
                 bool clone,
@@ -1051,19 +1073,30 @@ namespace SFXChallenger.Wrappers
                 var clones = new List<Obj_AI_Minion>();
 
                 var units = ward ? GameObjects.EnemyMinions.Concat(GameObjects.EnemyWards) : GameObjects.EnemyMinions;
-                foreach (var minion in units.Where(u => u.IsValidTarget() && InAutoAttackRange(u)))
+                foreach (var unit in units.Where(u => u.IsValidTarget() && InAutoAttackRange(u)))
                 {
-                    var baseName = minion.CharData.BaseSkinName.ToLower();
-                    if (MinionManager.IsMinion(minion, ward)) //minions & wards
+                    var baseName = unit.CharData.BaseSkinName.ToLower();
+                    if (minion) //minions
                     {
-                        minions.Add(minion);
-                        continue;
+                        if (baseName.Contains("minion") || baseName.Contains("bilge") || baseName.Contains("bw_"))
+                        {
+                            minions.Add(unit);
+                            continue;
+                        }
+                    }
+                    if (ward) //wards
+                    {
+                        if (baseName.Contains("ward") || baseName.Contains("trinket"))
+                        {
+                            targets.Add(unit);
+                            continue;
+                        }
                     }
                     if (zyra) //zyra plant
                     {
                         if (baseName.Contains("zyra") && baseName.Contains("plant"))
                         {
-                            targets.Add(minion);
+                            targets.Add(unit);
                             continue;
                         }
                     }
@@ -1071,7 +1104,7 @@ namespace SFXChallenger.Wrappers
                     {
                         if (baseName.Contains("heimert"))
                         {
-                            targets.Add(minion);
+                            targets.Add(unit);
                             continue;
                         }
                     }
@@ -1079,7 +1112,7 @@ namespace SFXChallenger.Wrappers
                     {
                         if (baseName.Contains("annietibbers"))
                         {
-                            targets.Add(minion);
+                            targets.Add(unit);
                             continue;
                         }
                     }
@@ -1087,7 +1120,7 @@ namespace SFXChallenger.Wrappers
                     {
                         if (baseName.Contains("teemomushroom"))
                         {
-                            targets.Add(minion);
+                            targets.Add(unit);
                             continue;
                         }
                     }
@@ -1095,7 +1128,7 @@ namespace SFXChallenger.Wrappers
                     {
                         if (baseName.Contains("shacobox"))
                         {
-                            targets.Add(minion);
+                            targets.Add(unit);
                             continue;
                         }
                     }
@@ -1103,7 +1136,7 @@ namespace SFXChallenger.Wrappers
                     {
                         if (baseName.Contains("gangplankbarrel"))
                         {
-                            targets.Add(minion);
+                            targets.Add(unit);
                             continue;
                         }
                     }
@@ -1111,7 +1144,7 @@ namespace SFXChallenger.Wrappers
                     {
                         if (baseName.Contains("yorick") && baseName.Contains("ghoul"))
                         {
-                            targets.Add(minion);
+                            targets.Add(unit);
                             continue;
                         }
                     }
@@ -1120,7 +1153,7 @@ namespace SFXChallenger.Wrappers
                         if (baseName.Contains("shaco") || baseName.Contains("leblanc") ||
                             baseName.Contains("monkeyking"))
                         {
-                            clones.Add(minion);
+                            clones.Add(unit);
                             continue;
                         }
                     }
@@ -1128,15 +1161,19 @@ namespace SFXChallenger.Wrappers
                     {
                         if (GameObjects.AllyHeroes.Any(e => e.CharData.BaseSkinName.ToLower().Equals(baseName)))
                         {
-                            targets.Add(minion);
+                            targets.Add(unit);
                         }
                     }
                 }
-                return
-                    targets.Concat(minions)
-                        .Concat(GameObjects.Jungle.Where(u => u.IsValidTarget() && InAutoAttackRange(u)))
-                        .Concat(clones)
-                        .ToList();
+                var finalTargets = targets;
+                if (minion)
+                {
+                    finalTargets =
+                        finalTargets.Concat(minions)
+                            .Concat(GameObjects.Jungle.Where(u => u.IsValidTarget() && InAutoAttackRange(u)))
+                            .ToList();
+                }
+                return finalTargets.Concat(clones).ToList();
             }
 
             private void GameOnOnGameUpdate(EventArgs args)

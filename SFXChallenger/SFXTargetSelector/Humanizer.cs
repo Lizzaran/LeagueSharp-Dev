@@ -28,6 +28,7 @@ using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Library.Logger;
+using SharpDX;
 
 #endregion
 
@@ -58,14 +59,22 @@ namespace SFXChallenger.SFXTargetSelector
             }
         }
 
-        public static IEnumerable<Targets.Item> FilterTargets(IEnumerable<Targets.Item> targets, float range)
+        public static IEnumerable<Targets.Item> FilterTargets(IEnumerable<Targets.Item> targets,
+            Vector3 from,
+            float range)
         {
             var rangeDelay = _mainMenu.Item(_mainMenu.Name + ".range").GetValue<Slider>().Value;
-            if (rangeDelay > 0)
+            var fowDelay = _mainMenu.Item(_mainMenu.Name + ".fow").GetValue<Slider>().Value;
+            if (rangeDelay > 0 && range > 0)
             {
-                if (Game.Time - _lastRangeChange <= rangeDelay / 1000f)
+                if (_lastRange > 0 && Game.Time - _lastRangeChange <= rangeDelay / 1000f)
                 {
-                    targets = targets.Where(t => t.Hero.Distance(ObjectManager.Player) < _lastRange);
+                    targets =
+                        targets.Where(
+                            t =>
+                                t.Hero.Distance(
+                                    from.Equals(default(Vector3)) ? ObjectManager.Player.ServerPosition : from) <=
+                                _lastRange);
                 }
                 else
                 {
@@ -73,7 +82,6 @@ namespace SFXChallenger.SFXTargetSelector
                     _lastRangeChange = Game.Time;
                 }
             }
-            var fowDelay = _mainMenu.Item(_mainMenu.Name + ".fow").GetValue<Slider>().Value;
             if (fowDelay > 0)
             {
                 targets = targets.Where(item => Game.Time - item.LastVisibleChange > fowDelay / 1000f);

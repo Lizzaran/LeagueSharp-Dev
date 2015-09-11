@@ -37,6 +37,7 @@ namespace SFXUtility.Features.Events
     internal class Game : Child<Events>
     {
         private bool _onEndTriggerd;
+        private bool _onStartDone;
         private bool _onStartTriggerd;
 
         public Game(Events parent) : base(parent)
@@ -51,6 +52,7 @@ namespace SFXUtility.Features.Events
 
         protected override void OnEnable()
         {
+            LeagueSharp.Game.OnUpdate += OnGameUpdate;
             LeagueSharp.Game.OnNotify += OnGameNotify;
             base.OnEnable();
         }
@@ -65,8 +67,6 @@ namespace SFXUtility.Features.Events
         {
             try
             {
-                LeagueSharp.Game.OnStart += delegate { _onStartTriggerd = true; };
-
                 Menu = new Menu(Name, Name);
                 var startMenu = new Menu("OnStart", Name + "OnStart");
                 startMenu.AddItem(new MenuItem(startMenu.Name + "Delay", "Delay").SetValue(new Slider(20, 0, 75)));
@@ -80,6 +80,7 @@ namespace SFXUtility.Features.Events
                     new MenuItem(endMenu.Name + "Ending", "Goodbye").SetValue(
                         new StringList(new[] { "gg", "gg wp", "good game", "well played" })));
                 endMenu.AddItem(new MenuItem(endMenu.Name + "SayEnding", "Say Goodbye").SetValue(false));
+                endMenu.AddItem(new MenuItem(endMenu.Name + "Quit", "Quit Game").SetValue(false));
 
                 Menu.AddSubMenu(startMenu);
                 Menu.AddSubMenu(endMenu);
@@ -87,6 +88,8 @@ namespace SFXUtility.Features.Events
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
+
+                LeagueSharp.Game.OnStart += delegate { _onStartTriggerd = true; };
             }
             catch (Exception ex)
             {
@@ -94,21 +97,20 @@ namespace SFXUtility.Features.Events
             }
         }
 
-        protected override void OnInitialize()
+        private void OnGameUpdate(EventArgs args)
         {
             try
             {
-                if (_onStartTriggerd)
+                if (_onStartTriggerd && !_onStartDone)
                 {
                     var map = Utility.Map.GetMap().Type;
+                    var maxLevel = map == Utility.Map.MapType.CrystalScar || map == Utility.Map.MapType.HowlingAbyss
+                        ? 3
+                        : 1;
                     if (Menu.Item(Name + "OnStartSayGreeting").GetValue<bool>() &&
-                        !GameObjects.Heroes.Any(
-                            h =>
-                                h.Level >=
-                                (map == Utility.Map.MapType.CrystalScar || map == Utility.Map.MapType.HowlingAbyss
-                                    ? 3
-                                    : 1)))
+                        !GameObjects.Heroes.Any(h => h.Level >= maxLevel))
                     {
+                        _onStartDone = true;
                         Utility.DelayAction.Add(
                             Menu.Item(Name + "OnStartDelay").GetValue<Slider>().Value * 1000,
                             delegate
@@ -118,7 +120,6 @@ namespace SFXUtility.Features.Events
                             });
                     }
                 }
-                base.OnInitialize();
             }
             catch (Exception ex)
             {
@@ -128,19 +129,24 @@ namespace SFXUtility.Features.Events
 
         private void OnGameNotify(GameNotifyEventArgs args)
         {
-            if (_onEndTriggerd ||
-                (args.EventId != GameEventId.OnEndGame && args.EventId != GameEventId.OnHQDie &&
-                 args.EventId != GameEventId.OnHQKill))
-            {
-                return;
-            }
-
-            _onEndTriggerd = true;
             try
             {
+                if (_onEndTriggerd ||
+                    (args.EventId != GameEventId.OnEndGame && args.EventId != GameEventId.OnHQDie &&
+                     args.EventId != GameEventId.OnHQKill))
+                {
+                    return;
+                }
+
+                _onEndTriggerd = true;
+
                 if (Menu.Item(Name + "OnEndSayEnding").GetValue<bool>())
                 {
                     LeagueSharp.Game.Say("/all " + Menu.Item(Name + "OnEndEnding").GetValue<StringList>().SelectedValue);
+                }
+                if (Menu.Item(Name + "OnEndQuit").GetValue<bool>())
+                {
+                    LeagueSharp.Game.Quit();
                 }
             }
             catch (Exception ex)

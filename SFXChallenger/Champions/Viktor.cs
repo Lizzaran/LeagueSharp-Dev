@@ -869,11 +869,17 @@ namespace SFXChallenger.Champions
                             {
                                 if (target.Path.Length > 0)
                                 {
-                                    startPos = target.ServerPosition.Extend(target.Path.First(), -50);
+                                    var newPos = target.Path[0];
+                                    if (target.Path.Length > 1 && newPos.Distance(target.ServerPosition) <= 150)
+                                    {
+                                        newPos = newPos.Extend(target.Path[1], 50);
+                                    }
+                                    startPos = target.ServerPosition.Extend(newPos, -(lTarget.BoundingRadius * 0.85f));
                                 }
                                 else if (target.IsFacing(Player))
                                 {
-                                    startPos = target.ServerPosition.Extend(Player.ServerPosition, -50);
+                                    startPos = target.ServerPosition.Extend(
+                                        Player.ServerPosition, -(lTarget.BoundingRadius * 0.85f));
                                 }
                                 else
                                 {
@@ -886,7 +892,7 @@ namespace SFXChallenger.Champions
                             }
                             if (target.Path.Length > 0)
                             {
-                                endPos = startPos.Extend(target.Path.First(), ELength);
+                                endPos = startPos.Extend(target.Path[0], ELength);
                             }
                             else if (target.IsFacing(Player))
                             {

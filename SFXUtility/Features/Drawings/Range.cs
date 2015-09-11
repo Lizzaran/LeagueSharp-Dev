@@ -79,7 +79,7 @@ namespace SFXUtility.Features.Drawings
                 {
                     var radius = hero.BoundingRadius + hero.AttackRange +
                                  (hero.IsAlly
-                                     ? GameObjects.EnemyHeroes.Average(e => e.BoundingRadius)
+                                     ? GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(0).Average()
                                      : ObjectManager.Player.BoundingRadius);
                     if (hero.Position.IsOnScreen(radius))
                     {
