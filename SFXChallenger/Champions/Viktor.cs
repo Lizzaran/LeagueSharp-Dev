@@ -516,7 +516,7 @@ namespace SFXChallenger.Champions
             var qCasted = false;
             if (e)
             {
-                var target = TargetSelector.GetTarget(MaxERange * 1.1f, E.DamageType);
+                var target = TargetSelector.GetTarget((MaxERange + E.Width) * 1.1f, E.DamageType);
                 if (target != null)
                 {
                     ELogic(target, GameObjects.EnemyHeroes.ToList(), E.GetHitChance("combo"));
@@ -911,7 +911,7 @@ namespace SFXChallenger.Champions
                         var circle =
                             new Geometry.Polygon.Circle(
                                 Player.ServerPosition, Math.Min(E.Range, unitPos.Distance(Player.ServerPosition)), 45)
-                                .Points.Where(p => p.Distance(unitPos) < ELength * 1.75f)
+                                .Points.Where(p => p.Distance(unitPos) < ELength * 1.5f)
                                 .Select(p => p.To3D())
                                 .OrderBy(p => p.Distance(lTarget.ServerPosition));
                         foreach (var point in circle)
@@ -994,7 +994,7 @@ namespace SFXChallenger.Champions
                 ManaManager.Check("lane-clear-e"))
             {
                 var minions = MinionManager.GetMinions(
-                    MaxERange * 1.5f, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+                    (MaxERange + E.Width) * 1.2f, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
                 var minHits = minions.Any(m => m.Team == GameObjectTeam.Neutral)
                     ? 1
                     : Menu.Item(Menu.Name + ".lane-clear.e-min").GetValue<Slider>().Value;
@@ -1070,10 +1070,10 @@ namespace SFXChallenger.Champions
             if (Menu.Item(Menu.Name + ".killsteal.e").GetValue<bool>() && E.IsReady())
             {
                 foreach (var target in
-                    GameObjects.EnemyHeroes.Where(t => t.IsValidTarget() && t.Distance(Player) < MaxERange))
+                    GameObjects.EnemyHeroes.Where(t => t.IsValidTarget(MaxERange)))
                 {
                     var damage = E.GetDamage(target);
-                    if (damage - 10 > target.Health)
+                    if (damage * 0.95f > target.Health)
                     {
                         if (ELogic(target, GameObjects.EnemyHeroes.ToList(), E.GetHitChance("combo")))
                         {

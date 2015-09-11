@@ -172,28 +172,21 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (sender.IsMe)
-                {
-                    if (args.SData.Name == "KalistaExpungeWrapper")
-                    {
-                        Orbwalking.ResetAutoAttackTimer();
-                    }
-                }
-                if (!sender.IsEnemy || E.Level == 0 || !Menu.Item(Menu.Name + ".shield.enabled").GetValue<bool>())
+                if (!sender.IsEnemy || E.Level == 0 || !Menu.Item(Menu.Name + ".shield.enabled").GetValue<bool>() ||
+                    sender.Distance(Player) > 2000)
                 {
                     return;
                 }
-                if (args.Target != null && args.Target.NetworkId == Player.NetworkId &&
-                    (!(sender is Obj_AI_Hero) || args.SData.IsAutoAttack()))
+                var hero = sender as Obj_AI_Hero;
+                if (hero != null)
                 {
-                    IncomingDamage.Add(
-                        Player.ServerPosition.Distance(sender.ServerPosition) / args.SData.MissileSpeed + Game.Time,
-                        (float) sender.GetAutoAttackDamage(Player));
-                }
-                else
-                {
-                    var hero = sender as Obj_AI_Hero;
-                    if (hero != null)
+                    if (args.Target != null && args.Target.NetworkId == Player.NetworkId && args.SData.IsAutoAttack())
+                    {
+                        IncomingDamage.Add(
+                            Player.ServerPosition.Distance(hero.ServerPosition) / args.SData.MissileSpeed + Game.Time,
+                            (float) hero.GetAutoAttackDamage(Player));
+                    }
+                    else
                     {
                         var slot = hero.GetSpellSlot(args.SData.Name);
                         if (slot != SpellSlot.Unknown)
@@ -203,7 +196,10 @@ namespace SFXChallenger.Champions
                                 slot == hero.GetSpellSlot("SummonerDot"))
                             {
                                 damage = (float) hero.GetSummonerSpellDamage(Player, Damage.SummonerSpell.Ignite);
-                                E.CastOnUnit(Player);
+                                if (E.IsReady())
+                                {
+                                    E.CastOnUnit(Player);
+                                }
                             }
                             else if ((slot == SpellSlot.Q || slot == SpellSlot.W || slot == SpellSlot.E ||
                                       slot == SpellSlot.R) &&
@@ -1325,8 +1321,6 @@ namespace SFXChallenger.Champions
         {
             private static readonly ConcurrentDictionary<float, float> Damages =
                 new ConcurrentDictionary<float, float>();
-
-            public static Obj_AI_Hero Unit { get; set; }
 
             public static float TotalDamage
             {

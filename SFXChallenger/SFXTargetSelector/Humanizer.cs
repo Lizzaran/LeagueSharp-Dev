@@ -36,6 +36,8 @@ namespace SFXChallenger.SFXTargetSelector
     internal class Humanizer
     {
         private static Menu _mainMenu;
+        private static float _lastRange;
+        private static float _lastRangeChange;
 
         internal static void AddToMenu(Menu mainMenu)
         {
@@ -46,6 +48,9 @@ namespace SFXChallenger.SFXTargetSelector
                 _mainMenu.AddItem(
                     new MenuItem(_mainMenu.Name + ".fow", "Target Acquire Delay").SetShared()
                         .SetValue(new Slider(400, 0, 1500)));
+                _mainMenu.AddItem(
+                    new MenuItem(_mainMenu.Name + ".range", "Range Change Delay").SetShared()
+                        .SetValue(new Slider(400, 0, 1500)));
             }
             catch (Exception ex)
             {
@@ -53,16 +58,25 @@ namespace SFXChallenger.SFXTargetSelector
             }
         }
 
-        public static IEnumerable<Targets.Item> FilterTargets(IEnumerable<Targets.Item> targets)
+        public static IEnumerable<Targets.Item> FilterTargets(IEnumerable<Targets.Item> targets, float range)
         {
-            var fowDelay = (float) _mainMenu.Item(_mainMenu.Name + ".fow").GetValue<Slider>().Value;
+            var rangeDelay = _mainMenu.Item(_mainMenu.Name + ".range").GetValue<Slider>().Value;
+            if (rangeDelay > 0)
+            {
+                if (Game.Time - _lastRangeChange <= rangeDelay / 1000f)
+                {
+                    targets = targets.Where(t => t.Hero.Distance(ObjectManager.Player) < _lastRange);
+                }
+                else
+                {
+                    _lastRange = range;
+                    _lastRangeChange = Game.Time;
+                }
+            }
+            var fowDelay = _mainMenu.Item(_mainMenu.Name + ".fow").GetValue<Slider>().Value;
             if (fowDelay > 0)
             {
-                fowDelay = fowDelay / 1000f;
-            }
-            if (fowDelay > 0.0f)
-            {
-                return targets.Where(item => Game.Time - item.LastVisibleChange > fowDelay);
+                targets = targets.Where(item => Game.Time - item.LastVisibleChange > fowDelay / 1000f);
             }
             return targets;
         }
