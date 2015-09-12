@@ -987,6 +987,10 @@ namespace SFXChallenger.Champions
                                         }
                                     }
                                 }
+                                if (totalHits == targets.Count)
+                                {
+                                    break;
+                                }
                             }
                         }
                     }
