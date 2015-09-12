@@ -160,13 +160,15 @@ namespace SFXChallenger.Champions
             R.Width = Menu.Item(ultimateMenu.Name + ".width").GetValue<Slider>().Value;
         }
 
-        private bool ShouldE(Obj_AI_Hero target)
+        private void CastE(Obj_AI_Hero target)
         {
-            return target != null &&
-                   (target.IsMe
-                       ? ManaManager.Check("e-self")
-                       : (Menu.Item(Menu.Name + ".miscellaneous.e-allies").GetValue<bool>() &&
-                          ManaManager.Check("e-allies")));
+            if (target != null &&
+                (target.IsMe && ManaManager.Check("e-self") ||
+                 !target.IsMe && Menu.Item(Menu.Name + ".miscellaneous.e-allies").GetValue<bool>() &&
+                 ManaManager.Check("e-allies")))
+            {
+                E.CastOnUnit(target);
+            }
         }
 
         private void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
@@ -420,7 +422,7 @@ namespace SFXChallenger.Champions
                     return;
                 }
                 var target = TargetSelector.GetTarget(
-                    (R.Width + SummonerManager.Flash.Range) * 1.3f, DamageType.Magical);
+                    (R.Width + SummonerManager.Flash.Range) * 1.5f, DamageType.Magical);
                 if (target != null && !target.IsDashing() &&
                     (Prediction.GetPrediction(target, R.Delay + 0.3f).UnitPosition.Distance(Player.Position)) > R.Width)
                 {
@@ -707,10 +709,10 @@ namespace SFXChallenger.Champions
                             bestEqTravelTime = t;
                         }
                     }
-                    if (eqTarget != null && ShouldE(eqTarget) && bestEqTravelTime < directTravelTime * 1.3f &&
+                    if (eqTarget != null && bestEqTravelTime < directTravelTime * 1.3f &&
                         (Ball.Position.Distance(eqTarget.ServerPosition, true) > 10000))
                     {
-                        E.CastOnUnit(eqTarget);
+                        CastE(eqTarget);
                         return;
                     }
                 }
@@ -767,9 +769,9 @@ namespace SFXChallenger.Champions
                 {
                     foreach (var ally in GameObjects.AllyHeroes.Where(h => h.IsValidTarget(E.Range, false)))
                     {
-                        if (ally.Position.CountEnemiesInRange(300) >= 1 && ShouldE(ally))
+                        if (ally.Position.CountEnemiesInRange(300) >= 1)
                         {
-                            E.CastOnUnit(ally);
+                            CastE(ally);
                             return;
                         }
                         target = ally;
@@ -778,28 +780,24 @@ namespace SFXChallenger.Champions
                     {
                         target = Player;
                     }
-                    if (ShouldE(target) && GetEHits(target.ServerPosition).Item1 >= minHits)
+                    if (GetEHits(target.ServerPosition).Item1 >= minHits)
                     {
-                        E.CastOnUnit(target);
+                        CastE(target);
                     }
                 }
                 else
                 {
-                    if (GetEHits(Player.ServerPosition).Item1 >= (Ball.Position.CountEnemiesInRange(800) <= 2 ? 1 : 2) &&
-                        ShouldE(Player))
+                    if (GetEHits(Player.ServerPosition).Item1 >= (Ball.Position.CountEnemiesInRange(800) <= 2 ? 1 : 2))
                     {
-                        E.CastOnUnit(Player);
+                        CastE(Player);
                         return;
                     }
                     foreach (var ally in
                         GameObjects.AllyHeroes.Where(h => h.IsValidTarget(E.Range, false))
                             .Where(ally => ally.Position.CountEnemiesInRange(300) >= 2))
                     {
-                        if (ShouldE(ally))
-                        {
-                            E.CastOnUnit(ally);
-                            return;
-                        }
+                        CastE(ally);
+                        return;
                     }
                 }
             }
@@ -1001,9 +999,9 @@ namespace SFXChallenger.Champions
                         hero = ally;
                     }
                 }
-                if (totalHits > 0 && ShouldE(hero))
+                if (totalHits > 0)
                 {
-                    E.CastOnUnit(hero);
+                    CastE(hero);
                 }
             }
             catch (Exception ex)
@@ -1174,7 +1172,7 @@ namespace SFXChallenger.Champions
             if (Menu.Item(Menu.Name + ".flee.e").GetValue<bool>() && E.IsReady() &&
                 (Ball.Status != BallStatus.Me || Player.CountEnemiesInRange(500) > 0))
             {
-                E.CastOnUnit(Player);
+                CastE(Player);
             }
         }
 

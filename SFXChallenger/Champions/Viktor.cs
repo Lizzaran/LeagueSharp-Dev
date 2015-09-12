@@ -2,7 +2,7 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Viktor.cs is part of SFXChallenger.
+ viktor.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -842,13 +842,8 @@ namespace SFXChallenger.Champions
                         {
                             if (mainTarget.Path.Length > 0)
                             {
-                                var newPos = mainTarget.Path[0];
-                                if (mainTarget.Path.Length > 1 && newPos.Distance(mainTarget.ServerPosition) <= 150)
-                                {
-                                    newPos = newPos.Extend(mainTarget.Path[1], 50);
-                                }
                                 startPosition = mainTarget.ServerPosition.Extend(
-                                    newPos, -(mainTarget.BoundingRadius * 0.85f));
+                                    mainTarget.Path[0], -(mainTarget.BoundingRadius * 0.85f));
                             }
                             else if (mainTarget.IsFacing(Player))
                             {
@@ -862,7 +857,15 @@ namespace SFXChallenger.Champions
                         }
                         if (mainTarget.Path.Length > 0)
                         {
-                            endPosition = startPosition.Extend(mainTarget.Path[0], ELength);
+                            var newPos = mainTarget.Path[0];
+                            if (mainTarget.Path.Length > 1 &&
+                                newPos.Distance(mainTarget.ServerPosition) <= mainTarget.BoundingRadius * 4f)
+                            {
+                                newPos = newPos.Extend(
+                                    mainTarget.Path[1],
+                                    Math.Min(mainTarget.BoundingRadius * 1.5f, newPos.Distance(mainTarget.Path[1])));
+                            }
+                            endPosition = startPosition.Extend(newPos, ELength);
                         }
                         else if (mainTarget.IsFacing(Player))
                         {
@@ -929,48 +932,60 @@ namespace SFXChallenger.Champions
                     {
                         input2.Unit = mainTarget;
                         var pred = Prediction.GetPrediction(input2);
-                        if (pred.Hitchance >= hitChance)
+                        if (!pred.CastPosition.Equals(Vector3.Zero))
                         {
-                            var circle =
-                                new Geometry.Polygon.Circle(
-                                    Player.ServerPosition,
-                                    Math.Min(E.Range, pred.CastPosition.Distance(Player.ServerPosition)), 45).Points
-                                    .Where(
-                                        p =>
-                                            p.Distance(pred.UnitPosition) <=
-                                            (ELength + E.Width + mainTarget.BoundingRadius) * 1.1f)
-                                    .Select(p => p.To3D())
-                                    .OrderBy(p => p.Distance(pred.CastPosition));
-                            foreach (var point in circle)
+                            var ranges =
+                                new[] { pred.CastPosition.Distance(Player.ServerPosition) }.Concat(
+                                    targets.Where(
+                                        t =>
+                                            t.ServerPosition.Distance(Player.ServerPosition) < E.Range &&
+                                            t.ServerPosition.Distance(mainTarget.ServerPosition) < ELength * 1.2f)
+                                        .Select(t => t.ServerPosition.Distance(Player.ServerPosition)));
+                            var maxDistance = (ELength + E.Width + mainTarget.BoundingRadius) * 1.1f;
+                            foreach (var range in ranges)
                             {
-                                input.From = point;
-                                input.RangeCheckFrom = point;
-                                var hits = 0;
-                                var rect = new Geometry.Polygon.Rectangle(
-                                    point, point.Extend(pred.CastPosition, ELength), E.Width);
-                                foreach (var target in targets)
+                                var circle =
+                                    new Geometry.Polygon.Circle(Player.ServerPosition, Math.Min(E.Range, range), 45)
+                                        .Points.Where(p => p.Distance(pred.UnitPosition) <= maxDistance)
+                                        .Select(p => p.To3D())
+                                        .OrderBy(p => p.Distance(pred.CastPosition));
+                                foreach (var point in circle)
                                 {
-                                    input.Unit = target;
+                                    input.From = point;
+                                    input.RangeCheckFrom = point;
+                                    input.Unit = mainTarget;
+                                    var hits = 0;
                                     var pred2 = Prediction.GetPrediction(input);
-                                    if (!pred2.UnitPosition.Equals(Vector3.Zero) &&
-                                        new Geometry.Polygon.Circle(pred2.UnitPosition, target.BoundingRadius * 0.85f)
-                                            .Points.Any(p => rect.IsInside(p)))
+                                    if (pred2.Hitchance >= hitChance)
                                     {
-                                        hits++;
+                                        var rect = new Geometry.Polygon.Rectangle(
+                                            point, point.Extend(pred2.CastPosition, ELength), E.Width);
+                                        foreach (var target in targets)
+                                        {
+                                            input.Unit = target;
+                                            var pred3 = Prediction.GetPrediction(input);
+                                            if (!pred3.UnitPosition.Equals(Vector3.Zero) &&
+                                                new Geometry.Polygon.Circle(
+                                                    pred3.UnitPosition, target.BoundingRadius * 0.85f).Points.Any(
+                                                        p => rect.IsInside(p)))
+                                            {
+                                                hits++;
+                                            }
+                                        }
+                                        if (hits > totalHits ||
+                                            hits > 0 && hits == totalHits &&
+                                            point.Distance(mainTarget.ServerPosition) <
+                                            startPosition.Distance(mainTarget.ServerPosition))
+                                        {
+                                            totalHits = hits;
+                                            startPosition = point;
+                                            endPosition = point.Extend(pred2.CastPosition, ELength);
+                                        }
+                                        if (totalHits == targets.Count)
+                                        {
+                                            break;
+                                        }
                                     }
-                                }
-                                if (hits > totalHits ||
-                                    hits > 0 && hits == totalHits &&
-                                    point.Distance(mainTarget.ServerPosition) <
-                                    startPosition.Distance(mainTarget.ServerPosition))
-                                {
-                                    totalHits = hits;
-                                    startPosition = point;
-                                    endPosition = point.Extend(pred.CastPosition, ELength);
-                                }
-                                if (totalHits == targets.Count)
-                                {
-                                    break;
                                 }
                             }
                         }
