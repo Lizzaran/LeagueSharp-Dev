@@ -128,6 +128,7 @@ namespace SFXChallenger.Champions
             initiatorMenu.AddItem(new MenuItem(initiatorMenu.Name + ".use-e", "Use E").SetValue(true));
 
             var shieldMenu = Menu.AddSubMenu(new Menu("Shield", Menu.Name + ".shield"));
+            ManaManager.AddToMenu(shieldMenu, "shield", ManaCheckType.Minimum, ManaValueType.Percent);
             shieldMenu.AddItem(
                 new MenuItem(shieldMenu.Name + ".min-health", "Min. Health %").SetValue(new Slider(90, 1)));
             shieldMenu.AddItem(
@@ -172,8 +173,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (!sender.IsEnemy || E.Level == 0 || !Menu.Item(Menu.Name + ".shield.enabled").GetValue<bool>() ||
-                    sender.Distance(Player) > 2000)
+                if (!sender.IsEnemy || E.Level == 0 || !Menu.Item(Menu.Name + ".shield.enabled").GetValue<bool>())
                 {
                     return;
                 }
@@ -191,26 +191,26 @@ namespace SFXChallenger.Champions
                         var slot = hero.GetSpellSlot(args.SData.Name);
                         if (slot != SpellSlot.Unknown)
                         {
-                            var damage = 0f;
                             if (args.Target != null && args.Target.NetworkId == Player.NetworkId &&
                                 slot == hero.GetSpellSlot("SummonerDot"))
                             {
-                                damage = (float) hero.GetSummonerSpellDamage(Player, Damage.SummonerSpell.Ignite);
-                                if (E.IsReady())
+                                if (E.IsReady() && ManaManager.Check("shield"))
                                 {
                                     E.CastOnUnit(Player);
                                 }
+                                IncomingDamage.Add(
+                                    Game.Time + 2,
+                                    (float) hero.GetSummonerSpellDamage(Player, Damage.SummonerSpell.Ignite));
                             }
                             else if ((slot == SpellSlot.Q || slot == SpellSlot.W || slot == SpellSlot.E ||
                                       slot == SpellSlot.R) &&
-                                     ((args.Target != null && args.Target.NetworkId == Player.NetworkId) ||
-                                      args.End.Distance(Player.ServerPosition, true) < Math.Pow(args.SData.LineWidth, 2)))
+                                     ((args.Target != null && args.Target.NetworkId == Player.NetworkId)))
                             {
-                                damage = (float) hero.GetSpellDamage(Player, slot);
-                            }
-                            if (damage > 0)
-                            {
-                                IncomingDamage.Add(Game.Time + 2, damage);
+                                var time = args.SData.CastFrame / 30f +
+                                           Player.Distance(hero) / args.SData.MissileSpeed;
+                                IncomingDamage.Add(
+                                    Game.Time + (time > 2f ? (time < 5f ? time : 5f) : 2f),
+                                    (float) hero.GetSpellDamage(Player, slot));
                             }
                         }
                     }
@@ -364,7 +364,7 @@ namespace SFXChallenger.Champions
             Q.SetSkillshot(0.15f, 110f, 1375f, false, SkillshotType.SkillshotCircle);
 
             W = new Spell(SpellSlot.W, float.MaxValue, DamageType.Magical);
-            W.SetSkillshot(0f, 220f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            W.SetSkillshot(0f, 230f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E, 1095f, DamageType.Magical);
             E.SetSkillshot(0.25f, 125f, 1700f, false, SkillshotType.SkillshotLine);
@@ -379,8 +379,8 @@ namespace SFXChallenger.Champions
             {
                 return;
             }
-            if (Menu.Item(Menu.Name + ".shield.enabled").GetValue<bool>() && E.IsReady() && !Player.InFountain() &&
-                !Player.IsRecalling())
+            if (Menu.Item(Menu.Name + ".shield.enabled").GetValue<bool>() && E.IsReady() && ManaManager.Check("shield") &&
+                !Player.InFountain() && !Player.IsRecalling())
             {
                 if (Player.HealthPercent <= Menu.Item(Menu.Name + ".shield.min-health").GetValue<Slider>().Value)
                 {

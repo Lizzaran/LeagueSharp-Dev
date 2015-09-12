@@ -124,13 +124,12 @@ namespace SFXChallenger.Champions
             killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".q-aa", "Use Q AA").SetValue(false));
 
             var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
-
-            HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("W Slowed", miscMenu.Name + "w-slowed")), "w-slowed", false, false, true,
-                false, false, false);
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("W Immobile", miscMenu.Name + "w-immobile")), "w-immobile", false, false,
                 true, false);
+            HeroListManager.AddToMenu(
+                miscMenu.AddSubMenu(new Menu("W Slowed", miscMenu.Name + "w-slowed")), "w-slowed", false, false, true,
+                false, false, false);
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("W Gapcloser", miscMenu.Name + "w-gapcloser")), "w-gapcloser", false, false,
                 true, false, false, false);
@@ -519,7 +518,7 @@ namespace SFXChallenger.Champions
                 var target = TargetSelector.GetTarget((MaxERange + E.Width) * 1.1f, E.DamageType);
                 if (target != null)
                 {
-                    ELogic(target, GameObjects.EnemyHeroes.ToList(), E.GetHitChance("combo"));
+                    ELogicHero(target, E.GetHitChance("combo"));
                 }
             }
             if (q)
@@ -570,7 +569,7 @@ namespace SFXChallenger.Champions
                 var target = TargetSelector.GetTarget((MaxERange + E.Width) * 1.1f, E.DamageType);
                 if (target != null)
                 {
-                    ELogic(target, GameObjects.EnemyHeroes.ToList(), E.GetHitChance("harass"));
+                    ELogicHero(target, E.GetHitChance("harass"));
                 }
             }
             if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>())
@@ -771,13 +770,234 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private bool ELogic(Obj_AI_Hero target, List<Obj_AI_Hero> targets, HitChance hitChance, int minHits = 1)
+        private bool ELogicHero(Obj_AI_Hero mainTarget, HitChance hitChance)
         {
-            return ELogic(
-                target, targets.Select(t => t as Obj_AI_Base).Where(t => t != null).ToList(), hitChance, minHits);
+            try
+            {
+                if (mainTarget == null)
+                {
+                    return false;
+                }
+                var input = new PredictionInput
+                {
+                    Range = ELength,
+                    Delay = E.Delay,
+                    Radius = E.Width,
+                    Speed = E.Speed,
+                    Type = E.Type
+                };
+                var input2 = new PredictionInput
+                {
+                    Range = MaxERange,
+                    Delay = E.Delay,
+                    Radius = E.Width,
+                    Speed = E.Speed,
+                    Type = E.Type
+                };
+                var startPosition = Vector3.Zero;
+                var endPosition = Vector3.Zero;
+                var targets =
+                    GameObjects.EnemyHeroes.Where(t => t.IsValidTarget((MaxERange + E.Width) * 1.25f)).ToList();
+                if (mainTarget.ServerPosition.Distance(Player.ServerPosition) <= E.Range)
+                {
+                    var castPosition = mainTarget.ServerPosition;
+                    var maxAdditionalHits = 0;
+                    foreach (var target in targets.Where(t => t.NetworkId != mainTarget.NetworkId))
+                    {
+                        var lTarget = target;
+                        var additionalHits = 0;
+                        input.Unit = lTarget;
+                        input.From = castPosition;
+                        input.RangeCheckFrom = castPosition;
+                        var pred = Prediction.GetPrediction(input);
+                        if (pred.Hitchance >= HitChance.High)
+                        {
+                            additionalHits++;
+                            var rect = new Geometry.Polygon.Rectangle(
+                                castPosition, castPosition.Extend(pred.CastPosition, ELength), E.Width);
+                            foreach (var target2 in
+                                targets.Where(
+                                    t => t.NetworkId != mainTarget.NetworkId && t.NetworkId != lTarget.NetworkId))
+                            {
+                                input.Unit = target2;
+                                var pred2 = Prediction.GetPrediction(input);
+                                if (!pred2.UnitPosition.Equals(Vector3.Zero) &&
+                                    new Geometry.Polygon.Circle(pred2.UnitPosition, target2.BoundingRadius * 0.85f)
+                                        .Points.Any(p => rect.IsInside(p)))
+                                {
+                                    additionalHits++;
+                                }
+                            }
+                        }
+                        if (additionalHits > maxAdditionalHits)
+                        {
+                            maxAdditionalHits = additionalHits;
+                            endPosition = pred.CastPosition;
+                        }
+                    }
+                    startPosition = castPosition;
+                    if (endPosition.Equals(Vector3.Zero))
+                    {
+                        if (IsSpellUpgraded(E))
+                        {
+                            if (mainTarget.Path.Length > 0)
+                            {
+                                var newPos = mainTarget.Path[0];
+                                if (mainTarget.Path.Length > 1 && newPos.Distance(mainTarget.ServerPosition) <= 150)
+                                {
+                                    newPos = newPos.Extend(mainTarget.Path[1], 50);
+                                }
+                                startPosition = mainTarget.ServerPosition.Extend(
+                                    newPos, -(mainTarget.BoundingRadius * 0.85f));
+                            }
+                            else if (mainTarget.IsFacing(Player))
+                            {
+                                startPosition = mainTarget.ServerPosition.Extend(
+                                    Player.ServerPosition, -(mainTarget.BoundingRadius * 0.85f));
+                            }
+                        }
+                        if (startPosition.Distance(Player.ServerPosition) > E.Range)
+                        {
+                            startPosition = Player.ServerPosition.Extend(startPosition, E.Range);
+                        }
+                        if (mainTarget.Path.Length > 0)
+                        {
+                            endPosition = startPosition.Extend(mainTarget.Path[0], ELength);
+                        }
+                        else if (mainTarget.IsFacing(Player))
+                        {
+                            endPosition = startPosition.Extend(Player.ServerPosition, ELength);
+                        }
+                        else
+                        {
+                            endPosition = Player.ServerPosition.Extend(
+                                startPosition, startPosition.Distance(Player.ServerPosition) + ELength);
+                        }
+                    }
+                }
+                else
+                {
+                    var totalHits = 0;
+                    foreach (var target in targets.Where(t => t.NetworkId != mainTarget.NetworkId))
+                    {
+                        var lTarget = target;
+                        var hits = 0;
+                        var pred = E.GetPrediction(lTarget);
+                        if (pred.Hitchance >= hitChance)
+                        {
+                            hits++;
+                            input.From = pred.CastPosition;
+                            input.RangeCheckFrom = pred.CastPosition;
+                            input.Unit = mainTarget;
+                            var pred2 = Prediction.GetPrediction(input);
+                            if (pred2.Hitchance >= hitChance)
+                            {
+                                hits++;
+                                var rect = new Geometry.Polygon.Rectangle(
+                                    pred.CastPosition, pred.CastPosition.Extend(pred2.CastPosition, ELength), E.Width);
+                                foreach (var target2 in
+                                    targets.Where(
+                                        t => t.NetworkId != mainTarget.NetworkId && t.NetworkId != lTarget.NetworkId))
+                                {
+                                    input.Unit = target2;
+                                    var pred3 = Prediction.GetPrediction(input);
+                                    if (!pred3.UnitPosition.Equals(Vector3.Zero) &&
+                                        new Geometry.Polygon.Circle(pred3.UnitPosition, target2.BoundingRadius * 0.85f)
+                                            .Points.Any(p => rect.IsInside(p)))
+                                    {
+                                        hits++;
+                                    }
+                                }
+
+                                if (hits > totalHits ||
+                                    hits > 0 && hits == totalHits &&
+                                    pred.CastPosition.Distance(mainTarget.ServerPosition) <
+                                    startPosition.Distance(mainTarget.ServerPosition))
+                                {
+                                    totalHits = hits;
+                                    startPosition = pred.CastPosition;
+                                    endPosition = pred2.CastPosition;
+                                }
+                                if (totalHits == targets.Count)
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (totalHits < targets.Count)
+                    {
+                        input2.Unit = mainTarget;
+                        var pred = Prediction.GetPrediction(input2);
+                        if (pred.Hitchance >= hitChance)
+                        {
+                            var circle =
+                                new Geometry.Polygon.Circle(
+                                    Player.ServerPosition,
+                                    Math.Min(E.Range, pred.CastPosition.Distance(Player.ServerPosition)), 45).Points
+                                    .Where(
+                                        p =>
+                                            p.Distance(pred.UnitPosition) <=
+                                            (ELength + E.Width + mainTarget.BoundingRadius) * 1.1f)
+                                    .Select(p => p.To3D())
+                                    .OrderBy(p => p.Distance(pred.CastPosition));
+                            foreach (var point in circle)
+                            {
+                                input.From = point;
+                                input.RangeCheckFrom = point;
+                                var hits = 0;
+                                var rect = new Geometry.Polygon.Rectangle(
+                                    point, point.Extend(pred.CastPosition, ELength), E.Width);
+                                foreach (var target in targets)
+                                {
+                                    input.Unit = target;
+                                    var pred2 = Prediction.GetPrediction(input);
+                                    if (!pred2.UnitPosition.Equals(Vector3.Zero) &&
+                                        new Geometry.Polygon.Circle(pred2.UnitPosition, target.BoundingRadius * 0.85f)
+                                            .Points.Any(p => rect.IsInside(p)))
+                                    {
+                                        hits++;
+                                    }
+                                }
+                                if (hits > totalHits ||
+                                    hits > 0 && hits == totalHits &&
+                                    point.Distance(mainTarget.ServerPosition) <
+                                    startPosition.Distance(mainTarget.ServerPosition))
+                                {
+                                    totalHits = hits;
+                                    startPosition = point;
+                                    endPosition = point.Extend(pred.CastPosition, ELength);
+                                }
+                                if (totalHits == targets.Count)
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                if (!startPosition.Equals(Vector3.Zero) && !endPosition.Equals(Vector3.Zero))
+                {
+                    if (startPosition.Distance(Player.ServerPosition) > E.Range)
+                    {
+                        startPosition = Player.ServerPosition.Extend(startPosition, E.Range);
+                    }
+                    if (endPosition.Distance(startPosition) > ELength)
+                    {
+                        endPosition = startPosition.Extend(endPosition, ELength);
+                    }
+                    E.Cast(startPosition, endPosition);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return false;
         }
 
-        private bool ELogic(Obj_AI_Hero mainTarget, List<Obj_AI_Base> targets, HitChance hitChance, int minHits)
+        private void ELogicFarm(List<Obj_AI_Base> targets, HitChance hitChance, int minHits)
         {
             try
             {
@@ -800,57 +1020,40 @@ namespace SFXChallenger.Champions
                 var startPos = Vector3.Zero;
                 var endPos = Vector3.Zero;
                 var hits = 0;
-                targets = targets.Where(t => t.IsValidTarget(MaxERange + E.Width * 1.1f)).ToList();
+                targets = targets.Where(t => t.IsValidTarget((MaxERange + E.Width) * 1.1f)).ToList();
                 var targetCount = targets.Count;
 
                 foreach (var target in targets)
                 {
-                    bool containsTarget;
                     var lTarget = target;
                     if (target.ServerPosition.Distance(Player.ServerPosition) <= E.Range)
                     {
-                        containsTarget = mainTarget == null || lTarget.NetworkId == mainTarget.NetworkId;
                         var cCastPos = target.ServerPosition;
                         foreach (var t in targets.Where(t => t.NetworkId != lTarget.NetworkId))
                         {
                             var count = 1;
-                            var cTarget = t;
                             input.Unit = t;
                             input.From = cCastPos;
                             input.RangeCheckFrom = cCastPos;
                             var pred = Prediction.GetPrediction(input);
+                            var rect = new Geometry.Polygon.Rectangle(
+                                cCastPos.To2D(), cCastPos.Extend(pred.CastPosition, ELength).To2D(), E.Width);
+                            foreach (var c in targets.Where(c => c.NetworkId != lTarget.NetworkId))
+                            {
+                                input.Unit = c;
+                                var cPredPos = c.Position;
+                                if (
+                                    new Geometry.Polygon.Circle(
+                                        cPredPos, (c.IsMoving ? (c.BoundingRadius / 2f) : (c.BoundingRadius) * 0.9f))
+                                        .Points.Any(p => rect.IsInside(p)))
+                                {
+                                    count++;
+                                }
+                            }
                             if (pred.Hitchance >= (hitChance - 1))
                             {
                                 count++;
-                                if (!containsTarget)
-                                {
-                                    containsTarget = t.NetworkId == mainTarget.NetworkId;
-                                }
-                                var rect = new Geometry.Polygon.Rectangle(
-                                    cCastPos.To2D(), cCastPos.Extend(pred.CastPosition, ELength).To2D(), E.Width);
-                                foreach (var c in
-                                    targets.Where(
-                                        c => c.NetworkId != cTarget.NetworkId && c.NetworkId != lTarget.NetworkId))
-                                {
-                                    input.Unit = c;
-                                    var cPredPos = c.Type == GameObjectType.obj_AI_Minion
-                                        ? c.Position
-                                        : Prediction.GetPrediction(input).UnitPosition;
-                                    if (
-                                        new Geometry.Polygon.Circle(
-                                            cPredPos,
-                                            (c.Type == GameObjectType.obj_AI_Minion && c.IsMoving
-                                                ? (c.BoundingRadius / 2f)
-                                                : (c.BoundingRadius) * 0.9f)).Points.Any(p => rect.IsInside(p)))
-                                    {
-                                        count++;
-                                        if (!containsTarget && c.NetworkId == mainTarget.NetworkId)
-                                        {
-                                            containsTarget = true;
-                                        }
-                                    }
-                                }
-                                if (count > hits && containsTarget)
+                                if (count > hits)
                                 {
                                     hits = count;
                                     startPos = cCastPos;
@@ -862,7 +1065,7 @@ namespace SFXChallenger.Champions
                                 }
                             }
                         }
-                        if (endPos.Equals(Vector3.Zero) && containsTarget)
+                        if (endPos.Equals(Vector3.Zero))
                         {
                             startPos = cCastPos;
                             if (IsSpellUpgraded(E))
@@ -909,15 +1112,15 @@ namespace SFXChallenger.Champions
                     else
                     {
                         input2.Unit = lTarget;
-                        var unitPos = Prediction.GetPrediction(input2).UnitPosition;
-                        if (unitPos.Equals(Vector3.Zero))
+                        var castPos = Prediction.GetPrediction(input2).CastPosition;
+                        if (castPos.Equals(Vector3.Zero))
                         {
                             continue;
                         }
                         var circle =
                             new Geometry.Polygon.Circle(
-                                Player.ServerPosition, Math.Min(E.Range, unitPos.Distance(Player.ServerPosition)), 45)
-                                .Points.Where(p => p.Distance(unitPos) < ELength * 1.5f)
+                                Player.ServerPosition, Math.Min(E.Range, castPos.Distance(Player.ServerPosition)), 45)
+                                .Points.Where(p => p.Distance(castPos) < ELength * 1.5f)
                                 .Select(p => p.To3D())
                                 .OrderBy(p => p.Distance(lTarget.ServerPosition));
                         foreach (var point in circle)
@@ -928,34 +1131,22 @@ namespace SFXChallenger.Champions
                             var pred2 = Prediction.GetPrediction(input2);
                             if (pred2.Hitchance >= hitChance)
                             {
-                                containsTarget = mainTarget == null || lTarget.NetworkId == mainTarget.NetworkId;
                                 var count = 1;
                                 var rect = new Geometry.Polygon.Rectangle(
                                     point, point.Extend(pred2.CastPosition, ELength), E.Width);
                                 foreach (var c in targets.Where(t => t.NetworkId != lTarget.NetworkId))
                                 {
                                     input2.Unit = c;
-                                    var cPredPos = c.Type == GameObjectType.obj_AI_Minion
-                                        ? c.Position
-                                        : Prediction.GetPrediction(input2).UnitPosition;
+                                    var cPredPos = c.Position;
                                     if (
                                         new Geometry.Polygon.Circle(
-                                            cPredPos,
-                                            (c.Type == GameObjectType.obj_AI_Minion && c.IsMoving
-                                                ? (c.BoundingRadius / 2f)
-                                                : (c.BoundingRadius) * 0.9f)).Points.Any(p => rect.IsInside(p)))
+                                            cPredPos, (c.IsMoving ? (c.BoundingRadius / 2f) : (c.BoundingRadius) * 0.9f))
+                                            .Points.Any(p => rect.IsInside(p)))
                                     {
                                         count++;
-                                        if (!containsTarget && c.NetworkId == mainTarget.NetworkId)
-                                        {
-                                            containsTarget = true;
-                                        }
                                     }
                                 }
-                                if ((count > hits ||
-                                     count == hits && mainTarget != null &&
-                                     point.Distance(mainTarget.ServerPosition) <
-                                     startPos.Distance(mainTarget.ServerPosition)) && containsTarget)
+                                if (count > hits)
                                 {
                                     hits = count;
                                     startPos = point;
@@ -984,14 +1175,12 @@ namespace SFXChallenger.Champions
                         endPos = startPos.Extend(endPos, ELength);
                     }
                     E.Cast(startPos, endPos);
-                    return true;
                 }
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
-            return false;
         }
 
         protected override void LaneClear()
@@ -1007,7 +1196,7 @@ namespace SFXChallenger.Champions
 
                 if (minions.Count >= minHits)
                 {
-                    ELogic(null, (minions.Concat(GameObjects.EnemyHeroes)).ToList(), HitChance.High, minHits);
+                    ELogicFarm((minions.Concat(GameObjects.EnemyHeroes)).ToList(), HitChance.High, minHits);
                 }
             }
             if (Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady() &&
@@ -1081,7 +1270,7 @@ namespace SFXChallenger.Champions
                     var damage = E.GetDamage(target);
                     if (damage * 0.95f > target.Health)
                     {
-                        if (ELogic(target, GameObjects.EnemyHeroes.ToList(), E.GetHitChance("combo")))
+                        if (ELogicHero(target, E.GetHitChance("combo")))
                         {
                             break;
                         }
