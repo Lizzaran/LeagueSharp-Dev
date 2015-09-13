@@ -1128,8 +1128,7 @@ namespace SFXChallenger.Champions
                     var q2Location = Q.GetCircularFarmLocation(rangedMinions, W.Width);
                     var bestLocation = (qLocation.MinionsHit > q2Location.MinionsHit + 1) ? qLocation : q2Location;
 
-                    if (bestLocation.MinionsHit > 0 && Ball.Status != BallStatus.Fixed ||
-                        bestLocation.Position.Distance(Ball.Position) > 30)
+                    if (bestLocation.MinionsHit > 0 && bestLocation.Position.Distance(Ball.Position) > 25)
                     {
                         Q.Cast(bestLocation.Position);
                         return;
@@ -1192,6 +1191,7 @@ namespace SFXChallenger.Champions
 
             static Ball()
             {
+                Status = BallStatus.Fixed;
                 Pos = ObjectManager.Player.Position;
                 GameObject.OnCreate += OnGameObjectCreate;
                 Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
