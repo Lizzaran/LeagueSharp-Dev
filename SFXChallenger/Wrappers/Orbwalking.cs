@@ -87,7 +87,10 @@ namespace SFXChallenger.Wrappers
             "jarvanivcataclysmattack", "monkeykingdoubleattack",
             "shyvanadoubleattack", "shyvanadoubleattackdragon", "zyragraspingplantattack", "zyragraspingplantattack2",
             "zyragraspingplantattackfire", "zyragraspingplantattack2fire", "viktorpowertransfer", "sivirwattackbounce",
-            "elisespiderlingbasicattack"
+            "asheqattacknoonhit", "elisespiderlingbasicattack", "heimertyellowbasicattack", "heimertyellowbasicattack2",
+            "heimertbluebasicattack", "annietibbersbasicattack", "annietibbersbasicattack2",
+            "yorickdecayedghoulbasicattack", "yorickravenousghoulbasicattack", "yorickspectralghoulbasicattack",
+            "malzaharvoidlingbasicattack", "malzaharvoidlingbasicattack2", "malzaharvoidlingbasicattack3"
         };
 
         //Spells that are attacks even if they dont have the "attack" word in their name.
@@ -112,7 +115,6 @@ namespace SFXChallenger.Wrappers
         private static float _minDistance = 400;
         private static bool _missileLaunched;
         private static readonly Random Random = new Random(DateTime.Now.Millisecond);
-        private static bool _preventStuttering;
         private static readonly Dictionary<OrbwalkingDelay, Delay> Delays = new Dictionary<OrbwalkingDelay, Delay>();
 
         static Orbwalking()
@@ -227,20 +229,7 @@ namespace SFXChallenger.Wrappers
             {
                 result += target.BoundingRadius;
             }
-            if (_preventStuttering)
-            {
-                var hero = target as Obj_AI_Hero;
-                if (hero != null && !hero.IsFacing(Player))
-                {
-                    result -= 10;
-                }
-            }
             return result;
-        }
-
-        public static void PreventStuttering(bool val)
-        {
-            _preventStuttering = val;
         }
 
         /// <summary>
@@ -264,13 +253,16 @@ namespace SFXChallenger.Wrappers
         /// </summary>
         public static float GetMyProjectileSpeed()
         {
-            return IsMelee(Player) || Player.ChampionName == "Azir" ? float.MaxValue : Player.BasicAttack.MissileSpeed;
+            return IsMelee(Player) || Player.ChampionName == "Azir" ||
+                   Player.ChampionName == "Viktor" && Player.HasBuff("ViktorPowerTransferReturn")
+                ? float.MaxValue
+                : Player.BasicAttack.MissileSpeed;
         }
 
         /// <summary>
         ///     Returns if the player's auto-attack is ready.
         /// </summary>
-        public static bool CanAttack(float extraDelay = 0f)
+        public static bool CanAttack(float extraDelay)
         {
             return Utils.GameTimeTickCount + Game.Ping / 2 + 25 >= LastAaTick + Player.AttackDelay * 1000 + extraDelay &&
                    Attack;
@@ -291,8 +283,15 @@ namespace SFXChallenger.Wrappers
                 return true;
             }
 
+            var localExtraWindup = 0;
+            if (Player.ChampionName == "Rengar" && (Player.HasBuff("rengarqbase") || Player.HasBuff("rengarqemp")))
+            {
+                localExtraWindup = 200;
+            }
+
             return NoCancelChamps.Contains(Player.ChampionName) ||
-                   (Utils.GameTimeTickCount + Game.Ping / 2 >= LastAaTick + Player.AttackCastDelay * 1000 + extraWindup);
+                   (Utils.GameTimeTickCount + Game.Ping / 2 >=
+                    LastAaTick + Player.AttackCastDelay * 1000 + extraWindup + localExtraWindup);
         }
 
         public static void SetDelay(float value, OrbwalkingDelay delay)
@@ -466,13 +465,10 @@ namespace SFXChallenger.Wrappers
                                          (int) (ObjectManager.Player.AttackCastDelay * 1000f);
                             _missileLaunched = false;
 
-                            if (!IsMelee(Player))
+                            var d = GetRealAutoAttackRange(target) - 65;
+                            if (Player.Distance(target, true) > d * d && !Player.IsMelee)
                             {
-                                var d = GetRealAutoAttackRange(target) - 65;
-                                if (Player.Distance(target, true) > d * d)
-                                {
-                                    LastAaTick += 300;
-                                }
+                                LastAaTick += 300;
                             }
                         }
 
@@ -515,6 +511,7 @@ namespace SFXChallenger.Wrappers
             if (missile != null && missile.SpellCaster.IsMe && IsAutoAttack(missile.SData.Name))
             {
                 _missileLaunched = true;
+                FireAfterAttack(missile.SpellCaster, missile.Target as AttackableUnit);
             }
         }
 
@@ -540,18 +537,20 @@ namespace SFXChallenger.Wrappers
                     LastAaTick = Utils.GameTimeTickCount - Game.Ping / 2;
                     _missileLaunched = false;
 
-                    var target = spell.Target as Obj_AI_Base;
-                    if (target != null)
+                    var objBase = spell.Target as Obj_AI_Base;
+                    if (objBase != null)
                     {
-                        if (target.IsValid)
+                        if (objBase.IsValid)
                         {
-                            FireOnTargetSwitch(target);
-                            _lastTarget = target;
+                            FireOnTargetSwitch(objBase);
+                            _lastTarget = objBase;
                         }
 
-                        //Trigger it for ranged until the missiles catch normal attacks again!
-                        Utility.DelayAction.Add(
-                            (int) (unit.AttackCastDelay * 1000 + 40), () => FireAfterAttack(unit, _lastTarget));
+                        if (unit.IsMelee)
+                        {
+                            Utility.DelayAction.Add(
+                                (int) (unit.AttackCastDelay * 1000 + 40), () => FireAfterAttack(unit, _lastTarget));
+                        }
                     }
                 }
 
@@ -898,8 +897,8 @@ namespace SFXChallenger.Wrappers
                     var minionList =
                         minions.OrderByDescending(minion => minion.CharData.BaseSkinName.Contains("Siege"))
                             .ThenBy(minion => minion.CharData.BaseSkinName.Contains("Super"))
-                            .ThenByDescending(minion => minion.MaxHealth)
-                            .ThenBy(minion => minion.Health);
+                            .ThenBy(minion => minion.Health)
+                            .ThenByDescending(minion => minion.MaxHealth);
 
                     foreach (var minion in minionList)
                     {

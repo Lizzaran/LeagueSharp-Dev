@@ -60,7 +60,7 @@ namespace SFXChallenger.Helpers
         {
             try
             {
-                if (target.HasBuffOfType(BuffType.Invulnerability))
+                if (target.HasBuffOfType(BuffType.Invulnerability) || target.IsInvulnerable)
                 {
                     return true;
                 }
@@ -74,7 +74,7 @@ namespace SFXChallenger.Helpers
                             {
                                 return true;
                             }
-                            if (invulnerable.CustomCheck != null && invulnerable.CustomCheck(target, damageType))
+                            if (invulnerable.CustomCheck != null && CustomCheck(invulnerable, target, damageType))
                             {
                                 return true;
                             }
@@ -82,6 +82,25 @@ namespace SFXChallenger.Helpers
                     }
                 }
                 return false;
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return false;
+        }
+
+        private static bool CustomCheck(Item invulnerable, Obj_AI_Hero target, DamageType damageType)
+        {
+            try
+            {
+                if (invulnerable != null)
+                {
+                    if (invulnerable.CustomCheck(target, damageType))
+                    {
+                        return true;
+                    }
+                }
             }
             catch (Exception ex)
             {

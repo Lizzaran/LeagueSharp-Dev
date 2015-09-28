@@ -89,12 +89,14 @@ namespace SFXUtility.Features.Drawings
                     if (hpBar)
                     {
                         var barPos = minion.HPBarPosition;
-                        var barWidth = minion.CharData.BaseSkinName.Contains("Super") ? 88 : 63;
+                        var isSuper = minion.CharData.BaseSkinName.Contains("Super");
+                        var barWidth = isSuper ? 88 : 63;
+                        var xOffset = (isSuper ? 56 : 37) + 8;
                         var offset = (float) (barWidth / (minion.MaxHealth / aaDamage));
-                        offset = offset < barWidth ? offset : barWidth;
+                        offset = (offset < barWidth ? offset : barWidth) - hpLinesThickness / 2f;
                         Drawing.DrawLine(
-                            new Vector2(barPos.X + 45 + offset, barPos.Y + 17),
-                            new Vector2(barPos.X + 45 + offset, barPos.Y + 24), hpLinesThickness,
+                            new Vector2(barPos.X + xOffset + offset, barPos.Y + 17),
+                            new Vector2(barPos.X + xOffset + offset, barPos.Y + 24), hpLinesThickness,
                             killable ? hpKillableColor : hpUnkillableColor);
                     }
                     if (circle && killable)

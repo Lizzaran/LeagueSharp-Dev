@@ -80,15 +80,17 @@ namespace SFXChallenger.Managers
                     var summonerDamage = summoners ? SummonerManager.CalculateComboDamage(enemy) - 10 : 0;
                     if (items && itemDamage > enemy.Health)
                     {
-                        ItemManager.UseComboItems(enemy);
+                        ItemManager.UseComboItems(enemy, true);
+                        return;
                     }
-                    else if (summoners && summonerDamage > (enemy.Health + enemy.HPRegenRate * 3))
+                    if (summoners && summonerDamage > (enemy.Health + enemy.HPRegenRate * 3))
                     {
                         SummonerManager.UseComboSummoners(enemy);
+                        return;
                     }
-                    else if (items && summoners && (summonerDamage + itemDamage) > (enemy.Health + enemy.HPRegenRate * 3))
+                    if (items && summoners && (summonerDamage + itemDamage) > (enemy.Health + enemy.HPRegenRate * 3))
                     {
-                        ItemManager.UseComboItems(enemy);
+                        ItemManager.UseComboItems(enemy, true);
                         SummonerManager.UseComboSummoners(enemy);
                     }
                 }

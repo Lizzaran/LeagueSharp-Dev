@@ -73,11 +73,18 @@ namespace SFXChallenger.SFXTargetSelector
 
         public static Obj_AI_Hero GetTarget(float range, DamageType damageType, bool ignoreShields, Vector3 from)
         {
-            if (Target != null &&
-                TargetSelector.IsValidTarget(
-                    Target, TargetSelector.ForceFocus ? float.MaxValue : range, damageType, ignoreShields, from))
+            try
             {
-                return Target;
+                if (Target != null &&
+                    TargetSelector.IsValidTarget(
+                        Target, TargetSelector.ForceFocus ? float.MaxValue : range, damageType, ignoreShields, from))
+                {
+                    return Target;
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
             return null;
         }

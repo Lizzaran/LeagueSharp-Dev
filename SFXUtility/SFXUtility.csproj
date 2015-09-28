@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SFXUtility</RootNamespace>
     <AssemblyName>SFXUtility</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <PreBuildEvent>
     </PreBuildEvent>
@@ -24,7 +24,7 @@
     <AssemblyVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyVersionSettings>
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
-    <AssemblyVersion>0.8.7.2</AssemblyVersion>
+    <AssemblyVersion>0.8.7.4</AssemblyVersion>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -40,6 +40,7 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -114,6 +115,7 @@
     <Compile Include="Features\Detectors\SharedExperience.cs" />
     <Compile Include="Features\Drawings\Clock.cs" />
     <Compile Include="Features\Drawings\Drawings.cs" />
+    <Compile Include="Features\Drawings\LaneMomentum.cs" />
     <Compile Include="Features\Drawings\SafeJungleSpot.cs" />
     <Compile Include="Features\Drawings\WallJumpSpot.cs" />
     <Compile Include="Features\Events\AutoLeveler.cs" />

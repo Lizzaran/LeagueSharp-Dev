@@ -107,6 +107,7 @@ namespace SFXUtility
                             new Clone(drawings),
                             new DamageIndicator(drawings),
                             new Health(drawings),
+                            new LaneMomentum(drawings),
                             new LasthitMarker(drawings),
                             new PerfectWard(drawings),
                             new Range(drawings),

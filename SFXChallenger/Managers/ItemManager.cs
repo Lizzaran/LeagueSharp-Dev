@@ -118,6 +118,7 @@ namespace SFXChallenger.Managers
                     Damage = Damage.DamageItems.Hydra,
                     Range = ItemData.Ravenous_Hydra_Melee_Only.GetItem().Range
                 };
+
                 // Slow + Damage
                 BilgewaterCutlass = new CustomItem
                 {
@@ -160,19 +161,6 @@ namespace SFXChallenger.Managers
                     Range = ItemData.Hextech_Gunblade.GetItem().Range
                 };
 
-                // Remove stun + heal
-                MikaelsCrucible = new CustomItem
-                {
-                    Name = "mikaels-crucible",
-                    DisplayName = "Mikael's Crucible",
-                    Item = ItemData.Mikaels_Crucible.GetItem(),
-                    Flags = ItemFlags.Supportive | ItemFlags.Defensive,
-                    CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
-                    EffectFlags = EffectFlags.RemoveStun | EffectFlags.Heal,
-                    CastType = CastType.Target,
-                    Range = ItemData.Mikaels_Crucible.GetItem().Range
-                };
-
                 // AOE Shield
                 LocketIronSolari = new CustomItem
                 {
@@ -184,6 +172,19 @@ namespace SFXChallenger.Managers
                     EffectFlags = EffectFlags.Shield,
                     CastType = CastType.Self,
                     Range = ItemData.Locket_of_the_Iron_Solari.GetItem().Range
+                };
+
+                // Remove stun + heal
+                MikaelsCrucible = new CustomItem
+                {
+                    Name = "mikaels-crucible",
+                    DisplayName = "Mikael's Crucible",
+                    Item = ItemData.Mikaels_Crucible.GetItem(),
+                    Flags = ItemFlags.Supportive,
+                    CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
+                    EffectFlags = EffectFlags.RemoveStun | EffectFlags.Heal,
+                    CastType = CastType.Target,
+                    Range = ItemData.Mikaels_Crucible.GetItem().Range
                 };
 
                 // Place wards
@@ -343,7 +344,7 @@ namespace SFXChallenger.Managers
             return 0f;
         }
 
-        public static void UseComboItems(Obj_AI_Hero target)
+        public static void UseComboItems(Obj_AI_Hero target, bool killSteal = false)
         {
             if (_menu == null || !_menu.Item(_menu.Name + ".enabled").GetValue<bool>())
             {
@@ -363,17 +364,19 @@ namespace SFXChallenger.Managers
                             ((i.Flags & (_itemFlags)) != 0) &&
                             _menu.Item(_menu.Name + "." + i.Name + ".combo").GetValue<bool>() && i.Item.IsOwned() &&
                             i.Item.IsReady() && distance <= Math.Pow(i.Range, 2) &&
-                            ObjectManager.Player.CountEnemiesInRange(i.Range) >=
-                            _menu.Item(_menu.Name + "." + i.Name + ".min-enemies-range").GetValue<Slider>().Value &&
-                            ObjectManager.Player.HealthPercent <=
-                            _menu.Item(_menu.Name + "." + i.Name + ".player-health-below").GetValue<Slider>().Value &&
-                            ObjectManager.Player.HealthPercent >=
-                            _menu.Item(_menu.Name + "." + i.Name + ".player-health-above").GetValue<Slider>().Value &&
-                            (target == null ||
-                             target.HealthPercent <=
-                             _menu.Item(_menu.Name + "." + i.Name + ".target-health-below").GetValue<Slider>().Value &&
-                             target.HealthPercent >=
-                             _menu.Item(_menu.Name + "." + i.Name + ".target-health-above").GetValue<Slider>().Value)))
+                            (killSteal ||
+                             ObjectManager.Player.CountEnemiesInRange(i.Range) >=
+                             _menu.Item(_menu.Name + "." + i.Name + ".min-enemies-range").GetValue<Slider>().Value &&
+                             ObjectManager.Player.HealthPercent <=
+                             _menu.Item(_menu.Name + "." + i.Name + ".player-health-below").GetValue<Slider>().Value &&
+                             ObjectManager.Player.HealthPercent >=
+                             _menu.Item(_menu.Name + "." + i.Name + ".player-health-above").GetValue<Slider>().Value &&
+                             (target == null ||
+                              target.HealthPercent <=
+                              _menu.Item(_menu.Name + "." + i.Name + ".target-health-below").GetValue<Slider>().Value &&
+                              target.HealthPercent >=
+                              _menu.Item(_menu.Name + "." + i.Name + ".target-health-above").GetValue<Slider>().Value)))
+                    )
                 {
                     switch (item.CastType)
                     {

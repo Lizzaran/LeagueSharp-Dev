@@ -48,9 +48,9 @@ namespace SFXUtility
                 var infoMenu = new Menu("Info", Name + "Info");
 
                 infoMenu.AddItem(new MenuItem(infoMenu.Name + "Version", string.Format("{0}: {1}", "Version", Version)));
-                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Forum", "Forum" + ": Lizzaran"));
-                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Github", "GitHub" + ": Lizzaran"));
-                infoMenu.AddItem(new MenuItem(infoMenu.Name + "IRC", "IRC" + ": Appril"));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Forum", "Forum: Lizzaran"));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "Github", "GitHub: Lizzaran"));
+                infoMenu.AddItem(new MenuItem(infoMenu.Name + "IRC", "IRC: Appril"));
                 infoMenu.AddItem(new MenuItem(infoMenu.Name + "Exception", string.Format("{0}: {1}", "Exception", 0)));
 
                 var globalMenu = new Menu("Settings", Name + "Settings");

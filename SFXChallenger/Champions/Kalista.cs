@@ -121,11 +121,11 @@ namespace SFXChallenger.Champions
             ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(false));
             laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".q-min-1", "Q Min." + " <= 4").SetValue(new Slider(2, 1, 5)));
+                new MenuItem(laneclearMenu.Name + ".q-min-1", "Q Min.<= 4").SetValue(new Slider(2, 1, 5)));
             laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".q-min-2", "Q Min." + " <= 7").SetValue(new Slider(3, 1, 5)));
+                new MenuItem(laneclearMenu.Name + ".q-min-2", "Q Min.<= 7").SetValue(new Slider(3, 1, 5)));
             laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".q-min-3", "Q Min." + " >= 10").SetValue(new Slider(5, 1, 5)));
+                new MenuItem(laneclearMenu.Name + ".q-min-3", "Q Min.>= 10").SetValue(new Slider(5, 1, 5)));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", "Use E").SetValue(true));
 
             var lasthitMenu = Menu.AddSubMenu(new Menu("Last Hit", Menu.Name + ".lasthit"));

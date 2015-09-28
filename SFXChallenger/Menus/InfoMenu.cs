@@ -41,9 +41,9 @@ namespace SFXChallenger.Menus
                     new MenuItem(
                         menu.Name + ".version",
                         string.Format("{0}: {1}", "Version", Assembly.GetEntryAssembly().GetName().Version)));
-                menu.AddItem(new MenuItem(menu.Name + ".forum", "Forum" + ": Lizzaran"));
-                menu.AddItem(new MenuItem(menu.Name + ".github", "GitHub" + ": Lizzaran"));
-                menu.AddItem(new MenuItem(menu.Name + ".irc", "IRC" + ": Appril"));
+                menu.AddItem(new MenuItem(menu.Name + ".forum", "Forum: Lizzaran"));
+                menu.AddItem(new MenuItem(menu.Name + ".github", "GitHub: Lizzaran"));
+                menu.AddItem(new MenuItem(menu.Name + ".irc", "IRC: Appril"));
                 menu.AddItem(new MenuItem(menu.Name + ".exception", string.Format("{0}: {1}", "Exception", 0)));
 
                 var errorText = "Exception";

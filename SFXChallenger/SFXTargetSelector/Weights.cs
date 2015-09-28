@@ -84,7 +84,11 @@ namespace SFXChallenger.SFXTargetSelector
                                 ? t.Armor
                                 : t.SpellBlock),
                     new Item("low-health", "[i] Health", 17, true, t => t.Health),
-                    new Item("short-distance", "[i] Distance", 5, true, t => t.Distance(ObjectManager.Player)),
+                    new Item(
+                        "short-distance-player", "[i] Distance to Player", 5, true,
+                        t => t.Distance(ObjectManager.Player)),
+                    new Item(
+                        "short-distance-cursor", "[i] Distance to Cursor", 2, true, t => t.Distance(Game.CursorPos)),
                     new Item(
                         "crowd-control", "Crowd Control", 0, false, delegate(Obj_AI_Hero t)
                         {

@@ -87,12 +87,10 @@ namespace SFXChallenger.Champions
             HitchanceManager.AddToMenu(
                 comboMenu.AddSubMenu(new Menu("Hitchance", comboMenu.Name + ".hitchance")), "combo",
                 new Dictionary<string, HitChance> { { "Q", HitChance.High } });
-            ManaManager.AddToMenu(comboMenu, "combo-blue", ManaCheckType.Minimum, ManaValueType.Percent, "W " + "Blue");
+            ManaManager.AddToMenu(comboMenu, "combo-blue", ManaCheckType.Minimum, ManaValueType.Percent, "W Blue");
             comboMenu.AddItem(
-                new MenuItem(comboMenu.Name + ".gold-percent", "W " + "Gold Health Percent").SetValue(
-                    new Slider(20, 5, 75)));
-            comboMenu.AddItem(
-                new MenuItem(comboMenu.Name + ".red-min", "W " + "Red Min.").SetValue(new Slider(3, 1, 5)));
+                new MenuItem(comboMenu.Name + ".gold-percent", "W Gold Health Percent").SetValue(new Slider(20, 5, 75)));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".red-min", "W Red Min.").SetValue(new Slider(3, 1, 5)));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", "Use Q").SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", "Use W").SetValue(true));
 
@@ -101,10 +99,9 @@ namespace SFXChallenger.Champions
                 harassMenu.AddSubMenu(new Menu("Hitchance", harassMenu.Name + ".hitchance")), "harass",
                 new Dictionary<string, HitChance> { { "Q", HitChance.VeryHigh } });
             ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
-            ManaManager.AddToMenu(
-                harassMenu, "harass-blue", ManaCheckType.Minimum, ManaValueType.Percent, "W " + "Blue", 50);
+            ManaManager.AddToMenu(harassMenu, "harass-blue", ManaCheckType.Minimum, ManaValueType.Percent, "W Blue", 50);
             harassMenu.AddItem(
-                new MenuItem(harassMenu.Name + ".w-card", "W " + "Card").SetValue(
+                new MenuItem(harassMenu.Name + ".w-card", "W Card").SetValue(
                     new StringList(new[] { "Gold", "Red", "Blue" })));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w-auto", "Auto Select").SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", "Use Q").SetValue(true));
@@ -113,7 +110,7 @@ namespace SFXChallenger.Champions
             var laneclearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
             ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
             ManaManager.AddToMenu(
-                laneclearMenu, "lane-clear-blue", ManaCheckType.Minimum, ManaValueType.Percent, "W " + "Blue", 50);
+                laneclearMenu, "lane-clear-blue", ManaCheckType.Minimum, ManaValueType.Percent, "W Blue", 50);
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q-min", "Q Min.").SetValue(new Slider(3, 1, 5)));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", "Use W").SetValue(true));
@@ -123,11 +120,10 @@ namespace SFXChallenger.Champions
 
             var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
             miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".w-range", "W " + "Range").SetValue(new Slider((int) W.Range, 500, 1000)))
+                new MenuItem(miscMenu.Name + ".w-range", "W Range").SetValue(new Slider((int) W.Range, 500, 1000)))
                 .ValueChanged +=
                 delegate(object sender, OnValueChangeEventArgs args) { W.Range = args.GetNewValue<Slider>().Value; };
-            miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".w-delay", "W " + "Delay").SetValue(new Slider(300, 0, 1000)))
+            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-delay", "W Delay").SetValue(new Slider(300, 0, 1000)))
                 .ValueChanged +=
                 delegate(object sender, OnValueChangeEventArgs args) { Cards.Delay = args.GetNewValue<Slider>().Value; };
             miscMenu.AddItem(
@@ -165,8 +161,8 @@ namespace SFXChallenger.Champions
             IndicatorManager.Add("E", hero => E.Level > 0 && GetEStacks() >= 2 ? E.GetDamage(hero) : 0);
             IndicatorManager.Finale();
 
-            _eStacks = DrawingManager.Add("E " + "Stacks", true);
-            _rMinimap = DrawingManager.Add("R " + "Minimap", true);
+            _eStacks = DrawingManager.Add("E Stacks", true);
+            _rMinimap = DrawingManager.Add("R Minimap", true);
         }
 
         protected override void SetupSpells()

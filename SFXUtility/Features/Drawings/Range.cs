@@ -349,14 +349,10 @@ namespace SFXUtility.Features.Drawings
                     new MenuItem(spellMenu.Name + "MaxRange", "Max Spell Range").SetValue(new Slider(1000, 500, 3000)));
 
                 var spellSelfMenu = new Menu("Self", spellMenu.Name + "Self");
-                spellSelfMenu.AddItem(
-                    new MenuItem(spellSelfMenu.Name + "ColorQ", "Color" + " Q").SetValue(Color.Purple));
-                spellSelfMenu.AddItem(
-                    new MenuItem(spellSelfMenu.Name + "ColorW", "Color" + " W").SetValue(Color.Purple));
-                spellSelfMenu.AddItem(
-                    new MenuItem(spellSelfMenu.Name + "ColorE", "Color" + " E").SetValue(Color.Purple));
-                spellSelfMenu.AddItem(
-                    new MenuItem(spellSelfMenu.Name + "ColorR", "Color" + " R").SetValue(Color.Purple));
+                spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "ColorQ", "Color Q").SetValue(Color.Purple));
+                spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "ColorW", "Color W").SetValue(Color.Purple));
+                spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "ColorE", "ColorE").SetValue(Color.Purple));
+                spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "ColorR", "ColorR").SetValue(Color.Purple));
                 spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "Q", "Q").SetValue(false));
                 spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "W", "W").SetValue(false));
                 spellSelfMenu.AddItem(new MenuItem(spellSelfMenu.Name + "E", "E").SetValue(false));
@@ -365,10 +361,10 @@ namespace SFXUtility.Features.Drawings
                 spellMenu.AddSubMenu(spellSelfMenu);
 
                 var spellAllyMenu = new Menu("Ally", spellMenu.Name + "Ally");
-                spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "ColorQ", "Color" + " Q").SetValue(Color.Green));
-                spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "ColorW", "Color" + " W").SetValue(Color.Green));
-                spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "ColorE", "Color" + " E").SetValue(Color.Green));
-                spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "ColorR", "Color" + " R").SetValue(Color.Green));
+                spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "ColorQ", "ColorQ").SetValue(Color.Green));
+                spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "ColorW", "ColorW").SetValue(Color.Green));
+                spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "ColorE", "ColorE").SetValue(Color.Green));
+                spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "ColorR", "ColorR").SetValue(Color.Green));
                 spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "Q", "Q").SetValue(false));
                 spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "W", "W").SetValue(false));
                 spellAllyMenu.AddItem(new MenuItem(spellAllyMenu.Name + "E", "E").SetValue(false));
@@ -377,10 +373,10 @@ namespace SFXUtility.Features.Drawings
                 spellMenu.AddSubMenu(spellAllyMenu);
 
                 var spellEnemyMenu = new Menu("Enemy", spellMenu.Name + "Enemy");
-                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "ColorQ", "Color" + " Q").SetValue(Color.Red));
-                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "ColorW", "Color" + " W").SetValue(Color.Red));
-                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "ColorE", "Color" + " E").SetValue(Color.Red));
-                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "ColorR", "Color" + " R").SetValue(Color.Red));
+                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "ColorQ", "ColorQ").SetValue(Color.Red));
+                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "ColorW", "ColorW").SetValue(Color.Red));
+                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "ColorE", "ColorE").SetValue(Color.Red));
+                spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "ColorR", "ColorR").SetValue(Color.Red));
                 spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "Q", "Q").SetValue(false));
                 spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "W", "W").SetValue(false));
                 spellEnemyMenu.AddItem(new MenuItem(spellEnemyMenu.Name + "E", "E").SetValue(false));

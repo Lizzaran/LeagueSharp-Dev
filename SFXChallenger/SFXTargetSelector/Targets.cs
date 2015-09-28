@@ -55,13 +55,20 @@ namespace SFXChallenger.SFXTargetSelector
 
         private static void OnCorePreUpdate(EventArgs args)
         {
-            foreach (var item in Items)
+            try
             {
-                if (item.Visible && !item.Hero.IsVisible || !item.Visible && item.Hero.IsVisible)
+                foreach (var item in Items)
                 {
-                    item.Visible = item.Hero.IsVisible;
-                    item.LastVisibleChange = Game.Time;
+                    if (item.Visible && !item.Hero.IsVisible || !item.Visible && item.Hero.IsVisible)
+                    {
+                        item.Visible = item.Hero.IsVisible;
+                        item.LastVisibleChange = Game.Time;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 

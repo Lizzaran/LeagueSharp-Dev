@@ -125,7 +125,7 @@ namespace SFXUtility.Features.Timers
             { "zac_r_tar.troy", new AbilityItem("zac", "R", 4f) },
             { "zed_base_r_cloneswap_buf.troy", new AbilityItem("zed", "R", 7f) },
             { "zed_base_w_cloneswap_buf.troy", new AbilityItem("zed", "W", 4.5f) },
-            { "zilean_base_r_buf.troy", new AbilityItem("zilean", "R " + "Revive", 3f) },
+            { "zilean_base_r_buf.troy", new AbilityItem("zilean", "R Revive", 3f) },
             { "zyra_r_cast_green_team.troy", new AbilityItem("zyra", "R", 2f) },
             { "zyra_r_cast_red_team.troy", new AbilityItem("zyra", "R", 2f) },
             { "jester_copy.troy", new AbilityItem("shaco", "R", 18f) },

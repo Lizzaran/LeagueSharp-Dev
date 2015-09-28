@@ -57,7 +57,8 @@ namespace SFXChallenger.Managers
             bool enemy,
             bool defaultValue,
             bool dontSave = false,
-            bool enabled = true)
+            bool enabled = true,
+            int tag = 0)
         {
             try
             {
@@ -71,8 +72,10 @@ namespace SFXChallenger.Managers
 
                 foreach (var hero in GameObjects.Heroes.Where(h => ally && h.IsAlly || enemy && h.IsEnemy))
                 {
-                    var item = new MenuItem(
-                        menu.Name + ".hero-list-" + uniqueId + hero.ChampionName.ToLower(), hero.ChampionName);
+                    var item =
+                        new MenuItem(
+                            menu.Name + ".hero-list-" + uniqueId + hero.ChampionName.ToLower(), hero.ChampionName)
+                            .SetTag(tag);
                     if (dontSave)
                     {
                         item.DontSave();
@@ -80,7 +83,7 @@ namespace SFXChallenger.Managers
                     menu.AddItem(item.SetValue(defaultValue));
                 }
 
-                var eItem = new MenuItem(menu.Name + ".hero-list-" + uniqueId + ".enabled", "Enabled");
+                var eItem = new MenuItem(menu.Name + ".hero-list-" + uniqueId + ".enabled", "Enabled").SetTag(tag);
                 if (dontSave)
                 {
                     eItem.DontSave();

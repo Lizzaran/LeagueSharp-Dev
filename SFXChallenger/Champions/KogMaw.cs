@@ -113,8 +113,7 @@ namespace SFXChallenger.Champions
             HeroListManager.AddToMenu(
                 miscMenu.AddSubMenu(new Menu("R Gapcloser", miscMenu.Name + "r-gapcloser")), "r-gapcloser", false, false,
                 true, false);
-            miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".r-max", "R " + "Max. Stacks").SetValue(new Slider(5, 1, 10)));
+            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r-max", "R Max. Stacks").SetValue(new Slider(5, 1, 10)));
 
             IndicatorManager.AddToMenu(DrawingManager.Menu, true);
             IndicatorManager.Add(Q);

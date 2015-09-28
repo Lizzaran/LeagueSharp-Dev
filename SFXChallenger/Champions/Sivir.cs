@@ -98,8 +98,8 @@ namespace SFXChallenger.Champions
 
             var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("Q " + "Immobile", miscMenu.Name + "q-immobile")), "q-immobile", false,
-                false, true, false);
+                miscMenu.AddSubMenu(new Menu("Q Immobile", miscMenu.Name + "q-immobile")), "q-immobile", false, false,
+                true, false);
 
             IndicatorManager.AddToMenu(DrawingManager.Menu, true);
             IndicatorManager.Add(Q);

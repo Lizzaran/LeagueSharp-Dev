@@ -25,6 +25,10 @@ namespace SFXChallenger.Enumerations
     public enum UltimateModeType
     {
         Combo,
-        Auto
+        Auto,
+        Assisted,
+        Flash,
+        Gapcloser,
+        Interrupt
     }
 }

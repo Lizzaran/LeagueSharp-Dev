@@ -88,17 +88,13 @@ namespace SFXUtility.Features.Others
                 {
                     return;
                 }
-
-                var extend = Menu.Item(Name + "Extend").GetValue<bool>();
-                var endPos = extend
-                    ? ObjectManager.Player.Position.Extend(args.StartPosition, 425f)
-                    : args.StartPosition;
+                var endPos = args.StartPosition;
                 var distance = ObjectManager.Player.ServerPosition.Distance(endPos);
                 if (Menu.Item(Name + "WallCheck").GetValue<bool>() && endPos.IsWall())
                 {
                     var wallStart = Vector3.Zero;
                     var wallEnd = Vector3.Zero;
-                    for (var i = 0; 1000 > i; i++)
+                    for (var i = 0; 900 > i; i++)
                     {
                         var pos = ObjectManager.Player.Position.Extend(endPos, i);
                         if (wallStart.Equals(Vector3.Zero) && pos.IsWall())
@@ -116,19 +112,7 @@ namespace SFXUtility.Features.Others
                         if (wallEnd.Equals(Vector3.Zero) || wallEnd.Distance(endPos) > wallStart.Distance(endPos))
                         {
                             args.Process = false;
-                            if (ObjectManager.Player.Distance(wallStart) > 5 && wallStart.Distance(wallEnd) / 2f < 425f)
-                            {
-                                ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, wallStart);
-                                Utility.DelayAction.Add(
-                                    (int)
-                                        (ObjectManager.Player.Distance(wallStart) /
-                                         (ObjectManager.Player.MoveSpeed - 100)) * 1000 + Game.Ping,
-                                    delegate
-                                    {
-                                        ObjectManager.Player.Spellbook.CastSpell(
-                                            args.Slot, ObjectManager.Player.ServerPosition.Extend(endPos, 425f));
-                                    });
-                            }
+                            ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, wallStart);
                         }
                     }
                 }
@@ -156,13 +140,13 @@ namespace SFXUtility.Features.Others
                         }
                     }
                 }
-                if (extend)
+                if (Menu.Item(Name + "Extend").GetValue<bool>())
                 {
                     if (distance < 390f)
                     {
                         args.Process = false;
                         ObjectManager.Player.Spellbook.CastSpell(
-                            args.Slot, ObjectManager.Player.ServerPosition.Extend(endPos, 425f));
+                            args.Slot, ObjectManager.Player.ServerPosition.Extend(endPos, 450f));
                     }
                 }
             }

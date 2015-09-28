@@ -125,53 +125,39 @@ namespace SFXChallenger.SFXTargetSelector
             return new List<Targets.Item>();
         }
 
-        private static TargetSelectorModeType GetModeByMenuValue(string value)
+        private static TargetSelectorModeType GetModeBySelectedIndex(int index)
         {
-            var mode = TargetSelectorModeType.Weights;
             try
             {
-                if (value.Equals("Weigths"))
+                switch (index)
                 {
-                    mode = TargetSelectorModeType.Weights;
-                }
-                else if (value.Equals("Priorities"))
-                {
-                    mode = TargetSelectorModeType.Priorities;
-                }
-                else if (value.Equals("Less Attacks To Kill"))
-                {
-                    mode = TargetSelectorModeType.LessAttacksToKill;
-                }
-                else if (value.Equals("Most Ability Power"))
-                {
-                    mode = TargetSelectorModeType.MostAbilityPower;
-                }
-                else if (value.Equals("Most Attack Damage"))
-                {
-                    mode = TargetSelectorModeType.MostAttackDamage;
-                }
-                else if (value.Equals("Closest"))
-                {
-                    mode = TargetSelectorModeType.Closest;
-                }
-                else if (value.Equals("Near Mouse"))
-                {
-                    mode = TargetSelectorModeType.NearMouse;
-                }
-                else if (value.Equals("Less Cast Priority"))
-                {
-                    mode = TargetSelectorModeType.LessCastPriority;
-                }
-                else if (value.Equals("Least Health"))
-                {
-                    mode = TargetSelectorModeType.LeastHealth;
+                    case 0:
+                        return TargetSelectorModeType.Weights;
+                    case 1:
+                        return TargetSelectorModeType.Priorities;
+                    case 2:
+                        return TargetSelectorModeType.LessAttacksToKill;
+                    case 3:
+                        return TargetSelectorModeType.MostAbilityPower;
+                    case 4:
+                        return TargetSelectorModeType.MostAttackDamage;
+                    case 5:
+                        return TargetSelectorModeType.Closest;
+                    case 6:
+                        return TargetSelectorModeType.NearMouse;
+                    case 7:
+                        return TargetSelectorModeType.LessCastPriority;
+                    case 8:
+                        return TargetSelectorModeType.LeastHealth;
+                    default:
+                        return TargetSelectorModeType.Weights;
                 }
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
-            return mode;
+            return TargetSelectorModeType.Weights;
         }
 
         public static Obj_AI_Hero GetTarget(this Spell spell,
@@ -179,11 +165,19 @@ namespace SFXChallenger.SFXTargetSelector
             Vector3 from = new Vector3(),
             IEnumerable<Obj_AI_Hero> ignoredChampions = null)
         {
-            return
-                GetTarget(
-                    (spell.Range + spell.Width +
-                     Targets.Items.Select(e => e.Hero.BoundingRadius).DefaultIfEmpty(50).Max()) * 1.1f, spell.DamageType,
-                    ignoreShields, from, ignoredChampions);
+            try
+            {
+                return
+                    GetTarget(
+                        (spell.Range + spell.Width +
+                         Targets.Items.Select(e => e.Hero.BoundingRadius).DefaultIfEmpty(50).Max()) * 1.1f,
+                        spell.DamageType, ignoreShields, from, ignoredChampions);
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return null;
         }
 
         public static Obj_AI_Hero GetTarget(float range,
@@ -282,10 +276,10 @@ namespace SFXChallenger.SFXTargetSelector
                                 }))).ValueChanged +=
                     delegate(object sender, OnValueChangeEventArgs args)
                     {
-                        Mode = GetModeByMenuValue(args.GetNewValue<StringList>().SelectedValue);
+                        Mode = GetModeBySelectedIndex(args.GetNewValue<StringList>().SelectedIndex);
                     };
 
-                Mode = GetModeByMenuValue(_menu.Item(menu.Name + ".mode").GetValue<StringList>().SelectedValue);
+                Mode = GetModeBySelectedIndex(_menu.Item(menu.Name + ".mode").GetValue<StringList>().SelectedIndex);
             }
             catch (Exception ex)
             {
