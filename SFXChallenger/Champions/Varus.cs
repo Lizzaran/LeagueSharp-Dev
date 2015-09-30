@@ -119,17 +119,16 @@ namespace SFXChallenger.Champions
                 });
 
             var comboQMenu = comboMenu.AddSubMenu(new Menu("Q Settings", comboMenu.Name + ".q-settings"));
+            comboQMenu.AddItem(new MenuItem(comboQMenu.Name + ".always", "Cast Always").SetValue(false));
             comboQMenu.AddItem(
-                new MenuItem(comboQMenu.Name + ".fast-cast-min", "Fast Cast @ Health %").SetValue(new Slider(25)));
-            comboQMenu.AddItem(new MenuItem(comboQMenu.Name + ".range", "Out of Range").SetValue(true));
-            comboQMenu.AddItem(new MenuItem(comboQMenu.Name + ".always", "Always").SetValue(false));
-            comboQMenu.AddItem(new MenuItem(comboQMenu.Name + ".stacks", "Stacks >=")).SetValue(new Slider(3, 1, 3));
-            comboQMenu.AddItem(new MenuItem(comboQMenu.Name + ".min", "Min.").SetValue(new Slider(3, 1, 3)));
+                new MenuItem(comboQMenu.Name + ".fast-cast-min", "Fast Cast Health <= %").SetValue(new Slider(25)));
+            comboQMenu.AddItem(new MenuItem(comboQMenu.Name + ".stacks", "Min. Stacks")).SetValue(new Slider(3, 1, 3));
+            comboQMenu.AddItem(new MenuItem(comboQMenu.Name + ".min", "Min. Hits").SetValue(new Slider(3, 1, 3)));
 
             var comboEMenu = comboMenu.AddSubMenu(new Menu("E Settings", comboMenu.Name + ".e-settings"));
-            comboEMenu.AddItem(new MenuItem(comboEMenu.Name + ".always", "Always").SetValue(true));
-            comboEMenu.AddItem(new MenuItem(comboEMenu.Name + ".stacks", "Stacks >=")).SetValue(new Slider(3, 1, 3));
-            comboEMenu.AddItem(new MenuItem(comboEMenu.Name + ".min", "Min.").SetValue(new Slider(3, 1, 3)));
+            comboEMenu.AddItem(new MenuItem(comboEMenu.Name + ".always", "Cast Always").SetValue(true));
+            comboEMenu.AddItem(new MenuItem(comboEMenu.Name + ".stacks", "Min. Stacks")).SetValue(new Slider(3, 1, 3));
+            comboEMenu.AddItem(new MenuItem(comboEMenu.Name + ".min", "Min. Hits").SetValue(new Slider(3, 1, 3)));
 
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", "Use Q").SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", "Use E").SetValue(true));
@@ -141,16 +140,15 @@ namespace SFXChallenger.Champions
             ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
 
             var harassQMenu = harassMenu.AddSubMenu(new Menu("Q Settings", harassMenu.Name + ".q-settings"));
+            harassQMenu.AddItem(new MenuItem(harassQMenu.Name + ".always", "Cast Always").SetValue(false));
             harassQMenu.AddItem(
-                new MenuItem(harassQMenu.Name + ".fast-cast-min", "Fast Cast @ Health %").SetValue(new Slider(25)));
-            harassQMenu.AddItem(new MenuItem(harassQMenu.Name + ".range", "Out of Range").SetValue(true));
-            harassQMenu.AddItem(new MenuItem(harassQMenu.Name + ".always", "Always").SetValue(false));
-            harassQMenu.AddItem(new MenuItem(harassQMenu.Name + ".stacks", "Stacks >=")).SetValue(new Slider(3, 1, 3));
+                new MenuItem(harassQMenu.Name + ".fast-cast-min", "Fast Cast Health <= %").SetValue(new Slider(25)));
+            harassQMenu.AddItem(new MenuItem(harassQMenu.Name + ".stacks", "Min. Stacks")).SetValue(new Slider(3, 1, 3));
             harassQMenu.AddItem(new MenuItem(harassQMenu.Name + ".min", "Min. Hits").SetValue(new Slider(3, 1, 3)));
 
             var harassEMenu = harassMenu.AddSubMenu(new Menu("E Settings", harassMenu.Name + ".e-settings"));
-            harassEMenu.AddItem(new MenuItem(harassEMenu.Name + ".always", "Always").SetValue(true));
-            harassEMenu.AddItem(new MenuItem(harassEMenu.Name + ".stacks", "Stacks >=")).SetValue(new Slider(3, 1, 3));
+            harassEMenu.AddItem(new MenuItem(harassEMenu.Name + ".always", "Cast Always").SetValue(true));
+            harassEMenu.AddItem(new MenuItem(harassEMenu.Name + ".stacks", "Min. Stacks")).SetValue(new Slider(3, 1, 3));
             harassEMenu.AddItem(new MenuItem(harassEMenu.Name + ".min", "Min. Hits").SetValue(new Slider(3, 1, 3)));
 
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", "Use Q").SetValue(true));
@@ -294,8 +292,7 @@ namespace SFXChallenger.Champions
                     var stacks = W.Level == 0 &&
                                  Menu.Item(Menu.Name + ".combo.q-settings.stacks").GetValue<Slider>().Value > 0;
                     if (Q.IsCharging || Menu.Item(Menu.Name + ".combo.q-settings.always").GetValue<bool>() ||
-                        Menu.Item(Menu.Name + ".combo.q-settings.range").GetValue<bool>() &&
-                        !Orbwalking.InAutoAttackRange(target) || stacks ||
+                        target.Distance(Player) > Orbwalking.GetRealAutoAttackRange(target) * 1.2f || stacks ||
                         GetWStacks(target) >= Menu.Item(Menu.Name + ".combo.q-settings.stacks").GetValue<Slider>().Value ||
                         CPrediction.Line(Q, target, Q.GetHitChance("combo")).TotalHits >=
                         Menu.Item(Menu.Name + ".combo.q-settings.min").GetValue<Slider>().Value || Q.IsKillable(target))
@@ -351,8 +348,7 @@ namespace SFXChallenger.Champions
                     var stacks = W.Level == 0 &&
                                  Menu.Item(Menu.Name + ".harass.q-settings.stacks").GetValue<Slider>().Value > 0;
                     if (Q.IsCharging || Menu.Item(Menu.Name + ".harass.q-settings.always").GetValue<bool>() ||
-                        Menu.Item(Menu.Name + ".harass.q-settings.range").GetValue<bool>() &&
-                        !Orbwalking.InAutoAttackRange(target) || stacks ||
+                        target.Distance(Player) > Orbwalking.GetRealAutoAttackRange(target) * 1.2f || stacks ||
                         GetWStacks(target) >=
                         Menu.Item(Menu.Name + ".harass.q-settings.stacks").GetValue<Slider>().Value ||
                         Q.IsKillable(target) ||
