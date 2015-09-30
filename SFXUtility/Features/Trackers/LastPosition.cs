@@ -121,7 +121,7 @@ namespace SFXUtility.Features.Trackers
                             var radius = Math.Abs((Game.Time - lp.LastSeen - 1) * lp.Hero.MoveSpeed * 0.9f);
                             if (radius <= 8000)
                             {
-                                if (map)
+                                if (map && pos.IsOnScreen(50))
                                 {
                                     Render.Circle.DrawCircle(pos, radius, circleColor, circleThickness, true);
                                 }
@@ -132,7 +132,7 @@ namespace SFXUtility.Features.Trackers
                             }
                         }
 
-                        if (map)
+                        if (map && pos.IsOnScreen(50))
                         {
                             _sprite.DrawCentered(_heroTextures[lp.Hero.NetworkId], mPos);
                         }
@@ -143,7 +143,7 @@ namespace SFXUtility.Features.Trackers
 
                         if (lp.IsTeleporting)
                         {
-                            if (map)
+                            if (map && pos.IsOnScreen(50))
                             {
                                 _sprite.DrawCentered(_teleportTexture, mPos);
                             }
@@ -156,7 +156,7 @@ namespace SFXUtility.Features.Trackers
                         if (timer && !lp.LastSeen.Equals(0f) && (Game.Time - lp.LastSeen) > 3f)
                         {
                             var time = (Game.Time - lp.LastSeen).FormatTime(totalSeconds);
-                            if (map)
+                            if (map && pos.IsOnScreen(50))
                             {
                                 _text.DrawTextCentered(
                                     time, new Vector2(mPos.X, mPos.Y + 15 + timerOffset), SharpDX.Color.White);
