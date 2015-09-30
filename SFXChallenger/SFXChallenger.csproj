@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.7.7.23</AssemblyVersion>
+    <AssemblyVersion>0.7.7.26</AssemblyVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -83,6 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Abstracts\Champion.cs" />
+    <Compile Include="Args\HeroListManagerArgs.cs" />
     <Compile Include="Bootstrap.cs" />
     <Compile Include="Abstracts\TChampion.cs" />
     <Compile Include="Champions\Cassiopeia.cs" />

@@ -28,6 +28,7 @@ using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Abstracts;
+using SFXChallenger.Args;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Helpers;
 using SFXChallenger.Library;
@@ -83,6 +84,7 @@ namespace SFXChallenger.Champions
                 Auto = true,
                 Flash = true,
                 Required = true,
+                Force = true,
                 Gapcloser = true,
                 GapcloserDelay = false,
                 Interrupt = true,
@@ -156,21 +158,52 @@ namespace SFXChallenger.Champions
 
             var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
             DelayManager.AddToMenu(miscMenu, "e-delay", "E", 250, 0, 1000);
+
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("Q Gapcloser", miscMenu.Name + "q-gapcloser")), "q-gapcloser", false, false,
-                true, false);
+                miscMenu.AddSubMenu(new Menu("Q Gapcloser", miscMenu.Name + "q-gapcloser")),
+                new HeroListManagerArgs("q-gapcloser")
+                {
+                    IsWhitelist = false,
+                    Allies = false,
+                    Enemies = true,
+                    DefaultValue = false
+                });
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("Q Fleeing", miscMenu.Name + "q-fleeing")), "q-fleeing", false, false, true,
-                false);
+                miscMenu.AddSubMenu(new Menu("Q Fleeing", miscMenu.Name + "q-fleeing")),
+                new HeroListManagerArgs("q-fleeing")
+                {
+                    IsWhitelist = false,
+                    Allies = false,
+                    Enemies = true,
+                    DefaultValue = false
+                });
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("W Gapcloser", miscMenu.Name + "w-gapcloser")), "w-gapcloser", false, false,
-                true, false);
+                miscMenu.AddSubMenu(new Menu("W Gapcloser", miscMenu.Name + "w-gapcloser")),
+                new HeroListManagerArgs("w-gapcloser")
+                {
+                    IsWhitelist = false,
+                    Allies = false,
+                    Enemies = true,
+                    DefaultValue = false
+                });
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("W Immobile", miscMenu.Name + "w-immobile")), "w-immobile", false, false,
-                true, false);
+                miscMenu.AddSubMenu(new Menu("W Immobile", miscMenu.Name + "w-immobile")),
+                new HeroListManagerArgs("w-immobile")
+                {
+                    IsWhitelist = false,
+                    Allies = false,
+                    Enemies = true,
+                    DefaultValue = false
+                });
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("W Fleeing", miscMenu.Name + "w-fleeing")), "w-fleeing", false, false, true,
-                false);
+                miscMenu.AddSubMenu(new Menu("W Fleeing", miscMenu.Name + "w-fleeing")),
+                new HeroListManagerArgs("w-fleeing")
+                {
+                    IsWhitelist = false,
+                    Allies = false,
+                    Enemies = true,
+                    DefaultValue = false
+                });
 
             R.Range = Menu.Item(Menu.Name + ".ultimate.range").GetValue<Slider>().Value;
             DrawingManager.Update(

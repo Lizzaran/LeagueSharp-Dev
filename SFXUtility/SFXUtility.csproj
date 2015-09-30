@@ -24,7 +24,7 @@
     <AssemblyVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyVersionSettings>
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
-    <AssemblyVersion>0.8.7.4</AssemblyVersion>
+    <AssemblyVersion>0.8.7.5</AssemblyVersion>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -107,12 +107,12 @@
     <Compile Include="Data\Jungle.cs" />
     <Compile Include="Data\Summoners.cs" />
     <Compile Include="Features\Activators\Activators.cs" />
+    <Compile Include="Features\Activators\AntiRengar.cs" />
     <Compile Include="Features\Activators\KillSteal.cs" />
     <Compile Include="Features\Activators\Revealer.cs" />
     <Compile Include="Features\Detectors\Detectors.cs" />
     <Compile Include="Features\Detectors\Gank.cs" />
     <Compile Include="Features\Detectors\Replay.cs" />
-    <Compile Include="Features\Detectors\SharedExperience.cs" />
     <Compile Include="Features\Drawings\Clock.cs" />
     <Compile Include="Features\Drawings\Drawings.cs" />
     <Compile Include="Features\Drawings\LaneMomentum.cs" />
@@ -125,6 +125,7 @@
     <Compile Include="Features\Events\Events.cs" />
     <Compile Include="Features\Events\Game.cs" />
     <Compile Include="Features\Others\AntiFountain.cs" />
+    <Compile Include="Features\Activators\AutoJump.cs" />
     <Compile Include="Features\Others\Flash.cs" />
     <Compile Include="Features\Others\Humanize.cs" />
     <Compile Include="Features\Drawings\DamageIndicator.cs" />

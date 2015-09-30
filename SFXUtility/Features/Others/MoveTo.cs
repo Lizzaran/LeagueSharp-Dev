@@ -68,13 +68,11 @@ namespace SFXUtility.Features.Others
                 {
                     return;
                 }
-                if (_lastCheck + new Random().Next(125, 500) > Environment.TickCount)
+                if (Environment.TickCount - _lastCheck > 200)
                 {
-                    return;
+                    _lastCheck = Environment.TickCount;
+                    Orbwalking.MoveTo(Game.CursorPos);
                 }
-                _lastCheck = Environment.TickCount;
-
-                ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
             }
             catch (Exception ex)
             {

@@ -34,7 +34,7 @@ using SharpDX;
 
 namespace SFXChallenger.SFXTargetSelector
 {
-    internal class Humanizer
+    public class Humanizer
     {
         private static Menu _mainMenu;
         private static float _lastRange;

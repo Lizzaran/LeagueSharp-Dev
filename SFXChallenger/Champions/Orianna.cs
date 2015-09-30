@@ -29,6 +29,7 @@ using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Abstracts;
+using SFXChallenger.Args;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Events;
 using SFXChallenger.Helpers;
@@ -88,6 +89,7 @@ namespace SFXChallenger.Champions
                 Auto = true,
                 Flash = true,
                 Required = true,
+                Force = true,
                 Gapcloser = false,
                 GapcloserDelay = false,
                 Interrupt = true,
@@ -157,8 +159,14 @@ namespace SFXChallenger.Champions
 
             var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("Q Gapcloser", miscMenu.Name + "q-gapcloser")), "q-gapcloser", false, false,
-                true, false);
+                miscMenu.AddSubMenu(new Menu("Q Gapcloser", miscMenu.Name + "q-gapcloser")),
+                new HeroListManagerArgs("q-gapcloser")
+                {
+                    IsWhitelist = false,
+                    Allies = false,
+                    Enemies = true,
+                    DefaultValue = false
+                });
             ManaManager.AddToMenu(miscMenu, "e-self", ManaCheckType.Minimum, ManaValueType.Percent, "E Self", 10);
             ManaManager.AddToMenu(miscMenu, "e-allies", ManaCheckType.Minimum, ManaValueType.Percent, "E Allies", 20);
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".e-allies", "E Allies").SetValue(true));
@@ -615,11 +623,12 @@ namespace SFXChallenger.Champions
                     return 0;
                 }
                 float damage = 0;
-                if (q && (Q.IsReady() || Q.Instance.CooldownExpires - Game.Time <= 1))
+                damage += Q.GetDamage(target);
+                if (q && (Q.IsReady() || Q.Instance.CooldownExpires - Game.Time <= 2))
                 {
                     damage += Q.GetDamage(target);
                 }
-                if (w && (W.IsReady() || W.Instance.CooldownExpires - Game.Time <= 1))
+                if (w && (W.IsReady() || W.Instance.CooldownExpires - Game.Time <= 2))
                 {
                     damage += W.GetDamage(target);
                 }

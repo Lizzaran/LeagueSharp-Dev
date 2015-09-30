@@ -28,6 +28,7 @@ using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Abstracts;
+using SFXChallenger.Args;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Helpers;
 using SFXChallenger.Library;
@@ -97,9 +98,16 @@ namespace SFXChallenger.Champions
             shieldMenu.AddItem(new MenuItem(shieldMenu.Name + ".enabled", "Enabled").SetValue(true));
 
             var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
+
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("Q Immobile", miscMenu.Name + "q-immobile")), "q-immobile", false, false,
-                true, false);
+                miscMenu.AddSubMenu(new Menu("Q Immobile", miscMenu.Name + "q-immobile")),
+                new HeroListManagerArgs("q-immobile")
+                {
+                    IsWhitelist = false,
+                    Allies = false,
+                    Enemies = true,
+                    DefaultValue = false
+                });
 
             IndicatorManager.AddToMenu(DrawingManager.Menu, true);
             IndicatorManager.Add(Q);

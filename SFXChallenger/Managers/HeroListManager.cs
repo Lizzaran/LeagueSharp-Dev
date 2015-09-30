@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXChallenger.Args;
 using SFXChallenger.Library;
 using SFXChallenger.Library.Logger;
 using SharpDX;
@@ -37,8 +38,8 @@ namespace SFXChallenger.Managers
 {
     internal class HeroListManager
     {
-        private static readonly Dictionary<string, Tuple<Menu, bool, bool, bool>> Menues =
-            new Dictionary<string, Tuple<Menu, bool, bool, bool>>();
+        private static readonly Dictionary<string, Tuple<Menu, HeroListManagerArgs>> Menues =
+            new Dictionary<string, Tuple<Menu, HeroListManagerArgs>>();
 
         public static Color WhitelistColor
         {
@@ -50,46 +51,45 @@ namespace SFXChallenger.Managers
             get { return new Color(255, 60, 60); }
         }
 
-        public static void AddToMenu(Menu menu,
-            string uniqueId,
-            bool whitelist,
-            bool ally,
-            bool enemy,
-            bool defaultValue,
-            bool dontSave = false,
-            bool enabled = true,
-            int tag = 0)
+        public static void AddToMenu(Menu menu, HeroListManagerArgs args)
         {
             try
             {
-                if (Menues.ContainsKey(uniqueId))
+                if (Menues.ContainsKey(args.UniqueId))
                 {
                     throw new ArgumentException(
-                        string.Format("HeroListManager: UniqueID \"{0}\" already exist.", uniqueId));
+                        string.Format("HeroListManager: UniqueID \"{0}\" already exist.", args.UniqueId));
                 }
 
-                menu.Color = (whitelist ? WhitelistColor : BlacklistColor);
+                menu.Color = (args.IsWhitelist ? WhitelistColor : BlacklistColor);
 
-                foreach (var hero in GameObjects.Heroes.Where(h => ally && h.IsAlly || enemy && h.IsEnemy))
+                foreach (var hero in GameObjects.Heroes.Where(h => args.Allies && h.IsAlly || args.Enemies && h.IsEnemy)
+                    )
                 {
                     var item =
                         new MenuItem(
-                            menu.Name + ".hero-list-" + uniqueId + hero.ChampionName.ToLower(), hero.ChampionName)
-                            .SetTag(tag);
-                    if (dontSave)
+                            menu.Name + ".hero-list-" + args.UniqueId + hero.ChampionName.ToLower(), hero.ChampionName)
+                            .SetTag(args.MenuTag);
+                    if (args.DontSave)
                     {
                         item.DontSave();
                     }
-                    menu.AddItem(item.SetValue(defaultValue));
+                    menu.AddItem(item.SetValue(args.DefaultValue));
                 }
 
-                var eItem = new MenuItem(menu.Name + ".hero-list-" + uniqueId + ".enabled", "Enabled").SetTag(tag);
-                if (dontSave)
+                if (args.EnabledButton)
                 {
-                    eItem.DontSave();
+                    var eItem =
+                        new MenuItem(menu.Name + ".hero-list-" + args.UniqueId + ".enabled", "Enabled").SetTag(
+                            args.MenuTag);
+                    if (args.DontSave)
+                    {
+                        eItem.DontSave();
+                    }
+                    menu.AddItem(eItem.SetValue(args.Enabled));
                 }
-                menu.AddItem(eItem.SetValue(enabled));
-                Menues[uniqueId] = new Tuple<Menu, bool, bool, bool>(menu, whitelist, ally, enemy);
+
+                Menues[args.UniqueId] = new Tuple<Menu, HeroListManagerArgs>(menu, args);
             }
             catch (Exception ex)
             {
@@ -101,10 +101,11 @@ namespace SFXChallenger.Managers
         {
             try
             {
-                Tuple<Menu, bool, bool, bool> tuple;
+                Tuple<Menu, HeroListManagerArgs> tuple;
                 if (Menues.TryGetValue(uniqueId, out tuple))
                 {
-                    return tuple.Item1.Item(tuple.Item1.Name + ".hero-list-" + uniqueId + ".enabled").GetValue<bool>();
+                    return !tuple.Item2.EnabledButton ||
+                           tuple.Item1.Item(tuple.Item1.Name + ".hero-list-" + uniqueId + ".enabled").GetValue<bool>();
                 }
                 throw new KeyNotFoundException(string.Format("HeroListManager: UniqueID \"{0}\" not found.", uniqueId));
             }
@@ -120,14 +121,16 @@ namespace SFXChallenger.Managers
             var heroes = new List<Obj_AI_Hero>();
             try
             {
-                Tuple<Menu, bool, bool, bool> tuple;
+                Tuple<Menu, HeroListManagerArgs> tuple;
                 if (Menues.TryGetValue(uniqueId, out tuple))
                 {
-                    if (tuple.Item1.Item(tuple.Item1.Name + ".hero-list-" + uniqueId + ".enabled").GetValue<bool>())
+                    if (!tuple.Item2.EnabledButton ||
+                        tuple.Item1.Item(tuple.Item1.Name + ".hero-list-" + uniqueId + ".enabled").GetValue<bool>())
                     {
                         heroes.AddRange(
                             from hero in
-                                GameObjects.Heroes.Where(h => (tuple.Item3 && h.IsAlly) || (tuple.Item4 && h.IsEnemy))
+                                GameObjects.Heroes.Where(
+                                    h => (tuple.Item2.Allies && h.IsAlly) || (tuple.Item2.Enemies && h.IsEnemy))
                             let item =
                                 tuple.Item1.Item(
                                     tuple.Item1.Name + ".hero-list-" + uniqueId + hero.ChampionName.ToLower())
@@ -157,15 +160,16 @@ namespace SFXChallenger.Managers
         {
             try
             {
-                Tuple<Menu, bool, bool, bool> tuple;
+                Tuple<Menu, HeroListManagerArgs> tuple;
                 if (Menues.TryGetValue(uniqueId, out tuple))
                 {
-                    if (tuple.Item1.Item(tuple.Item1.Name + ".hero-list-" + uniqueId + ".enabled").GetValue<bool>())
+                    if (!tuple.Item2.EnabledButton ||
+                        tuple.Item1.Item(tuple.Item1.Name + ".hero-list-" + uniqueId + ".enabled").GetValue<bool>())
                     {
-                        return tuple.Item2 &&
+                        return tuple.Item2.IsWhitelist &&
                                tuple.Item1.Item(tuple.Item1.Name + ".hero-list-" + uniqueId + champ.ToLower())
                                    .GetValue<bool>() ||
-                               !tuple.Item2 &&
+                               !tuple.Item2.IsWhitelist &&
                                !tuple.Item1.Item(tuple.Item1.Name + ".hero-list-" + uniqueId + champ.ToLower())
                                    .GetValue<bool>();
                     }

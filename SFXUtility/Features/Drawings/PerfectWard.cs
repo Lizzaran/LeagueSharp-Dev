@@ -28,6 +28,7 @@ using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXUtility.Classes;
+using SFXUtility.Library.Extensions.SharpDX;
 using SFXUtility.Library.Logger;
 using SharpDX;
 using Color = System.Drawing.Color;
@@ -235,10 +236,10 @@ namespace SFXUtility.Features.Drawings
                     new MenuItem(drawingMenu.Name + "CircleThickness", "Circle Thickness").SetValue(
                         new Slider(2, 1, 10)));
 
+                Menu.AddSubMenu(drawingMenu);
 
                 Menu.AddItem(new MenuItem(Name + "Hotkey", "Hotkey").SetValue(new KeyBind('Z', KeyBindType.Press)));
-
-                Menu.AddSubMenu(drawingMenu);
+                Menu.AddItem(new MenuItem(Name + "PermaShow", "Perma Show").SetValue(false));
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
@@ -254,7 +255,7 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                if (!Menu.Item(Name + "Hotkey").IsActive())
+                if (!Menu.Item(Name + "Hotkey").IsActive() && !Menu.Item(Name + "PermaShow").GetValue<bool>())
                 {
                     return;
                 }
@@ -265,11 +266,13 @@ namespace SFXUtility.Features.Drawings
 
                 foreach (var spot in _wardSpots)
                 {
-                    if (spot.WardPosition.IsOnScreen())
+                    if (spot.WardPosition.IsOnScreen(radius))
                     {
                         Render.Circle.DrawCircle(spot.WardPosition, radius, color, thickness);
                     }
-                    if (spot.SafeSpot && spot.MagneticPosition.IsOnScreen())
+                    if (spot.SafeSpot &&
+                        spot.MagneticPosition.IsOnScreen(
+                            Math.Max(radius, spot.MagneticPosition.Distance(spot.WardPosition))))
                     {
                         Render.Circle.DrawCircle(spot.MagneticPosition, radius, Color.White, thickness);
                         Drawing.DrawLine(

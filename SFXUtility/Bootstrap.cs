@@ -96,6 +96,8 @@ namespace SFXUtility
                         {
                             #region Features
 
+                            new AntiRengar(activators),
+                            new AutoJump(activators),
                             new KillSteal(activators),
                             new Potion(activators),
                             new Revealer(activators),

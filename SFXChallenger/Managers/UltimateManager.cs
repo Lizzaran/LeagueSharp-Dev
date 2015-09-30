@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXChallenger.Args;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Library;
 using SFXChallenger.Library.Logger;
@@ -37,16 +38,25 @@ namespace SFXChallenger.Managers
 {
     internal class UltimateManager
     {
+        private int _damagePercent = 100;
         private Menu _menu;
         public bool Combo { get; set; }
         public bool Assisted { get; set; }
         public bool Auto { get; set; }
         public bool Flash { get; set; }
         public bool Required { get; set; }
+        public bool Force { get; set; }
         public bool Gapcloser { get; set; }
         public bool GapcloserDelay { get; set; }
         public bool Interrupt { get; set; }
         public bool InterruptDelay { get; set; }
+
+        public int DamagePercent
+        {
+            get { return _damagePercent; }
+            set { _damagePercent = Math.Max(1, Math.Min(value, 200)); }
+        }
+
         public Func<Obj_AI_Hero, float> DamageCalculation { get; set; }
 
         public Menu AddToMenu(Menu menu)
@@ -71,10 +81,6 @@ namespace SFXChallenger.Managers
                     {
                         modes.Add("Auto");
                     }
-                    if (Flash)
-                    {
-                        modes.Add("Flash");
-                    }
                     if (Assisted)
                     {
                         modes.Add("Assisted");
@@ -92,14 +98,49 @@ namespace SFXChallenger.Managers
                     {
                         requiredMenu.AddItem(
                             new MenuItem(requiredMenu.Name + "." + modes[i].ToLower() + ".min", "Min. Required")
-                                .SetValue(new Slider(1, 1, 5)).DontSave()).SetTag(i + 1);
+                                .SetValue(new Slider(1, 1, 5))).SetTag(i + 1);
                         HeroListManager.AddToMenu(
-                            requiredMenu, "ultimate-required-" + modes[i].ToLower(), true, false, true, false, false,
-                            true, i + 1);
+                            requiredMenu,
+                            new HeroListManagerArgs("ultimate-required-" + modes[i].ToLower())
+                            {
+                                IsWhitelist = true,
+                                Allies = false,
+                                Enemies = true,
+                                DefaultValue = false,
+                                DontSave = true,
+                                Enabled = true,
+                                MenuTag = i + 1,
+                                EnabledButton = false
+                            });
                     }
 
                     UpdateVisibileTags(
                         requiredMenu, _menu.Item(requiredMenu.Name + ".mode").GetValue<StringList>().SelectedIndex + 1);
+                }
+
+                if (Force)
+                {
+                    var uForceMenu = ultimateMenu.AddSubMenu(new Menu("Forced Targets", ultimateMenu.Name + ".force"));
+                    if (DamageCalculation != null)
+                    {
+                        uForceMenu.AddItem(
+                            new MenuItem(uForceMenu.Name + ".damage-check", "Damage Check").SetValue(true));
+                    }
+                    uForceMenu.AddItem(
+                        new MenuItem(uForceMenu.Name + ".additional", "Additional Targets").SetValue(
+                            new Slider(0, 0, 4)));
+                    HeroListManager.AddToMenu(
+                        uForceMenu,
+                        new HeroListManagerArgs("ultimate-force")
+                        {
+                            IsWhitelist = true,
+                            Allies = false,
+                            Enemies = true,
+                            DefaultValue = false,
+                            DontSave = true,
+                            Enabled = true,
+                            EnabledButton = false
+                        });
                 }
 
                 if (Combo)
@@ -127,7 +168,17 @@ namespace SFXChallenger.Managers
                             DelayManager.AddToMenu(
                                 autoInterruptMenu, "ultimate-interrupt-delay", string.Empty, 0, 0, 500);
                         }
-                        HeroListManager.AddToMenu(autoInterruptMenu, "ultimate-interrupt", false, false, true, false);
+                        HeroListManager.AddToMenu(
+                            autoInterruptMenu,
+                            new HeroListManagerArgs("ultimate-interrupt")
+                            {
+                                IsWhitelist = false,
+                                Allies = false,
+                                Enemies = true,
+                                DefaultValue = false,
+                                DontSave = false,
+                                Enabled = true
+                            });
                     }
                     if (Gapcloser)
                     {
@@ -138,7 +189,17 @@ namespace SFXChallenger.Managers
                             DelayManager.AddToMenu(
                                 autoGapcloserMenu, "ultimate-gapcloser-delay", string.Empty, 0, 0, 500);
                         }
-                        HeroListManager.AddToMenu(autoGapcloserMenu, "ultimate-gapcloser", false, false, true, false);
+                        HeroListManager.AddToMenu(
+                            autoGapcloserMenu,
+                            new HeroListManagerArgs("ultimate-gapcloser")
+                            {
+                                IsWhitelist = false,
+                                Allies = false,
+                                Enemies = true,
+                                DefaultValue = false,
+                                DontSave = false,
+                                Enabled = true
+                            });
                     }
                     uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".min", "Min. Hits").SetValue(new Slider(3, 1, 5)));
                     if (DamageCalculation != null)
@@ -148,28 +209,17 @@ namespace SFXChallenger.Managers
                     uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".enabled", "Enabled").SetValue(true));
                 }
 
-                if (Flash)
-                {
-                    var uFlashMenu = ultimateMenu.AddSubMenu(new Menu("Flash", ultimateMenu.Name + ".flash"));
-                    uFlashMenu.AddItem(
-                        new MenuItem(uFlashMenu.Name + ".min", "Min. Hits").SetValue(new Slider(1, 1, 5)));
-                    uFlashMenu.AddItem(
-                        new MenuItem(uFlashMenu.Name + ".hotkey", "Hotkey").SetValue(
-                            new KeyBind('Y', KeyBindType.Press)));
-                    uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".move-cursor", "Move to Cursor").SetValue(true));
-                    if (DamageCalculation != null)
-                    {
-                        uFlashMenu.AddItem(
-                            new MenuItem(uFlashMenu.Name + ".damage-check", "Damage Check").SetValue(true));
-                    }
-                    uFlashMenu.AddItem(new MenuItem(uFlashMenu.Name + ".enabled", "Enabled").SetValue(true));
-                }
-
                 if (Assisted)
                 {
                     var uAssistedMenu = ultimateMenu.AddSubMenu(new Menu("Assisted", ultimateMenu.Name + ".assisted"));
                     uAssistedMenu.AddItem(
                         new MenuItem(uAssistedMenu.Name + ".min", "Min. Hits").SetValue(new Slider(1, 1, 5)));
+                    if (Flash)
+                    {
+                        uAssistedMenu.AddItem(
+                            new MenuItem(uAssistedMenu.Name + ".flash", "Flash").SetValue(
+                                new KeyBind('Y', KeyBindType.Press)));
+                    }
                     uAssistedMenu.AddItem(
                         new MenuItem(uAssistedMenu.Name + ".hotkey", "Hotkey").SetValue(
                             new KeyBind('T', KeyBindType.Press)));
@@ -183,7 +233,7 @@ namespace SFXChallenger.Managers
                     uAssistedMenu.AddItem(new MenuItem(uAssistedMenu.Name + ".enabled", "Enabled").SetValue(true));
                 }
 
-                var uSingleMenu = ultimateMenu.AddSubMenu(new Menu("Single", ultimateMenu.Name + ".single"));
+                var uSingleMenu = ultimateMenu.AddSubMenu(new Menu("Single Target", ultimateMenu.Name + ".single"));
                 uSingleMenu.AddItem(
                     new MenuItem(uSingleMenu.Name + ".max-allies", "Max. Allies in Range").SetValue(new Slider(3, 0, 4)));
                 uSingleMenu.AddItem(
@@ -202,16 +252,12 @@ namespace SFXChallenger.Managers
                 {
                     uSingleMenu.AddItem(new MenuItem(uSingleMenu.Name + ".assisted", "Assisted").SetValue(false));
                 }
-                if (Flash)
-                {
-                    uSingleMenu.AddItem(new MenuItem(uSingleMenu.Name + ".flash", "Flash").SetValue(false));
-                }
 
                 if (DamageCalculation != null)
                 {
                     ultimateMenu.AddItem(
                         new MenuItem(ultimateMenu.Name + ".damage-percent", "Damage Check %").SetValue(
-                            new Slider(100, 1, 200)));
+                            new Slider(DamagePercent, 1, 200)));
                 }
 
                 return ultimateMenu;
@@ -253,8 +299,8 @@ namespace SFXChallenger.Managers
                 }
                 if (mode == UltimateModeType.Flash)
                 {
-                    return Flash && _menu.Item(_menu.Name + ".ultimate.flash.enabled").GetValue<bool>() &&
-                           _menu.Item(_menu.Name + ".ultimate.flash.hotkey").GetValue<KeyBind>().Active;
+                    return Flash && Assisted && _menu.Item(_menu.Name + ".ultimate.assisted.enabled").GetValue<bool>() &&
+                           _menu.Item(_menu.Name + ".ultimate.assisted.flash").GetValue<KeyBind>().Active;
                 }
                 if (mode == UltimateModeType.Assisted)
                 {
@@ -277,11 +323,20 @@ namespace SFXChallenger.Managers
             return false;
         }
 
+        private string GetModeString(UltimateModeType mode)
+        {
+            if (mode == UltimateModeType.Flash)
+            {
+                mode = UltimateModeType.Assisted;
+            }
+            return mode.ToString().ToLower();
+        }
+
         public bool ShouldMove(UltimateModeType mode)
         {
             if (_menu != null)
             {
-                var enabled = _menu.Item(_menu.Name + ".ultimate." + mode.ToString().ToLower() + ".move-cursor");
+                var enabled = _menu.Item(_menu.Name + ".ultimate." + GetModeString(mode) + ".move-cursor");
                 return enabled != null && enabled.GetValue<bool>();
             }
             return false;
@@ -291,7 +346,7 @@ namespace SFXChallenger.Managers
         {
             if (_menu != null)
             {
-                var enabled = _menu.Item(_menu.Name + ".ultimate.single." + mode.ToString().ToLower());
+                var enabled = _menu.Item(_menu.Name + ".ultimate.single." + GetModeString(mode));
                 return enabled != null && enabled.GetValue<bool>();
             }
             return false;
@@ -318,7 +373,7 @@ namespace SFXChallenger.Managers
         {
             try
             {
-                var modeString = mode.ToString().ToLower();
+                var modeString = GetModeString(mode);
                 if (_menu == null || target == null || !target.IsValidTarget())
                 {
                     return false;
@@ -342,24 +397,6 @@ namespace SFXChallenger.Managers
                         return false;
                     }
 
-                    if (Required && HeroListManager.Enabled("ultimate-required-" + modeString))
-                    {
-                        var minReq =
-                            _menu.Item(_menu.Name + ".ultimate." + modeString + ".required.min")
-                                .GetValue<Slider>()
-                                .Value;
-                        var enabledHeroes = HeroListManager.GetEnabledHeroes("ultimate-required-" + modeString);
-                        if (minReq > 0 && enabledHeroes.Count > 0)
-                        {
-                            if (
-                                !enabledHeroes.Where(
-                                    e => !e.IsDead && e.IsVisible && e.Distance(ObjectManager.Player) <= 2000)
-                                    .Any(e => e.NetworkId.Equals(target.NetworkId)))
-                            {
-                                return false;
-                            }
-                        }
-                    }
                     if (DamageCalculation != null &&
                         _menu.Item(_menu.Name + ".ultimate." + modeString + ".damage-check").GetValue<bool>())
                     {
@@ -383,7 +420,7 @@ namespace SFXChallenger.Managers
         {
             try
             {
-                var modeString = mode.ToString().ToLower();
+                var modeString = GetModeString(mode);
                 if (_menu == null || hits == null || !hits.Any(h => h.IsValidTarget()))
                 {
                     return false;
@@ -392,6 +429,22 @@ namespace SFXChallenger.Managers
                 {
                     if (mode != UltimateModeType.Gapcloser && mode != UltimateModeType.Interrupt)
                     {
+                        if (Force && HeroListManager.Enabled("ultimate-force"))
+                        {
+                            var dmgCheck = DamageCalculation != null &&
+                                           _menu.Item(_menu.Name + ".ultimate.force.damage-check").GetValue<bool>();
+                            var additional =
+                                _menu.Item(_menu.Name + ".ultimate.force.additional").GetValue<Slider>().Value + 1;
+                            if (
+                                hits.Any(
+                                    hit =>
+                                        HeroListManager.Check("ultimate-force", hit) && hits.Count >= additional &&
+                                        (!dmgCheck || GetDamage(hit) >= hit.Health)))
+                            {
+                                return true;
+                            }
+                        }
+
                         if (Required && HeroListManager.Enabled("ultimate-required-" + modeString))
                         {
                             var minReq =
@@ -419,9 +472,10 @@ namespace SFXChallenger.Managers
                                 return false;
                             }
                         }
+                        return hits.Count >=
+                               _menu.Item(_menu.Name + ".ultimate." + modeString + ".min").GetValue<Slider>().Value;
                     }
-                    return hits.Count >=
-                           _menu.Item(_menu.Name + ".ultimate." + modeString + ".min").GetValue<Slider>().Value;
+                    return true;
                 }
             }
             catch (Exception ex)

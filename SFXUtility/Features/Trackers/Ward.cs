@@ -136,6 +136,8 @@ namespace SFXUtility.Features.Trackers
 
                 Menu.AddItem(new MenuItem(Name + "FilterWards", "Filter Wards").SetValue(new Slider(250, 0, 600)));
                 Menu.AddItem(new MenuItem(Name + "Hotkey", "Hotkey").SetValue(new KeyBind(16, KeyBindType.Press)));
+                Menu.AddItem(new MenuItem(Name + "PermaShow", "Perma Show").SetValue(false));
+
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
@@ -229,6 +231,7 @@ namespace SFXUtility.Features.Trackers
                 var minimap = Menu.Item(Name + "DrawingMinimap").GetValue<bool>();
                 var greenCircle = Menu.Item(Name + "DrawingGreenCircle").GetValue<bool>();
                 var hotkey = Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active;
+                var permaShow = Menu.Item(Name + "PermaShow").GetValue<bool>();
 
                 _sprite.Begin(SpriteFlags.AlphaBlend);
                 foreach (var ward in _wardObjects)
@@ -265,7 +268,7 @@ namespace SFXUtility.Features.Trackers
                             ward.Data.Type == WardType.Green ? _greenWardTexture : _pinkWardTexture,
                             ward.MinimapPosition.To2D());
                     }
-                    if (hotkey)
+                    if (hotkey || permaShow)
                     {
                         if (visionRange)
                         {

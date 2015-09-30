@@ -143,13 +143,6 @@ namespace SFXUtility.Features.Trackers
                                         s =>
                                             s.SData.Name.Equals("EzrealArcaneShift", StringComparison.OrdinalIgnoreCase))));
                             break;
-                        case "Fiora":
-                            _destinations.Add(
-                                new DestinationObject(
-                                    hero,
-                                    hero.Spellbook.Spells.FirstOrDefault(
-                                        s => s.SData.Name.Equals("FioraDance", StringComparison.OrdinalIgnoreCase))));
-                            break;
                         case "Kassadin":
                             _destinations.Add(
                                 new DestinationObject(
@@ -334,7 +327,6 @@ namespace SFXUtility.Features.Trackers
                                 destination.EndPos = _destinations[index - 1].StartPos;
                                 break;
 
-                            case "fioraDance":
                             case "alphaStrike":
                                 destination.StartPos = args.Start;
                                 destination.EndPos = args.Target.Position;

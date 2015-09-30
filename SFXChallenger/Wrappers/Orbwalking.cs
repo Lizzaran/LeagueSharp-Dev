@@ -466,7 +466,7 @@ namespace SFXChallenger.Wrappers
                             _missileLaunched = false;
 
                             var d = GetRealAutoAttackRange(target) - 65;
-                            if (Player.Distance(target, true) > d * d && !Player.IsMelee)
+                            if (Player.Distance(target, true) > d * d && !IsMelee(Player))
                             {
                                 LastAaTick += 300;
                             }
@@ -546,7 +546,7 @@ namespace SFXChallenger.Wrappers
                             _lastTarget = objBase;
                         }
 
-                        if (unit.IsMelee)
+                        if (IsMelee(unit))
                         {
                             Utility.DelayAction.Add(
                                 (int) (unit.AttackCastDelay * 1000 + 40), () => FireAfterAttack(unit, _lastTarget));
@@ -593,7 +593,7 @@ namespace SFXChallenger.Wrappers
             private readonly string[] _attackleObjectChamps =
             {
                 "Zyra", "Heimerdinger", "Shaco", "Teemo", "Gangplank",
-                "Annie", "Yorick", "Mordekaiser"
+                "Annie", "Yorick", "Mordekaiser", "Malzahar"
             };
 
             private Obj_AI_Base _forcedTarget;
@@ -636,6 +636,8 @@ namespace SFXChallenger.Wrappers
                     .ValueChanged += (sender, args) => SetAttackableObject("annie", args.GetNewValue<bool>());
                 attackables.AddItem(new MenuItem("AttackYorick", "Yorick Ghost").SetShared().SetValue(true))
                     .ValueChanged += (sender, args) => SetAttackableObject("yorick", args.GetNewValue<bool>());
+                attackables.AddItem(new MenuItem("AttackMalzahar", "Malzahar Voidling").SetShared().SetValue(true))
+                    .ValueChanged += (sender, args) => SetAttackableObject("malzahar", args.GetNewValue<bool>());
                 attackables.AddItem(new MenuItem("AttackMordekaiser", "Mordekaiser Ghost").SetShared().SetValue(true))
                     .ValueChanged += (sender, args) => SetAttackableObject("mordekaiser", args.GetNewValue<bool>());
                 attackables.AddItem(new MenuItem("AttackClone", "Clones").SetShared().SetValue(true)).ValueChanged +=
@@ -1052,7 +1054,7 @@ namespace SFXChallenger.Wrappers
                     !combo, IsAttackableObject("ward"), IsAttackableObject("zyra"), IsAttackableObject("heimerdinger"),
                     IsAttackableObject("clone"), IsAttackableObject("annie"), IsAttackableObject("teemo"),
                     IsAttackableObject("shaco"), IsAttackableObject("gangplank"), IsAttackableObject("yorick"),
-                    IsAttackableObject("mordekaiser"));
+                    IsAttackableObject("malzahar"), IsAttackableObject("mordekaiser"));
             }
 
             private List<Obj_AI_Minion> GetMinions(bool minion,
@@ -1065,6 +1067,7 @@ namespace SFXChallenger.Wrappers
                 bool shaco,
                 bool gangplank,
                 bool yorick,
+                bool malzahar,
                 bool mordekaiser)
             {
                 var targets = new List<Obj_AI_Minion>();
@@ -1142,6 +1145,14 @@ namespace SFXChallenger.Wrappers
                     if (yorick) //yorick ghouls
                     {
                         if (baseName.Contains("yorick") && baseName.Contains("ghoul"))
+                        {
+                            targets.Add(unit);
+                            continue;
+                        }
+                    }
+                    if (malzahar) //malzahar voidlings
+                    {
+                        if (baseName.Contains("malzaharvoidling"))
                         {
                             targets.Add(unit);
                             continue;

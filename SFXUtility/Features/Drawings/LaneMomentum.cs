@@ -110,9 +110,9 @@ namespace SFXUtility.Features.Drawings
 
                     for (var i = 0; i < 3; i++)
                     {
-                        var difference = i == 0
+                        var difference = (i == 0
                             ? _topChaos - _topOrder
-                            : (i == 1 ? _midChaos - _midOrder : _botChaos - _botOrder);
+                            : (i == 1 ? _midChaos - _midOrder : _botChaos - _botOrder));
                         var chaosWins = difference > 0;
                         difference = Math.Abs(difference);
                         if (difference > 0)

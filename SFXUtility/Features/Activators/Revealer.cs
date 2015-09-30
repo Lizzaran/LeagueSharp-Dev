@@ -43,12 +43,25 @@ namespace SFXUtility.Features.Activators
         private const float MaxRange = 600f;
         private const float Delay = 2f;
         private readonly List<ChampionObject> _championObjects = new List<ChampionObject>();
+
+        private readonly HashSet<SpellData> _spellList = new HashSet<SpellData>
+        {
+            new SpellData("Akali", SpellSlot.W),
+            new SpellData("Rengar", SpellSlot.R, true),
+            new SpellData("KhaZix", SpellSlot.R),
+            new SpellData("KhaZix", SpellSlot.R, false, "khazixrlong"),
+            new SpellData("Monkeyking", SpellSlot.W),
+            new SpellData("Shaco", SpellSlot.Q),
+            new SpellData("Talon", SpellSlot.R),
+            new SpellData("Vayne", SpellSlot.Q, true),
+            new SpellData("Twitch", SpellSlot.Q)
+        };
+
         private float _lastCheck = Environment.TickCount;
         private float _lastReveal;
         private Obj_AI_Hero _leBlanc;
         private Obj_AI_Hero _rengar;
         private Obj_AI_Hero _vayne;
-        private HashSet<SpellData> spellList = new HashSet<SpellData>();
 
         public Revealer(Activators parent) : base(parent)
         {
@@ -84,6 +97,16 @@ namespace SFXUtility.Features.Activators
             {
                 Menu = new Menu(Name, Name);
 
+                var menuList =
+                    _spellList.OrderBy(s => s.Hero).GroupBy(s => s.Hero).Select(h => new { Hero = h.Key }).ToList();
+                var invisibleMenu = new Menu("Invisible", Name + "Invisible");
+                foreach (var spell in menuList)
+                {
+                    invisibleMenu.AddItem(
+                        new MenuItem(invisibleMenu.Name + spell.Hero.ToLower(), spell.Hero).SetValue(true));
+                }
+                Menu.AddSubMenu(invisibleMenu);
+
                 Menu.AddItem(new MenuItem(Name + "Bush", "Bush").SetValue(false));
                 Menu.AddItem(new MenuItem(Name + "Hotkey", "Hotkey").SetValue(new KeyBind(32, KeyBindType.Press)));
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
@@ -100,35 +123,15 @@ namespace SFXUtility.Features.Activators
         {
             try
             {
-                spellList = new HashSet<SpellData>
+                foreach (var spell in _spellList)
                 {
-                    new SpellData("Akali", SpellSlot.W),
-                    new SpellData("Rengar", SpellSlot.R, true),
-                    new SpellData("KhaZix", SpellSlot.R),
-                    new SpellData("KhaZix", SpellSlot.R, false, "khazixrlong"),
-                    new SpellData("Monkeyking", SpellSlot.W),
-                    new SpellData("Shaco", SpellSlot.Q),
-                    new SpellData("Talon", SpellSlot.R),
-                    new SpellData("LeBlanc", SpellSlot.R, true),
-                    new SpellData("Vayne", SpellSlot.Q, true),
-                    new SpellData("Twitch", SpellSlot.Q)
-                };
+                    spell.Initialize();
+                }
 
                 foreach (var enemy in GameObjects.EnemyHeroes)
                 {
                     _championObjects.Add(new ChampionObject(enemy));
                 }
-
-                var menuList =
-                    spellList.OrderBy(s => s.Hero).GroupBy(s => s.Hero).Select(h => new { Hero = h.Key }).ToList();
-
-                var invisibleMenu = new Menu("Invisible", Name + "Invisible");
-                foreach (var spell in menuList)
-                {
-                    invisibleMenu.AddItem(
-                        new MenuItem(invisibleMenu.Name + spell.Hero.ToLower(), spell.Hero).SetValue(true));
-                }
-                Menu.AddSubMenu(invisibleMenu);
 
                 _rengar =
                     GameObjects.EnemyHeroes.FirstOrDefault(
@@ -230,18 +233,6 @@ namespace SFXUtility.Features.Activators
                 {
                     return;
                 }
-                //if (!bush)
-                //{
-                //    if (
-                //        GameObjects.AllyMinions.Any(
-                //            m =>
-                //                !string.IsNullOrEmpty(m.CharData.Name) &&
-                //                m.CharData.Name.Equals("VisionWard", StringComparison.OrdinalIgnoreCase) &&
-                //                ObjectManager.Player.Distance(m) < 400f))
-                //    {
-                //        return;
-                //    }
-                //}
                 var slot = GetRevealSlot(bush);
                 if (slot != SpellSlot.Unknown)
                 {
@@ -278,6 +269,14 @@ namespace SFXUtility.Features.Activators
                 }
                 else
                 {
+                    if (ItemData.Sightstone.GetItem().IsOwned() && ItemData.Sightstone.GetItem().IsReady())
+                    {
+                        return ItemData.Sightstone.GetItem().Slots.FirstOrDefault();
+                    }
+                    if (ItemData.Ruby_Sightstone.GetItem().IsOwned() && ItemData.Ruby_Sightstone.GetItem().IsReady())
+                    {
+                        return ItemData.Ruby_Sightstone.GetItem().Slots.FirstOrDefault();
+                    }
                     if (ItemData.Warding_Totem_Trinket.GetItem().IsOwned() &&
                         ItemData.Warding_Totem_Trinket.GetItem().IsReady())
                     {
@@ -321,7 +320,7 @@ namespace SFXUtility.Features.Activators
                     return;
                 }
                 var spell =
-                    spellList.FirstOrDefault(
+                    _spellList.FirstOrDefault(
                         s =>
                             !string.IsNullOrEmpty(s.Name) &&
                             s.Name.Equals(args.SData.Name, StringComparison.OrdinalIgnoreCase));
@@ -389,20 +388,26 @@ namespace SFXUtility.Features.Activators
         {
             public SpellData(string hero, SpellSlot slot, bool custom = false, string name = null)
             {
+                Hero = hero;
+                Slot = slot;
+                Custom = custom;
+                Name = name;
+            }
+
+            public string Hero { get; private set; }
+            public SpellSlot Slot { get; private set; }
+            public string Name { get; private set; }
+            public bool Custom { get; private set; }
+
+            public void Initialize()
+            {
                 try
                 {
-                    Hero = hero;
-                    Slot = slot;
-                    Custom = custom;
-                    if (name != null)
-                    {
-                        Name = name;
-                    }
-                    else if (slot != SpellSlot.Unknown)
+                    if (Name == null && Slot != SpellSlot.Unknown)
                     {
                         var champ =
                             GameObjects.EnemyHeroes.FirstOrDefault(
-                                h => h.ChampionName.Equals(hero, StringComparison.OrdinalIgnoreCase));
+                                h => h.ChampionName.Equals(Hero, StringComparison.OrdinalIgnoreCase));
                         if (champ != null)
                         {
                             var spell = champ.GetSpell(Slot);
@@ -418,11 +423,6 @@ namespace SFXUtility.Features.Activators
                     Global.Logger.AddItem(new LogItem(ex));
                 }
             }
-
-            public string Hero { get; private set; }
-            public SpellSlot Slot { get; private set; }
-            public string Name { get; private set; }
-            public bool Custom { get; private set; }
         }
 
         internal class ChampionObject

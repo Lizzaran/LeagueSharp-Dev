@@ -29,6 +29,7 @@ using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Abstracts;
+using SFXChallenger.Args;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Helpers;
 using SFXChallenger.Library;
@@ -85,14 +86,26 @@ namespace SFXChallenger.Champions
 
             var blitzMenu = ultimateMenu.AddSubMenu(new Menu("Blitzcrank", ultimateMenu.Name + ".blitzcrank"));
             HeroListManager.AddToMenu(
-                blitzMenu.AddSubMenu(new Menu("Blacklist", blitzMenu.Name + ".blacklist")), "blitzcrank", false, false,
-                true, false);
+                blitzMenu.AddSubMenu(new Menu("Blacklist", blitzMenu.Name + ".blacklist")),
+                new HeroListManagerArgs("blitzcrank")
+                {
+                    IsWhitelist = false,
+                    Allies = false,
+                    Enemies = true,
+                    DefaultValue = false
+                });
             blitzMenu.AddItem(new MenuItem(blitzMenu.Name + ".r", "Use R").SetValue(true));
 
             var tahmMenu = ultimateMenu.AddSubMenu(new Menu("Tahm Kench", ultimateMenu.Name + ".tahm-kench"));
             HeroListManager.AddToMenu(
-                tahmMenu.AddSubMenu(new Menu("Blacklist", tahmMenu.Name + ".blacklist")), "tahm-kench", false, false,
-                true, false);
+                tahmMenu.AddSubMenu(new Menu("Blacklist", tahmMenu.Name + ".blacklist")),
+                new HeroListManagerArgs("q-gapcloser")
+                {
+                    IsWhitelist = false,
+                    Allies = false,
+                    Enemies = true,
+                    DefaultValue = false
+                });
             tahmMenu.AddItem(new MenuItem(tahmMenu.Name + ".r", "Use R").SetValue(true));
 
             ultimateMenu.AddItem(new MenuItem(ultimateMenu.Name + ".save", "Save Soulbound").SetValue(true));
