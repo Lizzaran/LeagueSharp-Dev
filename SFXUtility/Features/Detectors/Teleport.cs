@@ -278,6 +278,14 @@ namespace SFXUtility.Features.Detectors
 
                 Menu.AddSubMenu(drawingMenu);
 
+                var notificationMenu = new Menu("Notification", Name + "Notification");
+
+                notificationMenu.AddItem(new MenuItem(notificationMenu.Name + "Started", "Started").SetValue(false));
+                notificationMenu.AddItem(new MenuItem(notificationMenu.Name + "Aborted", "Aborted").SetValue(false));
+                notificationMenu.AddItem(new MenuItem(notificationMenu.Name + "Finished", "Finished").SetValue(false));
+
+                Menu.AddSubMenu(notificationMenu);
+
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
@@ -352,6 +360,27 @@ namespace SFXUtility.Features.Detectors
                     teleport.Duration = duration;
                     teleport.LastStatus = packet.Status;
                     teleport.LastType = packet.Type;
+
+                    if (packet.Status == Packet.S2C.Teleport.Status.Finish &&
+                        Menu.Item(Name + "NotificationFinished").GetValue<bool>())
+                    {
+                        Notifications.AddNotification(teleport.Hero.ChampionName + " Finished.", 5000)
+                            .SetTextColor(Color.GreenYellow);
+                    }
+
+                    if (packet.Status == Packet.S2C.Teleport.Status.Abort &&
+                        Menu.Item(Name + "NotificationAborted").GetValue<bool>())
+                    {
+                        Notifications.AddNotification(teleport.Hero.ChampionName + " Aborted.", 5000)
+                            .SetTextColor(Color.Orange);
+                    }
+
+                    if (packet.Status == Packet.S2C.Teleport.Status.Start &&
+                        Menu.Item(Name + "NotificationStarted").GetValue<bool>())
+                    {
+                        Notifications.AddNotification(teleport.Hero.ChampionName + " Started.", 5000)
+                            .SetTextColor(Color.White);
+                    }
                 }
             }
             catch (Exception ex)

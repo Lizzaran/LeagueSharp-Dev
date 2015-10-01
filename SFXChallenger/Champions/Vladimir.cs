@@ -64,11 +64,6 @@ namespace SFXChallenger.Champions
 
         protected override void OnLoad()
         {
-            AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
-            CustomEvents.Unit.OnDash += OnUnitDash;
-            Drawing.OnDraw += OnDrawingDraw;
-            Orbwalking.OnNonKillableMinion += OnOrbwalkingNonKillableMinion;
-
             _ultimate = new UltimateManager
             {
                 Combo = true,
@@ -87,6 +82,11 @@ namespace SFXChallenger.Champions
                             hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                             Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true)
             };
+
+            AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
+            CustomEvents.Unit.OnDash += OnUnitDash;
+            Drawing.OnDraw += OnDrawingDraw;
+            Orbwalking.OnNonKillableMinion += OnOrbwalkingNonKillableMinion;
         }
 
         protected override void AddToMenu()

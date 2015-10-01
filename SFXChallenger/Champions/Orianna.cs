@@ -37,6 +37,7 @@ using SFXChallenger.Library;
 using SFXChallenger.Library.Extensions.NET;
 using SFXChallenger.Library.Logger;
 using SFXChallenger.Managers;
+using SFXChallenger.SFXTargetSelector;
 using SharpDX;
 using Color = System.Drawing.Color;
 using DamageType = SFXChallenger.Enumerations.DamageType;
@@ -73,15 +74,6 @@ namespace SFXChallenger.Champions
 
         protected override void OnLoad()
         {
-            Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
-            InitiatorManager.OnAllyInitiator += OnAllyInitiator;
-            Spellbook.OnCastSpell += OnSpellbookCastSpell;
-            Ball.OnPositionChange += OnBallPositionChange;
-            AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
-            CustomEvents.Unit.OnDash += OnUnitDash;
-            Drawing.OnDraw += OnDrawingDraw;
-            Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
-
             _ultimate = new UltimateManager
             {
                 Combo = true,
@@ -101,6 +93,15 @@ namespace SFXChallenger.Champions
                             Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
                             Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true)
             };
+
+            Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
+            InitiatorManager.OnAllyInitiator += OnAllyInitiator;
+            Spellbook.OnCastSpell += OnSpellbookCastSpell;
+            Ball.OnPositionChange += OnBallPositionChange;
+            AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
+            CustomEvents.Unit.OnDash += OnUnitDash;
+            Drawing.OnDraw += OnDrawingDraw;
+            Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
         }
 
         protected override void AddToMenu()
@@ -180,6 +181,10 @@ namespace SFXChallenger.Champions
             IndicatorManager.Add(E);
             IndicatorManager.Add(R);
             IndicatorManager.Finale();
+
+            Weights.AddItem(
+                new Weights.Item(
+                    "short-distance-ball", "Distance to Ball", 5, true, hero => hero.Distance(Ball.Position)));
 
             _ballPositionThickness = DrawingManager.Add("Ball Thickness", new Slider(7, 1, 10));
             _ballPositionRadius = DrawingManager.Add("Ball Radius", new Slider(95, 0, 300));

@@ -48,9 +48,11 @@ namespace SFXChallenger.SFXTargetSelector
         public const int MaxWeight = 20;
         public const int MinMultiplicator = 1;
         public const int MaxMultiplicator = 5;
+        private const string InvertedPrefix = "[i] ";
         private static Menu _mainMenu;
         private static Menu _weightsMenu;
         private static float _range;
+        private static bool _separated;
 
         static Weights()
         {
@@ -62,7 +64,7 @@ namespace SFXChallenger.SFXTargetSelector
                         "killable", "AA Killable", 20, false,
                         t => t.Health < ObjectManager.Player.GetAutoAttackDamage(t, true) ? 10 : 0),
                     new Item(
-                        "attack-damage", "Attack Damage", 10, false, delegate(Obj_AI_Hero t)
+                        "attack-damage", "Attack Damage", 15, false, delegate(Obj_AI_Hero t)
                         {
                             var ad = t.FlatPhysicalDamageMod;
                             ad += ad / 100 * (t.Crit * 100) * (t.HasItem(ItemData.Infinity_Edge.Id) ? 2.5f : 2f);
@@ -71,24 +73,22 @@ namespace SFXChallenger.SFXTargetSelector
                             return (ad * (100 / (100 + (averageArmor > 0 ? averageArmor : 0)))) * t.AttackSpeedMod;
                         }),
                     new Item(
-                        "ability-power", "Ability Power", 10, false, delegate(Obj_AI_Hero t)
+                        "ability-power", "Ability Power", 15, false, delegate(Obj_AI_Hero t)
                         {
                             var averageMr = GameObjects.AllyHeroes.Average(a => a.SpellBlock) *
                                             t.PercentMagicPenetrationMod - t.FlatMagicPenetrationMod;
                             return t.FlatMagicDamageMod * (100 / (100 + (averageMr > 0 ? averageMr : 0)));
                         }),
                     new Item(
-                        "low-resists", "[i] Resists", 3, true,
+                        "low-resists", "Resists", 0, true,
                         t =>
                             ObjectManager.Player.FlatPhysicalDamageMod >= ObjectManager.Player.FlatMagicDamageMod
                                 ? t.Armor
                                 : t.SpellBlock),
-                    new Item("low-health", "[i] Health", 17, true, t => t.Health),
+                    new Item("low-health", "Health", 20, true, t => t.Health),
                     new Item(
-                        "short-distance-player", "[i] Distance to Player", 5, true,
-                        t => t.Distance(ObjectManager.Player)),
-                    new Item(
-                        "short-distance-cursor", "[i] Distance to Cursor", 2, true, t => t.Distance(Game.CursorPos)),
+                        "short-distance-player", "Distance to Player", 5, true, t => t.Distance(ObjectManager.Player)),
+                    new Item("short-distance-cursor", "Distance to Cursor", 3, true, t => t.Distance(Game.CursorPos)),
                     new Item(
                         "crowd-control", "Crowd Control", 0, false, delegate(Obj_AI_Hero t)
                         {
@@ -103,7 +103,7 @@ namespace SFXChallenger.SFXTargetSelector
                             return buffs.Any() ? buffs.Max(x => x.EndTime) + 1f : 0f;
                         }),
                     new Item(
-                        "gold", "Acquired Gold", 2, false,
+                        "gold", "Acquired Gold", 0, false,
                         t =>
                             (t.MinionsKilled + t.NeutralMinionsKilled) * 22.35f + t.ChampionsKilled * 300f +
                             t.Assists * 95f),
@@ -169,7 +169,9 @@ namespace SFXChallenger.SFXTargetSelector
                 {
                     var localItem = item;
                     _weightsMenu.AddItem(
-                        new MenuItem(_weightsMenu.Name + "." + item.Name, item.DisplayName).SetShared()
+                        new MenuItem(
+                            _weightsMenu.Name + "." + item.Name,
+                            item.Inverted ? InvertedPrefix + item.DisplayName : item.DisplayName).SetShared()
                             .SetValue(new Slider(localItem.Weight, MinWeight, MaxWeight)));
                     _weightsMenu.Item(_weightsMenu.Name + "." + item.Name).ValueChanged +=
                         delegate(object sender, OnValueChangeEventArgs args)
@@ -313,9 +315,16 @@ namespace SFXChallenger.SFXTargetSelector
 
                 if (_weightsMenu != null)
                 {
+                    if (!_separated)
+                    {
+                        _weightsMenu.AddItem(new MenuItem(_weightsMenu.Name + ".separator", string.Empty));
+                        _separated = true;
+                    }
                     _weightsMenu.AddItem(
-                        new MenuItem(_weightsMenu.Name + "." + item.Name, item.DisplayName).SetValue(
-                            new Slider(item.Weight, MinWeight, MaxWeight)));
+                        new MenuItem(
+                            _weightsMenu.Name + "." + item.Name,
+                            item.Inverted ? InvertedPrefix + item.DisplayName : item.DisplayName).SetValue(
+                                new Slider(item.Weight, MinWeight, MaxWeight)));
                     _weightsMenu.Item(_weightsMenu.Name + "." + item.Name).ValueChanged +=
                         delegate(object sender, OnValueChangeEventArgs args)
                         {

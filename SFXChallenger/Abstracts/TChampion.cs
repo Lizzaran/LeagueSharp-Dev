@@ -42,39 +42,14 @@ namespace SFXChallenger.Abstracts
         protected TChampion(float maxRange)
         {
             MaxRange = maxRange;
-            Core.OnBoot += OnCoreBoot;
-            Core.OnShutdown += OnCoreShutdown;
         }
 
-        protected override void OnPreUpdate()
+        protected override void OnCorePreUpdate(EventArgs args)
         {
             try
             {
                 Targets = TargetSelector.GetTargets(MaxRange).ToList();
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnCoreBoot(EventArgs args)
-        {
-            try
-            {
-                Core.OnPreUpdate += OnCorePreUpdate;
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnCoreShutdown(EventArgs args)
-        {
-            try
-            {
-                Core.OnPreUpdate -= OnCorePreUpdate;
+                base.OnCorePreUpdate(args);
             }
             catch (Exception ex)
             {

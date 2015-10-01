@@ -29,7 +29,6 @@ using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Interfaces;
-using SFXChallenger.Library;
 using SFXChallenger.Library.Logger;
 using SFXChallenger.Managers;
 using SFXChallenger.Menus;
@@ -55,8 +54,6 @@ namespace SFXChallenger.Abstracts
         {
             Core.OnBoot += OnCoreBoot;
             Core.OnShutdown += OnCoreShutdown;
-            Core.OnPreUpdate += OnCorePreUpdate;
-            Core.OnPostUpdate += OnCorePostUpdate;
         }
 
         protected abstract ItemFlags ItemFlags { get; }
@@ -150,7 +147,7 @@ namespace SFXChallenger.Abstracts
             }
         }
 
-        protected void OnCorePreUpdate(EventArgs args)
+        protected virtual void OnCorePreUpdate(EventArgs args)
         {
             try
             {
@@ -162,7 +159,7 @@ namespace SFXChallenger.Abstracts
             }
         }
 
-        protected void OnCorePostUpdate(EventArgs args)
+        protected virtual void OnCorePostUpdate(EventArgs args)
         {
             try
             {
@@ -177,19 +174,6 @@ namespace SFXChallenger.Abstracts
         protected abstract void SetupSpells();
         protected abstract void OnLoad();
         protected abstract void AddToMenu();
-
-        protected void DrawingOnDraw(EventArgs args)
-        {
-            try
-            {
-                DrawingManager.Draw();
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
         protected abstract void OnPreUpdate();
         protected abstract void OnPostUpdate();
         protected abstract void Combo();
@@ -211,10 +195,12 @@ namespace SFXChallenger.Abstracts
                 if (ItemUsage == ItemUsageType.AfterAttack)
                 {
                     Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
-                    Spellbook.OnCastSpell += OnSpellbookCastSpell;
                 }
 
-                Drawing.OnDraw += DrawingOnDraw;
+                Core.OnPreUpdate += OnCorePreUpdate;
+                Core.OnPostUpdate += OnCorePostUpdate;
+
+                Drawing.OnDraw += OnDrawingDraw;
             }
             catch (Exception ex)
             {
@@ -222,43 +208,25 @@ namespace SFXChallenger.Abstracts
             }
         }
 
-        private void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
+        private void OnCoreShutdown(EventArgs args)
         {
             try
             {
-                if (sender.Owner != null && sender.Owner.IsMe)
-                {
-                    if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
-                    {
-                        var endPos = args.EndPosition;
-                        var spell = Spells.FirstOrDefault(s => s.Slot == args.Slot);
-                        if (spell != null)
-                        {
-                            var enemy1 =
-                                GameObjects.EnemyHeroes.FirstOrDefault(
-                                    e => e.IsValidTarget() && e.Distance(endPos) < spell.Range / 2f);
-                            var enemy2 =
-                                GameObjects.EnemyHeroes.FirstOrDefault(
-                                    e => e.IsValidTarget() && e.Distance(Player) < spell.Range / 2f);
-                            if (enemy1 != null)
-                            {
-                                ItemManager.Muramana(
-                                    enemy1, true,
-                                    spell.Range + spell.Width + enemy1.BoundingRadius + Player.BoundingRadius);
-                            }
-                            if (enemy2 != null)
-                            {
-                                ItemManager.Muramana(
-                                    enemy2, true,
-                                    spell.Range + spell.Width + enemy2.BoundingRadius + Player.BoundingRadius);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        ItemManager.Muramana(null, false);
-                    }
-                }
+                Drawing.OnDraw -= OnDrawingDraw;
+                Core.OnPreUpdate -= OnCorePreUpdate;
+                Core.OnPostUpdate -= OnCorePostUpdate;
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void OnDrawingDraw(EventArgs args)
+        {
+            try
+            {
+                DrawingManager.Draw();
             }
             catch (Exception ex)
             {
@@ -288,18 +256,6 @@ namespace SFXChallenger.Abstracts
                         ItemManager.Muramana(null, false);
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnCoreShutdown(EventArgs args)
-        {
-            try
-            {
-                Drawing.OnDraw -= DrawingOnDraw;
             }
             catch (Exception ex)
             {

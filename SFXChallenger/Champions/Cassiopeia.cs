@@ -213,12 +213,12 @@ namespace SFXChallenger.Champions
             IndicatorManager.AddToMenu(DrawingManager.Menu, true);
             IndicatorManager.Add(Q);
             IndicatorManager.Add(W);
-            IndicatorManager.Add("E", hero => E.GetDamage(hero) * 5);
+            IndicatorManager.Add("E", hero => E.GetDamage(hero) * 3);
             IndicatorManager.Add(R);
             IndicatorManager.Finale();
 
             Weights.AddItem(
-                new Weights.Item("poison-time", "Poison Time", 10, true, hero => GetPoisonBuffEndTime(hero) + 1));
+                new Weights.Item("poison-time", "Poison Time", 5, false, hero => GetPoisonBuffEndTime(hero) + 1));
         }
 
         protected override void SetupSpells()

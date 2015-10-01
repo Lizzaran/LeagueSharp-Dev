@@ -71,9 +71,6 @@ namespace SFXChallenger.Champions
 
         protected override void OnLoad()
         {
-            AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
-            Drawing.OnDraw += OnDrawingDraw;
-
             _ultimate = new UltimateManager
             {
                 Combo = true,
@@ -92,6 +89,9 @@ namespace SFXChallenger.Champions
                             hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                             Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true)
             };
+
+            AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
+            Drawing.OnDraw += OnDrawingDraw;
         }
 
         protected override void AddToMenu()
@@ -99,7 +99,14 @@ namespace SFXChallenger.Champions
             var ultimateMenu = _ultimate.AddToMenu(Menu);
 
             ultimateMenu.AddItem(
-                new MenuItem(ultimateMenu.Name + ".radius", "Spread Range").SetValue(new Slider(450, 100, 600)))
+                new MenuItem(ultimateMenu.Name + ".range", "Range").SetValue(new Slider((int) R.Range, 500, 1200)))
+                .ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { R.Range = args.GetNewValue<Slider>().Value; };
+
+            R.Range = Menu.Item(Menu.Name + ".ultimate.range").GetValue<Slider>().Value;
+
+            ultimateMenu.AddItem(
+                new MenuItem(ultimateMenu.Name + ".radius", "Spread Radius").SetValue(new Slider(450, 100, 600)))
                 .ValueChanged +=
                 delegate(object sender, OnValueChangeEventArgs args)
                 {
@@ -121,14 +128,18 @@ namespace SFXChallenger.Champions
             var comboQMenu = comboMenu.AddSubMenu(new Menu("Q Settings", comboMenu.Name + ".q-settings"));
             comboQMenu.AddItem(new MenuItem(comboQMenu.Name + ".always", "Cast Always").SetValue(false));
             comboQMenu.AddItem(
-                new MenuItem(comboQMenu.Name + ".fast-cast-min", "Fast Cast Health <= %").SetValue(new Slider(25)));
+                new MenuItem(comboQMenu.Name + ".fast-cast-min", "Fast Cast Health <= %").SetValue(new Slider(20)));
+            comboQMenu.AddItem(new MenuItem(comboQMenu.Name + ".separator", string.Empty));
             comboQMenu.AddItem(new MenuItem(comboQMenu.Name + ".stacks", "Min. Stacks")).SetValue(new Slider(3, 1, 3));
-            comboQMenu.AddItem(new MenuItem(comboQMenu.Name + ".min", "Min. Hits").SetValue(new Slider(3, 1, 3)));
+            comboQMenu.AddItem(new MenuItem(comboQMenu.Name + ".or", "OR"));
+            comboQMenu.AddItem(new MenuItem(comboQMenu.Name + ".min", "Min. Hits").SetValue(new Slider(2, 1, 5)));
 
             var comboEMenu = comboMenu.AddSubMenu(new Menu("E Settings", comboMenu.Name + ".e-settings"));
-            comboEMenu.AddItem(new MenuItem(comboEMenu.Name + ".always", "Cast Always").SetValue(true));
-            comboEMenu.AddItem(new MenuItem(comboEMenu.Name + ".stacks", "Min. Stacks")).SetValue(new Slider(3, 1, 3));
-            comboEMenu.AddItem(new MenuItem(comboEMenu.Name + ".min", "Min. Hits").SetValue(new Slider(3, 1, 3)));
+            comboEMenu.AddItem(new MenuItem(comboEMenu.Name + ".always", "Cast Always").SetValue(false));
+            comboEMenu.AddItem(new MenuItem(comboEMenu.Name + ".separator", string.Empty));
+            comboEMenu.AddItem(new MenuItem(comboEMenu.Name + ".stacks", "Min. Stacks")).SetValue(new Slider(2, 1, 3));
+            comboEMenu.AddItem(new MenuItem(comboEMenu.Name + ".or", "OR"));
+            comboEMenu.AddItem(new MenuItem(comboEMenu.Name + ".min", "Min. Hits").SetValue(new Slider(3, 1, 5)));
 
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", "Use Q").SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", "Use E").SetValue(true));
@@ -140,22 +151,27 @@ namespace SFXChallenger.Champions
             ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
 
             var harassQMenu = harassMenu.AddSubMenu(new Menu("Q Settings", harassMenu.Name + ".q-settings"));
-            harassQMenu.AddItem(new MenuItem(harassQMenu.Name + ".always", "Cast Always").SetValue(false));
+            harassQMenu.AddItem(new MenuItem(harassQMenu.Name + ".always", "Cast Always").SetValue(true));
             harassQMenu.AddItem(
                 new MenuItem(harassQMenu.Name + ".fast-cast-min", "Fast Cast Health <= %").SetValue(new Slider(25)));
+            harassQMenu.AddItem(new MenuItem(harassQMenu.Name + ".separator", string.Empty));
             harassQMenu.AddItem(new MenuItem(harassQMenu.Name + ".stacks", "Min. Stacks")).SetValue(new Slider(3, 1, 3));
-            harassQMenu.AddItem(new MenuItem(harassQMenu.Name + ".min", "Min. Hits").SetValue(new Slider(3, 1, 3)));
+            harassQMenu.AddItem(new MenuItem(harassQMenu.Name + ".or", "OR"));
+            harassQMenu.AddItem(new MenuItem(harassQMenu.Name + ".min", "Min. Hits").SetValue(new Slider(2, 1, 5)));
 
             var harassEMenu = harassMenu.AddSubMenu(new Menu("E Settings", harassMenu.Name + ".e-settings"));
             harassEMenu.AddItem(new MenuItem(harassEMenu.Name + ".always", "Cast Always").SetValue(true));
-            harassEMenu.AddItem(new MenuItem(harassEMenu.Name + ".stacks", "Min. Stacks")).SetValue(new Slider(3, 1, 3));
-            harassEMenu.AddItem(new MenuItem(harassEMenu.Name + ".min", "Min. Hits").SetValue(new Slider(3, 1, 3)));
+            harassEMenu.AddItem(new MenuItem(harassEMenu.Name + ".separator", string.Empty));
+            harassEMenu.AddItem(new MenuItem(harassEMenu.Name + ".stacks", "Min. Stacks")).SetValue(new Slider(2, 1, 3));
+            harassEMenu.AddItem(new MenuItem(harassEMenu.Name + ".or", "OR"));
+            harassEMenu.AddItem(new MenuItem(harassEMenu.Name + ".min", "Min. Hits").SetValue(new Slider(3, 1, 5)));
 
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", "Use Q").SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", "Use E").SetValue(true));
 
             var laneclearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
-            ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
+            ManaManager.AddToMenu(laneclearMenu, "lane-clear-q", ManaCheckType.Minimum, ManaValueType.Percent, "Q");
+            ManaManager.AddToMenu(laneclearMenu, "lane-clear-e", ManaCheckType.Minimum, ManaValueType.Percent, "E");
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", "Use E").SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".min", "Min. Hits").SetValue(new Slider(3, 1, 5)));
@@ -165,7 +181,6 @@ namespace SFXChallenger.Champions
 
             var killstealMenu = Menu.AddSubMenu(new Menu("Killsteal", Menu.Name + ".killsteal"));
             killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".q", "Use Q").SetValue(true));
-            killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".range", "Out of Range").SetValue(true));
 
             var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
 
@@ -179,7 +194,7 @@ namespace SFXChallenger.Champions
                     DefaultValue = false
                 });
 
-            Weights.AddItem(new Weights.Item("w-stacks", "W Stacks", 13, true, t => GetWStacks(t) + 1));
+            Weights.AddItem(new Weights.Item("w-stacks", "W Stacks", 5, false, t => GetWStacks(t) + 1));
 
             IndicatorManager.AddToMenu(DrawingManager.Menu, true);
             IndicatorManager.Add("Q", hero => Q.IsReady() ? Q.GetDamage(hero, 1) : 0);
@@ -580,7 +595,7 @@ namespace SFXChallenger.Champions
         {
             var min = Menu.Item(Menu.Name + ".lane-clear.min").GetValue<Slider>().Value;
             if (Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady() &&
-                (ManaManager.Check("lane-clear") || Q.IsCharging))
+                (ManaManager.Check("lane-clear-q") || Q.IsCharging))
             {
                 var minions = MinionManager.GetMinions(
                     Q.ChargedMaxRange, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
@@ -601,7 +616,7 @@ namespace SFXChallenger.Champions
             }
 
             if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady() &&
-                ManaManager.Check("lane-clear"))
+                ManaManager.Check("lane-clear-e"))
             {
                 Casting.Farm(E, min);
             }
@@ -622,11 +637,10 @@ namespace SFXChallenger.Champions
         {
             if (Menu.Item(Menu.Name + ".killsteal.q").GetValue<bool>() && Q.IsReady())
             {
-                var range = Menu.Item(Menu.Name + ".killsteal.range").GetValue<bool>();
                 var killable =
                     GameObjects.EnemyHeroes.FirstOrDefault(
                         e =>
-                            e.IsValidTarget(Q.Range) && (!range || !Orbwalking.InAutoAttackRange(e)) &&
+                            e.IsValidTarget(Q.Range) && !Orbwalking.InAutoAttackRange(e) &&
                             (QIsKillable(e, 1) || QMaxRangeHit(e) && QIsKillable(e, 2)));
                 if (killable != null)
                 {

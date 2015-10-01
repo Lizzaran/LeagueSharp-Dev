@@ -74,13 +74,6 @@ namespace SFXChallenger.Champions
 
         protected override void OnLoad()
         {
-            Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
-            Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
-            AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
-            Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
-            CustomEvents.Unit.OnDash += OnUnitDash;
-            GameObject.OnCreate += OnGameObjectCreate;
-
             _ultimate = new UltimateManager
             {
                 Combo = true,
@@ -99,6 +92,13 @@ namespace SFXChallenger.Champions
                             hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
                             Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true)
             };
+
+            Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
+            Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
+            AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
+            Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
+            CustomEvents.Unit.OnDash += OnUnitDash;
+            GameObject.OnCreate += OnGameObjectCreate;
         }
 
         protected override void AddToMenu()

@@ -62,8 +62,6 @@ namespace SFXChallenger.Champions
 
         protected override void OnLoad()
         {
-            AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
-
             _ultimate = new UltimateManager
             {
                 Combo = true,
@@ -80,6 +78,8 @@ namespace SFXChallenger.Champions
                     hero =>
                         CalcComboDamage(hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(), true)
             };
+
+            AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
         }
 
         protected override void AddToMenu()
