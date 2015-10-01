@@ -167,5 +167,11 @@ namespace SFXChallenger.Helpers
             }
             return source.Direction.To2D().Perpendicular().AngleBetween((position - source.Position).To2D()) < angle;
         }
+
+        public static bool ShouldDraw(bool checkScreen = false)
+        {
+            return !ObjectManager.Player.IsDead && !MenuGUI.IsShopOpen &&
+                   (!checkScreen || ObjectManager.Player.Position.IsOnScreen());
+        }
     }
 }

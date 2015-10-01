@@ -84,10 +84,11 @@ namespace SFXChallenger.Wrappers
         //Spells that are not attacks even if they have the "attack" word in their name.
         private static readonly string[] NoAttacks =
         {
-            "jarvanivcataclysmattack", "monkeykingdoubleattack",
-            "shyvanadoubleattack", "shyvanadoubleattackdragon", "zyragraspingplantattack", "zyragraspingplantattack2",
-            "zyragraspingplantattackfire", "zyragraspingplantattack2fire", "viktorpowertransfer", "sivirwattackbounce",
-            "asheqattacknoonhit", "elisespiderlingbasicattack", "heimertyellowbasicattack", "heimertyellowbasicattack2",
+            "volleyattack", "volleyattackwithsound",
+            "jarvanivcataclysmattack", "monkeykingdoubleattack", "shyvanadoubleattack", "shyvanadoubleattackdragon",
+            "zyragraspingplantattack", "zyragraspingplantattack2", "zyragraspingplantattackfire",
+            "zyragraspingplantattack2fire", "viktorpowertransfer", "sivirwattackbounce", "asheqattacknoonhit",
+            "elisespiderlingbasicattack", "heimertyellowbasicattack", "heimertyellowbasicattack2",
             "heimertbluebasicattack", "annietibbersbasicattack", "annietibbersbasicattack2",
             "yorickdecayedghoulbasicattack", "yorickravenousghoulbasicattack", "yorickspectralghoulbasicattack",
             "malzaharvoidlingbasicattack", "malzaharvoidlingbasicattack2", "malzaharvoidlingbasicattack3"
@@ -122,6 +123,7 @@ namespace SFXChallenger.Wrappers
             Player = ObjectManager.Player;
             Obj_AI_Base.OnProcessSpellCast += OnProcessSpell;
             GameObject.OnCreate += MissileClient_OnCreate;
+            Obj_AI_Base.OnDoCast += Obj_AI_Base_OnDoCast;
             Spellbook.OnStopCast += SpellbookOnStopCast;
         }
 
@@ -472,7 +474,10 @@ namespace SFXChallenger.Wrappers
                             }
                         }
 
-                        Player.IssueOrder(GameObjectOrder.AttackUnit, target);
+                        if (!Player.IssueOrder(GameObjectOrder.AttackUnit, target))
+                        {
+                            ResetAutoAttackTimer();
+                        }
 
                         _lastTarget = target;
                         return;
@@ -503,6 +508,26 @@ namespace SFXChallenger.Wrappers
             {
                 ResetAutoAttackTimer();
             }
+        }
+
+        private static void Obj_AI_Base_OnDoCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
+        {
+            if (sender.IsMe && IsAutoAttack(args.SData.Name))
+            {
+                if (Game.Ping <= 30)
+                {
+                    Utility.DelayAction.Add(30, () => Obj_AI_Base_OnDoCast_Delayed(sender, args));
+                    return;
+                }
+
+                Obj_AI_Base_OnDoCast_Delayed(sender, args);
+            }
+        }
+
+        private static void Obj_AI_Base_OnDoCast_Delayed(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
+        {
+            FireAfterAttack(sender, args.Target as AttackableUnit);
+            _missileLaunched = true;
         }
 
         private static void MissileClient_OnCreate(GameObject sender, EventArgs args)
@@ -537,19 +562,13 @@ namespace SFXChallenger.Wrappers
                     LastAaTick = Utils.GameTimeTickCount - Game.Ping / 2;
                     _missileLaunched = false;
 
-                    var objBase = spell.Target as Obj_AI_Base;
-                    if (objBase != null)
+                    var baseObj = spell.Target as Obj_AI_Base;
+                    if (baseObj != null)
                     {
-                        if (objBase.IsValid)
+                        if (baseObj.IsValid)
                         {
-                            FireOnTargetSwitch(objBase);
-                            _lastTarget = objBase;
-                        }
-
-                        if (IsMelee(unit))
-                        {
-                            Utility.DelayAction.Add(
-                                (int) (unit.AttackCastDelay * 1000 + 40), () => FireAfterAttack(unit, _lastTarget));
+                            FireOnTargetSwitch(baseObj);
+                            _lastTarget = baseObj;
                         }
                     }
                 }

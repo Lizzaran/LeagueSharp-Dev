@@ -684,7 +684,11 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (W.Level > 0 && _wStacks != null && _wStacks.GetValue<bool>() && !Player.IsDead)
+                if (!Utils.ShouldDraw())
+                {
+                    return;
+                }
+                if (W.Level > 0 && _wStacks != null && _wStacks.GetValue<bool>())
                 {
                     foreach (var enemy in
                         GameObjects.EnemyHeroes.Where(

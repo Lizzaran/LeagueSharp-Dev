@@ -235,6 +235,8 @@ namespace SFXChallenger.Managers
 
                 var uSingleMenu = ultimateMenu.AddSubMenu(new Menu("Single Target", ultimateMenu.Name + ".single"));
                 uSingleMenu.AddItem(
+                    new MenuItem(uSingleMenu.Name + ".min-health", "Min. Target Health %").SetValue(new Slider(20)));
+                uSingleMenu.AddItem(
                     new MenuItem(uSingleMenu.Name + ".max-allies", "Max. Allies in Range").SetValue(new Slider(3, 0, 4)));
                 uSingleMenu.AddItem(
                     new MenuItem(uSingleMenu.Name + ".max-enemies", "Max. Enemies in Range").SetValue(
@@ -381,6 +383,13 @@ namespace SFXChallenger.Managers
 
                 if (ShouldSingle(mode))
                 {
+                    var minHealth = _menu.Item(_menu.Name + ".ultimate.single.min-health").GetValue<Slider>().Value;
+
+                    if (target.HealthPercent < minHealth)
+                    {
+                        return false;
+                    }
+
                     var alliesMax = _menu.Item(_menu.Name + ".ultimate.single.max-allies").GetValue<Slider>().Value;
                     var enemiesMax = _menu.Item(_menu.Name + ".ultimate.single.max-enemies").GetValue<Slider>().Value;
 

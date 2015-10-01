@@ -42,6 +42,7 @@ using MinionTypes = SFXChallenger.Library.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
+using Utils = SFXChallenger.Helpers.Utils;
 
 #endregion
 
@@ -510,7 +511,11 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (E.Level > 0 && _eStacks != null && _eStacks.GetValue<bool>() && !Player.IsDead)
+                if (!Utils.ShouldDraw(true))
+                {
+                    return;
+                }
+                if (E.Level > 0 && _eStacks != null && _eStacks.GetValue<bool>())
                 {
                     var buff = GetEBuff();
                     var stacks = buff != null ? buff.Count - 1 : -1;

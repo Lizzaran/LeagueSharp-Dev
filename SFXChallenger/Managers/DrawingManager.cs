@@ -31,6 +31,7 @@ using LeagueSharp.Common;
 using SFXChallenger.Interfaces;
 using SFXChallenger.Library.Extensions.SharpDX;
 using SFXChallenger.Library.Logger;
+using Utils = SFXChallenger.Helpers.Utils;
 
 #endregion
 
@@ -176,7 +177,7 @@ namespace SFXChallenger.Managers
         {
             try
             {
-                if (Menu == null || _champion.Spells == null || ObjectManager.Player.IsDead)
+                if (Menu == null || _champion.Spells == null || !Utils.ShouldDraw())
                 {
                     return;
                 }

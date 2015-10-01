@@ -89,6 +89,7 @@ namespace SFXChallenger.Managers
                     new BlockedSpell("Pantheon", SpellSlot.W),
                     new BlockedSpell("Poppy", SpellSlot.Q) { AutoAttackBuff = "PoppyDevastatingBlow" },
                     new BlockedSpell("Poppy", SpellSlot.E),
+                    new BlockedSpell("Quinn", SpellSlot.E) { ModelName = "quinnvalor" },
                     new BlockedSpell("Rammus", SpellSlot.E),
                     new BlockedSpell("Renekton", SpellSlot.W) { AutoAttackName = "RenektonExecute" },
                     new BlockedSpell("Renekton", SpellSlot.W) { AutoAttackName = "RenektonSuperExecute" },
@@ -114,13 +115,13 @@ namespace SFXChallenger.Managers
                     new BlockedSpell("Vayne", SpellSlot.E),
                     new BlockedSpell("Veigar", SpellSlot.R),
                     new BlockedSpell("Vi", SpellSlot.R),
+                    new BlockedSpell("Vladimir", SpellSlot.R),
                     new BlockedSpell("Volibear", SpellSlot.Q) { AutoAttackName = "VolibearQAttack" },
                     new BlockedSpell("Volibear", SpellSlot.W),
                     new BlockedSpell("XinZhao", SpellSlot.Q) { AutoAttackName = "XenZhaoThrust3" },
                     new BlockedSpell("XinZhao", SpellSlot.R),
                     new BlockedSpell("Yorick", SpellSlot.E),
-                    new BlockedSpell("Zac", SpellSlot.R),
-                    new BlockedSpell("Zed", SpellSlot.R)
+                    new BlockedSpell("Zac", SpellSlot.R)
                 };
             }
             catch (Exception ex)

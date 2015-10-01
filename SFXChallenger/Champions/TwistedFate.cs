@@ -658,7 +658,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (Player.IsDead || !Player.Position.IsOnScreen())
+                if (!Utils.ShouldDraw(true))
                 {
                     return;
                 }
@@ -689,6 +689,10 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                if (!Utils.ShouldDraw())
+                {
+                    return;
+                }
                 if (_rMinimap.GetValue<bool>() && R.Level > 0 && (R.Instance.CooldownExpires - Game.Time) < 3 &&
                     !Player.IsDead)
                 {
