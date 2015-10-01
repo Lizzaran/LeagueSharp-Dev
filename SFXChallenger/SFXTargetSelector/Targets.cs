@@ -83,6 +83,7 @@ namespace SFXChallenger.SFXTargetSelector
 
             public Obj_AI_Hero Hero { get; private set; }
             public float Weight { get; set; }
+            public float SimulatedWeight { get; set; }
             public float LastVisibleChange { get; set; }
             public bool Visible { get; set; }
         }

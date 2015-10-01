@@ -268,7 +268,7 @@ namespace SFXChallenger.Abstracts
             {
                 SFXMenu = new Menu(Global.Name, "sfx", true);
 
-                Menu = SFXMenu.AddSubMenu(new Menu(Player.ChampionName, SFXMenu.Name + "." + Player.ChampionName));
+                Menu = new Menu(Global.Prefix + Player.ChampionName, SFXMenu.Name + "." + Player.ChampionName, true);
 
                 DrawingManager.AddToMenu(Menu.AddSubMenu(new Menu("Drawings", Menu.Name + ".drawing")), this);
 
@@ -283,6 +283,7 @@ namespace SFXChallenger.Abstracts
 
                 DebugMenu.AddToMenu(SFXMenu, Spells);
 
+                Menu.AddToMainMenu();
                 SFXMenu.AddToMainMenu();
 
                 try

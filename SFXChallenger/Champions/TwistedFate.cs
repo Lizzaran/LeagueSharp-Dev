@@ -127,7 +127,7 @@ namespace SFXChallenger.Champions
                     Advanced = true,
                     MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
-                    DefaultValues = new List<int> { 70, 50, 50 }
+                    DefaultValues = new List<int> { 50, 50, 50 }
                 });
             ResourceManager.AddToMenu(
                 laneclearMenu,
@@ -138,7 +138,7 @@ namespace SFXChallenger.Champions
                     Advanced = true,
                     MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
-                    DefaultValues = new List<int> { 80, 60, 60 }
+                    DefaultValues = new List<int> { 60, 60, 60 }
                 });
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q-min", "Q Min.").SetValue(new Slider(4, 1, 5)));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
@@ -162,11 +162,11 @@ namespace SFXChallenger.Champions
 
             var manualMenu = Menu.AddSubMenu(new Menu("Manual", Menu.Name + ".manual"));
             manualMenu.AddItem(
-                new MenuItem(manualMenu.Name + ".blue", "Hotkey Blue").SetValue(new KeyBind('Z', KeyBindType.Press)));
+                new MenuItem(manualMenu.Name + ".blue", "Hotkey Blue").SetValue(new KeyBind('T', KeyBindType.Press)));
             manualMenu.AddItem(
-                new MenuItem(manualMenu.Name + ".red", "Hotkey Red").SetValue(new KeyBind('U', KeyBindType.Press)));
+                new MenuItem(manualMenu.Name + ".red", "Hotkey Red").SetValue(new KeyBind('Y', KeyBindType.Press)));
             manualMenu.AddItem(
-                new MenuItem(manualMenu.Name + ".gold", "Hotkey Gold").SetValue(new KeyBind('I', KeyBindType.Press)));
+                new MenuItem(manualMenu.Name + ".gold", "Hotkey Gold").SetValue(new KeyBind('U', KeyBindType.Press)));
 
             W.Range = Menu.Item(Menu.Name + ".miscellaneous.w-range").GetValue<Slider>().Value;
             Cards.Delay = Menu.Item(Menu.Name + ".miscellaneous.w-delay").GetValue<Slider>().Value;

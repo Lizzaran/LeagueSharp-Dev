@@ -125,7 +125,7 @@ namespace SFXChallenger.Champions
                 new ResourceManagerArgs(
                     "harass", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
                 {
-                    DefaultValue = 30
+                    DefaultValue = 20
                 });
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", "Use Q").SetValue(false));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", "Use E").SetValue(true));
@@ -140,7 +140,7 @@ namespace SFXChallenger.Champions
                     Advanced = true,
                     MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
-                    DefaultValues = new List<int> { 50, 30, 30 }
+                    DefaultValues = new List<int> { 80, 50, 50 }
                 });
             ResourceManager.AddToMenu(
                 laneclearMenu,
@@ -687,6 +687,7 @@ namespace SFXChallenger.Champions
 
                     damage += (R.GetDamage(target, 1) * stacks);
                 }
+                damage *= 1.15f;
                 damage += ItemManager.CalculateComboDamage(target);
                 damage += SummonerManager.CalculateComboDamage(target);
                 return damage;

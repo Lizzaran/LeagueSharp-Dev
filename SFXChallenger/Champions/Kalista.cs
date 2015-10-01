@@ -92,9 +92,10 @@ namespace SFXChallenger.Champions
                     IsWhitelist = false,
                     Allies = false,
                     Enemies = true,
-                    DefaultValue = false
+                    DefaultValue = false,
+                    EnabledButton = false
                 });
-            blitzMenu.AddItem(new MenuItem(blitzMenu.Name + ".r", "Use R").SetValue(true));
+            blitzMenu.AddItem(new MenuItem(blitzMenu.Name + ".r", "Enabled").SetValue(true));
 
             var tahmMenu = ultimateMenu.AddSubMenu(new Menu("Tahm Kench", ultimateMenu.Name + ".tahm-kench"));
             HeroListManager.AddToMenu(
@@ -104,9 +105,10 @@ namespace SFXChallenger.Champions
                     IsWhitelist = false,
                     Allies = false,
                     Enemies = true,
-                    DefaultValue = false
+                    DefaultValue = false,
+                    EnabledButton = false
                 });
-            tahmMenu.AddItem(new MenuItem(tahmMenu.Name + ".r", "Use R").SetValue(true));
+            tahmMenu.AddItem(new MenuItem(tahmMenu.Name + ".r", "Enabled").SetValue(true));
 
             ultimateMenu.AddItem(new MenuItem(ultimateMenu.Name + ".save", "Save Soulbound").SetValue(true));
 
@@ -162,13 +164,9 @@ namespace SFXChallenger.Champions
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
                     DefaultValues = new List<int> { 50, 30, 30 }
                 });
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(false));
+            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
             laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".q-min-1", "Q Min.<= 4").SetValue(new Slider(2, 1, 5)));
-            laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".q-min-2", "Q Min.<= 7").SetValue(new Slider(3, 1, 5)));
-            laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".q-min-3", "Q Min.>= 10").SetValue(new Slider(5, 1, 5)));
+                new MenuItem(laneclearMenu.Name + ".q-min", "Q Min. Hits").SetValue(new Slider(2, 1, 5)));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", "Use E").SetValue(true));
 
             var lasthitMenu = Menu.AddSubMenu(new Menu("Last Hit", Menu.Name + ".lasthit"));
@@ -649,28 +647,13 @@ namespace SFXChallenger.Champions
                 return;
             }
 
-            var minQ1 = Menu.Item(Menu.Name + ".lane-clear.q-min-1").GetValue<Slider>().Value;
-            var minQ2 = Menu.Item(Menu.Name + ".lane-clear.q-min-2").GetValue<Slider>().Value;
-            var minQ3 = Menu.Item(Menu.Name + ".lane-clear.q-min-3").GetValue<Slider>().Value;
             var minE = ItemData.Runaans_Hurricane_Ranged_Only.GetItem().IsOwned(Player) ? 3 : 2;
-            var minQ = 0;
+            var minQ = Menu.Item(Menu.Name + ".lane-clear.q-min").GetValue<Slider>().Value;
             var minions = MinionManager.GetMinions(
                 Q.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
             if (minions.Count == 0)
             {
                 return;
-            }
-            if (minions.Count >= 10)
-            {
-                minQ = minQ3;
-            }
-            else if (minions.Count <= 7)
-            {
-                minQ = minQ2;
-            }
-            else if (minions.Count <= 4)
-            {
-                minQ = minQ1;
             }
             if (useQ && minions.Count >= minQ && !Player.IsWindingUp && !Player.IsDashing())
             {

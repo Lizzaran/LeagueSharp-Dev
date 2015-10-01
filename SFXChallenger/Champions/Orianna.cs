@@ -173,7 +173,7 @@ namespace SFXChallenger.Champions
             InitiatorManager.AddToMenu(initiatorWhitelistMenu, true, false);
             initiatorMenu.AddItem(new MenuItem(initiatorMenu.Name + ".use-e", "Use E").SetValue(true));
 
-            var shieldMenu = Menu.AddSubMenu(new Menu("Shield", Menu.Name + ".shield"));
+            var shieldMenu = Menu.AddSubMenu(new Menu("Self Shield", Menu.Name + ".shield"));
             ResourceManager.AddToMenu(
                 shieldMenu,
                 new ResourceManagerArgs(
@@ -231,7 +231,7 @@ namespace SFXChallenger.Champions
 
             _ballPositionThickness = DrawingManager.Add("Ball Thickness", new Slider(7, 1, 10));
             _ballPositionRadius = DrawingManager.Add("Ball Radius", new Slider(95, 0, 300));
-            _ballPositionCircle = DrawingManager.Add("Ball Position", new Circle(false, Color.Yellow));
+            _ballPositionCircle = DrawingManager.Add("Ball Position", new Circle(true, Color.Yellow));
 
             R.Width = Menu.Item(ultimateMenu.Name + ".width").GetValue<Slider>().Value;
         }
@@ -439,7 +439,7 @@ namespace SFXChallenger.Champions
         protected override void SetupSpells()
         {
             Q = new Spell(SpellSlot.Q, 825f, DamageType.Magical);
-            Q.SetSkillshot(0.15f, 110f, 1375f, false, SkillshotType.SkillshotCircle);
+            Q.SetSkillshot(0.15f, 120f, 1345f, false, SkillshotType.SkillshotCircle);
 
             W = new Spell(SpellSlot.W, float.MaxValue, DamageType.Magical);
             W.SetSkillshot(0f, 230f, float.MaxValue, false, SkillshotType.SkillshotCircle);
@@ -689,6 +689,7 @@ namespace SFXChallenger.Champions
                     damage += R.GetDamage(target);
                 }
                 damage += 2 * (float) Player.GetAutoAttackDamage(target, true);
+                damage *= 1.5f;
                 damage += ItemManager.CalculateComboDamage(target);
                 damage += SummonerManager.CalculateComboDamage(target);
                 return damage;
