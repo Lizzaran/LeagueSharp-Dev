@@ -312,7 +312,8 @@ namespace SFXChallenger.Champions
                 if (circle.Active)
                 {
                     Render.Circle.DrawCircle(
-                        Ball.Position, _ballPositionRadius.GetValue<Slider>().Value, circle.Color,
+                        (Ball.Hero != null ? Ball.Hero.Position : Ball.Position),
+                        _ballPositionRadius.GetValue<Slider>().Value, circle.Color,
                         _ballPositionThickness.GetValue<Slider>().Value, true);
                 }
             }
