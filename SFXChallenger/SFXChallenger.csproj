@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.7.7.26</AssemblyVersion>
+    <AssemblyVersion>0.7.7.27</AssemblyVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -84,6 +84,7 @@
   <ItemGroup>
     <Compile Include="Abstracts\Champion.cs" />
     <Compile Include="Args\HeroListManagerArgs.cs" />
+    <Compile Include="Args\ResourceManagerArgs.cs" />
     <Compile Include="Bootstrap.cs" />
     <Compile Include="Abstracts\TChampion.cs" />
     <Compile Include="Champions\Cassiopeia.cs" />
@@ -102,10 +103,9 @@
     <Compile Include="Enumerations\CombatFlags.cs" />
     <Compile Include="Enumerations\EffectFlags.cs" />
     <Compile Include="Enumerations\ItemUsageType.cs" />
-    <Compile Include="Enumerations\HealthCheckType.cs" />
-    <Compile Include="Enumerations\ManaCheckType.cs" />
-    <Compile Include="Enumerations\HealthValueType.cs" />
-    <Compile Include="Enumerations\ManaValueType.cs" />
+    <Compile Include="Enumerations\ResourceCheckType.cs" />
+    <Compile Include="Enumerations\ResourceType.cs" />
+    <Compile Include="Enumerations\ResourceValueType.cs" />
     <Compile Include="Enumerations\TargetSelectorModeType.cs" />
     <Compile Include="Enumerations\TargetSelectorPriorityType.cs" />
     <Compile Include="Enumerations\DamageType.cs" />
@@ -147,8 +147,8 @@
     <Compile Include="Managers\IndicatorManager.cs" />
     <Compile Include="Managers\InitiatorManager.cs" />
     <Compile Include="Managers\KillstealManager.cs" />
-    <Compile Include="Managers\HealthManager.cs" />
     <Compile Include="Managers\OverkillManager.cs" />
+    <Compile Include="Managers\ResourceManager.cs" />
     <Compile Include="Managers\SpellBlockManager.cs" />
     <Compile Include="Managers\UltimateManager.cs" />
     <Compile Include="Menus\DebugMenu.cs" />
@@ -173,7 +173,6 @@
     <Compile Include="Wrappers\Spell.cs" />
     <Compile Include="SFXTargetSelector\Targets.cs" />
     <Compile Include="Managers\ItemManager.cs" />
-    <Compile Include="Managers\ManaManager.cs" />
     <Compile Include="Managers\SummonerManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

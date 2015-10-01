@@ -271,7 +271,7 @@
 
 //        protected override void Harass()
 //        {
-//            if (!ManaManager.Check("harass") && !Q.IsCharging)
+//            if (!ResourceManager.Check("harass") && !Q.IsCharging)
 //            {
 //                return;
 //            }

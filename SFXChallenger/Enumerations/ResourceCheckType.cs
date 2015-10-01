@@ -1,8 +1,8 @@
-#region License
+﻿#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- HealthCheckType.cs is part of SFXChallenger.
+ ResourceCheckType.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 
 namespace SFXChallenger.Enumerations
 {
-    public enum HealthCheckType
+    public enum ResourceCheckType
     {
         Minimum,
         Maximum

@@ -28,6 +28,7 @@ using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Abstracts;
+using SFXChallenger.Args;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Library;
 using SFXChallenger.Library.Extensions.NET;
@@ -96,8 +97,21 @@ namespace SFXChallenger.Champions
             HitchanceManager.AddToMenu(
                 harassMenu.AddSubMenu(new Menu("Hitchance", harassMenu.Name + ".hitchance")), "harass",
                 new Dictionary<string, HitChance> { { "Q", HitChance.High } });
-            ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent, null, 0);
-            ManaManager.AddToMenu(harassMenu, "harass-blue", ManaCheckType.Minimum, ManaValueType.Percent, "W Blue", 50);
+            ResourceManager.AddToMenu(
+                harassMenu,
+                new ResourceManagerArgs(
+                    "harass", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    DefaultValue = 30
+                });
+            ResourceManager.AddToMenu(
+                harassMenu,
+                new ResourceManagerArgs(
+                    "harass-blue", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    Prefix = "W Blue",
+                    DefaultValue = 50
+                });
             harassMenu.AddItem(
                 new MenuItem(harassMenu.Name + ".w-card", "Pick Card").SetValue(
                     new StringList(new[] { "Auto", "Gold", "Red", "Blue" }, 3)));
@@ -105,9 +119,27 @@ namespace SFXChallenger.Champions
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", "Use W").SetValue(true));
 
             var laneclearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
-            ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent, null, 50);
-            ManaManager.AddToMenu(
-                laneclearMenu, "lane-clear-blue", ManaCheckType.Minimum, ManaValueType.Percent, "Blue", 65);
+            ResourceManager.AddToMenu(
+                laneclearMenu,
+                new ResourceManagerArgs(
+                    "lane-clear", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    Advanced = true,
+                    MaxValue = 101,
+                    LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
+                    DefaultValues = new List<int> { 70, 50, 50 }
+                });
+            ResourceManager.AddToMenu(
+                laneclearMenu,
+                new ResourceManagerArgs(
+                    "lane-clear-blue", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    Prefix = "Blue",
+                    Advanced = true,
+                    MaxValue = 101,
+                    LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
+                    DefaultValues = new List<int> { 80, 60, 60 }
+                });
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q-min", "Q Min.").SetValue(new Slider(4, 1, 5)));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", "Use W").SetValue(true));
@@ -521,7 +553,7 @@ namespace SFXChallenger.Champions
                     }
                 }
             }
-            if (ManaManager.Check("harass") && q && Q.IsReady())
+            if (ResourceManager.Check("harass") && q && Q.IsReady())
             {
                 var target = TargetSelector.GetTarget(Q, false);
                 if (target != null)
@@ -545,7 +577,7 @@ namespace SFXChallenger.Champions
             var qMin = Menu.Item(Menu.Name + ".lane-clear.q-min").GetValue<Slider>().Value;
             var w = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>();
 
-            if (ManaManager.Check("lane-clear") && q && Q.IsReady())
+            if (ResourceManager.Check("lane-clear") && q && Q.IsReady())
             {
                 var minions = MinionManager.GetMinions(
                     Q.Range * 1.2f, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
@@ -574,7 +606,7 @@ namespace SFXChallenger.Champions
                     W.Range * 1.2f, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
                 if (minions.Any())
                 {
-                    Cards.Select(!ManaManager.Check("lane-clear-blue") ? CardColor.Blue : CardColor.Red);
+                    Cards.Select(!ResourceManager.Check("lane-clear-blue") ? CardColor.Blue : CardColor.Red);
                 }
             }
         }
@@ -734,7 +766,7 @@ namespace SFXChallenger.Champions
                     }
                     if (mode == "combo" &&
                         (Player.ManaPercent < 10 || W.Level == 1 && blueMana1 || W.Level == 2 && blueMana2 ||
-                         W.Level > 2 && blueMana3) || mode == "harass" && !ManaManager.Check("harass-blue"))
+                         W.Level > 2 && blueMana3) || mode == "harass" && !ResourceManager.Check("harass-blue"))
                     {
                         blue = 4;
                     }
@@ -845,7 +877,7 @@ namespace SFXChallenger.Champions
                     }
                     else
                     {
-                        var card = !ManaManager.Check("harass-blue") ? CardColor.Blue : selectedCard;
+                        var card = !ResourceManager.Check("harass-blue") ? CardColor.Blue : selectedCard;
                         if (card != CardColor.None)
                         {
                             cards.Add(card);

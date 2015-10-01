@@ -129,23 +129,44 @@ namespace SFXChallenger.Champions
             HitchanceManager.AddToMenu(
                 harassMenu.AddSubMenu(new Menu("Hitchance", harassMenu.Name + ".hitchance")), "harass",
                 new Dictionary<string, HitChance> { { "Q", HitChance.VeryHigh }, { "W", HitChance.High } });
-            ManaManager.AddToMenu(
-                harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Total, string.Empty, 70, 0, 750);
+            ResourceManager.AddToMenu(
+                harassMenu,
+                new ResourceManagerArgs(
+                    "harass", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    DefaultValue = 30
+                });
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", "Use Q").SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", "Use W").SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", "Use E").SetValue(true));
 
             var laneclearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
-            ManaManager.AddToMenu(
-                laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Total, string.Empty, 90, 0, 750);
+            ResourceManager.AddToMenu(
+                laneclearMenu,
+                new ResourceManagerArgs(
+                    "lane-clear", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    Advanced = true,
+                    MaxValue = 101,
+                    LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
+                    DefaultValues = new List<int> { 50, 30, 30 }
+                });
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".aa", "Use AutoAttacks").SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", "Use W").SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", "Use E").SetValue(true));
 
             var lasthitMenu = Menu.AddSubMenu(new Menu("Last Hit", Menu.Name + ".lasthit"));
-            ManaManager.AddToMenu(
-                lasthitMenu, "lasthit", ManaCheckType.Maximum, ManaValueType.Percent, string.Empty, 70);
+            ResourceManager.AddToMenu(
+                lasthitMenu,
+                new ResourceManagerArgs(
+                    "lasthit", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Maximum)
+                {
+                    Advanced = true,
+                    MaxValue = 101,
+                    LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
+                    DefaultValues = new List<int> { 90, 70, 70 }
+                });
             lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".e", "Use E").SetValue(true));
             lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".e-poison", "Use E Poison").SetValue(true));
 
@@ -239,7 +260,7 @@ namespace SFXChallenger.Champions
 
         protected override void OnPreUpdate()
         {
-            if ((Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit && ManaManager.Check("lasthit")) &&
+            if ((Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit && ResourceManager.Check("lasthit")) &&
                 E.IsReady())
             {
                 var ePoison = Menu.Item(Menu.Name + ".lasthit.e-poison").GetValue<bool>();
@@ -380,7 +401,7 @@ namespace SFXChallenger.Champions
                         var m = args.Target as Obj_AI_Minion;
                         if (m != null && (_lastEEndTime < Game.Time || E.IsReady()) ||
                             (GetPoisonBuffEndTime(m) < E.ArrivalTime(m) || E.Instance.ManaCost > Player.Mana) ||
-                            !ManaManager.Check("lane-clear"))
+                            !ResourceManager.Check("lane-clear"))
                         {
                             args.Process = true;
                         }
@@ -396,7 +417,8 @@ namespace SFXChallenger.Champions
                         {
                             args.Process = Menu.Item(Menu.Name + ".lasthit.e").GetValue<bool>() ||
                                            (Menu.Item(Menu.Name + ".lasthit.e-poison").GetValue<bool>() &&
-                                            GetPoisonBuffEndTime(m) > E.ArrivalTime(m)) && ManaManager.Check("lasthit");
+                                            GetPoisonBuffEndTime(m) > E.ArrivalTime(m)) &&
+                                           ResourceManager.Check("lasthit");
                         }
                     }
                 }
@@ -730,7 +752,7 @@ namespace SFXChallenger.Champions
             {
                 WLogic(W.GetHitChance("harass"));
             }
-            if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>() && ManaManager.Check("harass"))
+            if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>() && ResourceManager.Check("harass"))
             {
                 ELogic();
             }
@@ -760,7 +782,7 @@ namespace SFXChallenger.Champions
             var w = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>() && W.IsReady();
 
             if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady() &&
-                ManaManager.Check("lane-clear") && DelayManager.Check("e-delay", _lastECast))
+                ResourceManager.Check("lane-clear") && DelayManager.Check("e-delay", _lastECast))
             {
                 var minion =
                     MinionManager.GetMinions(

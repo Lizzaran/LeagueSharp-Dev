@@ -128,14 +128,37 @@ namespace SFXChallenger.Champions
             HitchanceManager.AddToMenu(
                 harassMenu.AddSubMenu(new Menu("Hitchance", harassMenu.Name + ".hitchance")), "harass",
                 new Dictionary<string, HitChance> { { "Q", HitChance.VeryHigh } });
-            ManaManager.AddToMenu(harassMenu, "harass-q", ManaCheckType.Minimum, ManaValueType.Percent, "Q");
-            ManaManager.AddToMenu(harassMenu, "harass-w", ManaCheckType.Minimum, ManaValueType.Percent, "W", 50);
+            ResourceManager.AddToMenu(
+                harassMenu,
+                new ResourceManagerArgs(
+                    "harass-q", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    Prefix = "Q",
+                    DefaultValue = 30
+                });
+            ResourceManager.AddToMenu(
+                harassMenu,
+                new ResourceManagerArgs(
+                    "harass-w", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    Prefix = "W",
+                    DefaultValue = 50
+                });
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", "Use Q").SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", "Use W").SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", "Use E").SetValue(false));
 
             var laneclearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
-            ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent, null, 25);
+            ResourceManager.AddToMenu(
+                laneclearMenu,
+                new ResourceManagerArgs(
+                    "lane-clear", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    Advanced = true,
+                    MaxValue = 101,
+                    LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
+                    DefaultValues = new List<int> { 45, 25, 25 }
+                });
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", "Use W").SetValue(true));
 
@@ -151,7 +174,13 @@ namespace SFXChallenger.Champions
             initiatorMenu.AddItem(new MenuItem(initiatorMenu.Name + ".use-e", "Use E").SetValue(true));
 
             var shieldMenu = Menu.AddSubMenu(new Menu("Shield", Menu.Name + ".shield"));
-            ManaManager.AddToMenu(shieldMenu, "shield", ManaCheckType.Minimum, ManaValueType.Percent);
+            ResourceManager.AddToMenu(
+                shieldMenu,
+                new ResourceManagerArgs(
+                    "shield", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    DefaultValue = 30
+                });
             shieldMenu.AddItem(
                 new MenuItem(shieldMenu.Name + ".min-health", "Min. Health %").SetValue(new Slider(90, 1)));
             shieldMenu.AddItem(
@@ -168,8 +197,22 @@ namespace SFXChallenger.Champions
                     Enemies = true,
                     DefaultValue = false
                 });
-            ManaManager.AddToMenu(miscMenu, "e-self", ManaCheckType.Minimum, ManaValueType.Percent, "E Self", 10);
-            ManaManager.AddToMenu(miscMenu, "e-allies", ManaCheckType.Minimum, ManaValueType.Percent, "E Allies", 20);
+            ResourceManager.AddToMenu(
+                miscMenu,
+                new ResourceManagerArgs(
+                    "e-self", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    Prefix = "E Self",
+                    DefaultValue = 10
+                });
+            ResourceManager.AddToMenu(
+                miscMenu,
+                new ResourceManagerArgs(
+                    "e-allies", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    Prefix = "E Allies",
+                    DefaultValue = 20
+                });
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".e-allies", "E Allies").SetValue(true));
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".block-r", "Block Missing R").SetValue(true));
 
@@ -196,9 +239,9 @@ namespace SFXChallenger.Champions
         private void CastE(Obj_AI_Hero target)
         {
             if (target != null &&
-                (target.IsMe && ManaManager.Check("e-self") ||
+                (target.IsMe && ResourceManager.Check("e-self") ||
                  !target.IsMe && Menu.Item(Menu.Name + ".miscellaneous.e-allies").GetValue<bool>() &&
-                 ManaManager.Check("e-allies")))
+                 ResourceManager.Check("e-allies")))
             {
                 E.CastOnUnit(target);
             }
@@ -229,7 +272,7 @@ namespace SFXChallenger.Champions
                             if (args.Target != null && args.Target.NetworkId == Player.NetworkId &&
                                 slot == hero.GetSpellSlot("SummonerDot"))
                             {
-                                if (E.IsReady() && ManaManager.Check("shield"))
+                                if (E.IsReady() && ResourceManager.Check("shield"))
                                 {
                                     E.CastOnUnit(Player);
                                 }
@@ -414,8 +457,8 @@ namespace SFXChallenger.Champions
             {
                 return;
             }
-            if (Menu.Item(Menu.Name + ".shield.enabled").GetValue<bool>() && E.IsReady() && ManaManager.Check("shield") &&
-                !Player.InFountain() && !Player.IsRecalling())
+            if (Menu.Item(Menu.Name + ".shield.enabled").GetValue<bool>() && E.IsReady() &&
+                ResourceManager.Check("shield") && !Player.InFountain() && !Player.IsRecalling())
             {
                 if (Player.HealthPercent <= Menu.Item(Menu.Name + ".shield.min-health").GetValue<Slider>().Value)
                 {
@@ -602,8 +645,8 @@ namespace SFXChallenger.Champions
             {
                 return;
             }
-            var q = Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && ManaManager.Check("harass-q");
-            var w = Menu.Item(Menu.Name + ".harass.w").GetValue<bool>() && ManaManager.Check("harass-w");
+            var q = Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && ResourceManager.Check("harass-q");
+            var w = Menu.Item(Menu.Name + ".harass.w").GetValue<bool>() && ResourceManager.Check("harass-w");
             var e = Menu.Item(Menu.Name + ".harass.e").GetValue<bool>();
             if (w && W.IsReady())
             {
@@ -981,7 +1024,8 @@ namespace SFXChallenger.Champions
                         a =>
                             (Ball.Hero == null || Ball.Hero.NetworkId != a.NetworkId) && a.Distance(Player) <= E.Range &&
                             (a.IsMe || Menu.Item(Menu.Name + ".miscellaneous.e-allies").GetValue<bool>()) &&
-                            (a.IsMe && ManaManager.Check("e-self") || !a.IsMe && ManaManager.Check("e-allies"))))
+                            (a.IsMe && ResourceManager.Check("e-self") || !a.IsMe && ResourceManager.Check("e-allies")))
+                    )
                 {
                     var hits = GameObjects.EnemyHeroes.Count(e => e.Distance(ally) < spell.Range);
                     if (hits > totalHits)
@@ -1081,7 +1125,7 @@ namespace SFXChallenger.Champions
 
         protected override void LaneClear()
         {
-            if (!ManaManager.Check("lane-clear") || Ball.IsMoving)
+            if (!ResourceManager.Check("lane-clear") || Ball.IsMoving)
             {
                 return;
             }

@@ -199,7 +199,6 @@ namespace SFXChallenger.Abstracts
 
                 Core.OnPreUpdate += OnCorePreUpdate;
                 Core.OnPostUpdate += OnCorePostUpdate;
-
                 Drawing.OnDraw += OnDrawingDraw;
             }
             catch (Exception ex)
@@ -212,9 +211,9 @@ namespace SFXChallenger.Abstracts
         {
             try
             {
-                Drawing.OnDraw -= OnDrawingDraw;
                 Core.OnPreUpdate -= OnCorePreUpdate;
                 Core.OnPostUpdate -= OnCorePostUpdate;
+                Drawing.OnDraw -= OnDrawingDraw;
             }
             catch (Exception ex)
             {

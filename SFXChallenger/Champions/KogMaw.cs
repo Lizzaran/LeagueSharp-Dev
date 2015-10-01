@@ -74,7 +74,14 @@ namespace SFXChallenger.Champions
                     { "E", HitChance.VeryHigh },
                     { "R", HitChance.VeryHigh }
                 });
-            ManaManager.AddToMenu(comboMenu, "combo-r", ManaCheckType.Minimum, ManaValueType.Percent, "R");
+            ResourceManager.AddToMenu(
+                comboMenu,
+                new ResourceManagerArgs(
+                    "combo-r", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    Prefix = "R",
+                    DefaultValue = 30
+                });
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", "Use Q").SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", "Use W").SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", "Use E").SetValue(true));
@@ -84,14 +91,36 @@ namespace SFXChallenger.Champions
             HitchanceManager.AddToMenu(
                 harassMenu.AddSubMenu(new Menu("Hitchance", harassMenu.Name + ".hitchance")), "harass",
                 new Dictionary<string, HitChance> { { "Q", HitChance.High }, { "R", HitChance.VeryHigh } });
-            ManaManager.AddToMenu(harassMenu, "harass", ManaCheckType.Minimum, ManaValueType.Percent);
-            ManaManager.AddToMenu(harassMenu, "harass-r", ManaCheckType.Minimum, ManaValueType.Percent, "R");
+            ResourceManager.AddToMenu(
+                harassMenu,
+                new ResourceManagerArgs(
+                    "harass", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    DefaultValue = 30
+                });
+            ResourceManager.AddToMenu(
+                harassMenu,
+                new ResourceManagerArgs(
+                    "harass-r", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    Prefix = "R",
+                    DefaultValue = 30
+                });
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", "Use Q").SetValue(false));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", "Use W").SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".r", "Use R").SetValue(true));
 
             var laneclearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
-            ManaManager.AddToMenu(laneclearMenu, "lane-clear", ManaCheckType.Minimum, ManaValueType.Percent);
+            ResourceManager.AddToMenu(
+                laneclearMenu,
+                new ResourceManagerArgs(
+                    "lane-clear", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    Advanced = true,
+                    MaxValue = 101,
+                    LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
+                    DefaultValues = new List<int> { 50, 30, 30 }
+                });
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", "Use W").SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", "Use E").SetValue(false));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e-min", "E Min.").SetValue(new Slider(3, 1, 5)));
@@ -249,7 +278,7 @@ namespace SFXChallenger.Champions
             {
                 Casting.SkillShot(E, E.GetHitChance("combo"));
             }
-            if (useR && ManaManager.Check("combo-r") &&
+            if (useR && ResourceManager.Check("combo-r") &&
                 Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value > GetRBuffCount())
             {
                 var target = TargetSelector.GetTarget(R);
@@ -280,7 +309,7 @@ namespace SFXChallenger.Champions
 
         protected override void Harass()
         {
-            if (ManaManager.Check("harass"))
+            if (ResourceManager.Check("harass"))
             {
                 var useQ = Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && Q.IsReady();
                 var useW = Menu.Item(Menu.Name + ".harass.w").GetValue<bool>() && W.IsReady();
@@ -293,7 +322,7 @@ namespace SFXChallenger.Champions
                     WLogic();
                 }
             }
-            if (ManaManager.Check("harass-r"))
+            if (ResourceManager.Check("harass-r"))
             {
                 var useR = Menu.Item(Menu.Name + ".harass.r").GetValue<bool>() && R.IsReady();
                 if (useR && Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value > GetRBuffCount())
@@ -311,7 +340,7 @@ namespace SFXChallenger.Champions
 
         protected override void LaneClear()
         {
-            if (!ManaManager.Check("lane-clear"))
+            if (!ResourceManager.Check("lane-clear"))
             {
                 return;
             }

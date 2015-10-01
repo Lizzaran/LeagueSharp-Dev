@@ -279,7 +279,7 @@
 
 //        protected override void Harass()
 //        {
-//            if (!ManaManager.Check("harass"))
+//            if (!ResourceManager.Check("harass"))
 //            {
 //                return;
 //            }
@@ -292,7 +292,7 @@
 
 //        protected override void LaneClear()
 //        {
-//            if (!ManaManager.Check("lane-clear"))
+//            if (!ResourceManager.Check("lane-clear"))
 //            {
 //                return;
 //            }
