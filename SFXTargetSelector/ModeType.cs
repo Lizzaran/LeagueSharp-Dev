@@ -2,29 +2,36 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- ManaValueType.cs is part of SFXChallenger.
+ ModeType.cs is part of SFXTargetSelector.
 
- SFXChallenger is free software: you can redistribute it and/or modify
+ SFXTargetSelector is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
 
- SFXChallenger is distributed in the hope that it will be useful,
+ SFXTargetSelector is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  GNU General Public License for more details.
 
  You should have received a copy of the GNU General Public License
- along with SFXChallenger. If not, see <http://www.gnu.org/licenses/>.
+ along with SFXTargetSelector. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #endregion License
 
-namespace SFXChallenger.Enumerations
+namespace SFXTargetSelector
 {
-    public enum ManaValueType
+    public enum ModeType
     {
-        Total,
-        Percent
+        Weights,
+        Priorities,
+        LessAttacksToKill,
+        MostAbilityPower,
+        MostAttackDamage,
+        Closest,
+        NearMouse,
+        LessCastPriority,
+        LeastHealth
     }
 }
