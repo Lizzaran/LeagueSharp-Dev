@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.7.7.31</AssemblyVersion>
+    <AssemblyVersion>0.7.7.34</AssemblyVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -83,6 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Abstracts\Champion.cs" />
+    <Compile Include="Args\GapcloserManagerArgs.cs" />
     <Compile Include="Args\HeroListManagerArgs.cs" />
     <Compile Include="Args\ResourceManagerArgs.cs" />
     <Compile Include="Bootstrap.cs" />
@@ -110,8 +111,7 @@
     <Compile Include="Enumerations\TargetSelectorPriorityType.cs" />
     <Compile Include="Enumerations\DamageType.cs" />
     <Compile Include="Enumerations\UltimateModeType.cs" />
-    <Compile Include="Events\InitiatorArgs.cs" />
-    <Compile Include="Events\TargetCastArgs.cs" />
+    <Compile Include="Args\InitiatorManagerArgs.cs" />
     <Compile Include="Global.cs" />
     <Compile Include="Helpers\CPrediction.cs" />
     <Compile Include="Helpers\DynamicInitializer.cs" />
@@ -140,8 +140,10 @@
     <Compile Include="Library\ProducerConsumer.cs" />
     <Compile Include="Library\Update.cs" />
     <Compile Include="Library\Utils.cs" />
+    <Compile Include="Managers\BestTargetOnlyManager.cs" />
     <Compile Include="Managers\DelayManager.cs" />
     <Compile Include="Managers\DrawingManager.cs" />
+    <Compile Include="Managers\GapcloserManager.cs" />
     <Compile Include="Managers\HeroListManager.cs" />
     <Compile Include="Managers\HitchanceManager.cs" />
     <Compile Include="Managers\IndicatorManager.cs" />

@@ -95,9 +95,8 @@ namespace SFXChallenger.Champions
 
             Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
             Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
-            AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
+            GapcloserManager.OnGapcloser += OnEnemyGapcloser;
             Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
-            CustomEvents.Unit.OnDash += OnUnitDash;
             GameObject.OnCreate += OnGameObjectCreate;
         }
 
@@ -179,8 +178,10 @@ namespace SFXChallenger.Champions
             killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".q-aa", "Use Q AA").SetValue(false));
 
             var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
+
+            var wImmobileMenu = miscMenu.AddSubMenu(new Menu("W Immobile", miscMenu.Name + "w-immobile"));
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("W Immobile", miscMenu.Name + "w-immobile")),
+                wImmobileMenu,
                 new HeroListManagerArgs("w-immobile")
                 {
                     IsWhitelist = false,
@@ -188,8 +189,11 @@ namespace SFXChallenger.Champions
                     Enemies = true,
                     DefaultValue = false
                 });
+            BestTargetOnlyManager.AddToMenu(wImmobileMenu, "w-immobile");
+
+            var wSlowedMenu = miscMenu.AddSubMenu(new Menu("W Slowed", miscMenu.Name + "w-slowed"));
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("W Slowed", miscMenu.Name + "w-slowed")),
+                wSlowedMenu,
                 new HeroListManagerArgs("w-slowed")
                 {
                     IsWhitelist = false,
@@ -198,8 +202,11 @@ namespace SFXChallenger.Champions
                     DefaultValue = false,
                     Enabled = false
                 });
-            HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("W Gapcloser", miscMenu.Name + "w-gapcloser")),
+            BestTargetOnlyManager.AddToMenu(wSlowedMenu, "w-slowed");
+
+            var wGapcloserMenu = miscMenu.AddSubMenu(new Menu("W Gapcloser", miscMenu.Name + "w-gapcloser"));
+            GapcloserManager.AddToMenu(
+                wGapcloserMenu,
                 new HeroListManagerArgs("w-gapcloser")
                 {
                     IsWhitelist = false,
@@ -207,7 +214,8 @@ namespace SFXChallenger.Champions
                     Enemies = true,
                     DefaultValue = false,
                     Enabled = false
-                });
+                }, true);
+            BestTargetOnlyManager.AddToMenu(wGapcloserMenu, "w-gapcloser");
 
             IndicatorManager.AddToMenu(DrawingManager.Menu, true);
             IndicatorManager.Add(
@@ -293,10 +301,12 @@ namespace SFXChallenger.Champions
             {
                 var target =
                     GameObjects.EnemyHeroes.FirstOrDefault(
-                        t => t.IsValidTarget(W.Range) && HeroListManager.Check("w-immobile", t) && Utils.IsImmobile(t));
+                        t =>
+                            t.IsValidTarget(W.Range) && HeroListManager.Check("w-immobile", t) &&
+                            BestTargetOnlyManager.Check("w-immobile", W, t) && Utils.IsImmobile(t));
                 if (target != null)
                 {
-                    Casting.SkillShot(target, W, HitChance.VeryHigh);
+                    Casting.SkillShot(target, W, HitChance.High);
                 }
             }
 
@@ -306,10 +316,11 @@ namespace SFXChallenger.Champions
                     GameObjects.EnemyHeroes.FirstOrDefault(
                         t =>
                             t.IsValidTarget(W.Range) && HeroListManager.Check("w-slowed", t) &&
+                            BestTargetOnlyManager.Check("w-slowed", W, t) &&
                             t.Buffs.Any(b => b.Type == BuffType.Slow && b.EndTime - Game.Time > 0.5f));
                 if (target != null)
                 {
-                    Casting.SkillShot(target, W, W.GetHitChance("combo"));
+                    Casting.SkillShot(target, W, HitChance.High);
                 }
             }
 
@@ -492,20 +503,16 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private void OnUnitDash(Obj_AI_Base sender, Dash.DashItem args)
+        private void OnEnemyGapcloser(object sender, GapcloserManagerArgs args)
         {
             try
             {
-                var hero = sender as Obj_AI_Hero;
-                if (!sender.IsEnemy || hero == null)
+                if (args.UniqueId == "w-gapcloser" && W.IsReady() &&
+                    BestTargetOnlyManager.Check("w-gapcloser", W, args.Hero))
                 {
-                    return;
-                }
-                if (HeroListManager.Check("w-gapcloser", hero))
-                {
-                    if (args.EndPos.Distance(Player.Position) < W.Range)
+                    if (args.End.Distance(Player.Position) <= W.Range)
                     {
-                        W.Cast(args.EndPos);
+                        W.Cast(args.End);
                     }
                 }
             }
@@ -523,28 +530,6 @@ namespace SFXChallenger.Champions
                     _ultimate.IsActive(UltimateModeType.Interrupt, sender))
                 {
                     Utility.DelayAction.Add(DelayManager.Get("ultimate-interrupt-delay"), () => R.Cast(sender.Position));
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnEnemyGapcloser(ActiveGapcloser args)
-        {
-            try
-            {
-                if (!args.Sender.IsEnemy)
-                {
-                    return;
-                }
-                if (HeroListManager.Check("w-gapcloser", args.Sender))
-                {
-                    if (args.End.Distance(Player.Position) < W.Range)
-                    {
-                        W.Cast(args.End);
-                    }
                 }
             }
             catch (Exception ex)

@@ -100,7 +100,7 @@ namespace SFXChallenger.Champions
             var tahmMenu = ultimateMenu.AddSubMenu(new Menu("Tahm Kench", ultimateMenu.Name + ".tahm-kench"));
             HeroListManager.AddToMenu(
                 tahmMenu.AddSubMenu(new Menu("Blacklist", tahmMenu.Name + ".blacklist")),
-                new HeroListManagerArgs("q-gapcloser")
+                new HeroListManagerArgs("tahm-kench")
                 {
                     IsWhitelist = false,
                     Allies = false,

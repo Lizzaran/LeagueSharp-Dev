@@ -90,7 +90,7 @@ namespace SFXChallenger.Champions
                             Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true)
             };
 
-            AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
+            GapcloserManager.OnGapcloser += OnEnemyGapcloser;
             Drawing.OnDraw += OnDrawingDraw;
         }
 
@@ -210,15 +210,17 @@ namespace SFXChallenger.Champions
 
             var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
 
-            HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("E Gapcloser", miscMenu.Name + "e-gapcloser")),
+            var eGapcloserMenu = miscMenu.AddSubMenu(new Menu("E Gapcloser", miscMenu.Name + "e-gapcloser"));
+            GapcloserManager.AddToMenu(
+                eGapcloserMenu,
                 new HeroListManagerArgs("e-gapcloser")
                 {
                     IsWhitelist = false,
                     Allies = false,
                     Enemies = true,
                     DefaultValue = false
-                });
+                }, true);
+            BestTargetOnlyManager.AddToMenu(eGapcloserMenu, "e-gapcloser");
 
             Weights.AddItem(new Weights.Item("w-stacks", "W Stacks", 5, false, t => GetWStacks(t) + 1));
 
@@ -273,27 +275,25 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private void OnEnemyGapcloser(ActiveGapcloser args)
+        private void OnEnemyGapcloser(object sender, GapcloserManagerArgs args)
         {
             try
             {
-                if (!args.Sender.IsEnemy)
+                if (args.UniqueId == "e-gapcloser" && E.IsReady() &&
+                    BestTargetOnlyManager.Check("e-gapcloser", E, args.Hero))
                 {
-                    return;
-                }
-
-                if (HeroListManager.Check("e-gapcloser", args.Sender) && args.End.Distance(Player.Position) < E.Range &&
-                    E.IsReady())
-                {
-                    var target = TargetSelector.GetTarget(E.Range * 0.85f, E.DamageType);
-                    if (target == null || args.Sender.NetworkId.Equals(target.NetworkId))
+                    if (args.End.Distance(Player.Position) <= E.Range)
                     {
                         E.Cast(args.End);
                     }
                 }
-                if (_ultimate.IsActive(UltimateModeType.Gapcloser, args.Sender))
+                if (string.IsNullOrEmpty(args.UniqueId))
                 {
-                    RLogic(UltimateModeType.Gapcloser, HitChance.High, args.Sender);
+                    if (_ultimate.IsActive(UltimateModeType.Gapcloser, args.Hero) &&
+                        BestTargetOnlyManager.Check("r-gapcloser", R, args.Hero))
+                    {
+                        RLogic(UltimateModeType.Gapcloser, HitChance.High, args.Hero);
+                    }
                 }
             }
             catch (Exception ex)

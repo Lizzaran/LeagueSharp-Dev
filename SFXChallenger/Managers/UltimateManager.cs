@@ -200,6 +200,7 @@ namespace SFXChallenger.Managers
                                 DontSave = false,
                                 Enabled = true
                             });
+                        BestTargetOnlyManager.AddToMenu(autoGapcloserMenu, "r-gapcloser");
                     }
                     uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".min", "Min. Hits").SetValue(new Slider(3, 1, 5)));
                     if (DamageCalculation != null)

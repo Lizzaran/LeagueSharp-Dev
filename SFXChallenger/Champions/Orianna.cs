@@ -31,7 +31,6 @@ using LeagueSharp.Common;
 using SFXChallenger.Abstracts;
 using SFXChallenger.Args;
 using SFXChallenger.Enumerations;
-using SFXChallenger.Events;
 using SFXChallenger.Helpers;
 using SFXChallenger.Library;
 using SFXChallenger.Library.Extensions.NET;
@@ -98,8 +97,7 @@ namespace SFXChallenger.Champions
             InitiatorManager.OnAllyInitiator += OnAllyInitiator;
             Spellbook.OnCastSpell += OnSpellbookCastSpell;
             Ball.OnPositionChange += OnBallPositionChange;
-            AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
-            CustomEvents.Unit.OnDash += OnUnitDash;
+            GapcloserManager.OnGapcloser += OnEnemyGapcloser;
             Drawing.OnDraw += OnDrawingDraw;
             Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
         }
@@ -188,8 +186,10 @@ namespace SFXChallenger.Champions
             shieldMenu.AddItem(new MenuItem(shieldMenu.Name + ".enabled", "Enabled").SetValue(true));
 
             var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
-            HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("Q Gapcloser", miscMenu.Name + "q-gapcloser")),
+
+            var qGapcloserMenu = miscMenu.AddSubMenu(new Menu("Q Gapcloser", miscMenu.Name + "q-gapcloser"));
+            GapcloserManager.AddToMenu(
+                qGapcloserMenu,
                 new HeroListManagerArgs("q-gapcloser")
                 {
                     IsWhitelist = false,
@@ -197,6 +197,8 @@ namespace SFXChallenger.Champions
                     Enemies = true,
                     DefaultValue = false
                 });
+            BestTargetOnlyManager.AddToMenu(qGapcloserMenu, "q-gapcloser");
+
             ResourceManager.AddToMenu(
                 miscMenu,
                 new ResourceManagerArgs(
@@ -323,55 +325,24 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private void OnUnitDash(Obj_AI_Base sender, Dash.DashItem args)
+        private void OnEnemyGapcloser(object sender, GapcloserManagerArgs args)
         {
             try
             {
-                var hero = sender as Obj_AI_Hero;
-                if (!sender.IsEnemy || hero == null)
+                if (args.UniqueId == "q-gapcloser" && Q.IsReady() &&
+                    BestTargetOnlyManager.Check("q-gapcloser", Q, args.Hero))
                 {
-                    return;
-                }
-                var endTick = Game.Time - Game.Ping / 2000f + (args.EndPos.Distance(args.StartPos) / args.Speed);
-                if (HeroListManager.Check("q-gapcloser", hero) && Ball.Position.Distance(args.EndPos.To3D()) <= Q.Range &&
-                    Q.IsReady())
-                {
-                    var target = TargetSelector.GetTarget(Q.Range * 0.85f, Q.DamageType);
-                    if (target == null || sender.NetworkId.Equals(target.NetworkId))
+                    if (args.End.Distance(Player.Position) <= Q.Range)
                     {
-                        var delay = (int) (endTick - Game.Time - Q.Delay - 0.1f);
+                        var delay = (int) (args.EndTime - Game.Time - Q.Delay - 0.1f);
                         if (delay > 0)
                         {
-                            Utility.DelayAction.Add(delay * 1000, () => Q.Cast(args.EndPos));
+                            Utility.DelayAction.Add(delay * 1000, () => Q.Cast(args.End));
                         }
                         else
                         {
-                            Q.Cast(args.EndPos);
+                            Q.Cast(args.End);
                         }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private void OnEnemyGapcloser(ActiveGapcloser args)
-        {
-            try
-            {
-                if (!args.Sender.IsEnemy)
-                {
-                    return;
-                }
-                if (HeroListManager.Check("q-gapcloser", args.Sender) && Ball.Position.Distance(args.End) <= Q.Range &&
-                    Q.IsReady())
-                {
-                    var target = TargetSelector.GetTarget(Q.Range * 0.85f, Q.DamageType);
-                    if (target == null || args.Sender.NetworkId.Equals(target.NetworkId))
-                    {
-                        Q.Cast(args.End);
                     }
                 }
             }
@@ -399,7 +370,7 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private void OnAllyInitiator(object sender, InitiatorArgs args)
+        private void OnAllyInitiator(object sender, InitiatorManagerArgs args)
         {
             try
             {

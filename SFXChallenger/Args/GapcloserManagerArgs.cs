@@ -1,8 +1,8 @@
-#region License
+﻿#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- InitiatorArgs.cs is part of SFXChallenger.
+ GapcloserManagerArgs.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -28,19 +28,21 @@ using SharpDX;
 
 #endregion
 
-namespace SFXChallenger.Events
+namespace SFXChallenger.Args
 {
-    public class InitiatorArgs : EventArgs
+    public class GapcloserManagerArgs : EventArgs
     {
-        public InitiatorArgs(Obj_AI_Hero hero, Vector3 start, Vector3 end, float range)
+        public GapcloserManagerArgs(string uniqueId, Obj_AI_Hero hero, Vector3 start, Vector3 end, float endTime)
         {
+            UniqueId = uniqueId;
             Hero = hero;
             Start = start;
             End = end;
-            Range = range;
+            EndTime = endTime;
         }
 
-        public float Range { get; set; }
+        public float EndTime { get; set; }
+        public string UniqueId { get; set; }
         public Obj_AI_Hero Hero { get; private set; }
         public Vector3 Start { get; private set; }
         public Vector3 End { get; private set; }

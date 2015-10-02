@@ -60,7 +60,7 @@ namespace SFXChallenger.Champions
 
         protected override void OnLoad()
         {
-            AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
+            GapcloserManager.OnGapcloser += OnEnemyGapcloser;
         }
 
         protected override void AddToMenu()
@@ -135,18 +135,21 @@ namespace SFXChallenger.Champions
 
             var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
 
-            HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("E Gapcloser", miscMenu.Name + "e-gapcloser")),
+            var eGapcloserMenu = miscMenu.AddSubMenu(new Menu("E Gapcloser", miscMenu.Name + "e-gapcloser"));
+            GapcloserManager.AddToMenu(
+                eGapcloserMenu,
                 new HeroListManagerArgs("e-gapcloser")
                 {
                     IsWhitelist = false,
                     Allies = false,
                     Enemies = true,
                     DefaultValue = false
-                });
+                }, true);
+            BestTargetOnlyManager.AddToMenu(eGapcloserMenu, "e-gapcloser");
 
+            var rImmobileMenu = miscMenu.AddSubMenu(new Menu("R Immobile", miscMenu.Name + "r-immobile"));
             HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("R Immobile", miscMenu.Name + "r-immobile")),
+                rImmobileMenu,
                 new HeroListManagerArgs("r-immobile")
                 {
                     IsWhitelist = false,
@@ -154,9 +157,11 @@ namespace SFXChallenger.Champions
                     Enemies = true,
                     DefaultValue = false
                 });
+            BestTargetOnlyManager.AddToMenu(rImmobileMenu, "r-immobile");
 
-            HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("R Gapcloser", miscMenu.Name + "r-gapcloser")),
+            var rGapcloserMenu = miscMenu.AddSubMenu(new Menu("R Gapcloser", miscMenu.Name + "r-gapcloser"));
+            GapcloserManager.AddToMenu(
+                rGapcloserMenu,
                 new HeroListManagerArgs("r-gapcloser")
                 {
                     IsWhitelist = false,
@@ -164,6 +169,7 @@ namespace SFXChallenger.Champions
                     Enemies = true,
                     DefaultValue = false
                 });
+            BestTargetOnlyManager.AddToMenu(rGapcloserMenu, "r-gapcloser");
 
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r-max", "R Max. Stacks").SetValue(new Slider(5, 1, 10)));
 
@@ -200,7 +206,9 @@ namespace SFXChallenger.Champions
             {
                 var target =
                     GameObjects.EnemyHeroes.FirstOrDefault(
-                        t => t.IsValidTarget(R.Range) && HeroListManager.Check("r-immobile", t) && Utils.IsImmobile(t));
+                        t =>
+                            t.IsValidTarget(R.Range) && HeroListManager.Check("r-immobile", t) &&
+                            BestTargetOnlyManager.Check("r-immobile", R, t) && Utils.IsImmobile(t));
                 if (target != null)
                 {
                     Casting.SkillShot(target, R, HitChance.VeryHigh);
@@ -221,22 +229,26 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private void OnEnemyGapcloser(ActiveGapcloser args)
+        private void OnEnemyGapcloser(object sender, GapcloserManagerArgs args)
         {
             try
             {
-                if (!args.Sender.IsEnemy)
+                if (args.UniqueId == "e-gapcloser" && E.IsReady() &&
+                    BestTargetOnlyManager.Check("e-gapcloser", E, args.Hero))
                 {
-                    return;
+                    if (args.End.Distance(Player.Position) <= E.Range)
+                    {
+                        E.Cast(args.End);
+                    }
                 }
-                if (HeroListManager.Check("e-gapcloser", args.Sender) && E.IsInRange(args.End))
-                {
-                    E.Cast(args.End);
-                }
-                if (HeroListManager.Check("r-gapcloser", args.Sender) && R.IsInRange(args.End) &&
+                if (args.UniqueId == "r-gapcloser" && R.IsReady() &&
+                    BestTargetOnlyManager.Check("r-gapcloser", R, args.Hero) &&
                     Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value > GetRBuffCount())
                 {
-                    R.Cast(args.End);
+                    if (args.End.Distance(Player.Position) <= R.Range)
+                    {
+                        R.Cast(args.End);
+                    }
                 }
             }
             catch (Exception ex)

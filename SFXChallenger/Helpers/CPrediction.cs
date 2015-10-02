@@ -201,6 +201,18 @@ namespace SFXChallenger.Helpers
             }
         }
 
+        internal struct BasePosition
+        {
+            public readonly Obj_AI_Base Unit;
+            public readonly Vector3 UnitPosition;
+
+            public BasePosition(Obj_AI_Base unit, Vector3 unitPosition)
+            {
+                Unit = unit;
+                UnitPosition = unitPosition;
+            }
+        }
+
         internal struct Result
         {
             public readonly Vector3 CastPosition;
