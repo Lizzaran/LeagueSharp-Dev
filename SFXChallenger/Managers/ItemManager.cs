@@ -284,6 +284,8 @@ namespace SFXChallenger.Managers
                     new MenuItem(muramanaMenu.Name + ".min-enemies-range", "Min. Enemies in Range").SetValue(
                         new Slider(1, 0, 5)));
                 muramanaMenu.AddItem(
+                    new MenuItem(muramanaMenu.Name + ".player-mana-above", "Player Mana % >=").SetValue(new Slider(30)));
+                muramanaMenu.AddItem(
                     new MenuItem(muramanaMenu.Name + ".player-health-below", "Player Health % <=").SetValue(
                         new Slider(100)));
                 muramanaMenu.AddItem(
@@ -413,6 +415,8 @@ namespace SFXChallenger.Managers
                       ObjectManager.Player.CountEnemiesInRange(
                           overrideRange > 0 ? overrideRange : Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)) >=
                       _menu.Item(_menu.Name + ".muramana.min-enemies-range").GetValue<Slider>().Value &&
+                      ObjectManager.Player.ManaPercent >=
+                      _menu.Item(_menu.Name + ".muramana.player-mana-above").GetValue<Slider>().Value &&
                       ObjectManager.Player.HealthPercent <=
                       _menu.Item(_menu.Name + ".muramana.player-health-below").GetValue<Slider>().Value &&
                       ObjectManager.Player.HealthPercent >=
@@ -424,10 +428,10 @@ namespace SFXChallenger.Managers
                        _menu.Item(_menu.Name + ".muramana.target-health-above").GetValue<Slider>().Value))) ||
                     !activate && hasBuff)
                 {
-                    var muramana = ItemData.Muramana.GetItem();
-                    if (muramana.IsOwned(ObjectManager.Player))
+                    var muramana = ObjectManager.Player.GetSpellSlot("Muramana");
+                    if (muramana != SpellSlot.Unknown && muramana.IsReady())
                     {
-                        muramana.Cast();
+                        ObjectManager.Player.Spellbook.CastSpell(muramana);
                     }
                 }
             }
@@ -456,7 +460,7 @@ namespace SFXChallenger.Managers
                                  target, Damage.DamageType.Magical, ObjectManager.Player.FlatMagicDamageMod * 0.5f));
                 }
                 var sheen = ItemData.Sheen.GetItem();
-                if (sheen.IsOwned())
+                if (sheen.IsOwned() && sheen.IsReady())
                 {
                     return
                         (float)

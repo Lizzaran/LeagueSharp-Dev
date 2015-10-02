@@ -48,8 +48,7 @@ namespace SFXChallenger.Managers
                         string.Format("BestTargetManager: UniqueID \"{0}\" already exist.", uniqueId));
                 }
 
-                menu.AddItem(
-                    new MenuItem(menu.Name + ".best-target-" + uniqueId + ".enabled", "Only Best / Selected Target"))
+                menu.AddItem(new MenuItem(menu.Name + ".best-target-" + uniqueId + ".enabled", "Only Selected Target"))
                     .SetValue(value);
 
                 Menues[uniqueId] = menu;

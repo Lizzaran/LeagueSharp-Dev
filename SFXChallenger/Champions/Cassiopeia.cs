@@ -90,9 +90,9 @@ namespace SFXChallenger.Champions
                 DamageCalculation =
                     hero =>
                         CalcComboDamage(
-                            hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
-                            Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady(),
-                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true)
+                            hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>(),
+                            Menu.Item(Menu.Name + ".combo.w").GetValue<bool>(),
+                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>(), true)
             };
         }
 
@@ -565,35 +565,58 @@ namespace SFXChallenger.Champions
                 {
                     return 0;
                 }
-                var manaCost = (w && W.IsReady() ? W.Instance.ManaCost : (q ? Q.Instance.ManaCost : 0)) * 2;
-                var damage = (w && W.IsReady() ? W.GetDamage(target) : (q ? Q.GetDamage(target) : 0)) * 2;
 
-                if (e)
+                var damage = 0f;
+                var totalMana = 0f;
+                var manaMulti = _ultimate.DamagePercent / 100f;
+
+                if (r && R.IsReady() && R.IsInRange(target))
                 {
-                    var eMana = E.Instance.ManaCost;
+                    var rMana = R.ManaCost * manaMulti;
+                    if (totalMana + rMana <= Player.Mana)
+                    {
+                        totalMana += rMana;
+                        damage += R.GetDamage(target);
+                    }
+                }
+
+                if (q && Q.IsReady() && Q.IsInRange(target))
+                {
+                    var qMana = Q.ManaCost * manaMulti;
+                    if (totalMana + qMana <= Player.Mana)
+                    {
+                        totalMana += qMana;
+                        damage += Q.GetDamage(target);
+                    }
+                }
+                else if (w && W.IsReady() && W.IsInRange(target))
+                {
+                    var wMana = W.ManaCost * manaMulti;
+                    if (totalMana + wMana <= Player.Mana)
+                    {
+                        totalMana += wMana;
+                        damage += W.GetDamage(target);
+                    }
+                }
+                if (e && E.IsReady(3000) && E.IsInRange(target))
+                {
+                    var eMana = E.ManaCost * manaMulti;
                     var eDamage = E.GetDamage(target);
                     var count = target.IsNearTurret() && !target.IsFacing(Player) ||
                                 target.IsNearTurret() && Player.HealthPercent <= 35 || !R.IsReady()
                         ? 5
-                        : 10;
+                        : 8;
                     for (var i = 0; i < count; i++)
                     {
-                        if (manaCost + eMana > Player.Mana)
+                        if (totalMana + eMana > Player.Mana)
                         {
                             break;
                         }
-                        manaCost += eMana;
+                        totalMana += eMana;
                         damage += eDamage;
                     }
                 }
-                if (r)
-                {
-                    if (manaCost + R.Instance.ManaCost - 10 > Player.Mana)
-                    {
-                        return damage;
-                    }
-                    return damage + (R.IsReady() ? R.GetDamage(target) : 0);
-                }
+
                 damage += ItemManager.CalculateComboDamage(target);
                 damage += SummonerManager.CalculateComboDamage(target);
                 return damage;

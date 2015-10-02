@@ -75,8 +75,7 @@ namespace SFXChallenger.Champions
                 Interrupt = false,
                 InterruptDelay = false,
                 DamageCalculation =
-                    hero =>
-                        CalcComboDamage(hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(), true)
+                    hero => CalcComboDamage(hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>(), true)
             };
 
             GapcloserManager.OnGapcloser += OnEnemyGapcloser;
@@ -330,15 +329,29 @@ namespace SFXChallenger.Champions
                 {
                     return 0;
                 }
-                float damage = 0;
-                if (q && (Q.IsReady() || Q.Instance.CooldownExpires - Game.Time <= 1))
+
+                var damage = 0f;
+                var totalMana = 0f;
+                var manaMulti = _ultimate.DamagePercent / 100f;
+
+                if (r && R.IsReady() && R.IsInRange(target, R.Range + R2.Range))
                 {
-                    damage += Q.GetDamage(target);
+                    var rMana = R.ManaCost * manaMulti;
+                    if (totalMana + rMana <= Player.Mana)
+                    {
+                        totalMana += rMana;
+                        damage += R.GetDamage(target);
+                    }
                 }
-                if (r && R.IsReady())
+                if (q && Q.IsReady() && Q.IsInRange(target))
                 {
-                    damage += R.GetDamage(target);
+                    var qMana = Q.ManaCost * manaMulti;
+                    if (totalMana + qMana <= Player.Mana)
+                    {
+                        damage += Q.GetDamage(target);
+                    }
                 }
+
                 damage += 3 * (float) Player.GetAutoAttackDamage(target, true);
                 damage += ItemManager.CalculateComboDamage(target);
                 damage += SummonerManager.CalculateComboDamage(target);

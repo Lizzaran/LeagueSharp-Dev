@@ -66,7 +66,7 @@ namespace SFXChallenger.Managers
                         new Slider(100, 0, 500)));
                 menu.AddItem(
                     new MenuItem(menu.Name + ".gap-" + args.UniqueId + ".distance", "Min. Distance").SetValue(
-                        new Slider(100, 0, 500)));
+                        new Slider(150, 0, 500)));
                 menu.AddItem(
                     new MenuItem(menu.Name + ".gap-" + args.UniqueId + ".dangerous", "Only Dangerous").SetValue(
                         dangerous));
@@ -96,7 +96,9 @@ namespace SFXChallenger.Managers
                         100,
                         delegate
                         {
-                            Check(true, hero, args.StartPos.To3D(), args.EndPos.To3D(), (args.EndTick / 1000f) - 0.1f);
+                            Check(
+                                true, hero, args.StartPos.To3D(), args.EndPos.To3D(), (args.EndTick / 1000f) - 0.1f,
+                                false);
                         });
                 }
             }
@@ -169,7 +171,7 @@ namespace SFXChallenger.Managers
                             endTime += time;
                         }
                     }
-                    Check(false, args.Sender, args.Start, endPos, endTime);
+                    Check(false, args.Sender, args.Start, endPos, endTime, args.SkillType == GapcloserType.Targeted);
                 }
             }
             catch (Exception ex)
@@ -182,7 +184,8 @@ namespace SFXChallenger.Managers
             Obj_AI_Hero sender,
             Vector3 startPosition,
             Vector3 endPosition,
-            float endTime)
+            float endTime,
+            bool targeted)
         {
             try
             {
@@ -217,7 +220,7 @@ namespace SFXChallenger.Managers
                         var distance = menu.Item(menu.Name + ".gap-" + uniqueId + ".distance").GetValue<Slider>().Value;
                         var dangerous = menu.Item(menu.Name + ".gap-" + uniqueId + ".dangerous").GetValue<bool>();
                         if (startPosition.Distance(ObjectManager.Player.Position) >= distance &&
-                            (!dangerous || IsDangerous(sender, startPosition, endPosition)))
+                            (!dangerous || IsDangerous(sender, startPosition, endPosition, targeted)))
                         {
                             var delay = menu.Item(menu.Name + ".gap-" + uniqueId + ".delay").GetValue<Slider>().Value;
                             Utility.DelayAction.Add(
@@ -241,12 +244,16 @@ namespace SFXChallenger.Managers
             }
         }
 
-        private static bool IsDangerous(Obj_AI_Hero sender, Vector3 startPosition, Vector3 endPosition)
+        private static bool IsDangerous(Obj_AI_Hero sender, Vector3 startPosition, Vector3 endPosition, bool targeted)
         {
             try
             {
                 var endDistance = endPosition.Distance(ObjectManager.Player.Position);
                 var startDistance = startPosition.Distance(ObjectManager.Player.Position);
+                if (targeted)
+                {
+                    return true;
+                }
                 if (endDistance <= 150)
                 {
                     return true;

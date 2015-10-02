@@ -89,8 +89,8 @@ namespace SFXChallenger.Champions
                 DamageCalculation =
                     hero =>
                         CalcComboDamage(
-                            hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
-                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true)
+                            hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>(),
+                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>(), true)
             };
 
             Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
@@ -625,54 +625,74 @@ namespace SFXChallenger.Champions
                 {
                     return 0;
                 }
+
                 var damage = 0f;
+                var totalMana = 0f;
+                var manaMulti = _ultimate.DamagePercent / 100f;
+
+                if (r && R.IsReady() && R.IsInRange(target, R.Range + R.Width))
+                {
+                    var rMana = R.ManaCost * manaMulti;
+                    if (totalMana + rMana <= Player.Mana)
+                    {
+                        totalMana += rMana;
+                        damage += R.GetDamage(target);
+                        int stacks;
+                        if (!IsSpellUpgraded(R))
+                        {
+                            stacks = target.IsNearTurret(500f) ? 3 : 10;
+                            var endTimes =
+                                target.Buffs.Where(
+                                    t =>
+                                        t.Type == BuffType.Charm || t.Type == BuffType.Snare ||
+                                        t.Type == BuffType.Knockup || t.Type == BuffType.Polymorph ||
+                                        t.Type == BuffType.Fear || t.Type == BuffType.Taunt || t.Type == BuffType.Stun)
+                                    .Select(t => t.EndTime)
+                                    .ToList();
+                            if (endTimes.Any())
+                            {
+                                var max = endTimes.Max();
+                                if (max - Game.Time > 0.5f)
+                                {
+                                    stacks = 14;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            stacks = 13;
+                        }
+
+                        damage += (R.GetDamage(target, 1) * stacks);
+                    }
+                }
+                if (e && E.IsReady() && E.IsInRange(target, E.Range + ELength))
+                {
+                    var eMana = E.ManaCost * manaMulti;
+                    if (totalMana + eMana <= Player.Mana)
+                    {
+                        totalMana += eMana;
+                        damage += E.GetDamage(target);
+                    }
+                }
+                if (q && Q.IsReady() && Q.IsInRange(target))
+                {
+                    var qMana = Q.ManaCost * manaMulti;
+                    if (totalMana + qMana <= Player.Mana)
+                    {
+                        damage += Q.GetDamage(target);
+                        if (Orbwalking.InAutoAttackRange(target))
+                        {
+                            damage += CalcPassiveDamage(target);
+                        }
+                    }
+                }
                 if (HasQBuff() && Orbwalking.InAutoAttackRange(target))
                 {
                     damage += CalcPassiveDamage(target);
                 }
-                if (q && Q.IsReady() && target.IsValidTarget(Q.Range))
-                {
-                    damage += Q.GetDamage(target);
-                    if (Orbwalking.InAutoAttackRange(target))
-                    {
-                        damage += CalcPassiveDamage(target);
-                    }
-                }
-                if (e && E.IsReady() && target.IsValidTarget(E.Range + ELength))
-                {
-                    damage += E.GetDamage(target);
-                }
-                if (r && R.IsReady() && target.IsValidTarget(R.Range + R.Width))
-                {
-                    damage += R.GetDamage(target);
 
-                    int stacks;
-                    if (!IsSpellUpgraded(R))
-                    {
-                        stacks = target.IsNearTurret(500f) ? 3 : 10;
-                        var endTimes =
-                            target.Buffs.Where(
-                                t =>
-                                    t.Type == BuffType.Charm || t.Type == BuffType.Snare || t.Type == BuffType.Knockup ||
-                                    t.Type == BuffType.Polymorph || t.Type == BuffType.Fear || t.Type == BuffType.Taunt ||
-                                    t.Type == BuffType.Stun).Select(t => t.EndTime).ToList();
-                        if (endTimes.Any())
-                        {
-                            var max = endTimes.Max();
-                            if (max - Game.Time > 0.5f)
-                            {
-                                stacks = 14;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        stacks = 13;
-                    }
-
-                    damage += (R.GetDamage(target, 1) * stacks);
-                }
-                damage *= 1.15f;
+                damage *= 1.1f;
                 damage += ItemManager.CalculateComboDamage(target);
                 damage += SummonerManager.CalculateComboDamage(target);
                 return damage;

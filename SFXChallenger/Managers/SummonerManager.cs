@@ -147,6 +147,7 @@ namespace SFXChallenger.Managers
             (sender ?? ObjectManager.Player).Spellbook.CastSpell(spell.GetSlot(sender ?? ObjectManager.Player));
         }
 
+        // ReSharper disable once MethodOverloadWithOptionalParameter
         public static void Cast(this SummonerSpell spell, Obj_AI_Hero target, Obj_AI_Hero sender = null)
         {
             (sender ?? ObjectManager.Player).Spellbook.CastSpell(spell.GetSlot(sender ?? ObjectManager.Player), target);

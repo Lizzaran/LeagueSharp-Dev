@@ -53,7 +53,18 @@ namespace SFXChallenger.Managers
 
         public int DamagePercent
         {
-            get { return _damagePercent; }
+            get
+            {
+                if (_menu != null)
+                {
+                    var item = _menu.Item(_menu.Name + ".ultimate.damage-percent");
+                    if (item != null)
+                    {
+                        return item.GetValue<Slider>().Value;
+                    }
+                }
+                return _damagePercent;
+            }
             set { _damagePercent = Math.Max(1, Math.Min(value, 200)); }
         }
 

@@ -86,8 +86,8 @@ namespace SFXChallenger.Champions
                 DamageCalculation =
                     hero =>
                         CalcComboDamage(
-                            hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
-                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true)
+                            hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>(),
+                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>(), true)
             };
 
             GapcloserManager.OnGapcloser += OnEnemyGapcloser;
@@ -592,19 +592,38 @@ namespace SFXChallenger.Champions
                 {
                     return 0;
                 }
+
                 float damage = 0;
-                if (q)
+                var totalMana = 0f;
+                var manaMulti = _ultimate.DamagePercent / 100f;
+
+                if (r && R.IsReady() && R.IsInRange(target))
                 {
-                    damage += GetQDamage(target, 1);
+                    var rMana = R.ManaCost * manaMulti;
+                    if (totalMana + rMana <= Player.Mana)
+                    {
+                        totalMana += rMana;
+                        damage += R.GetDamage(target);
+                    }
                 }
-                if (e && E.IsReady())
+                if (q && Q.IsReady() && Q.IsInRange(target, Q.ChargedMaxRange))
                 {
-                    damage += E.GetDamage(target);
+                    var qMana = Q.ManaCost * manaMulti;
+                    if (totalMana + qMana <= Player.Mana)
+                    {
+                        totalMana += qMana;
+                        damage += GetQDamage(target, 1);
+                    }
                 }
-                if (r && R.IsReady())
+                if (e && E.IsReady() && E.IsInRange(target, E.Range + E.Width))
                 {
-                    damage += R.GetDamage(target);
+                    var eMana = E.ManaCost * manaMulti;
+                    if (totalMana + eMana <= Player.Mana)
+                    {
+                        damage += E.GetDamage(target);
+                    }
                 }
+
                 damage += 5f * (float) Player.GetAutoAttackDamage(target);
                 damage += ItemManager.CalculateComboDamage(target);
                 damage += SummonerManager.CalculateComboDamage(target);

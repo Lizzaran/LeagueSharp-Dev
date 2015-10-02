@@ -45,6 +45,7 @@ namespace SFXChallenger.Abstracts
     {
         protected readonly Obj_AI_Hero Player = ObjectManager.Player;
         private List<Spell> _spells;
+        private bool _useMuramana;
         protected Spell E;
         protected Spell Q;
         protected Spell R;
@@ -151,6 +152,15 @@ namespace SFXChallenger.Abstracts
         {
             try
             {
+                if (!_useMuramana)
+                {
+                    ItemManager.Muramana(null, false);
+                }
+                if (_useMuramana && Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
+                {
+                    ItemManager.Muramana(null, true, float.MaxValue);
+                    Utility.DelayAction.Add(1000 + Game.Ping, () => _useMuramana = false);
+                }
                 OnPreUpdate();
             }
             catch (Exception ex)
@@ -199,6 +209,7 @@ namespace SFXChallenger.Abstracts
 
                 Core.OnPreUpdate += OnCorePreUpdate;
                 Core.OnPostUpdate += OnCorePostUpdate;
+                Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
                 Drawing.OnDraw += OnDrawingDraw;
             }
             catch (Exception ex)
@@ -253,6 +264,26 @@ namespace SFXChallenger.Abstracts
                     else
                     {
                         ItemManager.Muramana(null, false);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
+        {
+            try
+            {
+                if (sender.IsMe && !args.SData.IsAutoAttack())
+                {
+                    var slot = Player.GetSpellSlot(args.SData.Name);
+                    if (args.Target is Obj_AI_Hero || slot == SpellSlot.Q || slot == SpellSlot.W || slot == SpellSlot.E ||
+                        slot == SpellSlot.R)
+                    {
+                        _useMuramana = true;
                     }
                 }
             }

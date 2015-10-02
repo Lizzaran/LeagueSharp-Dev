@@ -80,8 +80,8 @@ namespace SFXChallenger.Champions
                 DamageCalculation =
                     hero =>
                         CalcComboDamage(
-                            hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady(),
-                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady(), true)
+                            hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>(),
+                            Menu.Item(Menu.Name + ".combo.e").GetValue<bool>(), true)
             };
 
             GapcloserManager.OnGapcloser += OnEnemyGapcloser;
@@ -372,18 +372,18 @@ namespace SFXChallenger.Champions
                     return 0;
                 }
                 float damage = 0;
-                if (q && Q.IsReady())
+                if (q && Q.IsInRange(target))
                 {
                     damage += Q.GetDamage(target) * 2;
                 }
-                if (e)
+                if (e && E.IsInRange(target))
                 {
                     damage += E.GetDamage(target) * 2;
                 }
-                if (r && R.IsReady())
+                if (r && R.IsReady() && R.IsInRange(target, R.Range + R.Width))
                 {
-                    damage += 1.2f;
                     damage += R.GetDamage(target);
+                    damage *= 1.2f;
                 }
                 damage += ItemManager.CalculateComboDamage(target);
                 damage += SummonerManager.CalculateComboDamage(target);
