@@ -62,6 +62,25 @@ namespace SFXChallenger.Champions
 
         protected override void OnLoad()
         {
+            GapcloserManager.OnGapcloser += OnEnemyGapcloser;
+        }
+
+        protected override void SetupSpells()
+        {
+            Q = new Spell(SpellSlot.Q, 850f);
+            Q.SetSkillshot(0.25f, 15f * (float) Math.PI / 180, 2000f, false, SkillshotType.SkillshotCone);
+
+            W = new Spell(SpellSlot.W, 900f, DamageType.Magical);
+            W.SetSkillshot(0.35f, 250f, 1650f, false, SkillshotType.SkillshotCircle);
+
+            E = new Spell(SpellSlot.E, 425f);
+
+            R = new Spell(SpellSlot.R, 1100f);
+            R.SetSkillshot(0.25f, 110f, 2100f, false, SkillshotType.SkillshotLine);
+
+            R2 = new Spell(SpellSlot.R, 750f);
+            R2.SetSkillshot(0f, (float) (60 * Math.PI / 180), 1500f, false, SkillshotType.SkillshotCone);
+
             _ultimate = new UltimateManager
             {
                 Combo = true,
@@ -74,11 +93,10 @@ namespace SFXChallenger.Champions
                 GapcloserDelay = false,
                 Interrupt = false,
                 InterruptDelay = false,
+                Spells = Spells,
                 DamageCalculation =
                     hero => CalcComboDamage(hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>(), true)
             };
-
-            GapcloserManager.OnGapcloser += OnEnemyGapcloser;
         }
 
         protected override void AddToMenu()
@@ -165,23 +183,6 @@ namespace SFXChallenger.Champions
             IndicatorManager.Finale();
         }
 
-        protected override void SetupSpells()
-        {
-            Q = new Spell(SpellSlot.Q, 850f);
-            Q.SetSkillshot(0.25f, 15f * (float) Math.PI / 180, 2000f, false, SkillshotType.SkillshotCone);
-
-            W = new Spell(SpellSlot.W, 900f, DamageType.Magical);
-            W.SetSkillshot(0.35f, 250f, 1650f, false, SkillshotType.SkillshotCircle);
-
-            E = new Spell(SpellSlot.E, 425f);
-
-            R = new Spell(SpellSlot.R, 1100f);
-            R.SetSkillshot(0.25f, 110f, 2100f, false, SkillshotType.SkillshotLine);
-
-            R2 = new Spell(SpellSlot.R, 750f);
-            R2.SetSkillshot(0f, (float) (60 * Math.PI / 180), 1500f, false, SkillshotType.SkillshotCone);
-        }
-
         protected override void OnPreUpdate() {}
 
         protected override void OnPostUpdate()
@@ -239,17 +240,15 @@ namespace SFXChallenger.Champions
             var useE = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
             var useR = _ultimate.IsActive(UltimateModeType.Combo) && R.IsReady();
 
-            if (useQ)
+            if (useR)
             {
-                Casting.SkillShot(Q, Q.GetHitChance("combo"));
-            }
-            if (useW)
-            {
-                var target = TargetSelector.GetTarget(W);
-                var best = CPrediction.Circle(W, target, W.GetHitChance("combo"));
-                if (best.TotalHits > 0 && !best.CastPosition.Equals(Vector3.Zero))
+                var target = TargetSelector.GetTarget(R.Range + R2.Range, R.DamageType);
+                if (target != null)
                 {
-                    W.Cast(best.CastPosition);
+                    if (!RLogic(UltimateModeType.Combo, target))
+                    {
+                        RLogicSingle(UltimateModeType.Combo);
+                    }
                 }
             }
             if (useE)
@@ -264,15 +263,17 @@ namespace SFXChallenger.Champions
                     }
                 }
             }
-            if (useR)
+            if (useQ)
             {
-                var target = TargetSelector.GetTarget(R);
-                if (target != null && Orbwalking.InAutoAttackRange(target))
+                Casting.SkillShot(Q, Q.GetHitChance("combo"));
+            }
+            if (useW)
+            {
+                var target = TargetSelector.GetTarget(W);
+                var best = CPrediction.Circle(W, target, W.GetHitChance("combo"));
+                if (best.TotalHits > 0 && !best.CastPosition.Equals(Vector3.Zero))
                 {
-                    if (!RLogic(UltimateModeType.Combo, target))
-                    {
-                        RLogicSingle(UltimateModeType.Combo);
-                    }
+                    W.Cast(best.CastPosition);
                 }
             }
         }
@@ -351,8 +352,10 @@ namespace SFXChallenger.Champions
                         damage += Q.GetDamage(target);
                     }
                 }
-
-                damage += 3 * (float) Player.GetAutoAttackDamage(target, true);
+                if (target.Distance(Player) <= Orbwalking.GetRealAutoAttackRange(target) * 0.85f)
+                {
+                    damage += 2 * (float) Player.GetAutoAttackDamage(target, true);
+                }
                 damage += ItemManager.CalculateComboDamage(target);
                 damage += SummonerManager.CalculateComboDamage(target);
                 return damage;

@@ -73,6 +73,29 @@ namespace SFXChallenger.Champions
 
         protected override void OnLoad()
         {
+            Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
+            InitiatorManager.OnAllyInitiator += OnAllyInitiator;
+            Spellbook.OnCastSpell += OnSpellbookCastSpell;
+            Ball.OnPositionChange += OnBallPositionChange;
+            GapcloserManager.OnGapcloser += OnEnemyGapcloser;
+            Drawing.OnDraw += OnDrawingDraw;
+            Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
+        }
+
+        protected override void SetupSpells()
+        {
+            Q = new Spell(SpellSlot.Q, 825f, DamageType.Magical);
+            Q.SetSkillshot(0.15f, 120f, 1345f, false, SkillshotType.SkillshotCircle);
+
+            W = new Spell(SpellSlot.W, float.MaxValue, DamageType.Magical);
+            W.SetSkillshot(0f, 230f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+
+            E = new Spell(SpellSlot.E, 1095f, DamageType.Magical);
+            E.SetSkillshot(0.25f, 125f, 1700f, false, SkillshotType.SkillshotLine);
+
+            R = new Spell(SpellSlot.R, float.MaxValue, DamageType.Magical);
+            R.SetSkillshot(0.75f, 375f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+
             _ultimate = new UltimateManager
             {
                 Combo = true,
@@ -85,6 +108,7 @@ namespace SFXChallenger.Champions
                 GapcloserDelay = false,
                 Interrupt = true,
                 InterruptDelay = false,
+                Spells = Spells,
                 DamageCalculation =
                     hero =>
                         CalcComboDamage(
@@ -92,14 +116,6 @@ namespace SFXChallenger.Champions
                             Menu.Item(Menu.Name + ".combo.w").GetValue<bool>(),
                             Menu.Item(Menu.Name + ".combo.e").GetValue<bool>(), true)
             };
-
-            Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
-            InitiatorManager.OnAllyInitiator += OnAllyInitiator;
-            Spellbook.OnCastSpell += OnSpellbookCastSpell;
-            Ball.OnPositionChange += OnBallPositionChange;
-            GapcloserManager.OnGapcloser += OnEnemyGapcloser;
-            Drawing.OnDraw += OnDrawingDraw;
-            Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
         }
 
         protected override void AddToMenu()
@@ -411,21 +427,6 @@ namespace SFXChallenger.Champions
             }
         }
 
-        protected override void SetupSpells()
-        {
-            Q = new Spell(SpellSlot.Q, 825f, DamageType.Magical);
-            Q.SetSkillshot(0.15f, 120f, 1345f, false, SkillshotType.SkillshotCircle);
-
-            W = new Spell(SpellSlot.W, float.MaxValue, DamageType.Magical);
-            W.SetSkillshot(0f, 230f, float.MaxValue, false, SkillshotType.SkillshotCircle);
-
-            E = new Spell(SpellSlot.E, 1095f, DamageType.Magical);
-            E.SetSkillshot(0.25f, 125f, 1700f, false, SkillshotType.SkillshotLine);
-
-            R = new Spell(SpellSlot.R, float.MaxValue, DamageType.Magical);
-            R.SetSkillshot(0.75f, 375f, float.MaxValue, false, SkillshotType.SkillshotCircle);
-        }
-
         protected override void OnPreUpdate()
         {
             if (Ball.IsMoving)
@@ -693,8 +694,10 @@ namespace SFXChallenger.Champions
                         damage += E.GetDamage(target) * 0.75f;
                     }
                 }
-
-                damage += 2 * (float) Player.GetAutoAttackDamage(target, true);
+                if (target.Distance(Player) <= Orbwalking.GetRealAutoAttackRange(target) * 1.2f)
+                {
+                    damage += 2 * (float) Player.GetAutoAttackDamage(target, true);
+                }
                 damage *= 1.1f;
                 damage += ItemManager.CalculateComboDamage(target);
                 damage += SummonerManager.CalculateComboDamage(target);

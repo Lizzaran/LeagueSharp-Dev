@@ -71,6 +71,24 @@ namespace SFXChallenger.Champions
 
         protected override void OnLoad()
         {
+            GapcloserManager.OnGapcloser += OnEnemyGapcloser;
+            Drawing.OnDraw += OnDrawingDraw;
+        }
+
+        protected override void SetupSpells()
+        {
+            Q = new Spell(SpellSlot.Q, 925f);
+            Q.SetSkillshot(0.25f, 70f, 1800f, false, SkillshotType.SkillshotLine);
+            Q.SetCharged("VarusQ", "VarusQ", 925, 1700, 1.5f);
+
+            W = new Spell(SpellSlot.W, 0f, DamageType.Magical);
+
+            E = new Spell(SpellSlot.E, 950f);
+            E.SetSkillshot(0.25f, 250f, 1500f, false, SkillshotType.SkillshotCircle);
+
+            R = new Spell(SpellSlot.R, 1075f);
+            R.SetSkillshot(0.25f, 120f, 1950f, false, SkillshotType.SkillshotLine);
+
             _ultimate = new UltimateManager
             {
                 Combo = true,
@@ -83,15 +101,13 @@ namespace SFXChallenger.Champions
                 GapcloserDelay = false,
                 Interrupt = false,
                 InterruptDelay = false,
+                Spells = Spells,
                 DamageCalculation =
                     hero =>
                         CalcComboDamage(
                             hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>(),
                             Menu.Item(Menu.Name + ".combo.e").GetValue<bool>(), true)
             };
-
-            GapcloserManager.OnGapcloser += OnEnemyGapcloser;
-            Drawing.OnDraw += OnDrawingDraw;
         }
 
         protected override void AddToMenu()
@@ -231,21 +247,6 @@ namespace SFXChallenger.Champions
             IndicatorManager.Finale();
 
             _wStacks = DrawingManager.Add("W Stacks", true);
-        }
-
-        protected override void SetupSpells()
-        {
-            Q = new Spell(SpellSlot.Q, 925f);
-            Q.SetSkillshot(0.25f, 70f, 1800f, false, SkillshotType.SkillshotLine);
-            Q.SetCharged("VarusQ", "VarusQ", 925, 1700, 1.5f);
-
-            W = new Spell(SpellSlot.W, 0f, DamageType.Magical);
-
-            E = new Spell(SpellSlot.E, 950f);
-            E.SetSkillshot(0.25f, 250f, 1500f, false, SkillshotType.SkillshotCircle);
-
-            R = new Spell(SpellSlot.R, 1075f);
-            R.SetSkillshot(0.25f, 120f, 1950f, false, SkillshotType.SkillshotLine);
         }
 
         protected override void OnPreUpdate() {}
@@ -623,8 +624,10 @@ namespace SFXChallenger.Champions
                         damage += E.GetDamage(target);
                     }
                 }
-
-                damage += 5f * (float) Player.GetAutoAttackDamage(target);
+                if (Orbwalking.InAutoAttackRange(target))
+                {
+                    damage += 5f * (float) Player.GetAutoAttackDamage(target);
+                }
                 damage += ItemManager.CalculateComboDamage(target);
                 damage += SummonerManager.CalculateComboDamage(target);
                 return damage;

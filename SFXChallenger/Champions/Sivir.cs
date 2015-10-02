@@ -64,6 +64,16 @@ namespace SFXChallenger.Champions
             Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
         }
 
+        protected override void SetupSpells()
+        {
+            Q = new Spell(SpellSlot.Q, 850f);
+            Q.SetSkillshot(0.25f, 90f, 1350f, false, SkillshotType.SkillshotLine);
+
+            W = new Spell(SpellSlot.W, 800f);
+            E = new Spell(SpellSlot.E);
+            R = new Spell(SpellSlot.R, 1100f);
+        }
+
         protected override void AddToMenu()
         {
             var comboMenu = Menu.AddSubMenu(new Menu("Combo", Menu.Name + ".combo"));
@@ -139,16 +149,6 @@ namespace SFXChallenger.Champions
             IndicatorManager.Add(Q);
             IndicatorManager.Add(W);
             IndicatorManager.Finale();
-        }
-
-        protected override void SetupSpells()
-        {
-            Q = new Spell(SpellSlot.Q, 850f);
-            Q.SetSkillshot(0.25f, 90f, 1350f, false, SkillshotType.SkillshotLine);
-
-            W = new Spell(SpellSlot.W, 800f);
-            E = new Spell(SpellSlot.E);
-            R = new Spell(SpellSlot.R, 1100f);
         }
 
         // Credits: Trees

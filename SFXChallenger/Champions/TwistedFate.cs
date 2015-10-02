@@ -80,6 +80,19 @@ namespace SFXChallenger.Champions
             Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
         }
 
+        protected override void SetupSpells()
+        {
+            Q = new Spell(SpellSlot.Q, 1450f, DamageType.Magical);
+            Q.SetSkillshot(0.25f, 40f, 1000f, false, SkillshotType.SkillshotLine);
+
+            W = new Spell(SpellSlot.W, 550f, DamageType.Magical);
+            W.SetSkillshot(0.5f, 100f, Player.BasicAttack.MissileSpeed, false, SkillshotType.SkillshotCircle);
+
+            E = new Spell(SpellSlot.E);
+
+            R = new Spell(SpellSlot.R, 5500f);
+        }
+
         protected override void AddToMenu()
         {
             var comboMenu = Menu.AddSubMenu(new Menu("Combo", Menu.Name + ".combo"));
@@ -189,19 +202,6 @@ namespace SFXChallenger.Champions
 
             _eStacks = DrawingManager.Add("E Stacks", true);
             _rMinimap = DrawingManager.Add("R Minimap", true);
-        }
-
-        protected override void SetupSpells()
-        {
-            Q = new Spell(SpellSlot.Q, 1450f, DamageType.Magical);
-            Q.SetSkillshot(0.25f, 40f, 1000f, false, SkillshotType.SkillshotLine);
-
-            W = new Spell(SpellSlot.W, 550f, DamageType.Magical);
-            W.SetSkillshot(0.5f, 100f, Player.BasicAttack.MissileSpeed, false, SkillshotType.SkillshotCircle);
-
-            E = new Spell(SpellSlot.E);
-
-            R = new Spell(SpellSlot.R, 5500f);
         }
 
         private void OnOrbwalkingBeforeAttack(Orbwalking.BeforeAttackEventArgs args)

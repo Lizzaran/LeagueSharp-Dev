@@ -74,6 +74,28 @@ namespace SFXChallenger.Champions
 
         protected override void OnLoad()
         {
+            Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
+            Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
+            GapcloserManager.OnGapcloser += OnEnemyGapcloser;
+            Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
+            GameObject.OnCreate += OnGameObjectCreate;
+        }
+
+        protected override void SetupSpells()
+        {
+            Q = new Spell(SpellSlot.Q, Player.BoundingRadius + 600f, DamageType.Magical);
+            Q.Range += GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(25).Min();
+            Q.SetTargetted(0.5f, 1800f);
+
+            W = new Spell(SpellSlot.W, 700f, DamageType.Magical);
+            W.SetSkillshot(1.6f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+
+            E = new Spell(SpellSlot.E, 525f, DamageType.Magical);
+            E.SetSkillshot(0f, 90f, 800f, false, SkillshotType.SkillshotLine);
+
+            R = new Spell(SpellSlot.R, 700f, DamageType.Magical);
+            R.SetSkillshot(0.2f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+
             _ultimate = new UltimateManager
             {
                 Combo = true,
@@ -92,12 +114,6 @@ namespace SFXChallenger.Champions
                             hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>(),
                             Menu.Item(Menu.Name + ".combo.e").GetValue<bool>(), true)
             };
-
-            Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
-            Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
-            GapcloserManager.OnGapcloser += OnEnemyGapcloser;
-            Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
-            GameObject.OnCreate += OnGameObjectCreate;
         }
 
         protected override void AddToMenu()
@@ -249,22 +265,6 @@ namespace SFXChallenger.Champions
                     return 0f;
                 });
             IndicatorManager.Finale();
-        }
-
-        protected override void SetupSpells()
-        {
-            Q = new Spell(SpellSlot.Q, Player.BoundingRadius + 600f, DamageType.Magical);
-            Q.Range += GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(25).Min();
-            Q.SetTargetted(0.5f, 1800f);
-
-            W = new Spell(SpellSlot.W, 700f, DamageType.Magical);
-            W.SetSkillshot(1.6f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
-
-            E = new Spell(SpellSlot.E, 525f, DamageType.Magical);
-            E.SetSkillshot(0f, 90f, 800f, false, SkillshotType.SkillshotLine);
-
-            R = new Spell(SpellSlot.R, 700f, DamageType.Magical);
-            R.SetSkillshot(0.2f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
         }
 
         protected override void OnPreUpdate() {}

@@ -31,6 +31,7 @@ using SFXChallenger.Args;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Library;
 using SFXChallenger.Library.Logger;
+using Spell = SFXChallenger.Wrappers.Spell;
 
 #endregion
 
@@ -50,6 +51,7 @@ namespace SFXChallenger.Managers
         public bool GapcloserDelay { get; set; }
         public bool Interrupt { get; set; }
         public bool InterruptDelay { get; set; }
+        public List<Spell> Spells { get; set; }
 
         public int DamagePercent
         {
@@ -247,7 +249,7 @@ namespace SFXChallenger.Managers
 
                 var uSingleMenu = ultimateMenu.AddSubMenu(new Menu("Single Target", ultimateMenu.Name + ".single"));
                 uSingleMenu.AddItem(
-                    new MenuItem(uSingleMenu.Name + ".min-health", "Min. Target Health %").SetValue(new Slider(20)));
+                    new MenuItem(uSingleMenu.Name + ".min-health", "Min. Target Health %").SetValue(new Slider(10)));
                 uSingleMenu.AddItem(
                     new MenuItem(uSingleMenu.Name + ".max-allies", "Max. Allies in Range").SetValue(new Slider(3, 0, 4)));
                 uSingleMenu.AddItem(
@@ -396,7 +398,15 @@ namespace SFXChallenger.Managers
                 if (ShouldSingle(mode))
                 {
                     var minHealth = _menu.Item(_menu.Name + ".ultimate.single.min-health").GetValue<Slider>().Value;
-
+                    if (Spells != null &&
+                        !Spells.Any(
+                            s =>
+                                s.Slot != SpellSlot.R && s.IsReady() && s.IsInRange(target) && s.GetDamage(target) > 10 &&
+                                Math.Abs(s.Speed - float.MaxValue) < 1 ||
+                                s.From.Distance(target.ServerPosition) / s.Speed + s.Delay <= 1.0f))
+                    {
+                        minHealth = 0;
+                    }
                     if (target.HealthPercent < minHealth)
                     {
                         return false;

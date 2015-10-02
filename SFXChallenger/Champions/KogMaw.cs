@@ -64,6 +64,23 @@ namespace SFXChallenger.Champions
             GapcloserManager.OnGapcloser += OnEnemyGapcloser;
         }
 
+        protected override void SetupSpells()
+        {
+            Q = new Spell(SpellSlot.Q, 980f, DamageType.Magical);
+            Q.SetSkillshot(0.25f, 50f, 2000f, true, SkillshotType.SkillshotLine);
+
+            W = new Spell(
+                SpellSlot.W,
+                Player.AttackRange + Player.BoundingRadius +
+                GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(50).Average(), DamageType.Magical);
+
+            E = new Spell(SpellSlot.E, 1200f, DamageType.Magical);
+            E.SetSkillshot(0.25f, 120f, 1400f, false, SkillshotType.SkillshotLine);
+
+            R = new Spell(SpellSlot.R, 1200f, DamageType.Magical);
+            R.SetSkillshot(1.5f, 200f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+        }
+
         protected override void AddToMenu()
         {
             var comboMenu = Menu.AddSubMenu(new Menu("Combo", Menu.Name + ".combo"));
@@ -180,23 +197,6 @@ namespace SFXChallenger.Champions
             IndicatorManager.Add(E);
             IndicatorManager.Add(R);
             IndicatorManager.Finale();
-        }
-
-        protected override void SetupSpells()
-        {
-            Q = new Spell(SpellSlot.Q, 980f, DamageType.Magical);
-            Q.SetSkillshot(0.25f, 50f, 2000f, true, SkillshotType.SkillshotLine);
-
-            W = new Spell(
-                SpellSlot.W,
-                Player.AttackRange + Player.BoundingRadius +
-                GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(50).Average(), DamageType.Magical);
-
-            E = new Spell(SpellSlot.E, 1200f, DamageType.Magical);
-            E.SetSkillshot(0.25f, 120f, 1400f, false, SkillshotType.SkillshotLine);
-
-            R = new Spell(SpellSlot.R, 1200f, DamageType.Magical);
-            R.SetSkillshot(1.5f, 200f, float.MaxValue, false, SkillshotType.SkillshotCircle);
         }
 
         protected override void OnPreUpdate() {}

@@ -65,6 +65,26 @@ namespace SFXChallenger.Champions
 
         protected override void OnLoad()
         {
+            GapcloserManager.OnGapcloser += OnEnemyGapcloser;
+            Drawing.OnDraw += OnDrawingDraw;
+            Orbwalking.OnNonKillableMinion += OnOrbwalkingNonKillableMinion;
+        }
+
+        protected override void SetupSpells()
+        {
+            Q = new Spell(SpellSlot.Q, 600f, DamageType.Magical);
+            Q.Range += GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(50).Average();
+            Q.SetTargetted(Q.Instance.SData.CastFrame / 30f, Q.Instance.SData.MissileSpeed);
+
+            W = new Spell(SpellSlot.W, 175f, DamageType.Magical);
+
+            E = new Spell(SpellSlot.E, 600f, DamageType.Magical);
+            E.Delay = E.Instance.SData.CastFrame / 30f;
+            E.Width = E.Range;
+
+            R = new Spell(SpellSlot.R, 700f, DamageType.Magical);
+            R.SetSkillshot(0.25f, 175f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+
             _ultimate = new UltimateManager
             {
                 Combo = true,
@@ -77,16 +97,13 @@ namespace SFXChallenger.Champions
                 GapcloserDelay = false,
                 Interrupt = false,
                 InterruptDelay = false,
+                Spells = Spells,
                 DamageCalculation =
                     hero =>
                         CalcComboDamage(
                             hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>(),
                             Menu.Item(Menu.Name + ".combo.e").GetValue<bool>(), true)
             };
-
-            GapcloserManager.OnGapcloser += OnEnemyGapcloser;
-            Drawing.OnDraw += OnDrawingDraw;
-            Orbwalking.OnNonKillableMinion += OnOrbwalkingNonKillableMinion;
         }
 
         protected override void AddToMenu()
@@ -211,22 +228,6 @@ namespace SFXChallenger.Champions
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
-        }
-
-        protected override void SetupSpells()
-        {
-            Q = new Spell(SpellSlot.Q, 600f, DamageType.Magical);
-            Q.Range += GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(50).Average();
-            Q.SetTargetted(Q.Instance.SData.CastFrame / 30f, Q.Instance.SData.MissileSpeed);
-
-            W = new Spell(SpellSlot.W, 175f, DamageType.Magical);
-
-            E = new Spell(SpellSlot.E, 600f, DamageType.Magical);
-            E.Delay = E.Instance.SData.CastFrame / 30f;
-            E.Width = E.Range;
-
-            R = new Spell(SpellSlot.R, 700f, DamageType.Magical);
-            R.SetSkillshot(0.25f, 175f, float.MaxValue, false, SkillshotType.SkillshotCircle);
         }
 
         protected override void OnPreUpdate() {}
@@ -382,9 +383,10 @@ namespace SFXChallenger.Champions
                 }
                 if (r && R.IsReady() && R.IsInRange(target, R.Range + R.Width))
                 {
-                    damage += R.GetDamage(target);
                     damage *= 1.2f;
+                    damage += R.GetDamage(target);
                 }
+                damage *= 1.1f;
                 damage += ItemManager.CalculateComboDamage(target);
                 damage += SummonerManager.CalculateComboDamage(target);
                 return damage;

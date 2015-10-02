@@ -74,6 +74,22 @@ namespace SFXChallenger.Champions
             Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
             Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
             GapcloserManager.OnGapcloser += OnEnemyGapcloser;
+        }
+
+        protected override void SetupSpells()
+        {
+            Q = new Spell(SpellSlot.Q, 850f, DamageType.Magical);
+            Q.SetSkillshot(0.4f, 60f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+
+            W = new Spell(SpellSlot.W, 850f, DamageType.Magical);
+            W.SetSkillshot(0.7f, 125f, 2500f, false, SkillshotType.SkillshotCircle);
+
+            E = new Spell(SpellSlot.E, 700f, DamageType.Magical);
+            E.SetTargetted(0.2f, 1700f);
+            E.Collision = true;
+
+            R = new Spell(SpellSlot.R, 825f, DamageType.Magical);
+            R.SetSkillshot(0.8f, (float) (80 * Math.PI / 180), float.MaxValue, false, SkillshotType.SkillshotCone);
 
             _ultimate = new UltimateManager
             {
@@ -87,6 +103,7 @@ namespace SFXChallenger.Champions
                 GapcloserDelay = false,
                 Interrupt = true,
                 InterruptDelay = false,
+                Spells = Spells,
                 DamageCalculation =
                     hero =>
                         CalcComboDamage(
@@ -252,22 +269,6 @@ namespace SFXChallenger.Champions
 
             Weights.AddItem(
                 new Weights.Item("poison-time", "Poison Time", 5, false, hero => GetPoisonBuffEndTime(hero) + 1));
-        }
-
-        protected override void SetupSpells()
-        {
-            Q = new Spell(SpellSlot.Q, 850f, DamageType.Magical);
-            Q.SetSkillshot(0.4f, 60f, float.MaxValue, false, SkillshotType.SkillshotCircle);
-
-            W = new Spell(SpellSlot.W, 850f, DamageType.Magical);
-            W.SetSkillshot(0.7f, 125f, 2500f, false, SkillshotType.SkillshotCircle);
-
-            E = new Spell(SpellSlot.E, 700f, DamageType.Magical);
-            E.SetTargetted(0.2f, 1700f);
-            E.Collision = true;
-
-            R = new Spell(SpellSlot.R, 825f, DamageType.Magical);
-            R.SetSkillshot(0.8f, (float) (80 * Math.PI / 180), float.MaxValue, false, SkillshotType.SkillshotCone);
         }
 
         protected override void OnPreUpdate()

@@ -181,8 +181,8 @@ namespace SFXChallenger.Abstracts
             }
         }
 
-        protected abstract void SetupSpells();
         protected abstract void OnLoad();
+        protected abstract void SetupSpells();
         protected abstract void AddToMenu();
         protected abstract void OnPreUpdate();
         protected abstract void OnPostUpdate();
