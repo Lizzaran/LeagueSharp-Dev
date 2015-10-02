@@ -286,6 +286,14 @@ namespace SFXUtility.Features.Detectors
 
                 Menu.AddSubMenu(notificationMenu);
 
+                var chatMenu = new Menu("Chat (Local)", Name + "Chat");
+
+                chatMenu.AddItem(new MenuItem(chatMenu.Name + "Started", "Started").SetValue(false));
+                chatMenu.AddItem(new MenuItem(chatMenu.Name + "Aborted", "Aborted").SetValue(false));
+                chatMenu.AddItem(new MenuItem(chatMenu.Name + "Finished", "Finished").SetValue(false));
+
+                Menu.AddSubMenu(chatMenu);
+
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
@@ -361,25 +369,46 @@ namespace SFXUtility.Features.Detectors
                     teleport.LastStatus = packet.Status;
                     teleport.LastType = packet.Type;
 
-                    if (packet.Status == Packet.S2C.Teleport.Status.Finish &&
-                        Menu.Item(Name + "NotificationFinished").GetValue<bool>())
+                    if (packet.Status == Packet.S2C.Teleport.Status.Finish)
                     {
-                        Notifications.AddNotification(teleport.Hero.ChampionName + " Finished.", 5000)
-                            .SetTextColor(Color.GreenYellow);
+                        if (Menu.Item(Name + "NotificationFinished").GetValue<bool>())
+                        {
+                            Notifications.AddNotification(teleport.Hero.ChampionName + " Finished.", 5000)
+                                .SetTextColor(Color.GreenYellow);
+                        }
+                        if (Menu.Item(Name + "ChatFinished").GetValue<bool>())
+                        {
+                            Game.PrintChat(
+                                string.Format("<font color='#8ACC25'>Finished: {0}</font>", teleport.Hero.ChampionName));
+                        }
                     }
 
-                    if (packet.Status == Packet.S2C.Teleport.Status.Abort &&
-                        Menu.Item(Name + "NotificationAborted").GetValue<bool>())
+                    if (packet.Status == Packet.S2C.Teleport.Status.Abort)
                     {
-                        Notifications.AddNotification(teleport.Hero.ChampionName + " Aborted.", 5000)
-                            .SetTextColor(Color.Orange);
+                        if (Menu.Item(Name + "NotificationAborted").GetValue<bool>())
+                        {
+                            Notifications.AddNotification(teleport.Hero.ChampionName + " Aborted.", 5000)
+                                .SetTextColor(Color.Orange);
+                        }
+                        if (Menu.Item(Name + "ChatAborted").GetValue<bool>())
+                        {
+                            Game.PrintChat(
+                                string.Format("<font color='#CC0000'>Aborted: {0}</font>", teleport.Hero.ChampionName));
+                        }
                     }
 
-                    if (packet.Status == Packet.S2C.Teleport.Status.Start &&
-                        Menu.Item(Name + "NotificationStarted").GetValue<bool>())
+                    if (packet.Status == Packet.S2C.Teleport.Status.Start)
                     {
-                        Notifications.AddNotification(teleport.Hero.ChampionName + " Started.", 5000)
-                            .SetTextColor(Color.White);
+                        if (Menu.Item(Name + "NotificationStarted").GetValue<bool>())
+                        {
+                            Notifications.AddNotification(teleport.Hero.ChampionName + " Started.", 5000)
+                                .SetTextColor(Color.White);
+                        }
+                        if (Menu.Item(Name + "ChatStarted").GetValue<bool>())
+                        {
+                            Game.PrintChat(
+                                string.Format("<font color='#FFFFFF'>Started: {0}</font>", teleport.Hero.ChampionName));
+                        }
                     }
                 }
             }

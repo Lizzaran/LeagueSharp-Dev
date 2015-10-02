@@ -693,7 +693,7 @@ namespace SFXChallenger.Champions
                     damage += R.GetDamage(target);
                 }
                 damage += 2 * (float) Player.GetAutoAttackDamage(target, true);
-                damage *= 1.5f;
+                damage *= 1.1f;
                 damage += ItemManager.CalculateComboDamage(target);
                 damage += SummonerManager.CalculateComboDamage(target);
                 return damage;
