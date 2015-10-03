@@ -45,6 +45,7 @@ namespace SFXUtility.Features.Trackers
 {
     internal class LastPosition : Child<Trackers>
     {
+        private const int Version = 1;
         private readonly Dictionary<int, Texture> _heroTextures = new Dictionary<int, Texture>();
         private readonly List<LastPositionStruct> _lastPositions = new List<LastPositionStruct>();
         private Line _line;
@@ -292,7 +293,7 @@ namespace SFXUtility.Features.Trackers
                 foreach (var enemy in GameObjects.EnemyHeroes)
                 {
                     _heroTextures[enemy.NetworkId] =
-                        (ImageLoader.Load("LP", enemy.ChampionName) ?? Resources.LP_Default).ToTexture();
+                        (ImageLoader.Load(Version, "LP", enemy.ChampionName) ?? Resources.LP_Default).ToTexture();
                     _lastPositions.Add(new LastPositionStruct(enemy));
                 }
 
