@@ -54,7 +54,8 @@ namespace SFXUtility.Features.Activators
             new SpellData("Shaco", SpellSlot.Q),
             new SpellData("Talon", SpellSlot.R),
             new SpellData("Vayne", SpellSlot.Q, true),
-            new SpellData("Twitch", SpellSlot.Q)
+            new SpellData("Twitch", SpellSlot.Q),
+            new SpellData("LeBlanc", SpellSlot.R)
         };
 
         private float _lastCheck = Environment.TickCount;
@@ -229,14 +230,15 @@ namespace SFXUtility.Features.Activators
         {
             try
             {
-                if (pos.Distance(ObjectManager.Player.Position) > MaxRange || _lastReveal + Delay > Game.Time)
+                if (pos.Distance(ObjectManager.Player.Position) > (!bush ? MaxRange + 200 : MaxRange) ||
+                    _lastReveal + Delay > Game.Time)
                 {
                     return;
                 }
                 var slot = GetRevealSlot(bush);
                 if (slot != SpellSlot.Unknown)
                 {
-                    ObjectManager.Player.Spellbook.CastSpell(slot, pos);
+                    ObjectManager.Player.Spellbook.CastSpell(slot, ObjectManager.Player.Position.Extend(pos, MaxRange));
                     _lastReveal = Game.Time;
                 }
             }

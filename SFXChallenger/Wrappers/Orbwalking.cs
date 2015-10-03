@@ -393,7 +393,6 @@ namespace SFXChallenger.Wrappers
         public static void MoveTo(Vector3 position,
             float holdAreaRadius = 0,
             bool overrideTimer = false,
-            bool useFixedDistance = true,
             bool randomizeMinDistance = true)
         {
             var delay = Delays[OrbwalkingDelay.Move];
@@ -420,22 +419,31 @@ namespace SFXChallenger.Wrappers
             }
 
             var point = position;
-            if (useFixedDistance)
+
+            if (Player.Distance(point, true) < 150 * 150)
             {
                 point = playerPosition.Extend(
                     position, (randomizeMinDistance ? (Random.NextFloat(0.6f, 1) + 0.2f) * _minDistance : _minDistance));
             }
-            else
+
+            var currentPath = Player.GetWaypoints();
+            if (currentPath.Count > 1)
             {
-                if (randomizeMinDistance)
+                var movePath = Player.GetPath(point);
+                if (movePath.Length > 1)
                 {
-                    point = playerPosition.Extend(position, (Random.NextFloat(0.6f, 1) + 0.2f) * _minDistance);
-                }
-                else if (playerPosition.Distance(position) > _minDistance)
-                {
-                    point = playerPosition.Extend(position, _minDistance);
+                    var v1 = currentPath[1] - currentPath[0];
+                    var v2 = movePath[1] - movePath[0];
+                    var angle = v1.AngleBetween(v2.To2D());
+                    var distance = movePath.Last().To2D().Distance(currentPath.Last(), true);
+
+                    if ((angle < 10 && distance < 500 * 500) || distance < 50 * 50)
+                    {
+                        return;
+                    }
                 }
             }
+
             Player.IssueOrder(GameObjectOrder.MoveTo, point);
             LastMoveCommandPosition = point;
         }
@@ -447,7 +455,6 @@ namespace SFXChallenger.Wrappers
             Vector3 position,
             float extraWindup = 90,
             float holdAreaRadius = 0,
-            bool useFixedDistance = true,
             bool randomizeMinDistance = true)
         {
             try
@@ -485,7 +492,7 @@ namespace SFXChallenger.Wrappers
                 }
                 if (CanMove(extraWindup))
                 {
-                    MoveTo(position, holdAreaRadius, false, useFixedDistance, randomizeMinDistance);
+                    MoveTo(position, holdAreaRadius, false, randomizeMinDistance);
                 }
             }
             catch (Exception e)

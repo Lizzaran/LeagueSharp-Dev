@@ -596,7 +596,9 @@ namespace SFXChallenger.Champions
 
                 float damage = 0;
                 var totalMana = 0f;
-                var manaMulti = _ultimate.DamagePercent / 100f;
+                var manaMulti = (GameObjects.EnemyHeroes.Count(x => x.IsValidTarget(2000)) == 1
+                    ? 100
+                    : _ultimate.DamagePercent) / 100f;
 
                 if (r && R.IsReady() && R.IsInRange(target))
                 {

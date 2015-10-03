@@ -244,7 +244,7 @@ namespace SFXChallenger.Champions
 
             if (useR)
             {
-                var target = TargetSelector.GetTarget(R.Range + R2.Range, R.DamageType);
+                var target = TargetSelector.GetTarget(R.Range, R.DamageType);
                 if (target != null)
                 {
                     if (!RLogic(UltimateModeType.Combo, target))
@@ -338,7 +338,9 @@ namespace SFXChallenger.Champions
 
                 var damage = 0f;
                 var totalMana = 0f;
-                var manaMulti = _ultimate.DamagePercent / 100f;
+                var manaMulti = (GameObjects.EnemyHeroes.Count(x => x.IsValidTarget(2000)) == 1
+                    ? 100
+                    : _ultimate.DamagePercent) / 100f;
 
                 if (r && R.IsReady() && R.IsInRange(target, R.Range + R2.Range))
                 {

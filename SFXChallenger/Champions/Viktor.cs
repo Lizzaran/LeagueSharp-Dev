@@ -215,8 +215,7 @@ namespace SFXChallenger.Champions
                     IsWhitelist = false,
                     Allies = false,
                     Enemies = true,
-                    DefaultValue = false,
-                    Enabled = false
+                    DefaultValue = false
                 });
             BestTargetOnlyManager.AddToMenu(wSlowedMenu, "w-slowed", true);
 
@@ -628,7 +627,9 @@ namespace SFXChallenger.Champions
 
                 var damage = 0f;
                 var totalMana = 0f;
-                var manaMulti = _ultimate.DamagePercent / 100f;
+                var manaMulti = (GameObjects.EnemyHeroes.Count(x => x.IsValidTarget(2000)) == 1
+                    ? 100
+                    : _ultimate.DamagePercent) / 100f;
 
                 if (r && R.IsReady() && R.IsInRange(target, R.Range + R.Width))
                 {
@@ -824,6 +825,10 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                if (GameObjects.EnemyHeroes.Any(e => e.IsValidTarget() && e.Distance(Player) < W.Width * 1.1f))
+                {
+                    W.Cast(Player.ServerPosition);
+                }
                 var pred = W.GetPrediction(target, true);
                 if (pred.Hitchance >= hitChance)
                 {
