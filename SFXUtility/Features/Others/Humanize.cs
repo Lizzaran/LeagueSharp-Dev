@@ -36,7 +36,10 @@ namespace SFXUtility.Features.Others
     internal class Humanize : Child<Others>
     {
         private readonly Dictionary<SpellSlot, float> _lastSpell = new Dictionary<SpellSlot, float>();
+        private readonly Random _random = new Random();
+        private readonly Dictionary<SpellSlot, float> _spellDelays = new Dictionary<SpellSlot, float>();
         private float _lastMovement;
+        private float _movementDelay;
 
         public Humanize(Others parent) : base(parent)
         {
@@ -68,9 +71,16 @@ namespace SFXUtility.Features.Others
             {
                 Menu = new Menu(Name, Name);
                 var delayMenu = new Menu("Delay", Name + "Delay");
-                delayMenu.AddItem(new MenuItem(delayMenu.Name + "Spell", "Spell").SetValue(new Slider(50, 0, 250)));
+
                 delayMenu.AddItem(
-                    new MenuItem(delayMenu.Name + "Movement", "Movement").SetValue(new Slider(50, 0, 250)));
+                    new MenuItem(delayMenu.Name + "MinSpell", "Min. Spells").SetValue(new Slider(50, 0, 500)));
+                delayMenu.AddItem(
+                    new MenuItem(delayMenu.Name + "MaxSpell", "Max. Spells").SetValue(new Slider(75, 0, 500)));
+
+                delayMenu.AddItem(
+                    new MenuItem(delayMenu.Name + "MinMovement", "Min. Movement").SetValue(new Slider(50, 0, 500)));
+                delayMenu.AddItem(
+                    new MenuItem(delayMenu.Name + "MaxMovement", "Max. Movement").SetValue(new Slider(75, 0, 500)));
 
                 Menu.AddSubMenu(delayMenu);
 
@@ -98,8 +108,13 @@ namespace SFXUtility.Features.Others
                 float timestamp;
                 if (_lastSpell.TryGetValue(args.Slot, out timestamp))
                 {
-                    if (Environment.TickCount - timestamp < Menu.Item(Name + "DelaySpell").GetValue<Slider>().Value)
+                    float spellDelay;
+                    _spellDelays.TryGetValue(args.Slot, out spellDelay);
+                    if (Environment.TickCount - timestamp < spellDelay)
                     {
+                        var min = Menu.Item(Name + "DelayMinSpell").GetValue<Slider>().Value;
+                        var max = Menu.Item(Name + "DelayMaxSpell").GetValue<Slider>().Value;
+                        _spellDelays[args.Slot] = _random.Next(Math.Min(min, max), Math.Max(min, max) + 1);
                         args.Process = false;
                         return;
                     }
@@ -122,8 +137,11 @@ namespace SFXUtility.Features.Others
                     return;
                 }
 
-                if (Environment.TickCount - _lastMovement < Menu.Item(Name + "DelayMovement").GetValue<Slider>().Value)
+                if (Environment.TickCount - _lastMovement < _movementDelay)
                 {
+                    var min = Menu.Item(Name + "DelayMinMovement").GetValue<Slider>().Value;
+                    var max = Menu.Item(Name + "DelayMaxMovement").GetValue<Slider>().Value;
+                    _movementDelay = _random.Next(Math.Min(min, max), Math.Max(min, max) + 1);
                     args.Process = false;
                     return;
                 }
