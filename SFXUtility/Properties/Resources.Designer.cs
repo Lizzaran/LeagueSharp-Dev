@@ -333,16 +333,6 @@ namespace SFXUtility.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap CD_summonerrevive {
-            get {
-                object obj = ResourceManager.GetObject("CD_summonerrevive", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
         internal static System.Drawing.Bitmap CD_summonersmite {
             get {
                 object obj = ResourceManager.GetObject("CD_summonersmite", resourceCulture);
@@ -1236,16 +1226,6 @@ namespace SFXUtility.Properties {
         internal static System.Drawing.Bitmap SB_summonerodingarrison {
             get {
                 object obj = ResourceManager.GetObject("SB_summonerodingarrison", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap SB_summonerrevive {
-            get {
-                object obj = ResourceManager.GetObject("SB_summonerrevive", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

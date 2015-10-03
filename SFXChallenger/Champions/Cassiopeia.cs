@@ -205,7 +205,7 @@ namespace SFXChallenger.Champions
                     Enemies = true,
                     DefaultValue = false
                 });
-            BestTargetOnlyManager.AddToMenu(qGapcloserMenu, "q-gapcloser");
+            BestTargetOnlyManager.AddToMenu(qGapcloserMenu, "q-gapcloser", true);
 
             var qFleeingMenu = miscMenu.AddSubMenu(new Menu("Q Fleeing", miscMenu.Name + "q-fleeing"));
             HeroListManager.AddToMenu(
@@ -217,7 +217,7 @@ namespace SFXChallenger.Champions
                     Enemies = true,
                     DefaultValue = false
                 });
-            BestTargetOnlyManager.AddToMenu(qFleeingMenu, "q-fleeing");
+            BestTargetOnlyManager.AddToMenu(qFleeingMenu, "q-fleeing", true);
 
             var wGapcloserMenu = miscMenu.AddSubMenu(new Menu("W Gapcloser", miscMenu.Name + "w-gapcloser"));
             GapcloserManager.AddToMenu(
@@ -241,7 +241,7 @@ namespace SFXChallenger.Champions
                     Enemies = true,
                     DefaultValue = false
                 });
-            BestTargetOnlyManager.AddToMenu(wImmobileMenu, "w-immobile");
+            BestTargetOnlyManager.AddToMenu(wImmobileMenu, "w-immobile", true);
 
             var wFleeingMenu = miscMenu.AddSubMenu(new Menu("W Fleeing", miscMenu.Name + "w-fleeing"));
             HeroListManager.AddToMenu(
@@ -253,7 +253,7 @@ namespace SFXChallenger.Champions
                     Enemies = true,
                     DefaultValue = false
                 });
-            BestTargetOnlyManager.AddToMenu(wFleeingMenu, "w-fleeing");
+            BestTargetOnlyManager.AddToMenu(wFleeingMenu, "w-fleeing", true);
 
             R.Range = Menu.Item(Menu.Name + ".ultimate.range").GetValue<Slider>().Value;
             DrawingManager.Update(

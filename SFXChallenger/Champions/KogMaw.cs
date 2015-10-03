@@ -175,7 +175,7 @@ namespace SFXChallenger.Champions
                     Enemies = true,
                     DefaultValue = false
                 });
-            BestTargetOnlyManager.AddToMenu(rImmobileMenu, "r-immobile");
+            BestTargetOnlyManager.AddToMenu(rImmobileMenu, "r-immobile", true);
 
             var rGapcloserMenu = miscMenu.AddSubMenu(new Menu("R Gapcloser", miscMenu.Name + "r-gapcloser"));
             GapcloserManager.AddToMenu(
@@ -187,7 +187,7 @@ namespace SFXChallenger.Champions
                     Enemies = true,
                     DefaultValue = false
                 });
-            BestTargetOnlyManager.AddToMenu(rGapcloserMenu, "r-gapcloser");
+            BestTargetOnlyManager.AddToMenu(rGapcloserMenu, "r-gapcloser", true);
 
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r-max", "R Max. Stacks").SetValue(new Slider(5, 1, 10)));
 
@@ -398,7 +398,8 @@ namespace SFXChallenger.Champions
             if (Menu.Item(Menu.Name + ".killsteal.r").GetValue<bool>() && R.IsReady())
             {
                 var fPredEnemy =
-                    GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(R.Range) && R.IsKillable(e))
+                    GameObjects.EnemyHeroes.Where(
+                        e => e.IsValidTarget(R.Range) && !Orbwalking.InAutoAttackRange(e) && R.IsKillable(e))
                         .Select(enemy => R.GetPrediction(enemy, true))
                         .FirstOrDefault(pred => pred.Hitchance >= HitChance.High);
                 if (fPredEnemy != null)

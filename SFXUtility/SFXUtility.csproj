@@ -24,7 +24,7 @@
     <AssemblyVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyVersionSettings>
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
-    <AssemblyVersion>0.8.8.3</AssemblyVersion>
+    <AssemblyVersion>0.8.8.4</AssemblyVersion>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -210,7 +210,6 @@
     <Content Include="Resources\CD\CD_summonerheal.png" />
     <Content Include="Resources\CD\CD_summonermana.png" />
     <Content Include="Resources\CD\CD_summonerodingarrison.png" />
-    <Content Include="Resources\CD\CD_summonerrevive.png" />
     <Content Include="Resources\CD\CD_summonersmite.png" />
     <Content Include="Resources\CD\CD_summonerteleport.png" />
     <Content Include="Resources\Champions\Aatrox.png" />

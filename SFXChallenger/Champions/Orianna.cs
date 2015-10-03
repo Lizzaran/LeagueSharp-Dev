@@ -213,7 +213,7 @@ namespace SFXChallenger.Champions
                     Enemies = true,
                     DefaultValue = false
                 });
-            BestTargetOnlyManager.AddToMenu(qGapcloserMenu, "q-gapcloser");
+            BestTargetOnlyManager.AddToMenu(qGapcloserMenu, "q-gapcloser", true);
 
             ResourceManager.AddToMenu(
                 miscMenu,

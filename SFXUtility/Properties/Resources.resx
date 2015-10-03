@@ -199,9 +199,6 @@
   <data name="CD_summonerodingarrison" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\cd\cd_summonerodingarrison.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="CD_summonerrevive" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\cd\cd_summonerrevive.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="CD_summonersmite" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\cd\cd_summonersmite.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -468,9 +465,6 @@
   </data>
   <data name="SB_summonerodingarrison" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\sb\sb_summonerodingarrison.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="SB_summonerrevive" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\sb\sb_summonerrevive.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="SB_summonersmite" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\sb\sb_summonersmite.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>

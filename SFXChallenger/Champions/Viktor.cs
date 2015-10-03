@@ -205,7 +205,7 @@ namespace SFXChallenger.Champions
                     Enemies = true,
                     DefaultValue = false
                 });
-            BestTargetOnlyManager.AddToMenu(wImmobileMenu, "w-immobile");
+            BestTargetOnlyManager.AddToMenu(wImmobileMenu, "w-immobile", true);
 
             var wSlowedMenu = miscMenu.AddSubMenu(new Menu("W Slowed", miscMenu.Name + "w-slowed"));
             HeroListManager.AddToMenu(
@@ -218,7 +218,7 @@ namespace SFXChallenger.Champions
                     DefaultValue = false,
                     Enabled = false
                 });
-            BestTargetOnlyManager.AddToMenu(wSlowedMenu, "w-slowed");
+            BestTargetOnlyManager.AddToMenu(wSlowedMenu, "w-slowed", true);
 
             var wGapcloserMenu = miscMenu.AddSubMenu(new Menu("W Gapcloser", miscMenu.Name + "w-gapcloser"));
             GapcloserManager.AddToMenu(
