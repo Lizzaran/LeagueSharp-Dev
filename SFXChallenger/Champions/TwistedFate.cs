@@ -363,7 +363,7 @@ namespace SFXChallenger.Champions
                 {
                     var hits = 0;
                     var containsTarget = false;
-                    var direction = Q.Range * (point.To3D() - ObjectManager.Player.Position).Normalized().To2D();
+                    var direction = Q.Range * (point.To3D() - Player.Position).Normalized().To2D();
                     var rect1 = new Geometry.Polygon.Rectangle(
                         Player.Position, Player.Position.Extend(Player.Position + direction.To3D(), Q.Range), Q.Width);
                     var rect2 = new Geometry.Polygon.Rectangle(

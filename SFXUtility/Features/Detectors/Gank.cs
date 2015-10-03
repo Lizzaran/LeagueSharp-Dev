@@ -210,7 +210,7 @@ namespace SFXUtility.Features.Detectors
                 Menu.AddItem(new MenuItem(Name + "Range", "Range").SetValue(new Slider(3000, 500, 5000)));
                 Menu.AddItem(new MenuItem(Name + "Cooldown", "Cooldown").SetValue(new Slider(10, 0, 30)));
                 Menu.AddItem(new MenuItem(Name + "Duration", "Duration").SetValue(new Slider(10, 0, 30)));
-                Menu.AddItem(new MenuItem(Name + "Ping", "Ping").SetValue(true));
+                Menu.AddItem(new MenuItem(Name + "Ping", "Ping (Local)").SetValue(true));
 
                 Menu.AddItem(new MenuItem(Name + "Enabled", "Enabled").SetValue(false));
 

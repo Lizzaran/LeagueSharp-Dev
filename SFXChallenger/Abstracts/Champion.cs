@@ -54,7 +54,6 @@ namespace SFXChallenger.Abstracts
         protected Champion()
         {
             Core.OnBoot += OnCoreBoot;
-            Core.OnShutdown += OnCoreShutdown;
         }
 
         protected abstract ItemFlags ItemFlags { get; }
@@ -200,31 +199,18 @@ namespace SFXChallenger.Abstracts
                 SetupSpells();
                 SetupMenu();
 
-                Weights.Range = Spells.Select(e => e.Range).DefaultIfEmpty(800f).Max();
-
-                if (ItemUsage == ItemUsageType.AfterAttack)
-                {
-                    Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
-                }
+                Weights.Range = Math.Max(
+                    Weights.Range,
+                    Spells.Select(e => e.Range).DefaultIfEmpty(Orbwalking.GetRealAutoAttackRange(null) * 1.2f).Max());
 
                 Core.OnPreUpdate += OnCorePreUpdate;
                 Core.OnPostUpdate += OnCorePostUpdate;
-                Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
-                Drawing.OnDraw += OnDrawingDraw;
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
 
-        private void OnCoreShutdown(EventArgs args)
-        {
-            try
-            {
-                Core.OnPreUpdate -= OnCorePreUpdate;
-                Core.OnPostUpdate -= OnCorePostUpdate;
-                Drawing.OnDraw -= OnDrawingDraw;
+                Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
+                Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
+                Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
+
+                Drawing.OnDraw += OnDrawingDraw;
             }
             catch (Exception ex)
             {
@@ -250,15 +236,43 @@ namespace SFXChallenger.Abstracts
             {
                 if (unit.IsMe)
                 {
-                    Orbwalker.ForceTarget(null);
+                    if (ItemUsage == ItemUsageType.AfterAttack)
+                    {
+                        Orbwalker.ForceTarget(null);
+                        if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
+                        {
+                            var enemy = target as Obj_AI_Hero;
+                            if (enemy != null)
+                            {
+                                ItemManager.UseComboItems(enemy);
+                                SummonerManager.UseComboSummoners(enemy);
+                            }
+                        }
+                    }
+                    if (Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.Combo)
+                    {
+                        ItemManager.Muramana(null, false);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void OnOrbwalkingBeforeAttack(Orbwalking.BeforeAttackEventArgs args)
+        {
+            try
+            {
+                if (args.Unit.IsMe)
+                {
                     if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
                     {
-                        var enemy = target as Obj_AI_Hero;
+                        var enemy = args.Target as Obj_AI_Hero;
                         if (enemy != null)
                         {
                             ItemManager.Muramana(enemy, true);
-                            ItemManager.UseComboItems(enemy);
-                            SummonerManager.UseComboSummoners(enemy);
                         }
                     }
                     else

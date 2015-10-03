@@ -22,6 +22,7 @@
 
 #region
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
@@ -68,7 +69,7 @@ namespace SFXTargetSelector
                                     from.Equals(default(Vector3)) ? ObjectManager.Player.ServerPosition : from) <=
                                 _lastRange).ToList();
                 }
-                else
+                else if (Math.Abs(_lastRange - range) > 1)
                 {
                     _lastRange = range;
                     _lastRangeChange = Game.Time;

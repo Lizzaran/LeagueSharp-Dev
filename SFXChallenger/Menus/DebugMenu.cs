@@ -46,12 +46,12 @@ namespace SFXChallenger.Menus
             {
                 _menu = menu.AddSubMenu(new Menu("Debug", menu.Name + ".debug"));
 
-                if (spells.All(s => s.Slot == SpellSlot.Unknown))
+                if (spells.All(s => s == null || s.Slot == SpellSlot.Unknown))
                 {
                     return;
                 }
 
-                foreach (var spell in spells.Where(s => s.Slot != SpellSlot.Unknown))
+                foreach (var spell in spells.Where(s => s != null && s.Slot != SpellSlot.Unknown))
                 {
                     var lSpell = spell;
                     var range = spell.Range;

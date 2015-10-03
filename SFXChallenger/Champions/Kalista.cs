@@ -802,6 +802,10 @@ namespace SFXChallenger.Champions
             {
                 try
                 {
+                    if (Game.Time - time > 5)
+                    {
+                        time = Game.Time + 5;
+                    }
                     float value;
                     if (Damages.TryGetValue(time, out value))
                     {
