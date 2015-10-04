@@ -47,7 +47,7 @@ namespace SFXUtility
 
         static Global()
         {
-            Logger = new FileLogger(LogDir) { LogLevel = LogLevel.High };
+            Logger = new SimpleFileLogger(LogDir) { LogLevel = LogLevel.High };
 
             try
             {

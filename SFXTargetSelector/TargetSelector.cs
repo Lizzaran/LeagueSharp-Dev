@@ -150,9 +150,25 @@ namespace SFXTargetSelector
             }
         }
 
+        public static Obj_AI_Hero GetTargetNoCollision(Spell spell,
+            bool ignoreShields = true,
+            Vector3 from = default(Vector3),
+            IEnumerable<Obj_AI_Hero> ignoredChampions = null)
+        {
+            return
+                GetTargets(
+                    spell.Range,
+                    (spell.DamageType == LeagueSharp.Common.TargetSelector.DamageType.True
+                        ? DamageType.True
+                        : (spell.DamageType == LeagueSharp.Common.TargetSelector.DamageType.Physical
+                            ? DamageType.Physical
+                            : DamageType.Magical)), ignoreShields, from, ignoredChampions)
+                    .FirstOrDefault(t => spell.GetPrediction(t).Hitchance != HitChance.Collision);
+        }
+
         public static Obj_AI_Hero GetTarget(this Spell spell,
             bool ignoreShields = true,
-            Vector3 from = new Vector3(),
+            Vector3 from = default(Vector3),
             IEnumerable<Obj_AI_Hero> ignoredChampions = null)
         {
             return

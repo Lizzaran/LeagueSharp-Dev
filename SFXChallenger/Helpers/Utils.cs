@@ -198,11 +198,11 @@ namespace SFXChallenger.Helpers
         public static Vector3 GetDashPosition(Spell spell, Obj_AI_Hero target, float safetyDistance)
         {
             var distance = target.Distance(ObjectManager.Player);
-            var dashPoints = new Geometry.Polygon.Circle(ObjectManager.Player.Position, spell.Range, 30).Points;
+            var dashPoints = new Geometry.Polygon.Circle(ObjectManager.Player.Position, spell.Range).Points;
             if (distance < safetyDistance)
             {
                 dashPoints.AddRange(
-                    new Geometry.Polygon.Circle(ObjectManager.Player.Position, safetyDistance - distance, 30).Points);
+                    new Geometry.Polygon.Circle(ObjectManager.Player.Position, safetyDistance - distance).Points);
             }
             dashPoints = dashPoints.Where(p => !p.IsWall()).OrderBy(p => p.Distance(Game.CursorPos)).ToList();
             foreach (var point in dashPoints)

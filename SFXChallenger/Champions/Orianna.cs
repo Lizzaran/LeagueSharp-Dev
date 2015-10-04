@@ -584,6 +584,7 @@ namespace SFXChallenger.Champions
             {
                 return;
             }
+            var single = false;
             var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>();
             var w = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>();
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>();
@@ -598,6 +599,7 @@ namespace SFXChallenger.Champions
                 if (!RLogic(UltimateModeType.Combo))
                 {
                     RLogicSingle(UltimateModeType.Combo);
+                    single = true;
                 }
             }
             if (q && Q.IsReady())
@@ -608,7 +610,7 @@ namespace SFXChallenger.Champions
             {
                 ELogic();
             }
-            if (target != null && _ultimate.GetDamage(target, UltimateModeType.Combo) > target.Health)
+            if (target != null && _ultimate.GetDamage(target, UltimateModeType.Combo, single ? 1 : 5) > target.Health)
             {
                 ItemManager.UseComboItems(target);
                 SummonerManager.UseComboSummoners(target);

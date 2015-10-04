@@ -2,20 +2,20 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- ThreadFileLogger.cs is part of SFXLibrary.
+ SimpleFileLogger.cs is part of SFXChallenger.
 
- SFXLibrary is free software: you can redistribute it and/or modify
+ SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
 
- SFXLibrary is distributed in the hope that it will be useful,
+ SFXChallenger is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  GNU General Public License for more details.
 
  You should have received a copy of the GNU General Public License
- along with SFXLibrary. If not, see <http://www.gnu.org/licenses/>.
+ along with SFXChallenger. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #endregion License
@@ -29,6 +29,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using LeagueSharp;
 using SFXChallenger.Library.Extensions.NET;
 
 #endregion
@@ -60,6 +61,23 @@ namespace SFXChallenger.Library.Logger
         public string LogDir { get; set; }
         public LogLevel LogLevel { get; set; }
 
+        private void AddData(Exception ex)
+        {
+            if (ex != null)
+            {
+                if (GameObjects.Heroes != null && GameObjects.Heroes.Any())
+                {
+                    ex.Data.Add("Champion", ObjectManager.Player.ChampionName);
+                    ex.Data.Add(
+                        "Champions", string.Join(", ", GameObjects.Heroes.Select(e => e.ChampionName).ToArray()));
+                }
+                ex.Data.Add("Version", Game.Version);
+                ex.Data.Add("Region", Game.Region);
+                ex.Data.Add("MapId", Game.MapId);
+                ex.Data.Add("Type", Game.Type);
+            }
+        }
+
         public void AddItem(LogItem item)
         {
             if (LogLevel == LogLevel.None || item == null || string.IsNullOrWhiteSpace(item.Exception.ToString()))
@@ -85,6 +103,8 @@ namespace SFXChallenger.Library.Logger
                     {
                         return;
                     }
+
+                    AddData(item.Exception);
 
                     if (OutputConsole)
                     {

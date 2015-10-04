@@ -418,8 +418,8 @@ namespace SFXChallenger.Champions
                     {
                         var poison = GetPoisonBuffEndTime(t);
                         args.Process = (!Q.IsReady() || Q.Instance.ManaCost > Player.Mana) &&
-                                       (!E.IsReady() || E.Instance.ManaCost > Player.Mana || poison <= 0 ||
-                                        poison < E.ArrivalTime(t));
+                                       ((!E.IsReady() && Game.Time - _lastECast > 3) ||
+                                        E.Instance.ManaCost > Player.Mana || poison <= 0 || poison < E.ArrivalTime(t));
                     }
                 }
                 if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
@@ -538,6 +538,7 @@ namespace SFXChallenger.Champions
 
         protected override void Combo()
         {
+            var single = false;
             var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady();
             var w = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady();
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
@@ -560,10 +561,11 @@ namespace SFXChallenger.Champions
                 if (!RLogic(UltimateModeType.Combo, R.GetHitChance("combo")))
                 {
                     RLogicSingle(UltimateModeType.Combo, R.GetHitChance("combo"));
+                    single = true;
                 }
             }
             var target = Targets.FirstOrDefault(t => t.IsValidTarget(R.Range));
-            if (target != null && _ultimate.GetDamage(target, UltimateModeType.Combo) > target.Health)
+            if (target != null && _ultimate.GetDamage(target, UltimateModeType.Combo, single ? 1 : 5) > target.Health)
             {
                 ItemManager.UseComboItems(target);
                 SummonerManager.UseComboSummoners(target);

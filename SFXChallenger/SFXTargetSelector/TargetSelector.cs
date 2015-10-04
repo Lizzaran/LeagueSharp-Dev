@@ -160,9 +160,27 @@ namespace SFXChallenger.SFXTargetSelector
             return TargetSelectorModeType.Weights;
         }
 
+        public static Obj_AI_Hero GetTargetNoCollision(Spell spell,
+            bool ignoreShields = true,
+            Vector3 from = default(Vector3),
+            IEnumerable<Obj_AI_Hero> ignoredChampions = null)
+        {
+            try
+            {
+                return
+                    GetTargets(spell.Range, spell.DamageType, ignoreShields, from, ignoredChampions)
+                        .FirstOrDefault(t => spell.GetPrediction(t).Hitchance != HitChance.Collision);
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return null;
+        }
+
         public static Obj_AI_Hero GetTarget(this Spell spell,
             bool ignoreShields = true,
-            Vector3 from = new Vector3(),
+            Vector3 from = default(Vector3),
             IEnumerable<Obj_AI_Hero> ignoredChampions = null)
         {
             try

@@ -248,7 +248,7 @@ namespace SFXChallenger.Managers
                     if (DamageCalculation != null)
                     {
                         uAssistedMenu.AddItem(
-                            new MenuItem(uAssistedMenu.Name + ".damage-check", "Damage Check").SetValue(true));
+                            new MenuItem(uAssistedMenu.Name + ".damage-check", "Damage Check").SetValue(false));
                     }
                     uAssistedMenu.AddItem(new MenuItem(uAssistedMenu.Name + ".enabled", "Enabled").SetValue(true));
                 }

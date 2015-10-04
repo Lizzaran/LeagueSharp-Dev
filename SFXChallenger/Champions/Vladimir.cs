@@ -322,6 +322,7 @@ namespace SFXChallenger.Champions
 
         protected override void Combo()
         {
+            var single = false;
             var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady();
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady() &&
                     ResourceManager.Check("combo-e");
@@ -333,6 +334,7 @@ namespace SFXChallenger.Champions
                 if (!RLogic(UltimateModeType.Combo, rTarget))
                 {
                     RLogicSingle(UltimateModeType.Combo);
+                    single = true;
                 }
             }
             if (q)
@@ -346,7 +348,7 @@ namespace SFXChallenger.Champions
                     E.Cast();
                 }
             }
-            if (rTarget != null && _ultimate.GetDamage(rTarget, UltimateModeType.Combo) > rTarget.Health)
+            if (rTarget != null && _ultimate.GetDamage(rTarget, UltimateModeType.Combo, single ? 1 : 5) > rTarget.Health)
             {
                 ItemManager.UseComboItems(rTarget);
                 SummonerManager.UseComboSummoners(rTarget);
