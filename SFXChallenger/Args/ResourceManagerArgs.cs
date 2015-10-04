@@ -56,6 +56,7 @@ namespace SFXChallenger.Args
         public int MinValue { get; set; }
         public int MaxValue { get; set; }
         public bool Advanced { get; set; }
+        public bool IgnoreJungleOption { get; set; }
         public SortedList<int, int> LevelRanges { get; set; }
         public List<int> DefaultValues { get; set; }
     }

@@ -55,6 +55,7 @@ namespace SFXChallenger.Champions
         private int _lastECast;
         private float _lastEEndTime;
         private float _lastPoisonClearDelay;
+        private Vector2 _lastPoisonClearPosition;
         private float _lastQPoisonDelay;
         private Obj_AI_Base _lastQPoisonT;
         private UltimateManager _ultimate;
@@ -80,10 +81,10 @@ namespace SFXChallenger.Champions
         protected override void SetupSpells()
         {
             Q = new Spell(SpellSlot.Q, 850f, DamageType.Magical);
-            Q.SetSkillshot(0.4f, 60f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            Q.SetSkillshot(0.3f, 50f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
             W = new Spell(SpellSlot.W, 850f, DamageType.Magical);
-            W.SetSkillshot(0.7f, 125f, 2500f, false, SkillshotType.SkillshotCircle);
+            W.SetSkillshot(0.5f, 125f, 2500f, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E, 700f, DamageType.Magical);
             E.SetTargetted(0.2f, 1700f);
@@ -866,7 +867,8 @@ namespace SFXChallenger.Champions
             if (q || w)
             {
                 var minions =
-                    MinionManager.GetMinions(Player.ServerPosition, Q.Range + Q.Width)
+                    MinionManager.GetMinions(
+                        Player.ServerPosition, Q.Range + Q.Width, MinionTypes.All, MinionTeam.NotAlly)
                         .Where(e => GetPoisonBuffEndTime(e) < Q.Delay * 1.1)
                         .OrderByDescending(
                             m => m.CharData.BaseSkinName.Contains("MinionSiege", StringComparison.OrdinalIgnoreCase))
@@ -876,37 +878,40 @@ namespace SFXChallenger.Champions
                     if (q)
                     {
                         var prediction = Q.GetCircularFarmLocation(minions, Q.Width + 30);
-                        if (prediction.MinionsHit > 1 && _lastPoisonClearDelay < Game.Time)
+                        if (prediction.MinionsHit > 1 && Game.Time > _lastPoisonClearDelay ||
+                            _lastPoisonClearPosition.Distance(prediction.Position) > W.Width * 1.1f)
                         {
-                            _lastPoisonClearDelay = Game.Time + Q.Delay;
-                            Q.Cast(prediction.Position);
+                            var mP =
+                                minions.Count(
+                                    p =>
+                                        p.Distance(prediction.Position) < (Q.Width + 30) &&
+                                        GetPoisonBuffEndTime(p) >= 0.5f);
+                            if (prediction.MinionsHit - mP > 1)
+                            {
+                                _lastPoisonClearDelay = Game.Time + Q.Delay + 1;
+                                _lastPoisonClearPosition = prediction.Position;
+                                Q.Cast(prediction.Position);
+                            }
                         }
                     }
                     if (w)
                     {
                         var prediction = W.GetCircularFarmLocation(minions, W.Width + 50);
-                        if (prediction.MinionsHit > 2 && _lastPoisonClearDelay < Game.Time)
+                        if (prediction.MinionsHit > 2 &&
+                            (Game.Time > _lastPoisonClearDelay ||
+                             _lastPoisonClearPosition.Distance(prediction.Position) > Q.Width * 1.1f))
                         {
-                            _lastPoisonClearDelay = Game.Time + W.Delay;
-                            W.Cast(prediction.Position);
-                        }
-                    }
-                }
-                else
-                {
-                    var creep =
-                        MinionManager.GetMinions(
-                            Player.ServerPosition, Q.Range + Q.Width, MinionTypes.All, MinionTeam.Neutral,
-                            MinionOrderTypes.MaxHealth).FirstOrDefault(e => GetPoisonBuffEndTime(e) < Q.Delay * 1.1);
-                    if (creep != null)
-                    {
-                        if (q)
-                        {
-                            Q.Cast(creep);
-                        }
-                        if (w)
-                        {
-                            W.Cast(creep);
+                            var mP =
+                                minions.Count(
+                                    p =>
+                                        p.Distance(prediction.Position) < (W.Width + 50) &&
+                                        GetPoisonBuffEndTime(p) >= 0.5f);
+                            if (prediction.MinionsHit - mP > 1)
+                            {
+                                _lastPoisonClearDelay = Game.Time + W.Delay + 2;
+                                _lastPoisonClearPosition = prediction.Position;
+                                W.Cast(prediction.Position);
+                            }
                         }
                     }
                 }

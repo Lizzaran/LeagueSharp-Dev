@@ -198,7 +198,7 @@ namespace SFXChallenger.Champions
             shieldMenu.AddItem(
                 new MenuItem(shieldMenu.Name + ".min-health", "Min. Health %").SetValue(new Slider(90, 1)));
             shieldMenu.AddItem(
-                new MenuItem(shieldMenu.Name + ".min-damage", "Min. Damage % Incoming").SetValue(new Slider(10, 1)));
+                new MenuItem(shieldMenu.Name + ".min-damage", "Min. Damage % Incoming").SetValue(new Slider(15, 1)));
             shieldMenu.AddItem(new MenuItem(shieldMenu.Name + ".enabled", "Enabled").SetValue(true));
 
             var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
@@ -437,14 +437,12 @@ namespace SFXChallenger.Champions
             {
                 if (Player.HealthPercent <= Menu.Item(Menu.Name + ".shield.min-health").GetValue<Slider>().Value)
                 {
-                    var dmg = IncomingDamage.TotalDamage;
                     IncomingDamage.Clean();
                     var totalDamage = IncomingDamage.TotalDamage * 1.1f;
                     if (totalDamage >= Player.Health ||
                         totalDamage >=
                         (Player.MaxHealth / 100 * Menu.Item(Menu.Name + ".shield.min-damage").GetValue<Slider>().Value))
                     {
-                        Console.WriteLine(totalDamage.ToString("0.00") + ":" + dmg.ToString("0.00"));
                         E.CastOnUnit(Player);
                     }
                 }
