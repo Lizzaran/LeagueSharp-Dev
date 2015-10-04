@@ -268,7 +268,7 @@ namespace SFXChallenger.Champions
                             E, target, Menu.Item(Menu.Name + ".combo.e-safety").GetValue<Slider>().Value)
                         : Player.Position.Extend(
                             Game.CursorPos, Math.Min(E.Range, Player.Position.Distance(Game.CursorPos)));
-                    if (pos.Equals(Vector3.Zero) && !pos.UnderTurret(true))
+                    if (!pos.Equals(Vector3.Zero) && !pos.IsUnderTurret(false))
                     {
                         E.Cast(pos);
                     }

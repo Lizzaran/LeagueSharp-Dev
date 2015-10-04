@@ -217,7 +217,11 @@ namespace SFXChallenger.Helpers
 
                 if (!point.To3D().IsUnderTurret(false))
                 {
-                    if (enemies.Count == 1 || allies.Count > enemies.Count - lowEnemies.Count)
+                    if (enemies.Count == 1 &&
+                        (!target.IsMelee ||
+                         (target.HealthPercent <= ObjectManager.Player.HealthPercent - 25 ||
+                          target.Position.Distance(point.To3D()) >= safetyDistance)) ||
+                        allies.Count > enemies.Count - lowEnemies.Count)
                     {
                         return point.To3D();
                     }
