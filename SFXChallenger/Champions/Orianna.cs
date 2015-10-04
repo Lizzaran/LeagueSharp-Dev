@@ -299,14 +299,13 @@ namespace SFXChallenger.Champions
                                     (float) hero.GetSummonerSpellDamage(Player, Damage.SummonerSpell.Ignite));
                             }
                             else if ((slot == SpellSlot.Q || slot == SpellSlot.W || slot == SpellSlot.E ||
-                                      slot == SpellSlot.R) &&
-                                     ((args.Target != null && args.Target.NetworkId == Player.NetworkId)))
+                                      slot == SpellSlot.R) && args.Target != null &&
+                                     args.Target.NetworkId == Player.NetworkId)
                             {
                                 var time = args.SData.CastFrame / 30f +
                                            Player.Distance(hero) / args.SData.MissileSpeed;
                                 IncomingDamage.Add(
-                                    Game.Time + (time > 2f ? (time < 5f ? time : 5f) : 2f),
-                                    (float) hero.GetSpellDamage(Player, slot));
+                                    Game.Time + Math.Max(1, time), (float) hero.GetSpellDamage(Player, slot));
                             }
                         }
                     }
@@ -438,12 +437,14 @@ namespace SFXChallenger.Champions
             {
                 if (Player.HealthPercent <= Menu.Item(Menu.Name + ".shield.min-health").GetValue<Slider>().Value)
                 {
+                    var dmg = IncomingDamage.TotalDamage;
                     IncomingDamage.Clean();
                     var totalDamage = IncomingDamage.TotalDamage * 1.1f;
                     if (totalDamage >= Player.Health ||
                         totalDamage >=
                         (Player.MaxHealth / 100 * Menu.Item(Menu.Name + ".shield.min-damage").GetValue<Slider>().Value))
                     {
+                        Console.WriteLine(totalDamage.ToString("0.00") + ":" + dmg.ToString("0.00"));
                         E.CastOnUnit(Player);
                     }
                 }
@@ -1409,9 +1410,9 @@ namespace SFXChallenger.Champions
             {
                 try
                 {
-                    if (Game.Time - time > 5)
+                    if (Game.Time - time > 3)
                     {
-                        time = Game.Time + 5;
+                        time = Game.Time + 3;
                     }
                     float value;
                     if (Damages.TryGetValue(time, out value))

@@ -221,7 +221,9 @@ namespace SFXChallenger.Helpers
                         (!target.IsMelee ||
                          (target.HealthPercent <= ObjectManager.Player.HealthPercent - 25 ||
                           target.Position.Distance(point.To3D()) >= safetyDistance)) ||
-                        allies.Count > enemies.Count - lowEnemies.Count)
+                        allies.Count >
+                        enemies.Count -
+                        (ObjectManager.Player.HealthPercent >= (10 * lowEnemies.Count) ? lowEnemies.Count : 0))
                     {
                         return point.To3D();
                     }

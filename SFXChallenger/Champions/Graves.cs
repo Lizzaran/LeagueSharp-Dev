@@ -118,7 +118,7 @@ namespace SFXChallenger.Champions
             comboMenu.AddItem(
                 new MenuItem(comboMenu.Name + ".e-mode", "E Mode").SetValue(new StringList(new[] { "Auto", "Cursor" })));
             comboMenu.AddItem(
-                new MenuItem(comboMenu.Name + ".e-safety", "E Safety Distance").SetValue(new Slider(350, 0, 600)));
+                new MenuItem(comboMenu.Name + ".e-safety", "E Safety Distance").SetValue(new Slider(320, 0, 500)));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", "Use Q").SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", "Use W").SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", "Use E").SetValue(true));

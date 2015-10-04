@@ -73,14 +73,12 @@ namespace SFXChallenger.Champions
         protected override void SetupSpells()
         {
             Q = new Spell(SpellSlot.Q, 600f, DamageType.Magical);
-            Q.Range += GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(50).Average();
-            Q.SetTargetted(Q.Instance.SData.CastFrame / 30f, Q.Instance.SData.MissileSpeed);
+            Q.Range += GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(50).Min();
+            Q.SetTargetted(0.25f, Q.Instance.SData.MissileSpeed);
 
             W = new Spell(SpellSlot.W, 175f, DamageType.Magical);
 
-            E = new Spell(SpellSlot.E, 600f, DamageType.Magical);
-            E.Delay = E.Instance.SData.CastFrame / 30f;
-            E.Width = E.Range;
+            E = new Spell(SpellSlot.E, 600f, DamageType.Magical) { Delay = 0.25f, Width = 600f };
 
             R = new Spell(SpellSlot.R, 700f, DamageType.Magical);
             R.SetSkillshot(0.25f, 175f, float.MaxValue, false, SkillshotType.SkillshotCircle);
