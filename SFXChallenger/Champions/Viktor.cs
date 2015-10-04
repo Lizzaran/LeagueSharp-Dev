@@ -85,7 +85,7 @@ namespace SFXChallenger.Champions
         {
             Q = new Spell(SpellSlot.Q, Player.BoundingRadius + 600f, DamageType.Magical);
             Q.Range += GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(25).Min();
-            Q.SetTargetted(0.5f, 1800f);
+            Q.SetTargetted(0.15f, 2050f);
 
             W = new Spell(SpellSlot.W, 700f, DamageType.Magical);
             W.SetSkillshot(1.6f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
@@ -109,9 +109,9 @@ namespace SFXChallenger.Champions
                 Interrupt = true,
                 InterruptDelay = true,
                 DamageCalculation =
-                    hero =>
+                    (hero, resMulti, rangeCheck) =>
                         CalcComboDamage(
-                            hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>(),
+                            hero, resMulti, rangeCheck, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>(),
                             Menu.Item(Menu.Name + ".combo.e").GetValue<bool>(), true)
             };
         }
@@ -584,7 +584,7 @@ namespace SFXChallenger.Champions
                 }
             }
             var rTarget = TargetSelector.GetTarget(R);
-            if (rTarget != null && _ultimate.GetDamage(rTarget) > rTarget.Health)
+            if (rTarget != null && _ultimate.GetDamage(rTarget, UltimateModeType.Combo) > rTarget.Health)
             {
                 ItemManager.UseComboItems(rTarget);
                 SummonerManager.UseComboSummoners(rTarget);
@@ -616,7 +616,7 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private float CalcComboDamage(Obj_AI_Hero target, bool q, bool e, bool r)
+        private float CalcComboDamage(Obj_AI_Hero target, float resMulti, bool rangeCheck, bool q, bool e, bool r)
         {
             try
             {
@@ -627,13 +627,10 @@ namespace SFXChallenger.Champions
 
                 var damage = 0f;
                 var totalMana = 0f;
-                var manaMulti = (GameObjects.EnemyHeroes.Count(x => x.IsValidTarget(2000)) == 1
-                    ? 100
-                    : _ultimate.DamagePercent) / 100f;
 
-                if (r && R.IsReady() && R.IsInRange(target, R.Range + R.Width))
+                if (r && R.IsReady() && (!rangeCheck || R.IsInRange(target, R.Range + R.Width)))
                 {
-                    var rMana = R.ManaCost * manaMulti;
+                    var rMana = R.ManaCost * resMulti;
                     if (totalMana + rMana <= Player.Mana)
                     {
                         totalMana += rMana;
@@ -667,18 +664,18 @@ namespace SFXChallenger.Champions
                         damage += (R.GetDamage(target, 1) * stacks);
                     }
                 }
-                if (e && E.IsReady() && E.IsInRange(target, E.Range + ELength))
+                if (e && E.IsReady() && (!rangeCheck || E.IsInRange(target, E.Range + ELength)))
                 {
-                    var eMana = E.ManaCost * manaMulti;
+                    var eMana = E.ManaCost * resMulti;
                     if (totalMana + eMana <= Player.Mana)
                     {
                         totalMana += eMana;
                         damage += E.GetDamage(target);
                     }
                 }
-                if (q && Q.IsReady() && Q.IsInRange(target))
+                if (q && Q.IsReady() && (!rangeCheck || Q.IsInRange(target)))
                 {
-                    var qMana = Q.ManaCost * manaMulti;
+                    var qMana = Q.ManaCost * resMulti;
                     if (totalMana + qMana <= Player.Mana)
                     {
                         damage += Q.GetDamage(target);
@@ -688,14 +685,14 @@ namespace SFXChallenger.Champions
                         }
                     }
                 }
-                if (HasQBuff() && Orbwalking.InAutoAttackRange(target))
+                if (HasQBuff() && (!rangeCheck || Orbwalking.InAutoAttackRange(target)))
                 {
                     damage += CalcPassiveDamage(target);
                 }
 
                 damage *= 1.1f;
-                damage += ItemManager.CalculateComboDamage(target);
-                damage += SummonerManager.CalculateComboDamage(target);
+                damage += ItemManager.CalculateComboDamage(target, rangeCheck);
+                damage += SummonerManager.CalculateComboDamage(target, rangeCheck);
                 return damage;
             }
             catch (Exception ex)

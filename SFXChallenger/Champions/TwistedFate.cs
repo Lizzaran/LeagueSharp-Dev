@@ -752,11 +752,10 @@ namespace SFXChallenger.Champions
                 var red = 0;
                 var blue = 0;
                 var gold = 0;
-                var blueMana1 = (ObjectManager.Player.Mana < (W.Instance.ManaCost + Q.Instance.ManaCost) &&
-                                 ObjectManager.Player.Mana > (Q.Instance.ManaCost - 10));
-                var blueMana2 = (ObjectManager.Player.Mana < (W.Instance.ManaCost + Q.Instance.ManaCost) &&
-                                 ObjectManager.Player.Mana > (Q.Instance.ManaCost - 20));
-                var blueMana3 = (ObjectManager.Player.Mana < (W.Instance.ManaCost + Q.Instance.ManaCost));
+
+                var shouldBlue = Player.Mana < W.ManaCost + Q.ManaCost &&
+                                 Player.Mana + (25 + 25 * W.Level) > Q.ManaCost + W.ManaCost;
+
                 if (!burst && (mode == "combo" || mode == "harass" && selectedCard == CardColor.None))
                 {
                     if (Q.Level == 0)
@@ -768,11 +767,10 @@ namespace SFXChallenger.Champions
                     {
                         gold++;
                     }
-                    if (mode == "combo" &&
-                        (Player.ManaPercent < 10 || W.Level == 1 && blueMana1 || W.Level == 2 && blueMana2 ||
-                         W.Level > 2 && blueMana3) || mode == "harass" && !ResourceManager.Check("harass-blue"))
+                    if (mode == "combo" && (Player.ManaPercent < 10 || shouldBlue) ||
+                        mode == "harass" && !ResourceManager.Check("harass-blue"))
                     {
-                        blue = 4;
+                        return new List<CardColor> { CardColor.Blue };
                     }
                     var minRed = Menu.Item(Menu.Name + ".combo.red-min").GetValue<Slider>().Value;
                     var redHits = GetWHits(target, GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().ToList(), CardColor.Red);
@@ -853,8 +851,7 @@ namespace SFXChallenger.Champions
                         {
                             cards.Add(CardColor.Gold);
                         }
-                        else if (Player.ManaPercent < 10 || W.Level == 1 && blueMana1 || W.Level == 2 && blueMana2 ||
-                                 W.Level > 2 && blueMana3)
+                        else if (Player.ManaPercent < 10 || shouldBlue)
                         {
                             cards.Add(CardColor.Blue);
                         }

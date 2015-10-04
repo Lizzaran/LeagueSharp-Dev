@@ -425,13 +425,14 @@ namespace SFXChallenger.Champions
                     R.Cast();
                 }
             }
+
             if (Menu.Item(Menu.Name + ".miscellaneous.w-baron").GetValue<KeyBind>().Active && W.IsReady() &&
-                Player.Distance(SummonersRift.River.Baron) <= W.Range)
+                !Player.IsWindingUp && Player.Distance(SummonersRift.River.Baron) <= W.Range)
             {
                 W.Cast(SummonersRift.River.Baron);
             }
             if (Menu.Item(Menu.Name + ".miscellaneous.w-dragon").GetValue<KeyBind>().Active && W.IsReady() &&
-                Player.Distance(SummonersRift.River.Dragon) <= W.Range)
+                !Player.IsWindingUp && Player.Distance(SummonersRift.River.Dragon) <= W.Range)
             {
                 W.Cast(SummonersRift.River.Dragon);
             }

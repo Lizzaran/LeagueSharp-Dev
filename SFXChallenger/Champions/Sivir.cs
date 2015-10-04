@@ -107,7 +107,7 @@ namespace SFXChallenger.Champions
                     Advanced = true,
                     MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
-                    DefaultValues = new List<int> { 70, 50, 50 }
+                    DefaultValues = new List<int> { 60, 50, 50 }
                 });
             ResourceManager.AddToMenu(
                 laneclearMenu,
@@ -118,7 +118,7 @@ namespace SFXChallenger.Champions
                     Advanced = true,
                     MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
-                    DefaultValues = new List<int> { 60, 40, 40 }
+                    DefaultValues = new List<int> { 50, 40, 40 }
                 });
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q-min", "Q Min.").SetValue(new Slider(4, 1, 5)));
@@ -159,48 +159,53 @@ namespace SFXChallenger.Champions
                 return;
             }
 
-            var type = args.SData.TargettingType;
             var unit = sender as Obj_AI_Hero;
+            var type = args.SData.TargettingType;
             if (unit == null || !unit.IsEnemy)
             {
                 return;
             }
-
-            Utility.DelayAction.Add(
-                50, () =>
+            var blockableSpell = SpellBlockManager.Contains(unit, args);
+            if (!blockableSpell)
+            {
+                return;
+            }
+            if ((type == SpellDataTargetType.Unit || type == SpellDataTargetType.SelfAndUnit) && args.Target != null &&
+                args.Target.IsMe)
+            {
+                E.Cast();
+            }
+            else if (unit.ChampionName.Equals("Riven", StringComparison.OrdinalIgnoreCase) && unit.Distance(Player) < 400)
+            {
+                E.Cast();
+            }
+            else if (unit.ChampionName.Equals("Bard", StringComparison.OrdinalIgnoreCase) &&
+                     type.Equals(SpellDataTargetType.Location) && args.End.Distance(Player.ServerPosition) < 300)
+            {
+                Utility.DelayAction.Add(400 + (int) (unit.Distance(Player) / 7f), () => E.Cast());
+            }
+            else if (args.SData.IsAutoAttack() && args.Target != null && args.Target.IsMe)
+            {
+                E.Cast();
+            }
+            else if (type.Equals(SpellDataTargetType.SelfAoe) &&
+                     unit.Distance(Player.ServerPosition) < args.SData.CastRange + args.SData.CastRadius / 2)
+            {
+                E.Cast();
+            }
+            else if (type.Equals(SpellDataTargetType.Self))
+            {
+                if ((unit.ChampionName.Equals("Kalista", StringComparison.OrdinalIgnoreCase) &&
+                     Player.Distance(unit) < 350))
                 {
-                    var blockableSpell = SpellBlockManager.Contains(unit, args, false);
-                    if (!blockableSpell || args.SData.IsAutoAttack())
-                    {
-                        return;
-                    }
-                    if ((type == SpellDataTargetType.Unit || type == SpellDataTargetType.SelfAndUnit) &&
-                        args.Target != null && args.Target.IsMe)
-                    {
-                        E.Cast();
-                    }
-                    else if (unit.ChampionName.Equals("Riven") && unit.Distance(Player) < 400)
-                    {
-                        E.Cast();
-                    }
-                    else if (unit.ChampionName.Equals("Bard") && type.Equals(SpellDataTargetType.Location) &&
-                             args.End.Distance(Player.ServerPosition) < 300)
-                    {
-                        Utility.DelayAction.Add(400 + (int) (unit.Distance(Player) / 7f), () => E.Cast());
-                    }
-                    else if (type.Equals(SpellDataTargetType.SelfAoe) &&
-                             unit.Distance(Player.ServerPosition) < args.SData.CastRange + args.SData.CastRadius / 2)
-                    {
-                        E.Cast();
-                    }
-                    else if (type.Equals(SpellDataTargetType.Self))
-                    {
-                        if (unit.ChampionName.Equals("Zed") && Player.Distance(unit) < 300)
-                        {
-                            Utility.DelayAction.Add(200, () => E.Cast());
-                        }
-                    }
-                });
+                    E.Cast();
+                }
+                if (unit.ChampionName.Equals("Zed", StringComparison.OrdinalIgnoreCase) &&
+                    Player.Distance(unit) < 300)
+                {
+                    Utility.DelayAction.Add(200, () => E.Cast());
+                }
+            }
         }
 
         protected override void OnPreUpdate() {}

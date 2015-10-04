@@ -99,9 +99,9 @@ namespace SFXChallenger.Champions
                 InterruptDelay = false,
                 Spells = Spells,
                 DamageCalculation =
-                    hero =>
+                    (hero, resMulti, rangeCheck) =>
                         CalcComboDamage(
-                            hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>(),
+                            hero, rangeCheck, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>(),
                             Menu.Item(Menu.Name + ".combo.e").GetValue<bool>(), true)
             };
         }
@@ -196,12 +196,17 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (Menu.Item(Menu.Name + ".lasthit.q-unkillable").GetValue<bool>() && Q.IsReady() && Q.IsInRange(unit))
+                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit ||
+                    Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
                 {
-                    var target = unit as Obj_AI_Base;
-                    if (target != null && HealthPrediction.GetHealthPrediction(target, (int) (Q.Delay * 1000f)) > 0)
+                    if (!Player.IsWindingUp && Menu.Item(Menu.Name + ".lasthit.q-unkillable").GetValue<bool>() &&
+                        Q.IsReady() && Q.IsInRange(unit))
                     {
-                        Q.CastOnUnit(target);
+                        var target = unit as Obj_AI_Base;
+                        if (target != null && HealthPrediction.GetHealthPrediction(target, (int) (Q.Delay * 1000f)) > 0)
+                        {
+                            Q.CastOnUnit(target);
+                        }
                     }
                 }
             }
@@ -234,12 +239,15 @@ namespace SFXChallenger.Champions
 
         protected override void OnPostUpdate()
         {
-            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit &&
+            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit && !Player.IsWindingUp &&
                 Menu.Item(Menu.Name + ".lasthit.q").GetValue<bool>() && Q.IsReady())
             {
                 var m =
                     MinionManager.GetMinions(Q.Range, MinionTypes.All, MinionTeam.NotAlly)
-                        .FirstOrDefault(e => Q.IsKillable(e));
+                        .FirstOrDefault(
+                            e =>
+                                e.HealthPercent <= 75 &&
+                                HealthPrediction.GetHealthPrediction(e, (int) (Q.Delay * 1000f)) < Q.GetDamage(e));
                 if (m != null)
                 {
                     Casting.TargetSkill(m, Q);
@@ -338,7 +346,7 @@ namespace SFXChallenger.Champions
                     E.Cast();
                 }
             }
-            if (rTarget != null && _ultimate.GetDamage(rTarget) > rTarget.Health)
+            if (rTarget != null && _ultimate.GetDamage(rTarget, UltimateModeType.Combo) > rTarget.Health)
             {
                 ItemManager.UseComboItems(rTarget);
                 SummonerManager.UseComboSummoners(rTarget);
@@ -353,7 +361,18 @@ namespace SFXChallenger.Champions
 
             if (q)
             {
-                Casting.TargetSkill(Q);
+                var minions = MinionManager.GetMinions(Q.Range, MinionTypes.All, MinionTeam.NotAlly);
+                foreach (var minion in from minion in minions
+                    let damage = Q.GetDamage(minion)
+                    where
+                        minion.HealthPercent <= 75 &&
+                        HealthPrediction.GetHealthPrediction(minion, (int) (Q.Delay * 1000f)) < damage ||
+                        damage > minion.Health * 1.75f
+                    select minion)
+                {
+                    Casting.TargetSkill(minion, Q);
+                    break;
+                }
             }
             if (e)
             {
@@ -364,7 +383,7 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private float CalcComboDamage(Obj_AI_Hero target, bool q, bool e, bool r)
+        private float CalcComboDamage(Obj_AI_Hero target, bool rangeCheck, bool q, bool e, bool r)
         {
             try
             {
@@ -373,22 +392,22 @@ namespace SFXChallenger.Champions
                     return 0;
                 }
                 float damage = 0;
-                if (q && Q.IsInRange(target))
+                if (q && (!rangeCheck || Q.IsInRange(target)))
                 {
                     damage += Q.GetDamage(target) * 2;
                 }
-                if (e && E.IsInRange(target))
+                if (e && (!rangeCheck || E.IsInRange(target)))
                 {
                     damage += E.GetDamage(target) * 2;
                 }
-                if (r && R.IsReady() && R.IsInRange(target, R.Range + R.Width))
+                if (r && R.IsReady() && (!rangeCheck || R.IsInRange(target, R.Range + R.Width)))
                 {
                     damage *= 1.2f;
                     damage += R.GetDamage(target);
                 }
                 damage *= 1.1f;
-                damage += ItemManager.CalculateComboDamage(target);
-                damage += SummonerManager.CalculateComboDamage(target);
+                damage += ItemManager.CalculateComboDamage(target, rangeCheck);
+                damage += SummonerManager.CalculateComboDamage(target, rangeCheck);
                 return damage;
             }
             catch (Exception ex)

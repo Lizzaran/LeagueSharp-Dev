@@ -130,7 +130,7 @@ namespace SFXChallenger.Managers
             }
         }
 
-        public static bool Contains(Obj_AI_Hero unit, GameObjectProcessSpellCastEventArgs args, bool autoAttack)
+        public static bool Contains(Obj_AI_Hero unit, GameObjectProcessSpellCastEventArgs args)
         {
             var name = unit.ChampionName;
             var slot = unit.GetSpellSlot(args.SData.Name);
@@ -140,7 +140,7 @@ namespace SFXChallenger.Managers
                     .Where(spell => !spell.HasModelCondition || unit.CharData.BaseSkinName.Equals(spell.ModelName))
                     .Where(spell => !spell.HasBuffCondition || unit.HasBuff(spell.AutoAttackBuff)))
             {
-                if (spell.IsAutoAttack && autoAttack)
+                if (spell.IsAutoAttack)
                 {
                     if (!args.SData.IsAutoAttack())
                     {

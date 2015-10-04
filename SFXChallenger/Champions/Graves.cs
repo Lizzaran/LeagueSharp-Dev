@@ -39,6 +39,7 @@ using DamageType = SFXChallenger.Enumerations.DamageType;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
+using Utils = SFXChallenger.Helpers.Utils;
 
 #endregion
 
@@ -95,7 +96,9 @@ namespace SFXChallenger.Champions
                 InterruptDelay = false,
                 Spells = Spells,
                 DamageCalculation =
-                    hero => CalcComboDamage(hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>(), true)
+                    (hero, resMulti, rangeCheck) =>
+                        CalcComboDamage(
+                            hero, resMulti, rangeCheck, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>(), true)
             };
         }
 
@@ -114,6 +117,8 @@ namespace SFXChallenger.Champions
                 });
             comboMenu.AddItem(
                 new MenuItem(comboMenu.Name + ".e-mode", "E Mode").SetValue(new StringList(new[] { "Auto", "Cursor" })));
+            comboMenu.AddItem(
+                new MenuItem(comboMenu.Name + ".e-safety", "E Safety Distance").SetValue(new Slider(350, 0, 600)));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", "Use Q").SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", "Use W").SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", "Use E").SetValue(true));
@@ -259,7 +264,8 @@ namespace SFXChallenger.Champions
                 if (target != null)
                 {
                     var pos = Menu.Item(Menu.Name + ".combo.e-mode").GetValue<StringList>().SelectedIndex == 0
-                        ? GetDashPosition(target)
+                        ? Utils.GetDashPosition(
+                            E, target, Menu.Item(Menu.Name + ".combo.e-safety").GetValue<Slider>().Value)
                         : Player.Position.Extend(
                             Game.CursorPos, Math.Min(E.Range, Player.Position.Distance(Game.CursorPos)));
                     if (pos.Equals(Vector3.Zero) && !pos.UnderTurret(true))
@@ -327,7 +333,7 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private float CalcComboDamage(Obj_AI_Hero target, bool q, bool r)
+        private float CalcComboDamage(Obj_AI_Hero target, float resMulti, bool rangeCheck, bool q, bool r)
         {
             try
             {
@@ -338,33 +344,30 @@ namespace SFXChallenger.Champions
 
                 var damage = 0f;
                 var totalMana = 0f;
-                var manaMulti = (GameObjects.EnemyHeroes.Count(x => x.IsValidTarget(2000)) == 1
-                    ? 100
-                    : _ultimate.DamagePercent) / 100f;
 
-                if (r && R.IsReady() && R.IsInRange(target, R.Range + R2.Range))
+                if (r && R.IsReady() && (!rangeCheck || R.IsInRange(target, R.Range + R2.Range)))
                 {
-                    var rMana = R.ManaCost * manaMulti;
+                    var rMana = R.ManaCost * resMulti;
                     if (totalMana + rMana <= Player.Mana)
                     {
                         totalMana += rMana;
                         damage += R.GetDamage(target);
                     }
                 }
-                if (q && Q.IsReady() && Q.IsInRange(target))
+                if (q && Q.IsReady() && (!rangeCheck || Q.IsInRange(target)))
                 {
-                    var qMana = Q.ManaCost * manaMulti;
+                    var qMana = Q.ManaCost * resMulti;
                     if (totalMana + qMana <= Player.Mana)
                     {
                         damage += Q.GetDamage(target);
                     }
                 }
-                if (target.Distance(Player) <= Orbwalking.GetRealAutoAttackRange(target) * 0.85f)
+                if (!rangeCheck || target.Distance(Player) <= Orbwalking.GetRealAutoAttackRange(target) * 0.85f)
                 {
                     damage += 2 * (float) Player.GetAutoAttackDamage(target, true);
                 }
-                damage += ItemManager.CalculateComboDamage(target);
-                damage += SummonerManager.CalculateComboDamage(target);
+                damage += ItemManager.CalculateComboDamage(target, rangeCheck);
+                damage += SummonerManager.CalculateComboDamage(target, rangeCheck);
                 return damage;
             }
             catch (Exception ex)
@@ -423,63 +426,6 @@ namespace SFXChallenger.Champions
                 Global.Logger.AddItem(new LogItem(ex));
             }
             return new Tuple<int, List<Obj_AI_Hero>, Vector3>(hits.Count, hits, castPos);
-        }
-
-        private Vector3 GetDashPosition(Obj_AI_Hero target)
-        {
-            if (!target.IsMelee && Player.CountEnemiesInRange(E.Range + 500) == 1)
-            {
-                return Game.CursorPos;
-            }
-            var aRc = new Geometry.Polygon.Circle(Player.ServerPosition.To2D(), E.Range);
-            var cursorPos = Game.CursorPos;
-            var targetPosition = target.ServerPosition;
-            var pList = new List<Vector3>();
-            var additionalDistance = (0.2 + Game.Ping / 2000f) * target.MoveSpeed;
-
-            if (!IsDangerousPosition(cursorPos))
-            {
-                return cursorPos;
-            }
-
-            foreach (var p in aRc.Points)
-            {
-                var v3 = new Vector2(p.X, p.Y).To3D();
-
-                if (target.IsFacing(Player))
-                {
-                    if (!IsDangerousPosition(v3) && v3.Distance(targetPosition) < 550)
-                    {
-                        pList.Add(v3);
-                    }
-                }
-                else
-                {
-                    if (!IsDangerousPosition(v3) && v3.Distance(targetPosition) < 550 - additionalDistance)
-                    {
-                        pList.Add(v3);
-                    }
-                }
-            }
-            if (Player.UnderTurret() || Player.CountEnemiesInRange(800) == 1)
-            {
-                return pList.Count > 1 ? pList.OrderBy(el => el.Distance(cursorPos)).FirstOrDefault() : Vector3.Zero;
-            }
-            if (!IsDangerousPosition(cursorPos))
-            {
-                return pList.Count > 1 ? pList.OrderBy(el => el.Distance(cursorPos)).FirstOrDefault() : Vector3.Zero;
-            }
-            return pList.Count > 1
-                ? pList.OrderByDescending(el => el.Distance(cursorPos)).FirstOrDefault()
-                : Vector3.Zero;
-        }
-
-        private bool IsDangerousPosition(Vector3 pos)
-        {
-            return
-                HeroManager.Enemies.Any(
-                    e => e.IsValidTarget() && e.IsVisible || (pos.UnderTurret(true) && !Player.UnderTurret(true))) ||
-                pos.IsWall();
         }
 
         protected override void Harass()

@@ -37,6 +37,7 @@ namespace SFXUtility.Features.Events
     internal class AutoLeveler : Child<Events>
     {
         private const float CheckInterval = 300f;
+        private bool _delayed;
         private SpellDataInst _e;
         private float _lastCheck = Environment.TickCount;
         private SpellDataInst _q;
@@ -113,6 +114,8 @@ namespace SFXUtility.Features.Events
 
                 Menu.AddItem(new MenuItem(Menu.Name + "OnlyR", "Only R").SetValue(false));
 
+                Menu.AddItem(new MenuItem(Menu.Name + "Delay", "Delay").SetValue(new Slider(150, 0, 1000)));
+
                 Menu.AddItem(new MenuItem(Menu.Name + "Enabled", "Enabled").SetValue(false));
 
                 Parent.Menu.AddSubMenu(Menu);
@@ -179,7 +182,7 @@ namespace SFXUtility.Features.Events
                 }
 
                 var availablePoints = args.RemainingPoints;
-
+                var delay = Menu.Item(Menu.Name + "Delay").GetValue<Slider>().Value;
                 var pLevel = _q.Level + _w.Level + _e.Level + GetRLevel() + 1;
 
                 if (pLevel <= 5)
@@ -196,21 +199,21 @@ namespace SFXUtility.Features.Events
                             {
                                 break;
                             }
-                            ObjectManager.Player.Spellbook.LevelUpSpell(SpellSlot.Q);
+                            LevelUp(SpellSlot.Q, delay);
                             return;
                         case 3:
                             if (_w.Level >= MaxSpellLevel(SpellSlot.W, pLevel))
                             {
                                 break;
                             }
-                            ObjectManager.Player.Spellbook.LevelUpSpell(SpellSlot.W);
+                            LevelUp(SpellSlot.W, delay);
                             return;
                         case 4:
                             if (_e.Level >= MaxSpellLevel(SpellSlot.E, pLevel))
                             {
                                 break;
                             }
-                            ObjectManager.Player.Spellbook.LevelUpSpell(SpellSlot.E);
+                            LevelUp(SpellSlot.E, delay);
                             return;
                     }
                 }
@@ -227,7 +230,7 @@ namespace SFXUtility.Features.Events
 
                     for (var i = 0; pointsToLevelSlot > i; i++)
                     {
-                        ObjectManager.Player.Spellbook.LevelUpSpell(pItem.Slot);
+                        LevelUp(pItem.Slot, delay);
                         availablePoints--;
                     }
                     if (pItem.Slot == SpellSlot.R && Menu.Item(Menu.Name + "OnlyR").GetValue<bool>())
@@ -239,6 +242,20 @@ namespace SFXUtility.Features.Events
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void LevelUp(SpellSlot slot, int delay)
+        {
+            if (!_delayed)
+            {
+                _delayed = true;
+                Utility.DelayAction.Add(
+                    delay + 1, delegate
+                    {
+                        ObjectManager.Player.Spellbook.LevelUpSpell(slot);
+                        _delayed = false;
+                    });
             }
         }
 

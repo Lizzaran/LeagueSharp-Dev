@@ -69,7 +69,7 @@ namespace SFXChallenger.Managers
             }
         }
 
-        public Func<Obj_AI_Hero, float> DamageCalculation { get; set; }
+        public Func<Obj_AI_Hero, float, bool, float> DamageCalculation { get; set; }
 
         public Menu AddToMenu(Menu menu)
         {
@@ -210,9 +210,9 @@ namespace SFXChallenger.Managers
                                 Enemies = true,
                                 DefaultValue = false,
                                 DontSave = false,
-                                Enabled = true
+                                Enabled = false
                             });
-                        BestTargetOnlyManager.AddToMenu(autoGapcloserMenu, "r-gapcloser");
+                        BestTargetOnlyManager.AddToMenu(autoGapcloserMenu, "r-gapcloser", true);
                     }
                     uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".min", "Min. Hits").SetValue(new Slider(3, 1, 5)));
                     if (DamageCalculation != null)
@@ -226,6 +226,12 @@ namespace SFXChallenger.Managers
                 if (Assisted)
                 {
                     var uAssistedMenu = ultimateMenu.AddSubMenu(new Menu("Assisted", ultimateMenu.Name + ".assisted"));
+                    if (Flash)
+                    {
+                        uAssistedMenu.AddItem(
+                            new MenuItem(uAssistedMenu.Name + ".min-flash", "Flash Min. Hits").SetValue(
+                                new Slider(3, 1, 5)));
+                    }
                     uAssistedMenu.AddItem(
                         new MenuItem(uAssistedMenu.Name + ".min", "Min. Hits").SetValue(new Slider(1, 1, 5)));
                     if (Flash)
@@ -238,7 +244,7 @@ namespace SFXChallenger.Managers
                         new MenuItem(uAssistedMenu.Name + ".hotkey", "Hotkey").SetValue(
                             new KeyBind('T', KeyBindType.Press)));
                     uAssistedMenu.AddItem(
-                        new MenuItem(uAssistedMenu.Name + ".move-cursor", "Move to Cursor").SetValue(false));
+                        new MenuItem(uAssistedMenu.Name + ".move-cursor", "Move to Cursor").SetValue(true));
                     if (DamageCalculation != null)
                     {
                         uAssistedMenu.AddItem(
@@ -249,7 +255,7 @@ namespace SFXChallenger.Managers
 
                 var uSingleMenu = ultimateMenu.AddSubMenu(new Menu("Single Target", ultimateMenu.Name + ".single"));
                 uSingleMenu.AddItem(
-                    new MenuItem(uSingleMenu.Name + ".min-health", "Min. Target Health %").SetValue(new Slider(10)));
+                    new MenuItem(uSingleMenu.Name + ".min-health", "Min. Target Health %").SetValue(new Slider(15)));
                 uSingleMenu.AddItem(
                     new MenuItem(uSingleMenu.Name + ".max-allies", "Max. Allies in Range").SetValue(new Slider(3, 0, 4)));
                 uSingleMenu.AddItem(
@@ -371,16 +377,17 @@ namespace SFXChallenger.Managers
             return false;
         }
 
-        public float GetDamage(Obj_AI_Hero hero, bool single = false)
+        public float GetDamage(Obj_AI_Hero hero, UltimateModeType mode, int hits = 5)
         {
             if (DamageCalculation != null)
             {
                 try
                 {
-                    return DamageCalculation(hero) / 100f *
-                           _menu.Item(_menu.Name + ".ultimate.damage-percent" + (single ? "-single" : string.Empty))
-                               .GetValue<Slider>()
-                               .Value;
+                    var dmgMultiplicator =
+                        _menu.Item(_menu.Name + ".ultimate.damage-percent" + (hits <= 1 ? "-single" : string.Empty))
+                            .GetValue<Slider>()
+                            .Value / 100;
+                    return DamageCalculation(hero, dmgMultiplicator, mode != UltimateModeType.Flash) * dmgMultiplicator;
                 }
                 catch (Exception ex)
                 {
@@ -388,6 +395,14 @@ namespace SFXChallenger.Managers
                 }
             }
             return 0f;
+        }
+
+        public int GetMinHits(UltimateModeType mode)
+        {
+            return
+                _menu.Item(
+                    _menu.Name + ".ultimate." + GetModeString(mode) + ".min" +
+                    (mode == UltimateModeType.Flash ? "-flash" : string.Empty)).GetValue<Slider>().Value;
         }
 
         public bool CheckSingle(UltimateModeType mode, Obj_AI_Hero target)
@@ -405,8 +420,8 @@ namespace SFXChallenger.Managers
                     if (Spells != null &&
                         !Spells.Any(
                             s =>
-                                s.Slot != SpellSlot.R && s.IsReady() && s.IsInRange(target) && s.GetDamage(target) > 10 &&
-                                Math.Abs(s.Speed - float.MaxValue) < 1 ||
+                                s.Slot != SpellSlot.R && s.IsReady() && s.IsInRange(target) &&
+                                s.GetDamage(target, 1) > 10 && Math.Abs(s.Speed - float.MaxValue) < 1 ||
                                 s.From.Distance(target.ServerPosition) / s.Speed + s.Delay <= 1.0f))
                     {
                         minHealth = 0;
@@ -434,7 +449,7 @@ namespace SFXChallenger.Managers
 
                     if (DamageCalculation != null)
                     {
-                        if (GetDamage(target, true) < target.Health)
+                        if (GetDamage(target, mode, 1) < target.Health)
                         {
                             return false;
                         }
@@ -473,7 +488,7 @@ namespace SFXChallenger.Managers
                                 hits.Any(
                                     hit =>
                                         HeroListManager.Check("ultimate-force", hit) && hits.Count >= additional &&
-                                        (!dmgCheck || GetDamage(hit, additional == 1) >= hit.Health)))
+                                        (!dmgCheck || GetDamage(hit, mode, additional) >= hit.Health)))
                             {
                                 return true;
                             }
@@ -500,13 +515,12 @@ namespace SFXChallenger.Managers
                         if (DamageCalculation != null &&
                             _menu.Item(_menu.Name + ".ultimate." + modeString + ".damage-check").GetValue<bool>())
                         {
-                            if (hits.All(h => GetDamage(h) < h.Health))
+                            if (hits.All(h => GetDamage(h, mode, hits.Count) < h.Health))
                             {
                                 return false;
                             }
                         }
-                        return hits.Count >=
-                               _menu.Item(_menu.Name + ".ultimate." + modeString + ".min").GetValue<Slider>().Value;
+                        return hits.Count >= GetMinHits(mode);
                     }
                     return true;
                 }

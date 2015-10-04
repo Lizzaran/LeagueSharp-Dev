@@ -126,8 +126,10 @@ namespace SFXChallenger.Managers
                             i.Name.ToLower().Equals(args.SData.Name.ToLower(), StringComparison.OrdinalIgnoreCase));
                 if (initiator != null)
                 {
-                    if (_menu == null ||
-                        _menu.Item(_menu.Name + "." + initiator.Hero + "." + initiator.Slot).GetValue<bool>())
+                    var item = _menu != null
+                        ? _menu.Item(_menu.Name + "." + initiator.Hero + "." + initiator.Slot)
+                        : null;
+                    if (_menu == null || item != null && item.GetValue<bool>())
                     {
                         var eventArgs = new InitiatorManagerArgs(
                             hero, args.Start, args.Target != null ? args.Target.Position : args.End, initiator.Range);

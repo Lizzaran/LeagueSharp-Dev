@@ -36,6 +36,7 @@ using SFXChallenger.Library.Extensions.NET;
 using SFXChallenger.Library.Logger;
 using SFXChallenger.Managers;
 using SFXChallenger.SFXTargetSelector;
+using SharpDX;
 using DamageType = SFXChallenger.Enumerations.DamageType;
 using MinionManager = SFXChallenger.Library.MinionManager;
 using MinionOrderTypes = SFXChallenger.Library.MinionOrderTypes;
@@ -105,9 +106,9 @@ namespace SFXChallenger.Champions
                 InterruptDelay = false,
                 Spells = Spells,
                 DamageCalculation =
-                    hero =>
+                    (hero, resMulti, rangeCheck) =>
                         CalcComboDamage(
-                            hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>(),
+                            hero, resMulti, rangeCheck, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>(),
                             Menu.Item(Menu.Name + ".combo.w").GetValue<bool>(),
                             Menu.Item(Menu.Name + ".combo.e").GetValue<bool>(), true)
             };
@@ -136,6 +137,7 @@ namespace SFXChallenger.Champions
                     { "W", HitChance.High },
                     { "R", HitChance.VeryHigh }
                 });
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".aa", "Use AutoAttacks").SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", "Use Q").SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", "Use W").SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", "Use E").SetValue(true));
@@ -151,6 +153,7 @@ namespace SFXChallenger.Champions
                 {
                     DefaultValue = 30
                 });
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".aa", "Use AutoAttacks").SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", "Use Q").SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", "Use W").SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", "Use E").SetValue(true));
@@ -193,7 +196,7 @@ namespace SFXChallenger.Champions
             killstealMenu.AddItem(new MenuItem(killstealMenu.Name + ".e-poison", "Use E Poison Only").SetValue(true));
 
             var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
-            DelayManager.AddToMenu(miscMenu, "e-delay", "E", 250, 0, 1000);
+            DelayManager.AddToMenu(miscMenu, "e-delay", "E", 420, 0, 1000);
 
             var qGapcloserMenu = miscMenu.AddSubMenu(new Menu("Q Gapcloser", miscMenu.Name + "q-gapcloser"));
             GapcloserManager.AddToMenu(
@@ -406,14 +409,23 @@ namespace SFXChallenger.Champions
                     (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
                      Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed))
                 {
-                    args.Process = Q.Instance.ManaCost > Player.Mana && W.Instance.ManaCost > Player.Mana &&
-                                   (E.Instance.ManaCost > Player.Mana || GetPoisonBuffEndTime(t) < E.ArrivalTime(t)) ||
-                                   !Q.IsReady() && !E.IsReady();
+                    args.Process =
+                        Menu.Item(
+                            Menu.Name + "." +
+                            (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ? "combo" : "harass") + ".aa")
+                            .GetValue<bool>();
+                    if (!args.Process)
+                    {
+                        var poison = GetPoisonBuffEndTime(t);
+                        args.Process = (!Q.IsReady() || Q.Instance.ManaCost > Player.Mana) &&
+                                       (!E.IsReady() || E.Instance.ManaCost > Player.Mana || poison <= 0 ||
+                                        poison < E.ArrivalTime(t));
+                    }
                 }
                 if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
                 {
                     args.Process = Menu.Item(Menu.Name + ".lane-clear.aa").GetValue<bool>();
-                    if (args.Process == false)
+                    if (!args.Process)
                     {
                         var m = args.Target as Obj_AI_Minion;
                         if (m != null && (_lastEEndTime < Game.Time || E.IsReady()) ||
@@ -551,14 +563,20 @@ namespace SFXChallenger.Champions
                 }
             }
             var target = Targets.FirstOrDefault(t => t.IsValidTarget(R.Range));
-            if (target != null && _ultimate.GetDamage(target) > target.Health)
+            if (target != null && _ultimate.GetDamage(target, UltimateModeType.Combo) > target.Health)
             {
                 ItemManager.UseComboItems(target);
                 SummonerManager.UseComboSummoners(target);
             }
         }
 
-        private float CalcComboDamage(Obj_AI_Hero target, bool q, bool w, bool e, bool r)
+        private float CalcComboDamage(Obj_AI_Hero target,
+            float resMulti,
+            bool rangeCheck,
+            bool q,
+            bool w,
+            bool e,
+            bool r)
         {
             try
             {
@@ -570,13 +588,9 @@ namespace SFXChallenger.Champions
                 var damage = 0f;
                 var totalMana = 0f;
 
-                var manaMulti = (GameObjects.EnemyHeroes.Count(x => x.IsValidTarget(2000)) == 1
-                    ? 100
-                    : _ultimate.DamagePercent) / 100f;
-
-                if (r && R.IsReady() && R.IsInRange(target))
+                if (r && R.IsReady() && (!rangeCheck || R.IsInRange(target)))
                 {
-                    var rMana = R.ManaCost * manaMulti;
+                    var rMana = R.ManaCost * resMulti;
                     if (totalMana + rMana <= Player.Mana)
                     {
                         totalMana += rMana;
@@ -584,27 +598,27 @@ namespace SFXChallenger.Champions
                     }
                 }
 
-                if (q && Q.IsReady() && Q.IsInRange(target))
+                if (q && Q.IsReady() && (!rangeCheck || Q.IsInRange(target)))
                 {
-                    var qMana = Q.ManaCost * manaMulti;
+                    var qMana = Q.ManaCost * resMulti;
                     if (totalMana + qMana <= Player.Mana)
                     {
                         totalMana += qMana;
                         damage += Q.GetDamage(target);
                     }
                 }
-                else if (w && W.IsReady() && W.IsInRange(target))
+                else if (w && W.IsReady() && (!rangeCheck || W.IsInRange(target)))
                 {
-                    var wMana = W.ManaCost * manaMulti;
+                    var wMana = W.ManaCost * resMulti;
                     if (totalMana + wMana <= Player.Mana)
                     {
                         totalMana += wMana;
                         damage += W.GetDamage(target);
                     }
                 }
-                if (e && E.IsReady(3000) && E.IsInRange(target))
+                if (e && E.IsReady(3000) && (!rangeCheck || E.IsInRange(target)))
                 {
-                    var eMana = E.ManaCost * manaMulti;
+                    var eMana = E.ManaCost * resMulti;
                     var eDamage = E.GetDamage(target);
                     var count = target.IsNearTurret() && !target.IsFacing(Player) ||
                                 target.IsNearTurret() && Player.HealthPercent <= 35 || !R.IsReady()
@@ -621,8 +635,8 @@ namespace SFXChallenger.Champions
                     }
                 }
 
-                damage += ItemManager.CalculateComboDamage(target);
-                damage += SummonerManager.CalculateComboDamage(target);
+                damage += ItemManager.CalculateComboDamage(target, rangeCheck);
+                damage += SummonerManager.CalculateComboDamage(target, rangeCheck);
                 return damage;
             }
             catch (Exception ex)
@@ -630,6 +644,38 @@ namespace SFXChallenger.Champions
                 Global.Logger.AddItem(new LogItem(ex));
             }
             return 0;
+        }
+
+        private Tuple<List<Obj_AI_Hero>, Vector3> GetMaxRHits(HitChance hitChance)
+        {
+            var castPosition = Vector3.Zero;
+            var totalHits = new List<Obj_AI_Hero>();
+            try
+            {
+                var positions = (from t in GameObjects.EnemyHeroes
+                    where t.IsValidTarget(R.Range * 1.5f)
+                    let prediction = R.GetPrediction(t)
+                    where prediction.Hitchance >= hitChance
+                    select new CPrediction.Position(t, prediction.UnitPosition)).ToList();
+                var circle = new Geometry.Polygon.Circle(Player.Position, R.Range).Points;
+                foreach (var point in circle)
+                {
+                    var hits =
+                        (from position in positions
+                            where R.WillHit(position.UnitPosition, point.To3D())
+                            select position.Hero).ToList();
+                    if (hits.Count > totalHits.Count)
+                    {
+                        castPosition = point.To3D();
+                        totalHits = hits;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return new Tuple<List<Obj_AI_Hero>, Vector3>(totalHits, castPosition);
         }
 
         private void RLogicSingle(UltimateModeType mode, HitChance hitChance, bool face = true)
@@ -663,18 +709,13 @@ namespace SFXChallenger.Champions
             {
                 if (_ultimate.IsActive(mode))
                 {
-                    foreach (var target in Targets.Where(t => R.CanCast(t)))
+                    var maxHits = GetMaxRHits(hitChance);
+                    if (maxHits.Item1.Count > 0 && !maxHits.Item2.Equals(Vector3.Zero))
                     {
-                        var pred = R.GetPrediction(target, true);
-                        if (pred.Hitchance >= hitChance)
+                        if (_ultimate.Check(mode, maxHits.Item1))
                         {
-                            var hits =
-                                GameObjects.EnemyHeroes.Where(enemy => R.WillHit(enemy, pred.CastPosition)).ToList();
-                            if (_ultimate.Check(mode, hits))
-                            {
-                                R.Cast(pred.CastPosition);
-                                return true;
-                            }
+                            R.Cast(maxHits.Item2);
+                            return true;
                         }
                     }
                 }
@@ -782,7 +823,8 @@ namespace SFXChallenger.Champions
                     target.Buffs.Where(buff => buff.Type == BuffType.Poison)
                         .OrderByDescending(buff => buff.EndTime - Game.Time)
                         .Select(buff => buff.EndTime)
-                        .FirstOrDefault();
+                        .DefaultIfEmpty(0)
+                        .Max();
                 return buffEndTime;
             }
             catch (Exception ex)

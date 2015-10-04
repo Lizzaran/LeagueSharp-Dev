@@ -110,9 +110,9 @@ namespace SFXChallenger.Champions
                 InterruptDelay = false,
                 Spells = Spells,
                 DamageCalculation =
-                    hero =>
+                    (hero, resMulti, rangeCheck) =>
                         CalcComboDamage(
-                            hero, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>(),
+                            hero, resMulti, rangeCheck, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>(),
                             Menu.Item(Menu.Name + ".combo.w").GetValue<bool>(),
                             Menu.Item(Menu.Name + ".combo.e").GetValue<bool>(), true)
             };
@@ -441,8 +441,8 @@ namespace SFXChallenger.Champions
                     IncomingDamage.Clean();
                     var totalDamage = IncomingDamage.TotalDamage * 1.1f;
                     if (totalDamage >= Player.Health ||
-                        (totalDamage / Player.MaxHealth * 100) >=
-                        Menu.Item(Menu.Name + ".shield.min-damage").GetValue<Slider>().Value)
+                        totalDamage >=
+                        (Player.MaxHealth / 100 * Menu.Item(Menu.Name + ".shield.min-damage").GetValue<Slider>().Value))
                     {
                         E.CastOnUnit(Player);
                     }
@@ -608,7 +608,7 @@ namespace SFXChallenger.Champions
             {
                 ELogic();
             }
-            if (target != null && _ultimate.GetDamage(target) > target.Health)
+            if (target != null && _ultimate.GetDamage(target, UltimateModeType.Combo) > target.Health)
             {
                 ItemManager.UseComboItems(target);
                 SummonerManager.UseComboSummoners(target);
@@ -638,7 +638,13 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private float CalcComboDamage(Obj_AI_Hero target, bool q, bool w, bool e, bool r)
+        private float CalcComboDamage(Obj_AI_Hero target,
+            float resMulti,
+            bool rangeCheck,
+            bool q,
+            bool w,
+            bool e,
+            bool r)
         {
             try
             {
@@ -649,13 +655,10 @@ namespace SFXChallenger.Champions
 
                 var damage = 0f;
                 var totalMana = 0f;
-                var manaMulti = (GameObjects.EnemyHeroes.Count(x => x.IsValidTarget(2000)) == 1
-                    ? 100
-                    : _ultimate.DamagePercent) / 100f;
 
                 if (r && R.IsReady())
                 {
-                    var rMana = R.ManaCost * manaMulti;
+                    var rMana = R.ManaCost * resMulti;
                     if (totalMana + rMana <= Player.Mana)
                     {
                         totalMana += rMana;
@@ -665,7 +668,7 @@ namespace SFXChallenger.Champions
 
                 if (w && W.IsReady(2000))
                 {
-                    var wMana = W.ManaCost * manaMulti;
+                    var wMana = W.ManaCost * resMulti;
                     if (totalMana + wMana <= Player.Mana)
                     {
                         totalMana += wMana;
@@ -673,7 +676,7 @@ namespace SFXChallenger.Champions
                     }
                 }
 
-                var qMana = Q.ManaCost * manaMulti;
+                var qMana = Q.ManaCost * resMulti;
                 if (totalMana + qMana <= Player.Mana)
                 {
                     totalMana += qMana;
@@ -690,19 +693,19 @@ namespace SFXChallenger.Champions
 
                 if (e && E.IsReady())
                 {
-                    var eMana = E.ManaCost * manaMulti;
+                    var eMana = E.ManaCost * resMulti;
                     if (totalMana + eMana <= Player.Mana)
                     {
                         damage += E.GetDamage(target) * 0.75f;
                     }
                 }
-                if (target.Distance(Player) <= Orbwalking.GetRealAutoAttackRange(target) * 1.2f)
+                if (!rangeCheck || target.Distance(Player) <= Orbwalking.GetRealAutoAttackRange(target) * 1.2f)
                 {
                     damage += 2 * (float) Player.GetAutoAttackDamage(target, true);
                 }
                 damage *= 1.1f;
-                damage += ItemManager.CalculateComboDamage(target);
-                damage += SummonerManager.CalculateComboDamage(target);
+                damage += ItemManager.CalculateComboDamage(target, rangeCheck);
+                damage += SummonerManager.CalculateComboDamage(target, rangeCheck);
                 return damage;
             }
             catch (Exception ex)
