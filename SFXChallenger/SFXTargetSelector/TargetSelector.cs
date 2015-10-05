@@ -178,7 +178,7 @@ namespace SFXChallenger.SFXTargetSelector
             return null;
         }
 
-        public static Obj_AI_Hero GetTarget(this Spell spell,
+        public static Obj_AI_Hero GetTarget(Spell spell,
             bool ignoreShields = true,
             Vector3 from = default(Vector3),
             IEnumerable<Obj_AI_Hero> ignoredChampions = null)
