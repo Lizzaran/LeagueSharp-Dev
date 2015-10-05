@@ -79,14 +79,9 @@ namespace SFXChallenger.Managers
 
                 if (args.EnabledButton)
                 {
-                    var eItem =
+                    menu.AddItem(
                         new MenuItem(menu.Name + ".hero-list-" + args.UniqueId + ".enabled", "Enabled").SetTag(
-                            args.MenuTag);
-                    if (args.DontSave)
-                    {
-                        eItem.DontSave();
-                    }
-                    menu.AddItem(eItem.SetValue(args.Enabled));
+                            args.MenuTag).SetValue(args.Enabled));
                 }
 
                 Menues[args.UniqueId] = new Tuple<Menu, HeroListManagerArgs>(menu, args);

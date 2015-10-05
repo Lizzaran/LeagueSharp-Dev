@@ -52,6 +52,8 @@ namespace SFXChallenger.Champions
 {
     internal class Cassiopeia : TChampion
     {
+        private Obj_AI_Minion _lastAaMinion;
+        private float _lastAaMinionEndTime;
         private int _lastECast;
         private float _lastEEndTime;
         private float _lastPoisonClearDelay;
@@ -73,6 +75,7 @@ namespace SFXChallenger.Champions
 
         protected override void OnLoad()
         {
+            Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
             Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
             Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
             GapcloserManager.OnGapcloser += OnEnemyGapcloser;
@@ -288,7 +291,8 @@ namespace SFXChallenger.Champions
                         MinionManager.GetMinions(Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly)
                             .FirstOrDefault(
                                 e =>
-                                    e.Health < E.GetDamage(e) - 5 &&
+                                    (_lastAaMinion == null || e.NetworkId != _lastAaMinion.NetworkId ||
+                                     Game.Time > _lastAaMinionEndTime) && e.Health < E.GetDamage(e) - 5 &&
                                     (ePoison && GetPoisonBuffEndTime(e) > E.ArrivalTime(e) || eHit));
                     if (m != null)
                     {
@@ -344,7 +348,8 @@ namespace SFXChallenger.Champions
                                     Player.Position.Extend(
                                         pred.CastPosition, -(Player.Position.Distance(pred.CastPosition) * 2)), true))
                             {
-                                Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
+                                Utility.DelayAction.Add(
+                                    300 + (Game.Ping / 2), () => SummonerManager.Flash.Cast(flashPos));
                             }
                         }
                         else if (_ultimate.ShouldSingle(UltimateModeType.Flash))
@@ -358,7 +363,8 @@ namespace SFXChallenger.Champions
                                                     pred.CastPosition,
                                                     -(Player.Position.Distance(pred.CastPosition) * 2)), true)))
                             {
-                                Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
+                                Utility.DelayAction.Add(
+                                    300 + (Game.Ping / 2), () => SummonerManager.Flash.Cast(flashPos));
                             }
                         }
                         R.UpdateSourcePosition();
@@ -398,6 +404,27 @@ namespace SFXChallenger.Champions
                 {
                     Casting.SkillShot(target, W, HitChance.High);
                 }
+            }
+        }
+
+        private void OnOrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
+        {
+            try
+            {
+                if (unit.IsMe)
+                {
+                    var minion = target as Obj_AI_Minion;
+                    if (minion != null)
+                    {
+                        _lastAaMinion = minion;
+                        _lastAaMinionEndTime = Game.Time + minion.Distance(Player) / Orbwalking.GetMyProjectileSpeed() +
+                                               0.25f;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 

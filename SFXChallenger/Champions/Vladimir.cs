@@ -51,6 +51,8 @@ namespace SFXChallenger.Champions
     internal class Vladimir : Champion
     {
         private MenuItem _eStacks;
+        private Obj_AI_Minion _lastAaMinion;
+        private float _lastAaMinionEndTime;
         private UltimateManager _ultimate;
 
         protected override ItemFlags ItemFlags
@@ -68,6 +70,7 @@ namespace SFXChallenger.Champions
             GapcloserManager.OnGapcloser += OnEnemyGapcloser;
             Drawing.OnDraw += OnDrawingDraw;
             Orbwalking.OnNonKillableMinion += OnOrbwalkingNonKillableMinion;
+            Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
         }
 
         protected override void SetupSpells()
@@ -190,6 +193,27 @@ namespace SFXChallenger.Champions
             _eStacks = DrawingManager.Add("E Stacks", true);
         }
 
+        private void OnOrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
+        {
+            try
+            {
+                if (unit.IsMe)
+                {
+                    var minion = target as Obj_AI_Minion;
+                    if (minion != null)
+                    {
+                        _lastAaMinion = minion;
+                        _lastAaMinionEndTime = Game.Time + minion.Distance(Player) / Orbwalking.GetMyProjectileSpeed() +
+                                               0.25f;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
         private void OnOrbwalkingNonKillableMinion(AttackableUnit unit)
         {
             try
@@ -201,7 +225,10 @@ namespace SFXChallenger.Champions
                         Q.IsReady() && Q.IsInRange(unit))
                     {
                         var target = unit as Obj_AI_Base;
-                        if (target != null && HealthPrediction.GetHealthPrediction(target, (int) (Q.Delay * 1000f)) > 0)
+                        if (target != null &&
+                            (_lastAaMinion == null || target.NetworkId != _lastAaMinion.NetworkId ||
+                             Game.Time > _lastAaMinionEndTime) &&
+                            HealthPrediction.GetHealthPrediction(target, (int) (Q.Delay * 1000f)) > 0)
                         {
                             Q.CastOnUnit(target);
                         }
@@ -245,6 +272,8 @@ namespace SFXChallenger.Champions
                         .FirstOrDefault(
                             e =>
                                 e.HealthPercent <= 75 &&
+                                (_lastAaMinion == null || e.NetworkId != _lastAaMinion.NetworkId ||
+                                 Game.Time > _lastAaMinionEndTime) &&
                                 HealthPrediction.GetHealthPrediction(e, (int) (Q.Delay * 1000f)) < Q.GetDamage(e));
                 if (m != null)
                 {

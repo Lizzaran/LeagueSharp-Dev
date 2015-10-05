@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.9.0.10</AssemblyVersion>
+    <AssemblyVersion>0.9.0.14</AssemblyVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -138,6 +138,7 @@
     <Compile Include="Library\Logger\SimpleFileLogger.cs" />
     <Compile Include="Library\MinionManager.cs" />
     <Compile Include="Library\ProducerConsumer.cs" />
+    <Compile Include="Library\Reset.cs" />
     <Compile Include="Library\Update.cs" />
     <Compile Include="Library\Utils.cs" />
     <Compile Include="Managers\BestTargetOnlyManager.cs" />

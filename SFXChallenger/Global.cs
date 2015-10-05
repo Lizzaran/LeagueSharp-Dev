@@ -56,5 +56,11 @@ namespace SFXChallenger
                 Logger.AddItem(new LogItem(ex));
             }
         }
+
+        public class Reset
+        {
+            public static bool Enabled = true;
+            public static DateTime MaxAge = new DateTime(2015, 10, 5);
+        }
     }
 }

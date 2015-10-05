@@ -24,7 +24,7 @@
     <AssemblyVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyVersionSettings>
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
-    <AssemblyVersion>0.8.8.4</AssemblyVersion>
+    <AssemblyVersion>0.8.8.8</AssemblyVersion>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -179,6 +179,7 @@
     <Compile Include="Library\Logger\SimpleFileLogger.cs" />
     <Compile Include="Library\MinionManager.cs" />
     <Compile Include="Library\ProducerConsumer.cs" />
+    <Compile Include="Library\Reset.cs" />
     <Compile Include="Library\Update.cs" />
     <Compile Include="Library\Utils.cs" />
     <Compile Include="Program.cs" />
@@ -357,7 +358,6 @@
     <Content Include="Resources\SB\SB_summonerheal.jpg" />
     <Content Include="Resources\SB\SB_summonermana.jpg" />
     <Content Include="Resources\SB\SB_summonerodingarrison.jpg" />
-    <Content Include="Resources\SB\SB_summonerrevive.jpg" />
     <Content Include="Resources\SB\SB_summonersmite.jpg" />
     <Content Include="Resources\SB\SB_summonerteleport.jpg" />
     <Content Include="Resources\SB\SB_Ultimate.png" />

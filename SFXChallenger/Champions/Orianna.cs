@@ -218,14 +218,6 @@ namespace SFXChallenger.Champions
             ResourceManager.AddToMenu(
                 miscMenu,
                 new ResourceManagerArgs(
-                    "e-self", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
-                {
-                    Prefix = "E Self",
-                    DefaultValue = 10
-                });
-            ResourceManager.AddToMenu(
-                miscMenu,
-                new ResourceManagerArgs(
                     "e-allies", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
                 {
                     Prefix = "E Allies",
@@ -257,7 +249,7 @@ namespace SFXChallenger.Champions
         private void CastE(Obj_AI_Hero target)
         {
             if (target != null &&
-                (target.IsMe && ResourceManager.Check("e-self") ||
+                (target.IsMe && Player.Mana > Q.ManaCost + W.ManaCost + E.ManaCost ||
                  !target.IsMe && Menu.Item(Menu.Name + ".miscellaneous.e-allies").GetValue<bool>() &&
                  ResourceManager.Check("e-allies")))
             {
@@ -502,7 +494,8 @@ namespace SFXChallenger.Champions
                         {
                             if (R.Cast(Ball.Position))
                             {
-                                Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
+                                Utility.DelayAction.Add(
+                                    300 + (Game.Ping / 2), () => SummonerManager.Flash.Cast(flashPos));
                             }
                         }
                         else if (_ultimate.ShouldSingle(UltimateModeType.Flash))
@@ -511,7 +504,8 @@ namespace SFXChallenger.Champions
                             {
                                 if (R.Cast(Ball.Position))
                                 {
-                                    Utility.DelayAction.Add(300, () => SummonerManager.Flash.Cast(flashPos));
+                                    Utility.DelayAction.Add(
+                                        300 + (Game.Ping / 2), () => SummonerManager.Flash.Cast(flashPos));
                                 }
                             }
                         }
@@ -1040,8 +1034,8 @@ namespace SFXChallenger.Champions
                         a =>
                             (Ball.Hero == null || Ball.Hero.NetworkId != a.NetworkId) && a.Distance(Player) <= E.Range &&
                             (a.IsMe || Menu.Item(Menu.Name + ".miscellaneous.e-allies").GetValue<bool>()) &&
-                            (a.IsMe && ResourceManager.Check("e-self") || !a.IsMe && ResourceManager.Check("e-allies")))
-                    )
+                            (a.IsMe && Player.Mana > Q.ManaCost + W.ManaCost + E.ManaCost ||
+                             !a.IsMe && ResourceManager.Check("e-allies"))))
                 {
                     var hits = GameObjects.EnemyHeroes.Count(e => e.Distance(ally) < spell.Range);
                     if (hits > totalHits)

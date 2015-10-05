@@ -61,23 +61,6 @@ namespace SFXChallenger.Library.Logger
         public string LogDir { get; set; }
         public LogLevel LogLevel { get; set; }
 
-        private void AddData(Exception ex)
-        {
-            if (ex != null)
-            {
-                if (GameObjects.Heroes != null && GameObjects.Heroes.Any())
-                {
-                    ex.Data.Add("Champion", ObjectManager.Player.ChampionName);
-                    ex.Data.Add(
-                        "Champions", string.Join(", ", GameObjects.Heroes.Select(e => e.ChampionName).ToArray()));
-                }
-                ex.Data.Add("Version", Game.Version);
-                ex.Data.Add("Region", Game.Region);
-                ex.Data.Add("MapId", Game.MapId);
-                ex.Data.Add("Type", Game.Type);
-            }
-        }
-
         public void AddItem(LogItem item)
         {
             if (LogLevel == LogLevel.None || item == null || string.IsNullOrWhiteSpace(item.Exception.ToString()))
@@ -153,5 +136,22 @@ namespace SFXChallenger.Library.Logger
         }
 
         public event EventHandler OnItemAdded;
+
+        private void AddData(Exception ex)
+        {
+            if (ex != null)
+            {
+                if (GameObjects.Heroes != null && GameObjects.Heroes.Any())
+                {
+                    ex.Data.Add("Champion", ObjectManager.Player.ChampionName);
+                    ex.Data.Add(
+                        "Champions", string.Join(", ", GameObjects.Heroes.Select(e => e.ChampionName).ToArray()));
+                }
+                ex.Data.Add("Version", Game.Version);
+                ex.Data.Add("Region", Game.Region);
+                ex.Data.Add("MapId", Game.MapId);
+                ex.Data.Add("Type", Game.Type);
+            }
+        }
     }
 }
