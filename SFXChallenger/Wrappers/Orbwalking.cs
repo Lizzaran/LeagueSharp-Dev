@@ -427,7 +427,7 @@ namespace SFXChallenger.Wrappers
             }
 
             var currentPath = Player.GetWaypoints();
-            if (currentPath.Count > 1)
+            if (currentPath.Count > 1 && currentPath.PathLength() > 100)
             {
                 var movePath = Player.GetPath(point);
                 if (movePath.Length > 1)
