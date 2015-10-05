@@ -37,6 +37,7 @@ using SFXChallenger.Library.Logger;
 using SFXChallenger.Managers;
 using DamageType = SFXChallenger.Enumerations.DamageType;
 using MinionManager = SFXChallenger.Library.MinionManager;
+using MinionOrderTypes = SFXChallenger.Library.MinionOrderTypes;
 using MinionTeam = SFXChallenger.Library.MinionTeam;
 using MinionTypes = SFXChallenger.Library.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
@@ -495,15 +496,37 @@ namespace SFXChallenger.Champions
             var q = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
             var e = Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady() &&
                     ResourceManager.Check("lane-clear-e");
-            var eMin = Menu.Item(Menu.Name + ".lane-clear.e-min").GetValue<Slider>().Value;
 
             if (q)
             {
-                Casting.Farm(Q, 1);
+                Casting.Farm(Q, MinionManager.GetMinions(Q.Range), 1);
             }
             if (e)
             {
-                Casting.FarmSelfAoe(E, eMin);
+                Casting.FarmSelfAoe(
+                    E, MinionManager.GetMinions(E.Range),
+                    Menu.Item(Menu.Name + ".lane-clear.e-min").GetValue<Slider>().Value);
+            }
+        }
+
+        protected override void JungleClear()
+        {
+            var q = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
+            var e = Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady();
+
+            if (q)
+            {
+                Casting.Farm(
+                    Q,
+                    MinionManager.GetMinions(Q.Range, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth),
+                    1);
+            }
+            if (e)
+            {
+                Casting.FarmSelfAoe(
+                    E,
+                    MinionManager.GetMinions(E.Range, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth),
+                    1);
             }
         }
 

@@ -104,6 +104,18 @@ namespace SFXChallenger.Abstracts
             }
         }
 
+        void IChampion.JungleClear()
+        {
+            try
+            {
+                JungleClear();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
         void IChampion.Flee()
         {
             try
@@ -188,6 +200,7 @@ namespace SFXChallenger.Abstracts
         protected abstract void Combo();
         protected abstract void Harass();
         protected abstract void LaneClear();
+        protected abstract void JungleClear();
         protected abstract void Flee();
         protected abstract void Killsteal();
 

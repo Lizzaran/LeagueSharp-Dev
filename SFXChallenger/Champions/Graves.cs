@@ -36,6 +36,10 @@ using SFXChallenger.Library.Logger;
 using SFXChallenger.Managers;
 using SharpDX;
 using DamageType = SFXChallenger.Enumerations.DamageType;
+using MinionManager = SFXChallenger.Library.MinionManager;
+using MinionOrderTypes = SFXChallenger.Library.MinionOrderTypes;
+using MinionTeam = SFXChallenger.Library.MinionTeam;
+using MinionTypes = SFXChallenger.Library.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
@@ -145,7 +149,8 @@ namespace SFXChallenger.Champions
                     Advanced = true,
                     MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
-                    DefaultValues = new List<int> { 50, 30, 30 }
+                    DefaultValues = new List<int> { 50, 30, 30 },
+                    IgnoreJungleOption = true
                 });
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q-min", "Q Min.").SetValue(new Slider(3, 1, 5)));
@@ -449,11 +454,28 @@ namespace SFXChallenger.Champions
             }
 
             var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
-            var minQ = Menu.Item(Menu.Name + ".lane-clear.q-min").GetValue<Slider>().Value;
-
             if (useQ)
             {
-                Casting.Farm(Q, minQ, 200f);
+                Casting.Farm(
+                    Q, MinionManager.GetMinions(Q.Range),
+                    Menu.Item(Menu.Name + ".lane-clear.q-min").GetValue<Slider>().Value, 200f);
+            }
+        }
+
+        protected override void JungleClear()
+        {
+            if (!ResourceManager.Check("lane-clear") && !ResourceManager.IgnoreJungle("lane-clear"))
+            {
+                return;
+            }
+
+            var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
+            if (useQ)
+            {
+                Casting.Farm(
+                    Q,
+                    MinionManager.GetMinions(Q.Range, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth),
+                    1, 200f);
             }
         }
 

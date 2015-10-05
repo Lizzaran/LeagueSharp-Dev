@@ -35,6 +35,10 @@ using SFXChallenger.Library;
 using SFXChallenger.Library.Logger;
 using SFXChallenger.Managers;
 using DamageType = SFXChallenger.Enumerations.DamageType;
+using MinionManager = SFXChallenger.Library.MinionManager;
+using MinionOrderTypes = SFXChallenger.Library.MinionOrderTypes;
+using MinionTeam = SFXChallenger.Library.MinionTeam;
+using MinionTypes = SFXChallenger.Library.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
@@ -137,7 +141,8 @@ namespace SFXChallenger.Champions
                     Advanced = true,
                     MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
-                    DefaultValues = new List<int> { 50, 30, 30 }
+                    DefaultValues = new List<int> { 50, 30, 30 },
+                    IgnoreJungleOption = true
                 });
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", "Use W").SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", "Use E").SetValue(true));
@@ -360,21 +365,61 @@ namespace SFXChallenger.Champions
 
             var useW = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>() && W.IsReady();
             var useE = Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady();
-            var useR = Menu.Item(Menu.Name + ".lane-clear.r").GetValue<bool>() && R.IsReady();
-            var minE = Menu.Item(Menu.Name + ".lane-clear.e-min").GetValue<Slider>().Value;
-            var minR = Menu.Item(Menu.Name + ".lane-clear.r-min").GetValue<Slider>().Value;
+            var useR = Menu.Item(Menu.Name + ".lane-clear.r").GetValue<bool>() && R.IsReady() &&
+                       Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value > GetRBuffCount();
 
             if (useW)
             {
-                Casting.FarmSelfAoe(W, 1, Player.AttackRange + Player.BoundingRadius * 1.25f + 20 * W.Level);
+                Casting.FarmSelfAoe(
+                    W, MinionManager.GetMinions(W.Range), 1,
+                    Player.AttackRange + Player.BoundingRadius * 1.25f + 20 * W.Level);
             }
             if (useE)
             {
-                Casting.Farm(E, minE);
+                Casting.Farm(
+                    E, MinionManager.GetMinions(E.Range),
+                    Menu.Item(Menu.Name + ".lane-clear.e-min").GetValue<Slider>().Value);
             }
-            if (useR && Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value > GetRBuffCount())
+            if (useR)
             {
-                Casting.Farm(R, minR);
+                Casting.Farm(
+                    R, MinionManager.GetMinions(R.Range),
+                    Menu.Item(Menu.Name + ".lane-clear.r-min").GetValue<Slider>().Value);
+            }
+        }
+
+        protected override void JungleClear()
+        {
+            if (!ResourceManager.Check("lane-clear") && !ResourceManager.IgnoreJungle("lane-clear"))
+            {
+                return;
+            }
+
+            var useW = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>() && W.IsReady();
+            var useE = Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady();
+            var useR = Menu.Item(Menu.Name + ".lane-clear.r").GetValue<bool>() && R.IsReady() &&
+                       Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value > GetRBuffCount();
+
+            if (useW)
+            {
+                Casting.FarmSelfAoe(
+                    W,
+                    MinionManager.GetMinions(W.Range, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth),
+                    1, Player.AttackRange + Player.BoundingRadius * 1.25f + 20 * W.Level);
+            }
+            if (useE)
+            {
+                Casting.Farm(
+                    E,
+                    MinionManager.GetMinions(E.Range, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth),
+                    1);
+            }
+            if (useR)
+            {
+                Casting.Farm(
+                    R,
+                    MinionManager.GetMinions(R.Range, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth),
+                    1);
             }
         }
 

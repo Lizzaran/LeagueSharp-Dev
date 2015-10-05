@@ -641,12 +641,14 @@ namespace SFXChallenger.Champions
         protected override void LaneClear()
         {
             var min = Menu.Item(Menu.Name + ".lane-clear.min").GetValue<Slider>().Value;
-            if (Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady() &&
-                (ResourceManager.Check("lane-clear-q") || Q.IsCharging))
+            var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady() &&
+                       (ResourceManager.Check("lane-clear-q") || Q.IsCharging);
+            var useE = Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady() &&
+                       ResourceManager.Check("lane-clear-e");
+            if (useQ)
             {
-                var minions = MinionManager.GetMinions(
-                    Q.ChargedMaxRange, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
-                if (Q.IsCharging || minions.Count >= min || minions.Any(m => m.Team == GameObjectTeam.Neutral))
+                var minions = MinionManager.GetMinions(Q.ChargedMaxRange);
+                if (Q.IsCharging || minions.Count >= min)
                 {
                     if (!Q.IsCharging)
                     {
@@ -656,16 +658,49 @@ namespace SFXChallenger.Champions
                     if (Q.IsCharging && IsFullyCharged())
                     {
                         Casting.Farm(
-                            Q, Game.Time - _lastLaneClearQStart > 3 ? 1 : (minions.Count < min ? minions.Count : min),
-                            -1f, false, minions);
+                            Q, minions,
+                            (Game.Time - _lastLaneClearQStart > 3 ? 1 : (minions.Count < min ? minions.Count : min)));
                     }
                 }
             }
 
-            if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady() &&
-                ResourceManager.Check("lane-clear-e"))
+            if (useE)
             {
-                Casting.Farm(E, min);
+                Casting.Farm(E, MinionManager.GetMinions(E.Range + E.Width), min);
+            }
+        }
+
+        protected override void JungleClear()
+        {
+            var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady() &&
+                       (ResourceManager.Check("lane-clear-q") || Q.IsCharging ||
+                        ResourceManager.IgnoreJungle("lane-clear-q"));
+            var useE = Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady() &&
+                       (ResourceManager.Check("lane-clear-e") || ResourceManager.IgnoreJungle("lane-clear-e"));
+            if (useQ)
+            {
+                var minions = MinionManager.GetMinions(
+                    Q.ChargedMaxRange, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth);
+                if (Q.IsCharging || minions.Count >= 1)
+                {
+                    if (!Q.IsCharging)
+                    {
+                        Q.StartCharging();
+                        _lastLaneClearQStart = Game.Time;
+                    }
+                    if (Q.IsCharging && IsFullyCharged())
+                    {
+                        Casting.Farm(Q, minions, 1);
+                    }
+                }
+            }
+
+            if (useE)
+            {
+                Casting.Farm(
+                    E,
+                    MinionManager.GetMinions(
+                        E.Range + E.Width, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth), 1);
             }
         }
 

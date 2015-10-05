@@ -140,7 +140,8 @@ namespace SFXChallenger.Champions
                     Advanced = true,
                     MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
-                    DefaultValues = new List<int> { 50, 50, 50 }
+                    DefaultValues = new List<int> { 50, 50, 50 },
+                    IgnoreJungleOption = true
                 });
             ResourceManager.AddToMenu(
                 laneclearMenu,
@@ -151,7 +152,8 @@ namespace SFXChallenger.Champions
                     Advanced = true,
                     MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
-                    DefaultValues = new List<int> { 60, 60, 60 }
+                    DefaultValues = new List<int> { 60, 60, 60 },
+                    IgnoreJungleOption = true
                 });
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q-min", "Q Min.").SetValue(new Slider(4, 1, 5)));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
@@ -573,26 +575,18 @@ namespace SFXChallenger.Champions
 
         protected override void LaneClear()
         {
-            var q = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>();
+            var q = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady() &&
+                    ResourceManager.Check("lane-clear");
             var qMin = Menu.Item(Menu.Name + ".lane-clear.q-min").GetValue<Slider>().Value;
-            var w = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>();
+            var w = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>() && W.IsReady();
 
-            if (ResourceManager.Check("lane-clear") && q && Q.IsReady())
+            if (q)
             {
-                var minions = MinionManager.GetMinions(
-                    Q.Range * 1.2f, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+                var minions = MinionManager.GetMinions(Q.Range * 1.2f);
                 var m = minions.OrderBy(x => x.Distance(Player)).FirstOrDefault();
                 if (m == null)
                 {
                     return;
-                }
-                if (m.Team != GameObjectTeam.Neutral)
-                {
-                    minions.RemoveAll(x => x.Team == GameObjectTeam.Neutral);
-                }
-                else
-                {
-                    qMin = 1;
                 }
                 var best = BestQPosition(null, minions, HitChance.High);
                 if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= qMin)
@@ -600,13 +594,47 @@ namespace SFXChallenger.Champions
                     Q.Cast(best.Item2);
                 }
             }
-            if (w && W.IsReady())
+            if (w)
             {
-                var minions = MinionManager.GetMinions(
-                    W.Range * 1.2f, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
+                var minions = MinionManager.GetMinions(W.Range * 1.2f);
                 if (minions.Any())
                 {
                     Cards.Select(!ResourceManager.Check("lane-clear-blue") ? CardColor.Blue : CardColor.Red);
+                }
+            }
+        }
+
+        protected override void JungleClear()
+        {
+            var q = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady() &&
+                    (ResourceManager.Check("lane-clear") || ResourceManager.IgnoreJungle("lane-clear"));
+            var w = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>() && W.IsReady();
+
+            if (q)
+            {
+                var minions = MinionManager.GetMinions(
+                    Q.Range * 1.2f, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth);
+                var m = minions.OrderBy(x => x.Distance(Player)).FirstOrDefault();
+                if (m == null)
+                {
+                    return;
+                }
+                var best = BestQPosition(null, minions, HitChance.High);
+                if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
+                {
+                    Q.Cast(best.Item2);
+                }
+            }
+            if (w)
+            {
+                var minions = MinionManager.GetMinions(
+                    W.Range * 1.2f, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth);
+                if (minions.Any())
+                {
+                    Cards.Select(
+                        (ResourceManager.Check("lane-clear-blue") || ResourceManager.IgnoreJungle("lane-clear-blue"))
+                            ? CardColor.Red
+                            : CardColor.Blue);
                 }
             }
         }

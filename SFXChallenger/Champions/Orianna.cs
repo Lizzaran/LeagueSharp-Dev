@@ -171,7 +171,8 @@ namespace SFXChallenger.Champions
                     Advanced = true,
                     MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
-                    DefaultValues = new List<int> { 45, 25, 25 }
+                    DefaultValues = new List<int> { 45, 25, 25 },
+                    IgnoreJungleOption = true
                 });
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", "Use W").SetValue(true));
@@ -1147,28 +1148,12 @@ namespace SFXChallenger.Champions
                 return;
             }
 
-            var mobs = MinionManager.GetMinions(
-                Player.Position, Q.Range, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth);
-            if (mobs.Count > 0)
-            {
-                var mob = mobs.First();
-                if (w && W.IsReady() && W.WillHit(mob.ServerPosition, Ball.Position))
-                {
-                    W.Cast(Player.Position);
-                }
-                else if (q && Q.IsReady())
-                {
-                    Q.Cast(mob.Position);
-                }
-                return;
-            }
             var allMinions = MinionManager.GetMinions(Player.Position, Q.Range + W.Width);
-            var rangedMinions = MinionManager.GetMinions(Player.Position, Q.Range + W.Width, MinionTypes.Ranged);
-
             if (q && Q.IsReady())
             {
                 if (w)
                 {
+                    var rangedMinions = MinionManager.GetMinions(Player.Position, Q.Range + W.Width, MinionTypes.Ranged);
                     var qLocation = Q.GetCircularFarmLocation(allMinions, W.Width);
                     var q2Location = Q.GetCircularFarmLocation(rangedMinions, W.Width);
                     var bestLocation = (qLocation.MinionsHit > q2Location.MinionsHit + 1) ? qLocation : q2Location;
@@ -1201,6 +1186,36 @@ namespace SFXChallenger.Champions
                     3)
                 {
                     W.Cast(Player.Position);
+                }
+            }
+        }
+
+        protected override void JungleClear()
+        {
+            if (!ResourceManager.Check("lane-clear") && !ResourceManager.IgnoreJungle("lane-clear") || Ball.IsMoving)
+            {
+                return;
+            }
+            var q = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>();
+            var w = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>();
+
+            if (!q && !w)
+            {
+                return;
+            }
+
+            var mobs = MinionManager.GetMinions(
+                Player.Position, Q.Range, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth);
+            if (mobs.Count > 0)
+            {
+                var mob = mobs.First();
+                if (w && W.IsReady() && W.WillHit(mob.ServerPosition, Ball.Position))
+                {
+                    W.Cast(Player.Position);
+                }
+                else if (q && Q.IsReady())
+                {
+                    Q.Cast(mob.Position);
                 }
             }
         }

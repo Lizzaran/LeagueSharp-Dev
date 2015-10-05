@@ -29,10 +29,6 @@ using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Library.Extensions.NET;
 using SharpDX;
-using MinionManager = SFXChallenger.Library.MinionManager;
-using MinionOrderTypes = SFXChallenger.Library.MinionOrderTypes;
-using MinionTeam = SFXChallenger.Library.MinionTeam;
-using MinionTypes = SFXChallenger.Library.MinionTypes;
 using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
 
@@ -99,35 +95,11 @@ namespace SFXChallenger.Helpers
             spell.CastOnUnit(target);
         }
 
-        public static void FarmSelfAoe(Spell spell,
-            int minHit = 3,
-            float overrideWidth = -1f,
-            List<Obj_AI_Base> minions = null)
+        public static void FarmSelfAoe(Spell spell, List<Obj_AI_Base> minions, int minHit = 3, float overrideWidth = -1f)
         {
-            if (!spell.IsReady())
+            if (!spell.IsReady() || minions.Count == 0)
             {
                 return;
-            }
-            var spellWidth = overrideWidth > 0 ? overrideWidth : (spell.Width > 25f ? spell.Width : spell.Range);
-
-            if (minions == null)
-            {
-                minions = MinionManager.GetMinions(
-                    spellWidth, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
-            }
-
-            if (minions.Count == 0)
-            {
-                return;
-            }
-
-            if (minHit > 1)
-            {
-                var nearest = minions.OrderBy(m => m.Distance(ObjectManager.Player)).FirstOrDefault();
-                if (nearest != null && nearest.Team == GameObjectTeam.Neutral)
-                {
-                    minHit = 1;
-                }
             }
             if (minions.Count >= minHit)
             {
@@ -136,37 +108,14 @@ namespace SFXChallenger.Helpers
         }
 
         public static void Farm(Spell spell,
+            List<Obj_AI_Base> minions,
             int minHit = 3,
             float overrideWidth = -1f,
-            bool chargeMax = true,
-            List<Obj_AI_Base> minions = null)
+            bool chargeMax = true)
         {
-            if (!spell.IsReady())
+            if (!spell.IsReady() || minions.Count == 0)
             {
                 return;
-            }
-            var spellWidth = overrideWidth > 0 ? overrideWidth : spell.Width;
-
-            if (minions == null)
-            {
-                minions =
-                    MinionManager.GetMinions(
-                        (((chargeMax && spell.IsChargedSpell ? spell.ChargedMaxRange : spell.Range) + spellWidth) * 1.5f),
-                        MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth);
-            }
-
-            if (minions.Count == 0)
-            {
-                return;
-            }
-
-            if (minHit > 1)
-            {
-                var nearest = minions.OrderBy(m => m.Distance(ObjectManager.Player)).FirstOrDefault();
-                if (nearest != null && nearest.Team == GameObjectTeam.Neutral)
-                {
-                    minHit = 1;
-                }
             }
             if (spell.IsSkillshot)
             {
@@ -200,6 +149,10 @@ namespace SFXChallenger.Helpers
 
         private static void ConeFarm(Spell spell, List<Obj_AI_Base> minions, int min, float overrideWidth = -1f)
         {
+            if (!spell.IsReady() || minions.Count == 0)
+            {
+                return;
+            }
             var spellWidth = overrideWidth > 0 ? overrideWidth : spell.Width;
             var pred = spell.GetCircularFarmLocation(minions, spellWidth);
             if (pred.MinionsHit >= min)
@@ -210,6 +163,10 @@ namespace SFXChallenger.Helpers
 
         private static void CircleFarm(Spell spell, List<Obj_AI_Base> minions, int min, float overrideWidth = -1f)
         {
+            if (!spell.IsReady() || minions.Count == 0)
+            {
+                return;
+            }
             var spellWidth = (overrideWidth > 0 ? overrideWidth : spell.Width) + minions.Average(m => m.BoundingRadius);
             var points = (from minion in minions
                 select spell.GetPrediction(minion)
@@ -247,6 +204,10 @@ namespace SFXChallenger.Helpers
 
         private static void LineFarm(Spell spell, List<Obj_AI_Base> minions, int min, float overrideWidth = -1f)
         {
+            if (!spell.IsReady() || minions.Count == 0)
+            {
+                return;
+            }
             var spellWidth = overrideWidth > 0 ? overrideWidth : spell.Width;
             var totalHits = 0;
             var castPos = Vector3.Zero;

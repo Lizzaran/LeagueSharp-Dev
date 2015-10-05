@@ -155,7 +155,8 @@ namespace SFXChallenger.Champions
                     Advanced = true,
                     MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
-                    DefaultValues = new List<int> { 80, 50, 50 }
+                    DefaultValues = new List<int> { 80, 50, 50 },
+                    IgnoreJungleOption = true
                 });
             ResourceManager.AddToMenu(
                 laneclearMenu,
@@ -166,7 +167,8 @@ namespace SFXChallenger.Champions
                     Advanced = true,
                     MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
-                    DefaultValues = new List<int> { 40, 20, 20 }
+                    DefaultValues = new List<int> { 40, 20, 20 },
+                    IgnoreJungleOption = true
                 });
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(false));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", "Use E").SetValue(true));
@@ -1218,27 +1220,54 @@ namespace SFXChallenger.Champions
 
         protected override void LaneClear()
         {
-            if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady() &&
-                ResourceManager.Check("lane-clear-e"))
-            {
-                var minions = MinionManager.GetMinions(
-                    (E.Range + ELength + E.Width) * 1.2f, MinionTypes.All, MinionTeam.NotAlly,
-                    MinionOrderTypes.MaxHealth);
-                var minHits = minions.Any(m => m.Team == GameObjectTeam.Neutral)
-                    ? 1
-                    : Menu.Item(Menu.Name + ".lane-clear.e-min").GetValue<Slider>().Value;
+            var useE = Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady() &&
+                       ResourceManager.Check("lane-clear-e");
+            var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady() &&
+                       ResourceManager.Check("lane-clear-q");
 
+            if (useE)
+            {
+                var minions = MinionManager.GetMinions((E.Range + ELength + E.Width) * 1.2f);
+                var minHits = Menu.Item(Menu.Name + ".lane-clear.e-min").GetValue<Slider>().Value;
                 if (minions.Count >= minHits)
                 {
                     ELogicFarm((minions.Concat(GameObjects.EnemyHeroes)).ToList(), HitChance.High, minHits);
                 }
             }
-            if (Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady() &&
-                ResourceManager.Check("lane-clear-q"))
+
+            if (useQ)
             {
                 var minion =
-                    MinionManager.GetMinions(Q.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
+                    MinionManager.GetMinions(Q.Range)
                         .FirstOrDefault(m => m.Health < Q.GetDamage(m) || m.Health * 2 > Q.GetDamage(m));
+                if (minion != null)
+                {
+                    Casting.TargetSkill(minion, Q);
+                }
+            }
+        }
+
+        protected override void JungleClear()
+        {
+            var useE = Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady() &&
+                       (ResourceManager.Check("lane-clear-e") || ResourceManager.IgnoreJungle("lane-clear-e"));
+            var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady() &&
+                       (ResourceManager.Check("lane-clear-q") || ResourceManager.IgnoreJungle("lane-clear-q"));
+
+            if (useE)
+            {
+                var minions = MinionManager.GetMinions(
+                    (E.Range + ELength + E.Width) * 1.2f, MinionTypes.All, MinionTeam.Neutral,
+                    MinionOrderTypes.MaxHealth);
+                ELogicFarm(minions, HitChance.High, 1);
+            }
+
+
+            if (useQ)
+            {
+                var minion =
+                    MinionManager.GetMinions(Q.Range, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth)
+                        .FirstOrDefault();
                 if (minion != null)
                 {
                     Casting.TargetSkill(minion, Q);

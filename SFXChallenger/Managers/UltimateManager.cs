@@ -109,11 +109,12 @@ namespace SFXChallenger.Managers
                     for (var i = 0; i < modes.Count; i++)
                     {
                         requiredMenu.AddItem(
-                            new MenuItem(requiredMenu.Name + "." + GetModeString(modes[i]) + ".min", "Min. Required")
+                            new MenuItem(
+                                requiredMenu.Name + "." + GetModeString(modes[i], true) + ".min", "Min. Required")
                                 .SetValue(new Slider(1, 1, 5))).SetTag(i + 1);
                         HeroListManager.AddToMenu(
                             requiredMenu,
-                            new HeroListManagerArgs("ultimate-required-" + GetModeString(modes[i]))
+                            new HeroListManagerArgs("ultimate-required-" + GetModeString(modes[i], true))
                             {
                                 IsWhitelist = true,
                                 Allies = false,
@@ -272,6 +273,10 @@ namespace SFXChallenger.Managers
                 }
                 if (Assisted)
                 {
+                    uSingleMenu.AddItem(new MenuItem(uSingleMenu.Name + ".flash", "Flash").SetValue(false));
+                }
+                if (Assisted)
+                {
                     uSingleMenu.AddItem(new MenuItem(uSingleMenu.Name + ".assisted", "Assisted").SetValue(false));
                 }
 
@@ -348,9 +353,9 @@ namespace SFXChallenger.Managers
             return false;
         }
 
-        private string GetModeString(UltimateModeType mode)
+        private string GetModeString(UltimateModeType mode, bool overrideFlash)
         {
-            if (mode == UltimateModeType.Flash)
+            if (overrideFlash && mode == UltimateModeType.Flash)
             {
                 mode = UltimateModeType.Assisted;
             }
@@ -361,7 +366,7 @@ namespace SFXChallenger.Managers
         {
             if (_menu != null)
             {
-                var enabled = _menu.Item(_menu.Name + ".ultimate." + GetModeString(mode) + ".move-cursor");
+                var enabled = _menu.Item(_menu.Name + ".ultimate." + GetModeString(mode, true) + ".move-cursor");
                 return enabled != null && enabled.GetValue<bool>();
             }
             return false;
@@ -371,7 +376,7 @@ namespace SFXChallenger.Managers
         {
             if (_menu != null)
             {
-                var enabled = _menu.Item(_menu.Name + ".ultimate.single." + GetModeString(mode));
+                var enabled = _menu.Item(_menu.Name + ".ultimate.single." + GetModeString(mode, false));
                 return enabled != null && enabled.GetValue<bool>();
             }
             return false;
@@ -401,7 +406,7 @@ namespace SFXChallenger.Managers
         {
             return
                 _menu.Item(
-                    _menu.Name + ".ultimate." + GetModeString(mode) + ".min" +
+                    _menu.Name + ".ultimate." + GetModeString(mode, true) + ".min" +
                     (mode == UltimateModeType.Flash ? "-flash" : string.Empty)).GetValue<Slider>().Value;
         }
 
@@ -469,7 +474,7 @@ namespace SFXChallenger.Managers
         {
             try
             {
-                var modeString = GetModeString(mode);
+                var modeString = GetModeString(mode, true);
                 if (_menu == null || hits == null || !hits.Any(h => h.IsValidTarget()))
                 {
                     return false;

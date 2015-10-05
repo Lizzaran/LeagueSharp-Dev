@@ -32,7 +32,6 @@ using SFXChallenger.Args;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Helpers;
 using SFXChallenger.Library;
-using SFXChallenger.Library.Extensions.NET;
 using SFXChallenger.Library.Logger;
 using SFXChallenger.Managers;
 using SFXChallenger.SFXTargetSelector;
@@ -141,7 +140,7 @@ namespace SFXChallenger.Champions
                     { "W", HitChance.High },
                     { "R", HitChance.VeryHigh }
                 });
-            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".aa", "Use AutoAttacks").SetValue(true));
+            comboMenu.AddItem(new MenuItem(comboMenu.Name + ".aa", "Use AutoAttacks").SetValue(false));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".q", "Use Q").SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".w", "Use W").SetValue(true));
             comboMenu.AddItem(new MenuItem(comboMenu.Name + ".e", "Use E").SetValue(true));
@@ -157,7 +156,7 @@ namespace SFXChallenger.Champions
                 {
                     DefaultValue = 30
                 });
-            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".aa", "Use AutoAttacks").SetValue(true));
+            harassMenu.AddItem(new MenuItem(harassMenu.Name + ".aa", "Use AutoAttacks").SetValue(false));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", "Use Q").SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", "Use W").SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", "Use E").SetValue(true));
@@ -171,7 +170,8 @@ namespace SFXChallenger.Champions
                     Advanced = true,
                     MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
-                    DefaultValues = new List<int> { 50, 30, 30 }
+                    DefaultValues = new List<int> { 50, 30, 30 },
+                    IgnoreJungleOption = true
                 });
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".aa", "Use AutoAttacks").SetValue(true));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
@@ -866,23 +866,24 @@ namespace SFXChallenger.Champions
 
         protected override void LaneClear()
         {
-            var q = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
-            var w = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>() && W.IsReady();
+            if (!ResourceManager.Check("lane-clear"))
+            {
+                return;
+            }
 
-            if (Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady() &&
-                ResourceManager.Check("lane-clear") && DelayManager.Check("e-delay", _lastECast))
+            var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
+            var useW = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>() && W.IsReady();
+            var useE = Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady() &&
+                       DelayManager.Check("e-delay", _lastECast);
+
+            if (useE)
             {
                 var minion =
-                    MinionManager.GetMinions(
-                        Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.MaxHealth)
-                        .Where(
+                    MinionManager.GetMinions(Player.ServerPosition, E.Range)
+                        .FirstOrDefault(
                             e =>
                                 GetPoisonBuffEndTime(e) > E.ArrivalTime(e) &&
-                                (e.Team == GameObjectTeam.Neutral ||
-                                 (e.Health > E.GetDamage(e) * 2 || e.Health < E.GetDamage(e) - 5)))
-                        .OrderByDescending(
-                            m => m.CharData.BaseSkinName.Contains("MinionSiege", StringComparison.OrdinalIgnoreCase))
-                        .FirstOrDefault();
+                                (e.Health > E.GetDamage(e) * 2 || e.Health < E.GetDamage(e) - 5));
                 if (minion != null)
                 {
                     _lastEEndTime = Game.Time + E.ArrivalTime(minion) + 0.1f;
@@ -891,18 +892,15 @@ namespace SFXChallenger.Champions
                 }
             }
 
-            if (q || w)
+            if (useQ || useW)
             {
                 var minions =
-                    MinionManager.GetMinions(
-                        Player.ServerPosition, Q.Range + Q.Width, MinionTypes.All, MinionTeam.NotAlly)
+                    MinionManager.GetMinions(Player.ServerPosition, Q.Range + Q.Width)
                         .Where(e => GetPoisonBuffEndTime(e) < Q.Delay * 1.1)
-                        .OrderByDescending(
-                            m => m.CharData.BaseSkinName.Contains("MinionSiege", StringComparison.OrdinalIgnoreCase))
                         .ToList();
                 if (minions.Any())
                 {
-                    if (q)
+                    if (useQ)
                     {
                         var prediction = Q.GetCircularFarmLocation(minions, Q.Width + 30);
                         if (prediction.MinionsHit > 1 && Game.Time > _lastPoisonClearDelay ||
@@ -921,10 +919,87 @@ namespace SFXChallenger.Champions
                             }
                         }
                     }
-                    if (w)
+                    if (useW)
                     {
                         var prediction = W.GetCircularFarmLocation(minions, W.Width + 50);
                         if (prediction.MinionsHit > 2 &&
+                            (Game.Time > _lastPoisonClearDelay ||
+                             _lastPoisonClearPosition.Distance(prediction.Position) > Q.Width * 1.1f))
+                        {
+                            var mP =
+                                minions.Count(
+                                    p =>
+                                        p.Distance(prediction.Position) < (W.Width + 50) &&
+                                        GetPoisonBuffEndTime(p) >= 0.5f);
+                            if (prediction.MinionsHit - mP > 1)
+                            {
+                                _lastPoisonClearDelay = Game.Time + W.Delay + 2;
+                                _lastPoisonClearPosition = prediction.Position;
+                                W.Cast(prediction.Position);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        protected override void JungleClear()
+        {
+            if (!ResourceManager.Check("lane-clear") && !ResourceManager.IgnoreJungle("lane-clear"))
+            {
+                return;
+            }
+
+            var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
+            var useW = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>() && W.IsReady();
+            var useE = Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady() &&
+                       DelayManager.Check("e-delay", _lastECast);
+
+            if (useE)
+            {
+                var minion =
+                    MinionManager.GetMinions(
+                        Player.ServerPosition, E.Range, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth)
+                        .FirstOrDefault(e => GetPoisonBuffEndTime(e) > E.ArrivalTime(e));
+                if (minion != null)
+                {
+                    _lastEEndTime = Game.Time + E.ArrivalTime(minion) + 0.1f;
+                    _lastECast = Environment.TickCount;
+                    Casting.TargetSkill(minion, E);
+                }
+            }
+
+            if (useQ || useW)
+            {
+                var minions =
+                    MinionManager.GetMinions(
+                        Player.ServerPosition, Q.Range + Q.Width, MinionTypes.All, MinionTeam.Neutral,
+                        MinionOrderTypes.MaxHealth).Where(e => GetPoisonBuffEndTime(e) < Q.Delay * 1.1).ToList();
+                if (minions.Any())
+                {
+                    if (useQ)
+                    {
+                        var prediction = Q.GetCircularFarmLocation(minions, Q.Width + 30);
+                        if (prediction.MinionsHit >= 1 && Game.Time > _lastPoisonClearDelay ||
+                            _lastPoisonClearPosition.Distance(prediction.Position) > W.Width * 1.1f)
+                        {
+                            var mP =
+                                minions.Count(
+                                    p =>
+                                        p.Distance(prediction.Position) < (Q.Width + 30) &&
+                                        GetPoisonBuffEndTime(p) >= 0.5f);
+                            if (prediction.MinionsHit - mP > 1)
+                            {
+                                _lastPoisonClearDelay = Game.Time + Q.Delay + 1;
+                                _lastPoisonClearPosition = prediction.Position;
+                                Q.Cast(prediction.Position);
+                            }
+                        }
+                    }
+                    if (useW)
+                    {
+                        var prediction = W.GetCircularFarmLocation(minions, W.Width + 50);
+                        if (prediction.MinionsHit >= 2 &&
                             (Game.Time > _lastPoisonClearDelay ||
                              _lastPoisonClearPosition.Distance(prediction.Position) > Q.Width * 1.1f))
                         {
