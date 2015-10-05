@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.9.0.14</AssemblyVersion>
+    <AssemblyVersion>0.9.0.15</AssemblyVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -166,6 +166,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="SFXTargetSelector\Aggro.cs" />
+    <Compile Include="SFXTargetSelector\Extensions.cs" />
     <Compile Include="SFXTargetSelector\Humanizer.cs" />
     <Compile Include="SFXTargetSelector\Priorities.cs" />
     <Compile Include="SFXTargetSelector\Selected.cs" />
