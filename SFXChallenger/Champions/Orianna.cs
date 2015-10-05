@@ -364,7 +364,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (sender.Owner.IsMe && args.Slot == SpellSlot.R)
+                if (sender.Owner.IsMe && args.Slot == SpellSlot.R && !_ultimate.IsActive(UltimateModeType.Flash))
                 {
                     if (Ball.IsMoving || Menu.Item(Menu.Name + ".miscellaneous.block-r").GetValue<bool>())
                     {
@@ -468,30 +468,14 @@ namespace SFXChallenger.Champions
                 var target = TargetSelector.GetTarget(
                     (R.Width + SummonerManager.Flash.Range) * 1.5f, DamageType.Magical);
                 if (target != null && !target.IsDashing() &&
-                    (Prediction.GetPrediction(target, R.Delay + 0.3f).UnitPosition.Distance(Player.Position)) > R.Width)
+                    (R.GetPrediction(target).UnitPosition.Distance(Player.Position)) > R.Width)
                 {
                     var flashPos = Player.Position.Extend(target.Position, SummonerManager.Flash.Range);
-                    var pred =
-                        Prediction.GetPrediction(
-                            new PredictionInput
-                            {
-                                Aoe = true,
-                                Collision = false,
-                                CollisionObjects = new[] { CollisionableObjects.YasuoWall },
-                                From = flashPos,
-                                RangeCheckFrom = flashPos,
-                                Delay = R.Delay,
-                                Range = R.Range,
-                                Speed = R.Speed,
-                                Radius = R.Width,
-                                Type = R.Type,
-                                Unit = target
-                            });
-                    if (pred.Hitchance >= HitChance.High)
+                    var maxHits = GetHits(R, -1f, flashPos);
+
+                    if (maxHits.Item1 > 0)
                     {
-                        R.UpdateSourcePosition(flashPos, flashPos);
-                        var hits = GameObjects.EnemyHeroes.Where(x => R.WillHit(x, pred.CastPosition)).ToList();
-                        if (_ultimate.Check(UltimateModeType.Flash, hits))
+                        if (_ultimate.Check(UltimateModeType.Flash, maxHits.Item2))
                         {
                             if (R.Cast(Ball.Position))
                             {
@@ -501,7 +485,7 @@ namespace SFXChallenger.Champions
                         }
                         else if (_ultimate.ShouldSingle(UltimateModeType.Flash))
                         {
-                            if (hits.Any(hit => _ultimate.CheckSingle(UltimateModeType.Flash, hit)))
+                            if (maxHits.Item2.Any(hit => _ultimate.CheckSingle(UltimateModeType.Flash, hit)))
                             {
                                 if (R.Cast(Ball.Position))
                                 {
@@ -510,7 +494,6 @@ namespace SFXChallenger.Champions
                                 }
                             }
                         }
-                        R.UpdateSourcePosition(Ball.Position, Ball.Position);
                     }
                 }
             }
@@ -562,7 +545,7 @@ namespace SFXChallenger.Champions
                     var hits = GetHits(R);
                     if (hits.Item2.Any(i => i.NetworkId.Equals(sender.NetworkId)))
                     {
-                        R.Cast(Player.Position);
+                        R.Cast(Ball.Position);
                     }
                 }
             }
@@ -855,7 +838,7 @@ namespace SFXChallenger.Champions
                     var hits = GetHits(R);
                     if (hits.Item1 > 0 && _ultimate.Check(mode, hits.Item2))
                     {
-                        R.Cast(Player.Position);
+                        R.Cast(Ball.Position);
                         return true;
                     }
                 }
@@ -878,7 +861,7 @@ namespace SFXChallenger.Champions
                             .Select(target => GetHits(R))
                             .Any(hits => hits.Item1 > 0))
                     {
-                        R.Cast(Player.Position);
+                        R.Cast(Ball.Position);
                         return true;
                     }
                 }
@@ -890,30 +873,61 @@ namespace SFXChallenger.Champions
             return false;
         }
 
-        private Tuple<int, List<Obj_AI_Hero>> GetHits(Spell spell, float overrideWidth = -1f)
+        private Tuple<int, List<Obj_AI_Hero>> GetHits(Spell spell,
+            float overrideWidth = -1f,
+            Vector3 fromCheck = default(Vector3))
         {
             try
             {
+                if (fromCheck.Equals(default(Vector3)))
+                {
+                    fromCheck = Ball.Position;
+                }
+
+                var input = new PredictionInput
+                {
+                    Collision = true,
+                    CollisionObjects = new[] { CollisionableObjects.YasuoWall },
+                    From = fromCheck,
+                    RangeCheckFrom = fromCheck,
+                    Type = spell.Type,
+                    Radius = spell.Width,
+                    Delay = spell.Delay,
+                    Speed = spell.Speed,
+                    Range = spell.Range,
+                    Aoe = true
+                };
+
                 var width = overrideWidth > 0 ? overrideWidth : spell.Width;
                 var hits = new List<Obj_AI_Hero>();
-                var positions = (from t in GameObjects.EnemyHeroes
-                    where t.IsValidTarget(width * 4, true, spell.RangeCheckFrom)
-                    let prediction = spell.GetPrediction(t)
-                    where prediction.Hitchance >= HitChance.High
-                    where
-                        Utils.IsImmobile(t) || Utils.IsSlowed(t) || t.Distance(Ball.Position) < spell.Width * 0.75 ||
-                        t.Distance(Ball.Position) < spell.Width && t.IsFacing(Ball.Position, 120f)
-                    select new CPrediction.Position(t, prediction.UnitPosition)).ToList();
+                var positions = new List<CPrediction.Position>();
+                foreach (var t in GameObjects.EnemyHeroes)
+                {
+                    if (t.IsValidTarget(width * 4, true, fromCheck))
+                    {
+                        input.Unit = t;
+                        var prediction = Prediction.GetPrediction(input);
+                        if (prediction.Hitchance >= HitChance.High)
+                        {
+                            if (Utils.IsImmobile(t) || Utils.IsSlowed(t) || t.Distance(fromCheck) < spell.Width * 0.75 ||
+                                t.Distance(fromCheck) < spell.Width &&
+                                (fromCheck.Distance(Ball.Position) > 100 || t.IsFacing(fromCheck, 120f)))
+                            {
+                                positions.Add(new CPrediction.Position(t, prediction.UnitPosition));
+                            }
+                        }
+                    }
+                }
                 if (positions.Any())
                 {
-                    var circle = new Geometry.Polygon.Circle(Ball.Position, width);
+                    var circle = new Geometry.Polygon.Circle(fromCheck, width);
                     hits.AddRange(
                         from position in positions
                         where
                             !position.Hero.IsDashing() ||
-                            (position.Hero.Distance(Ball.Position) >= 100f &&
-                             position.Hero.Position.Distance(Ball.Position) >
-                             position.Hero.GetDashInfo().EndPos.Distance(Ball.Position) - 50f)
+                            (position.Hero.Distance(fromCheck) >= 100f &&
+                             position.Hero.Position.Distance(fromCheck) >
+                             position.Hero.GetDashInfo().EndPos.Distance(fromCheck) - 50f)
                         where circle.IsInside(position.UnitPosition)
                         select position.Hero);
                     return new Tuple<int, List<Obj_AI_Hero>>(hits.Count, hits);
@@ -1185,7 +1199,7 @@ namespace SFXChallenger.Champions
                 if (allMinions.Where(m => m.Distance(Ball.Position) <= W.Width).Count(m => W.GetDamage(m) > m.Health) >=
                     3)
                 {
-                    W.Cast(Player.Position);
+                    W.Cast(Ball.Position);
                 }
             }
         }
@@ -1211,7 +1225,7 @@ namespace SFXChallenger.Champions
                 var mob = mobs.First();
                 if (w && W.IsReady() && W.WillHit(mob.ServerPosition, Ball.Position))
                 {
-                    W.Cast(Player.Position);
+                    W.Cast(Ball.Position);
                 }
                 else if (q && Q.IsReady())
                 {
@@ -1226,7 +1240,7 @@ namespace SFXChallenger.Champions
                 (Ball.Status == BallStatus.Me || Ball.Position.Distance(Player.Position) <= W.Width * 0.8f) &&
                 W.IsReady())
             {
-                W.Cast(Player.Position);
+                W.Cast(Ball.Position);
             }
             if (Menu.Item(Menu.Name + ".flee.e").GetValue<bool>() && E.IsReady() &&
                 (Ball.Status != BallStatus.Me || Player.CountEnemiesInRange(500) > 0))

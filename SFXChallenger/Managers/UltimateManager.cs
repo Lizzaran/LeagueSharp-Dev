@@ -273,10 +273,10 @@ namespace SFXChallenger.Managers
                 }
                 if (Assisted)
                 {
-                    uSingleMenu.AddItem(new MenuItem(uSingleMenu.Name + ".flash", "Flash").SetValue(false));
-                }
-                if (Assisted)
-                {
+                    if (Flash)
+                    {
+                        uSingleMenu.AddItem(new MenuItem(uSingleMenu.Name + ".flash", "Flash").SetValue(false));
+                    }
                     uSingleMenu.AddItem(new MenuItem(uSingleMenu.Name + ".assisted", "Assisted").SetValue(false));
                 }
 
