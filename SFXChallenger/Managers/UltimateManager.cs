@@ -230,7 +230,7 @@ namespace SFXChallenger.Managers
                     if (Flash)
                     {
                         uAssistedMenu.AddItem(
-                            new MenuItem(uAssistedMenu.Name + ".min-flash", "Flash Min. Hits").SetValue(
+                            new MenuItem(ultimateMenu.Name + ".flash.min", "Flash Min. Hits").SetValue(
                                 new Slider(3, 1, 5)));
                     }
                     uAssistedMenu.AddItem(
@@ -238,7 +238,7 @@ namespace SFXChallenger.Managers
                     if (Flash)
                     {
                         uAssistedMenu.AddItem(
-                            new MenuItem(uAssistedMenu.Name + ".flash", "Flash").SetValue(
+                            new MenuItem(ultimateMenu.Name + ".flash.hotkey", "Flash").SetValue(
                                 new KeyBind('Y', KeyBindType.Press)));
                     }
                     uAssistedMenu.AddItem(
@@ -330,7 +330,7 @@ namespace SFXChallenger.Managers
                 if (mode == UltimateModeType.Flash)
                 {
                     return Flash && Assisted && _menu.Item(_menu.Name + ".ultimate.assisted.enabled").GetValue<bool>() &&
-                           _menu.Item(_menu.Name + ".ultimate.assisted.flash").GetValue<KeyBind>().Active;
+                           _menu.Item(_menu.Name + ".ultimate.flash.hotkey").GetValue<KeyBind>().Active;
                 }
                 if (mode == UltimateModeType.Assisted)
                 {
@@ -404,10 +404,7 @@ namespace SFXChallenger.Managers
 
         public int GetMinHits(UltimateModeType mode)
         {
-            return
-                _menu.Item(
-                    _menu.Name + ".ultimate." + GetModeString(mode, true) + ".min" +
-                    (mode == UltimateModeType.Flash ? "-flash" : string.Empty)).GetValue<Slider>().Value;
+            return _menu.Item(_menu.Name + ".ultimate." + GetModeString(mode, false) + ".min").GetValue<Slider>().Value;
         }
 
         public bool CheckSingle(UltimateModeType mode, Obj_AI_Hero target)
