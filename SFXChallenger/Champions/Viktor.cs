@@ -530,7 +530,18 @@ namespace SFXChallenger.Champions
                 if (sender.IsEnemy && args.DangerLevel == Interrupter2.DangerLevel.High &&
                     _ultimate.IsActive(UltimateModeType.Interrupt, sender))
                 {
-                    Utility.DelayAction.Add(DelayManager.Get("ultimate-interrupt-delay"), () => R.Cast(sender.Position));
+                    Utility.DelayAction.Add(
+                        DelayManager.Get("ultimate-interrupt-delay"), delegate
+                        {
+                            if (R.IsReady())
+                            {
+                                var pred = CPrediction.Circle(R, sender, HitChance.High, false);
+                                if (pred.TotalHits > 0)
+                                {
+                                    R.Cast(pred.CastPosition);
+                                }
+                            }
+                        });
                 }
             }
             catch (Exception ex)
@@ -1056,7 +1067,6 @@ namespace SFXChallenger.Champions
                 var endPos = Vector3.Zero;
                 var hits = 0;
                 targets = targets.Where(t => t.IsValidTarget((E.Range + ELength + E.Width) * 1.1f)).ToList();
-                var targetCount = targets.Count;
 
                 foreach (var target in targets)
                 {
@@ -1093,7 +1103,7 @@ namespace SFXChallenger.Champions
                                     hits = count;
                                     startPos = cCastPos;
                                     endPos = cCastPos.Extend(pred.CastPosition, ELength);
-                                    if (hits == targetCount)
+                                    if (hits >= targets.Count)
                                     {
                                         break;
                                     }
@@ -1102,45 +1112,9 @@ namespace SFXChallenger.Champions
                         }
                         if (endPos.Equals(Vector3.Zero))
                         {
-                            startPos = cCastPos;
-                            if (IsSpellUpgraded(E))
-                            {
-                                if (target.Path.Length > 0)
-                                {
-                                    var newPos = target.Path[0];
-                                    if (target.Path.Length > 1 && newPos.Distance(target.ServerPosition) <= 150)
-                                    {
-                                        newPos = newPos.Extend(target.Path[1], 50);
-                                    }
-                                    startPos = target.ServerPosition.Extend(newPos, -(lTarget.BoundingRadius * 0.85f));
-                                }
-                                else if (target.IsFacing(Player))
-                                {
-                                    startPos = target.ServerPosition.Extend(
-                                        Player.ServerPosition, -(lTarget.BoundingRadius * 0.85f));
-                                }
-                                else
-                                {
-                                    startPos = cCastPos;
-                                }
-                            }
-                            if (startPos.Distance(Player.ServerPosition) > E.Range)
-                            {
-                                startPos = Player.ServerPosition.Extend(startPos, E.Range);
-                            }
-                            if (target.Path.Length > 0)
-                            {
-                                endPos = startPos.Extend(target.Path[0], ELength);
-                            }
-                            else if (target.IsFacing(Player))
-                            {
-                                endPos = startPos.Extend(Player.ServerPosition, ELength);
-                            }
-                            else
-                            {
-                                endPos = Player.ServerPosition.Extend(
-                                    startPos, startPos.Distance(Player.ServerPosition) + ELength);
-                            }
+                            startPos = Player.ServerPosition.Extend(cCastPos, E.Range);
+                            endPos = Player.ServerPosition.Extend(
+                                startPos, startPos.Distance(Player.ServerPosition) + ELength);
                             hits = 1;
                         }
                     }
@@ -1186,7 +1160,7 @@ namespace SFXChallenger.Champions
                                     hits = count;
                                     startPos = point;
                                     endPos = startPos.Extend(pred2.CastPosition, ELength);
-                                    if (hits == targetCount)
+                                    if (hits >= targets.Count)
                                     {
                                         break;
                                     }
@@ -1194,7 +1168,7 @@ namespace SFXChallenger.Champions
                             }
                         }
                     }
-                    if (hits == targetCount)
+                    if (hits >= targets.Count)
                     {
                         break;
                     }

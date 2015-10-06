@@ -539,7 +539,8 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (sender.IsEnemy && args.DangerLevel == Interrupter2.DangerLevel.High &&
+                if (sender != null && sender.IsValid && sender.IsEnemy &&
+                    args.DangerLevel == Interrupter2.DangerLevel.High &&
                     _ultimate.IsActive(UltimateModeType.Interrupt, sender) && R.IsReady())
                 {
                     var hits = GetHits(R);
@@ -937,7 +938,7 @@ namespace SFXChallenger.Champions
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
-            return new Tuple<int, List<Obj_AI_Hero>>(0, null);
+            return new Tuple<int, List<Obj_AI_Hero>>(0, new List<Obj_AI_Hero>());
         }
 
         private Tuple<int, List<Obj_AI_Hero>> GetEHits(Vector3 to)
@@ -961,7 +962,7 @@ namespace SFXChallenger.Champions
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
-            return new Tuple<int, List<Obj_AI_Hero>>(0, null);
+            return new Tuple<int, List<Obj_AI_Hero>>(0, new List<Obj_AI_Hero>());
         }
 
         private Vector3 AssistedQLogic(out int hits)

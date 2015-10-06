@@ -804,7 +804,7 @@ namespace SFXChallenger.Champions
                         t =>
                             W.CanCast(t) &&
                             ((_lastQPoisonDelay < Game.Time && GetPoisonBuffEndTime(t) < W.Delay * 1.2 ||
-                              _lastQPoisonT.NetworkId != t.NetworkId) ||
+                              (_lastQPoisonT == null || _lastQPoisonT.NetworkId != t.NetworkId)) ||
                              (HeroListManager.Check("w-fleeing", t) && BestTargetOnlyManager.Check("w-fleeing", W, t) &&
                               !t.IsFacing(Player) && t.IsMoving && t.Distance(Player) > 150)));
                 if (ts != null)

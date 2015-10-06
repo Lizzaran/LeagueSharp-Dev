@@ -174,7 +174,7 @@ namespace SFXChallenger.Menus
                     };
                 Core.SetInterval(_menu.Item(_menu.Name + ".tick").GetValue<Slider>().Value);
 
-                _menu.AddItem(new MenuItem(_menu.Name + ".reset", "Reset").SetValue(false)).ValueChanged +=
+                _menu.AddItem(new MenuItem(_menu.Name + ".reset", "Reset").DontSave().SetValue(false)).ValueChanged +=
                     delegate(object sender, OnValueChangeEventArgs args)
                     {
                         try

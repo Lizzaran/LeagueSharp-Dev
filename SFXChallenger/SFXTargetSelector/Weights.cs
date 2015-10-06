@@ -171,6 +171,21 @@ namespace SFXChallenger.SFXTargetSelector
                             new Slider(1, MinMultiplicator, MaxMultiplicator)).DontSave());
                 }
 
+                _weightsMenu.AddItem(new MenuItem(_weightsMenu.Name + ".separator-pre", string.Empty));
+
+                _weightsMenu.AddItem(new MenuItem(_weightsMenu.Name + ".reset", "Reset").DontSave().SetValue(false))
+                    .ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        if (args.GetNewValue<bool>())
+                        {
+                            Utility.DelayAction.Add(
+                                0, () => _weightsMenu.Item(_weightsMenu.Name + ".reset").SetValue(false));
+                            RestoreDefaultWeights();
+                        }
+                    };
+
+                _weightsMenu.AddItem(new MenuItem(_weightsMenu.Name + ".separator-post", string.Empty));
+
                 foreach (var item in Items)
                 {
                     var localItem = item;
@@ -207,6 +222,30 @@ namespace SFXChallenger.SFXTargetSelector
 
                 Drawing.OnDraw += OnDrawingDraw;
                 Core.OnPreUpdate += OnCorePreUpdate;
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        public static void RestoreDefaultWeights()
+        {
+            try
+            {
+                foreach (var item in Items)
+                {
+                    if (_weightsMenu != null)
+                    {
+                        var menuItem = _weightsMenu.Item(_weightsMenu.Name + "." + item.Name);
+                        if (menuItem != null)
+                        {
+                            menuItem.SetValue(new Slider(item.DefaultWeight, MinWeight, MaxWeight));
+                        }
+                    }
+                    item.Weight = item.DefaultWeight;
+                }
+                Average = (float) Items.Select(w => w.Weight).DefaultIfEmpty(0).Average();
             }
             catch (Exception ex)
             {

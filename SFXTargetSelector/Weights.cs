@@ -172,6 +172,17 @@ namespace SFXTargetSelector
                 item.Weight = mainMenu.Item(_weightsMenu.Name + "." + item.Name).GetValue<Slider>().Value;
             }
 
+            _weightsMenu.AddItem(new MenuItem(_weightsMenu.Name + ".reset", "Reset").DontSave().SetValue(false))
+                .ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
+                {
+                    if (args.GetNewValue<bool>())
+                    {
+                        Utility.DelayAction.Add(
+                            0, () => _weightsMenu.Item(_weightsMenu.Name + ".reset").SetValue(false));
+                        RestoreDefaultWeights();
+                    }
+                };
+
             var drawingWeightsMenu = drawingMenu.AddSubMenu(new Menu("Weights", drawingMenu.Name + ".weights"));
 
             var drawingWeightsGroupMenu =
@@ -189,6 +200,23 @@ namespace SFXTargetSelector
 
             Drawing.OnDraw += OnDrawingDraw;
             Game.OnUpdate += OnGameUpdate;
+        }
+
+        public static void RestoreDefaultWeights()
+        {
+            foreach (var item in Items)
+            {
+                if (_weightsMenu != null)
+                {
+                    var menuItem = _weightsMenu.Item(_weightsMenu.Name + "." + item.Name);
+                    if (menuItem != null)
+                    {
+                        menuItem.SetValue(new Slider(item.DefaultWeight, MinWeight, MaxWeight));
+                    }
+                }
+                item.Weight = item.DefaultWeight;
+            }
+            Average = (float) Items.Select(w => w.Weight).DefaultIfEmpty(0).Average();
         }
 
         private static void OnGameUpdate(EventArgs args)
