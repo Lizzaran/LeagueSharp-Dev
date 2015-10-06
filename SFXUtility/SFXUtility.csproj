@@ -24,7 +24,7 @@
     <AssemblyVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyVersionSettings>
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
-    <AssemblyVersion>0.8.8.8</AssemblyVersion>
+    <AssemblyVersion>0.8.8.5</AssemblyVersion>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>

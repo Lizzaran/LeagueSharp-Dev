@@ -171,21 +171,6 @@ namespace SFXChallenger.SFXTargetSelector
                             new Slider(1, MinMultiplicator, MaxMultiplicator)).DontSave());
                 }
 
-                _weightsMenu.AddItem(new MenuItem(_weightsMenu.Name + ".separator-pre", string.Empty));
-
-                _weightsMenu.AddItem(new MenuItem(_weightsMenu.Name + ".reset", "Reset").DontSave().SetValue(false))
-                    .ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        if (args.GetNewValue<bool>())
-                        {
-                            Utility.DelayAction.Add(
-                                0, () => _weightsMenu.Item(_weightsMenu.Name + ".reset").SetValue(false));
-                            RestoreDefaultWeights();
-                        }
-                    };
-
-                _weightsMenu.AddItem(new MenuItem(_weightsMenu.Name + ".separator-post", string.Empty));
-
                 foreach (var item in Items)
                 {
                     var localItem = item;
@@ -220,8 +205,30 @@ namespace SFXChallenger.SFXTargetSelector
                 drawingWeightsMenu.AddItem(
                     new MenuItem(drawingWeightsMenu.Name + ".simple", "Simple").SetShared().SetValue(false));
 
+                Game.OnInput += OnGameInput;
                 Drawing.OnDraw += OnDrawingDraw;
                 Core.OnPreUpdate += OnCorePreUpdate;
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private static void OnGameInput(GameInputEventArgs args)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(args.Input))
+                {
+                    return;
+                }
+                var input = args.Input.ToLower();
+                if (input.Equals("/weights reset", StringComparison.OrdinalIgnoreCase))
+                {
+                    args.Process = false;
+                    RestoreDefaultWeights();
+                }
             }
             catch (Exception ex)
             {

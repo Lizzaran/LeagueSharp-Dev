@@ -88,7 +88,7 @@ namespace SFXChallenger.Champions
             Q.SetTargetted(0.15f, 2050f);
 
             W = new Spell(SpellSlot.W, 700f, DamageType.Magical);
-            W.SetSkillshot(1.6f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            W.SetSkillshot(1f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E, 525f, DamageType.Magical);
             E.SetSkillshot(0f, 90f, 800f, false, SkillshotType.SkillshotLine);
@@ -185,7 +185,7 @@ namespace SFXChallenger.Champions
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
                     DefaultValues = new List<int> { 50, 30, 30 }
                 });
-            lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".q-unkillable", "Q Unkillable").SetValue(false));
+            lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".q-unkillable", "Q Unkillable").SetValue(true));
 
             var fleeMenu = Menu.AddSubMenu(new Menu("Flee", Menu.Name + ".flee"));
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".w", "Use W").SetValue(false));

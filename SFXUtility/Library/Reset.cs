@@ -32,7 +32,7 @@ namespace SFXUtility.Library
 {
     internal class Reset
     {
-        public static void Force(string project, DateTime maxAge)
+        public static void Force(string project, DateTime maxAge, Action onResetAction = null)
         {
             try
             {
@@ -49,8 +49,20 @@ namespace SFXUtility.Library
                             var file = GetFile(menuConfigDir, project);
                             if (file != null)
                             {
-                                if (file.CreationTime <= maxAge)
+                                if (file.CreationTime.ToUniversalTime() <= maxAge.ToUniversalTime())
                                 {
+                                    try
+                                    {
+                                        if (onResetAction != null)
+                                        {
+                                            onResetAction();
+                                        }
+                                    }
+                                    catch
+                                    {
+                                        // Ignored
+                                    }
+
                                     didDelete = true;
                                     File.Delete(file.FullName);
                                 }
@@ -71,6 +83,9 @@ namespace SFXUtility.Library
                                     }
                                 }
                             }
+
+                            // ReSharper disable once LocalizableElement
+                            Console.WriteLine("{0}: Config & Repository reseted.", project);
                         }
                     }
                 }
