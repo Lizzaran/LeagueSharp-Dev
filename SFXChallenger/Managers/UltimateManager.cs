@@ -256,8 +256,16 @@ namespace SFXChallenger.Managers
                 var uSingleMenu = ultimateMenu.AddSubMenu(new Menu("Single Target", ultimateMenu.Name + ".single"));
                 uSingleMenu.AddItem(
                     new MenuItem(uSingleMenu.Name + ".min-health", "Min. Target Health %").SetValue(new Slider(15)));
+
+                uSingleMenu.AddItem(
+                    new MenuItem(uSingleMenu.Name + ".range-allies", "Allies Range Check").SetValue(
+                        new Slider(1750, 1000, 3000)));
                 uSingleMenu.AddItem(
                     new MenuItem(uSingleMenu.Name + ".max-allies", "Max. Allies in Range").SetValue(new Slider(3, 0, 4)));
+
+                uSingleMenu.AddItem(
+                    new MenuItem(uSingleMenu.Name + ".range-enemies", "Enemies Range Check").SetValue(
+                        new Slider(1750, 1000, 3000)));
                 uSingleMenu.AddItem(
                     new MenuItem(uSingleMenu.Name + ".max-enemies", "Max. Enemies in Range").SetValue(
                         new Slider(1, 1, 5)));
@@ -432,16 +440,20 @@ namespace SFXChallenger.Managers
                         return false;
                     }
 
+                    var alliesRange = _menu.Item(_menu.Name + ".ultimate.single.range-allies").GetValue<Slider>().Value;
                     var alliesMax = _menu.Item(_menu.Name + ".ultimate.single.max-allies").GetValue<Slider>().Value;
+
+                    var enemiesRange = _menu.Item(_menu.Name + ".ultimate.single.range-allies").GetValue<Slider>().Value;
                     var enemiesMax = _menu.Item(_menu.Name + ".ultimate.single.max-enemies").GetValue<Slider>().Value;
 
                     var pos = ObjectManager.Player.Position.Extend(
                         target.Position, ObjectManager.Player.Distance(target) / 2f);
                     var aCount =
-                        GameObjects.AllyHeroes.Count(h => h.IsValid && !h.IsMe && !h.IsDead && h.Distance(pos) <= 1750);
+                        GameObjects.AllyHeroes.Count(
+                            h => h.IsValid && !h.IsMe && !h.IsDead && h.Distance(pos) <= alliesRange);
                     var eCount =
                         GameObjects.EnemyHeroes.Count(
-                            h => h.IsValid && !h.IsDead && h.IsVisible && h.Distance(pos) <= 1750);
+                            h => h.IsValid && !h.IsDead && h.IsVisible && h.Distance(pos) <= enemiesRange);
 
                     if (aCount > alliesMax || eCount > enemiesMax)
                     {
