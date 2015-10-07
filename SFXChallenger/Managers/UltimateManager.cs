@@ -218,8 +218,7 @@ namespace SFXChallenger.Managers
                     uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".min", "Min. Hits").SetValue(new Slider(3, 1, 5)));
                     if (DamageCalculation != null)
                     {
-                        uAutoMenu.AddItem(
-                            new MenuItem(uAutoMenu.Name + ".damage-check", "Damage Check").SetValue(false));
+                        uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".damage-check", "Damage Check").SetValue(true));
                     }
                     uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".enabled", "Enabled").SetValue(true));
                 }

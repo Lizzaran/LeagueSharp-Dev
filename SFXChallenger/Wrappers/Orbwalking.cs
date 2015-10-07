@@ -255,7 +255,7 @@ namespace SFXChallenger.Wrappers
         /// </summary>
         public static float GetMyProjectileSpeed()
         {
-            return IsMelee(Player) || Player.ChampionName == "Azir" ||
+            return IsMelee(Player) || Player.ChampionName == "Azir" || Player.ChampionName == "Velkoz" ||
                    Player.ChampionName == "Viktor" && Player.HasBuff("ViktorPowerTransferReturn")
                 ? float.MaxValue
                 : Player.BasicAttack.MissileSpeed;
@@ -365,9 +365,16 @@ namespace SFXChallenger.Wrappers
         {
             if (delay.Randomize && Random.Next(0, 101) >= (100 - delay.Probability))
             {
-                var min = (delay.Default / 100f) * delay.MinDelay;
-                var max = (delay.Default / 100f) * delay.MaxDelay;
-                delay.CurrentDelay = Random.Next((int) Math.Min(min, max), (int) Math.Max(min, max) + 1);
+                if (delay.Default > 0)
+                {
+                    var min = (delay.Default / 100f) * delay.MinDelay;
+                    var max = (delay.Default / 100f) * delay.MaxDelay;
+                    delay.CurrentDelay = Random.Next((int) Math.Min(min, max), (int) Math.Max(min, max) + 1);
+                }
+                else
+                {
+                    delay.CurrentDelay = 0;
+                }
             }
             else
             {
@@ -672,28 +679,27 @@ namespace SFXChallenger.Wrappers
                 _config.AddSubMenu(attackables);
 
                 var delays = new Menu("Delays", "Delays");
-                delays.AddItem(new MenuItem("ExtraWindup", "Windup Delay").SetShared().SetValue(new Slider(70, 0, 200)));
+                delays.AddItem(new MenuItem("ExtraWindup", "Windup").SetShared().SetValue(new Slider(70, 0, 200)));
 
-                delays.AddItem(
-                    new MenuItem("MovementDelay", "Movement Delay").SetShared().SetValue(new Slider(70, 0, 250)))
+                delays.AddItem(new MenuItem("MovementDelay", "Movement").SetShared().SetValue(new Slider(70, 0, 250)))
                     .ValueChanged += (sender, args) => SetDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
 
-                delays.AddItem(new MenuItem("AttackDelay", "Attack Delay").SetShared().SetValue(new Slider(0, 0, 250)))
+                delays.AddItem(new MenuItem("AttackDelay", "Attack").SetShared().SetValue(new Slider(0, 0, 250)))
                     .ValueChanged +=
                     (sender, args) => SetDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
 
-                delays.AddItem(new MenuItem("FarmDelay", "Farm Delay").SetShared().SetValue(new Slider(0, 0, 200)));
+                delays.AddItem(new MenuItem("FarmDelay", "Farm").SetShared().SetValue(new Slider(25, 0, 200)));
 
                 _config.AddSubMenu(delays);
 
                 var delayMovement = new Menu("Movement Humanizer", "Movement");
                 delayMovement.AddItem(
-                    new MenuItem("MovementMinDelay", "Min. Multi % Delay").SetShared()
-                        .SetValue(new Slider(170, 100, 300))).ValueChanged +=
+                    new MenuItem("MovementMinDelay", "Min. Multi %").SetShared().SetValue(new Slider(170, 100, 300)))
+                    .ValueChanged +=
                     (sender, args) => SetMinDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
                 delayMovement.AddItem(
-                    new MenuItem("MovementMaxDelay", "Max. Multi % Delay").SetShared()
-                        .SetValue(new Slider(220, 100, 300))).ValueChanged +=
+                    new MenuItem("MovementMaxDelay", "Max. Multi %").SetShared().SetValue(new Slider(220, 100, 300)))
+                    .ValueChanged +=
                     (sender, args) => SetMaxDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
                 delayMovement.AddItem(
                     new MenuItem("MovementProbability", "Probability %").SetShared().SetValue(new Slider(30)))
@@ -705,11 +711,11 @@ namespace SFXChallenger.Wrappers
 
                 var delayAttack = new Menu("Attacks Humanizer", "Attack");
                 delayAttack.AddItem(
-                    new MenuItem("AttackMinDelay", "Min. Multi % Delay").SetShared().SetValue(new Slider(170, 100, 300)))
+                    new MenuItem("AttackMinDelay", "Min. Multi %").SetShared().SetValue(new Slider(170, 100, 300)))
                     .ValueChanged +=
                     (sender, args) => SetMinDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
                 delayAttack.AddItem(
-                    new MenuItem("AttackMaxDelay", "Max. Multi % Delay").SetShared().SetValue(new Slider(220, 100, 300)))
+                    new MenuItem("AttackMaxDelay", "Max. Multi %").SetShared().SetValue(new Slider(220, 100, 300)))
                     .ValueChanged +=
                     (sender, args) => SetMaxDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
                 delayAttack.AddItem(

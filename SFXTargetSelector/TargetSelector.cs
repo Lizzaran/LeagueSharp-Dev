@@ -51,7 +51,6 @@ namespace SFXTargetSelector
             {
                 Notifications.AddNotification(string.Format("{0} loaded.", Name), 10000);
                 Game.PrintChat(string.Format("<font color='#259FF8'>{0} v{1} loaded.</font>", Name, Version));
-                Update.Check(Name, Version, "Lizzaran/LeagueSharp-Dev/master/SFXTargetSelector", 10000);
             };
         }
 

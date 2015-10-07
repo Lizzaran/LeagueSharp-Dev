@@ -207,7 +207,7 @@ namespace SFXChallenger.Champions
                     Enemies = true,
                     DefaultValue = false
                 });
-            BestTargetOnlyManager.AddToMenu(wImmobileMenu, "w-immobile", true);
+            BestTargetOnlyManager.AddToMenu(wImmobileMenu, "w-immobile");
 
             var wSlowedMenu = miscMenu.AddSubMenu(new Menu("W Slowed", miscMenu.Name + "w-slowed"));
             HeroListManager.AddToMenu(
@@ -217,7 +217,8 @@ namespace SFXChallenger.Champions
                     IsWhitelist = false,
                     Allies = false,
                     Enemies = true,
-                    DefaultValue = false
+                    DefaultValue = false,
+                    Enabled = false
                 });
             BestTargetOnlyManager.AddToMenu(wSlowedMenu, "w-slowed", true);
 
@@ -1112,7 +1113,7 @@ namespace SFXChallenger.Champions
                         }
                         if (endPos.Equals(Vector3.Zero))
                         {
-                            startPos = Player.ServerPosition.Extend(cCastPos, E.Range);
+                            startPos = cCastPos;
                             endPos = Player.ServerPosition.Extend(
                                 startPos, startPos.Distance(Player.ServerPosition) + ELength);
                             hits = 1;

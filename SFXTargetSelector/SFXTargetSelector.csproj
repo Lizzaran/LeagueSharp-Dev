@@ -61,7 +61,6 @@
     <Compile Include="TargetSelector.cs" />
     <Compile Include="ModeType.cs" />
     <Compile Include="PriorityType.cs" />
-    <Compile Include="Update.cs" />
     <Compile Include="Weights.cs" />
   </ItemGroup>
   <ItemGroup>

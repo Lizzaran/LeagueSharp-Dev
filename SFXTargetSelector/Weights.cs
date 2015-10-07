@@ -42,8 +42,6 @@ namespace SFXTargetSelector
     {
         public const int MinWeight = 0;
         public const int MaxWeight = 20;
-        public const int MinMultiplicator = 1;
-        public const int MaxMultiplicator = 5;
         private const string InvertedPrefix = "[i] ";
         private const float BestTargetSwitchDelay = 0.5f;
         private static Menu _mainMenu;
@@ -146,13 +144,13 @@ namespace SFXTargetSelector
 
             _weightsMenu = mainMenu.AddSubMenu(new Menu("Weights", mainMenu.Name + ".weights"));
 
-            var heroesMenu = _weightsMenu.AddSubMenu(new Menu("Hero Multiplier", _weightsMenu.Name + ".heroes"));
+            var heroesMenu = _weightsMenu.AddSubMenu(new Menu("Hero Weight %", _weightsMenu.Name + ".heroes"));
 
             foreach (var enemy in Targets.Items)
             {
                 heroesMenu.AddItem(
                     new MenuItem(heroesMenu.Name + "." + enemy.Hero.ChampionName, enemy.Hero.ChampionName).SetValue(
-                        new Slider(1, MinMultiplicator, MaxMultiplicator)).DontSave());
+                        new Slider(100, 0, 200)).DontSave());
             }
 
             foreach (var item in Items)
@@ -242,26 +240,18 @@ namespace SFXTargetSelector
                 }
                 foreach (var target in enemies)
                 {
-                    var totalWeight = 0f;
-                    foreach (var weight in Items.Where(w => w.Weight > 0))
+                    var totalWeight = Items.Where(w => w.Weight > 0).Sum(w => CalculatedWeight(w, target, true));
+
+                    if (_mainMenu != null)
                     {
-                        var lastWeight = CalculatedWeight(weight, target, true);
-                        if (lastWeight > 0)
-                        {
-                            if (_mainMenu != null)
-                            {
-                                var heroMultiplicator =
-                                    _mainMenu.Item(_mainMenu.Name + ".weights.heroes." + target.Hero.ChampionName)
-                                        .GetValue<Slider>()
-                                        .Value;
-                                if (heroMultiplicator > 1)
-                                {
-                                    lastWeight += Average * heroMultiplicator;
-                                }
-                            }
-                            totalWeight += lastWeight;
-                        }
+                        var heroPercent =
+                            _mainMenu.Item(_mainMenu.Name + ".weights.heroes." + target.Hero.ChampionName)
+                                .GetValue<Slider>()
+                                .Value;
+
+                        totalWeight = totalWeight / 100 * heroPercent;
                     }
+
                     target.SimulatedWeight = totalWeight;
                 }
                 _drawingTargets = enemies.OrderByDescending(t => t.SimulatedWeight).ToList();
@@ -417,14 +407,12 @@ namespace SFXTargetSelector
 
                 if (_mainMenu != null)
                 {
-                    var heroMultiplicator =
+                    var heroPercent =
                         _mainMenu.Item(_mainMenu.Name + ".weights.heroes." + target.Hero.ChampionName)
                             .GetValue<Slider>()
                             .Value;
-                    if (heroMultiplicator > 1)
-                    {
-                        tmpWeight += Average * heroMultiplicator;
-                    }
+
+                    tmpWeight += tmpWeight / 100 * heroPercent;
                 }
 
                 target.Weight = tmpWeight;
