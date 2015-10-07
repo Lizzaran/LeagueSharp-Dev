@@ -288,7 +288,7 @@ namespace SFXChallenger.SFXTargetSelector
                                     .GetValue<Slider>()
                                     .Value;
 
-                            totalWeight = totalWeight / 100 * heroPercent;
+                            totalWeight = heroPercent > 0 ? totalWeight / 100 * heroPercent : 0;
                         }
 
                         target.SimulatedWeight = totalWeight;
@@ -490,7 +490,7 @@ namespace SFXChallenger.SFXTargetSelector
                                 .GetValue<Slider>()
                                 .Value;
 
-                        tmpWeight += tmpWeight / 100 * heroPercent;
+                        tmpWeight = heroPercent > 0 ? tmpWeight / 100 * heroPercent : 0;
                     }
 
                     target.Weight = tmpWeight;
