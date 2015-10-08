@@ -40,11 +40,111 @@ namespace SFXChallenger.Managers
     internal static class GapcloserManager
     {
         private static readonly Dictionary<string, Menu> Menues = new Dictionary<string, Menu>();
-        private static readonly Dictionary<int, float> LastTriggers = new Dictionary<int, float>();
+
+        private static readonly List<GapcloserSpell> GapcloserSpells = new List<GapcloserSpell>
+        {
+            #region Spells
+            new GapcloserSpell { Champion = "Aatrox", Slot = SpellSlot.Q, Name = "aatroxq" },
+            new GapcloserSpell { Champion = "Akali", Slot = SpellSlot.R, Name = "akalishadowdance", IsTargeted = true },
+            new GapcloserSpell { Champion = "Alistar", Slot = SpellSlot.W, Name = "headbutt", IsTargeted = true },
+            new GapcloserSpell { Champion = "Corki", Slot = SpellSlot.W, Name = "carpetbomb" },
+            new GapcloserSpell { Champion = "Diana", Slot = SpellSlot.R, Name = "dianateleport", IsTargeted = true },
+            new GapcloserSpell { Champion = "Elise", Slot = SpellSlot.Q, Name = "elisespiderqcast" },
+            new GapcloserSpell
+            {
+                Champion = "Elise",
+                Slot = SpellSlot.E,
+                Name = "elisespideredescent",
+                IsTargeted = true
+            },
+            new GapcloserSpell { Champion = "Fiora", Slot = SpellSlot.Q, Name = "fioraq", IsTargeted = true },
+            new GapcloserSpell
+            {
+                Champion = "Fizz",
+                Slot = SpellSlot.Q,
+                Name = "fizzpiercingstrike",
+                IsTargeted = true,
+                IsUnitDash = true,
+                DashDistance = 550f
+            },
+            new GapcloserSpell { Champion = "Gnar", Slot = SpellSlot.E, Name = "gnarbige" },
+            new GapcloserSpell { Champion = "Gnar", Slot = SpellSlot.E, Name = "gnare" },
+            new GapcloserSpell { Champion = "Gragas", Slot = SpellSlot.E, Name = "gragase", Collision = true },
+            new GapcloserSpell { Champion = "Graves", Slot = SpellSlot.E, Name = "gravesmove" },
+            new GapcloserSpell { Champion = "Hecarim", Slot = SpellSlot.R, Name = "hecarimult" },
+            new GapcloserSpell { Champion = "Irelia", Slot = SpellSlot.Q, Name = "ireliagatotsu", IsTargeted = true },
+            new GapcloserSpell { Champion = "JarvanIV", Slot = SpellSlot.Q, Name = "jarvanivdragonstrike" },
+            new GapcloserSpell { Champion = "Jax", Slot = SpellSlot.Q, Name = "jaxleapstrike", IsTargeted = true },
+            new GapcloserSpell { Champion = "Jayce", Slot = SpellSlot.Q, Name = "jaycetotheskies", IsTargeted = true },
+            new GapcloserSpell { Champion = "Kassadin", Slot = SpellSlot.R, Name = "riftwalk" },
+            new GapcloserSpell { Champion = "Khazix", Slot = SpellSlot.E, Name = "khazixe" },
+            new GapcloserSpell { Champion = "Khazix", Slot = SpellSlot.E, Name = "khazixelong" },
+            new GapcloserSpell { Champion = "LeBlanc", Slot = SpellSlot.W, Name = "leblancslide" },
+            new GapcloserSpell { Champion = "LeBlanc", Slot = SpellSlot.R, Name = "leblancslidem" },
+            new GapcloserSpell { Champion = "LeeSin", Slot = SpellSlot.Q, Name = "blindmonkqtwo", IsTargeted = true },
+            new GapcloserSpell { Champion = "Leona", Slot = SpellSlot.E, Name = "leonazenithblade" },
+            new GapcloserSpell { Champion = "Lucian", Slot = SpellSlot.E, Name = "luciane" },
+            new GapcloserSpell { Champion = "Malphite", Slot = SpellSlot.R, Name = "ufslash" },
+            new GapcloserSpell { Champion = "MasterYi", Slot = SpellSlot.Q, Name = "alphastrike", IsTargeted = true },
+            new GapcloserSpell
+            {
+                Champion = "MonkeyKing",
+                Slot = SpellSlot.E,
+                Name = "monkeykingnimbus",
+                IsTargeted = true
+            },
+            new GapcloserSpell
+            {
+                Champion = "Pantheon",
+                Slot = SpellSlot.W,
+                Name = "pantheon_leapbash",
+                IsTargeted = true
+            },
+            new GapcloserSpell { Champion = "Pantheon", Slot = SpellSlot.R, Name = "pantheonrjump" },
+            new GapcloserSpell { Champion = "Pantheon", Slot = SpellSlot.R, Name = "pantheonrfall" },
+            new GapcloserSpell
+            {
+                Champion = "Poppy",
+                Slot = SpellSlot.E,
+                Name = "poppyheroiccharge",
+                IsTargeted = true,
+                IsUnitDash = true,
+                DashDistance = 475f
+            },
+            new GapcloserSpell { Champion = "Renekton", Slot = SpellSlot.E, Name = "renektonsliceanddice" },
+            new GapcloserSpell { Champion = "Riven", Slot = SpellSlot.Q, Name = "riventricleave" },
+            new GapcloserSpell { Champion = "Riven", Slot = SpellSlot.E, Name = "rivenfeint" },
+            new GapcloserSpell
+            {
+                Champion = "Sejuani",
+                Slot = SpellSlot.Q,
+                Name = "sejuaniarcticassault",
+                Collision = true
+            },
+            new GapcloserSpell { Champion = "Shen", Slot = SpellSlot.E, Name = "shenshadowdash" },
+            new GapcloserSpell { Champion = "Shyvana", Slot = SpellSlot.R, Name = "shyvanatransformcast" },
+            new GapcloserSpell { Champion = "Talon", Slot = SpellSlot.E, Name = "taloncutthroat", IsTargeted = true },
+            new GapcloserSpell { Champion = "Tristana", Slot = SpellSlot.W, Name = "rocketjump" },
+            new GapcloserSpell { Champion = "Tryndamere", Slot = SpellSlot.E, Name = "slashcast" },
+            new GapcloserSpell { Champion = "Vi", Slot = SpellSlot.Q, Name = "viq" },
+            new GapcloserSpell { Champion = "XinZhao", Slot = SpellSlot.E, Name = "xenzhaosweep", IsTargeted = true },
+            new GapcloserSpell
+            {
+                Champion = "Yasuo",
+                Slot = SpellSlot.E,
+                Name = "yasuodashwrapper",
+                IsTargeted = true,
+                IsUnitDash = true,
+                DashDistance = 475f
+            },
+            new GapcloserSpell { Champion = "Zac", Slot = SpellSlot.E, Name = "zace" },
+            new GapcloserSpell { Champion = "Ziggs", Slot = SpellSlot.W, Name = "ziggswtoggle" }
+            #endregion Spells
+        };
 
         static GapcloserManager()
         {
-            AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
+            Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
             CustomEvents.Unit.OnDash += OnUnitDash;
         }
 
@@ -85,6 +185,74 @@ namespace SFXChallenger.Managers
 
         public static event EventHandler<GapcloserManagerArgs> OnGapcloser;
 
+        private static void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
+        {
+            try
+            {
+                var enemy = sender as Obj_AI_Hero;
+                if (enemy == null || !enemy.IsEnemy)
+                {
+                    return;
+                }
+                var gSpell =
+                    GapcloserSpells.FirstOrDefault(
+                        spell => spell.Name.Equals(args.SData.Name, StringComparison.OrdinalIgnoreCase));
+                if (!gSpell.Equals(default(GapcloserSpell)))
+                {
+                    var startPosition = args.Start;
+                    var endPosition = args.End;
+                    var cSpell = enemy.GetSpell(gSpell.Slot);
+                    if (gSpell.IsUnitDash)
+                    {
+                        endPosition = startPosition.Extend(endPosition, gSpell.DashDistance);
+                    }
+                    if (gSpell.Collision)
+                    {
+                        if (cSpell != null)
+                        {
+                            var colObjects =
+                                GameObjects.AllyHeroes.Select(a => a as Obj_AI_Base)
+                                    .Concat(GameObjects.AllyMinions.Where(m => m.Distance(enemy) <= 2000))
+                                    .OrderBy(c => c.Distance(enemy))
+                                    .ToList();
+                            var rect = new Geometry.Polygon.Rectangle(
+                                startPosition, endPosition, cSpell.SData.LineWidth + enemy.BoundingRadius);
+                            var collision =
+                                colObjects.FirstOrDefault(
+                                    col =>
+                                        new Geometry.Polygon.Circle(col.ServerPosition, col.BoundingRadius).Points.Any(
+                                            p => rect.IsInside(p)));
+                            if (collision != null)
+                            {
+                                endPosition = collision.ServerPosition.Extend(
+                                    startPosition, collision.BoundingRadius + enemy.BoundingRadius);
+                                if (collision is Obj_AI_Minion && endPosition.Distance(startPosition) <= 100 &&
+                                    !GameObjects.AllyHeroes.Any(a => a.Distance(endPosition) <= 150))
+                                {
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                    var endTime = Game.Time;
+                    if (cSpell != null)
+                    {
+                        var time = startPosition.Distance(endPosition) /
+                                   Math.Max(cSpell.SData.MissileSpeed, enemy.MoveSpeed * 1.25f);
+                        if (time <= 3)
+                        {
+                            endTime += time;
+                        }
+                    }
+                    Check(false, enemy, startPosition, endPosition, endTime, gSpell.IsTargeted);
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
         private static void OnUnitDash(Obj_AI_Base sender, Dash.DashItem args)
         {
             try
@@ -100,78 +268,6 @@ namespace SFXChallenger.Managers
                                 true, hero, args.StartPos.To3D(), args.EndPos.To3D(), (args.EndTick / 1000f) - 0.1f,
                                 false);
                         });
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        private static void OnEnemyGapcloser(ActiveGapcloser args)
-        {
-            try
-            {
-                if (args.Sender.IsEnemy)
-                {
-                    if (args.Sender.ChampionName.Equals("Pantheon", StringComparison.OrdinalIgnoreCase))
-                    {
-                        return;
-                    }
-                    var endPos = args.End;
-                    if (args.Sender.ChampionName.Equals("Fizz", StringComparison.OrdinalIgnoreCase))
-                    {
-                        endPos = args.Start.Extend(endPos, 550f);
-                    }
-                    else if (args.Sender.ChampionName.Equals("Yasuo", StringComparison.OrdinalIgnoreCase))
-                    {
-                        endPos = args.Start.Extend(endPos, 475f);
-                    }
-                    else if (args.Sender.ChampionName.Equals("Poppy", StringComparison.OrdinalIgnoreCase))
-                    {
-                        endPos = args.Start.Extend(endPos, 475f);
-                    }
-                    var spell = args.Sender.GetSpell(args.Slot);
-                    if (args.Sender.ChampionName.Equals("Gragas", StringComparison.OrdinalIgnoreCase) &&
-                        args.Slot == SpellSlot.E ||
-                        args.Sender.ChampionName.Equals("Sejuani", StringComparison.OrdinalIgnoreCase) &&
-                        args.Slot == SpellSlot.Q)
-                    {
-                        if (spell != null)
-                        {
-                            var colObjects =
-                                GameObjects.AllyHeroes.Select(a => a as Obj_AI_Base)
-                                    .Concat(
-                                        GameObjects.AllyMinions.Where(m => m.Distance(args.Sender) <= 2000).ToList());
-                            var rect = new Geometry.Polygon.Rectangle(
-                                args.Start, endPos, spell.SData.LineWidth + args.Sender.BoundingRadius);
-                            var collision =
-                                colObjects.FirstOrDefault(
-                                    col =>
-                                        new Geometry.Polygon.Circle(col.ServerPosition, col.BoundingRadius).Points.Any(
-                                            p => rect.IsInside(p)));
-                            if (collision != null)
-                            {
-                                endPos = collision.ServerPosition.Extend(
-                                    args.Sender.ServerPosition, args.Sender.BoundingRadius + collision.BoundingRadius);
-                                if (collision is Obj_AI_Minion && endPos.Distance(args.Start) <= 100)
-                                {
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                    var endTime = Game.Time;
-                    if (spell != null)
-                    {
-                        var time = args.Start.Distance(endPos) /
-                                   Math.Max(spell.SData.MissileSpeed, args.Sender.MoveSpeed * 1.25f);
-                        if (time <= 3)
-                        {
-                            endTime += time;
-                        }
-                    }
-                    Check(false, args.Sender, args.Start, endPos, endTime, args.SkillType == GapcloserType.Targeted);
                 }
             }
             catch (Exception ex)
@@ -201,15 +297,6 @@ namespace SFXChallenger.Managers
                 {
                     return;
                 }
-                float lastTrigger;
-                if (LastTriggers.TryGetValue(sender.NetworkId, out lastTrigger))
-                {
-                    if (Game.Time - lastTrigger <= 1)
-                    {
-                        return;
-                    }
-                }
-                LastTriggers[sender.NetworkId] = Game.Time;
 
                 foreach (var entry in Menues)
                 {
@@ -254,16 +341,16 @@ namespace SFXChallenger.Managers
                 {
                     return true;
                 }
-                if (endDistance <= 150)
+                if (endDistance <= 150f)
                 {
                     return true;
                 }
-                if (endDistance - 150f < startDistance)
+                if (startDistance - 100f > endDistance)
                 {
                     var spell = sender.GetSpell(SpellSlot.R);
                     if (spell != null && endDistance <= 600)
                     {
-                        return spell.Cooldown >= 25 && spell.IsReady(2500);
+                        return spell.Cooldown >= 20 && spell.IsReady(2500);
                     }
                     if (endDistance <= 500 && ObjectManager.Player.HealthPercent < 50)
                     {
@@ -284,6 +371,19 @@ namespace SFXChallenger.Managers
                 Global.Logger.AddItem(new LogItem(ex));
             }
             return true;
+        }
+
+        private struct GapcloserSpell
+        {
+#pragma warning disable 414
+            public string Champion;
+#pragma warning restore 414
+            public bool Collision;
+            public float DashDistance;
+            public bool IsTargeted;
+            public bool IsUnitDash;
+            public string Name;
+            public SpellSlot Slot;
         }
     }
 }

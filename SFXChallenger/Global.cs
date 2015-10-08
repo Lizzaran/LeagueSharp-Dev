@@ -60,7 +60,7 @@ namespace SFXChallenger
         public class Reset
         {
             public static bool Enabled = true;
-            public static DateTime MaxAge = new DateTime(2015, 10, 5);
+            public static DateTime MaxAge = new DateTime(2015, 10, 6);
         }
     }
 }

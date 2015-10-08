@@ -50,7 +50,6 @@ namespace SFXUtility.Features.Activators
         };
 
         private HeroJump _heroJump;
-        private double _lastCastTime;
         private float _lastWardTime;
         private Spell _spell;
 
@@ -81,7 +80,6 @@ namespace SFXUtility.Features.Activators
             try
             {
                 Menu = new Menu(Name, Name);
-                Menu.AddItem(new MenuItem(Name + "Move", "Move to Cursor").SetValue(true));
                 Menu.AddItem(new MenuItem(Name + "PlaceWards", "Place Wards").SetValue(true));
                 Menu.AddItem(new MenuItem(Name + "Allies", "Allies").SetValue(true));
                 Menu.AddItem(new MenuItem(Name + "Enemies", "Enemies").SetValue(false));
@@ -165,8 +163,7 @@ namespace SFXUtility.Features.Activators
         {
             try
             {
-                if (ObjectManager.Player.IsDead || Game.Time - _lastCastTime < (Game.Ping / 1000f) + 0.25f ||
-                    !Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active)
+                if (ObjectManager.Player.IsDead || !Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active)
                 {
                     return;
                 }
@@ -183,7 +180,6 @@ namespace SFXUtility.Features.Activators
                     if (target != null)
                     {
                         _spell.CastOnUnit(target);
-                        _lastCastTime = Game.Time;
                         return;
                     }
                     if (Game.Time - _lastWardTime >= 3 && Menu.Item(Name + "PlaceWards").GetValue<bool>())
@@ -195,11 +191,6 @@ namespace SFXUtility.Features.Activators
                             _lastWardTime = Game.Time;
                         }
                     }
-                }
-
-                if (Game.Time - _lastWardTime > (Game.Ping / 1000f) + 0.25f && Menu.Item(Name + "Move").GetValue<bool>())
-                {
-                    Orbwalking.MoveTo(Game.CursorPos, 25);
                 }
             }
             catch (Exception ex)

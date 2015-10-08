@@ -122,7 +122,6 @@ namespace SFXChallenger.Wrappers
         {
             Player = ObjectManager.Player;
             Obj_AI_Base.OnProcessSpellCast += OnProcessSpell;
-            GameObject.OnCreate += MissileClient_OnCreate;
             Obj_AI_Base.OnDoCast += Obj_AI_Base_OnDoCast;
             Spellbook.OnStopCast += SpellbookOnStopCast;
         }
@@ -222,14 +221,14 @@ namespace SFXChallenger.Wrappers
         }
 
         /// <summary>
-        ///     Returns the auto-attack range.
+        ///     Returns the auto-attack range of local player with respect to the target.
         /// </summary>
         public static float GetRealAutoAttackRange(AttackableUnit target)
         {
             var result = Player.AttackRange + Player.BoundingRadius;
             if (target.IsValidTarget())
             {
-                result += target.BoundingRadius;
+                return result + target.BoundingRadius;
             }
             return result;
         }
@@ -248,6 +247,19 @@ namespace SFXChallenger.Wrappers
                 Vector2.DistanceSquared(
                     (target is Obj_AI_Base) ? ((Obj_AI_Base) target).ServerPosition.To2D() : target.Position.To2D(),
                     Player.ServerPosition.To2D()) <= myRange * myRange;
+        }
+
+        public static bool InAutoAttackRange(AttackableUnit target, float extra)
+        {
+            if (!target.IsValidTarget())
+            {
+                return false;
+            }
+            var myRange = GetRealAutoAttackRange(target);
+            return
+                Vector2.DistanceSquared(
+                    (target is Obj_AI_Base) ? ((Obj_AI_Base) target).ServerPosition.To2D() : target.Position.To2D(),
+                    Player.ServerPosition.To2D()) <= myRange * myRange + extra * extra;
         }
 
         /// <summary>
@@ -421,6 +433,7 @@ namespace SFXChallenger.Wrappers
                 {
                     Player.IssueOrder(GameObjectOrder.Stop, playerPosition);
                     LastMoveCommandPosition = playerPosition;
+                    LastMoveCommandT -= 70;
                 }
                 return;
             }
@@ -437,6 +450,7 @@ namespace SFXChallenger.Wrappers
             if (currentPath.Count > 1 && currentPath.PathLength() > 100)
             {
                 var movePath = Player.GetPath(point);
+
                 if (movePath.Length > 1)
                 {
                     var v1 = currentPath[1] - currentPath[0];
@@ -493,6 +507,7 @@ namespace SFXChallenger.Wrappers
                             ResetAutoAttackTimer();
                         }
 
+                        LastMoveCommandT = 0;
                         _lastTarget = target;
                         return;
                     }
@@ -544,16 +559,6 @@ namespace SFXChallenger.Wrappers
             _missileLaunched = true;
         }
 
-        private static void MissileClient_OnCreate(GameObject sender, EventArgs args)
-        {
-            var missile = sender as MissileClient;
-            if (missile != null && missile.SpellCaster.IsMe && IsAutoAttack(missile.SData.Name))
-            {
-                _missileLaunched = true;
-                FireAfterAttack(missile.SpellCaster, missile.Target as AttackableUnit);
-            }
-        }
-
         private static void OnProcessSpell(Obj_AI_Base unit, GameObjectProcessSpellCastEventArgs spell)
         {
             try
@@ -576,13 +581,13 @@ namespace SFXChallenger.Wrappers
                     LastAaTick = Utils.GameTimeTickCount - Game.Ping / 2;
                     _missileLaunched = false;
 
-                    var baseObj = spell.Target as Obj_AI_Base;
-                    if (baseObj != null)
+                    var target = spell.Target as Obj_AI_Base;
+                    if (target != null)
                     {
-                        if (baseObj.IsValid)
+                        if (target.IsValid)
                         {
-                            FireOnTargetSwitch(baseObj);
-                            _lastTarget = baseObj;
+                            FireOnTargetSwitch(target);
+                            _lastTarget = target;
                         }
                     }
                 }
@@ -912,12 +917,6 @@ namespace SFXChallenger.Wrappers
                     }
                 }
 
-                //Forced target
-                if (_forcedTarget.IsValidTarget() && InAutoAttackRange(_forcedTarget))
-                {
-                    return _forcedTarget;
-                }
-
                 var minions = new List<Obj_AI_Minion>();
                 if (ActiveMode != OrbwalkingMode.None && ActiveMode != OrbwalkingMode.Flee)
                 {
@@ -939,7 +938,6 @@ namespace SFXChallenger.Wrappers
                         var t = (int) (Player.AttackCastDelay * 1000) - 100 + Game.Ping / 2 +
                                 1000 * (int) Math.Max(0, Player.Distance(minion) - Player.BoundingRadius) /
                                 (int) GetMyProjectileSpeed();
-
                         if (minion.MaxHealth <= 10)
                         {
                             if (minion.Health <= 1)
@@ -961,6 +959,12 @@ namespace SFXChallenger.Wrappers
                             }
                         }
                     }
+                }
+
+                //Forced target
+                if (_forcedTarget.IsValidTarget() && InAutoAttackRange(_forcedTarget, 150f))
+                {
+                    return _forcedTarget;
                 }
 
                 /* turrets / inhibitors / nexus */
@@ -992,7 +996,7 @@ namespace SFXChallenger.Wrappers
                 if (ActiveMode != OrbwalkingMode.LastHit)
                 {
                     var target = TargetSelector.GetTarget(-1, DamageType.Physical);
-                    if (target.IsValidTarget())
+                    if (target.IsValidTarget() && InAutoAttackRange(target, 150f))
                     {
                         return target;
                     }
@@ -1058,7 +1062,7 @@ namespace SFXChallenger.Wrappers
 
                 if (result == null && ActiveMode == OrbwalkingMode.Combo)
                 {
-                    if (!GameObjects.EnemyHeroes.Any(e => e.IsValidTarget(GetRealAutoAttackRange(e) * 1.2f)))
+                    if (!GameObjects.EnemyHeroes.Any(e => e.IsValidTarget(GetRealAutoAttackRange(e) * 1.25f)))
                     {
                         return minions.FirstOrDefault();
                     }
