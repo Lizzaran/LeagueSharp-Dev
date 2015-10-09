@@ -287,14 +287,17 @@ namespace SFXTargetSelector
 
             if (weightsSimple)
             {
-                foreach (var target in _drawingTargets.Where(target => target.Hero.Position.IsOnScreen()))
+                foreach (var target in
+                    _drawingTargets.Where(
+                        target => !target.Hero.IsDead && target.Hero.IsVisible && target.Hero.Position.IsOnScreen()))
                 {
                     Drawing.DrawText(
                         target.Hero.HPBarPosition.X + 55f, target.Hero.HPBarPosition.Y - 20f, Color.White,
                         target.SimulatedWeight.ToString("0.0").Replace(",", "."));
                 }
             }
-            if (highestEnabled && _bestTarget != null && _drawingTargets.Count(e => e.Hero.Position.IsOnScreen()) >= 2)
+            if (highestEnabled && _bestTarget != null && !_bestTarget.Hero.IsDead && _bestTarget.Hero.IsVisible &&
+                _drawingTargets.Count(e => !e.Hero.IsDead && e.Hero.IsVisible && e.Hero.Position.IsOnScreen()) >= 2)
             {
                 Render.Circle.DrawCircle(
                     _bestTarget.Hero.Position, _bestTarget.Hero.BoundingRadius + highestRadius, highestColor,

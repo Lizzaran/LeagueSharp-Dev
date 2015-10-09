@@ -23,7 +23,6 @@
 #region
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
@@ -55,6 +54,8 @@ namespace SFXChallenger.Champions
 {
     internal class Kalista : Champion
     {
+        private Obj_AI_Hero _soulbound;
+
         protected override ItemFlags ItemFlags
         {
             get { return ItemFlags.Offensive | ItemFlags.Defensive | ItemFlags.Flee; }
@@ -71,13 +72,7 @@ namespace SFXChallenger.Champions
             Spellbook.OnCastSpell += OnSpellbookCastSpell;
             Orbwalking.OnNonKillableMinion += OnOrbwalkingNonKillableMinion;
 
-            SoulBound.Unit =
-                GameObjects.AllyHeroes.FirstOrDefault(
-                    a =>
-                        a.Buffs.Any(
-                            b =>
-                                b.Caster.IsMe &&
-                                b.Name.Equals("kalistacoopstrikeally", StringComparison.OrdinalIgnoreCase)));
+            CheckSoulbound();
         }
 
         protected override void SetupSpells()
@@ -256,48 +251,6 @@ namespace SFXChallenger.Champions
                         Orbwalking.ResetAutoAttackTimer();
                     }
                 }
-                if (!sender.IsEnemy || SoulBound.Unit == null || R.Level == 0 ||
-                    !Menu.Item(Menu.Name + ".ultimate.save").GetValue<bool>())
-                {
-                    return;
-                }
-                if (args.Target != null && args.Target.NetworkId == SoulBound.Unit.NetworkId &&
-                    (!(sender is Obj_AI_Hero) || args.SData.IsAutoAttack()))
-                {
-                    SoulBound.Add(
-                        SoulBound.Unit.ServerPosition.Distance(sender.ServerPosition) / args.SData.MissileSpeed +
-                        Game.Time, (float) sender.GetAutoAttackDamage(SoulBound.Unit));
-                }
-                else
-                {
-                    var hero = sender as Obj_AI_Hero;
-                    if (hero != null)
-                    {
-                        var slot = hero.GetSpellSlot(args.SData.Name);
-                        if (slot != SpellSlot.Unknown)
-                        {
-                            var damage = 0f;
-                            if (args.Target != null && args.Target.NetworkId == SoulBound.Unit.NetworkId &&
-                                slot == hero.GetSpellSlot("SummonerDot"))
-                            {
-                                damage =
-                                    (float) hero.GetSummonerSpellDamage(SoulBound.Unit, Damage.SummonerSpell.Ignite);
-                            }
-                            else if ((slot == SpellSlot.Q || slot == SpellSlot.W || slot == SpellSlot.E ||
-                                      slot == SpellSlot.R) &&
-                                     ((args.Target != null && args.Target.NetworkId == SoulBound.Unit.NetworkId) ||
-                                      args.End.Distance(SoulBound.Unit.ServerPosition, true) <
-                                      Math.Pow(args.SData.LineWidth, 2)))
-                            {
-                                damage = (float) hero.GetSpellDamage(SoulBound.Unit, slot);
-                            }
-                            if (damage > 0)
-                            {
-                                SoulBound.Add(Game.Time + 2, damage);
-                            }
-                        }
-                    }
-                }
             }
             catch (Exception ex)
             {
@@ -327,23 +280,45 @@ namespace SFXChallenger.Champions
 
         protected override void OnPreUpdate()
         {
-            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear ||
-                Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
+            if (E.IsReady())
             {
                 var eBig = Menu.Item(Menu.Name + ".lasthit.e-big").GetValue<bool>();
                 var eJungle = Menu.Item(Menu.Name + ".lasthit.e-jungle").GetValue<bool>();
-                var eSiege = Menu.Item(Menu.Name + ".lasthit.e-siege").GetValue<bool>();
-                var eTurret = Menu.Item(Menu.Name + ".lasthit.e-turret").GetValue<bool>();
-                var eReset = Menu.Item(Menu.Name + ".miscellaneous.e-reset").GetValue<bool>();
-
-                IEnumerable<Obj_AI_Minion> minions = new HashSet<Obj_AI_Minion>();
-                if (eSiege || eTurret || eReset)
+                if (eBig || eJungle)
                 {
-                    minions = GameObjects.EnemyMinions.Where(e => e.IsValidTarget(E.Range) && Rend.IsKillable(e, true));
+                    if (eJungle && Player.Level >= 3 || eBig)
+                    {
+                        var creeps =
+                            GameObjects.Jungle.Where(e => e.IsValidTarget(E.Range) && Rend.IsKillable(e, false))
+                                .ToList();
+                        if (eJungle && creeps.Any() ||
+                            eBig &&
+                            creeps.Any(
+                                m =>
+                                    (m.CharData.BaseSkinName.StartsWith("SRU_Dragon") ||
+                                     m.CharData.BaseSkinName.StartsWith("SRU_Baron"))))
+                        {
+                            E.Cast();
+                            return;
+                        }
+                    }
                 }
 
-                if (E.IsReady())
+                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear ||
+                    Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
                 {
+                    var eSiege = Menu.Item(Menu.Name + ".lasthit.e-siege").GetValue<bool>();
+                    var eTurret = Menu.Item(Menu.Name + ".lasthit.e-turret").GetValue<bool>();
+                    var eReset = Menu.Item(Menu.Name + ".miscellaneous.e-reset").GetValue<bool>();
+
+                    IEnumerable<Obj_AI_Minion> minions = new HashSet<Obj_AI_Minion>();
+                    if (eSiege || eTurret || eReset)
+                    {
+                        minions =
+                            GameObjects.EnemyMinions.Where(
+                                e => e.IsValidTarget(E.Range) && Rend.IsKillable(e, e.HealthPercent < 25));
+                    }
+
                     if (ResourceManager.Check("lasthit"))
                     {
                         if (eSiege)
@@ -367,61 +342,27 @@ namespace SFXChallenger.Champions
                             }
                         }
                     }
-                    if (eBig || eJungle)
-                    {
-                        var enemySmites =
-                            GameObjects.EnemyHeroes.Where(
-                                e =>
-                                    !e.IsDead && e.Distance(Player) < SummonerManager.Smite.Range * 1.5f &&
-                                    SummonerManager.IsSmiteReady(e));
-                        var allySmites =
-                            (from ally in
-                                GameObjects.AllyHeroes.Where(
-                                    e => !e.IsDead && e.Distance(Player) < SummonerManager.Smite.Range)
-                                let spell = SummonerManager.GetSmiteSpell(ally)
-                                where
-                                    spell != null &&
-                                    (spell.IsReady() || spell.Cooldown - spell.CooldownExpires - Game.Time <= 3)
-                                select ally).ToList();
 
-                        if (eJungle && Player.Level > 3 ||
-                            eBig && (enemySmites.Any() || !allySmites.Any() || Player.CountEnemiesInRange(1000) > 1))
+                    if (eReset && E.IsReady() && ResourceManager.Check("misc") &&
+                        GameObjects.EnemyHeroes.Any(e => Rend.HasBuff(e) && e.IsValidTarget(E.Range)))
+                    {
+                        if (minions.Any())
                         {
-                            var creeps =
-                                GameObjects.Jungle.Where(e => e.IsValidTarget(E.Range) && Rend.IsKillable(e, false))
-                                    .ToList();
-                            if (eJungle && creeps.Any() ||
-                                eBig &&
-                                creeps.Any(
-                                    m =>
-                                        (m.CharData.BaseSkinName.StartsWith("SRU_Dragon") ||
-                                         m.CharData.BaseSkinName.StartsWith("SRU_Baron"))))
-                            {
-                                E.Cast();
-                                return;
-                            }
+                            E.Cast();
+                            return;
                         }
                     }
                 }
-
-                if (eReset && E.IsReady() && ResourceManager.Check("misc") &&
-                    GameObjects.EnemyHeroes.Any(e => Rend.HasBuff(e) && e.IsValidTarget(E.Range)))
-                {
-                    if (minions.Any())
-                    {
-                        E.Cast();
-                        return;
-                    }
-                }
             }
-            if (Menu.Item(Menu.Name + ".ultimate.save").GetValue<bool>() && SoulBound.Unit != null && R.IsReady() &&
-                !SoulBound.Unit.InFountain())
+
+            if (Menu.Item(Menu.Name + ".ultimate.save").GetValue<bool>() && _soulbound != null && R.IsReady() &&
+                !_soulbound.InFountain())
             {
-                SoulBound.Clean();
-                var enemies = SoulBound.Unit.CountEnemiesInRange(500);
-                if ((SoulBound.Unit.HealthPercent <= 10 && SoulBound.Unit.CountEnemiesInRange(500) > 0) ||
-                    (SoulBound.Unit.HealthPercent <= 5 && SoulBound.TotalDamage > SoulBound.Unit.Health && enemies == 0) ||
-                    (SoulBound.Unit.HealthPercent <= 50 && SoulBound.TotalDamage > SoulBound.Unit.Health && enemies > 0))
+                var enemies = _soulbound.CountEnemiesInRange(500);
+                var damage = IncomingDamageManager.GetDamage(_soulbound);
+                if ((_soulbound.HealthPercent <= 10 && _soulbound.CountEnemiesInRange(500) > 0) ||
+                    (_soulbound.HealthPercent <= 5 && damage > _soulbound.Health && enemies == 0) ||
+                    (_soulbound.HealthPercent <= 50 && damage > _soulbound.Health && enemies > 0))
                 {
                     R.Cast();
                 }
@@ -438,17 +379,9 @@ namespace SFXChallenger.Champions
                 W.Cast(SummonersRift.River.Dragon);
             }
 
-            if (SoulBound.Unit == null)
-            {
-                SoulBound.Unit =
-                    GameObjects.AllyHeroes.FirstOrDefault(
-                        a =>
-                            a.Buffs.Any(
-                                b =>
-                                    b.Caster.IsMe &&
-                                    b.Name.Equals("kalistacoopstrikeally", StringComparison.OrdinalIgnoreCase)));
-            }
-            if (SoulBound.Unit != null && SoulBound.Unit.Distance(Player) < R.Range && R.IsReady())
+            CheckSoulbound();
+
+            if (_soulbound != null && _soulbound.Distance(Player) < R.Range && R.IsReady())
             {
                 var blitz = Menu.Item(Menu.Name + ".ultimate.blitzcrank.r").GetValue<bool>();
                 var tahm = Menu.Item(Menu.Name + ".ultimate.tahm-kench.r").GetValue<bool>();
@@ -460,14 +393,14 @@ namespace SFXChallenger.Champions
                         var blitzBuff =
                             enemy.Buffs.FirstOrDefault(
                                 b =>
-                                    b.IsActive && b.Caster.NetworkId.Equals(SoulBound.Unit.NetworkId) &&
+                                    b.IsActive && b.Caster.NetworkId.Equals(_soulbound.NetworkId) &&
                                     b.Name.Equals("rocketgrab2", StringComparison.OrdinalIgnoreCase));
                         if (blitzBuff != null)
                         {
                             if (!HeroListManager.Check("blitzcrank", enemy))
                             {
-                                if (!SoulBound.Unit.UnderTurret(false) && SoulBound.Unit.Distance(enemy) > 750f &&
-                                    SoulBound.Unit.Distance(Player) > R.Range / 3f)
+                                if (!_soulbound.UnderTurret(false) && _soulbound.Distance(enemy) > 750f &&
+                                    _soulbound.Distance(Player) > R.Range / 3f)
                                 {
                                     R.Cast();
                                 }
@@ -480,16 +413,16 @@ namespace SFXChallenger.Champions
                         var tahmBuff =
                             enemy.Buffs.FirstOrDefault(
                                 b =>
-                                    b.IsActive && b.Caster.NetworkId.Equals(SoulBound.Unit.NetworkId) &&
+                                    b.IsActive && b.Caster.NetworkId.Equals(_soulbound.NetworkId) &&
                                     b.Name.Equals("tahmkenchwdevoured", StringComparison.OrdinalIgnoreCase));
                         if (tahmBuff != null)
                         {
                             if (!HeroListManager.Check("tahm-kench", enemy))
                             {
-                                if (!SoulBound.Unit.UnderTurret(false) &&
-                                    (SoulBound.Unit.Distance(enemy) > Player.AttackRange ||
+                                if (!_soulbound.UnderTurret(false) &&
+                                    (_soulbound.Distance(enemy) > Player.AttackRange ||
                                      GameObjects.AllyHeroes.Where(
-                                         a => a.NetworkId != SoulBound.Unit.NetworkId && a.NetworkId != Player.NetworkId)
+                                         a => a.NetworkId != _soulbound.NetworkId && a.NetworkId != Player.NetworkId)
                                          .Any(t => t.Distance(Player) > 600) ||
                                      GameObjects.AllyTurrets.Any(t => t.Distance(Player) < 600)))
                                 {
@@ -500,6 +433,32 @@ namespace SFXChallenger.Champions
                         }
                     }
                 }
+            }
+        }
+
+        private void CheckSoulbound()
+        {
+            try
+            {
+                if (_soulbound == null)
+                {
+                    _soulbound =
+                        GameObjects.AllyHeroes.FirstOrDefault(
+                            a =>
+                                a.Buffs.Any(
+                                    b =>
+                                        b.Caster.IsMe &&
+                                        b.Name.Equals("kalistacoopstrikeally", StringComparison.OrdinalIgnoreCase)));
+                    if (_soulbound != null)
+                    {
+                        IncomingDamageManager.Skillshots = true;
+                        IncomingDamageManager.AddChampion(_soulbound);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -525,7 +484,9 @@ namespace SFXChallenger.Champions
                     {
                         if (
                             GameObjects.EnemyMinions.Any(
-                                m => m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)) && Rend.IsKillable(m, true)))
+                                m =>
+                                    m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)) &&
+                                    Rend.IsKillable(m, (m.HealthPercent < 25))))
                         {
                             E.Cast();
                         }
@@ -596,7 +557,7 @@ namespace SFXChallenger.Champions
             {
                 foreach (var enemy in GameObjects.EnemyHeroes.Where(e => E.IsInRange(e)))
                 {
-                    if (Rend.IsKillable(enemy, true))
+                    if (Rend.IsKillable(enemy, enemy.HealthPercent < 25))
                     {
                         E.Cast();
                     }
@@ -815,71 +776,6 @@ namespace SFXChallenger.Champions
             return null;
         }
 
-        internal class SoulBound
-        {
-            private static readonly ConcurrentDictionary<float, float> Damages =
-                new ConcurrentDictionary<float, float>();
-
-            public static Obj_AI_Hero Unit { get; set; }
-
-            public static float TotalDamage
-            {
-                get
-                {
-                    try
-                    {
-                        return Damages.Where(e => e.Key >= Game.Time).Select(e => e.Value).DefaultIfEmpty(0).Sum();
-                    }
-                    catch (Exception ex)
-                    {
-                        Global.Logger.AddItem(new LogItem(ex));
-                    }
-                    return 0;
-                }
-            }
-
-            public static void Clean()
-            {
-                try
-                {
-                    var damages = Damages.Where(entry => entry.Key < Game.Time).ToArray();
-                    foreach (var entry in damages)
-                    {
-                        float old;
-                        Damages.TryRemove(entry.Key, out old);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Global.Logger.AddItem(new LogItem(ex));
-                }
-            }
-
-            public static void Add(float time, float damage)
-            {
-                try
-                {
-                    if (Game.Time - time > 3)
-                    {
-                        time = Game.Time + 3;
-                    }
-                    float value;
-                    if (Damages.TryGetValue(time, out value))
-                    {
-                        Damages[time] = value + damage;
-                    }
-                    else
-                    {
-                        Damages[time] = damage;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Global.Logger.AddItem(new LogItem(ex));
-                }
-            }
-        }
-
         internal class Rend
         {
             private static readonly float[] Damage = { 20, 30, 40, 50, 60 };
@@ -953,7 +849,7 @@ namespace SFXChallenger.Champions
                             }
                         }
                     }
-                    damage -= target.HPRegenRate / 2f;
+                    damage -= target.HPRegenRate * 0.25f;
                     if (ObjectManager.Player.HasBuff("summonerexhaust"))
                     {
                         damage *= 0.6f;
@@ -978,7 +874,7 @@ namespace SFXChallenger.Champions
                     target,
                     100 /
                     (100 + (target.Armor * ObjectManager.Player.PercentArmorPenetrationMod) -
-                     ObjectManager.Player.FlatArmorPenetrationMod) * GetRawDamage(target, customStacks) - 10);
+                     ObjectManager.Player.FlatArmorPenetrationMod) * GetRawDamage(target, customStacks));
             }
 
             public static float GetRawDamage(Obj_AI_Base target, int customStacks = -1)

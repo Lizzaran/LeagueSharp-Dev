@@ -164,6 +164,10 @@ namespace SFXChallenger.Champions
 
             var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
             miscMenu.AddItem(
+                new MenuItem(miscMenu.Name + ".q-range", "Q Range").SetValue(
+                    new Slider((int) Q.Range, 500, (int) Q.Range))).ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { Q.Range = args.GetNewValue<Slider>().Value; };
+            miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".w-range", "Card Pick Distance").SetValue(
                     new Slider((int) W.Range, 500, 800))).ValueChanged +=
                 delegate(object sender, OnValueChangeEventArgs args) { W.Range = args.GetNewValue<Slider>().Value; };
@@ -183,6 +187,7 @@ namespace SFXChallenger.Champions
             manualMenu.AddItem(
                 new MenuItem(manualMenu.Name + ".gold", "Hotkey Gold").SetValue(new KeyBind('U', KeyBindType.Press)));
 
+            Q.Range = Menu.Item(Menu.Name + ".miscellaneous.q-range").GetValue<Slider>().Value;
             W.Range = Menu.Item(Menu.Name + ".miscellaneous.w-range").GetValue<Slider>().Value;
             Cards.Delay = Menu.Item(Menu.Name + ".miscellaneous.w-delay").GetValue<Slider>().Value;
 

@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.9.0.30</AssemblyVersion>
+    <AssemblyVersion>0.9.5.2</AssemblyVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -145,6 +145,7 @@
     <Compile Include="Managers\GapcloserManager.cs" />
     <Compile Include="Managers\HeroListManager.cs" />
     <Compile Include="Managers\HitchanceManager.cs" />
+    <Compile Include="Managers\IncomingDamageManager.cs" />
     <Compile Include="Managers\IndicatorManager.cs" />
     <Compile Include="Managers\InitiatorManager.cs" />
     <Compile Include="Managers\KillstealManager.cs" />

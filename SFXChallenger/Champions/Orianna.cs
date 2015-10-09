@@ -23,7 +23,6 @@
 #region
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
@@ -79,7 +78,8 @@ namespace SFXChallenger.Champions
             Ball.OnPositionChange += OnBallPositionChange;
             GapcloserManager.OnGapcloser += OnEnemyGapcloser;
             Drawing.OnDraw += OnDrawingDraw;
-            Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
+
+            IncomingDamageManager.AddChampion(Player);
         }
 
         protected override void SetupSpells()
@@ -258,58 +258,6 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
-        {
-            try
-            {
-                if (!sender.IsEnemy || E.Level == 0 || !Menu.Item(Menu.Name + ".shield.enabled").GetValue<bool>())
-                {
-                    return;
-                }
-                var hero = sender as Obj_AI_Hero;
-                if (hero != null)
-                {
-                    if (args.Target != null && args.Target.NetworkId == Player.NetworkId && args.SData.IsAutoAttack())
-                    {
-                        IncomingDamage.Add(
-                            Player.ServerPosition.Distance(hero.ServerPosition) / args.SData.MissileSpeed + Game.Time,
-                            (float) hero.GetAutoAttackDamage(Player));
-                    }
-                    else
-                    {
-                        var slot = hero.GetSpellSlot(args.SData.Name);
-                        if (slot != SpellSlot.Unknown)
-                        {
-                            if (args.Target != null && args.Target.NetworkId == Player.NetworkId &&
-                                slot == hero.GetSpellSlot("SummonerDot"))
-                            {
-                                if (E.IsReady() && ResourceManager.Check("shield"))
-                                {
-                                    E.CastOnUnit(Player);
-                                }
-                                IncomingDamage.Add(
-                                    Game.Time + 2,
-                                    (float) hero.GetSummonerSpellDamage(Player, Damage.SummonerSpell.Ignite));
-                            }
-                            else if ((slot == SpellSlot.Q || slot == SpellSlot.W || slot == SpellSlot.E ||
-                                      slot == SpellSlot.R) && args.Target != null &&
-                                     args.Target.NetworkId == Player.NetworkId)
-                            {
-                                var time = args.SData.CastFrame / 30f +
-                                           Player.Distance(hero) / args.SData.MissileSpeed;
-                                IncomingDamage.Add(
-                                    Game.Time + Math.Max(1, time), (float) hero.GetSpellDamage(Player, slot));
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
         private void OnDrawingDraw(EventArgs args)
         {
             try
@@ -368,7 +316,7 @@ namespace SFXChallenger.Champions
                 {
                     if (Ball.IsMoving || Menu.Item(Menu.Name + ".miscellaneous.block-r").GetValue<bool>())
                     {
-                        args.Process = GetHits(R, 400f).Item1 > 0;
+                        args.Process = GetHits(R, false, 400f).Item1 > 0;
                     }
                 }
             }
@@ -430,8 +378,7 @@ namespace SFXChallenger.Champions
             {
                 if (Player.HealthPercent <= Menu.Item(Menu.Name + ".shield.min-health").GetValue<Slider>().Value)
                 {
-                    IncomingDamage.Clean();
-                    var totalDamage = IncomingDamage.TotalDamage * 1.1f;
+                    var totalDamage = IncomingDamageManager.GetDamage(Player) * 1.1f;
                     if (totalDamage >= Player.Health ||
                         totalDamage >=
                         (Player.MaxHealth / 100 * Menu.Item(Menu.Name + ".shield.min-damage").GetValue<Slider>().Value))
@@ -471,7 +418,7 @@ namespace SFXChallenger.Champions
                     (R.GetPrediction(target).UnitPosition.Distance(Player.Position)) > R.Width)
                 {
                     var flashPos = Player.Position.Extend(target.Position, SummonerManager.Flash.Range);
-                    var maxHits = GetHits(R, -1f, flashPos);
+                    var maxHits = GetHits(R, false, -1f, flashPos);
 
                     if (maxHits.Item1 > 0)
                     {
@@ -558,20 +505,23 @@ namespace SFXChallenger.Champions
 
         protected override void Combo()
         {
-            if (Ball.IsMoving)
-            {
-                return;
-            }
             var single = false;
-            var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>();
             var w = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>();
-            var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>();
-            var r = _ultimate.IsActive(UltimateModeType.Combo);
-            var target = TargetSelector.GetTarget(Q);
             if (w && W.IsReady())
             {
                 WLogic(1);
             }
+
+            if (Ball.IsMoving)
+            {
+                return;
+            }
+
+            var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>();
+            var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>();
+            var r = _ultimate.IsActive(UltimateModeType.Combo);
+            var target = TargetSelector.GetTarget(Q);
+
             if (r && R.IsReady())
             {
                 if (!RLogic(UltimateModeType.Combo))
@@ -597,17 +547,21 @@ namespace SFXChallenger.Champions
 
         protected override void Harass()
         {
-            if (Ball.IsMoving)
-            {
-                return;
-            }
-            var q = Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && ResourceManager.Check("harass-q");
             var w = Menu.Item(Menu.Name + ".harass.w").GetValue<bool>() && ResourceManager.Check("harass-w");
-            var e = Menu.Item(Menu.Name + ".harass.e").GetValue<bool>();
+
             if (w && W.IsReady())
             {
                 WLogic(1);
             }
+
+            if (Ball.IsMoving)
+            {
+                return;
+            }
+
+            var q = Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && ResourceManager.Check("harass-q");
+            var e = Menu.Item(Menu.Name + ".harass.e").GetValue<bool>();
+
             if (q && Q.IsReady())
             {
                 QLogic(TargetSelector.GetTarget(Q), Q.GetHitChance("combo"), e);
@@ -661,7 +615,7 @@ namespace SFXChallenger.Champions
                 {
                     totalMana += qMana;
                     damage += Q.GetDamage(target);
-                    if (q && Q.IsReady(2000))
+                    if (q && Q.IsReady())
                     {
                         if (totalMana + qMana <= Player.Mana)
                         {
@@ -683,7 +637,6 @@ namespace SFXChallenger.Champions
                 {
                     damage += 2 * (float) Player.GetAutoAttackDamage(target, true);
                 }
-                damage *= 1.1f;
                 damage += ItemManager.CalculateComboDamage(target, rangeCheck);
                 damage += SummonerManager.CalculateComboDamage(target, rangeCheck);
                 return damage;
@@ -703,7 +656,7 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
-                if (Utility.CountEnemiesInRange((int) (Q.Range + R.Width)) > 1)
+                if (Utility.CountEnemiesInRange((int) (Q.Range + R.Width)) >= 2)
                 {
                     var qLoc = GetBestQLocation(target, hitChance);
                     if (qLoc.Item1 > 1)
@@ -717,25 +670,27 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
-                if (useE && E.IsReady())
+                if (useE && E.IsReady() && target.Distance(Ball.Position) >= 250)
                 {
                     var directTravelTime = Ball.Position.Distance(pred.CastPosition) / Q.Speed;
                     var bestEqTravelTime = float.MaxValue;
-                    Obj_AI_Hero eqTarget = null;
-                    foreach (var ally in GameObjects.AllyHeroes.Where(h => h.IsValidTarget(E.Range, false)))
+                    var bestAlly =
+                        GameObjects.AllyHeroes.Where(h => h.IsValidTarget(E.Range, false))
+                            .OrderBy(h => h.Distance(pred.CastPosition))
+                            .FirstOrDefault();
+                    if (bestAlly != null)
                     {
-                        var t = Ball.Position.Distance(ally.ServerPosition) / E.Speed +
-                                ally.Distance(pred.CastPosition) / Q.Speed;
+                        var t = Ball.Position.Distance(bestAlly.ServerPosition) / E.Speed +
+                                bestAlly.Distance(pred.CastPosition) / Q.Speed;
                         if (t < bestEqTravelTime)
                         {
-                            eqTarget = ally;
                             bestEqTravelTime = t;
                         }
                     }
-                    if (eqTarget != null && bestEqTravelTime < directTravelTime * 1.3f &&
-                        (Ball.Position.Distance(eqTarget.ServerPosition, true) > 10000))
+                    if (bestAlly != null && bestEqTravelTime < directTravelTime * 1.3f &&
+                        (Ball.Position.Distance(bestAlly.ServerPosition, true) > 10000))
                     {
-                        CastE(eqTarget);
+                        CastE(bestAlly);
                         return;
                     }
                 }
@@ -751,7 +706,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                var hits = GetHits(W);
+                var hits = GetHits(W, false);
                 if (hits.Item1 >= minHits)
                 {
                     W.Cast(Ball.Position);
@@ -771,53 +726,33 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
-                Obj_AI_Hero target = null;
-                var minHits = 1;
 
-                if (!Q.IsReady() && W.Instance.CooldownExpires < Q.Instance.CooldownExpires)
+                var ballEnemies = Ball.Position.CountEnemiesInRange(600);
+                var playerEnemies = ballEnemies;
+
+                if (Ball.Status != BallStatus.Me)
                 {
-                    var e1 =
-                        GameObjects.EnemyHeroes.Where(
-                            e => e.IsValidTarget() && e.Distance(Player.Position) < W.Width * 1.5f).ToList();
-                    var e2 =
-                        GameObjects.EnemyHeroes.Where(
-                            e => e.IsValidTarget() && e.Distance(Ball.Position) < W.Width * 1.5f).ToList();
-                    if ((e2.Count > e1.Count || e2.Count == e1.Count))
-                    {
-                        return;
-                    }
+                    playerEnemies = Player.Position.CountEnemiesInRange(600);
                 }
 
-                if (Utility.CountEnemiesInRange((int) (Q.Range + R.Width)) <= 1)
+                if (!Q.IsReady() && W.Instance.CooldownExpires < Q.Instance.CooldownExpires &&
+                    (ballEnemies > playerEnemies || ballEnemies == playerEnemies))
                 {
-                    foreach (var ally in GameObjects.AllyHeroes.Where(h => h.IsValidTarget(E.Range, false)))
-                    {
-                        if (ally.Position.CountEnemiesInRange(300) >= 1)
-                        {
-                            CastE(ally);
-                            return;
-                        }
-                        target = ally;
-                    }
-                    if (target == null)
-                    {
-                        target = Player;
-                    }
-                    if (GetEHits(target.ServerPosition).Item1 >= minHits)
-                    {
-                        CastE(target);
-                    }
+                    return;
                 }
-                else
+
+                var eHits = GetEHits(Player.ServerPosition);
+                if (eHits.Item2.Any(e => E.IsKillable(e)) || eHits.Item1 >= (ballEnemies <= 2 ? 1 : 2))
                 {
-                    if (GetEHits(Player.ServerPosition).Item1 >= (Ball.Position.CountEnemiesInRange(800) <= 2 ? 1 : 2))
-                    {
-                        CastE(Player);
-                        return;
-                    }
-                    foreach (var ally in
-                        GameObjects.AllyHeroes.Where(h => h.IsValidTarget(E.Range, false))
-                            .Where(ally => ally.Position.CountEnemiesInRange(300) >= 2))
+                    CastE(Player);
+                    return;
+                }
+
+                foreach (var ally in GameObjects.AllyHeroes.Where(h => h.IsValidTarget(E.Range, false)))
+                {
+                    if ((Ball.Hero != null && Ball.Hero.NetworkId == ally.NetworkId
+                        ? ballEnemies
+                        : ally.Position.CountEnemiesInRange(300)) >= 2)
                     {
                         CastE(ally);
                         return;
@@ -875,6 +810,7 @@ namespace SFXChallenger.Champions
         }
 
         private Tuple<int, List<Obj_AI_Hero>> GetHits(Spell spell,
+            bool advancedChecks = true,
             float overrideWidth = -1f,
             Vector3 fromCheck = default(Vector3))
         {
@@ -910,9 +846,10 @@ namespace SFXChallenger.Champions
                         var prediction = Prediction.GetPrediction(input);
                         if (prediction.Hitchance >= HitChance.High)
                         {
-                            if (Utils.IsImmobile(t) || Utils.IsSlowed(t) || t.Distance(fromCheck) < spell.Width * 0.75 ||
-                                t.Distance(fromCheck) < spell.Width &&
-                                (fromCheck.Distance(Ball.Position) > 100 || t.IsFacing(fromCheck, 120f)))
+                            if (!advancedChecks ||
+                                (Utils.IsImmobile(t) || Utils.IsSlowed(t) || t.Distance(fromCheck) < spell.Width * 0.75 ||
+                                 t.Distance(fromCheck) < spell.Width &&
+                                 (fromCheck.Distance(Ball.Position) > 100 || t.IsFacing(fromCheck, 120f))))
                             {
                                 positions.Add(new CPrediction.Position(t, prediction.UnitPosition));
                             }
@@ -925,7 +862,7 @@ namespace SFXChallenger.Champions
                     hits.AddRange(
                         from position in positions
                         where
-                            !position.Hero.IsDashing() ||
+                            !advancedChecks || !position.Hero.IsDashing() ||
                             (position.Hero.Distance(fromCheck) >= 100f &&
                              position.Hero.Position.Distance(fromCheck) >
                              position.Hero.GetDashInfo().EndPos.Distance(fromCheck) - 50f)
@@ -1086,14 +1023,14 @@ namespace SFXChallenger.Champions
                 var positions = (from t in GameObjects.EnemyHeroes
                     where t.IsValidTarget(range, true, Q.RangeCheckFrom)
                     let prediction = Q.GetPrediction(t)
-                    where prediction.Hitchance >= (hitChance - 1)
+                    where prediction.Hitchance >= (t.NetworkId == target.NetworkId ? hitChance : (hitChance - 1))
                     select new CPrediction.Position(t, prediction.UnitPosition)).ToList();
                 if (positions.Any())
                 {
                     var mainTarget = positions.FirstOrDefault(p => p.Hero.NetworkId == target.NetworkId);
                     var possibilities =
                         ListExtensions.ProduceEnumeration(
-                            positions.Where(p => p.UnitPosition.Distance(mainTarget.UnitPosition) <= Q.Width * 0.85f)
+                            positions.Where(p => p.UnitPosition.Distance(mainTarget.UnitPosition) <= R.Width * 0.85f)
                                 .ToList())
                             .Where(p => p.Count > 0 && p.Any(t => t.Hero.NetworkId == mainTarget.Hero.NetworkId))
                             .ToList();
@@ -1381,69 +1318,6 @@ namespace SFXChallenger.Champions
                         Pos = sender.Position;
                         Status = BallStatus.Fixed;
                         IsMoving = false;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Global.Logger.AddItem(new LogItem(ex));
-                }
-            }
-        }
-
-        internal class IncomingDamage
-        {
-            private static readonly ConcurrentDictionary<float, float> Damages =
-                new ConcurrentDictionary<float, float>();
-
-            public static float TotalDamage
-            {
-                get
-                {
-                    try
-                    {
-                        return Damages.Where(e => e.Key >= Game.Time).Select(e => e.Value).DefaultIfEmpty(0).Sum();
-                    }
-                    catch (Exception ex)
-                    {
-                        Global.Logger.AddItem(new LogItem(ex));
-                    }
-                    return 0;
-                }
-            }
-
-            public static void Clean()
-            {
-                try
-                {
-                    var damages = Damages.Where(entry => entry.Key < Game.Time).ToArray();
-                    foreach (var entry in damages)
-                    {
-                        float old;
-                        Damages.TryRemove(entry.Key, out old);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Global.Logger.AddItem(new LogItem(ex));
-                }
-            }
-
-            public static void Add(float time, float damage)
-            {
-                try
-                {
-                    if (Game.Time - time > 3)
-                    {
-                        time = Game.Time + 3;
-                    }
-                    float value;
-                    if (Damages.TryGetValue(time, out value))
-                    {
-                        Damages[time] = value + damage;
-                    }
-                    else
-                    {
-                        Damages[time] = damage;
                     }
                 }
                 catch (Exception ex)

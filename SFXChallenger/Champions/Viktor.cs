@@ -403,7 +403,7 @@ namespace SFXChallenger.Champions
             try
             {
                 var forced = Orbwalker.ForcedTarget();
-                if (HasQBuff() && (forced == null || !forced.IsValidTarget()))
+                if (HasQBuff() && (forced == null || !forced.IsValidTarget() || !Orbwalking.InAutoAttackRange(forced)))
                 {
                     if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
                     {
@@ -741,7 +741,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (_lastRMoveCommand + RMoveInterval > Environment.TickCount)
+                if (_lastRMoveCommand + RMoveInterval > Environment.TickCount || Player.IsWindingUp)
                 {
                     return;
                 }
@@ -782,12 +782,9 @@ namespace SFXChallenger.Champions
                         if (!simulated)
                         {
                             R.Cast(pred.CastPosition);
-                            var aaTarget =
-                                TargetSelector.GetTargets(Player.AttackRange + Player.BoundingRadius * 3f)
-                                    .FirstOrDefault(Orbwalking.InAutoAttackRange);
-                            if (aaTarget != null)
+                            if (Orbwalking.InAutoAttackRange(target))
                             {
-                                Orbwalker.ForceTarget(aaTarget);
+                                Orbwalker.ForceTarget(target);
                             }
                         }
                         return true;
@@ -816,12 +813,9 @@ namespace SFXChallenger.Champions
                     if (!simulated)
                     {
                         R.Cast(pred.CastPosition);
-                        var aaTarget =
-                            TargetSelector.GetTargets(Player.AttackRange + Player.BoundingRadius * 3f)
-                                .FirstOrDefault(Orbwalking.InAutoAttackRange);
-                        if (aaTarget != null)
+                        if (Orbwalking.InAutoAttackRange(target))
                         {
-                            Orbwalker.ForceTarget(aaTarget);
+                            Orbwalker.ForceTarget(target);
                         }
                     }
                     return true;
@@ -1104,7 +1098,7 @@ namespace SFXChallenger.Champions
                         .FirstOrDefault();
                 if (near != null)
                 {
-                    Casting.SkillShot(near, W, W.GetHitChance("combo"));
+                    Casting.SkillShot(near, W, HitChance.High);
                 }
             }
             if (Menu.Item(Menu.Name + ".flee.q-upgraded").GetValue<bool>() && Q.IsReady() && IsSpellUpgraded(Q))
