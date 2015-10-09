@@ -249,19 +249,6 @@ namespace SFXChallenger.Wrappers
                     Player.ServerPosition.To2D()) <= myRange * myRange;
         }
 
-        public static bool InAutoAttackRange(AttackableUnit target, float extra)
-        {
-            if (!target.IsValidTarget())
-            {
-                return false;
-            }
-            var myRange = GetRealAutoAttackRange(target);
-            return
-                Vector2.DistanceSquared(
-                    (target is Obj_AI_Base) ? ((Obj_AI_Base) target).ServerPosition.To2D() : target.Position.To2D(),
-                    Player.ServerPosition.To2D()) <= myRange * myRange + extra * extra;
-        }
-
         /// <summary>
         ///     Returns player auto-attack missile speed.
         /// </summary>
@@ -414,17 +401,6 @@ namespace SFXChallenger.Wrappers
             bool overrideTimer = false,
             bool randomizeMinDistance = true)
         {
-            var delay = Delays[OrbwalkingDelay.Move];
-
-            if (Utils.GameTimeTickCount - LastMoveCommandT < delay.CurrentDelay && !overrideTimer)
-            {
-                return;
-            }
-
-            SetCurrentDelay(delay);
-
-            LastMoveCommandT = Utils.GameTimeTickCount;
-
             var playerPosition = Player.ServerPosition;
 
             if (playerPosition.Distance(position, true) < holdAreaRadius * holdAreaRadius)
@@ -433,7 +409,7 @@ namespace SFXChallenger.Wrappers
                 {
                     Player.IssueOrder(GameObjectOrder.Stop, playerPosition);
                     LastMoveCommandPosition = playerPosition;
-                    LastMoveCommandT -= 70;
+                    LastMoveCommandT = Utils.GameTimeTickCount - 70;
                 }
                 return;
             }
@@ -446,6 +422,7 @@ namespace SFXChallenger.Wrappers
                     position, (randomizeMinDistance ? (Random.NextFloat(0.6f, 1) + 0.2f) * _minDistance : _minDistance));
             }
 
+            var angle = 0f;
             var currentPath = Player.GetWaypoints();
             if (currentPath.Count > 1 && currentPath.PathLength() > 100)
             {
@@ -455,7 +432,7 @@ namespace SFXChallenger.Wrappers
                 {
                     var v1 = currentPath[1] - currentPath[0];
                     var v2 = movePath[1] - movePath[0];
-                    var angle = v1.AngleBetween(v2.To2D());
+                    angle = v1.AngleBetween(v2.To2D());
                     var distance = movePath.Last().To2D().Distance(currentPath.Last(), true);
 
                     if ((angle < 10 && distance < 500 * 500) || distance < 50 * 50)
@@ -465,8 +442,23 @@ namespace SFXChallenger.Wrappers
                 }
             }
 
+            if (angle >= 60 && Utils.GameTimeTickCount - LastMoveCommandT < 60)
+            {
+                return;
+            }
+
+            var delay = Delays[OrbwalkingDelay.Move];
+
+            if (Utils.GameTimeTickCount - LastMoveCommandT < delay.CurrentDelay && !overrideTimer && angle < 60)
+            {
+                return;
+            }
+
+            SetCurrentDelay(delay);
+
             Player.IssueOrder(GameObjectOrder.MoveTo, point);
             LastMoveCommandPosition = point;
+            LastMoveCommandT = Utils.GameTimeTickCount;
         }
 
         /// <summary>
@@ -962,7 +954,7 @@ namespace SFXChallenger.Wrappers
                 }
 
                 //Forced target
-                if (_forcedTarget.IsValidTarget() && InAutoAttackRange(_forcedTarget, 150f))
+                if (_forcedTarget.IsValidTarget() && InAutoAttackRange(_forcedTarget))
                 {
                     return _forcedTarget;
                 }
@@ -996,7 +988,7 @@ namespace SFXChallenger.Wrappers
                 if (ActiveMode != OrbwalkingMode.LastHit)
                 {
                     var target = TargetSelector.GetTarget(-1, DamageType.Physical);
-                    if (target.IsValidTarget() && InAutoAttackRange(target, 150f))
+                    if (target.IsValidTarget() && InAutoAttackRange(target))
                     {
                         return target;
                     }
