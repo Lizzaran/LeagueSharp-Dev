@@ -56,7 +56,8 @@ namespace SFXChallenger.Managers
                 }
                 var enemy = sender as Obj_AI_Hero;
                 var turret = sender as Obj_AI_Turret;
-                foreach (var hero in GameObjects.Heroes.Where(h => IncomingDamages.ContainsKey(h.NetworkId)))
+                foreach (
+                    var hero in GameObjects.Heroes.Where(h => h.IsValid && IncomingDamages.ContainsKey(h.NetworkId)))
                 {
                     if (ShouldReset(hero))
                     {
@@ -64,9 +65,9 @@ namespace SFXChallenger.Managers
                         continue;
                     }
 
-                    if (enemy != null && enemy.IsEnemy && enemy.Distance(hero) <= 2000)
+                    if (enemy != null && enemy.IsValid && enemy.IsEnemy && enemy.Distance(hero) <= 2000)
                     {
-                        if (args.Target.NetworkId.Equals(hero.NetworkId))
+                        if (args.Target != null && args.Target.NetworkId.Equals(hero.NetworkId))
                         {
                             if (args.SData.IsAutoAttack())
                             {
@@ -74,17 +75,14 @@ namespace SFXChallenger.Managers
                                     hero, (int) (GetTime(sender, hero, args.SData) * 0.3f),
                                     (float) sender.GetAutoAttackDamage(hero, true));
                             }
+                            else if ((args.SData.TargettingType == SpellDataTargetType.Unit ||
+                                      args.SData.TargettingType == SpellDataTargetType.SelfAndUnit))
+                            {
+                                AddDamage(
+                                    hero, (int) (GetTime(sender, hero, args.SData) * 0.3f),
+                                    (float) sender.GetSpellDamage(hero, args.SData.Name));
+                            }
                         }
-
-                        if ((args.SData.TargettingType == SpellDataTargetType.Unit ||
-                             args.SData.TargettingType == SpellDataTargetType.SelfAndUnit) && args.Target != null &&
-                            args.Target.NetworkId.Equals(hero.NetworkId))
-                        {
-                            AddDamage(
-                                hero, (int) (GetTime(sender, hero, args.SData) * 0.3f),
-                                (float) sender.GetSpellDamage(hero, args.SData.Name));
-                        }
-
                         if (Skillshots)
                         {
                             if (args.SData.TargettingType == SpellDataTargetType.Cone ||
@@ -107,9 +105,9 @@ namespace SFXChallenger.Managers
                         }
                     }
 
-                    if (turret != null && turret.IsEnemy && turret.Distance(hero) <= 1500)
+                    if (turret != null && turret.IsValid && turret.IsEnemy && turret.Distance(hero) <= 1500)
                     {
-                        if (args.Target.NetworkId.Equals(hero.NetworkId))
+                        if (args.Target != null && args.Target.NetworkId.Equals(hero.NetworkId))
                         {
                             AddDamage(
                                 hero, (int) (GetTime(sender, hero, args.SData) * 0.3f),
