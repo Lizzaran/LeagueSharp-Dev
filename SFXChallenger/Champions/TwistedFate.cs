@@ -261,9 +261,12 @@ namespace SFXChallenger.Champions
                 {
                     if (Cards.Has(CardColor.Red))
                     {
-                        var target = Orbwalker.ForcedTarget();
-                        if (target != null && target.NetworkId != args.Target.NetworkId)
+                        var bestMinion = BestRedMinion();
+                        var buff = ObjectManager.Player.GetBuff("redcardpreattack");
+                        if (bestMinion != null && bestMinion.NetworkId != args.Target.NetworkId &&
+                            (buff == null || buff.EndTime - Game.Time > 0.15f))
                         {
+                            Orbwalker.ForceTarget(bestMinion);
                             args.Process = false;
                         }
                     }
@@ -319,6 +322,45 @@ namespace SFXChallenger.Champions
                     Cards.Select(CardColor.Gold);
                 }
             }
+        }
+
+        private Obj_AI_Base BestRedMinion()
+        {
+            var minions =
+                MinionManager.GetMinions(float.MaxValue, MinionTypes.All, MinionTeam.NotAlly)
+                    .Where(Orbwalking.InAutoAttackRange)
+                    .ToList();
+            var possibilities =
+                ListExtensions.ProduceEnumeration(minions.Select(p => p.ServerPosition.To2D()).ToList())
+                    .Where(p => p.Count > 0 && p.Count < 8)
+                    .ToList();
+            var hits = 0;
+            var center = Vector2.Zero;
+            var radius = float.MaxValue;
+            foreach (var possibility in possibilities)
+            {
+                var mec = MEC.GetMec(possibility);
+                if (mec.Radius < W.Width * 1.5f)
+                {
+                    if (possibility.Count > hits || possibility.Count == hits && mec.Radius < radius)
+                    {
+                        hits = possibility.Count;
+                        radius = mec.Radius;
+                        center = mec.Center;
+                        if (hits == minions.Count)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (hits > 0 && !center.Equals(Vector2.Zero))
+            {
+                return minions.OrderBy(m => m.Position.Distance(center.To3D())).FirstOrDefault();
+            }
+
+            return null;
         }
 
         private Tuple<int, Vector3> BestQPosition(Obj_AI_Base target, List<Obj_AI_Base> targets, HitChance hitChance)

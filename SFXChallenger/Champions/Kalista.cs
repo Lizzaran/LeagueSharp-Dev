@@ -174,7 +174,7 @@ namespace SFXChallenger.Champions
                 });
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
             laneclearMenu.AddItem(
-                new MenuItem(laneclearMenu.Name + ".q-min", "Q Min. Hits").SetValue(new Slider(2, 1, 5)));
+                new MenuItem(laneclearMenu.Name + ".q-min", "Q Min. Hits").SetValue(new Slider(3, 1, 5)));
             laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", "Use E").SetValue(true));
 
             var lasthitMenu = Menu.AddSubMenu(new Menu("Last Hit", Menu.Name + ".lasthit"));
@@ -286,7 +286,7 @@ namespace SFXChallenger.Champions
                 var eJungle = Menu.Item(Menu.Name + ".lasthit.e-jungle").GetValue<bool>();
                 if (eBig || eJungle)
                 {
-                    if (eJungle && Player.Level >= 3 || eBig)
+                    if (eJungle && Player.Level >= 2 || eBig)
                     {
                         var creeps =
                             GameObjects.Jungle.Where(e => e.IsValidTarget(E.Range) && Rend.IsKillable(e, false))
@@ -369,12 +369,12 @@ namespace SFXChallenger.Champions
             }
 
             if (Menu.Item(Menu.Name + ".miscellaneous.w-baron").GetValue<KeyBind>().Active && W.IsReady() &&
-                !Player.IsWindingUp && Player.Distance(SummonersRift.River.Baron) <= W.Range)
+                !Player.IsWindingUp && !Player.IsDashing() && Player.Distance(SummonersRift.River.Baron) <= W.Range)
             {
                 W.Cast(SummonersRift.River.Baron);
             }
             if (Menu.Item(Menu.Name + ".miscellaneous.w-dragon").GetValue<KeyBind>().Active && W.IsReady() &&
-                !Player.IsWindingUp && Player.Distance(SummonersRift.River.Dragon) <= W.Range)
+                !Player.IsWindingUp && !Player.IsDashing() && Player.Distance(SummonersRift.River.Dragon) <= W.Range)
             {
                 W.Cast(SummonersRift.River.Dragon);
             }
@@ -470,7 +470,7 @@ namespace SFXChallenger.Champions
                        ResourceManager.Check("combo-q");
             var useE = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
 
-            if (useQ)
+            if (useQ && !Player.IsWindingUp && !Player.IsDashing())
             {
                 Casting.SkillShot(Q, Q.GetHitChance("combo"));
             }
@@ -549,7 +549,8 @@ namespace SFXChallenger.Champions
 
         protected override void Harass()
         {
-            if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && Q.IsReady() && ResourceManager.Check("harass-q"))
+            if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && Q.IsReady() && ResourceManager.Check("harass-q") &&
+                !Player.IsWindingUp && !Player.IsDashing())
             {
                 Casting.SkillShot(Q, Q.GetHitChance("harass"));
             }
@@ -805,7 +806,7 @@ namespace SFXChallenger.Champions
                             return false;
                         }
                     }
-                    return GetDamage(target) > target.Health + target.PhysicalShield;
+                    return GetDamage(target) > target.Health;
                 }
                 catch (Exception ex)
                 {
@@ -818,6 +819,10 @@ namespace SFXChallenger.Champions
             {
                 try
                 {
+                    if (ObjectManager.Player.HasBuff("summonerexhaust"))
+                    {
+                        damage *= 0.6f;
+                    }
                     if (target is Obj_AI_Minion)
                     {
                         var dragonBuff =
@@ -849,10 +854,25 @@ namespace SFXChallenger.Champions
                             }
                         }
                     }
-                    damage -= target.HPRegenRate * 0.25f;
-                    if (ObjectManager.Player.HasBuff("summonerexhaust"))
+                    if (target is Obj_AI_Hero)
                     {
-                        damage *= 0.6f;
+                        if (target.HasBuff("FerociousHowl"))
+                        {
+                            damage *= 0.3f;
+                        }
+                        if (target.HasBuff("GarenW"))
+                        {
+                            damage *= 0.7f;
+                        }
+                        if (target.HasBuff("Medidate"))
+                        {
+                            damage *= 0.5f;
+                        }
+                        if (target.HasBuff("gragaswself"))
+                        {
+                            damage *= 0.8f;
+                        }
+                        damage -= (target.HPRegenRate / 5f) * 0.25f;
                     }
                     return damage;
                 }
@@ -872,9 +892,9 @@ namespace SFXChallenger.Champions
             {
                 return GetRealDamage(
                     target,
-                    100 /
-                    (100 + (target.Armor * ObjectManager.Player.PercentArmorPenetrationMod) -
-                     ObjectManager.Player.FlatArmorPenetrationMod) * GetRawDamage(target, customStacks));
+                    (float)
+                        ObjectManager.Player.CalcDamage(
+                            target, LeagueSharp.Common.Damage.DamageType.Physical, GetRawDamage(target, customStacks)));
             }
 
             public static float GetRawDamage(Obj_AI_Base target, int customStacks = -1)
@@ -885,14 +905,11 @@ namespace SFXChallenger.Champions
                     var eLevel = ObjectManager.Player.GetSpell(SpellSlot.E).Level;
                     if (buff != null || customStacks > -1)
                     {
-                        var damage = (Damage[eLevel - 1] +
-                                      DamageMultiplier[eLevel - 1] * ObjectManager.Player.TotalAttackDamage()) +
-                                     ((customStacks < 0 && buff != null ? buff.Count : customStacks) - 1) *
-                                     (DamagePerSpear[eLevel - 1] +
-                                      DamagePerSpearMultiplier[eLevel - 1] *
-                                      (ObjectManager.Player.BaseAttackDamage +
-                                       ObjectManager.Player.FlatPhysicalDamageMod));
-                        return damage;
+                        return (Damage[eLevel - 1] +
+                                DamageMultiplier[eLevel - 1] * ObjectManager.Player.TotalAttackDamage()) +
+                               ((customStacks < 0 ? (buff == null ? 0 : buff.Count) : customStacks) - 1) *
+                               (DamagePerSpear[eLevel - 1] +
+                                DamagePerSpearMultiplier[eLevel - 1] * ObjectManager.Player.TotalAttackDamage());
                     }
                 }
                 catch (Exception ex)

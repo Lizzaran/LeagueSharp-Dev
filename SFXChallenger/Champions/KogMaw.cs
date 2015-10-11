@@ -263,6 +263,20 @@ namespace SFXChallenger.Champions
             }
         }
 
+        private bool ShouldUseR()
+        {
+            var attackSpeed =
+                (~(int) ((1 / ObjectManager.Player.AttackSpeedMod * 100) - (1 / ObjectManager.Player.AttackDelay * 100)) +
+                 1);
+
+            if (attackSpeed > 70 && Player.HasBuff("KogMawBioArcaneBarrage"))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         private int GetRBuffCount()
         {
             try
@@ -301,8 +315,8 @@ namespace SFXChallenger.Champions
             {
                 var target = TargetSelector.GetTarget(R);
                 if (target != null &&
-                    (Player.FlatMagicDamageMod > 50 ||
-                     !GameObjects.Enemy.Any(e => e.IsValidTarget() && Orbwalking.InAutoAttackRange(e))))
+                    Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value > GetRBuffCount() &&
+                    (Player.FlatMagicDamageMod > 50 || ShouldUseR()))
                 {
                     Casting.SkillShot(R, R.GetHitChance("combo"));
                 }
@@ -346,9 +360,7 @@ namespace SFXChallenger.Champions
                 if (useR && Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value > GetRBuffCount())
                 {
                     var target = TargetSelector.GetTarget(R);
-                    if (target != null &&
-                        (Player.FlatMagicDamageMod > 50 ||
-                         !GameObjects.Enemy.Any(e => e.IsValidTarget() && Orbwalking.InAutoAttackRange(e))))
+                    if (target != null && (Player.FlatMagicDamageMod > 50 || ShouldUseR()))
                     {
                         Casting.SkillShot(R, R.GetHitChance("harass"));
                     }
