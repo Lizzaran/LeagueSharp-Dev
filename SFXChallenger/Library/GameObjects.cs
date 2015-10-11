@@ -454,7 +454,11 @@ namespace SFXChallenger.Library
                     InhibitorsList.UnionWith(ObjectManager.Get<Obj_BarracksDampener>());
                     TurretsList.UnionWith(ObjectManager.Get<Obj_AI_Turret>());
                     JungleList.UnionWith(
-                        ObjectManager.Get<Obj_AI_Minion>().Where(o => o.Team == GameObjectTeam.Neutral));
+                        ObjectManager.Get<Obj_AI_Minion>()
+                            .Where(
+                                o =>
+                                    o.Team == GameObjectTeam.Neutral &&
+                                    !o.CharData.BaseSkinName.ToLower().Contains("barrel")));
                     WardsList.UnionWith(
                         ObjectManager.Get<Obj_AI_Minion>()
                             .Where(
@@ -563,7 +567,7 @@ namespace SFXChallenger.Library
                         }
                     }
                 }
-                else
+                else if (!minion.CharData.BaseSkinName.ToLower().Contains("barrel"))
                 {
                     JungleList.Add(minion);
                 }
@@ -706,7 +710,7 @@ namespace SFXChallenger.Library
                         AllyList.Remove(minion);
                     }
                 }
-                else
+                else if (!minion.CharData.BaseSkinName.ToLower().Contains("barrel"))
                 {
                     JungleList.Remove(minion);
                 }

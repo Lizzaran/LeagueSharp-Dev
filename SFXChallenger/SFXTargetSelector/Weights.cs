@@ -217,7 +217,7 @@ namespace SFXChallenger.SFXTargetSelector
         {
             try
             {
-                if (!string.IsNullOrEmpty(args.Input))
+                if (args.Input == null)
                 {
                     return;
                 }

@@ -239,5 +239,32 @@ namespace SFXChallenger.Helpers
 
             return Vector3.Zero;
         }
+
+        public static void UpdateVisibleTags(Menu menu, int tag)
+        {
+            foreach (var menuItem in menu.Items)
+            {
+                if (menuItem.Tag != 0)
+                {
+                    menuItem.Show(false);
+                }
+
+                if (menuItem.Tag == tag)
+                {
+                    menuItem.Show();
+                }
+            }
+        }
+
+        public static void UpdateVisibleTag(Menu menu, int tag, bool value)
+        {
+            foreach (var menuItem in menu.Items)
+            {
+                if (menuItem.Tag == tag)
+                {
+                    menuItem.Show(value);
+                }
+            }
+        }
     }
 }

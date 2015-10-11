@@ -146,7 +146,7 @@ namespace SFXUtility.Features.Events
                 }
                 if (Menu.Item(Name + "OnEndQuit").GetValue<bool>())
                 {
-                    LeagueSharp.Game.Quit();
+                    Utility.DelayAction.Add(2000, LeagueSharp.Game.Quit);
                 }
             }
             catch (Exception ex)

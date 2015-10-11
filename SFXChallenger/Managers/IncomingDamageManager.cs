@@ -37,6 +37,7 @@ namespace SFXChallenger.Managers
     internal static class IncomingDamageManager
     {
         private static readonly Dictionary<int, float> IncomingDamages = new Dictionary<int, float>();
+        private static int _removeDelay = 300;
 
         static IncomingDamageManager()
         {
@@ -45,6 +46,12 @@ namespace SFXChallenger.Managers
 
         public static bool Skillshots { get; set; }
         public static bool Enabled { get; set; }
+
+        public static int RemoveDelay
+        {
+            get { return _removeDelay; }
+            set { _removeDelay = value; }
+        }
 
         private static void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
@@ -171,7 +178,7 @@ namespace SFXChallenger.Managers
                     {
                         IncomingDamages[hero.NetworkId] += damage;
                         Utility.DelayAction.Add(
-                            300,
+                            _removeDelay,
                             () =>
                             {
                                 IncomingDamages[hero.NetworkId] = IncomingDamages[hero.NetworkId] - damage < 0

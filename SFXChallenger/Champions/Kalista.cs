@@ -54,6 +54,7 @@ namespace SFXChallenger.Champions
 {
     internal class Kalista : Champion
     {
+        private float _lastECast;
         private Obj_AI_Hero _soulbound;
 
         protected override ItemFlags ItemFlags
@@ -77,12 +78,12 @@ namespace SFXChallenger.Champions
 
         protected override void SetupSpells()
         {
-            Q = new Spell(SpellSlot.Q, 1200f);
-            Q.SetSkillshot(0.25f, 40f, 1650f, true, SkillshotType.SkillshotLine);
+            Q = new Spell(SpellSlot.Q, 1150f);
+            Q.SetSkillshot(0.25f, 40f, 1450f, true, SkillshotType.SkillshotLine);
 
             W = new Spell(SpellSlot.W, 5000f);
 
-            E = new Spell(SpellSlot.E, 1000f);
+            E = new Spell(SpellSlot.E, 950f);
 
             R = new Spell(SpellSlot.R, 1200f);
         }
@@ -117,7 +118,19 @@ namespace SFXChallenger.Champions
                 });
             tahmMenu.AddItem(new MenuItem(tahmMenu.Name + ".r", "Enabled").SetValue(true));
 
-            ultimateMenu.AddItem(new MenuItem(ultimateMenu.Name + ".save", "Save Soulbound").SetValue(true));
+            ultimateMenu.AddItem(
+                new MenuItem(ultimateMenu.Name + ".save", "Save Mode").SetValue(
+                    new StringList(new[] { "None", "Auto", "Min. Health %" }, 1))).ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args)
+                {
+                    Utils.UpdateVisibleTag(ultimateMenu, 1, args.GetNewValue<StringList>().SelectedIndex == 2);
+                };
+            ultimateMenu.AddItem(
+                new MenuItem(ultimateMenu.Name + ".save-health", "Min. Health %").SetValue(new Slider(10, 1, 50)))
+                .SetTag(1);
+
+            Utils.UpdateVisibleTag(
+                ultimateMenu, 1, Menu.Item(Menu.Name + ".ultimate.save").GetValue<StringList>().SelectedIndex == 2);
 
             var comboMenu = Menu.AddSubMenu(new Menu("Combo", Menu.Name + ".combo"));
             HitchanceManager.AddToMenu(
@@ -268,7 +281,7 @@ namespace SFXChallenger.Champions
                     var target = unit as Obj_AI_Base;
                     if (target != null && Rend.IsKillable(target, true))
                     {
-                        E.Cast();
+                        CastE();
                     }
                 }
             }
@@ -298,7 +311,7 @@ namespace SFXChallenger.Champions
                                     (m.CharData.BaseSkinName.StartsWith("SRU_Dragon") ||
                                      m.CharData.BaseSkinName.StartsWith("SRU_Baron"))))
                         {
-                            E.Cast();
+                            CastE();
                             return;
                         }
                     }
@@ -329,7 +342,7 @@ namespace SFXChallenger.Champions
                                         (m.CharData.BaseSkinName.Contains("MinionSiege") ||
                                          m.CharData.BaseSkinName.Contains("Super"))))
                             {
-                                E.Cast();
+                                CastE();
                                 return;
                             }
                         }
@@ -337,7 +350,7 @@ namespace SFXChallenger.Champions
                         {
                             if (minions.Any(m => Utils.UnderAllyTurret(m.Position)))
                             {
-                                E.Cast();
+                                CastE();
                                 return;
                             }
                         }
@@ -348,37 +361,55 @@ namespace SFXChallenger.Champions
                     {
                         if (minions.Any())
                         {
-                            E.Cast();
+                            CastE();
                             return;
                         }
                     }
                 }
             }
 
-            if (Menu.Item(Menu.Name + ".ultimate.save").GetValue<bool>() && _soulbound != null && R.IsReady() &&
-                !_soulbound.InFountain())
+            if (ShouldSave())
             {
-                var enemies = _soulbound.CountEnemiesInRange(500);
-                var damage = IncomingDamageManager.GetDamage(_soulbound);
-                if ((_soulbound.HealthPercent <= 10 && _soulbound.CountEnemiesInRange(500) > 0) ||
-                    (_soulbound.HealthPercent <= 5 && damage > _soulbound.Health && enemies == 0) ||
-                    (_soulbound.HealthPercent <= 50 && damage > _soulbound.Health && enemies > 0))
+                R.Cast();
+            }
+        }
+
+        private void CastE()
+        {
+            if (Game.Time - _lastECast >= 0.25f)
+            {
+                if (E.Cast())
                 {
-                    R.Cast();
+                    _lastECast = Game.Time;
                 }
             }
+        }
 
-            if (Menu.Item(Menu.Name + ".miscellaneous.w-baron").GetValue<KeyBind>().Active && W.IsReady() &&
-                !Player.IsWindingUp && !Player.IsDashing() && Player.Distance(SummonersRift.River.Baron) <= W.Range)
+        private bool ShouldSave()
+        {
+            if (_soulbound != null && R.IsReady() && !_soulbound.InFountain())
             {
-                W.Cast(SummonersRift.River.Baron);
+                var mode = Menu.Item(Menu.Name + ".ultimate.save").GetValue<StringList>().SelectedIndex;
+                var enemies = _soulbound.CountEnemiesInRange(600);
+                switch (mode)
+                {
+                    case 0:
+                        return false;
+                    case 1:
+                        return enemies >= 1 &&
+                               _soulbound.HealthPercent <=
+                               Menu.Item(Menu.Name + ".ultimate.save-health").GetValue<Slider>().Value;
+                    case 2:
+                        return IncomingDamageManager.GetDamage(_soulbound) > _soulbound.Health ||
+                               _soulbound.HealthPercent <= 10 && enemies >= 1 ||
+                               _soulbound.HealthPercent <= (enemies * 10f) - 10f;
+                }
             }
-            if (Menu.Item(Menu.Name + ".miscellaneous.w-dragon").GetValue<KeyBind>().Active && W.IsReady() &&
-                !Player.IsWindingUp && !Player.IsDashing() && Player.Distance(SummonersRift.River.Dragon) <= W.Range)
-            {
-                W.Cast(SummonersRift.River.Dragon);
-            }
+            return false;
+        }
 
+        protected override void OnPostUpdate()
+        {
             CheckSoulbound();
 
             if (_soulbound != null && _soulbound.Distance(Player) < R.Range && R.IsReady())
@@ -434,6 +465,17 @@ namespace SFXChallenger.Champions
                     }
                 }
             }
+
+            if (Menu.Item(Menu.Name + ".miscellaneous.w-baron").GetValue<KeyBind>().Active && W.IsReady() &&
+                !Player.IsWindingUp && !Player.IsDashing() && Player.Distance(SummonersRift.River.Baron) <= W.Range)
+            {
+                W.Cast(SummonersRift.River.Baron);
+            }
+            if (Menu.Item(Menu.Name + ".miscellaneous.w-dragon").GetValue<KeyBind>().Active && W.IsReady() &&
+                !Player.IsWindingUp && !Player.IsDashing() && Player.Distance(SummonersRift.River.Dragon) <= W.Range)
+            {
+                W.Cast(SummonersRift.River.Dragon);
+            }
         }
 
         private void CheckSoulbound()
@@ -451,6 +493,7 @@ namespace SFXChallenger.Champions
                                         b.Name.Equals("kalistacoopstrikeally", StringComparison.OrdinalIgnoreCase)));
                     if (_soulbound != null)
                     {
+                        IncomingDamageManager.RemoveDelay = 500;
                         IncomingDamageManager.Skillshots = true;
                         IncomingDamageManager.AddChampion(_soulbound);
                     }
@@ -462,8 +505,6 @@ namespace SFXChallenger.Champions
             }
         }
 
-        protected override void OnPostUpdate() {}
-
         protected override void Combo()
         {
             var useQ = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady() &&
@@ -472,12 +513,24 @@ namespace SFXChallenger.Champions
 
             if (useQ && !Player.IsWindingUp && !Player.IsDashing())
             {
-                Casting.SkillShot(Q, Q.GetHitChance("combo"));
+                var target = TargetSelector.GetTarget(Q);
+                if (target != null)
+                {
+                    var prediction = Q.GetPrediction(target);
+                    if (prediction.Hitchance >= Q.GetHitChance("combo"))
+                    {
+                        Q.Cast(prediction.CastPosition);
+                    }
+                    else if (prediction.Hitchance == HitChance.Collision)
+                    {
+                        QCollisionCheck(target);
+                    }
+                }
             }
-
+            var dashObjects = new List<Obj_AI_Base>();
             if (useE)
             {
-                var target = TargetSelector.GetTarget(E);
+                var target = TargetSelector.GetTarget(E, false);
                 if (target != null && Rend.HasBuff(target))
                 {
                     if (target.Distance(Player) > Orbwalking.GetRealAutoAttackRange(target))
@@ -486,22 +539,23 @@ namespace SFXChallenger.Champions
                             GameObjects.EnemyMinions.Any(
                                 m =>
                                     m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)) &&
-                                    Rend.IsKillable(m, (m.HealthPercent < 25))))
+                                    Rend.IsKillable(m, (m.HealthPercent < 10))))
                         {
-                            E.Cast();
+                            CastE();
                         }
                         else
                         {
-                            var minion =
+                            dashObjects =
                                 GetDashObjects(
                                     GameObjects.EnemyMinions.Where(
                                         m => m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)))
                                         .Select(e => e as Obj_AI_Base)
-                                        .ToList())
-                                    .Find(
-                                        m =>
-                                            m.Health > Player.GetAutoAttackDamage(m) &&
-                                            m.Health < Player.GetAutoAttackDamage(m) + Rend.GetDamage(m, 1));
+                                        .ToList());
+                            var minion =
+                                dashObjects.FirstOrDefault(
+                                    m =>
+                                        m.Health > Player.GetAutoAttackDamage(m) * 1.1f &&
+                                        m.Health < Player.GetAutoAttackDamage(m) + Rend.GetDamage(m, 1));
                             if (minion != null)
                             {
                                 Orbwalker.ForceTarget(minion);
@@ -512,7 +566,7 @@ namespace SFXChallenger.Champions
                     {
                         if (Rend.IsKillable(target, false))
                         {
-                            E.Cast();
+                            CastE();
                         }
                         else
                         {
@@ -522,7 +576,7 @@ namespace SFXChallenger.Champions
                             {
                                 if (target.Distance(Player) > E.Range * 0.8 && !target.IsFacing(Player))
                                 {
-                                    E.Cast();
+                                    CastE();
                                 }
                             }
                         }
@@ -530,15 +584,18 @@ namespace SFXChallenger.Champions
                 }
             }
 
-            if (Menu.Item(Menu.Name + ".combo.minions").GetValue<bool>() &&
+            if (Menu.Item(Menu.Name + ".combo.minions").GetValue<bool>() && !Player.IsWindingUp && !Player.IsDashing() &&
                 !GameObjects.EnemyHeroes.Any(
-                    e => e.IsValidTarget() && e.Distance(Player) < Orbwalking.GetRealAutoAttackRange(e) * 1.1f) &&
-                !Player.IsWindingUp && !Player.IsDashing())
+                    e => e.IsValidTarget() && e.Distance(Player) < Orbwalking.GetRealAutoAttackRange(e) * 1.1f))
             {
-                var obj = GetDashObjects().FirstOrDefault();
-                if (obj != null)
+                if (dashObjects.Count <= 0)
                 {
-                    Orbwalker.ForceTarget(obj);
+                    dashObjects = GetDashObjects().ToList();
+                }
+                var minion = dashObjects.FirstOrDefault();
+                if (minion != null)
+                {
+                    Orbwalker.ForceTarget(minion);
                 }
             }
             else
@@ -552,15 +609,27 @@ namespace SFXChallenger.Champions
             if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && Q.IsReady() && ResourceManager.Check("harass-q") &&
                 !Player.IsWindingUp && !Player.IsDashing())
             {
-                Casting.SkillShot(Q, Q.GetHitChance("harass"));
+                var target = TargetSelector.GetTarget(Q);
+                if (target != null)
+                {
+                    var prediction = Q.GetPrediction(target);
+                    if (prediction.Hitchance >= Q.GetHitChance("harass"))
+                    {
+                        Q.Cast(prediction.CastPosition);
+                    }
+                    else if (prediction.Hitchance == HitChance.Collision)
+                    {
+                        QCollisionCheck(target);
+                    }
+                }
             }
             if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>() && E.IsReady() && ResourceManager.Check("harass-e"))
             {
                 foreach (var enemy in GameObjects.EnemyHeroes.Where(e => E.IsInRange(e)))
                 {
-                    if (Rend.IsKillable(enemy, enemy.HealthPercent < 25))
+                    if (Rend.IsKillable(enemy, enemy.HealthPercent < 10))
                     {
-                        E.Cast();
+                        CastE();
                     }
                     else
                     {
@@ -570,7 +639,7 @@ namespace SFXChallenger.Champions
                         {
                             if (enemy.Distance(Player) > E.Range * 0.8 || buff.EndTime - Game.Time < 0.3)
                             {
-                                E.Cast();
+                                CastE();
                             }
                         }
                     }
@@ -636,6 +705,7 @@ namespace SFXChallenger.Champions
                             break;
                         }
                     }
+
                     if (killcount >= minQ)
                     {
                         Q.Cast(minion.ServerPosition);
@@ -648,7 +718,7 @@ namespace SFXChallenger.Champions
                 var killable = minions.Where(m => E.IsInRange(m) && Rend.IsKillable(m, false)).ToList();
                 if (killable.Count >= minE)
                 {
-                    E.Cast();
+                    CastE();
                 }
             }
         }
@@ -692,6 +762,7 @@ namespace SFXChallenger.Champions
                             break;
                         }
                     }
+
                     if (killcount >= 1)
                     {
                         Q.Cast(minion.ServerPosition);
@@ -704,7 +775,7 @@ namespace SFXChallenger.Champions
                 var killable = minions.Where(m => E.IsInRange(m) && Rend.IsKillable(m, false)).ToList();
                 if (killable.Count >= 1)
                 {
-                    E.Cast();
+                    CastE();
                 }
             }
         }
@@ -724,11 +795,46 @@ namespace SFXChallenger.Champions
             if (Menu.Item(Menu.Name + ".killsteal.e").GetValue<bool>() && E.IsReady() &&
                 GameObjects.EnemyHeroes.Any(h => h.IsValidTarget(E.Range) && Rend.IsKillable(h, false)))
             {
-                E.Cast();
+                CastE();
             }
         }
 
-        public static IOrderedEnumerable<Obj_AI_Base> GetDashObjects()
+        private void QCollisionCheck(Obj_AI_Hero target)
+        {
+            var minions = MinionManager.GetMinions(Q.Range);
+
+            if (minions.Count < 1 || Player.IsWindingUp || Player.IsDashing())
+            {
+                return;
+            }
+
+            foreach (var minion in minions)
+            {
+                var difference = Player.Distance(target) - Player.Distance(minion);
+                for (var i = 0; i < difference; i += (int) target.BoundingRadius)
+                {
+                    var point = minion.ServerPosition.To2D().Extend(Player.ServerPosition.To2D(), -i).To3D();
+                    var time = Q.Delay + (ObjectManager.Player.Distance(point) / Q.Speed * 1000f);
+
+                    var prediction = Prediction.GetPrediction(target, time);
+
+                    var collision = Q.GetCollision(point.To2D(), new List<Vector2> { prediction.UnitPosition.To2D() });
+
+                    if (collision.Any(x => x.Health > Q.GetDamage(x)))
+                    {
+                        return;
+                    }
+
+                    if (prediction.UnitPosition.Distance(point) <= Q.Width &&
+                        !minions.Any(m => m.Distance(point) <= Q.Width))
+                    {
+                        Q.Cast(minion);
+                    }
+                }
+            }
+        }
+
+        public IOrderedEnumerable<Obj_AI_Base> GetDashObjects()
         {
             try
             {
@@ -737,14 +843,14 @@ namespace SFXChallenger.Champions
                         .Where(o => o.IsValidTarget(Orbwalking.GetRealAutoAttackRange(o)))
                         .Select(o => o as Obj_AI_Base)
                         .ToList();
-                var apexPoint = ObjectManager.Player.ServerPosition.To2D() +
-                                (ObjectManager.Player.ServerPosition.To2D() - Game.CursorPos.To2D()).Normalized() *
-                                Orbwalking.GetRealAutoAttackRange(ObjectManager.Player);
+                var apexPoint = Player.ServerPosition.To2D() +
+                                (Player.ServerPosition.To2D() - Game.CursorPos.To2D()).Normalized() *
+                                Orbwalking.GetRealAutoAttackRange(Player);
                 return
                     objects.Where(
                         o =>
                             Utils.IsLyingInCone(
-                                o.ServerPosition.To2D(), apexPoint, ObjectManager.Player.ServerPosition.To2D(), Math.PI))
+                                o.ServerPosition.To2D(), apexPoint, Player.ServerPosition.To2D(), Math.PI))
                         .OrderBy(o => o.Distance(apexPoint, true));
             }
             catch (Exception ex)
@@ -754,19 +860,19 @@ namespace SFXChallenger.Champions
             return null;
         }
 
-        public static List<Obj_AI_Base> GetDashObjects(List<Obj_AI_Base> targets)
+        public List<Obj_AI_Base> GetDashObjects(List<Obj_AI_Base> targets)
         {
             try
             {
-                var apexPoint = ObjectManager.Player.ServerPosition.To2D() +
-                                (ObjectManager.Player.ServerPosition.To2D() - Game.CursorPos.To2D()).Normalized() *
-                                Orbwalking.GetRealAutoAttackRange(ObjectManager.Player);
+                var apexPoint = Player.ServerPosition.To2D() +
+                                (Player.ServerPosition.To2D() - Game.CursorPos.To2D()).Normalized() *
+                                Orbwalking.GetRealAutoAttackRange(Player);
 
                 return
                     targets.Where(
                         o =>
                             Utils.IsLyingInCone(
-                                o.ServerPosition.To2D(), apexPoint, ObjectManager.Player.ServerPosition.To2D(), Math.PI))
+                                o.ServerPosition.To2D(), apexPoint, Player.ServerPosition.To2D(), Math.PI))
                         .OrderBy(o => o.Distance(apexPoint, true))
                         .ToList();
             }
@@ -871,6 +977,10 @@ namespace SFXChallenger.Champions
                         if (target.HasBuff("gragaswself"))
                         {
                             damage *= 0.8f;
+                        }
+                        if (!target.HasBuff("BlackShield"))
+                        {
+                            damage -= target.AllShield;
                         }
                         damage -= (target.HPRegenRate / 5f) * 0.25f;
                     }

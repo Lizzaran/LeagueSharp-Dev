@@ -1230,6 +1230,11 @@ namespace SFXChallenger.Wrappers
                     }
 
                     var target = GetTarget();
+                    if (target != null)
+                    {
+                        Console.WriteLine(target.Name);
+                        Console.WriteLine(target.Team);
+                    }
                     Orbwalk(
                         target, (_orbwalkingPoint.To2D().IsValid()) ? _orbwalkingPoint : Game.CursorPos,
                         _config.Item("ExtraWindup").GetValue<Slider>().Value,

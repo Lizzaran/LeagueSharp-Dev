@@ -63,6 +63,7 @@ namespace SFXChallenger.Managers
                     new BlockedSpell("Gragas", SpellSlot.W) { AutoAttackName = "DrunkenRage" },
                     new BlockedSpell("Hecarim", SpellSlot.E) { AutoAttackName = "hecarimrampattack" },
                     new BlockedSpell("Irelia", SpellSlot.E),
+                    new BlockedSpell("Janna", SpellSlot.W),
                     new BlockedSpell("Jayce", SpellSlot.E),
                     new BlockedSpell("Kassadin", SpellSlot.Q),
                     new BlockedSpell("Khazix", SpellSlot.Q),

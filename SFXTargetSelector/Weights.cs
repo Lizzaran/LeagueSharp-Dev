@@ -192,7 +192,7 @@ namespace SFXTargetSelector
 
         private static void OnGameInput(GameInputEventArgs args)
         {
-            if (!string.IsNullOrEmpty(args.Input))
+            if (args.Input == null)
             {
                 return;
             }
