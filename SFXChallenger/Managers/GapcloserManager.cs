@@ -322,8 +322,6 @@ namespace SFXChallenger.Managers
                         }
                     }
                 }
-                OnGapcloser.RaiseEvent(
-                    null, new GapcloserManagerArgs(string.Empty, sender, startPosition, endPosition, endTime));
             }
             catch (Exception ex)
             {
