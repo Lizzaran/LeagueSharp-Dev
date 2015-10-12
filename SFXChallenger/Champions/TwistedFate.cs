@@ -163,6 +163,19 @@ namespace SFXChallenger.Champions
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".w", "Use Gold Card").SetValue(true));
 
             var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
+
+            var qImmobileMenu = miscMenu.AddSubMenu(new Menu("Q Immobile", miscMenu.Name + "q-immobile"));
+            HeroListManager.AddToMenu(
+                qImmobileMenu,
+                new HeroListManagerArgs("q-immobile")
+                {
+                    IsWhitelist = false,
+                    Allies = false,
+                    Enemies = true,
+                    DefaultValue = false
+                });
+            BestTargetOnlyManager.AddToMenu(qImmobileMenu, "q-immobile", true);
+
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".q-range", "Q Range").SetValue(
                     new Slider((int) Q.Range, 500, (int) Q.Range))).ValueChanged +=
@@ -320,6 +333,23 @@ namespace SFXChallenger.Champions
                 if (Menu.Item(Menu.Name + ".manual.gold").GetValue<KeyBind>().Active)
                 {
                     Cards.Select(CardColor.Gold);
+                }
+            }
+            if (HeroListManager.Enabled("q-immobile") && Q.IsReady())
+            {
+                var target =
+                    GameObjects.EnemyHeroes.FirstOrDefault(
+                        t =>
+                            t.IsValidTarget(Q.Range) && HeroListManager.Check("q-immobile", t) &&
+                            BestTargetOnlyManager.Check("q-immobile", W, t) && Utils.IsImmobile(t));
+                if (target != null)
+                {
+                    var best = BestQPosition(
+                        target, GameObjects.EnemyHeroes.Select(e => e as Obj_AI_Base).ToList(), HitChance.High);
+                    if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
+                    {
+                        Q.Cast(best.Item2);
+                    }
                 }
             }
         }

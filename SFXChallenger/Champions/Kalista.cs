@@ -79,7 +79,7 @@ namespace SFXChallenger.Champions
         protected override void SetupSpells()
         {
             Q = new Spell(SpellSlot.Q, 1150f);
-            Q.SetSkillshot(0.25f, 40f, 1450f, true, SkillshotType.SkillshotLine);
+            Q.SetSkillshot(0.25f, 40f, 1200f, true, SkillshotType.SkillshotLine);
 
             W = new Spell(SpellSlot.W, 5000f);
 
@@ -376,12 +376,14 @@ namespace SFXChallenger.Champions
 
         private void CastE()
         {
-            if (Game.Time - _lastECast >= 0.25f)
+            var time = (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
+                        Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
+                ? 0.75f
+                : 0.25f;
+            if (Game.Time - _lastECast >= time)
             {
-                if (E.Cast())
-                {
-                    _lastECast = Game.Time;
-                }
+                _lastECast = Game.Time;
+                E.Cast();
             }
         }
 
@@ -692,7 +694,6 @@ namespace SFXChallenger.Champions
                 foreach (var minion in minions.Where(x => x.Health <= Q.GetDamage(x)))
                 {
                     var killcount = 0;
-
                     foreach (var colminion in
                         QGetCollisions(Player, Player.ServerPosition.Extend(minion.ServerPosition, Q.Range)))
                     {
@@ -749,7 +750,6 @@ namespace SFXChallenger.Champions
                 foreach (var minion in minions.Where(x => x.Health <= Q.GetDamage(x)))
                 {
                     var killcount = 0;
-
                     foreach (var colminion in
                         QGetCollisions(Player, Player.ServerPosition.Extend(minion.ServerPosition, Q.Range)))
                     {
@@ -894,6 +894,10 @@ namespace SFXChallenger.Champions
             {
                 try
                 {
+                    if (!target.IsValidTarget(1000))
+                    {
+                        return false;
+                    }
                     if (check)
                     {
                         if (target.Health < 100 && target is Obj_AI_Minion)

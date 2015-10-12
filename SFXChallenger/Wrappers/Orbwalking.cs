@@ -442,14 +442,14 @@ namespace SFXChallenger.Wrappers
                 }
             }
 
-            if (angle >= 60 && Utils.GameTimeTickCount - LastMoveCommandT < 60)
+            if (angle >= 80 && Utils.GameTimeTickCount - LastMoveCommandT < 60)
             {
                 return;
             }
 
             var delay = Delays[OrbwalkingDelay.Move];
 
-            if (Utils.GameTimeTickCount - LastMoveCommandT < delay.CurrentDelay && !overrideTimer && angle < 60)
+            if (Utils.GameTimeTickCount - LastMoveCommandT < delay.CurrentDelay && !overrideTimer && angle <= 80)
             {
                 return;
             }
