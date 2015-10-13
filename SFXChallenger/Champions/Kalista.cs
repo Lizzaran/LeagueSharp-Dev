@@ -389,23 +389,30 @@ namespace SFXChallenger.Champions
 
         private bool ShouldSave()
         {
-            if (_soulbound != null && R.IsReady() && !_soulbound.InFountain())
+            try
             {
-                var mode = Menu.Item(Menu.Name + ".ultimate.save").GetValue<StringList>().SelectedIndex;
-                var enemies = _soulbound.CountEnemiesInRange(600);
-                switch (mode)
+                if (_soulbound != null && R.IsReady() && !_soulbound.InFountain())
                 {
-                    case 0:
-                        return false;
-                    case 1:
-                        return enemies >= 1 &&
-                               _soulbound.HealthPercent <=
-                               Menu.Item(Menu.Name + ".ultimate.save-health").GetValue<Slider>().Value;
-                    case 2:
-                        return IncomingDamageManager.GetDamage(_soulbound) > _soulbound.Health ||
-                               _soulbound.HealthPercent <= 10 && enemies >= 1 ||
-                               _soulbound.HealthPercent <= (enemies * 10f) - 10f;
+                    var mode = Menu.Item(Menu.Name + ".ultimate.save").GetValue<StringList>().SelectedIndex;
+                    var enemies = _soulbound.CountEnemiesInRange(600);
+                    switch (mode)
+                    {
+                        case 0:
+                            return false;
+                        case 1:
+                            return enemies >= 1 &&
+                                   _soulbound.HealthPercent <=
+                                   Menu.Item(Menu.Name + ".ultimate.save-health").GetValue<Slider>().Value;
+                        case 2:
+                            return IncomingDamageManager.GetDamage(_soulbound) > _soulbound.Health ||
+                                   _soulbound.HealthPercent <= 10 && enemies >= 1 ||
+                                   _soulbound.HealthPercent <= (enemies * 10f) - 10f;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
             return false;
         }

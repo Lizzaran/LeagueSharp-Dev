@@ -173,21 +173,31 @@ namespace SFXUtility.Features.Activators
                 {
                     var jumpPosition = ObjectManager.Player.ServerPosition.Extend(
                         Game.CursorPos, Math.Min(_spell.Range, ObjectManager.Player.Position.Distance(Game.CursorPos)));
+                    var castPosition = ObjectManager.Player.ServerPosition.Extend(
+                        Game.CursorPos, Math.Min(600, ObjectManager.Player.Position.Distance(Game.CursorPos)));
 
                     var possibleJumps = GetPossibleObjects(jumpPosition);
-
                     var target = possibleJumps.FirstOrDefault();
                     if (target != null)
                     {
                         _spell.CastOnUnit(target);
                         return;
                     }
+
+                    var possibleJumps2 = GetPossibleObjects(castPosition);
+                    var target2 = possibleJumps2.FirstOrDefault();
+                    if (target2 != null)
+                    {
+                        _spell.CastOnUnit(target2);
+                        return;
+                    }
+
                     if (Game.Time - _lastWardTime >= 3 && Menu.Item(Name + "PlaceWards").GetValue<bool>())
                     {
                         var wardSlot = GetWardSlot();
                         if (wardSlot != SpellSlot.Unknown)
                         {
-                            ObjectManager.Player.Spellbook.CastSpell(wardSlot, jumpPosition);
+                            ObjectManager.Player.Spellbook.CastSpell(wardSlot, castPosition);
                             _lastWardTime = Game.Time;
                         }
                     }

@@ -239,7 +239,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (args.UniqueId == "e-gapcloser" && E.IsReady() &&
+                if (args.UniqueId.Equals("e-gapcloser") && E.IsReady() &&
                     BestTargetOnlyManager.Check("e-gapcloser", E, args.Hero))
                 {
                     if (args.End.Distance(Player.Position) <= E.Range)
@@ -247,7 +247,7 @@ namespace SFXChallenger.Champions
                         E.Cast(args.End);
                     }
                 }
-                if (args.UniqueId == "r-gapcloser" && R.IsReady() &&
+                if (args.UniqueId.Equals("r-gapcloser") && R.IsReady() &&
                     BestTargetOnlyManager.Check("r-gapcloser", R, args.Hero) &&
                     Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value > GetRBuffCount())
                 {

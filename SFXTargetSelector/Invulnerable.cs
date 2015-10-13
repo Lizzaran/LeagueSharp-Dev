@@ -47,6 +47,8 @@ namespace SFXTargetSelector
                     1),
             new Item("Tryndamere", "UndyingRage", null, false, (target, type) => target.HealthPercent < 5),
             new Item("Kayle", "JudicatorIntervention", null, false),
+            new Item("Fizz", "fizztrickslamsounddummy", null, false),
+            new Item("Vladimir", "VladimirSanguinePool", null, false),
             new Item(null, "BlackShield", DamageType.Magical, true),
             new Item(null, "BansheesVeil", DamageType.Magical, true),
             new Item("Sivir", "SivirE", null, true),

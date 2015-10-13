@@ -202,6 +202,10 @@ namespace SFXChallenger.Managers
                     var startPosition = args.Start;
                     var endPosition = args.End;
                     var cSpell = enemy.GetSpell(gSpell.Slot);
+                    if (gSpell.IsTargeted && args.Target != null)
+                    {
+                        endPosition = args.Target.Position;
+                    }
                     if (gSpell.IsUnitDash)
                     {
                         endPosition = startPosition.Extend(endPosition, gSpell.DashDistance);
@@ -322,6 +326,8 @@ namespace SFXChallenger.Managers
                         }
                     }
                 }
+                OnGapcloser.RaiseEvent(
+                    null, new GapcloserManagerArgs(string.Empty, sender, startPosition, endPosition, endTime));
             }
             catch (Exception ex)
             {

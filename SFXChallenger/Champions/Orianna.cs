@@ -285,7 +285,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (args.UniqueId == "q-gapcloser" && Q.IsReady() &&
+                if (args.UniqueId.Equals("q-gapcloser") && Q.IsReady() &&
                     BestTargetOnlyManager.Check("q-gapcloser", Q, args.Hero))
                 {
                     if (args.End.Distance(Player.Position) <= Q.Range)

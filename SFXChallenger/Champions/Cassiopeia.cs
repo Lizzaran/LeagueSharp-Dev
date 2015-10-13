@@ -485,7 +485,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (args.UniqueId == "q-gapcloser" && Q.IsReady() &&
+                if (args.UniqueId.Equals("q-gapcloser") && Q.IsReady() &&
                     BestTargetOnlyManager.Check("q-gapcloser", Q, args.Hero))
                 {
                     if (args.End.Distance(Player.Position) <= Q.Range)
@@ -501,7 +501,7 @@ namespace SFXChallenger.Champions
                         }
                     }
                 }
-                if (args.UniqueId == "w-gapcloser" && W.IsReady() &&
+                if (args.UniqueId.Equals("w-gapcloser") && W.IsReady() &&
                     BestTargetOnlyManager.Check("w-gapcloser", W, args.Hero))
                 {
                     if (args.End.Distance(Player.Position) <= W.Range)
