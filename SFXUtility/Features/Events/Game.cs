@@ -150,7 +150,7 @@ namespace SFXUtility.Features.Events
                     Task.Run(
                         async () =>
                         {
-                            await Task.Delay(3500);
+                            await Task.Delay(10000);
                             LeagueSharp.Game.Quit();
                         });
                 }

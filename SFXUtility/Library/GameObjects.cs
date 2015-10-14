@@ -449,6 +449,7 @@ namespace SFXUtility.Library
                             .Where(
                                 o =>
                                     o.Team != GameObjectTeam.Neutral &&
+                                    !o.CharData.BaseSkinName.ToLower().Contains("jarvanivstandard") &&
                                     !o.CharData.BaseSkinName.ToLower().Contains("ward") &&
                                     !o.CharData.BaseSkinName.ToLower().Contains("trinket")));
                     InhibitorsList.UnionWith(ObjectManager.Get<Obj_BarracksDampener>());
@@ -535,7 +536,7 @@ namespace SFXUtility.Library
             }
 
             var minion = sender as Obj_AI_Minion;
-            if (minion != null)
+            if (minion != null && !minion.CharData.BaseSkinName.ToLower().Contains("jarvanivstandard"))
             {
                 if (minion.Team != GameObjectTeam.Neutral)
                 {
@@ -671,7 +672,7 @@ namespace SFXUtility.Library
             }
 
             var minion = sender as Obj_AI_Minion;
-            if (minion != null)
+            if (minion != null && !minion.CharData.BaseSkinName.ToLower().Contains("jarvanivstandard"))
             {
                 if (minion.Team != GameObjectTeam.Neutral)
                 {

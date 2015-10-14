@@ -971,29 +971,37 @@ namespace SFXChallenger.Champions
                             }
                         }
                     }
-                    if (target is Obj_AI_Hero)
+                    var hero = target as Obj_AI_Hero;
+                    if (hero != null)
                     {
-                        if (target.HasBuff("FerociousHowl"))
+                        if (hero.HasBuff("FerociousHowl"))
                         {
                             damage *= 0.3f;
                         }
-                        if (target.HasBuff("GarenW"))
+                        if (hero.HasBuff("GarenW"))
                         {
                             damage *= 0.7f;
                         }
-                        if (target.HasBuff("Medidate"))
+                        if (hero.HasBuff("Medidate"))
                         {
                             damage *= 0.5f;
                         }
-                        if (target.HasBuff("gragaswself"))
+                        if (hero.HasBuff("gragaswself"))
                         {
                             damage *= 0.8f;
                         }
-                        if (!target.HasBuff("BlackShield"))
+                        if (!hero.HasBuff("BlackShield"))
                         {
-                            damage -= target.AllShield;
+                            if (hero.AllShield > 0)
+                            {
+                                damage -= hero.AllShield;
+                            }
+                            else if (hero.ChampionName.Equals("Blitzcrank"))
+                            {
+                                damage -= hero.Mana / 2f;
+                            }
                         }
-                        damage -= (target.HPRegenRate / 5f) * 0.25f;
+                        damage -= (hero.HPRegenRate / 2f) * 0.25f;
                     }
                     return damage;
                 }
