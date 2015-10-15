@@ -22,7 +22,6 @@
 
 #region
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
@@ -36,8 +35,6 @@ namespace SFXTargetSelector
     public class Humanizer
     {
         private static Menu _mainMenu;
-        private static float _lastRange;
-        private static float _lastRangeChange;
 
         internal static void AddToMenu(Menu mainMenu)
         {
@@ -46,35 +43,12 @@ namespace SFXTargetSelector
             _mainMenu.AddItem(
                 new MenuItem(_mainMenu.Name + ".fow", "Target Acquire Delay").SetShared()
                     .SetValue(new Slider(350, 0, 1500)));
-            _mainMenu.AddItem(
-                new MenuItem(_mainMenu.Name + ".range", "Range Change Delay").SetShared()
-                    .SetValue(new Slider(350, 0, 1500)));
         }
 
-        public static IEnumerable<Targets.Item> FilterTargets(IEnumerable<Targets.Item> targets,
-            Vector3 from,
-            float range)
+        public static IEnumerable<Targets.Item> FilterTargets(IEnumerable<Targets.Item> targets, Vector3 from)
         {
             var finalTargets = targets.ToList();
-            var rangeDelay = _mainMenu.Item(_mainMenu.Name + ".range").GetValue<Slider>().Value;
             var fowDelay = _mainMenu.Item(_mainMenu.Name + ".fow").GetValue<Slider>().Value;
-            if (rangeDelay > 0 && range > 0)
-            {
-                if (_lastRange > 0 && Game.Time - _lastRangeChange <= rangeDelay / 1000f)
-                {
-                    finalTargets =
-                        finalTargets.Where(
-                            t =>
-                                t.Hero.Distance(
-                                    from.Equals(default(Vector3)) ? ObjectManager.Player.ServerPosition : from) <=
-                                _lastRange).ToList();
-                }
-                else if (Math.Abs(_lastRange - range) > 1)
-                {
-                    _lastRange = range;
-                    _lastRangeChange = Game.Time;
-                }
-            }
             if (fowDelay > 0)
             {
                 finalTargets =

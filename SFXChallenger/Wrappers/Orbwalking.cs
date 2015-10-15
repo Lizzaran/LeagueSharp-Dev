@@ -369,7 +369,8 @@ namespace SFXChallenger.Wrappers
                 {
                     var min = (delay.Default / 100f) * delay.MinDelay;
                     var max = (delay.Default / 100f) * delay.MaxDelay;
-                    delay.CurrentDelay = Random.Next((int) Math.Min(min, max), (int) Math.Max(min, max) + 1);
+                    delay.CurrentDelay = Random.Next(
+                        (int) Math.Floor(Math.Min(min, max)), (int) Math.Ceiling(Math.Max(min, max)) + 1);
                 }
                 else
                 {
@@ -378,7 +379,11 @@ namespace SFXChallenger.Wrappers
             }
             else
             {
-                delay.CurrentDelay = delay.Default;
+                delay.CurrentDelay = delay.Default > 0
+                    ? Random.Next(
+                        (int) Math.Floor(delay.Default * (delay.Default >= 50 ? 0.95f : 0.9f)),
+                        (int) Math.Ceiling(delay.Default * (delay.Default >= 50 ? 1.05f : 1.1f)) + 1)
+                    : delay.Default;
             }
         }
 

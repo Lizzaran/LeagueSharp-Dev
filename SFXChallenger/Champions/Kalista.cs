@@ -536,6 +536,7 @@ namespace SFXChallenger.Champions
                     }
                 }
             }
+
             var dashObjects = new List<Obj_AI_Base>();
             if (useE)
             {

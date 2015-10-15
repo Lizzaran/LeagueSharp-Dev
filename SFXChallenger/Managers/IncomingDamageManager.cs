@@ -72,7 +72,7 @@ namespace SFXChallenger.Managers
                         continue;
                     }
 
-                    if (enemy != null && enemy.IsValid && enemy.IsEnemy && enemy.Distance(hero) <= 2000)
+                    if (enemy != null && enemy.IsValid && enemy.IsEnemy && enemy.Distance(hero) <= 2000f)
                     {
                         if (args.Target != null && args.Target.NetworkId.Equals(hero.NetworkId))
                         {
@@ -90,29 +90,33 @@ namespace SFXChallenger.Managers
                                     (float) sender.GetSpellDamage(hero, args.SData.Name));
                             }
                         }
-                        if (Skillshots)
+
+                        if (args.Target == null && Skillshots)
                         {
-                            if (args.SData.TargettingType == SpellDataTargetType.Cone ||
-                                args.SData.TargettingType.ToString().Contains("Location"))
+                            var slot = enemy.GetSpellSlot(args.SData.Name);
+                            if (slot != SpellSlot.Unknown &&
+                                (slot == SpellSlot.Q || slot == SpellSlot.E || slot == SpellSlot.W ||
+                                 slot == SpellSlot.R))
                             {
-                                var width = (args.SData.TargettingType == SpellDataTargetType.Cone ||
-                                             args.SData.LineWidth > 0) &&
-                                            args.SData.TargettingType != SpellDataTargetType.Cone
-                                    ? args.SData.LineWidth
-                                    : (args.SData.CastRadius <= 0
-                                        ? args.SData.CastRadiusSecondary
-                                        : args.SData.CastRadius);
-                                if (args.End.Distance(hero.ServerPosition) <= width * 1.2f)
+                                var width = Math.Min(
+                                    750f,
+                                    (args.SData.TargettingType == SpellDataTargetType.Cone || args.SData.LineWidth > 0) &&
+                                    args.SData.TargettingType != SpellDataTargetType.Cone
+                                        ? args.SData.LineWidth
+                                        : (args.SData.CastRadius <= 0
+                                            ? args.SData.CastRadiusSecondary
+                                            : args.SData.CastRadius));
+                                if (args.End.Distance(hero.ServerPosition) <= Math.Pow(width, 2))
                                 {
                                     AddDamage(
-                                        hero, (int) (GetTime(sender, hero, args.SData) * 0.7f),
+                                        hero, (int) (GetTime(sender, hero, args.SData) * 0.6f),
                                         (float) sender.GetSpellDamage(hero, args.SData.Name));
                                 }
                             }
                         }
                     }
 
-                    if (turret != null && turret.IsValid && turret.IsEnemy && turret.Distance(hero) <= 1500)
+                    if (turret != null && turret.IsValid && turret.IsEnemy && turret.Distance(hero) <= 1500f)
                     {
                         if (args.Target != null && args.Target.NetworkId.Equals(hero.NetworkId))
                         {

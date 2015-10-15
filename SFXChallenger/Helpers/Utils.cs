@@ -150,7 +150,14 @@ namespace SFXChallenger.Helpers
 
         public static bool UnderAllyTurret(Vector3 position)
         {
-            return GameObjects.AllyTurrets.Any(t => t.Distance(position) < 925f && !t.IsDead && t.Health > 1);
+            return
+                GameObjects.AllyTurrets.Any(t => t.IsValid && !t.IsDead && t.Health > 1 && t.Distance(position) < 925f);
+        }
+
+        public static bool UnderEnemyTurret(Vector3 position)
+        {
+            return
+                GameObjects.EnemyTurrets.Any(t => t.IsValid && !t.IsDead && t.Health > 1 && t.Distance(position) < 925f);
         }
 
         public static bool IsImmobile(Obj_AI_Base t)

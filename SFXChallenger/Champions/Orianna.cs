@@ -505,19 +505,13 @@ namespace SFXChallenger.Champions
 
         protected override void Combo()
         {
-            var single = false;
-            var w = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>();
-            if (w && W.IsReady())
-            {
-                WLogic(1);
-            }
-
             if (Ball.IsMoving)
             {
                 return;
             }
-
+            var single = false;
             var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>();
+            var w = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>();
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>();
             var r = _ultimate.IsActive(UltimateModeType.Combo);
             var target = TargetSelector.GetTarget(Q);
@@ -529,6 +523,10 @@ namespace SFXChallenger.Champions
                     RLogicSingle(UltimateModeType.Combo);
                     single = true;
                 }
+            }
+            if (w && W.IsReady())
+            {
+                WLogic(1);
             }
             if (q && Q.IsReady())
             {
@@ -547,21 +545,19 @@ namespace SFXChallenger.Champions
 
         protected override void Harass()
         {
-            var w = Menu.Item(Menu.Name + ".harass.w").GetValue<bool>() && ResourceManager.Check("harass-w");
-
-            if (w && W.IsReady())
-            {
-                WLogic(1);
-            }
-
             if (Ball.IsMoving)
             {
                 return;
             }
 
             var q = Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && ResourceManager.Check("harass-q");
+            var w = Menu.Item(Menu.Name + ".harass.w").GetValue<bool>() && ResourceManager.Check("harass-w");
             var e = Menu.Item(Menu.Name + ".harass.e").GetValue<bool>();
 
+            if (w && W.IsReady())
+            {
+                WLogic(1);
+            }
             if (q && Q.IsReady())
             {
                 QLogic(TargetSelector.GetTarget(Q), Q.GetHitChance("combo"), e);

@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.9.5.7</AssemblyVersion>
+    <AssemblyVersion>0.9.5.10</AssemblyVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -152,6 +152,7 @@
     <Compile Include="Managers\OverkillManager.cs" />
     <Compile Include="Managers\ResourceManager.cs" />
     <Compile Include="Managers\SpellBlockManager.cs" />
+    <Compile Include="Managers\SpellQueueManager.cs" />
     <Compile Include="Managers\UltimateManager.cs" />
     <Compile Include="Menus\DebugMenu.cs" />
     <Compile Include="Menus\InfoMenu.cs" />

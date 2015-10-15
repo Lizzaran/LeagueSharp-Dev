@@ -333,12 +333,13 @@ namespace SFXChallenger.Abstracts
                 TargetSelector.AddToMenu(SFXMenu.AddSubMenu(new Menu("Target Selector", SFXMenu.Name + ".ts")));
 
                 Orbwalker = new Orbwalking.Orbwalker(SFXMenu.AddSubMenu(new Menu("Orbwalker", SFXMenu.Name + ".orb")));
+
+                SpellQueueManager.AddToMenu(SFXMenu.AddSubMenu(new Menu("Spell Queue", SFXMenu.Name + ".spell-queue")));
                 KillstealManager.AddToMenu(SFXMenu.AddSubMenu(new Menu("Killsteal", SFXMenu.Name + ".killsteal")));
                 ItemManager.AddToMenu(SFXMenu.AddSubMenu(new Menu("Items", SFXMenu.Name + ".items")), ItemFlags);
                 SummonerManager.AddToMenu(SFXMenu.AddSubMenu(new Menu("Summoners", SFXMenu.Name + ".summoners")));
 
                 InfoMenu.AddToMenu(SFXMenu.AddSubMenu(new Menu("Info", SFXMenu.Name + ".info")));
-
                 DebugMenu.AddToMenu(SFXMenu, Spells);
 
                 Menu.AddToMainMenu();

@@ -91,6 +91,8 @@ namespace SFXChallenger.Champions
             E = new Spell(SpellSlot.E);
 
             R = new Spell(SpellSlot.R, 5500f);
+
+            SpellQueueManager.IgnoreSpellSlots.Add(SpellSlot.W);
         }
 
         protected override void AddToMenu()
@@ -185,7 +187,7 @@ namespace SFXChallenger.Champions
                     new Slider((int) W.Range, 500, 800))).ValueChanged +=
                 delegate(object sender, OnValueChangeEventArgs args) { W.Range = args.GetNewValue<Slider>().Value; };
             miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".w-delay", "Card Pick Delay").SetValue(new Slider(200, 0, 400)))
+                new MenuItem(miscMenu.Name + ".w-delay", "Card Pick Delay").SetValue(new Slider(150, 0, 400)))
                 .ValueChanged +=
                 delegate(object sender, OnValueChangeEventArgs args) { Cards.Delay = args.GetNewValue<Slider>().Value; };
             miscMenu.AddItem(
@@ -677,6 +679,12 @@ namespace SFXChallenger.Champions
                 if (minions.Any())
                 {
                     Cards.Select(!ResourceManager.Check("lane-clear-blue") ? CardColor.Blue : CardColor.Red);
+                }
+                else if (
+                    GameObjects.EnemyTurrets.Any(
+                        t => t.IsValid && !t.IsDead && t.Health > 1 && t.Distance(Player) < W.Range))
+                {
+                    Cards.Select(CardColor.Blue);
                 }
             }
         }
