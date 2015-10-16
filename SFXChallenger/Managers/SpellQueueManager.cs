@@ -103,7 +103,7 @@ namespace SFXChallenger.Managers
                         Delay = args.GetNewValue<Slider>().Value;
                     };
 
-                menu.AddItem(new MenuItem(menu.Name + ".enabled", "Enabled").SetValue(true)).ValueChanged +=
+                menu.AddItem(new MenuItem(menu.Name + ".enabled", "Enabled").SetValue(false)).ValueChanged +=
                     delegate(object sender, OnValueChangeEventArgs args) { Enabled = args.GetNewValue<bool>(); };
 
                 DelayMinMultiplicator = menu.Item(humanizerMenu.Name + ".min-delay").GetValue<Slider>().Value;
@@ -153,6 +153,12 @@ namespace SFXChallenger.Managers
             {
                 if (sender.Owner.IsMe && CheckSpellSlot(args.Slot))
                 {
+                    if (Utils.GameTimeTickCount > _lastSend + 1500 || Utils.GameTimeTickCount > _lastCast + 1500)
+                    {
+                        _isCasting = false;
+                        _lastSend = 0;
+                        _lastCast = 0;
+                    }
                     if (_isCasting || ObjectManager.Player.Spellbook.IsCastingSpell ||
                         Utils.GameTimeTickCount <= _lastSend + (Game.Ping / 2) + _currentDelay ||
                         Utils.GameTimeTickCount <= _lastCast + _currentDelay)
@@ -180,29 +186,32 @@ namespace SFXChallenger.Managers
             }
             try
             {
-                if (sender.IsMe && !args.SData.IsAutoAttack() && CheckSpellSlot(args.Slot))
+                if (sender.IsMe)
                 {
                     _isCasting = false;
-                    _lastCast = Utils.GameTimeTickCount;
-
-                    if (Delay > 0)
+                    if (CheckSpellSlot(args.Slot))
                     {
-                        if (Humanizer && Random.Next(0, 101) >= (100 - DelayProbability))
+                        _lastCast = Utils.GameTimeTickCount;
+
+                        if (Delay > 0)
                         {
-                            var min = (Delay / 100f) * DelayMinMultiplicator;
-                            var max = (Delay / 100f) * DelayMaxMultiplicator;
-                            _currentDelay = Random.Next(
-                                (int) Math.Floor(Math.Min(min, max)), (int) Math.Ceiling(Math.Max(min, max)) + 1);
+                            if (Humanizer && Random.Next(0, 101) >= (100 - DelayProbability))
+                            {
+                                var min = (Delay / 100f) * DelayMinMultiplicator;
+                                var max = (Delay / 100f) * DelayMaxMultiplicator;
+                                _currentDelay = Random.Next(
+                                    (int) Math.Floor(Math.Min(min, max)), (int) Math.Ceiling(Math.Max(min, max)) + 1);
+                            }
+                            else
+                            {
+                                _currentDelay = Random.Next(
+                                    (int) Math.Floor(Delay * 0.9f), (int) Math.Ceiling(Delay * 1.1f) + 1);
+                            }
                         }
                         else
                         {
-                            _currentDelay = Random.Next(
-                                (int) Math.Floor(Delay * 0.9f), (int) Math.Ceiling(Delay * 1.1f) + 1);
+                            _currentDelay = 0;
                         }
-                    }
-                    else
-                    {
-                        _currentDelay = 0;
                     }
                 }
             }
