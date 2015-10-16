@@ -24,7 +24,7 @@
     <AssemblyVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyVersionSettings>
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
-    <AssemblyVersion>0.8.8.5</AssemblyVersion>
+    <AssemblyVersion>0.8.8.6</AssemblyVersion>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -263,6 +263,7 @@
     <Content Include="Resources\Champions\Kayle.png" />
     <Content Include="Resources\Champions\Kennen.png" />
     <Content Include="Resources\Champions\Khazix.png" />
+    <Content Include="Resources\Champions\Kindred.png" />
     <Content Include="Resources\Champions\KogMaw.png" />
     <Content Include="Resources\Champions\Leblanc.png" />
     <Content Include="Resources\Champions\LeeSin.png" />
