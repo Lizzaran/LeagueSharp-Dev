@@ -26,7 +26,6 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SharpDX;
 
 #endregion
 
@@ -45,7 +44,7 @@ namespace SFXTargetSelector
                     .SetValue(new Slider(350, 0, 1500)));
         }
 
-        public static IEnumerable<Targets.Item> FilterTargets(IEnumerable<Targets.Item> targets, Vector3 from)
+        public static IEnumerable<Targets.Item> FilterTargets(IEnumerable<Targets.Item> targets)
         {
             var finalTargets = targets.ToList();
             var fowDelay = _mainMenu.Item(_mainMenu.Name + ".fow").GetValue<Slider>().Value;

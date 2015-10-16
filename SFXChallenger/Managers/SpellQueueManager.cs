@@ -73,7 +73,7 @@ namespace SFXChallenger.Managers
                         .SetValue(spellSlot.Value)
                         .ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
                         {
-                            _isCasting = false;
+                            Reset();
                             SpellSlots[slot] = args.GetNewValue<bool>();
                         };
                     SpellSlots[slot] = _menu.Item(name).GetValue<bool>();
@@ -153,11 +153,9 @@ namespace SFXChallenger.Managers
             {
                 if (sender.Owner.IsMe && CheckSpellSlot(args.Slot))
                 {
-                    if (Utils.GameTimeTickCount > _lastSend + 1500 || Utils.GameTimeTickCount > _lastCast + 1500)
+                    if (Utils.GameTimeTickCount > _lastSend + 1500 || Utils.GameTimeTickCount > _lastCast + 1000)
                     {
-                        _isCasting = false;
-                        _lastSend = 0;
-                        _lastCast = 0;
+                        Reset();
                     }
                     if (_isCasting || ObjectManager.Player.Spellbook.IsCastingSpell ||
                         Utils.GameTimeTickCount <= _lastSend + (Game.Ping / 2) + _currentDelay ||
@@ -191,6 +189,8 @@ namespace SFXChallenger.Managers
                     _isCasting = false;
                     if (CheckSpellSlot(args.Slot))
                     {
+                        Reset();
+
                         _lastCast = Utils.GameTimeTickCount;
 
                         if (Delay > 0)
@@ -231,13 +231,21 @@ namespace SFXChallenger.Managers
             {
                 if (sender.Owner.IsMe)
                 {
-                    _isCasting = false;
+                    Reset();
                 }
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
+        }
+
+        private static void Reset()
+        {
+            _isCasting = false;
+            _lastSend = 0;
+            _lastCast = 0;
+            _currentDelay = 0;
         }
     }
 }

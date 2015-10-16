@@ -28,7 +28,6 @@ using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Library.Logger;
-using SharpDX;
 
 #endregion
 
@@ -54,7 +53,7 @@ namespace SFXChallenger.SFXTargetSelector
             }
         }
 
-        public static IEnumerable<Targets.Item> FilterTargets(IEnumerable<Targets.Item> targets, Vector3 from)
+        public static IEnumerable<Targets.Item> FilterTargets(IEnumerable<Targets.Item> targets)
         {
             var finalTargets = targets.ToList();
             try

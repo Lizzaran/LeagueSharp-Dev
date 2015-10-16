@@ -208,7 +208,7 @@ namespace SFXTargetSelector
             range = Mode == ModeType.Weights && ForceFocus ? Weights.Range : range;
 
             var targets =
-                Humanizer.FilterTargets(Targets.Items, from)
+                Humanizer.FilterTargets(Targets.Items)
                     .Where(h => ignoredChampions == null || ignoredChampions.All(i => i.NetworkId != h.Hero.NetworkId))
                     .Where(h => IsValidTarget(h.Hero, range, damageType, ignoreShields, from))
                     .ToList();
