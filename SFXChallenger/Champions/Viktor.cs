@@ -601,17 +601,16 @@ namespace SFXChallenger.Champions
                     WLogic(target, W.GetHitChance("combo"));
                 }
             }
+            var rTarget = TargetSelector.GetTarget(R);
             if (r)
             {
-                var target = TargetSelector.GetTarget(R);
-                if (target != null && (HasQBuff() || (qCasted || !q || !Q.IsReady()) || R.IsKillable(target)) &&
-                    !RLogic(UltimateModeType.Combo, target))
+                if (rTarget != null && (HasQBuff() || (qCasted || !q || !Q.IsReady()) || R.IsKillable(rTarget)) &&
+                    !RLogic(UltimateModeType.Combo, rTarget))
                 {
                     RLogicSingle(UltimateModeType.Combo);
                     single = true;
                 }
             }
-            var rTarget = TargetSelector.GetTarget(R);
             if (rTarget != null && _ultimate.GetDamage(rTarget, UltimateModeType.Combo, single ? 1 : 5) > rTarget.Health)
             {
                 ItemManager.UseComboItems(rTarget);

@@ -375,7 +375,7 @@ namespace SFXUtility.Features.Activators
                     {
                         if (!_leBlanc.IsVisible && !_leBlanc.IsDead)
                         {
-                            CastLogic(ObjectManager.Player.Position, false);
+                            CastLogic(sender.Position, false);
                         }
                     }
                 }

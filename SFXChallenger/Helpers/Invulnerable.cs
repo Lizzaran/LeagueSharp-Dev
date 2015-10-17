@@ -41,13 +41,11 @@ namespace SFXChallenger.Helpers
             new Item(
                 "Alistar", "FerociousHowl", null, false,
                 (target, type) =>
-                    ObjectManager.Player.CountEnemiesInRange(Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)) >
-                    1),
+                    ObjectManager.Player.CountEnemiesInRange(Orbwalking.GetRealAutoAttackRange(target)) > 1),
             new Item(
                 "MasterYi", "Meditate", null, false,
                 (target, type) =>
-                    ObjectManager.Player.CountEnemiesInRange(Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)) >
-                    1),
+                    ObjectManager.Player.CountEnemiesInRange(Orbwalking.GetRealAutoAttackRange(target)) > 1),
             new Item("Tryndamere", "UndyingRage", null, false, (target, type) => target.HealthPercent < 5),
             new Item("Kayle", "JudicatorIntervention", null, false),
             new Item("Fizz", "fizztrickslamsounddummy", null, false),

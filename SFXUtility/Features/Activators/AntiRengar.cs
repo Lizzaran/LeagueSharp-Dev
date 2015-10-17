@@ -139,9 +139,8 @@ namespace SFXUtility.Features.Activators
             }
 
             var menuItem = Menu.Item(Name + "Spells" + ObjectManager.Player.ChampionName);
-            if (menuItem != null && menuItem.GetValue<bool>() && _rengar.IsValidTarget(_spell.Range))
+            if (menuItem != null && menuItem.GetValue<bool>() && _rengar.Distance(ObjectManager.Player) < _spell.Range)
             {
-                Console.WriteLine("Test2");
                 _spell.Cast(_rengar);
             }
         }

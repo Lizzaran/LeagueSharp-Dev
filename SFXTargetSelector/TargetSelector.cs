@@ -231,7 +231,7 @@ namespace SFXTargetSelector
 
         public static void AddToMenu(Menu menu)
         {
-            _menu = menu;
+            _menu = menu.AddSubMenu(new Menu("Target Selector", "sfx.ts"));
 
             var drawingMenu = _menu.AddSubMenu(new Menu("Drawings", menu.Name + ".drawing"));
 
@@ -265,6 +265,7 @@ namespace SFXTargetSelector
                 };
 
             Mode = GetModeBySelectedIndex(_menu.Item(menu.Name + ".mode").GetValue<StringList>().SelectedIndex);
+            LeagueSharp.Common.TargetSelector.CustomTS = true;
         }
     }
 }
