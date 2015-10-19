@@ -26,6 +26,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeagueSharp.Console", "Leag
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFXTargetSelector", "SFXTargetSelector\SFXTargetSelector.csproj", "{C4889B29-2282-491E-8B10-B6CBCD4D7772}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFXHumanizer Pro", "SFXHumanizer Pro\SFXHumanizer Pro.csproj", "{13632247-E42C-4AE0-B0FA-3A2FF11DC4AB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -100,6 +102,16 @@ Global
 		{C4889B29-2282-491E-8B10-B6CBCD4D7772}.Release|ARM.ActiveCfg = Release|Any CPU
 		{C4889B29-2282-491E-8B10-B6CBCD4D7772}.Release|x64.ActiveCfg = Release|Any CPU
 		{C4889B29-2282-491E-8B10-B6CBCD4D7772}.Release|x86.ActiveCfg = Release|Any CPU
+		{13632247-E42C-4AE0-B0FA-3A2FF11DC4AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13632247-E42C-4AE0-B0FA-3A2FF11DC4AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13632247-E42C-4AE0-B0FA-3A2FF11DC4AB}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{13632247-E42C-4AE0-B0FA-3A2FF11DC4AB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{13632247-E42C-4AE0-B0FA-3A2FF11DC4AB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{13632247-E42C-4AE0-B0FA-3A2FF11DC4AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13632247-E42C-4AE0-B0FA-3A2FF11DC4AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{13632247-E42C-4AE0-B0FA-3A2FF11DC4AB}.Release|ARM.ActiveCfg = Release|Any CPU
+		{13632247-E42C-4AE0-B0FA-3A2FF11DC4AB}.Release|x64.ActiveCfg = Release|Any CPU
+		{13632247-E42C-4AE0-B0FA-3A2FF11DC4AB}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
