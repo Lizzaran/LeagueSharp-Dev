@@ -1120,15 +1120,15 @@ namespace SFXChallenger.Champions
             {
                 try
                 {
-                    var wName = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).Name;
+                    var spell = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W);
                     var wState = ObjectManager.Player.Spellbook.CanUseSpell(SpellSlot.W);
 
-                    if ((wState == SpellState.Ready && wName == "PickACard" &&
+                    if ((wState == SpellState.Ready && spell.Name == "PickACard" &&
                          (Status != SelectStatus.Selecting || !ShouldWait)) || ObjectManager.Player.IsDead)
                     {
                         Status = SelectStatus.Ready;
                     }
-                    else if (wState == SpellState.Cooldown && wName == "PickACard")
+                    else if (wState == SpellState.Cooldown && spell.Name == "PickACard")
                     {
                         ShouldSelect.Clear();
                         Status = SelectStatus.Cooldown;
@@ -1140,12 +1140,14 @@ namespace SFXChallenger.Champions
                     if (
                         ShouldSelect.Any(
                             s =>
-                                s == CardColor.Blue && wName == "bluecardlock" ||
-                                s == CardColor.Gold && wName == "goldcardlock" ||
-                                s == CardColor.Red && wName == "redcardlock"))
+                                s == CardColor.Blue && spell.Name == "bluecardlock" ||
+                                s == CardColor.Gold && spell.Name == "goldcardlock" ||
+                                s == CardColor.Red && spell.Name == "redcardlock"))
                     {
                         Utility.DelayAction.Add(
-                            Delay - Game.Ping / 2,
+                            (int)
+                                ((Delay - Game.Ping / 2) *
+                                 (LeagueSharp.Common.Utils.TickCount - _lastWSent <= 200 ? 0.5f : 1f)),
                             delegate { ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, false); });
                     }
                 }
