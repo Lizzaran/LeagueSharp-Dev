@@ -1060,7 +1060,11 @@ namespace SFXChallenger.Wrappers
 
                 if (result == null && ActiveMode == OrbwalkingMode.Combo)
                 {
-                    if (!GameObjects.EnemyHeroes.Any(e => e.IsValidTarget(GetRealAutoAttackRange(e) * 1.25f)))
+                    if (
+                        !GameObjects.EnemyHeroes.Any(
+                            e =>
+                                e.IsValid && !e.IsDead && e.IsVisible &&
+                                e.Distance(Player) <= GetRealAutoAttackRange(e) * 2f))
                     {
                         return minions.FirstOrDefault();
                     }

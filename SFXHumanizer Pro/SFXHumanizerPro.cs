@@ -87,14 +87,11 @@ namespace SFXHumanizer_Pro
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".orders", "Blocked Orders").SetValue(true));
 
                 var spellMenu = _menu.AddSubMenu(new Menu("Spells", _menu.Name + ".spells"));
-                spellMenu.AddItem(
-                    new MenuItem(spellMenu.Name + ".delay", "Average Delay").SetValue(new Slider(100, 0, 500)));
-                spellMenu.AddItem(
-                    new MenuItem(spellMenu.Name + ".range-delay", "Dynamic Range Delay %").SetValue(
-                        new Slider(100, 0, 200)));
-                spellMenu.AddItem(
-                    new MenuItem(spellMenu.Name + ".position", "Randomized Position").SetValue(new Slider(10, 0, 50)));
+                spellMenu.AddItem(new MenuItem(spellMenu.Name + ".delay", "Average Delay").SetValue(new Slider(100, 0, 500)));
+                spellMenu.AddItem(new MenuItem(spellMenu.Name + ".range-delay", "Dynamic Range Delay %").SetValue(new Slider(100, 0, 200)));
+                spellMenu.AddItem(new MenuItem(spellMenu.Name + ".position", "Randomized Position").SetValue(new Slider(10, 0, 50)));
                 spellMenu.AddItem(new MenuItem(spellMenu.Name + ".checks", "Additional Checks").SetValue(true));
+                spellMenu.AddItem(new MenuItem(spellMenu.Name + ".screen", "Block Offscreen").SetValue(false));
 
                 var orderMenu = _menu.AddSubMenu(new Menu("Orders", _menu.Name + ".orders"));
                 orderMenu.AddItem(
@@ -102,6 +99,7 @@ namespace SFXHumanizer_Pro
                 orderMenu.AddItem(
                     new MenuItem(orderMenu.Name + ".position", "Randomized Position").SetValue(new Slider(20, 0, 50)));
                 orderMenu.AddItem(new MenuItem(orderMenu.Name + ".sharp-turn", "Check Sharp Turns").SetValue(true));
+                orderMenu.AddItem(new MenuItem(orderMenu.Name + ".screen", "Block Offscreen").SetValue(false));
 
                 _menu.AddItem(new MenuItem(_menu.Name + ".enabled", "Enabled").SetValue(true));
 
@@ -252,17 +250,21 @@ namespace SFXHumanizer_Pro
                     return;
                 }
 
-
                 var spell = ObjectManager.Player.Spellbook.GetSpell(args.Slot);
                 if (spell == null)
                 {
                     return;
                 }
 
-                if (!spell.IsReady())
+                var position = args.Target != null
+                    ? args.Target.Position
+                    : (args.StartPosition.IsValid() ? args.StartPosition : args.EndPosition);
+
+                if (_menu.Item(_menu.Name + ".spells.screen").GetValue<bool>() && position.IsValid() &&
+                    !position.IsOnScreen())
                 {
                     args.Process = false;
-                    _blockedSpells++;
+                    _blockedOrders++;
                     return;
                 }
 
@@ -273,7 +275,8 @@ namespace SFXHumanizer_Pro
                     {
                         _isCasting = false;
                     }
-                    if (_isCasting || ObjectManager.Player.Spellbook.IsCastingSpell)
+                    if (MenuGUI.IsShopOpen || MenuGUI.IsChatOpen || _isCasting ||
+                        ObjectManager.Player.Spellbook.IsCastingSpell || !spell.IsReady())
                     {
                         args.Process = false;
                         _blockedSpells++;
@@ -292,9 +295,6 @@ namespace SFXHumanizer_Pro
                     if (type == SpellDataTargetType.Cone || type.ToString().Contains("Location") ||
                         type.ToString().Contains("Unit"))
                     {
-                        var position = args.Target != null
-                            ? args.Target.Position
-                            : (args.StartPosition.IsValid() ? args.StartPosition : args.EndPosition);
                         if (position.IsValid() &&
                             (Helpers.AngleBetween(_lastSpellPosition, position) > _random.Next(8, 13) ||
                              type.ToString().Contains("Unit")))
@@ -375,12 +375,17 @@ namespace SFXHumanizer_Pro
                      ObjectManager.Player.Pet != null && ObjectManager.Player.Pet.NetworkId.Equals(sender.NetworkId)) &&
                     !args.IsAttackMove)
                 {
+                    var position = args.Target != null ? args.Target.Position : args.TargetPosition;
+                    if (_menu.Item(_menu.Name + ".orders.screen").GetValue<bool>() && !position.IsOnScreen())
+                    {
+                        args.Process = false;
+                        _blockedOrders++;
+                        return;
+                    }
                     UpdateSequence(args.Order);
                     var sequence = _sequences[args.Order];
                     var isSharpTurn = _menu.Item(_menu.Name + ".orders.sharp-turn").GetValue<bool>() &&
-                                      Helpers.IsSharpTurn(
-                                          args.Target != null ? args.Target.Position : args.TargetPosition,
-                                          _random.Next(80, 101));
+                                      Helpers.IsSharpTurn(position, _random.Next(80, 101));
                     if (Utils.GameTimeTickCount - sequence.LastIndexChange <=
                         (isSharpTurn ? sequence.Items[sequence.Index] / 2 : sequence.Items[sequence.Index]))
                     {
