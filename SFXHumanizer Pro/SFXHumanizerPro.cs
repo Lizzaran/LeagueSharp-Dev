@@ -448,9 +448,7 @@ namespace SFXHumanizer_Pro
                 _sequences[order] = new Sequence();
             }
             var sequence = _sequences[order];
-            if (sequence.Items == null || sequence.Index >= sequence.Items.Length ||
-                Utils.GameTimeTickCount - sequence.LastItemsChange >
-                _random.Next((int) (1000f * 0.975f), (int) (1000f * 1.025f)))
+            if (sequence.Items == null || sequence.Index >= sequence.Items.Length)
             {
                 sequence.Items = CreateSequence(_menu.Item(_menu.Name + ".orders.clicks").GetValue<Slider>().Value);
             }

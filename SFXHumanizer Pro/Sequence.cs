@@ -50,11 +50,9 @@ namespace SFXHumanizer_Pro
             {
                 _items = value;
                 _index = 0;
-                LastItemsChange = Utils.GameTimeTickCount;
             }
         }
 
         public int LastIndexChange { get; private set; }
-        public int LastItemsChange { get; private set; }
     }
 }
