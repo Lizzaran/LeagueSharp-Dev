@@ -87,19 +87,35 @@ namespace SFXHumanizer_Pro
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".orders", "Blocked Orders").SetValue(true));
 
                 var spellMenu = _menu.AddSubMenu(new Menu("Spells", _menu.Name + ".spells"));
-                spellMenu.AddItem(new MenuItem(spellMenu.Name + ".delay", "Average Delay").SetValue(new Slider(100, 0, 500)));
-                spellMenu.AddItem(new MenuItem(spellMenu.Name + ".range-delay", "Dynamic Range Delay %").SetValue(new Slider(100, 0, 200)));
-                spellMenu.AddItem(new MenuItem(spellMenu.Name + ".position", "Randomized Position").SetValue(new Slider(10, 0, 50)));
-                spellMenu.AddItem(new MenuItem(spellMenu.Name + ".checks", "Additional Checks").SetValue(true));
-                spellMenu.AddItem(new MenuItem(spellMenu.Name + ".screen", "Block Offscreen").SetValue(false));
+                spellMenu.AddItem(
+                    new MenuItem(spellMenu.Name + ".delay", "Average Delay").SetValue(new Slider(100, 0, 500))
+                        .SetTooltip("Delay between spells."));
+                spellMenu.AddItem(
+                    new MenuItem(spellMenu.Name + ".range-delay", "Dynamic Range Delay %").SetValue(
+                        new Slider(100, 0, 200)).SetTooltip("0 = Disabled. As higher the value as higher is the delay."));
+                spellMenu.AddItem(
+                    new MenuItem(spellMenu.Name + ".position", "Randomized Position").SetValue(new Slider(10, 0, 50))
+                        .SetTooltip("Randomize the cast position based on the value."));
+                spellMenu.AddItem(
+                    new MenuItem(spellMenu.Name + ".checks", "Additional Checks").SetValue(true)
+                        .SetTooltip("Checks if Chat / Shop is open and if you can cast."));
+                spellMenu.AddItem(
+                    new MenuItem(spellMenu.Name + ".screen", "Block Offscreen").SetValue(false)
+                        .SetTooltip("Block all spells which outside of your screen / view."));
 
                 var orderMenu = _menu.AddSubMenu(new Menu("Orders", _menu.Name + ".orders"));
                 orderMenu.AddItem(
-                    new MenuItem(orderMenu.Name + ".clicks", "Max. Average Per Second").SetValue(new Slider(10, 1, 20)));
+                    new MenuItem(orderMenu.Name + ".clicks", "Max. Average Per Second").SetValue(new Slider(10, 1, 20))
+                        .SetTooltip("Average of maximum orders per second."));
                 orderMenu.AddItem(
-                    new MenuItem(orderMenu.Name + ".position", "Randomized Position").SetValue(new Slider(20, 0, 50)));
-                orderMenu.AddItem(new MenuItem(orderMenu.Name + ".sharp-turn", "Check Sharp Turns").SetValue(true));
-                orderMenu.AddItem(new MenuItem(orderMenu.Name + ".screen", "Block Offscreen").SetValue(false));
+                    new MenuItem(orderMenu.Name + ".position", "Randomized Position").SetValue(new Slider(20, 0, 50))
+                        .SetTooltip("Randomize the click position based on the value."));
+                orderMenu.AddItem(
+                    new MenuItem(orderMenu.Name + ".sharp-turn", "Check Sharp Turns").SetValue(true)
+                        .SetTooltip("Reduce the delay if you run in a other direction."));
+                orderMenu.AddItem(
+                    new MenuItem(orderMenu.Name + ".screen", "Block Offscreen").SetValue(false)
+                        .SetTooltip("Block all orders which outside of your screen / view."));
 
                 _menu.AddItem(new MenuItem(_menu.Name + ".enabled", "Enabled").SetValue(true));
 
