@@ -37,15 +37,8 @@ namespace SFXHumanizer_Pro
 {
     internal class SFXHumanizerPro
     {
-        private readonly CryptoRandom _random = new CryptoRandom();
-        private readonly Dictionary<GameObjectOrder, Sequence> _sequences = new Dictionary<GameObjectOrder, Sequence>();
-
-        private readonly List<SpellSlot> _spells = new List<SpellSlot>
+        private readonly List<SpellSlot> _items = new List<SpellSlot>
         {
-            SpellSlot.Q,
-            SpellSlot.W,
-            SpellSlot.E,
-            SpellSlot.R,
             SpellSlot.Item1,
             SpellSlot.Item2,
             SpellSlot.Item3,
@@ -55,10 +48,24 @@ namespace SFXHumanizer_Pro
             SpellSlot.Trinket
         };
 
+        private readonly CryptoRandom _random = new CryptoRandom();
+        private readonly Dictionary<GameObjectOrder, bool> _randomizedOrders = new Dictionary<GameObjectOrder, bool>();
+        private readonly Dictionary<SpellSlot, bool> _randomizedSpells = new Dictionary<SpellSlot, bool>();
+        private readonly Dictionary<GameObjectOrder, Sequence> _sequences = new Dictionary<GameObjectOrder, Sequence>();
+
+        private readonly List<SpellSlot> _spells = new List<SpellSlot>
+        {
+            SpellSlot.Q,
+            SpellSlot.W,
+            SpellSlot.E,
+            SpellSlot.R
+        };
+
         private int _blockedOrders;
         private int _blockedSpells;
         private Font _font;
         private bool _isCasting;
+        private int _lastItemCast;
         private int _lastSpellCast;
         private Vector3 _lastSpellPosition;
         private Menu _menu;
@@ -76,28 +83,25 @@ namespace SFXHumanizer_Pro
 
                 var drawingMenu = _menu.AddSubMenu(new Menu("Drawings", _menu.Name + ".drawings"));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + ".top", "Offset Top").SetValue(
-                        new Slider(_random.Next(95, 111), 0, Drawing.Height)));
+                    new MenuItem(drawingMenu.Name + ".top", "Offset Top").SetValue(new Slider(100, 0, Drawing.Height)));
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + ".right", "Offset Right").SetValue(
-                        new Slider(Drawing.Width - _random.Next(20, 31), 0, Drawing.Width)));
+                        new Slider(Drawing.Width - 20, 0, Drawing.Width)));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + ".size", "Font Size").SetValue(
-                        new Slider(_random.Next(16, 20), 5, 30)));
+                    new MenuItem(drawingMenu.Name + ".size", "Font Size").SetValue(new Slider(17, 5, 30)));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".color", "Color").SetValue(Color.Lime));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".spells", "Blocked Spells").SetValue(true));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".orders", "Blocked Orders").SetValue(true));
 
                 var spellMenu = _menu.AddSubMenu(new Menu("Spells", _menu.Name + ".spells"));
                 spellMenu.AddItem(
-                    new MenuItem(spellMenu.Name + ".delay", "Average Delay").SetValue(
-                        new Slider(_random.Next(50, 111), 0, 500)).SetTooltip("Delay between spells."));
+                    new MenuItem(spellMenu.Name + ".delay", "Average Delay").SetValue(new Slider(75, 0, 500))
+                        .SetTooltip("Delay between spells."));
                 spellMenu.AddItem(
                     new MenuItem(spellMenu.Name + ".range-delay", "Dynamic Range Delay %").SetValue(
                         new Slider(100, 0, 200)).SetTooltip("0 = Disabled. As higher the value as higher is the delay."));
                 spellMenu.AddItem(
-                    new MenuItem(spellMenu.Name + ".position", "Randomized Position").SetValue(
-                        new Slider(_random.Next(8, 11), 0, 50))
+                    new MenuItem(spellMenu.Name + ".position", "Randomized Position").SetValue(new Slider(10, 0, 25))
                         .SetTooltip("Randomize the cast position based on the value."));
                 spellMenu.AddItem(
                     new MenuItem(spellMenu.Name + ".checks", "Additional Checks").SetValue(true)
@@ -108,11 +112,10 @@ namespace SFXHumanizer_Pro
 
                 var orderMenu = _menu.AddSubMenu(new Menu("Orders", _menu.Name + ".orders"));
                 orderMenu.AddItem(
-                    new MenuItem(orderMenu.Name + ".clicks", "Max. Average Per Second").SetValue(
-                        new Slider(_random.Next(9, 12), 1, 20)).SetTooltip("Average of maximum orders per second."));
+                    new MenuItem(orderMenu.Name + ".clicks", "Max. Average Per Second").SetValue(new Slider(10, 1, 20))
+                        .SetTooltip("Average of maximum orders per second."));
                 orderMenu.AddItem(
-                    new MenuItem(orderMenu.Name + ".position", "Randomized Position").SetValue(
-                        new Slider(_random.Next(15, 21), 0, 50))
+                    new MenuItem(orderMenu.Name + ".position", "Randomized Position").SetValue(new Slider(20, 0, 50))
                         .SetTooltip("Randomize the click position based on the value."));
                 orderMenu.AddItem(
                     new MenuItem(orderMenu.Name + ".sharp-turn", "Check Sharp Turns").SetValue(true)
@@ -227,9 +230,17 @@ namespace SFXHumanizer_Pro
                 {
                     return;
                 }
-                if (sender.IsMe && (args.SData.IsAutoAttack() || _spells.Any(s => s.Equals(args.Slot))))
+                if (sender.IsMe)
                 {
-                    _isCasting = false;
+                    var isSpell = _spells.Any(s => s.Equals(args.Slot));
+                    if (isSpell || args.SData.IsAutoAttack())
+                    {
+                        _isCasting = false;
+                    }
+                    if (isSpell || _items.Any(s => s.Equals(args.Slot)))
+                    {
+                        _randomizedSpells[args.Slot] = false;
+                    }
                 }
             }
             catch (Exception ex)
@@ -265,7 +276,19 @@ namespace SFXHumanizer_Pro
                 {
                     return;
                 }
-                if (!sender.Owner.IsMe || !_spells.Any(s => s.Equals(args.Slot)))
+
+                if (!_randomizedSpells.ContainsKey(args.Slot))
+                {
+                    _randomizedSpells[args.Slot] = false;
+                }
+                if (_randomizedSpells[args.Slot])
+                {
+                    _randomizedSpells[args.Slot] = false;
+                    return;
+                }
+
+                var isSpell = _spells.Any(s => s.Equals(args.Slot));
+                if (!sender.Owner.IsMe || (!isSpell && !_items.Any(s => s.Equals(args.Slot))))
                 {
                     return;
                 }
@@ -295,8 +318,7 @@ namespace SFXHumanizer_Pro
                     {
                         _isCasting = false;
                     }
-                    if (MenuGUI.IsShopOpen || MenuGUI.IsChatOpen || _isCasting ||
-                        ObjectManager.Player.Spellbook.IsCastingSpell || !spell.IsReady())
+                    if (MenuGUI.IsShopOpen || MenuGUI.IsChatOpen || (_isCasting && isSpell) || !spell.IsReady())
                     {
                         args.Process = false;
                         _blockedSpells++;
@@ -328,15 +350,12 @@ namespace SFXHumanizer_Pro
                     }
                 }
 
-                if (Utils.GameTimeTickCount - _lastSpellCast <= delay)
+                if (Utils.GameTimeTickCount - (isSpell ? _lastSpellCast : _lastItemCast) <= delay)
                 {
                     args.Process = false;
                     _blockedSpells++;
                     return;
                 }
-
-                _isCasting = true;
-                _lastSpellCast = Utils.GameTimeTickCount;
 
                 if (type == SpellDataTargetType.Cone || type.ToString().Contains("Location") ||
                     type.ToString().Contains("Unit"))
@@ -346,7 +365,8 @@ namespace SFXHumanizer_Pro
                         : (args.StartPosition.IsValid() ? args.StartPosition : args.EndPosition);
                 }
 
-                if (args.Target == null && (type == SpellDataTargetType.Cone || type.ToString().Contains("Location")))
+                if (args.Target == null && (type == SpellDataTargetType.Cone || type.ToString().Contains("Location")) &&
+                    !_randomizedSpells[args.Slot])
                 {
                     var startPos = Vector3.Zero;
                     var endPos = Vector3.Zero;
@@ -361,19 +381,31 @@ namespace SFXHumanizer_Pro
                     }
                     if (startPos.IsValid() && endPos.IsValid())
                     {
-                        ObjectManager.Player.Spellbook.CastSpell(args.Slot, startPos, endPos, false);
+                        ObjectManager.Player.Spellbook.CastSpell(args.Slot, startPos, endPos);
                         args.Process = false;
+                        _randomizedSpells[args.Slot] = true;
                     }
                     else if (startPos.IsValid())
                     {
-                        ObjectManager.Player.Spellbook.CastSpell(args.Slot, startPos, false);
+                        ObjectManager.Player.Spellbook.CastSpell(args.Slot, startPos);
                         args.Process = false;
+                        _randomizedSpells[args.Slot] = true;
                     }
                     else if (endPos.IsValid())
                     {
-                        ObjectManager.Player.Spellbook.CastSpell(args.Slot, endPos, false);
+                        ObjectManager.Player.Spellbook.CastSpell(args.Slot, endPos);
                         args.Process = false;
+                        _randomizedSpells[args.Slot] = true;
                     }
+                }
+                if (isSpell)
+                {
+                    _isCasting = true;
+                    _lastSpellCast = Utils.GameTimeTickCount;
+                }
+                else
+                {
+                    _lastItemCast = Utils.GameTimeTickCount;
                 }
             }
             catch (Exception ex)
@@ -395,6 +427,15 @@ namespace SFXHumanizer_Pro
                      ObjectManager.Player.Pet != null && ObjectManager.Player.Pet.NetworkId.Equals(sender.NetworkId)) &&
                     !args.IsAttackMove)
                 {
+                    if (!_randomizedOrders.ContainsKey(args.Order))
+                    {
+                        _randomizedOrders[args.Order] = false;
+                    }
+                    if (_randomizedOrders[args.Order])
+                    {
+                        _randomizedOrders[args.Order] = false;
+                        return;
+                    }
                     var position = args.Target != null ? args.Target.Position : args.TargetPosition;
                     if (_menu.Item(_menu.Name + ".orders.screen").GetValue<bool>() && !position.IsOnScreen())
                     {
@@ -415,14 +456,14 @@ namespace SFXHumanizer_Pro
                     else
                     {
                         sequence.Index++;
-                        if (args.Target == null && args.TargetPosition.IsValid())
+                        if (args.Target == null && position.IsValid() && !_randomizedOrders[args.Order])
                         {
+                            args.Process = false;
+                            _randomizedOrders[args.Order] = true;
                             ObjectManager.Player.IssueOrder(
                                 args.Order,
                                 _random.Randomize(
-                                    args.TargetPosition,
-                                    _menu.Item(_menu.Name + ".orders.position").GetValue<Slider>().Value), false);
-                            args.Process = false;
+                                    position, _menu.Item(_menu.Name + ".orders.position").GetValue<Slider>().Value));
                         }
                     }
                 }

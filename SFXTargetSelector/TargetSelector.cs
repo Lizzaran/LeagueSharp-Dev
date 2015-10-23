@@ -265,7 +265,6 @@ namespace SFXTargetSelector
                 };
 
             Mode = GetModeBySelectedIndex(_menu.Item(menu.Name + ".mode").GetValue<StringList>().SelectedIndex);
-            LeagueSharp.Common.TargetSelector.CustomTS = true;
         }
     }
 }
