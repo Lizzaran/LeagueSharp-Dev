@@ -44,16 +44,19 @@ namespace SFXHumanizer_Pro
 
         public static Vector3 Randomize(this CryptoRandom rnd, Vector3 position, int amount)
         {
-            if (amount > 0)
+            if (position.IsValid())
             {
-                amount = rnd.Next((int) (Math.Floor(amount * 0.9f)), (int) (Math.Ceiling(amount * 1.1f)));
-                position.X += rnd.Next(0, amount * 2 + 1) - amount;
-                position.Y += rnd.Next(0, amount * 2 + 1) - amount;
-            }
+                if (amount > 0)
+                {
+                    amount = rnd.Next((int) (Math.Floor(amount * 0.9f)), (int) (Math.Ceiling(amount * 1.1f)));
+                    position.X += rnd.Next(0, amount * 2 + 1) - amount;
+                    position.Y += rnd.Next(0, amount * 2 + 1) - amount;
+                }
 
-            position.X = Truncate((int) (position.X) + (float) rnd.NextDouble(), 3);
-            position.Y = Truncate((int) (position.Y) + (float) rnd.NextDouble(), 3);
-            position.Z = NavMesh.GetHeightForPosition(position.X, position.Y);
+                position.X = Truncate((int) (position.X) + (float) rnd.NextDouble(), 3);
+                position.Y = Truncate((int) (position.Y) + (float) rnd.NextDouble(), 3);
+                position.Z = NavMesh.GetHeightForPosition(position.X, position.Y);
+            }
 
             return position;
         }

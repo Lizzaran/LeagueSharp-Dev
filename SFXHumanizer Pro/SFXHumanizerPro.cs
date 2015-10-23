@@ -379,23 +379,22 @@ namespace SFXHumanizer_Pro
                     {
                         endPos = _random.Randomize(args.EndPosition, randomPosition);
                     }
-                    if (startPos.IsValid() && endPos.IsValid())
+                    if (startPos.IsValid() || endPos.IsValid())
                     {
-                        ObjectManager.Player.Spellbook.CastSpell(args.Slot, startPos, endPos);
                         args.Process = false;
                         _randomizedSpells[args.Slot] = true;
-                    }
-                    else if (startPos.IsValid())
-                    {
-                        ObjectManager.Player.Spellbook.CastSpell(args.Slot, startPos);
-                        args.Process = false;
-                        _randomizedSpells[args.Slot] = true;
-                    }
-                    else if (endPos.IsValid())
-                    {
-                        ObjectManager.Player.Spellbook.CastSpell(args.Slot, endPos);
-                        args.Process = false;
-                        _randomizedSpells[args.Slot] = true;
+                        if (startPos.IsValid() && endPos.IsValid())
+                        {
+                            ObjectManager.Player.Spellbook.CastSpell(args.Slot, startPos, endPos);
+                        }
+                        else if (startPos.IsValid())
+                        {
+                            ObjectManager.Player.Spellbook.CastSpell(args.Slot, startPos);
+                        }
+                        else if (endPos.IsValid())
+                        {
+                            ObjectManager.Player.Spellbook.CastSpell(args.Slot, endPos);
+                        }
                     }
                 }
                 if (isSpell)
