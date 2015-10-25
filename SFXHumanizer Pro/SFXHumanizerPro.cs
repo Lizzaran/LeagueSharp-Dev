@@ -506,12 +506,12 @@ namespace SFXHumanizer_Pro
                         (_lastAttackTarget == null || args.Target == null ||
                          !_lastAttackTarget.NetworkId.Equals(args.Target.NetworkId)))
                     {
+                        var percent = _menu.Item(_menu.Name + ".orders.range-delay").GetValue<Slider>().Value;
                         delay = Math.Max(
                             delay,
-                            (int)
-                                (GetRangeDelay(
-                                    position, _lastAttackPosition,
-                                    _menu.Item(_menu.Name + ".orders.range-delay").GetValue<Slider>().Value) * 0.9f));
+                            Math.Max(
+                                GetRangeDelay(position, _lastAttackPosition, percent),
+                                GetRangeDelay(position, _lastCastPosition, percent)));
                     }
                     else
                     {
