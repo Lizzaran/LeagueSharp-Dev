@@ -380,11 +380,11 @@ namespace SFXHumanizer_Pro
                 var type = spell.SData.TargettingType.ToString();
                 if (_targetTypes.Any(t => type.Contains(t)))
                 {
-                    delay = Math.Max(
-                        delay,
-                        GetRangeDelay(
-                            position, _lastCastPosition,
-                            _menu.Item(_menu.Name + ".spells.range-delay").GetValue<Slider>().Value));
+                    var percent = _menu.Item(_menu.Name + ".spells.range-delay").GetValue<Slider>().Value;
+                    if (percent > 0)
+                    {
+                        delay = Math.Max(delay, GetRangeDelay(position, _lastCastPosition, percent));
+                    }
                 }
 
                 if (Utils.GameTimeTickCount - (isSpell ? _lastSpellCast : _lastItemCast) <= delay)
@@ -507,11 +507,14 @@ namespace SFXHumanizer_Pro
                          !_lastAttackTarget.NetworkId.Equals(args.Target.NetworkId)))
                     {
                         var percent = _menu.Item(_menu.Name + ".orders.range-delay").GetValue<Slider>().Value;
-                        delay = Math.Max(
-                            delay,
-                            Math.Max(
-                                GetRangeDelay(position, _lastAttackPosition, percent),
-                                GetRangeDelay(position, _lastCastPosition, percent)));
+                        if (percent > 0)
+                        {
+                            delay = Math.Max(
+                                delay,
+                                Math.Max(
+                                    GetRangeDelay(position, _lastAttackPosition, percent),
+                                    GetRangeDelay(position, _lastCastPosition, percent)));
+                        }
                     }
                     else
                     {

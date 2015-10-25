@@ -249,9 +249,7 @@ namespace SFXChallenger.SFXTargetSelector
                     return new List<Obj_AI_Hero> { selectedTarget };
                 }
 
-                range = ForceFocusWeight && Mode == TargetSelectorModeType.Weights
-                    ? float.MaxValue
-                    : Mode == TargetSelectorModeType.Weights && ForceFocus ? Weights.Range : range;
+                range = ForceFocusWeight && Mode == TargetSelectorModeType.Weights ? Weights.Range : range;
 
                 var targets =
                     Humanizer.FilterTargets(Targets.Items)

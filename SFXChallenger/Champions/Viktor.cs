@@ -424,8 +424,7 @@ namespace SFXChallenger.Champions
                     }
                     if (!(args.Target is Obj_AI_Hero))
                     {
-                        var targets =
-                            TargetSelector.GetTargets(Player.AttackRange + Player.BoundingRadius * 3f).ToList();
+                        var targets = TargetSelector.GetTargets(Q.Range).ToList();
                         if (targets.Any())
                         {
                             var hero = targets.FirstOrDefault(Orbwalking.InAutoAttackRange);
@@ -441,7 +440,7 @@ namespace SFXChallenger.Champions
                                         t =>
                                             t.Distance(Player) <
                                             (Player.BoundingRadius + t.BoundingRadius + Player.AttackRange) *
-                                            (IsSpellUpgraded(Q) ? 1.4f : 1.2f)))
+                                            (IsSpellUpgraded(Q) ? 1.5f : 1.3f)))
                                 {
                                     args.Process = false;
                                 }
