@@ -42,6 +42,7 @@ namespace SFXTargetSelector
     public static class TargetSelector
     {
         private static Menu _menu;
+        private static ModeType _mode;
 
         static TargetSelector()
         {
@@ -64,7 +65,18 @@ namespace SFXTargetSelector
             get { return Assembly.GetEntryAssembly().GetName().Version; }
         }
 
-        public static ModeType Mode { get; set; }
+        public static ModeType Mode
+        {
+            get { return _mode; }
+            set
+            {
+                _mode = value;
+                if (_menu != null)
+                {
+                    _menu.Item(_menu.Name + ".force-focus-weight").ShowItem = _mode == ModeType.Weights;
+                }
+            }
+        }
 
         public static bool ForceFocus
         {
@@ -218,6 +230,10 @@ namespace SFXTargetSelector
                 var t = GetOrderedChampions(targets).ToList();
                 if (t.Count > 0)
                 {
+                    if (Mode == ModeType.Weights && _menu.Item(_menu.Name + ".force-focus-weight").GetValue<bool>())
+                    {
+                        return new List<Obj_AI_Hero> { t.First().Hero };
+                    }
                     if (Selected.Target != null && Focus && t.Count > 1)
                     {
                         t = t.OrderByDescending(x => x.Hero.NetworkId.Equals(Selected.Target.NetworkId)).ToList();
@@ -246,6 +262,9 @@ namespace SFXTargetSelector
             _menu.AddItem(new MenuItem(_menu.Name + ".focus", "Focus Selected Target").SetShared().SetValue(true));
             _menu.AddItem(
                 new MenuItem(_menu.Name + ".force-focus", "Only Attack Selected Target").SetShared().SetValue(false));
+            _menu.AddItem(
+                new MenuItem(_menu.Name + ".force-focus-weight", "Only Attack Highest Weight Target").SetShared()
+                    .SetValue(false));
 
             Humanizer.AddToMenu(_menu);
 
@@ -265,6 +284,7 @@ namespace SFXTargetSelector
                 };
 
             Mode = GetModeBySelectedIndex(_menu.Item(menu.Name + ".mode").GetValue<StringList>().SelectedIndex);
+            LeagueSharp.Common.TargetSelector.CustomTS = true;
         }
     }
 }

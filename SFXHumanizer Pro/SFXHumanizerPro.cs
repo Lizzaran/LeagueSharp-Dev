@@ -61,13 +61,15 @@ namespace SFXHumanizer_Pro
             SpellSlot.R
         };
 
+        private readonly List<string> _targetTypes = new List<string> { "Cone", "Unit", "Location" };
         private int _blockedOrders;
         private int _blockedSpells;
         private Font _font;
         private bool _isCasting;
+        private Vector3 _lastCastPosition = Vector3.Zero;
+        private int _lastFlashCast;
         private int _lastItemCast;
         private int _lastSpellCast;
-        private Vector3 _lastSpellPosition;
         private Menu _menu;
 
         public SFXHumanizerPro()
@@ -94,6 +96,16 @@ namespace SFXHumanizer_Pro
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + ".orders", "Blocked Orders").SetValue(true));
 
                 var spellMenu = _menu.AddSubMenu(new Menu("Spells", _menu.Name + ".spells"));
+
+                var blackListMenu =
+                    spellMenu.AddSubMenu(
+                        new Menu("Blacklist", spellMenu.Name + ".blacklist-" + ObjectManager.Player.ChampionName));
+                foreach (var spell in _spells)
+                {
+                    blackListMenu.AddItem(
+                        new MenuItem(blackListMenu.Name + "." + spell, spell.ToString()).SetValue(false));
+                }
+
                 spellMenu.AddItem(
                     new MenuItem(spellMenu.Name + ".delay", "Average Delay").SetValue(new Slider(75, 0, 500))
                         .SetTooltip("Delay between spells."));
@@ -123,6 +135,10 @@ namespace SFXHumanizer_Pro
                 orderMenu.AddItem(
                     new MenuItem(orderMenu.Name + ".screen", "Block Offscreen").SetValue(false)
                         .SetTooltip("Block all orders which are outside of your screen / view."));
+
+                _menu.AddItem(
+                    new MenuItem(_menu.Name + ".flash", "Disable after Flash").SetValue(new Slider(2, 0, 10))
+                        .SetTooltip("Disable humanizer after flash for x seconds."));
 
                 _menu.AddItem(new MenuItem(_menu.Name + ".enabled", "Enabled").SetValue(true));
 
@@ -182,6 +198,13 @@ namespace SFXHumanizer_Pro
             }
         }
 
+        private bool IsEnabled()
+        {
+            var enabled = _menu.Item(_menu.Name + ".enabled").GetValue<bool>();
+            var flash = _menu.Item(_menu.Name + ".flash").GetValue<Slider>().Value;
+            return enabled && (flash == 0 || Utils.GameTimeTickCount - _lastFlashCast > flash * 1000);
+        }
+
         private void OnDrawingEndScene(EventArgs args)
         {
             try
@@ -232,12 +255,17 @@ namespace SFXHumanizer_Pro
                 }
                 if (sender.IsMe)
                 {
+                    if (args.SData.Name.Equals("SummonerFlash", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _lastFlashCast = Utils.GameTimeTickCount;
+                    }
                     var isSpell = _spells.Any(s => s.Equals(args.Slot));
-                    if (isSpell || args.SData.IsAutoAttack())
+                    var isItem = _items.Any(s => s.Equals(args.Slot));
+                    if (isSpell || isItem || args.SData.IsAutoAttack())
                     {
                         _isCasting = false;
                     }
-                    if (isSpell || _items.Any(s => s.Equals(args.Slot)))
+                    if (isSpell || isItem)
                     {
                         _randomizedSpells[args.Slot] = false;
                     }
@@ -253,10 +281,6 @@ namespace SFXHumanizer_Pro
         {
             try
             {
-                if (!_menu.Item(_menu.Name + ".enabled").GetValue<bool>())
-                {
-                    return;
-                }
                 if (sender.Owner.IsMe)
                 {
                     _isCasting = false;
@@ -268,11 +292,24 @@ namespace SFXHumanizer_Pro
             }
         }
 
+        private bool IsSpellEnabled(SpellSlot slot)
+        {
+            var item = _menu.Item(_menu.Name + ".spells.blacklist-" + ObjectManager.Player.ChampionName + "." + slot);
+            return item != null && !item.GetValue<bool>();
+        }
+
         private void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
         {
             try
             {
-                if (!_menu.Item(_menu.Name + ".enabled").GetValue<bool>())
+                if (!sender.Owner.IsMe || !IsEnabled())
+                {
+                    return;
+                }
+
+                var isSpell = _spells.Any(s => s.Equals(args.Slot) && !IsSpellEnabled(s));
+                var isItem = _items.Any(s => s.Equals(args.Slot));
+                if (!isSpell && !isItem)
                 {
                     return;
                 }
@@ -287,12 +324,6 @@ namespace SFXHumanizer_Pro
                     return;
                 }
 
-                var isSpell = _spells.Any(s => s.Equals(args.Slot));
-                if (!sender.Owner.IsMe || (!isSpell && !_items.Any(s => s.Equals(args.Slot))))
-                {
-                    return;
-                }
-
                 var spell = ObjectManager.Player.Spellbook.GetSpell(args.Slot);
                 if (spell == null)
                 {
@@ -301,7 +332,11 @@ namespace SFXHumanizer_Pro
 
                 var position = args.Target != null
                     ? args.Target.Position
-                    : (args.StartPosition.IsValid() ? args.StartPosition : args.EndPosition);
+                    : (args.StartPosition.IsValid()
+                        ? args.StartPosition
+                        : (args.EndPosition.IsValid() ? args.EndPosition : ObjectManager.Player.Position));
+
+                #region Screen
 
                 if (_menu.Item(_menu.Name + ".spells.screen").GetValue<bool>() && position.IsValid() &&
                     !position.IsOnScreen())
@@ -311,6 +346,10 @@ namespace SFXHumanizer_Pro
                     return;
                 }
 
+                #endregion Screen
+
+                #region Checks
+
                 if (_menu.Item(_menu.Name + ".spells.checks").GetValue<bool>())
                 {
                     if (Utils.GameTimeTickCount - _lastSpellCast >=
@@ -318,7 +357,8 @@ namespace SFXHumanizer_Pro
                     {
                         _isCasting = false;
                     }
-                    if (MenuGUI.IsShopOpen || MenuGUI.IsChatOpen || (_isCasting && isSpell) || !spell.IsReady())
+                    if (MenuGUI.IsShopOpen || MenuGUI.IsChatOpen ||
+                        ((_isCasting || ObjectManager.Player.Spellbook.IsCastingSpell) && isSpell) || !spell.IsReady())
                     {
                         args.Process = false;
                         _blockedSpells++;
@@ -326,26 +366,25 @@ namespace SFXHumanizer_Pro
                     }
                 }
 
+                #endregion Checks
+
+                #region Delay
+
                 var defaultDelay = _menu.Item(_menu.Name + ".spells.delay").GetValue<Slider>().Value;
                 var delay = Math.Max(
                     _random.Next((int) (defaultDelay * 0.85f), (int) (defaultDelay * 1.15f)),
                     _random.Next((int) (Game.Ping * 0.45f), (int) (Game.Ping * 0.55f)));
-                var type = spell.SData.TargettingType;
+                var type = spell.SData.TargettingType.ToString();
                 var rangeDelayPercent = _menu.Item(_menu.Name + ".spells.range-delay").GetValue<Slider>().Value;
-                if (rangeDelayPercent > 0 && _lastSpellPosition.IsValid())
+                if (rangeDelayPercent > 0 && position.IsValid() && _lastCastPosition.IsValid())
                 {
-                    if (type == SpellDataTargetType.Cone || type.ToString().Contains("Location") ||
-                        type.ToString().Contains("Unit"))
+                    if (_targetTypes.Any(t => t.Equals(type, StringComparison.OrdinalIgnoreCase)))
                     {
-                        if (position.IsValid() &&
-                            (Helpers.AngleBetween(_lastSpellPosition, position) > _random.Next(8, 13) ||
-                             type.ToString().Contains("Unit")))
+                        var distance = position.Distance(_lastCastPosition);
+                        if (Helpers.AngleBetween(_lastCastPosition, position) > _random.Next(10, 16) && distance > 250)
                         {
-                            var rangeDelay =
-                                (int)
-                                    ((_lastSpellPosition.Distance(position) * _random.Next(75, 86) / 100) / 100 *
-                                     rangeDelayPercent);
-                            delay = Math.Min(_random.Next(1400, 1500), Math.Max(delay, rangeDelay));
+                            var rangeDelay = (int) ((distance * _random.Next(75, 86) / 100) / 100 * rangeDelayPercent);
+                            delay = Math.Min(_random.Next(1250, 1500), Math.Max(delay, rangeDelay));
                         }
                     }
                 }
@@ -357,20 +396,22 @@ namespace SFXHumanizer_Pro
                     return;
                 }
 
-                if (type == SpellDataTargetType.Cone || type.ToString().Contains("Location") ||
-                    type.ToString().Contains("Unit"))
-                {
-                    _lastSpellPosition = args.Target != null
-                        ? args.Target.Position
-                        : (args.StartPosition.IsValid() ? args.StartPosition : args.EndPosition);
-                }
+                #endregion Delay
 
-                if (args.Target == null && (type == SpellDataTargetType.Cone || type.ToString().Contains("Location")) &&
+                _lastCastPosition = position.IsValid() &&
+                                    _targetTypes.Any(t => t.Equals(type, StringComparison.OrdinalIgnoreCase))
+                    ? position
+                    : Vector3.Zero;
+
+                #region Randomize
+
+                var randomPosition = _menu.Item(_menu.Name + ".spells.position").GetValue<Slider>().Value;
+                if (randomPosition > 0 && args.Target == null && (type.Contains("Cone") || type.Contains("Location")) &&
                     !_randomizedSpells[args.Slot])
                 {
                     var startPos = Vector3.Zero;
                     var endPos = Vector3.Zero;
-                    var randomPosition = _menu.Item(_menu.Name + ".spells.position").GetValue<Slider>().Value;
+
                     if (args.StartPosition.IsValid())
                     {
                         startPos = _random.Randomize(args.StartPosition, randomPosition);
@@ -397,9 +438,12 @@ namespace SFXHumanizer_Pro
                         }
                     }
                 }
+
+                #endregion Randomize
+
+                _isCasting = true;
                 if (isSpell)
                 {
-                    _isCasting = true;
                     _lastSpellCast = Utils.GameTimeTickCount;
                 }
                 else
@@ -418,7 +462,7 @@ namespace SFXHumanizer_Pro
         {
             try
             {
-                if (!_menu.Item(_menu.Name + ".enabled").GetValue<bool>())
+                if (!IsEnabled())
                 {
                     return;
                 }

@@ -40,6 +40,7 @@ namespace SFXChallenger.Managers
     internal static class GapcloserManager
     {
         private static readonly Dictionary<string, Menu> Menues = new Dictionary<string, Menu>();
+        private static readonly Random Random = new Random();
 
         private static readonly List<GapcloserSpell> GapcloserSpells = new List<GapcloserSpell>
         {
@@ -164,6 +165,9 @@ namespace SFXChallenger.Managers
                 menu.AddItem(
                     new MenuItem(menu.Name + ".gap-" + args.UniqueId + ".delay", "Delay").SetValue(
                         new Slider(100, 0, 500)));
+                menu.AddItem(
+                    new MenuItem(menu.Name + ".gap-" + args.UniqueId + ".randomize", "Randomize Position").SetValue(
+                        new Slider(10)));
                 menu.AddItem(
                     new MenuItem(menu.Name + ".gap-" + args.UniqueId + ".distance", "Min. Distance").SetValue(
                         new Slider(150, 0, 500)));
@@ -314,6 +318,19 @@ namespace SFXChallenger.Managers
                             (!dangerous || IsDangerous(sender, startPosition, endPosition, targeted)))
                         {
                             var delay = menu.Item(menu.Name + ".gap-" + uniqueId + ".delay").GetValue<Slider>().Value;
+                            var randomize =
+                                menu.Item(menu.Name + ".gap-" + uniqueId + ".randomize").GetValue<Slider>().Value;
+                            if (delay > 1)
+                            {
+                                delay = Random.Next((int) (delay * 0.9f), (int) (delay * 1.1f));
+                            }
+                            if (randomize > 0)
+                            {
+                                startPosition.X += Random.Next(0, randomize * 2 + 1) - randomize;
+                                startPosition.Y += Random.Next(0, randomize * 2 + 1) - randomize;
+                                endPosition.X += Random.Next(0, randomize * 2 + 1) - randomize;
+                                endPosition.Y += Random.Next(0, randomize * 2 + 1) - randomize;
+                            }
                             Utility.DelayAction.Add(
                                 Math.Max(1, dash ? delay - 100 : delay),
                                 delegate
