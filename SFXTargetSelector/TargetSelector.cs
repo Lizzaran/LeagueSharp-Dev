@@ -83,6 +83,11 @@ namespace SFXTargetSelector
             get { return _menu != null && _menu.Item(_menu.Name + ".force-focus").GetValue<bool>(); }
         }
 
+        public static bool ForceFocusWeight
+        {
+            get { return _menu != null && _menu.Item(_menu.Name + ".force-focus-weight").GetValue<bool>(); }
+        }
+
         public static bool Focus
         {
             get { return _menu != null && _menu.Item(_menu.Name + ".focus").GetValue<bool>(); }
@@ -217,7 +222,9 @@ namespace SFXTargetSelector
                 return new List<Obj_AI_Hero> { selectedTarget };
             }
 
-            range = Mode == ModeType.Weights && ForceFocus ? Weights.Range : range;
+            range = ForceFocusWeight && Mode == ModeType.Weights
+                ? float.MaxValue
+                : Mode == ModeType.Weights && ForceFocus ? Weights.Range : range;
 
             var targets =
                 Humanizer.FilterTargets(Targets.Items)
@@ -230,7 +237,7 @@ namespace SFXTargetSelector
                 var t = GetOrderedChampions(targets).ToList();
                 if (t.Count > 0)
                 {
-                    if (Mode == ModeType.Weights && _menu.Item(_menu.Name + ".force-focus-weight").GetValue<bool>())
+                    if (ForceFocusWeight)
                     {
                         return new List<Obj_AI_Hero> { t.First().Hero };
                     }

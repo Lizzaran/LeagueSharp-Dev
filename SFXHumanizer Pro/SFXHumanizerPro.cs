@@ -122,7 +122,7 @@ namespace SFXHumanizer_Pro
                     new MenuItem(spellMenu.Name + ".screen", "Block Offscreen").SetValue(false)
                         .SetTooltip("Block all spells which are outside of your screen / view."));
                 spellMenu.AddItem(
-                    new MenuItem(spellMenu.Name + ".flash", "Disable after Flash").SetValue(new Slider(2, 0, 10))
+                    new MenuItem(spellMenu.Name + ".flash", "Disable after Flash").SetValue(new Slider(3, 0, 10))
                         .SetTooltip("Disable humanizer after flash for x seconds."));
 
                 var orderMenu = _menu.AddSubMenu(new Menu("Orders", _menu.Name + ".orders"));
@@ -305,7 +305,7 @@ namespace SFXHumanizer_Pro
                     return;
                 }
 
-                var isSpell = _spells.Any(s => s.Equals(args.Slot) && !IsSpellEnabled(s));
+                var isSpell = _spells.Any(s => s.Equals(args.Slot) && IsSpellEnabled(s));
                 var isItem = _items.Any(s => s.Equals(args.Slot));
                 if (!isSpell && !isItem)
                 {
@@ -376,7 +376,7 @@ namespace SFXHumanizer_Pro
                 var rangeDelayPercent = _menu.Item(_menu.Name + ".spells.range-delay").GetValue<Slider>().Value;
                 if (rangeDelayPercent > 0 && position.IsValid() && _lastCastPosition.IsValid())
                 {
-                    if (_targetTypes.Any(t => t.Equals(type, StringComparison.OrdinalIgnoreCase)))
+                    if (_targetTypes.Any(t => type.Contains(t)))
                     {
                         var distance = position.Distance(_lastCastPosition);
                         if (Helpers.AngleBetween(_lastCastPosition, position) > _random.Next(10, 16) && distance > 250)
@@ -396,8 +396,7 @@ namespace SFXHumanizer_Pro
 
                 #endregion Delay
 
-                _lastCastPosition = position.IsValid() &&
-                                    _targetTypes.Any(t => t.Equals(type, StringComparison.OrdinalIgnoreCase))
+                _lastCastPosition = position.IsValid() && _targetTypes.Any(t => type.Contains(t))
                     ? position
                     : Vector3.Zero;
 
