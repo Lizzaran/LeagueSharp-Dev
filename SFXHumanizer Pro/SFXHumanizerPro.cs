@@ -121,6 +121,9 @@ namespace SFXHumanizer_Pro
                 spellMenu.AddItem(
                     new MenuItem(spellMenu.Name + ".screen", "Block Offscreen").SetValue(false)
                         .SetTooltip("Block all spells which are outside of your screen / view."));
+                spellMenu.AddItem(
+                    new MenuItem(spellMenu.Name + ".flash", "Disable after Flash").SetValue(new Slider(2, 0, 10))
+                        .SetTooltip("Disable humanizer after flash for x seconds."));
 
                 var orderMenu = _menu.AddSubMenu(new Menu("Orders", _menu.Name + ".orders"));
                 orderMenu.AddItem(
@@ -135,10 +138,6 @@ namespace SFXHumanizer_Pro
                 orderMenu.AddItem(
                     new MenuItem(orderMenu.Name + ".screen", "Block Offscreen").SetValue(false)
                         .SetTooltip("Block all orders which are outside of your screen / view."));
-
-                _menu.AddItem(
-                    new MenuItem(_menu.Name + ".flash", "Disable after Flash").SetValue(new Slider(2, 0, 10))
-                        .SetTooltip("Disable humanizer after flash for x seconds."));
 
                 _menu.AddItem(new MenuItem(_menu.Name + ".enabled", "Enabled").SetValue(true));
 
@@ -196,13 +195,6 @@ namespace SFXHumanizer_Pro
             {
                 Console.WriteLine(ex);
             }
-        }
-
-        private bool IsEnabled()
-        {
-            var enabled = _menu.Item(_menu.Name + ".enabled").GetValue<bool>();
-            var flash = _menu.Item(_menu.Name + ".flash").GetValue<Slider>().Value;
-            return enabled && (flash == 0 || Utils.GameTimeTickCount - _lastFlashCast > flash * 1000);
         }
 
         private void OnDrawingEndScene(EventArgs args)
@@ -302,7 +294,13 @@ namespace SFXHumanizer_Pro
         {
             try
             {
-                if (!sender.Owner.IsMe || !IsEnabled())
+                if (!sender.Owner.IsMe || !_menu.Item(_menu.Name + ".enabled").GetValue<bool>())
+                {
+                    return;
+                }
+
+                var flash = _menu.Item(_menu.Name + ".spells.flash").GetValue<Slider>().Value;
+                if (flash > 0 && Utils.GameTimeTickCount - _lastFlashCast <= flash * 1000)
                 {
                     return;
                 }
@@ -462,7 +460,7 @@ namespace SFXHumanizer_Pro
         {
             try
             {
-                if (!IsEnabled())
+                if (!_menu.Item(_menu.Name + ".enabled").GetValue<bool>())
                 {
                     return;
                 }
