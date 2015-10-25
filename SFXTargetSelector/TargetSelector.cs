@@ -256,7 +256,7 @@ namespace SFXTargetSelector
         {
             _menu = menu.AddSubMenu(new Menu("Target Selector", "sfx.ts"));
 
-            var drawingMenu = _menu.AddSubMenu(new Menu("Drawings", menu.Name + ".drawing"));
+            var drawingMenu = _menu.AddSubMenu(new Menu("Drawings", _menu.Name + ".drawing"));
 
             drawingMenu.AddItem(
                 new MenuItem(drawingMenu.Name + ".circle-thickness", "Circle Thickness").SetShared()
@@ -276,7 +276,7 @@ namespace SFXTargetSelector
             Humanizer.AddToMenu(_menu);
 
             _menu.AddItem(
-                new MenuItem(menu.Name + ".mode", "Mode").SetShared()
+                new MenuItem(_menu.Name + ".mode", "Mode").SetShared()
                     .SetValue(
                         new StringList(
                             new[]
@@ -290,7 +290,7 @@ namespace SFXTargetSelector
                     Mode = GetModeBySelectedIndex(args.GetNewValue<StringList>().SelectedIndex);
                 };
 
-            Mode = GetModeBySelectedIndex(_menu.Item(menu.Name + ".mode").GetValue<StringList>().SelectedIndex);
+            Mode = GetModeBySelectedIndex(_menu.Item(_menu.Name + ".mode").GetValue<StringList>().SelectedIndex);
             LeagueSharp.Common.TargetSelector.CustomTS = true;
         }
     }

@@ -66,6 +66,8 @@ namespace SFXHumanizer_Pro
         private int _blockedSpells;
         private Font _font;
         private bool _isCasting;
+        private Vector3 _lastAttackPosition = Vector3.Zero;
+        private GameObject _lastAttackTarget;
         private Vector3 _lastCastPosition = Vector3.Zero;
         private int _lastFlashCast;
         private int _lastItemCast;
@@ -129,6 +131,9 @@ namespace SFXHumanizer_Pro
                 orderMenu.AddItem(
                     new MenuItem(orderMenu.Name + ".clicks", "Max. Average Per Second").SetValue(new Slider(10, 1, 20))
                         .SetTooltip("Average of maximum orders per second."));
+                orderMenu.AddItem(
+                    new MenuItem(orderMenu.Name + ".range-delay", "Dynamic Attack Range Delay %").SetValue(
+                        new Slider(100, 0, 200)).SetTooltip("0 = Disabled. As higher the value as higher is the delay."));
                 orderMenu.AddItem(
                     new MenuItem(orderMenu.Name + ".position", "Randomized Position").SetValue(new Slider(20, 0, 50))
                         .SetTooltip("Randomize the click position based on the value."));
@@ -373,18 +378,13 @@ namespace SFXHumanizer_Pro
                     _random.Next((int) (defaultDelay * 0.85f), (int) (defaultDelay * 1.15f)),
                     _random.Next((int) (Game.Ping * 0.45f), (int) (Game.Ping * 0.55f)));
                 var type = spell.SData.TargettingType.ToString();
-                var rangeDelayPercent = _menu.Item(_menu.Name + ".spells.range-delay").GetValue<Slider>().Value;
-                if (rangeDelayPercent > 0 && position.IsValid() && _lastCastPosition.IsValid())
+                if (_targetTypes.Any(t => type.Contains(t)))
                 {
-                    if (_targetTypes.Any(t => type.Contains(t)))
-                    {
-                        var distance = position.Distance(_lastCastPosition);
-                        if (Helpers.AngleBetween(_lastCastPosition, position) > _random.Next(10, 16) && distance > 250)
-                        {
-                            var rangeDelay = (int) ((distance * _random.Next(75, 86) / 100) / 100 * rangeDelayPercent);
-                            delay = Math.Min(_random.Next(1250, 1500), Math.Max(delay, rangeDelay));
-                        }
-                    }
+                    delay = Math.Max(
+                        delay,
+                        GetRangeDelay(
+                            position, _lastCastPosition,
+                            _menu.Item(_menu.Name + ".spells.range-delay").GetValue<Slider>().Value));
                 }
 
                 if (Utils.GameTimeTickCount - (isSpell ? _lastSpellCast : _lastItemCast) <= delay)
@@ -455,6 +455,20 @@ namespace SFXHumanizer_Pro
             }
         }
 
+        private int GetRangeDelay(Vector3 position, Vector3 lastPosition, int percent)
+        {
+            if (percent > 0 && position.IsValid() && lastPosition.IsValid())
+            {
+                var distance = position.Distance(lastPosition);
+                if (Helpers.AngleBetween(lastPosition, position) > _random.Next(10, 16) && distance > 250)
+                {
+                    var rangeDelay = (int) ((distance * _random.Next(75, 86) / 100) / 100 * percent);
+                    return Math.Min(_random.Next(1250, 1500), rangeDelay);
+                }
+            }
+            return 0;
+        }
+
         private void OnObjAiBaseIssueOrder(Obj_AI_Base sender, GameObjectIssueOrderEventArgs args)
         {
             try
@@ -485,16 +499,38 @@ namespace SFXHumanizer_Pro
                     }
                     UpdateSequence(args.Order);
                     var sequence = _sequences[args.Order];
-                    var isSharpTurn = _menu.Item(_menu.Name + ".orders.sharp-turn").GetValue<bool>() &&
+                    var delay = sequence.Items[sequence.Index];
+                    var isSharpTurn = false;
+
+                    if ((args.Order == GameObjectOrder.AttackTo || args.Order == GameObjectOrder.AttackUnit) &&
+                        (_lastAttackTarget == null || args.Target == null ||
+                         !_lastAttackTarget.NetworkId.Equals(args.Target.NetworkId)))
+                    {
+                        delay = Math.Max(
+                            delay,
+                            (int)
+                                (GetRangeDelay(
+                                    position, _lastAttackPosition,
+                                    _menu.Item(_menu.Name + ".orders.range-delay").GetValue<Slider>().Value) * 0.9f));
+                    }
+                    else
+                    {
+                        isSharpTurn = _menu.Item(_menu.Name + ".orders.sharp-turn").GetValue<bool>() &&
                                       Helpers.IsSharpTurn(position, _random.Next(80, 101));
-                    if (Utils.GameTimeTickCount - sequence.LastIndexChange <=
-                        (isSharpTurn ? sequence.Items[sequence.Index] / 2 : sequence.Items[sequence.Index]))
+                    }
+
+                    if (Utils.GameTimeTickCount - sequence.LastIndexChange <= (isSharpTurn ? delay / 2 : delay))
                     {
                         args.Process = false;
                         _blockedOrders++;
                     }
                     else
                     {
+                        if (args.Order == GameObjectOrder.AttackTo || args.Order == GameObjectOrder.AttackUnit)
+                        {
+                            _lastAttackPosition = position.IsValid() ? position : Vector3.Zero;
+                            _lastAttackTarget = args.Target;
+                        }
                         sequence.Index++;
                         if (args.Target == null && position.IsValid() && !_randomizedOrders[args.Order])
                         {
