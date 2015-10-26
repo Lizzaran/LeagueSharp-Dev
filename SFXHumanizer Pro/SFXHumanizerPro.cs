@@ -118,8 +118,11 @@ namespace SFXHumanizer_Pro
                     new MenuItem(spellMenu.Name + ".position", "Randomized Position").SetValue(new Slider(10, 0, 25))
                         .SetTooltip("Randomize the cast position based on the value."));
                 spellMenu.AddItem(
-                    new MenuItem(spellMenu.Name + ".checks", "Additional Checks").SetValue(true)
-                        .SetTooltip("Checks if Chat / Shop is open and if you can cast."));
+                    new MenuItem(spellMenu.Name + ".checks1", "Additional Checks 1").SetValue(true)
+                        .SetTooltip("Checks if Chat or Shop is open."));
+                spellMenu.AddItem(
+                    new MenuItem(spellMenu.Name + ".checks2", "Additional Checks 2").SetValue(true)
+                        .SetTooltip("Checks if currently no other spell is casted."));
                 spellMenu.AddItem(
                     new MenuItem(spellMenu.Name + ".screen", "Block Offscreen").SetValue(false)
                         .SetTooltip("Block all spells which are outside of your screen / view."));
@@ -289,12 +292,6 @@ namespace SFXHumanizer_Pro
             }
         }
 
-        private bool IsSpellEnabled(SpellSlot slot)
-        {
-            var item = _menu.Item(_menu.Name + ".spells.blacklist-" + ObjectManager.Player.ChampionName + "." + slot);
-            return item != null && !item.GetValue<bool>();
-        }
-
         private void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)
         {
             try
@@ -353,15 +350,24 @@ namespace SFXHumanizer_Pro
 
                 #region Checks
 
-                if (_menu.Item(_menu.Name + ".spells.checks").GetValue<bool>())
+                if (_menu.Item(_menu.Name + ".spells.checks1").GetValue<bool>())
+                {
+                    if (MenuGUI.IsShopOpen || MenuGUI.IsChatOpen)
+                    {
+                        args.Process = false;
+                        _blockedSpells++;
+                        return;
+                    }
+                }
+
+                if (isSpell && _menu.Item(_menu.Name + ".spells.checks2").GetValue<bool>())
                 {
                     if (Utils.GameTimeTickCount - _lastSpellCast >=
                         _random.Next((int) (1000f * 0.975f), (int) (1000f * 1.025f)))
                     {
                         _isCasting = false;
                     }
-                    if (MenuGUI.IsShopOpen || MenuGUI.IsChatOpen ||
-                        ((_isCasting || ObjectManager.Player.Spellbook.IsCastingSpell) && isSpell) || !spell.IsReady())
+                    if (_isCasting || ObjectManager.Player.Spellbook.IsCastingSpell)
                     {
                         args.Process = false;
                         _blockedSpells++;
@@ -455,20 +461,6 @@ namespace SFXHumanizer_Pro
             }
         }
 
-        private int GetRangeDelay(Vector3 position, Vector3 lastPosition, int percent)
-        {
-            if (percent > 0 && position.IsValid() && lastPosition.IsValid())
-            {
-                var distance = position.Distance(lastPosition);
-                if (Helpers.AngleBetween(lastPosition, position) > _random.Next(10, 16) && distance > 250)
-                {
-                    var rangeDelay = (int) ((distance * _random.Next(75, 86) / 100) / 100 * percent);
-                    return Math.Min(_random.Next(1250, 1500), rangeDelay);
-                }
-            }
-            return 0;
-        }
-
         private void OnObjAiBaseIssueOrder(Obj_AI_Base sender, GameObjectIssueOrderEventArgs args)
         {
             try
@@ -511,9 +503,10 @@ namespace SFXHumanizer_Pro
                         {
                             delay = Math.Max(
                                 delay,
-                                Math.Max(
-                                    GetRangeDelay(position, _lastAttackPosition, percent),
-                                    GetRangeDelay(position, _lastCastPosition, percent)));
+                                (int)
+                                    (Math.Max(
+                                        GetRangeDelay(position, _lastAttackPosition, percent),
+                                        GetRangeDelay(position, _lastCastPosition, percent)) * 0.75f));
                         }
                     }
                     else
@@ -552,6 +545,26 @@ namespace SFXHumanizer_Pro
                 args.Process = true;
                 Console.WriteLine(ex);
             }
+        }
+
+        private bool IsSpellEnabled(SpellSlot slot)
+        {
+            var item = _menu.Item(_menu.Name + ".spells.blacklist-" + ObjectManager.Player.ChampionName + "." + slot);
+            return item != null && !item.GetValue<bool>();
+        }
+
+        private int GetRangeDelay(Vector3 position, Vector3 lastPosition, int percent)
+        {
+            if (percent > 0 && position.IsValid() && lastPosition.IsValid())
+            {
+                var distance = position.Distance(lastPosition);
+                if (Helpers.AngleBetween(lastPosition, position) > _random.Next(15, 26) && distance > 200)
+                {
+                    var rangeDelay = (int) ((distance * _random.Next(75, 86) / 100) / 100 * percent);
+                    return Math.Min(_random.Next(1250, 1500) / 100 * percent, rangeDelay);
+                }
+            }
+            return 0;
         }
 
         private int[] CreateSequence(int averageClicks)
