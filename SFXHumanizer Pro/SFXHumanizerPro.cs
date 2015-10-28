@@ -141,8 +141,8 @@ namespace SFXHumanizer_Pro
                     new MenuItem(orderMenu.Name + ".position", "Randomized Position").SetValue(new Slider(20, 0, 50))
                         .SetTooltip("Randomize the click position based on the value."));
                 orderMenu.AddItem(
-                    new MenuItem(orderMenu.Name + ".sharp-turn", "Check Sharp Turns").SetValue(true)
-                        .SetTooltip("Reduce the delay if you run in a other direction."));
+                    new MenuItem(orderMenu.Name + ".sharp-turn", "Reduce Delay on Sharp Turns").SetValue(new Slider(50))
+                        .SetTooltip("Reduce current delay if you run in a other direction by x %."));
                 orderMenu.AddItem(
                     new MenuItem(orderMenu.Name + ".screen", "Block Offscreen").SetValue(false)
                         .SetTooltip("Block all orders which are outside of your screen / view."));
@@ -492,7 +492,6 @@ namespace SFXHumanizer_Pro
                     UpdateSequence(args.Order);
                     var sequence = _sequences[args.Order];
                     var delay = sequence.Items[sequence.Index];
-                    var isSharpTurn = false;
 
                     if ((args.Order == GameObjectOrder.AttackTo || args.Order == GameObjectOrder.AttackUnit) &&
                         (_lastAttackTarget == null || args.Target == null ||
@@ -511,11 +510,15 @@ namespace SFXHumanizer_Pro
                     }
                     else
                     {
-                        isSharpTurn = _menu.Item(_menu.Name + ".orders.sharp-turn").GetValue<bool>() &&
-                                      Helpers.IsSharpTurn(position, _random.Next(80, 101));
+                        if (Helpers.IsSharpTurn(position, _random.Next(80, 101)))
+                        {
+                            delay -=
+                                (int)
+                                    (delay / 100f *
+                                     _menu.Item(_menu.Name + ".orders.sharp-turn").GetValue<Slider>().Value);
+                        }
                     }
-
-                    if (Utils.GameTimeTickCount - sequence.LastIndexChange <= (isSharpTurn ? delay / 2 : delay))
+                    if (Utils.GameTimeTickCount - sequence.LastIndexChange <= delay)
                     {
                         args.Process = false;
                         _blockedOrders++;
