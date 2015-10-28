@@ -35,7 +35,9 @@ namespace SFXChallenger.Managers
 {
     internal static class HitchanceManager
     {
+        private const int MinHitChance = 3;
         private static readonly Dictionary<string, Menu> Menues = new Dictionary<string, Menu>();
+        private static float _lastFlash;
 
         public static void AddToMenu(Menu menu, string uniqueId, Dictionary<string, HitChance> hitChances)
         {
@@ -47,6 +49,11 @@ namespace SFXChallenger.Managers
                         string.Format("HitchanceManager: UniqueID \"{0}\" already exist.", uniqueId));
                 }
 
+                var flashMenu = menu.AddSubMenu(new Menu("Flash", menu.Name + ".flash"));
+                flashMenu.AddItem(new MenuItem(menu.Name + ".enabled", "Reduce Hitchance").SetValue(true));
+                flashMenu.AddItem(new MenuItem(menu.Name + ".amount", "Amount").SetValue(new Slider(1, 0, 3)));
+                flashMenu.AddItem(new MenuItem(menu.Name + ".time", "Seconds").SetValue(new Slider(3, 1, 10)));
+
                 foreach (var hit in hitChances)
                 {
                     menu.AddItem(
@@ -57,10 +64,23 @@ namespace SFXChallenger.Managers
                 }
 
                 Menues[uniqueId] = menu;
+
+                Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private static void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
+        {
+            if (sender.IsMe)
+            {
+                if (args.SData.Name.Equals(SummonerManager.Flash.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    _lastFlash = Game.Time;
+                }
             }
         }
 
@@ -71,15 +91,29 @@ namespace SFXChallenger.Managers
                 Menu menu;
                 if (Menues.TryGetValue(uniqueId, out menu))
                 {
+                    var hitChance = HitChance.VeryHigh;
+                    var reduceBy = 0;
+                    var timeDiff = Game.Time - _lastFlash;
+                    if (timeDiff <= 15 && menu.Item(menu.Name + ".flash.enabled").GetValue<bool>())
+                    {
+                        if (timeDiff <= menu.Item(menu.Name + ".flash.time").GetValue<Slider>().Value)
+                        {
+                            reduceBy = menu.Item(menu.Name + ".flash.amount").GetValue<Slider>().Value;
+                        }
+                    }
                     switch (menu.Item(menu.Name + "." + slot.ToLower()).GetValue<StringList>().SelectedIndex)
                     {
                         case 0:
-                            return HitChance.Medium;
+                            hitChance = HitChance.Medium;
+                            break;
                         case 1:
-                            return HitChance.High;
+                            hitChance = HitChance.High;
+                            break;
                         case 2:
-                            return HitChance.VeryHigh;
+                            hitChance = HitChance.VeryHigh;
+                            break;
                     }
+                    return (HitChance) Math.Max(MinHitChance, (int) hitChance - reduceBy);
                 }
                 throw new KeyNotFoundException(string.Format("HitchanceManager: UniqueID \"{0}\" not found.", uniqueId));
             }
