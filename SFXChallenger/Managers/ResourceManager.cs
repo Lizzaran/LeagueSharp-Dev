@@ -196,6 +196,10 @@ namespace SFXChallenger.Managers
 
         private static bool Check(int menuValue, ResourceManagerArgs args)
         {
+            if (menuValue >= 100)
+            {
+                return false;
+            }
             var resourceValue = 0f;
             if (args.ValueType == ResourceValueType.Percent)
             {

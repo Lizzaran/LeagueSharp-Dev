@@ -180,7 +180,6 @@ namespace SFXChallenger.Champions
                     "lane-clear", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
                 {
                     Advanced = true,
-                    MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
                     DefaultValues = new List<int> { 50, 30, 30 },
                     IgnoreJungleOption = true
@@ -197,7 +196,6 @@ namespace SFXChallenger.Champions
                     "lasthit", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
                 {
                     Advanced = true,
-                    MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
                     DefaultValues = new List<int> { 50, 30, 30 }
                 });

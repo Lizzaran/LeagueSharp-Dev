@@ -88,7 +88,7 @@ namespace SFXChallenger.Champions
             Q.SetSkillshot(0.13f, 115f, 1400f, false, SkillshotType.SkillshotCircle);
 
             W = new Spell(SpellSlot.W, float.MaxValue, DamageType.Magical);
-            W.SetSkillshot(0f, 230f, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            W.SetSkillshot(0f, 220f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
             E = new Spell(SpellSlot.E, 1095f, DamageType.Magical);
             E.SetSkillshot(0.25f, 125f, 1700f, false, SkillshotType.SkillshotLine);
@@ -169,7 +169,6 @@ namespace SFXChallenger.Champions
                     "lane-clear", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
                 {
                     Advanced = true,
-                    MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
                     DefaultValues = new List<int> { 45, 25, 25 },
                     IgnoreJungleOption = true

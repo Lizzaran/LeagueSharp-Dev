@@ -310,7 +310,7 @@ namespace SFXChallenger.Managers
                 {
                     var uniqueId = entry.Key;
                     var menu = entry.Value;
-                    if (HeroListManager.Check(entry.Key, sender))
+                    if (HeroListManager.Check(uniqueId, sender))
                     {
                         var distance = menu.Item(menu.Name + ".gap-" + uniqueId + ".distance").GetValue<Slider>().Value;
                         var dangerous = menu.Item(menu.Name + ".gap-" + uniqueId + ".dangerous").GetValue<bool>();
@@ -326,20 +326,23 @@ namespace SFXChallenger.Managers
                             }
                             if (randomize > 0)
                             {
-                                startPosition.X += Random.Next(0, randomize * 2 + 1) - randomize;
-                                startPosition.Y += Random.Next(0, randomize * 2 + 1) - randomize;
-                                endPosition.X += Random.Next(0, randomize * 2 + 1) - randomize;
-                                endPosition.Y += Random.Next(0, randomize * 2 + 1) - randomize;
+                                if (!startPosition.Equals(Vector3.Zero))
+                                {
+                                    startPosition.X += Random.Next(0, randomize * 2 + 1) - randomize;
+                                    startPosition.Y += Random.Next(0, randomize * 2 + 1) - randomize;
+                                }
+                                if (!endPosition.Equals(Vector3.Zero))
+                                {
+                                    endPosition.X += Random.Next(0, randomize * 2 + 1) - randomize;
+                                    endPosition.Y += Random.Next(0, randomize * 2 + 1) - randomize;
+                                }
                             }
                             Utility.DelayAction.Add(
                                 Math.Max(1, dash ? delay - 100 : delay),
-                                delegate
-                                {
+                                () =>
                                     OnGapcloser.RaiseEvent(
                                         null,
-                                        new GapcloserManagerArgs(
-                                            uniqueId, sender, startPosition, endPosition, endTime - (delay / 1000f)));
-                                });
+                                        new GapcloserManagerArgs(uniqueId, sender, startPosition, endPosition, endTime)));
                         }
                     }
                 }

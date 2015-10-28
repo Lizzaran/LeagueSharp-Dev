@@ -40,7 +40,6 @@ using MinionTeam = SFXChallenger.Library.MinionTeam;
 using MinionTypes = SFXChallenger.Library.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
-using Utils = SFXChallenger.Helpers.Utils;
 
 #endregion
 
@@ -62,6 +61,7 @@ namespace SFXChallenger.Champions
         {
             Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
             Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
+            BuffManager.OnBuff += OnBuffManagerBuff;
         }
 
         protected override void SetupSpells()
@@ -105,7 +105,6 @@ namespace SFXChallenger.Champions
                 {
                     Prefix = "Q",
                     Advanced = true,
-                    MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
                     DefaultValues = new List<int> { 60, 50, 50 },
                     IgnoreJungleOption = true
@@ -117,7 +116,6 @@ namespace SFXChallenger.Champions
                 {
                     Prefix = "W",
                     Advanced = true,
-                    MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
                     DefaultValues = new List<int> { 50, 40, 40 },
                     IgnoreJungleOption = true
@@ -137,20 +135,41 @@ namespace SFXChallenger.Champions
 
             var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
 
-            HeroListManager.AddToMenu(
-                miscMenu.AddSubMenu(new Menu("Q Immobile", miscMenu.Name + "q-immobile")),
+            var qImmobileMenu = miscMenu.AddSubMenu(new Menu("Q Immobile", miscMenu.Name + "q-immobile"));
+            BuffManager.AddToMenu(
+                qImmobileMenu, BuffManager.ImmobileBuffs,
                 new HeroListManagerArgs("q-immobile")
                 {
                     IsWhitelist = false,
                     Allies = false,
                     Enemies = true,
                     DefaultValue = false
-                });
+                }, true);
+            BestTargetOnlyManager.AddToMenu(qImmobileMenu, "q-immobile");
 
             IndicatorManager.AddToMenu(DrawingManager.Menu, true);
             IndicatorManager.Add(Q);
             IndicatorManager.Add(W);
             IndicatorManager.Finale();
+        }
+
+        private void OnBuffManagerBuff(object sender, BuffManagerArgs args)
+        {
+            try
+            {
+                if (Q.IsReady())
+                {
+                    if (args.UniqueId.Equals("q-immobile") && BestTargetOnlyManager.Check("q-immobile", Q, args.Hero) &&
+                        Q.IsInRange(args.Position))
+                    {
+                        Q.Cast(args.Position);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         // Credits: Trees
@@ -211,21 +230,7 @@ namespace SFXChallenger.Champions
         }
 
         protected override void OnPreUpdate() {}
-
-        protected override void OnPostUpdate()
-        {
-            if (Q.IsReady())
-            {
-                var target =
-                    GameObjects.EnemyHeroes.OrderBy(e => e.Distance(Player))
-                        .Where(e => Q.IsInRange(e))
-                        .FirstOrDefault(t => HeroListManager.Check("q-immobile", t) && Utils.IsImmobile(t));
-                if (target != null)
-                {
-                    Q.Cast(target.Position);
-                }
-            }
-        }
+        protected override void OnPostUpdate() {}
 
         private void OnOrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
         {

@@ -44,7 +44,6 @@ using MinionTypes = SFXChallenger.Library.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
-using Utils = SFXChallenger.Helpers.Utils;
 
 #endregion
 
@@ -77,6 +76,7 @@ namespace SFXChallenger.Champions
             Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
             Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
             GapcloserManager.OnGapcloser += OnEnemyGapcloser;
+            BuffManager.OnBuff += OnBuffManagerBuff;
             Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
             GameObject.OnCreate += OnGameObjectCreate;
         }
@@ -153,7 +153,6 @@ namespace SFXChallenger.Champions
                 {
                     Prefix = "Q",
                     Advanced = true,
-                    MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
                     DefaultValues = new List<int> { 80, 50, 50 },
                     IgnoreJungleOption = true
@@ -165,7 +164,6 @@ namespace SFXChallenger.Champions
                 {
                     Prefix = "E",
                     Advanced = true,
-                    MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
                     DefaultValues = new List<int> { 40, 20, 20 },
                     IgnoreJungleOption = true
@@ -181,7 +179,6 @@ namespace SFXChallenger.Champions
                     "lasthit", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
                 {
                     Advanced = true,
-                    MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
                     DefaultValues = new List<int> { 50, 30, 30 }
                 });
@@ -198,20 +195,20 @@ namespace SFXChallenger.Champions
             var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
 
             var wImmobileMenu = miscMenu.AddSubMenu(new Menu("W Immobile", miscMenu.Name + "w-immobile"));
-            HeroListManager.AddToMenu(
-                wImmobileMenu,
+            BuffManager.AddToMenu(
+                wImmobileMenu, BuffManager.ImmobileBuffs,
                 new HeroListManagerArgs("w-immobile")
                 {
                     IsWhitelist = false,
                     Allies = false,
                     Enemies = true,
                     DefaultValue = false
-                });
+                }, true);
             BestTargetOnlyManager.AddToMenu(wImmobileMenu, "w-immobile");
 
             var wSlowedMenu = miscMenu.AddSubMenu(new Menu("W Slowed", miscMenu.Name + "w-slowed"));
-            HeroListManager.AddToMenu(
-                wSlowedMenu,
+            BuffManager.AddToMenu(
+                wSlowedMenu, BuffType.Slow,
                 new HeroListManagerArgs("w-slowed")
                 {
                     IsWhitelist = false,
@@ -219,8 +216,8 @@ namespace SFXChallenger.Champions
                     Enemies = true,
                     DefaultValue = false,
                     Enabled = false
-                });
-            BestTargetOnlyManager.AddToMenu(wSlowedMenu, "w-slowed", true);
+                }, false);
+            BestTargetOnlyManager.AddToMenu(wSlowedMenu, "w-slowed");
 
             var wGapcloserMenu = miscMenu.AddSubMenu(new Menu("W Gapcloser", miscMenu.Name + "w-gapcloser"));
             GapcloserManager.AddToMenu(
@@ -236,7 +233,18 @@ namespace SFXChallenger.Champions
             BestTargetOnlyManager.AddToMenu(wGapcloserMenu, "w-gapcloser");
 
             miscMenu.AddItem(
-                new MenuItem(miscMenu.Name + ".e-logic", "E Logic").SetValue(new StringList(new[] { "Old", "New" }, 1)));
+                new MenuItem(miscMenu.Name + ".e-logic", "E Logic").SetValue(new StringList(new[] { "Old", "New" }, 1)))
+                .ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args)
+                {
+                    Menu.Item(Menu.Name + ".miscellaneous.e-new-distance").ShowItem =
+                        args.GetNewValue<StringList>().SelectedIndex == 1;
+                };
+            miscMenu.AddItem(
+                new MenuItem(miscMenu.Name + ".e-new-distance", "E Multi-Hit Distance %").SetValue(new Slider(100, 10)));
+
+            Menu.Item(Menu.Name + ".miscellaneous.e-new-distance").ShowItem =
+                Menu.Item(Menu.Name + ".miscellaneous.e-logic").GetValue<StringList>().SelectedIndex == 1;
 
             IndicatorManager.AddToMenu(DrawingManager.Menu, true);
             IndicatorManager.Add(
@@ -299,33 +307,6 @@ namespace SFXChallenger.Champions
                 if (target != null && !RLogic(UltimateModeType.Auto, target))
                 {
                     RLogicSingle(UltimateModeType.Auto);
-                }
-            }
-
-            if (HeroListManager.Enabled("w-immobile") && W.IsReady())
-            {
-                var target =
-                    GameObjects.EnemyHeroes.FirstOrDefault(
-                        t =>
-                            t.IsValidTarget(W.Range) && HeroListManager.Check("w-immobile", t) &&
-                            BestTargetOnlyManager.Check("w-immobile", W, t) && Utils.IsImmobile(t));
-                if (target != null)
-                {
-                    Casting.SkillShot(target, W, HitChance.High);
-                }
-            }
-
-            if (HeroListManager.Enabled("w-slowed") && W.IsReady())
-            {
-                var target =
-                    GameObjects.EnemyHeroes.FirstOrDefault(
-                        t =>
-                            t.IsValidTarget(W.Range) && HeroListManager.Check("w-slowed", t) &&
-                            BestTargetOnlyManager.Check("w-slowed", W, t) &&
-                            t.Buffs.Any(b => b.Type == BuffType.Slow && b.EndTime - Game.Time > 0.5f));
-                if (target != null)
-                {
-                    Casting.SkillShot(target, W, HitChance.High);
                 }
             }
 
@@ -405,8 +386,20 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                if (!args.Unit.IsMe)
+                {
+                    return;
+                }
                 var forced = Orbwalker.ForcedTarget();
-                if (HasQBuff() && (forced == null || !forced.IsValidTarget() || !Orbwalking.InAutoAttackRange(forced)))
+                if (forced != null && forced.IsValidTarget() && Orbwalking.InAutoAttackRange(forced))
+                {
+                    if (Player.CanAttack || Orbwalking.CanAttack(0))
+                    {
+                        Orbwalker.ForceTarget(null);
+                    }
+                    return;
+                }
+                if (HasQBuff())
                 {
                     if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
                     {
@@ -422,28 +415,24 @@ namespace SFXChallenger.Champions
                             return;
                         }
                     }
-                    if (!(args.Target is Obj_AI_Hero))
+                    if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
+                        Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed ||
+                        Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
                     {
-                        var targets = TargetSelector.GetTargets(Q.Range).ToList();
-                        if (targets.Any())
+                        if (!(args.Target is Obj_AI_Hero))
                         {
-                            var hero = targets.FirstOrDefault(Orbwalking.InAutoAttackRange);
-                            if (hero != null)
+                            var target =
+                                TargetSelector.GetTarget(
+                                    Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear
+                                        ? -1
+                                        : (Player.BoundingRadius * 2 + Player.AttackRange) * 1.25f);
+                            if (target != null)
                             {
-                                Orbwalker.ForceTarget(hero);
-                                args.Process = false;
-                            }
-                            else if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
-                            {
-                                if (
-                                    targets.Any(
-                                        t =>
-                                            t.Distance(Player) <
-                                            (Player.BoundingRadius + t.BoundingRadius + Player.AttackRange) *
-                                            (IsSpellUpgraded(Q) ? 1.5f : 1.3f)))
+                                if (Orbwalking.InAutoAttackRange(target))
                                 {
-                                    args.Process = false;
+                                    Orbwalker.ForceTarget(target);
                                 }
+                                args.Process = false;
                             }
                         }
                     }
@@ -499,6 +488,29 @@ namespace SFXChallenger.Champions
                         }
                     }
                     Orbwalker.ForceTarget(null);
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void OnBuffManagerBuff(object sender, BuffManagerArgs args)
+        {
+            try
+            {
+                if (W.IsReady())
+                {
+                    if (args.UniqueId.Equals("w-immobile") && BestTargetOnlyManager.Check("w-immobile", W, args.Hero) &&
+                        W.IsInRange(args.Position))
+                    {
+                        W.Cast(args.Position);
+                    }
+                    if (args.UniqueId.Equals("w-slowed") && BestTargetOnlyManager.Check("w-slowed", W, args.Hero))
+                    {
+                        Casting.SkillShot(args.Hero, W, HitChance.High);
+                    }
                 }
             }
             catch (Exception ex)
@@ -1076,6 +1088,8 @@ namespace SFXChallenger.Champions
                     Type = E.Type,
                     UseBoundingRadius = true
                 };
+                var maxMultiDistance = ELength / 100f *
+                                       Menu.Item(Menu.Name + ".miscellaneous.e-new-distance").GetValue<Slider>().Value;
                 var startPosition = Vector3.Zero;
                 var endPosition = Vector3.Zero;
                 var targets =
@@ -1104,7 +1118,7 @@ namespace SFXChallenger.Champions
                                 input.Unit = target2;
                                 var pred2 = Prediction.GetPrediction(input);
                                 if (!pred2.UnitPosition.Equals(Vector3.Zero) &&
-                                    new Geometry.Polygon.Circle(pred2.UnitPosition, target2.BoundingRadius * 0.9f)
+                                    new Geometry.Polygon.Circle(pred2.UnitPosition, target2.BoundingRadius * 0.8f)
                                         .Points.Any(p => rect.IsInside(p)))
                                 {
                                     additionalHits++;
@@ -1182,17 +1196,21 @@ namespace SFXChallenger.Champions
                                 var pred2 = Prediction.GetPrediction(input);
                                 if (pred2.Hitchance >= hitChance)
                                 {
-                                    hits++;
                                     var rect = new Geometry.Polygon.Rectangle(
                                         point, point.Extend(pred2.CastPosition, ELength), E.Width);
-                                    foreach (var target in targets.Where(t => t.NetworkId != mainTarget.NetworkId))
+                                    foreach (var target in targets)
                                     {
                                         input.Unit = target;
                                         var pred3 = Prediction.GetPrediction(input);
                                         if (!pred3.UnitPosition.Equals(Vector3.Zero) &&
+                                            (target.NetworkId.Equals(mainTarget.NetworkId) ||
+                                             pred3.UnitPosition.Distance(point) <=
+                                             maxMultiDistance + target.BoundingRadius * 0.8f) &&
                                             new Geometry.Polygon.Circle(
-                                                pred3.UnitPosition, target.BoundingRadius * 0.9f).Points.Any(
-                                                    p => rect.IsInside(p)))
+                                                pred3.UnitPosition,
+                                                target.BoundingRadius *
+                                                (target.NetworkId.Equals(mainTarget.NetworkId) ? 0.6f : 0.8f)).Points
+                                                .Any(p => rect.IsInside(p)))
                                         {
                                             hits++;
                                         }
@@ -1253,7 +1271,7 @@ namespace SFXChallenger.Champions
                 var minHits = Menu.Item(Menu.Name + ".lane-clear.e-min").GetValue<Slider>().Value;
                 if (minions.Count >= minHits)
                 {
-                    ELogic(null, (minions.Concat(GameObjects.EnemyHeroes)).ToList(), HitChance.High, minHits);
+                    ELogic(null, minions, HitChance.High, minHits);
                 }
             }
 
@@ -1281,7 +1299,10 @@ namespace SFXChallenger.Champions
                 var minions = MinionManager.GetMinions(
                     (E.Range + ELength + E.Width) * 1.2f, MinionTypes.All, MinionTeam.Neutral,
                     MinionOrderTypes.MaxHealth);
-                ELogic(null, (minions.Concat(GameObjects.EnemyHeroes)).ToList(), HitChance.High, 1);
+                if (minions.Count >= 1)
+                {
+                    ELogic(null, minions, HitChance.High, 1);
+                }
             }
 
 

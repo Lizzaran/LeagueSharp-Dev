@@ -78,6 +78,7 @@ namespace SFXChallenger.Champions
             Drawing.OnEndScene += OnDrawingEndScene;
             Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
             Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
+            BuffManager.OnBuff += OnBuffManagerBuff;
         }
 
         protected override void SetupSpells()
@@ -140,7 +141,6 @@ namespace SFXChallenger.Champions
                     "lane-clear", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
                 {
                     Advanced = true,
-                    MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
                     DefaultValues = new List<int> { 50, 50, 50 },
                     IgnoreJungleOption = true
@@ -152,7 +152,6 @@ namespace SFXChallenger.Champions
                 {
                     Prefix = "Blue",
                     Advanced = true,
-                    MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
                     DefaultValues = new List<int> { 60, 60, 60 },
                     IgnoreJungleOption = true
@@ -167,16 +166,16 @@ namespace SFXChallenger.Champions
             var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
 
             var qImmobileMenu = miscMenu.AddSubMenu(new Menu("Q Immobile", miscMenu.Name + "q-immobile"));
-            HeroListManager.AddToMenu(
-                qImmobileMenu,
+            BuffManager.AddToMenu(
+                qImmobileMenu, BuffManager.ImmobileBuffs,
                 new HeroListManagerArgs("q-immobile")
                 {
                     IsWhitelist = false,
                     Allies = false,
                     Enemies = true,
                     DefaultValue = false
-                });
-            BestTargetOnlyManager.AddToMenu(qImmobileMenu, "q-immobile", true);
+                }, false);
+            BestTargetOnlyManager.AddToMenu(qImmobileMenu, "q-immobile");
 
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".q-range", "Q Range").SetValue(
@@ -230,6 +229,10 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                if (!args.Unit.IsMe)
+                {
+                    return;
+                }
                 var hero = args.Target as Obj_AI_Hero;
                 if (hero != null)
                 {
@@ -298,6 +301,30 @@ namespace SFXChallenger.Champions
             return target != null && W.GetDamage(target, stage) - 5 > target.Health + target.HPRegenRate;
         }
 
+        private void OnBuffManagerBuff(object sender, BuffManagerArgs args)
+        {
+            try
+            {
+                if (Q.IsReady())
+                {
+                    if (args.UniqueId.Equals("q-immobile") && BestTargetOnlyManager.Check("q-immobile", Q, args.Hero) &&
+                        Q.IsInRange(args.Hero))
+                    {
+                        var best = BestQPosition(
+                            args.Hero, GameObjects.EnemyHeroes.Select(e => e as Obj_AI_Base).ToList(), HitChance.High);
+                        if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
+                        {
+                            Q.Cast(best.Item2);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
         protected override void OnPreUpdate() {}
 
         protected override void OnPostUpdate()
@@ -335,23 +362,6 @@ namespace SFXChallenger.Champions
                 if (Menu.Item(Menu.Name + ".manual.gold").GetValue<KeyBind>().Active)
                 {
                     Cards.Select(CardColor.Gold);
-                }
-            }
-            if (HeroListManager.Enabled("q-immobile") && Q.IsReady())
-            {
-                var target =
-                    GameObjects.EnemyHeroes.FirstOrDefault(
-                        t =>
-                            t.IsValidTarget(Q.Range) && HeroListManager.Check("q-immobile", t) &&
-                            BestTargetOnlyManager.Check("q-immobile", W, t) && Utils.IsImmobile(t));
-                if (target != null)
-                {
-                    var best = BestQPosition(
-                        target, GameObjects.EnemyHeroes.Select(e => e as Obj_AI_Base).ToList(), HitChance.High);
-                    if (!best.Item2.Equals(Vector3.Zero) && best.Item1 >= 1)
-                    {
-                        Q.Cast(best.Item2);
-                    }
                 }
             }
         }

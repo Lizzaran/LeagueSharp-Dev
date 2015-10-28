@@ -37,8 +37,8 @@ namespace SFXChallenger.Menus
     {
         private static readonly Dictionary<Spell, Spell> DefaultSpells = new Dictionary<Spell, Spell>();
         private static Menu _menu;
-        private static readonly float MinMultiplicator = 0.6f;
-        private static readonly float MaxMultiplicator = 1.4f;
+        private static readonly float MinMultiplicator = 0.5f;
+        private static readonly float MaxMultiplicator = 1.5f;
 
         public static void AddToMenu(Menu menu, List<Wrappers.Spell> spells)
         {
@@ -82,8 +82,8 @@ namespace SFXChallenger.Menus
                         spellMenu.AddItem(
                             new MenuItem(spellMenu.Name + ".range", "Range").SetValue(
                                 new Slider(
-                                    (int) range, (int) (range * MinMultiplicator), (int) (range * MaxMultiplicator))))
-                            .ValueChanged +=
+                                    (int) range, (int) (range * MinMultiplicator), (int) (range * MaxMultiplicator)))
+                                .DontSave()).ValueChanged +=
                             delegate(object sender, OnValueChangeEventArgs args)
                             {
                                 lSpell.Range = args.GetNewValue<Slider>().Value;
@@ -96,8 +96,8 @@ namespace SFXChallenger.Menus
                         spellMenu.AddItem(
                             new MenuItem(spellMenu.Name + ".width", "Width").SetValue(
                                 new Slider(
-                                    (int) width, (int) (width * MinMultiplicator), (int) (width * MaxMultiplicator))))
-                            .ValueChanged +=
+                                    (int) width, (int) (width * MinMultiplicator), (int) (width * MaxMultiplicator)))
+                                .DontSave()).ValueChanged +=
                             delegate(object sender, OnValueChangeEventArgs args)
                             {
                                 lSpell.Width = args.GetNewValue<Slider>().Value;
@@ -110,8 +110,8 @@ namespace SFXChallenger.Menus
                         spellMenu.AddItem(
                             new MenuItem(spellMenu.Name + ".speed", "Speed").SetValue(
                                 new Slider(
-                                    (int) speed, (int) (speed * MinMultiplicator), (int) (speed * MaxMultiplicator))))
-                            .ValueChanged +=
+                                    (int) speed, (int) (speed * MinMultiplicator), (int) (speed * MaxMultiplicator)))
+                                .DontSave()).ValueChanged +=
                             delegate(object sender, OnValueChangeEventArgs args)
                             {
                                 lSpell.Speed = args.GetNewValue<Slider>().Value;
@@ -122,8 +122,8 @@ namespace SFXChallenger.Menus
                     spellMenu.AddItem(
                         new MenuItem(spellMenu.Name + ".delay", "Delay").SetValue(
                             new Slider(
-                                (int) (delay * 1000), 0, (int) ((delay > 1 ? delay * MaxMultiplicator : 1) * 1000))))
-                        .ValueChanged +=
+                                (int) (delay * 1000), 0, (int) ((delay > 1 ? delay * MaxMultiplicator : 1) * 1000)))
+                            .DontSave()).ValueChanged +=
                         delegate(object sender, OnValueChangeEventArgs args)
                         {
                             lSpell.Delay = args.GetNewValue<Slider>().Value / 1000f;
@@ -135,8 +135,8 @@ namespace SFXChallenger.Menus
                         spellMenu.AddItem(
                             new MenuItem(spellMenu.Name + ".duration", "Duration").SetValue(
                                 new Slider(
-                                    duration, (int) (duration * MinMultiplicator), (int) (duration * MaxMultiplicator))))
-                            .ValueChanged +=
+                                    duration, (int) (duration * MinMultiplicator), (int) (duration * MaxMultiplicator)))
+                                .DontSave()).ValueChanged +=
                             delegate(object sender, OnValueChangeEventArgs args)
                             {
                                 lSpell.ChargeDuration = args.GetNewValue<Slider>().Value;
@@ -144,8 +144,8 @@ namespace SFXChallenger.Menus
                         spellMenu.AddItem(
                             new MenuItem(spellMenu.Name + ".min-range", "Min. Range").SetValue(
                                 new Slider(
-                                    minRange, (int) (minRange * MinMultiplicator), (int) (minRange * MaxMultiplicator))))
-                            .ValueChanged +=
+                                    minRange, (int) (minRange * MinMultiplicator), (int) (minRange * MaxMultiplicator)))
+                                .DontSave()).ValueChanged +=
                             delegate(object sender, OnValueChangeEventArgs args)
                             {
                                 lSpell.ChargedMinRange = args.GetNewValue<Slider>().Value;
@@ -153,8 +153,8 @@ namespace SFXChallenger.Menus
                         spellMenu.AddItem(
                             new MenuItem(spellMenu.Name + ".max-range", "Max. Range").SetValue(
                                 new Slider(
-                                    maxRange, (int) (maxRange * MinMultiplicator), (int) (maxRange * MaxMultiplicator))))
-                            .ValueChanged +=
+                                    maxRange, (int) (maxRange * MinMultiplicator), (int) (maxRange * MaxMultiplicator)))
+                                .DontSave()).ValueChanged +=
                             delegate(object sender, OnValueChangeEventArgs args)
                             {
                                 lSpell.ChargedMaxRange = args.GetNewValue<Slider>().Value;
@@ -174,7 +174,7 @@ namespace SFXChallenger.Menus
                     };
                 Core.SetInterval(_menu.Item(_menu.Name + ".tick").GetValue<Slider>().Value);
 
-                _menu.AddItem(new MenuItem(_menu.Name + ".reset", "Reset").DontSave().SetValue(false)).ValueChanged +=
+                _menu.AddItem(new MenuItem(_menu.Name + ".reset", "Reset").SetValue(false).DontSave()).ValueChanged +=
                     delegate(object sender, OnValueChangeEventArgs args)
                     {
                         try

@@ -494,13 +494,15 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                return minion.CharData.BaseSkinName.Contains("Melee")
+                var points = minion.CharData.BaseSkinName.Contains("Melee")
                     ? _weightMelee
                     : (minion.CharData.BaseSkinName.Contains("Ranged")
                         ? _weightRanged
                         : (minion.CharData.BaseSkinName.Contains("Super")
                             ? _weightSuper
                             : (minion.CharData.BaseSkinName.Contains("Siege") ? _weightSiege : 0)));
+                return
+                    (int)(minion.IsMelee ? points / 100f * minion.HealthPercent : points - (points / 100f * minion.HealthPercent / 2f));
             }
             catch (Exception ex)
             {

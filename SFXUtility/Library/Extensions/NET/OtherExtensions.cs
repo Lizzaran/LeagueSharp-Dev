@@ -2,20 +2,20 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- OtherExtensions.cs is part of SFXLibrary.
+ OtherExtensions.cs is part of SFXUtility.
 
- SFXLibrary is free software: you can redistribute it and/or modify
+ SFXUtility is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
 
- SFXLibrary is distributed in the hope that it will be useful,
+ SFXUtility is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  GNU General Public License for more details.
 
  You should have received a copy of the GNU General Public License
- along with SFXLibrary. If not, see <http://www.gnu.org/licenses/>.
+ along with SFXUtility. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #endregion License
@@ -25,6 +25,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -81,9 +82,17 @@ namespace SFXUtility.Library.Extensions.NET
         /// <exception cref="Exception">The operation failed.</exception>
         public static Bitmap Scale(this Bitmap bitmap, float scale)
         {
-            return new Bitmap(
-                bitmap,
-                new Size((int) (Math.Ceiling(bitmap.Width * scale)), (int) (Math.Ceiling(bitmap.Height * scale))));
+            var scaled = new Bitmap(
+                (int) (Math.Ceiling(bitmap.Width * scale)), (int) (Math.Ceiling(bitmap.Height * scale)));
+            using (var graphics = Graphics.FromImage(scaled))
+            {
+                graphics.CompositingQuality = CompositingQuality.HighQuality;
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.SmoothingMode = SmoothingMode.HighQuality;
+                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                graphics.DrawImage(bitmap, new Rectangle(0, 0, scaled.Width, scaled.Height));
+            }
+            return scaled;
         }
     }
 }

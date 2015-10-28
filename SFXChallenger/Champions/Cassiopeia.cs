@@ -78,6 +78,7 @@ namespace SFXChallenger.Champions
             Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
             Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
             GapcloserManager.OnGapcloser += OnEnemyGapcloser;
+            BuffManager.OnBuff += OnBuffManagerBuff;
         }
 
         protected override void SetupSpells()
@@ -169,7 +170,6 @@ namespace SFXChallenger.Champions
                     "lane-clear", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
                 {
                     Advanced = true,
-                    MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
                     DefaultValues = new List<int> { 50, 30, 30 },
                     IgnoreJungleOption = true
@@ -186,7 +186,6 @@ namespace SFXChallenger.Champions
                     "lasthit", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Maximum)
                 {
                     Advanced = true,
-                    MaxValue = 101,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
                     DefaultValues = new List<int> { 90, 70, 70 }
                 });
@@ -240,16 +239,16 @@ namespace SFXChallenger.Champions
             BestTargetOnlyManager.AddToMenu(wGapcloserMenu, "w-gapcloser");
 
             var wImmobileMenu = miscMenu.AddSubMenu(new Menu("W Immobile", miscMenu.Name + "w-immobile"));
-            HeroListManager.AddToMenu(
-                wImmobileMenu,
+            BuffManager.AddToMenu(
+                wImmobileMenu, BuffManager.ImmobileBuffs,
                 new HeroListManagerArgs("w-immobile")
                 {
                     IsWhitelist = false,
                     Allies = false,
                     Enemies = true,
                     DefaultValue = false
-                });
-            BestTargetOnlyManager.AddToMenu(wImmobileMenu, "w-immobile", true);
+                }, true);
+            BestTargetOnlyManager.AddToMenu(wImmobileMenu, "w-immobile");
 
             var wFleeingMenu = miscMenu.AddSubMenu(new Menu("W Fleeing", miscMenu.Name + "w-fleeing"));
             HeroListManager.AddToMenu(
@@ -277,6 +276,25 @@ namespace SFXChallenger.Champions
 
             Weights.AddItem(
                 new Weights.Item("poison-time", "Poison Time", 5, false, hero => GetPoisonBuffEndTime(hero) + 1));
+        }
+
+        private void OnBuffManagerBuff(object sender, BuffManagerArgs args)
+        {
+            try
+            {
+                if (W.IsReady())
+                {
+                    if (args.UniqueId.Equals("w-immobile") && BestTargetOnlyManager.Check("w-immobile", W, args.Hero) &&
+                        W.IsInRange(args.Position))
+                    {
+                        W.Cast(args.Position);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
         }
 
         protected override void OnPreUpdate()
@@ -411,6 +429,10 @@ namespace SFXChallenger.Champions
         {
             try
             {
+                if (!args.Unit.IsMe)
+                {
+                    return;
+                }
                 var t = args.Target as Obj_AI_Hero;
                 if (t != null &&
                     (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||

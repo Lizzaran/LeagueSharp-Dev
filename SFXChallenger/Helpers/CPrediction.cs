@@ -66,7 +66,6 @@ namespace SFXChallenger.Helpers
                     where prediction.Hitchance >= hitChance
                     select new Position(t, prediction.UnitPosition)).ToList();
                 var spellWidth = spell.Width;
-                //+ (boundingRadius ? positions.Select(p => p.Hero).Min(p => p.BoundingRadius) : 0);
                 if (positions.Any())
                 {
                     var mainTarget = positions.FirstOrDefault(p => p.Hero.NetworkId == target.NetworkId);

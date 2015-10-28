@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.9.5.11</AssemblyVersion>
+    <AssemblyVersion>0.9.5.13</AssemblyVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -83,6 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Abstracts\Champion.cs" />
+    <Compile Include="Args\BuffManagerArgs.cs" />
     <Compile Include="Args\GapcloserManagerArgs.cs" />
     <Compile Include="Args\HeroListManagerArgs.cs" />
     <Compile Include="Args\ResourceManagerArgs.cs" />
@@ -140,6 +141,7 @@
     <Compile Include="Library\Update.cs" />
     <Compile Include="Library\Utils.cs" />
     <Compile Include="Managers\BestTargetOnlyManager.cs" />
+    <Compile Include="Managers\BuffManager.cs" />
     <Compile Include="Managers\DelayManager.cs" />
     <Compile Include="Managers\DrawingManager.cs" />
     <Compile Include="Managers\GapcloserManager.cs" />
