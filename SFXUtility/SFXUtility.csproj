@@ -24,7 +24,7 @@
     <AssemblyVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyVersionSettings>
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
-    <AssemblyVersion>0.8.8.6</AssemblyVersion>
+    <AssemblyVersion>0.8.8.8</AssemblyVersion>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -138,7 +138,6 @@
     <Compile Include="Features\Timers\Altar.cs" />
     <Compile Include="Features\Timers\Relic.cs" />
     <Compile Include="Features\Timers\Inhibitor.cs" />
-    <Compile Include="Features\Trackers\GoldEfficiency.cs" />
     <Compile Include="Features\Trackers\Sidebar.cs" />
     <Compile Include="Features\Trackers\Destination.cs" />
     <Compile Include="Features\Drawings\Clone.cs" />
@@ -203,14 +202,11 @@
     <Content Include="Resources\CD\CD_HudSelf.png" />
     <Content Include="Resources\CD\CD_summonerbarrier.png" />
     <Content Include="Resources\CD\CD_summonerboost.png" />
-    <Content Include="Resources\CD\CD_summonerclairvoyance.png" />
     <Content Include="Resources\CD\CD_summonerdot.png" />
     <Content Include="Resources\CD\CD_summonerexhaust.png" />
     <Content Include="Resources\CD\CD_summonerflash.png" />
     <Content Include="Resources\CD\CD_summonerhaste.png" />
     <Content Include="Resources\CD\CD_summonerheal.png" />
-    <Content Include="Resources\CD\CD_summonermana.png" />
-    <Content Include="Resources\CD\CD_summonerodingarrison.png" />
     <Content Include="Resources\CD\CD_summonersmite.png" />
     <Content Include="Resources\CD\CD_summonerteleport.png" />
     <Content Include="Resources\Champions\Aatrox.png" />
@@ -351,14 +347,11 @@
     <Content Include="Resources\SB\SB_RecallStart.png" />
     <Content Include="Resources\SB\SB_summonerbarrier.jpg" />
     <Content Include="Resources\SB\SB_summonerboost.jpg" />
-    <Content Include="Resources\SB\SB_summonerclairvoyance.jpg" />
     <Content Include="Resources\SB\SB_summonerdot.jpg" />
     <Content Include="Resources\SB\SB_summonerexhaust.jpg" />
     <Content Include="Resources\SB\SB_summonerflash.jpg" />
     <Content Include="Resources\SB\SB_summonerhaste.jpg" />
     <Content Include="Resources\SB\SB_summonerheal.jpg" />
-    <Content Include="Resources\SB\SB_summonermana.jpg" />
-    <Content Include="Resources\SB\SB_summonerodingarrison.jpg" />
     <Content Include="Resources\SB\SB_summonersmite.jpg" />
     <Content Include="Resources\SB\SB_summonerteleport.jpg" />
     <Content Include="Resources\SB\SB_Ultimate.png" />

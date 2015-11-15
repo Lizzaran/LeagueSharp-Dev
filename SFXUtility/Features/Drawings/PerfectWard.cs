@@ -42,19 +42,17 @@ namespace SFXUtility.Features.Drawings
     {
         private const float CheckInterval = 300f;
 
-        private readonly List<int> _greenWards = new List<int>
+        private readonly List<int> _wards = new List<int>
         {
             ItemData.Warding_Totem_Trinket.Id,
-            ItemData.Wriggles_Lantern.Id,
+            ItemData.Vision_Ward.Id,
+            ItemData.Farsight_Alteration.Id,
             ItemData.Sightstone.Id,
             ItemData.Ruby_Sightstone.Id,
-            ItemData.Explorers_Ward.Id
-        };
-
-        private readonly List<int> _pinkWards = new List<int>
-        {
-            ItemData.Stealth_Ward.Id,
-            ItemData.Greater_Stealth_Totem_Trinket.Id
+            ItemData.Eye_of_the_Equinox.Id,
+            ItemData.Eye_of_the_Oasis.Id,
+            ItemData.Eye_of_the_Watchers.Id,
+            ItemData.Trackers_Knife.Id
         };
 
         private readonly List<WardSpot> _wardSpots = new List<WardSpot>
@@ -388,8 +386,7 @@ namespace SFXUtility.Features.Drawings
         private bool IsWardSlot(SpellSlot slot)
         {
             var iSlot = ObjectManager.Player.InventoryItems.FirstOrDefault(i => i.SpellSlot == slot);
-            return _greenWards.Any(v => iSlot != null && (ItemId) v == iSlot.Id) ||
-                   _pinkWards.Any(v => iSlot != null && (ItemId) v == iSlot.Id);
+            return _wards.Any(v => iSlot != null && (ItemId) v == iSlot.Id);
         }
 
         private WardSpot GetNearestWardSpot(Vector3 pos)

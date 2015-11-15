@@ -29,6 +29,7 @@ using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXUtility.Classes;
+using SFXUtility.Data;
 using SFXUtility.Library;
 using SFXUtility.Library.Extensions.NET;
 using SFXUtility.Library.Extensions.SharpDX;
@@ -48,7 +49,6 @@ namespace SFXUtility.Features.Trackers
 {
     internal class Sidebar : Child<Trackers>
     {
-        private const int Version = 1;
         private const float HealthWidth = 74.5f;
         private const float HudWidth = 90f;
         private const float HudHeight = 84f;
@@ -151,7 +151,7 @@ namespace SFXUtility.Features.Trackers
                     for (var i = 0; spellData.Count > i; i++)
                     {
                         var spell = spellData[i];
-                        if (spell != null && _summonerTextures.ContainsKey(FixSummonerName(spell.Name)))
+                        if (spell != null && _summonerTextures.ContainsKey(Summoners.FixName(spell.Name)))
                         {
                             var teleportCd = 0f;
                             if (spell.Name.Contains("Teleport", StringComparison.OrdinalIgnoreCase) &&
@@ -162,7 +162,7 @@ namespace SFXUtility.Features.Trackers
                             var time = (teleportCd > 0.1f ? teleportCd : spell.CooldownExpires) - Game.Time;
                             _sprite.Begin(SpriteFlags.AlphaBlend);
                             _sprite.DrawCentered(
-                                _summonerTextures[FixSummonerName(spell.Name)],
+                                _summonerTextures[Summoners.FixName(spell.Name)],
                                 new Vector2(
                                     offsetRight + hudWidth * 0.355f,
                                     offsetTop - hudHeight * 0.275f + offset + ((float) (Math.Ceiling(26 * _scale)) * i)));
@@ -300,7 +300,12 @@ namespace SFXUtility.Features.Trackers
                             new Vector2(offsetRight - hudWidth * 0.09f, offsetTop - hudHeight * 0.12f + offset));
                         _sprite.End();
                     }
-
+                    if (!enemy.Unit.IsDead && !enemy.LastPosition.Equals(Vector3.Zero) &&
+                        enemy.LastPosition.Distance(enemy.Unit.Position) > 500)
+                    {
+                        enemy.LastVisible = Game.Time;
+                    }
+                    enemy.LastPosition = enemy.Unit.Position;
                     if (enemy.Unit.IsVisible || enemy.Unit.IsDead)
                     {
                         enemy.LastVisible = Game.Time;
@@ -409,7 +414,7 @@ namespace SFXUtility.Features.Trackers
                     _enemyObjects.Add(
                         new EnemyObject(
                             enemy,
-                            ((ImageLoader.Load(Version, "SB", enemy.ChampionName) ?? Resources.SB_Default).Scale(_scale))
+                            ((ImageLoader.Load("SB", enemy.ChampionName) ?? Resources.SB_Default).Scale(_scale))
                                 .ToTexture()));
                 }
 
@@ -418,12 +423,12 @@ namespace SFXUtility.Features.Trackers
                     foreach (var enemy in GameObjects.EnemyHeroes)
                     {
                         var spell = enemy.Spellbook.GetSpell(summonerSlot);
-                        if (!_summonerTextures.ContainsKey(FixSummonerName(spell.Name)))
+                        if (!_summonerTextures.ContainsKey(Summoners.FixName(spell.Name)))
                         {
-                            _summonerTextures[FixSummonerName(spell.Name)] =
+                            _summonerTextures[Summoners.FixName(spell.Name)] =
                                 (((Bitmap)
                                     Resources.ResourceManager.GetObject(
-                                        string.Format("SB_{0}", FixSummonerName(spell.Name)))) ??
+                                        string.Format("SB_{0}", Summoners.FixName(spell.Name)))) ??
                                  Resources.SB_summonerbarrier).Scale(_scale).ToTexture();
                         }
                     }
@@ -437,16 +442,9 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        private string FixSummonerName(string name)
-        {
-            return name.Contains("Smite", StringComparison.OrdinalIgnoreCase)
-                ? "summonersmite"
-                : (name.Contains("Teleport", StringComparison.OrdinalIgnoreCase) ? "summonerteleport" : name.ToLower());
-        }
-
         private string ReadableSummonerName(string name)
         {
-            name = FixSummonerName(name);
+            name = Summoners.FixName(name);
             switch (name)
             {
                 case "summonerflash":
@@ -465,14 +463,6 @@ namespace SFXUtility.Features.Trackers
                     return "Barrier";
                 case "summonerboost":
                     return "Cleanse";
-                case "summonermana":
-                    return "Clarity";
-                case "summonerclairvoyance":
-                    return "Clairvoyance";
-                case "summonerodingarrison":
-                    return "Garrison";
-                case "summonersnowball":
-                    return "Mark";
                 case "summonersmite":
                     return "Smite";
             }
@@ -495,14 +485,7 @@ namespace SFXUtility.Features.Trackers
                         Utility.DelayAction.Add(
                             250, delegate
                             {
-                                var cd = packet.Status == Packet.S2C.Teleport.Status.Finish
-                                    ? (GameObjects.EnemyHeroes.Any(
-                                        e =>
-                                            e.NetworkId == packet.UnitNetworkId &&
-                                            GameObjects.EnemyTurrets.Any(t => e.Distance(t) < 400))
-                                        ? 240
-                                        : 300)
-                                    : 200;
+                                var cd = packet.Status == Packet.S2C.Teleport.Status.Finish ? 300 : 200;
                                 _teleports[packet.UnitNetworkId] = time + cd;
                             });
                     }
@@ -611,6 +594,7 @@ namespace SFXUtility.Features.Trackers
                 Texture = texture;
                 RSpell = unit.GetSpell(SpellSlot.R);
                 LastVisible = Game.Time;
+                LastPosition = Vector3.Zero;
             }
 
             public Texture Texture { get; private set; }
@@ -618,6 +602,7 @@ namespace SFXUtility.Features.Trackers
             public Obj_AI_Hero Unit { get; private set; }
             public float DeathEndTime { get; set; }
             public float LastVisible { get; set; }
+            public Vector3 LastPosition { get; set; }
             public float LastTeleportStatusTime { get; private set; }
 
             public Packet.S2C.Teleport.Status TeleportStatus

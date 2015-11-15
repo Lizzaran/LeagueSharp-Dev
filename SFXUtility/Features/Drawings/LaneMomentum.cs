@@ -41,7 +41,8 @@ namespace SFXUtility.Features.Drawings
     internal class LaneMomentum : Child<Drawings>
     {
         private const float CheckInterval = 1000f;
-        private const float MaxDistance = 3000f;
+        private const float CheckInterval2 = 5000f;
+        private const float MaxDistance = 2000f;
         private const int MaxWeight = 10;
         private readonly List<Obj_AI_Minion> _botChaosMinions = new List<Obj_AI_Minion>();
         private readonly List<Obj_AI_Minion> _botOrderMinions = new List<Obj_AI_Minion>();
@@ -53,13 +54,28 @@ namespace SFXUtility.Features.Drawings
         private readonly List<Obj_AI_Minion> _topOrderMinions = new List<Obj_AI_Minion>();
         private readonly Geometry.Polygon _topRegion = new Geometry.Polygon();
         private int _botChaos;
+        private float _botChaosAverageDamage;
+        private int _botChaosTowers;
         private int _botOrder;
+        private float _botOrderAverageDamage;
+        private int _botOrderTowers;
+        private int _chaosAverageLevel;
         private float _lastCheck = Environment.TickCount;
+        private float _lastCheck2 = Environment.TickCount;
         private Line _line;
         private int _midChaos;
+        private float _midChaosAverageDamage;
+        private int _midChaosTowers;
         private int _midOrder;
+        private float _midOrderAverageDamage;
+        private int _midOrderTowers;
+        private int _orderAverageLevel;
         private int _topChaos;
+        private float _topChaosAverageDamage;
+        private int _topChaosTowers;
         private int _topOrder;
+        private float _topOrderAverageDamage;
+        private int _topOrderTowers;
         private int _weightMelee;
         private int _weightRanged;
         private int _weightSiege;
@@ -86,15 +102,15 @@ namespace SFXUtility.Features.Drawings
 
                 if (_line != null && !_line.IsDisposed)
                 {
-                    var colorChaos = Menu.Item(Name + "DrawingColorChaos").GetValue<Color>();
-                    var colorOrder = Menu.Item(Name + "DrawingColorOrder").GetValue<Color>();
+                    var colorEnemy = Menu.Item(Name + "DrawingColorEnemy").GetValue<Color>();
+                    var colorAlly = Menu.Item(Name + "DrawingColorAlly").GetValue<Color>();
                     var alpha = (byte) (Menu.Item(Name + "DrawingOpacity").GetValue<Slider>().Value * 255 / 100);
 
                     var width = Menu.Item(Name + "DrawingWidth").GetValue<Slider>().Value;
                     var height = Menu.Item(Name + "DrawingHeight").GetValue<Slider>().Value;
 
-                    var sColorChaos = new ColorBGRA(colorChaos.R, colorChaos.G, colorChaos.B, alpha);
-                    var sColorOrder = new ColorBGRA(colorOrder.R, colorOrder.G, colorOrder.B, alpha);
+                    var sColorEnemy = new ColorBGRA(colorEnemy.R, colorEnemy.G, colorEnemy.B, alpha);
+                    var sColorAlly = new ColorBGRA(colorAlly.R, colorAlly.G, colorAlly.B, alpha);
                     var sColorBorder = new ColorBGRA(255, 255, 255, alpha);
 
                     var posX = Menu.Item(Name + "DrawingOffsetLeft").GetValue<Slider>().Value;
@@ -127,7 +143,8 @@ namespace SFXUtility.Features.Drawings
                                     {
                                         new Vector2(posX + offset + barWidth / 2f - pWidth, posY + barHeight / 2f),
                                         new Vector2(posX + offset + barWidth / 2f, posY + barHeight / 2f)
-                                    }, sColorChaos);
+                                    },
+                                    ObjectManager.Player.Team == GameObjectTeam.Chaos ? sColorAlly : sColorEnemy);
                             }
                             else
                             {
@@ -137,7 +154,7 @@ namespace SFXUtility.Features.Drawings
                                         new Vector2(posX + offset + barWidth / 2f, posY + barHeight / 2f),
                                         new Vector2(posX + offset + barWidth / 2f + pWidth, posY + barHeight / 2f)
                                     },
-                                    sColorOrder);
+                                    ObjectManager.Player.Team == GameObjectTeam.Order ? sColorAlly : sColorEnemy);
                             }
                             _line.End();
                         }
@@ -187,6 +204,7 @@ namespace SFXUtility.Features.Drawings
             Game.OnUpdate += OnGameUpdate;
             Drawing.OnEndScene += OnDrawingEndScene;
             GameObject.OnCreate += OnGameObjectCreate;
+            GameObject.OnDelete += OnGameObjectDelete;
             base.OnEnable();
         }
 
@@ -195,6 +213,7 @@ namespace SFXUtility.Features.Drawings
             Game.OnUpdate -= OnGameUpdate;
             Drawing.OnEndScene -= OnDrawingEndScene;
             GameObject.OnCreate -= OnGameObjectCreate;
+            GameObject.OnDelete -= OnGameObjectDelete;
             base.OnDisable();
         }
 
@@ -206,16 +225,16 @@ namespace SFXUtility.Features.Drawings
 
                 var drawingMenu = new Menu("Drawing", Name + "Drawing");
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "ColorChaos", "Color Chaos").SetValue(Color.DarkRed));
+                    new MenuItem(drawingMenu.Name + "ColorEnemy", "Color Enemy").SetValue(Color.DarkRed));
                 drawingMenu.AddItem(
-                    new MenuItem(drawingMenu.Name + "ColorOrder", "Color Order").SetValue(Color.DeepSkyBlue));
+                    new MenuItem(drawingMenu.Name + "ColorAlly", "Color Ally").SetValue(Color.DeepSkyBlue));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Opacity", "Opacity").SetValue(new Slider(60, 5)));
                 drawingMenu.AddItem(new MenuItem(drawingMenu.Name + "Height", "Height").SetValue(new Slider(15, 10)));
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + "Width", "Width").SetValue(new Slider(300, 50, 1000)));
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + "OffsetTop", "Offset Top").SetValue(
-                        new Slider(5, 0, Drawing.Height)));
+                        new Slider(0, 0, Drawing.Height)));
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + "OffsetLeft", "Offset Left").SetValue(
                         new Slider((int) (Drawing.Width / 2f - 150), 0, Drawing.Width)));
@@ -357,7 +376,90 @@ namespace SFXUtility.Features.Drawings
                     OnMinionCreated(minion);
                 }
 
+                foreach (var turret in
+                    GameObjects.Turrets.Where(t => t.IsValid && !t.IsDead || t.Health > 1f))
+                {
+                    if (turret.Team == GameObjectTeam.Chaos)
+                    {
+                        if (_botRegion.IsInside(turret.Position))
+                        {
+                            _botChaosTowers = Math.Min(3, _botChaosTowers + 1);
+                        }
+                        else if (_midRegion.IsInside(turret.Position))
+                        {
+                            _midChaosTowers = Math.Min(3, _midChaosTowers + 1);
+                        }
+                        else if (_topRegion.IsInside(turret.Position))
+                        {
+                            _topChaosTowers = Math.Min(3, _topChaosTowers + 1);
+                        }
+                    }
+                    else if (turret.Team == GameObjectTeam.Order)
+                    {
+                        if (_botRegion.IsInside(turret.Position))
+                        {
+                            _botOrderTowers = Math.Min(3, _botOrderTowers + 1);
+                        }
+                        else if (_midRegion.IsInside(turret.Position))
+                        {
+                            _midOrderTowers = Math.Min(3, _midOrderTowers + 1);
+                        }
+                        else if (_topRegion.IsInside(turret.Position))
+                        {
+                            _topOrderTowers = Math.Min(3, _topOrderTowers + 1);
+                        }
+                    }
+                }
+
                 base.OnInitialize();
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void OnGameObjectDelete(GameObject sender, EventArgs args)
+        {
+            try
+            {
+                var turret = sender as Obj_AI_Turret;
+                if (turret != null)
+                {
+                    if (_botRegion.IsInside(turret.Position))
+                    {
+                        if (turret.Team == GameObjectTeam.Chaos)
+                        {
+                            _botChaosTowers = Math.Max(0, _botChaosTowers - 1);
+                        }
+                        else if (turret.Team == GameObjectTeam.Order)
+                        {
+                            _botOrderTowers = Math.Max(0, _botOrderTowers - 1);
+                        }
+                    }
+                    else if (_midRegion.IsInside(turret.Position))
+                    {
+                        if (turret.Team == GameObjectTeam.Chaos)
+                        {
+                            _midChaosTowers = Math.Max(0, _midChaosTowers - 1);
+                        }
+                        else if (turret.Team == GameObjectTeam.Order)
+                        {
+                            _midOrderTowers = Math.Max(0, _midOrderTowers - 1);
+                        }
+                    }
+                    else if (_topRegion.IsInside(turret.Position))
+                    {
+                        if (turret.Team == GameObjectTeam.Chaos)
+                        {
+                            _topChaosTowers = Math.Max(0, _topChaosTowers - 1);
+                        }
+                        else if (turret.Team == GameObjectTeam.Order)
+                        {
+                            _topOrderTowers = Math.Max(0, _topOrderTowers - 1);
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -432,57 +534,97 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                if (_lastCheck + CheckInterval > Environment.TickCount)
+                if (Environment.TickCount > _lastCheck2 + CheckInterval2)
                 {
-                    return;
+                    _lastCheck2 = Environment.TickCount;
+
+                    _chaosAverageLevel =
+                        (int)
+                            GameObjects.Heroes.Where(h => h.Team == GameObjectTeam.Chaos)
+                                .Select(h => h.Level)
+                                .DefaultIfEmpty(0)
+                                .Average();
+                    _orderAverageLevel =
+                        (int)
+                            GameObjects.Heroes.Where(h => h.Team == GameObjectTeam.Order)
+                                .Select(h => h.Level)
+                                .DefaultIfEmpty(0)
+                                .Average();
                 }
 
-                _lastCheck = Environment.TickCount;
+                if (Environment.TickCount > _lastCheck + CheckInterval)
+                {
+                    _lastCheck = Environment.TickCount;
 
-                var chaosStart = GameObjects.SpawnPoints.First(s => s.Team == GameObjectTeam.Chaos).Position;
-                var orderStart = GameObjects.SpawnPoints.First(s => s.Team == GameObjectTeam.Order).Position;
+                    var chaosStart = GameObjects.SpawnPoints.First(s => s.Team == GameObjectTeam.Chaos).Position;
+                    var orderStart = GameObjects.SpawnPoints.First(s => s.Team == GameObjectTeam.Order).Position;
 
-                _topChaosMinions.RemoveAll(m => !m.IsValid || m.IsDead);
-                _topOrderMinions.RemoveAll(m => !m.IsValid || m.IsDead);
+                    _topChaosMinions.RemoveAll(m => !m.IsValid || m.IsDead);
+                    _topOrderMinions.RemoveAll(m => !m.IsValid || m.IsDead);
 
-                _midChaosMinions.RemoveAll(m => !m.IsValid || m.IsDead);
-                _midOrderMinions.RemoveAll(m => !m.IsValid || m.IsDead);
+                    _midChaosMinions.RemoveAll(m => !m.IsValid || m.IsDead);
+                    _midOrderMinions.RemoveAll(m => !m.IsValid || m.IsDead);
 
-                _botChaosMinions.RemoveAll(m => !m.IsValid || m.IsDead);
-                _botOrderMinions.RemoveAll(m => !m.IsValid || m.IsDead);
+                    _botChaosMinions.RemoveAll(m => !m.IsValid || m.IsDead);
+                    _botOrderMinions.RemoveAll(m => !m.IsValid || m.IsDead);
 
-                var topChaosMinion = _topChaosMinions.OrderBy(m => m.Distance(orderStart)).FirstOrDefault();
-                var topOrderMinion = _topOrderMinions.OrderBy(m => m.Distance(chaosStart)).FirstOrDefault();
+                    var topChaosMinion = _topChaosMinions.OrderBy(m => m.Distance(orderStart)).FirstOrDefault();
+                    var topOrderMinion = _topOrderMinions.OrderBy(m => m.Distance(chaosStart)).FirstOrDefault();
 
-                var midChaosMinion = _midChaosMinions.OrderBy(m => m.Distance(orderStart)).FirstOrDefault();
-                var midOrderMinion = _midOrderMinions.OrderBy(m => m.Distance(chaosStart)).FirstOrDefault();
+                    var midChaosMinion = _midChaosMinions.OrderBy(m => m.Distance(orderStart)).FirstOrDefault();
+                    var midOrderMinion = _midOrderMinions.OrderBy(m => m.Distance(chaosStart)).FirstOrDefault();
 
-                var botChaosMinion = _botChaosMinions.OrderBy(m => m.Distance(orderStart)).FirstOrDefault();
-                var botOrderMinion = _botOrderMinions.OrderBy(m => m.Distance(chaosStart)).FirstOrDefault();
+                    var botChaosMinion = _botChaosMinions.OrderBy(m => m.Distance(orderStart)).FirstOrDefault();
+                    var botOrderMinion = _botOrderMinions.OrderBy(m => m.Distance(chaosStart)).FirstOrDefault();
 
-                _topChaos =
-                    _topChaosMinions.Where(m => topOrderMinion == null || m.Distance(topOrderMinion) <= MaxDistance)
-                        .Sum(m => GetPoints(m));
+                    var topChaosMinions =
+                        _topChaosMinions.Where(m => topOrderMinion == null || m.Distance(topOrderMinion) <= MaxDistance)
+                            .ToList();
+                    _topChaosAverageDamage =
+                        topChaosMinions.Select(m => m.TotalAttackDamage).DefaultIfEmpty(0).Average();
+                    _topChaos = AdvantageCalculate(
+                        topChaosMinions.Sum(m => GetPoints(m)), GameObjectTeam.Chaos, Lane.Top);
 
-                _topOrder =
-                    _topOrderMinions.Where(m => topChaosMinion == null || m.Distance(topChaosMinion) <= MaxDistance)
-                        .Sum(m => GetPoints(m));
+                    var topOrderMinions =
+                        _topOrderMinions.Where(m => topChaosMinion == null || m.Distance(topChaosMinion) <= MaxDistance)
+                            .ToList();
+                    _topOrderAverageDamage =
+                        topOrderMinions.Select(m => m.TotalAttackDamage).DefaultIfEmpty(0).Average();
+                    _topOrder = AdvantageCalculate(
+                        topOrderMinions.Sum(m => GetPoints(m)), GameObjectTeam.Order, Lane.Top);
 
-                _midChaos =
-                    _midChaosMinions.Where(m => midOrderMinion == null || m.Distance(midOrderMinion) <= MaxDistance)
-                        .Sum(m => GetPoints(m));
+                    var midChaosMinions =
+                        _midChaosMinions.Where(m => midOrderMinion == null || m.Distance(midOrderMinion) <= MaxDistance)
+                            .ToList();
+                    _midChaosAverageDamage =
+                        midChaosMinions.Select(m => m.TotalAttackDamage).DefaultIfEmpty(0).Average();
+                    _midChaos = AdvantageCalculate(
+                        midChaosMinions.Sum(m => GetPoints(m)), GameObjectTeam.Chaos, Lane.Mid);
 
-                _midOrder =
-                    _midOrderMinions.Where(m => midChaosMinion == null || m.Distance(midChaosMinion) <= MaxDistance)
-                        .Sum(m => GetPoints(m));
+                    var midOrderMinions =
+                        _midOrderMinions.Where(m => midChaosMinion == null || m.Distance(midChaosMinion) <= MaxDistance)
+                            .ToList();
+                    _midOrderAverageDamage =
+                        midOrderMinions.Select(m => m.TotalAttackDamage).DefaultIfEmpty(0).Average();
+                    _midOrder = AdvantageCalculate(
+                        midOrderMinions.Sum(m => GetPoints(m)), GameObjectTeam.Order, Lane.Mid);
 
-                _botChaos =
-                    _botChaosMinions.Where(m => botOrderMinion == null || m.Distance(botOrderMinion) <= MaxDistance)
-                        .Sum(m => GetPoints(m));
+                    var botChaosMinions =
+                        _botChaosMinions.Where(m => botOrderMinion == null || m.Distance(botOrderMinion) <= MaxDistance)
+                            .ToList();
+                    _botChaosAverageDamage =
+                        botChaosMinions.Select(m => m.TotalAttackDamage).DefaultIfEmpty(0).Average();
+                    _botChaos = AdvantageCalculate(
+                        botChaosMinions.Sum(m => GetPoints(m)), GameObjectTeam.Chaos, Lane.Bot);
 
-                _botOrder =
-                    _botOrderMinions.Where(m => botChaosMinion == null || m.Distance(botChaosMinion) <= MaxDistance)
-                        .Sum(m => GetPoints(m));
+                    var botOrderMinions =
+                        _botOrderMinions.Where(m => botChaosMinion == null || m.Distance(botChaosMinion) <= MaxDistance)
+                            .ToList();
+                    _botOrderAverageDamage =
+                        botOrderMinions.Select(m => m.TotalAttackDamage).DefaultIfEmpty(0).Average();
+                    _botOrder = AdvantageCalculate(
+                        botOrderMinions.Sum(m => GetPoints(m)), GameObjectTeam.Order, Lane.Bot);
+                }
             }
             catch (Exception ex)
             {
@@ -501,14 +643,111 @@ namespace SFXUtility.Features.Drawings
                         : (minion.CharData.BaseSkinName.Contains("Super")
                             ? _weightSuper
                             : (minion.CharData.BaseSkinName.Contains("Siege") ? _weightSiege : 0)));
-                return
-                    (int)(minion.IsMelee ? points / 100f * minion.HealthPercent : points - (points / 100f * minion.HealthPercent / 2f));
+                points =
+                    (int)
+                        (minion.IsMelee
+                            ? points / 100f * minion.HealthPercent
+                            : points - (points / 100f * minion.HealthPercent * 0.75f));
+
+                return points;
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
             return 0;
+        }
+
+        private int AdvantageCalculate(int points, GameObjectTeam team, Lane lane)
+        {
+            var multiplier = 1.0f;
+            var damageReduction = 0;
+            if (team == GameObjectTeam.Chaos)
+            {
+                var towerAdv = _botChaosTowers + _midChaosTowers + _topChaosTowers - _botOrderTowers - _midOrderTowers -
+                               _topOrderTowers;
+                if (towerAdv > 0)
+                {
+                    multiplier += towerAdv / 10f;
+                }
+
+                if (_chaosAverageLevel > _orderAverageLevel)
+                {
+                    multiplier += 0.1f;
+                    damageReduction += Math.Max(0, _chaosAverageLevel - _orderAverageLevel) + Math.Max(0, towerAdv) + 1;
+                }
+
+                if (_chaosAverageLevel - _orderAverageLevel >= 3)
+                {
+                    var towersLane = lane == Lane.Bot
+                        ? _botOrderTowers
+                        : (lane == Lane.Mid ? _midOrderTowers : (lane == Lane.Top ? _topOrderTowers : 3));
+                    if (towersLane <= 1)
+                    {
+                        multiplier += 0.9f;
+                        damageReduction += 7;
+                    }
+                }
+            }
+            else if (team == GameObjectTeam.Order)
+            {
+                var towerAdv = _botOrderTowers + _midOrderTowers + _topOrderTowers - _botChaosTowers - _midChaosTowers -
+                               _topChaosTowers;
+                if (towerAdv > 0)
+                {
+                    multiplier += towerAdv / 10f;
+                }
+
+                if (_orderAverageLevel > _chaosAverageLevel)
+                {
+                    multiplier += 0.1f;
+                    damageReduction += Math.Max(0, _chaosAverageLevel - _orderAverageLevel) + Math.Max(0, towerAdv) + 1;
+                }
+
+                if (_orderAverageLevel - _chaosAverageLevel >= 3)
+                {
+                    var towersLane = lane == Lane.Bot
+                        ? _botChaosTowers
+                        : (lane == Lane.Mid ? _midChaosTowers : (lane == Lane.Top ? _topChaosTowers : 3));
+                    if (towersLane <= 1)
+                    {
+                        multiplier += 0.9f;
+                        damageReduction += 7;
+                    }
+                }
+            }
+
+            if (damageReduction > 0)
+            {
+                var avgDamage = 0f;
+                if (team == GameObjectTeam.Chaos)
+                {
+                    avgDamage = lane == Lane.Bot
+                        ? _botOrderAverageDamage
+                        : (lane == Lane.Mid ? _midOrderAverageDamage : (lane == Lane.Top ? _topOrderAverageDamage : 0));
+                }
+                else if (team == GameObjectTeam.Order)
+                {
+                    avgDamage = lane == Lane.Bot
+                        ? _botChaosAverageDamage
+                        : (lane == Lane.Mid ? _midChaosAverageDamage : (lane == Lane.Top ? _topChaosAverageDamage : 0));
+                }
+                multiplier += (avgDamage - Math.Min(1, avgDamage - damageReduction)) / avgDamage;
+            }
+
+            if (float.IsInfinity(multiplier) || float.IsNaN(multiplier))
+            {
+                return points;
+            }
+
+            return (int) (points * multiplier);
+        }
+
+        private enum Lane
+        {
+            Bot,
+            Mid,
+            Top
         }
     }
 }

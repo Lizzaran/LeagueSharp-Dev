@@ -41,8 +41,12 @@ namespace SFXUtility.Features.Activators
     {
         private readonly List<PotionStruct> _potions = new List<PotionStruct>
         {
+            new PotionStruct("ItemCrystalFlask", (ItemId) ItemData.Refillable_Potion.Id, 1, new[] { PotionType.Health }),
             new PotionStruct(
-                "ItemCrystalFlask", (ItemId) ItemData.Crystalline_Flask.Id, 1,
+                "ItemCrystalFlaskJungle", (ItemId) ItemData.Hunters_Potion.Id, 1,
+                new[] { PotionType.Health, PotionType.Mana }),
+            new PotionStruct(
+                "ItemDarkCrystalFlask", (ItemId) ItemData.Corrupting_Potion.Id, 1,
                 new[] { PotionType.Health, PotionType.Mana }),
             new PotionStruct("RegenerationPotion", (ItemId) ItemData.Health_Potion.Id, 0, new[] { PotionType.Health }),
             new PotionStruct(
@@ -50,8 +54,7 @@ namespace SFXUtility.Features.Activators
                 new[] { PotionType.Health }),
             new PotionStruct(
                 "ItemMiniRegenPotion", (ItemId) ItemData.Total_Biscuit_of_Rejuvenation2.Id, 0,
-                new[] { PotionType.Health }),
-            new PotionStruct("FlaskOfCrystalWater", (ItemId) ItemData.Mana_Potion.Id, 0, new[] { PotionType.Mana })
+                new[] { PotionType.Health })
         };
 
         public Potion(Activators parent) : base(parent)

@@ -37,12 +37,12 @@ namespace SFXUtility.Classes
 {
     internal class ImageLoader
     {
-        public static Bitmap Load(int version, string uniqueId, string name)
+        public static Bitmap Load(string uniqueId, string name)
         {
             try
             {
                 uniqueId = uniqueId.ToUpper();
-                var cachePath = GetCachePath(version, uniqueId, name);
+                var cachePath = GetCachePath(uniqueId, name);
                 if (File.Exists(cachePath))
                 {
                     return new Bitmap(cachePath);
@@ -73,7 +73,7 @@ namespace SFXUtility.Classes
             return null;
         }
 
-        private static string GetCachePath(int version, string uniqueId, string name)
+        private static string GetCachePath(string uniqueId, string name)
         {
             try
             {
@@ -81,7 +81,7 @@ namespace SFXUtility.Classes
                 {
                     Directory.CreateDirectory(Global.CacheDir);
                 }
-                var path = Path.Combine(Global.CacheDir, string.Format("{0}-{1}", Game.Version, version));
+                var path = Path.Combine(Global.CacheDir, string.Format("{0}", Game.Version));
                 if (!Directory.Exists(path))
                 {
                     Directory.CreateDirectory(path);

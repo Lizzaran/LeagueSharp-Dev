@@ -254,23 +254,26 @@ namespace SFXUtility.Features.Activators
             {
                 if (!bush)
                 {
-                    if (ItemData.Oracles_Lens_Trinket.GetItem().IsOwned() &&
-                        ItemData.Oracles_Lens_Trinket.GetItem().IsReady())
-                    {
-                        return ItemData.Oracles_Lens_Trinket.GetItem().Slots.FirstOrDefault();
-                    }
-                    if (ItemData.Greater_Vision_Totem_Trinket.GetItem().IsOwned() &&
-                        ItemData.Greater_Vision_Totem_Trinket.GetItem().IsReady())
-                    {
-                        return ItemData.Greater_Vision_Totem_Trinket.GetItem().Slots.FirstOrDefault();
-                    }
                     if (ItemData.Vision_Ward.GetItem().IsOwned() && ItemData.Vision_Ward.GetItem().IsReady())
                     {
                         return ItemData.Vision_Ward.GetItem().Slots.FirstOrDefault();
                     }
+                    if (ItemData.Oracle_Alteration.GetItem().IsOwned() && ItemData.Oracle_Alteration.GetItem().IsReady())
+                    {
+                        return ItemData.Oracle_Alteration.GetItem().Slots.FirstOrDefault();
+                    }
+                    if (ItemData.Sweeping_Lens_Trinket.GetItem().IsOwned() &&
+                        ItemData.Sweeping_Lens_Trinket.GetItem().IsReady())
+                    {
+                        return ItemData.Sweeping_Lens_Trinket.GetItem().Slots.FirstOrDefault();
+                    }
                 }
                 else
                 {
+                    if (ItemData.Trackers_Knife.GetItem().IsOwned() && ItemData.Trackers_Knife.GetItem().IsReady())
+                    {
+                        return ItemData.Trackers_Knife.GetItem().Slots.FirstOrDefault();
+                    }
                     if (ItemData.Sightstone.GetItem().IsOwned() && ItemData.Sightstone.GetItem().IsReady())
                     {
                         return ItemData.Sightstone.GetItem().Slots.FirstOrDefault();
@@ -279,29 +282,24 @@ namespace SFXUtility.Features.Activators
                     {
                         return ItemData.Ruby_Sightstone.GetItem().Slots.FirstOrDefault();
                     }
+                    if (ItemData.Eye_of_the_Watchers.GetItem().IsOwned() &&
+                        ItemData.Eye_of_the_Watchers.GetItem().IsReady())
+                    {
+                        return ItemData.Eye_of_the_Watchers.GetItem().Slots.FirstOrDefault();
+                    }
+                    if (ItemData.Eye_of_the_Equinox.GetItem().IsOwned() &&
+                        ItemData.Eye_of_the_Equinox.GetItem().IsReady())
+                    {
+                        return ItemData.Eye_of_the_Equinox.GetItem().Slots.FirstOrDefault();
+                    }
+                    if (ItemData.Eye_of_the_Oasis.GetItem().IsOwned() && ItemData.Eye_of_the_Oasis.GetItem().IsReady())
+                    {
+                        return ItemData.Eye_of_the_Oasis.GetItem().Slots.FirstOrDefault();
+                    }
                     if (ItemData.Warding_Totem_Trinket.GetItem().IsOwned() &&
                         ItemData.Warding_Totem_Trinket.GetItem().IsReady())
                     {
                         return ItemData.Warding_Totem_Trinket.GetItem().Slots.FirstOrDefault();
-                    }
-                    if (ItemData.Greater_Stealth_Totem_Trinket.GetItem().IsOwned() &&
-                        ItemData.Greater_Stealth_Totem_Trinket.GetItem().IsReady())
-                    {
-                        return ItemData.Greater_Stealth_Totem_Trinket.GetItem().Slots.FirstOrDefault();
-                    }
-                    if (ItemData.Scrying_Orb_Trinket.GetItem().IsOwned() &&
-                        ItemData.Scrying_Orb_Trinket.GetItem().IsReady())
-                    {
-                        return ItemData.Scrying_Orb_Trinket.GetItem().Slots.FirstOrDefault();
-                    }
-                    if (ItemData.Farsight_Orb_Trinket.GetItem().IsOwned() &&
-                        ItemData.Farsight_Orb_Trinket.GetItem().IsReady())
-                    {
-                        return ItemData.Farsight_Orb_Trinket.GetItem().Slots.FirstOrDefault();
-                    }
-                    if (ItemData.Stealth_Ward.GetItem().IsOwned() && ItemData.Stealth_Ward.GetItem().IsReady())
-                    {
-                        return ItemData.Stealth_Ward.GetItem().Slots.FirstOrDefault();
                     }
                 }
             }

@@ -45,7 +45,7 @@ namespace SFXUtility.Data
                 {
                     // Order: Blue
                     new Camp(
-                        115, 300, new Vector3(3800.99f, 7883.53f, 52.18f),
+                        100, 300, new Vector3(3800.99f, 7883.53f, 52.18f),
                         new List<Mob>(
                             new[]
                             {
@@ -55,7 +55,7 @@ namespace SFXUtility.Data
                         GameObjectTeam.Order),
                     //Order: Wolves
                     new Camp(
-                        115, 100, new Vector3(3849.95f, 6504.36f, 52.46f),
+                        100, 100, new Vector3(3849.95f, 6504.36f, 52.46f),
                         new List<Mob>(
                             new[]
                             {
@@ -65,7 +65,7 @@ namespace SFXUtility.Data
                         GameObjectTeam.Order),
                     //Order: Chicken
                     new Camp(
-                        115, 100, new Vector3(6943.41f, 5422.61f, 52.62f),
+                        100, 100, new Vector3(6943.41f, 5422.61f, 52.62f),
                         new List<Mob>(
                             new[]
                             {
@@ -75,24 +75,24 @@ namespace SFXUtility.Data
                         Utility.Map.MapType.SummonersRift, GameObjectTeam.Order),
                     //Order: Red
                     new Camp(
-                        115, 300, new Vector3(7813.07f, 4051.33f, 53.81f),
+                        100, 300, new Vector3(7813.07f, 4051.33f, 53.81f),
                         new List<Mob>(
                             new[]
                             { new Mob("SRU_Red4.1.1", true), new Mob("SRU_RedMini4.1.2"), new Mob("SRU_RedMini4.1.3") }),
                         true, Utility.Map.MapType.SummonersRift, GameObjectTeam.Order),
                     //Order: Krug
                     new Camp(
-                        115, 100, new Vector3(8370.58f, 2718.15f, 51.09f),
+                        100, 100, new Vector3(8370.58f, 2718.15f, 51.09f),
                         new List<Mob>(new[] { new Mob("SRU_Krug5.1.2", true), new Mob("SRU_KrugMini5.1.1") }), false,
                         Utility.Map.MapType.SummonersRift, GameObjectTeam.Order),
                     //Order: Gromp
                     new Camp(
-                        115, 100, new Vector3(2164.34f, 8383.02f, 51.78f),
+                        100, 100, new Vector3(2164.34f, 8383.02f, 51.78f),
                         new List<Mob>(new[] { new Mob("SRU_Gromp13.1.1", true) }), false,
                         Utility.Map.MapType.SummonersRift, GameObjectTeam.Order),
                     //Chaos: Blue
                     new Camp(
-                        115, 300, new Vector3(10984.11f, 6960.31f, 51.72f),
+                        100, 300, new Vector3(10984.11f, 6960.31f, 51.72f),
                         new List<Mob>(
                             new[]
                             {
@@ -102,7 +102,7 @@ namespace SFXUtility.Data
                         GameObjectTeam.Chaos),
                     //Chaos: Wolves
                     new Camp(
-                        115, 100, new Vector3(10983.83f, 8328.73f, 62.22f),
+                        100, 100, new Vector3(10983.83f, 8328.73f, 62.22f),
                         new List<Mob>(
                             new[]
                             {
@@ -112,7 +112,7 @@ namespace SFXUtility.Data
                         GameObjectTeam.Chaos),
                     //Chaos: Chicken
                     new Camp(
-                        115, 100, new Vector3(7852.38f, 9562.62f, 52.30f),
+                        100, 100, new Vector3(7852.38f, 9562.62f, 52.30f),
                         new List<Mob>(
                             new[]
                             {
@@ -122,7 +122,7 @@ namespace SFXUtility.Data
                         Utility.Map.MapType.SummonersRift, GameObjectTeam.Chaos),
                     //Chaos: Red
                     new Camp(
-                        115, 300, new Vector3(7139.29f, 10779.34f, 56.38f),
+                        100, 300, new Vector3(7139.29f, 10779.34f, 56.38f),
                         new List<Mob>(
                             new[]
                             {
@@ -130,12 +130,12 @@ namespace SFXUtility.Data
                             }), true, Utility.Map.MapType.SummonersRift, GameObjectTeam.Chaos),
                     //Chaos: Krug
                     new Camp(
-                        115, 100, new Vector3(6476.17f, 12142.51f, 56.48f),
+                        100, 100, new Vector3(6476.17f, 12142.51f, 56.48f),
                         new List<Mob>(new[] { new Mob("SRU_Krug11.1.2", true), new Mob("SRU_KrugMini11.1.1") }), false,
                         Utility.Map.MapType.SummonersRift, GameObjectTeam.Chaos),
                     //Chaos: Gromp
                     new Camp(
-                        115, 100, new Vector3(12671.83f, 6306.60f, 51.71f),
+                        100, 100, new Vector3(12671.83f, 6306.60f, 51.71f),
                         new List<Mob>(new[] { new Mob("SRU_Gromp14.1.1", true) }), false,
                         Utility.Map.MapType.SummonersRift, GameObjectTeam.Chaos),
                     //Neutral: Dragon
@@ -143,9 +143,14 @@ namespace SFXUtility.Data
                         150, 360, new Vector3(9813.83f, 4360.19f, -71.24f),
                         new List<Mob>(new[] { new Mob("SRU_Dragon6.1.1", true) }), true,
                         Utility.Map.MapType.SummonersRift, GameObjectTeam.Neutral),
+                    //Neutral: Rift Herald
+                    new Camp(
+                        240, 300, new Vector3(4993.14f, 10491.92f, -71.24f),
+                        new List<Mob>(new[] { new Mob("SRU_RiftHerald", true) }), true,
+                        Utility.Map.MapType.SummonersRift, GameObjectTeam.Neutral),
                     //Neutral: Baron
                     new Camp(
-                        120, 420, new Vector3(4993.14f, 10491.92f, -71.24f),
+                        1200, 420, new Vector3(4993.14f, 10491.92f, -71.24f),
                         new List<Mob>(new[] { new Mob("SRU_Baron12.1.1", true) }), true,
                         Utility.Map.MapType.SummonersRift, GameObjectTeam.Neutral),
                     //Dragon: Crab

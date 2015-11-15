@@ -56,6 +56,7 @@ namespace SFXChallenger.Champions
         private Obj_AI_Base _lastAfterFarmTarget;
         private float _lastAutoAttack;
         private Obj_AI_Base _lastBeforeFarmTarget;
+        private float _lastQCast;
         private Obj_AI_Base _lastQKillableTarget;
         private float _lastRMoveCommand = Environment.TickCount;
         private GameObject _rObject;
@@ -399,7 +400,7 @@ namespace SFXChallenger.Champions
                     }
                     return;
                 }
-                if (HasQBuff())
+                if (HasQBuff() || Game.Time - _lastQCast <= 0.75f)
                 {
                     if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
                     {
@@ -487,6 +488,7 @@ namespace SFXChallenger.Champions
                             _lastAfterFarmTarget = bTarget;
                         }
                     }
+                    _lastQCast = 0;
                     Orbwalker.ForceTarget(null);
                 }
             }
@@ -567,7 +569,7 @@ namespace SFXChallenger.Champions
 
         private bool HasQBuff()
         {
-            return Player.HasBuff("viktorpowertransferreturn");
+            return Player.HasBuff("ViktorPowerTransferReturn");
         }
 
         protected override void Combo()
@@ -596,12 +598,17 @@ namespace SFXChallenger.Champions
                     }
                 }
             }
+            Obj_AI_Hero qTarget = null;
             if (q)
             {
-                var target = TargetSelector.GetTarget(Q.Range, Q.DamageType);
-                if (target != null)
+                qTarget = TargetSelector.GetTarget(Q.Range, Q.DamageType);
+                if (qTarget != null)
                 {
-                    qCasted = Q.CastOnUnit(target);
+                    if (Q.CastOnUnit(qTarget))
+                    {
+                        _lastQCast = Game.Time;
+                        qCasted = true;
+                    }
                 }
             }
             if (w)
@@ -612,14 +619,33 @@ namespace SFXChallenger.Champions
                     WLogic(target, W.GetHitChance("combo"));
                 }
             }
+            var rCast = false;
             var rTarget = TargetSelector.GetTarget(R);
             if (r)
             {
-                if (rTarget != null && (HasQBuff() || (qCasted || !q || !Q.IsReady()) || R.IsKillable(rTarget)) &&
-                    !RLogic(UltimateModeType.Combo, rTarget))
+                if (rTarget != null && (HasQBuff() || (qCasted || !q || !Q.IsReady()) || R.IsKillable(rTarget)))
                 {
-                    RLogicSingle(UltimateModeType.Combo);
-                    single = true;
+                    if (!RLogic(UltimateModeType.Combo, rTarget))
+                    {
+                        RLogicSingle(UltimateModeType.Combo);
+                        single = true;
+                        rCast = true;
+                    }
+                    else
+                    {
+                        rCast = true;
+                    }
+                }
+                if (!rCast && qTarget != null)
+                {
+                    if (Orbwalking.InAutoAttackRange(qTarget) && !Player.IsWindingUp)
+                    {
+                        Player.IssueOrder(GameObjectOrder.AttackUnit, qTarget);
+                    }
+                    else
+                    {
+                        Orbwalker.ForceTarget(qTarget);
+                    }
                 }
             }
             if (rTarget != null && _ultimate.GetDamage(rTarget, UltimateModeType.Combo, single ? 1 : 5) > rTarget.Health)
@@ -658,7 +684,18 @@ namespace SFXChallenger.Champions
                 var target = TargetSelector.GetTarget(Q.Range, Q.DamageType);
                 if (target != null)
                 {
-                    Q.CastOnUnit(target);
+                    if (Q.CastOnUnit(target))
+                    {
+                        if (Orbwalking.InAutoAttackRange(target) && !Player.IsWindingUp)
+                        {
+                            Player.IssueOrder(GameObjectOrder.AttackUnit, target);
+                        }
+                        else
+                        {
+                            Orbwalker.ForceTarget(target);
+                        }
+                        _lastQCast = Game.Time;
+                    }
                 }
             }
         }

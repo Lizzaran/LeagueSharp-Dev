@@ -88,12 +88,21 @@ namespace SFXUtility.Features.Timers
                     return;
                 }
 
-                foreach (var camp in _camps)
+                foreach (var camp in _camps.ToArray())
                 {
                     var mob =
                         camp.Mobs.FirstOrDefault(m => m.Name.Contains(sender.Name, StringComparison.OrdinalIgnoreCase));
                     if (mob != null)
                     {
+                        if (mob.Name.Contains("Herald", StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (Game.Time + camp.RespawnTime > 20 * 60 ||
+                                GameObjects.Jungle.Any(j => j.CharData.BaseSkinName.Contains("Baron")))
+                            {
+                                _camps.Remove(camp);
+                                continue;
+                            }
+                        }
                         mob.Dead = true;
                         camp.Dead = camp.Mobs.All(m => m.Dead);
                         if (camp.Dead)

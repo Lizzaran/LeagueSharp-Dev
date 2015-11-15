@@ -138,7 +138,6 @@ namespace SFXUtility
                             new Jungle(timers),
                             new Relic(timers),
                             new Destination(trackers),
-                            new GoldEfficiency(trackers),
                             new LastPosition(trackers),
                             new Sidebar(trackers),
                             new Ward(trackers)

@@ -363,7 +363,7 @@ namespace SFXUtility.Features.Detectors
                     }
                     if (packet.Type == Packet.S2C.Teleport.Type.Teleport)
                     {
-                        duration = 3500;
+                        duration = 4000;
                     }
                     teleport.Duration = duration;
                     teleport.LastStatus = packet.Status;

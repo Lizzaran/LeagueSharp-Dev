@@ -92,8 +92,6 @@ namespace SFXChallenger.Champions
             E = new Spell(SpellSlot.E);
 
             R = new Spell(SpellSlot.R, 5500f);
-
-            SpellQueueManager.IgnoreSpellSlots.Add(SpellSlot.W);
         }
 
         protected override void AddToMenu()

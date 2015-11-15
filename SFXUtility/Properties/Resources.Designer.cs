@@ -253,16 +253,6 @@ namespace SFXUtility.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap CD_summonerclairvoyance {
-            get {
-                object obj = ResourceManager.GetObject("CD_summonerclairvoyance", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
         internal static System.Drawing.Bitmap CD_summonerdot {
             get {
                 object obj = ResourceManager.GetObject("CD_summonerdot", resourceCulture);
@@ -306,26 +296,6 @@ namespace SFXUtility.Properties {
         internal static System.Drawing.Bitmap CD_summonerheal {
             get {
                 object obj = ResourceManager.GetObject("CD_summonerheal", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap CD_summonermana {
-            get {
-                object obj = ResourceManager.GetObject("CD_summonermana", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap CD_summonerodingarrison {
-            get {
-                object obj = ResourceManager.GetObject("CD_summonerodingarrison", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -1163,16 +1133,6 @@ namespace SFXUtility.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap SB_summonerclairvoyance {
-            get {
-                object obj = ResourceManager.GetObject("SB_summonerclairvoyance", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
         internal static System.Drawing.Bitmap SB_summonerdot {
             get {
                 object obj = ResourceManager.GetObject("SB_summonerdot", resourceCulture);
@@ -1216,26 +1176,6 @@ namespace SFXUtility.Properties {
         internal static System.Drawing.Bitmap SB_summonerheal {
             get {
                 object obj = ResourceManager.GetObject("SB_summonerheal", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap SB_summonermana {
-            get {
-                object obj = ResourceManager.GetObject("SB_summonermana", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap SB_summonerodingarrison {
-            get {
-                object obj = ResourceManager.GetObject("SB_summonerodingarrison", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

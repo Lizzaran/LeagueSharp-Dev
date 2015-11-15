@@ -29,7 +29,6 @@ using LeagueSharp;
 using LeagueSharp.Common;
 using SFXUtility.Classes;
 using SFXUtility.Library;
-using SFXUtility.Library.Extensions.LeagueSharp;
 using SFXUtility.Library.Extensions.NET;
 using SFXUtility.Library.Extensions.SharpDX;
 using SFXUtility.Library.Logger;
@@ -37,6 +36,7 @@ using SFXUtility.Properties;
 using SharpDX;
 using SharpDX.Direct3D9;
 using Color = System.Drawing.Color;
+using ItemData = LeagueSharp.Common.Data.ItemData;
 
 #endregion
 
@@ -51,13 +51,9 @@ namespace SFXUtility.Features.Trackers
         private readonly List<WardStruct> _wardStructs = new List<WardStruct>
         {
             new WardStruct(60, 1100, "YellowTrinket", "TrinketTotemLvl1", WardType.Green),
-            new WardStruct(60 * 3, 1100, "YellowTrinketUpgrade", "TrinketTotemLvl2", WardType.Green),
-            new WardStruct(60 * 3, 1100, "SightWard", "TrinketTotemLvl3", WardType.Green),
-            new WardStruct(60 * 3, 1100, "SightWard", "SightWard", WardType.Green),
-            new WardStruct(60 * 3, 1100, "SightWard", "ItemGhostWard", WardType.Green),
-            new WardStruct(60 * 3, 1100, "SightWard", "wrigglelantern", WardType.Green),
-            new WardStruct(60 * 3, 1100, "SightWard", "ItemFeralFlare", WardType.Green),
-            new WardStruct(int.MaxValue, 1100, "VisionWard", "TrinketTotemLvl3B", WardType.Pink),
+            new WardStruct(int.MaxValue, 1100, "BlueTrinket", "TrinketOrbLvl3", WardType.Green),
+            new WardStruct(150, 1100, "SightWard", "ItemGhostWard", WardType.Green),
+            new WardStruct(150, 1100, "SightWard", "SightWard", WardType.Green),
             new WardStruct(int.MaxValue, 1100, "VisionWard", "VisionWard", WardType.Pink),
             new WardStruct(60 * 4, 212, "CaitlynTrap", "CaitlynYordleTrap", WardType.Trap),
             new WardStruct(60 * 10, 212, "TeemoMushroom", "BantamTrap", WardType.Trap),
@@ -178,8 +174,8 @@ namespace SFXUtility.Features.Trackers
                 var hero = sender as Obj_AI_Hero;
                 if (hero != null)
                 {
-                    if (hero.HasItem(ItemId.Sightstone) || hero.HasItem(ItemId.Ruby_Sightstone) ||
-                        hero.HasItem(ItemId.Vision_Ward))
+                    if (ItemData.Sightstone.GetItem().IsOwned(hero) || ItemData.Ruby_Sightstone.GetItem().IsOwned(hero) ||
+                        ItemData.Vision_Ward.GetItem().IsOwned(hero))
                     {
                         _heroNoWards.RemoveAll(h => h.Hero.NetworkId == hero.NetworkId);
                     }

@@ -45,7 +45,6 @@ namespace SFXUtility.Features.Trackers
 {
     internal class LastPosition : Child<Trackers>
     {
-        private const int Version = 1;
         private readonly Dictionary<int, Texture> _heroTextures = new Dictionary<int, Texture>();
         private readonly List<LastPositionStruct> _lastPositions = new List<LastPositionStruct>();
         private Line _line;
@@ -103,6 +102,13 @@ namespace SFXUtility.Features.Trackers
                 _sprite.Begin(SpriteFlags.AlphaBlend);
                 foreach (var lp in _lastPositions)
                 {
+                    if (!lp.Hero.IsDead && !lp.LastPosition.Equals(Vector3.Zero) &&
+                        lp.LastPosition.Distance(lp.Hero.Position) > 500)
+                    {
+                        lp.Teleported = false;
+                        lp.LastSeen = Game.Time;
+                    }
+                    lp.LastPosition = lp.Hero.Position;
                     if (lp.Hero.IsVisible)
                     {
                         lp.Teleported = false;
@@ -113,7 +119,7 @@ namespace SFXUtility.Features.Trackers
                     }
                     if (!lp.Hero.IsVisible && !lp.Hero.IsDead)
                     {
-                        var pos = lp.Teleported ? _spawnPoint : lp.Hero.Position;
+                        var pos = lp.Teleported ? _spawnPoint : lp.LastPosition;
                         var mpPos = Drawing.WorldToMinimap(pos);
                         var mPos = Drawing.WorldToScreen(pos);
 
@@ -293,8 +299,9 @@ namespace SFXUtility.Features.Trackers
                 foreach (var enemy in GameObjects.EnemyHeroes)
                 {
                     _heroTextures[enemy.NetworkId] =
-                        (ImageLoader.Load(Version, "LP", enemy.ChampionName) ?? Resources.LP_Default).ToTexture();
-                    _lastPositions.Add(new LastPositionStruct(enemy));
+                        (ImageLoader.Load("LP", enemy.ChampionName) ?? Resources.LP_Default).ToTexture();
+                    var eStruct = new LastPositionStruct(enemy) { LastPosition = _spawnPoint };
+                    _lastPositions.Add(eStruct);
                 }
 
                 base.OnInitialize();
@@ -310,11 +317,13 @@ namespace SFXUtility.Features.Trackers
             public LastPositionStruct(Obj_AI_Hero hero)
             {
                 Hero = hero;
+                LastPosition = Vector3.Zero;
             }
 
             public Obj_AI_Hero Hero { get; private set; }
             public bool IsTeleporting { get; set; }
             public float LastSeen { get; set; }
+            public Vector3 LastPosition { get; set; }
             public bool Teleported { get; set; }
         }
     }

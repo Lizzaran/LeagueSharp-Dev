@@ -29,6 +29,7 @@ using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXUtility.Classes;
+using SFXUtility.Data;
 using SFXUtility.Library;
 using SFXUtility.Library.Extensions.NET;
 using SFXUtility.Library.Extensions.SharpDX;
@@ -252,10 +253,10 @@ namespace SFXUtility.Features.Timers
                     GameObjects.Heroes.SelectMany(
                         h =>
                             _summonerSlots.Select(summoner => h.Spellbook.GetSpell(summoner).Name.ToLower())
-                                .Where(sName => !_summonerTextures.ContainsKey(FixSummonerName(sName)))))
+                                .Where(sName => !_summonerTextures.ContainsKey(Summoners.FixName(sName)))))
                 {
-                    _summonerTextures[FixSummonerName(sName)] =
-                        ((Bitmap) Resources.ResourceManager.GetObject(string.Format("CD_{0}", FixSummonerName(sName))) ??
+                    _summonerTextures[Summoners.FixName(sName)] =
+                        ((Bitmap) Resources.ResourceManager.GetObject(string.Format("CD_{0}", Summoners.FixName(sName))) ??
                          Resources.CD_summonerbarrier).ToTexture();
                 }
 
@@ -294,14 +295,7 @@ namespace SFXUtility.Features.Timers
                     Utility.DelayAction.Add(
                         250, delegate
                         {
-                            var cd = packet.Status == Packet.S2C.Teleport.Status.Finish
-                                ? (GameObjects.EnemyHeroes.Any(
-                                    e =>
-                                        e.NetworkId == packet.UnitNetworkId &&
-                                        GameObjects.EnemyTurrets.Any(t => e.Distance(t) < 400))
-                                    ? 240
-                                    : 300)
-                                : 200;
+                            var cd = packet.Status == Packet.S2C.Teleport.Status.Finish ? 300 : 200;
                             _teleports[packet.UnitNetworkId] = time + cd;
                         });
                 }
@@ -310,13 +304,6 @@ namespace SFXUtility.Features.Timers
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
-        }
-
-        private string FixSummonerName(string name)
-        {
-            return name.Contains("Smite", StringComparison.OrdinalIgnoreCase)
-                ? "summonersmite"
-                : (name.Contains("Teleport", StringComparison.OrdinalIgnoreCase) ? "summonerteleport" : name.ToLower());
         }
 
         private void OnDrawingEndScene(EventArgs args)
@@ -369,10 +356,10 @@ namespace SFXUtility.Features.Timers
                                         t.FormatTime(totalSeconds), x - (hero.IsMe ? -160 : 13), y + 7 + 13 * i,
                                         new ColorBGRA(255, 255, 255, 255));
                                 }
-                                if (_summonerTextures.ContainsKey(FixSummonerName(spell.Name)))
+                                if (_summonerTextures.ContainsKey(Summoners.FixName(spell.Name)))
                                 {
                                     _sprite.Draw(
-                                        _summonerTextures[FixSummonerName(spell.Name)],
+                                        _summonerTextures[Summoners.FixName(spell.Name)],
                                         new ColorBGRA(255, 255, 255, 255), new Rectangle(0, 12 * n, 12, 12),
                                         new Vector3(-x - (hero.IsMe ? 132 : 3), -y - 1 - 13 * i, 0));
                                 }
