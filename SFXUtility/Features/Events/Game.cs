@@ -82,6 +82,7 @@ namespace SFXUtility.Features.Events
                         new StringList(new[] { "gg", "gg wp", "good game", "well played" })));
                 endMenu.AddItem(new MenuItem(endMenu.Name + "SayEnding", "Say Goodbye").SetValue(false));
                 endMenu.AddItem(new MenuItem(endMenu.Name + "Quit", "Quit Game").SetValue(false));
+                endMenu.AddItem(new MenuItem(endMenu.Name + "QuitDelay", "Quit Delay").SetValue(new Slider(10, 3, 20)));
 
                 Menu.AddSubMenu(startMenu);
                 Menu.AddSubMenu(endMenu);
@@ -150,7 +151,7 @@ namespace SFXUtility.Features.Events
                     Task.Run(
                         async () =>
                         {
-                            await Task.Delay(10000);
+                            await Task.Delay(Menu.Item(Name + "OnEndQuitDelay").GetValue<Slider>().Value * 1000);
                             LeagueSharp.Game.Quit();
                         });
                 }
