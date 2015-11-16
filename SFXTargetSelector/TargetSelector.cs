@@ -274,16 +274,19 @@ namespace SFXTargetSelector
 
         #region Compatibility
 
+        [Obsolete("TargetSelector.SelectedTarget is deprecated, use Selected.Target instead.")]
         public static Obj_AI_Hero SelectedTarget
         {
             get { return Focus ? Selected.Target : null; }
         }
 
+        [Obsolete("TargetSelector.SetPriority is deprecated, use Priorities.SetPriority instead.")]
         public static void SetPriority(Obj_AI_Hero hero, int newPriority)
         {
             Priorities.SetPriority(hero, newPriority);
         }
 
+        [Obsolete("TargetSelector.GetPriority is deprecated, use Priorities.GetPriority instead.")]
         public static float GetPriority(Obj_AI_Hero hero)
         {
             switch (Priorities.GetPriority(hero))
@@ -301,13 +304,14 @@ namespace SFXTargetSelector
             }
         }
 
+        [Obsolete("TargetSelector.IsInvulnerable is deprecated, use Invulnerable.Check instead.")]
         public static bool IsInvulnerable(Obj_AI_Base target, DamageType damageType, bool ignoreShields = true)
         {
             var hero = target as Obj_AI_Hero;
             return hero != null && Invulnerable.Check(hero, damageType, ignoreShields);
         }
 
-
+        [Obsolete("TargetSelector.SetTarget is deprecated, use Selected.Target instead.")]
         public static void SetTarget(Obj_AI_Hero hero)
         {
             if (hero.IsValidTarget())
@@ -316,6 +320,7 @@ namespace SFXTargetSelector
             }
         }
 
+        [Obsolete("TargetSelector.GetSelectedTarget is deprecated, use Selected.Target instead.")]
         public static Obj_AI_Hero GetSelectedTarget()
         {
             return SelectedTarget;
