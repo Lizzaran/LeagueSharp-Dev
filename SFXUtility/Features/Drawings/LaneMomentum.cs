@@ -732,7 +732,7 @@ namespace SFXUtility.Features.Drawings
                         ? _botChaosAverageDamage
                         : (lane == Lane.Mid ? _midChaosAverageDamage : (lane == Lane.Top ? _topChaosAverageDamage : 0));
                 }
-                multiplier += (avgDamage - Math.Min(1, avgDamage - damageReduction)) / avgDamage;
+                multiplier += (avgDamage - Math.Max(1, avgDamage - damageReduction)) / avgDamage;
             }
 
             if (float.IsInfinity(multiplier) || float.IsNaN(multiplier))

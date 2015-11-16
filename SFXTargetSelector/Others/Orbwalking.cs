@@ -32,51 +32,112 @@ using Color = System.Drawing.Color;
 
 #endregion
 
-namespace SFXTargetSelector
+namespace SFXTargetSelector.Others
 {
     /// <summary>
     ///     This class offers everything related to auto-attacks and orbwalking.
     /// </summary>
     public static class Orbwalking
     {
+        /// <summary>
+        ///     Delegate AfterAttackEvenH
+        /// </summary>
+        /// <param name="unit">The unit.</param>
+        /// <param name="target">The target.</param>
         public delegate void AfterAttackEvenH(AttackableUnit unit, AttackableUnit target);
 
+        /// <summary>
+        ///     Delegate BeforeAttackEvenH
+        /// </summary>
+        /// <param name="args">The <see cref="BeforeAttackEventArgs" /> instance containing the event data.</param>
         public delegate void BeforeAttackEvenH(BeforeAttackEventArgs args);
 
+        /// <summary>
+        ///     Delegate OnAttackEvenH
+        /// </summary>
+        /// <param name="unit">The unit.</param>
+        /// <param name="target">The target.</param>
         public delegate void OnAttackEvenH(AttackableUnit unit, AttackableUnit target);
 
+        /// <summary>
+        ///     Delegate OnNonKillableMinionH
+        /// </summary>
+        /// <param name="minion">The minion.</param>
         public delegate void OnNonKillableMinionH(AttackableUnit minion);
 
+        /// <summary>
+        ///     Delegate OnTargetChangeH
+        /// </summary>
+        /// <param name="oldTarget">The old target.</param>
+        /// <param name="newTarget">The new target.</param>
         public delegate void OnTargetChangeH(AttackableUnit oldTarget, AttackableUnit newTarget);
 
+        /// <summary>
+        ///     The orbwalking delay.
+        /// </summary>
         public enum OrbwalkingDelay
         {
             Move,
             Attack
         }
 
+        /// <summary>
+        ///     The orbwalking mode.
+        /// </summary>
         public enum OrbwalkingMode
         {
-            Flee,
+            /// <summary>
+            ///     The orbalker will only last hit minions.
+            /// </summary>
             LastHit,
+
+            /// <summary>
+            ///     The orbwalker will alternate between last hitting and auto attacking champions.
+            /// </summary>
             Mixed,
+
+            /// <summary>
+            ///     The orbwalker will clear the lane of minions as fast as possible while attempting to get the last hit.
+            /// </summary>
             LaneClear,
+
+            /// <summary>
+            ///     The orbwalker will only attack the target.
+            /// </summary>
             Combo,
+
+            /// <summary>
+            ///     The orbwalker will only move.
+            /// </summary>
+            Flee,
+
+            /// <summary>
+            ///     The orbwalker will only move.
+            /// </summary>
+            CustomMode,
+
+            /// <summary>
+            ///     The orbwalker does nothing.
+            /// </summary>
             None
         }
 
-        //Spells that reset the attack timer.
+        /// <summary>
+        ///     Spells that reset the attack timer.
+        /// </summary>
         private static readonly string[] AttackResets =
         {
             "dariusnoxiantacticsonh", "fioraflurry", "garenq",
-            "hecarimrapidslash", "jaxempowertwo", "jaycehypercharge", "leonashieldofdaybreak", "luciane", "lucianq",
-            "monkeykingdoubleattack", "mordekaisermaceofspades", "nasusq", "nautiluspiercinggaze", "netherblade",
-            "parley", "poppydevastatingblow", "powerfist", "renektonpreexecute", "rengarq", "shyvanadoubleattack",
-            "sivirw", "takedown", "talonnoxiandiplomacy", "trundletrollsmash", "vaynetumble", "vie", "volibearq",
-            "xenzhaocombotarget", "yorickspectral", "reksaiq", "itemtitanichydracleave"
+            "gravesmove", "hecarimrapidslash", "jaxempowertwo", "jaycehypercharge", "leonashieldofdaybreak", "luciane",
+            "lucianq", "monkeykingdoubleattack", "mordekaisermaceofspades", "nasusq", "nautiluspiercinggaze",
+            "netherblade", "gangplankqwrapper", "poppydevastatingblow", "powerfist", "renektonpreexecute", "rengarq",
+            "shyvanadoubleattack", "sivirw", "takedown", "talonnoxiandiplomacy", "trundletrollsmash", "vaynetumble",
+            "vie", "volibearq", "xenzhaocombotarget", "yorickspectral", "reksaiq", "itemtitanichydracleave"
         };
 
-        //Spells that are not attacks even if they have the "attack" word in their name.
+        /// <summary>
+        ///     Spells that are not attacks even if they have the "attack" word in their name.
+        /// </summary>
         private static readonly string[] NoAttacks =
         {
             "volleyattack", "volleyattackwithsound",
@@ -90,7 +151,9 @@ namespace SFXTargetSelector
             "kindredwolfbasicattack", "kindredbasicattackoverridelightbombfinal"
         };
 
-        //Spells that are attacks even if they dont have the "attack" word in their name.
+        /// <summary>
+        ///     Spells that are attacks even if they dont have the "attack" word in their name.
+        /// </summary>
         private static readonly string[] Attacks =
         {
             "caitlynheadshotmissile", "frostarrow", "garenslash2",
@@ -99,24 +162,85 @@ namespace SFXTargetSelector
             "xenzhaothrust3", "viktorqbuff"
         };
 
-        // Champs whose auto attacks can't be cancelled
+        /// <summary>
+        ///     Champs whose auto attacks can't be cancelled
+        /// </summary>
         private static readonly string[] NoCancelChamps = { "Kalista" };
-        public static int LastAaTick;
-        public static bool Attack = true;
-        public static bool DisableNextAttack;
-        public static bool Move = true;
-        public static int LastMoveCommandT;
-        public static Vector3 LastMoveCommandPosition = Vector3.Zero;
-        private static AttackableUnit _lastTarget;
-        private static readonly Obj_AI_Hero Player;
-        private static float _minDistance = 400;
-        private static bool _missileLaunched;
-        private static readonly Random Random = new Random(DateTime.Now.Millisecond);
+
         private static readonly Dictionary<OrbwalkingDelay, Delay> Delays = new Dictionary<OrbwalkingDelay, Delay>();
 
+        /// <summary>
+        ///     The last auto attack tick
+        /// </summary>
+        public static int LastAaTick;
+
+        /// <summary>
+        ///     <c>true</c> if the orbwalker will attack.
+        /// </summary>
+        public static bool Attack = true;
+
+        /// <summary>
+        ///     <c>true</c> if the orbwalker will skip the next attack.
+        /// </summary>
+        public static bool DisableNextAttack;
+
+        /// <summary>
+        ///     <c>true</c> if the orbwalker will move.
+        /// </summary>
+        public static bool Move = true;
+
+        /// <summary>
+        ///     The tick the most recent attack command was sent.
+        /// </summary>
+        public static int LastAttackCommandT;
+
+        /// <summary>
+        ///     The tick the most recent move command was sent.
+        /// </summary>
+        public static int LastMoveCommandT;
+
+        /// <summary>
+        ///     The last move command position
+        /// </summary>
+        public static Vector3 LastMoveCommandPosition = Vector3.Zero;
+
+        /// <summary>
+        ///     The last target
+        /// </summary>
+        private static AttackableUnit _lastTarget;
+
+        /// <summary>
+        ///     The player
+        /// </summary>
+        private static readonly Obj_AI_Hero Player;
+
+        /// <summary>
+        ///     The minimum distance
+        /// </summary>
+        private static float _minDistance = 400;
+
+        /// <summary>
+        ///     <c>true</c> if the auto attack missile was launched from the player.
+        /// </summary>
+        private static bool _missileLaunched;
+
+        /// <summary>
+        ///     The champion name
+        /// </summary>
+        private static readonly string ChampionName;
+
+        /// <summary>
+        ///     The random
+        /// </summary>
+        private static readonly Random Random = new Random(DateTime.Now.Millisecond);
+
+        /// <summary>
+        ///     Initializes static members of the <see cref="Orbwalking" /> class.
+        /// </summary>
         static Orbwalking()
         {
             Player = ObjectManager.Player;
+            ChampionName = Player.ChampionName;
             Obj_AI_Base.OnProcessSpellCast += OnProcessSpell;
             Obj_AI_Base.OnDoCast += Obj_AI_Base_OnDoCast;
             Spellbook.OnStopCast += SpellbookOnStopCast;
@@ -142,11 +266,15 @@ namespace SFXTargetSelector
         /// </summary>
         public static event OnTargetChangeH OnTargetChange;
 
-        //  <summary>
-        //      Gets called if you can't kill a minion with auto attacks
-        //  </summary>
+        /// <summary>
+        ///     Occurs when a minion is not killable by an auto attack.
+        /// </summary>
         public static event OnNonKillableMinionH OnNonKillableMinion;
 
+        /// <summary>
+        ///     Fires the before attack event.
+        /// </summary>
+        /// <param name="target">The target.</param>
         private static void FireBeforeAttack(AttackableUnit target)
         {
             if (BeforeAttack != null)
@@ -159,6 +287,11 @@ namespace SFXTargetSelector
             }
         }
 
+        /// <summary>
+        ///     Fires the on attack event.
+        /// </summary>
+        /// <param name="unit">The unit.</param>
+        /// <param name="target">The target.</param>
         private static void FireOnAttack(AttackableUnit unit, AttackableUnit target)
         {
             if (OnAttack != null)
@@ -167,6 +300,11 @@ namespace SFXTargetSelector
             }
         }
 
+        /// <summary>
+        ///     Fires the after attack event.
+        /// </summary>
+        /// <param name="unit">The unit.</param>
+        /// <param name="target">The target.</param>
         private static void FireAfterAttack(AttackableUnit unit, AttackableUnit target)
         {
             if (AfterAttack != null && target.IsValidTarget())
@@ -175,6 +313,10 @@ namespace SFXTargetSelector
             }
         }
 
+        /// <summary>
+        ///     Fires the on target switch event.
+        /// </summary>
+        /// <param name="newTarget">The new target.</param>
         private static void FireOnTargetSwitch(AttackableUnit newTarget)
         {
             if (OnTargetChange != null && (!_lastTarget.IsValidTarget() || _lastTarget != newTarget))
@@ -183,6 +325,10 @@ namespace SFXTargetSelector
             }
         }
 
+        /// <summary>
+        ///     Fires the on non killable minion event.
+        /// </summary>
+        /// <param name="minion">The minion.</param>
         private static void FireOnNonKillableMinion(AttackableUnit minion)
         {
             if (OnNonKillableMinion != null)
@@ -194,6 +340,8 @@ namespace SFXTargetSelector
         /// <summary>
         ///     Returns true if the spellname resets the attack timer.
         /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns><c>true</c> if the specified name is an auto attack reset; otherwise, <c>false</c>.</returns>
         public static bool IsAutoAttackReset(string name)
         {
             return AttackResets.Contains(name.ToLower());
@@ -202,14 +350,18 @@ namespace SFXTargetSelector
         /// <summary>
         ///     Returns true if the unit is melee
         /// </summary>
+        /// <param name="unit">The unit.</param>
+        /// <returns><c>true</c> if the specified unit is melee; otherwise, <c>false</c>.</returns>
         public static bool IsMelee(this Obj_AI_Base unit)
         {
-            return unit.CombatType == GameObjectCombatType.Melee || Player.IsMelee;
+            return unit.CombatType == GameObjectCombatType.Melee;
         }
 
         /// <summary>
         ///     Returns true if the spellname is an auto-attack.
         /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns><c>true</c> if the name is an auto attack; otherwise, <c>false</c>.</returns>
         public static bool IsAutoAttack(string name)
         {
             return (name.ToLower().Contains("attack") && !NoAttacks.Contains(name.ToLower())) ||
@@ -219,6 +371,8 @@ namespace SFXTargetSelector
         /// <summary>
         ///     Returns the auto-attack range of local player with respect to the target.
         /// </summary>
+        /// <param name="target">The target.</param>
+        /// <returns>System.Single.</returns>
         public static float GetRealAutoAttackRange(AttackableUnit target)
         {
             var result = Player.AttackRange + Player.BoundingRadius;
@@ -230,8 +384,21 @@ namespace SFXTargetSelector
         }
 
         /// <summary>
+        ///     Returns the auto-attack range of the target.
+        /// </summary>
+        /// <param name="target">The target.</param>
+        /// <returns>System.Single.</returns>
+        public static float GetAttackRange(Obj_AI_Hero target)
+        {
+            var result = target.AttackRange + target.BoundingRadius;
+            return result;
+        }
+
+        /// <summary>
         ///     Returns true if the target is in auto-attack range.
         /// </summary>
+        /// <param name="target">The target.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise.</returns>
         public static bool InAutoAttackRange(AttackableUnit target)
         {
             if (!target.IsValidTarget())
@@ -248,10 +415,11 @@ namespace SFXTargetSelector
         /// <summary>
         ///     Returns player auto-attack missile speed.
         /// </summary>
+        /// <returns>System.Single.</returns>
         public static float GetMyProjectileSpeed()
         {
-            return IsMelee(Player) || Player.ChampionName == "Azir" || Player.ChampionName == "Velkoz" ||
-                   Player.ChampionName == "Viktor" && Player.HasBuff("ViktorPowerTransferReturn")
+            return IsMelee(Player) || ChampionName == "Azir" || ChampionName == "Velkoz" ||
+                   ChampionName == "Viktor" && Player.HasBuff("ViktorPowerTransferReturn")
                 ? float.MaxValue
                 : Player.BasicAttack.MissileSpeed;
         }
@@ -259,8 +427,19 @@ namespace SFXTargetSelector
         /// <summary>
         ///     Returns if the player's auto-attack is ready.
         /// </summary>
-        public static bool CanAttack(float extraDelay)
+        /// <param name="extraDelay">The extra delay.</param>
+        /// <returns><c>true</c> if this instance can attack; otherwise, <c>false</c>.</returns>
+        public static bool CanAttack(float extraDelay = 0)
         {
+            if (Player.ChampionName == "Graves" &&
+                (Utils.GameTimeTickCount + Game.Ping / 2 + 25 >= LastAaTick + 1000 + extraDelay && Attack))
+            {
+                if (Player.HasBuff("GravesBasicAttackAmmo1") || Player.HasBuff("GravesBasicAttackAmmo2"))
+                {
+                    return true;
+                }
+            }
+
             return Utils.GameTimeTickCount + Game.Ping / 2 + 25 >= LastAaTick + Player.AttackDelay * 1000 + extraDelay &&
                    Attack;
         }
@@ -268,6 +447,8 @@ namespace SFXTargetSelector
         /// <summary>
         ///     Returns true if moving won't cancel the auto-attack.
         /// </summary>
+        /// <param name="extraWindup">The extra windup.</param>
+        /// <returns><c>true</c> if this instance can move the specified extra windup; otherwise, <c>false</c>.</returns>
         public static bool CanMove(float extraWindup)
         {
             if (!Move)
@@ -281,12 +462,12 @@ namespace SFXTargetSelector
             }
 
             var localExtraWindup = 0;
-            if (Player.ChampionName == "Rengar" && (Player.HasBuff("rengarqbase") || Player.HasBuff("rengarqemp")))
+            if (ChampionName == "Rengar" && (Player.HasBuff("rengarqbase") || Player.HasBuff("rengarqemp")))
             {
                 localExtraWindup = 200;
             }
 
-            return NoCancelChamps.Contains(Player.ChampionName) ||
+            return NoCancelChamps.Contains(ChampionName) ||
                    (Utils.GameTimeTickCount + Game.Ping / 2 >=
                     LastAaTick + Player.AttackCastDelay * 1000 + extraWindup + localExtraWindup);
         }
@@ -382,24 +563,45 @@ namespace SFXTargetSelector
             }
         }
 
+        /// <summary>
+        ///     Sets the minimum orbwalk distance.
+        /// </summary>
+        /// <param name="d">The d.</param>
         public static void SetMinimumOrbwalkDistance(float d)
         {
             _minDistance = d;
         }
 
+        /// <summary>
+        ///     Gets the last move time.
+        /// </summary>
+        /// <returns>System.Single.</returns>
         public static float GetLastMoveTime()
         {
             return LastMoveCommandT;
         }
 
+        /// <summary>
+        ///     Gets the last move position.
+        /// </summary>
+        /// <returns>Vector3.</returns>
         public static Vector3 GetLastMovePosition()
         {
             return LastMoveCommandPosition;
         }
 
+        /// <summary>
+        ///     Moves to the position.
+        /// </summary>
+        /// <param name="position">The position.</param>
+        /// <param name="holdAreaRadius">The hold area radius.</param>
+        /// <param name="overrideTimer">if set to <c>true</c> [override timer].</param>
+        /// <param name="useFixedDistance">if set to <c>true</c> [use fixed distance].</param>
+        /// <param name="randomizeMinDistance">if set to <c>true</c> [randomize minimum distance].</param>
         public static void MoveTo(Vector3 position,
             float holdAreaRadius = 0,
             bool overrideTimer = false,
+            bool useFixedDistance = true,
             bool randomizeMinDistance = true)
         {
             var playerPosition = Player.ServerPosition;
@@ -422,7 +624,6 @@ namespace SFXTargetSelector
                 point = playerPosition.Extend(
                     position, (randomizeMinDistance ? (Random.NextFloat(0.6f, 1) + 0.2f) * _minDistance : _minDistance));
             }
-
             var angle = 0f;
             var currentPath = Player.GetWaypoints();
             if (currentPath.Count > 1 && currentPath.PathLength() > 100)
@@ -443,18 +644,22 @@ namespace SFXTargetSelector
                 }
             }
 
-            if (angle >= 80 && Utils.GameTimeTickCount - LastMoveCommandT < 60)
+            if (Utils.GameTimeTickCount - LastMoveCommandT < (70 + Math.Min(60, Game.Ping)) && !overrideTimer &&
+                angle < 60)
+            {
+                return;
+            }
+
+            if (angle >= 60 && Utils.GameTimeTickCount - LastMoveCommandT < 60)
             {
                 return;
             }
 
             var delay = Delays[OrbwalkingDelay.Move];
-
             if (Utils.GameTimeTickCount - LastMoveCommandT < delay.CurrentDelay && !overrideTimer && angle <= 80)
             {
                 return;
             }
-
             SetCurrentDelay(delay);
 
             Player.IssueOrder(GameObjectOrder.MoveTo, point);
@@ -463,14 +668,26 @@ namespace SFXTargetSelector
         }
 
         /// <summary>
-        ///     Orbwalk a target while moving to Position.
+        ///     Orbwalks a target while moving to Position.
         /// </summary>
+        /// <param name="target">The target.</param>
+        /// <param name="position">The position.</param>
+        /// <param name="extraWindup">The extra windup.</param>
+        /// <param name="holdAreaRadius">The hold area radius.</param>
+        /// <param name="useFixedDistance">if set to <c>true</c> [use fixed distance].</param>
+        /// <param name="randomizeMinDistance">if set to <c>true</c> [randomize minimum distance].</param>
         public static void Orbwalk(AttackableUnit target,
             Vector3 position,
             float extraWindup = 90,
             float holdAreaRadius = 0,
+            bool useFixedDistance = true,
             bool randomizeMinDistance = true)
         {
+            if (Utils.GameTimeTickCount - LastAttackCommandT < (70 + Math.Min(60, Game.Ping)))
+            {
+                return;
+            }
+
             try
             {
                 var delay = Delays[OrbwalkingDelay.Attack];
@@ -482,32 +699,24 @@ namespace SFXTargetSelector
 
                     if (!DisableNextAttack)
                     {
-                        if (!NoCancelChamps.Contains(Player.ChampionName))
+                        if (!NoCancelChamps.Contains(ChampionName))
                         {
-                            LastAaTick = Utils.GameTimeTickCount + Game.Ping + 100 -
-                                         (int) (ObjectManager.Player.AttackCastDelay * 1000f);
                             _missileLaunched = false;
-
-                            var d = GetRealAutoAttackRange(target) - 65;
-                            if (Player.Distance(target, true) > d * d && !IsMelee(Player))
-                            {
-                                LastAaTick += 300;
-                            }
                         }
 
-                        if (!Player.IssueOrder(GameObjectOrder.AttackUnit, target))
+                        if (Player.IssueOrder(GameObjectOrder.AttackUnit, target))
                         {
-                            ResetAutoAttackTimer();
+                            LastAttackCommandT = Utils.GameTimeTickCount;
+                            _lastTarget = target;
                         }
 
-                        LastMoveCommandT = 0;
-                        _lastTarget = target;
                         return;
                     }
                 }
+
                 if (CanMove(extraWindup))
                 {
-                    MoveTo(position, holdAreaRadius, false, randomizeMinDistance);
+                    MoveTo(position, holdAreaRadius, false, useFixedDistance, randomizeMinDistance);
                 }
             }
             catch (Exception e)
@@ -524,6 +733,11 @@ namespace SFXTargetSelector
             LastAaTick = 0;
         }
 
+        /// <summary>
+        ///     Fired when the spellbook stops casting a spell.
+        /// </summary>
+        /// <param name="spellbook">The spellbook.</param>
+        /// <param name="args">The <see cref="SpellbookStopCastEventArgs" /> instance containing the event data.</param>
         private static void SpellbookOnStopCast(Spellbook spellbook, SpellbookStopCastEventArgs args)
         {
             if (spellbook.Owner.IsValid && spellbook.Owner.IsMe && args.DestroyMissile && args.StopAnimation)
@@ -532,11 +746,16 @@ namespace SFXTargetSelector
             }
         }
 
+        /// <summary>
+        ///     Fired when an auto attack is fired.
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="args">The <see cref="GameObjectProcessSpellCastEventArgs" /> instance containing the event data.</param>
         private static void Obj_AI_Base_OnDoCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            if (sender.IsMe && IsAutoAttack(args.SData.Name))
+            if (sender.IsMe)
             {
-                if (Game.Ping <= 30)
+                if (Game.Ping <= 30) //First world problems kappa
                 {
                     Utility.DelayAction.Add(30, () => Obj_AI_Base_OnDoCast_Delayed(sender, args));
                     return;
@@ -546,21 +765,39 @@ namespace SFXTargetSelector
             }
         }
 
+        /// <summary>
+        ///     Fired 30ms after an auto attack is launched.
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="args">The <see cref="GameObjectProcessSpellCastEventArgs" /> instance containing the event data.</param>
         private static void Obj_AI_Base_OnDoCast_Delayed(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            FireAfterAttack(sender, args.Target as AttackableUnit);
-            _missileLaunched = true;
+            if (IsAutoAttackReset(args.SData.Name))
+            {
+                ResetAutoAttackTimer();
+            }
+
+            if (IsAutoAttack(args.SData.Name))
+            {
+                FireAfterAttack(sender, args.Target as AttackableUnit);
+                _missileLaunched = true;
+            }
         }
 
+        /// <summary>
+        ///     Handles the <see cref="E:ProcessSpell" /> event.
+        /// </summary>
+        /// <param name="unit">The unit.</param>
+        /// <param name="spell">The <see cref="GameObjectProcessSpellCastEventArgs" /> instance containing the event data.</param>
         private static void OnProcessSpell(Obj_AI_Base unit, GameObjectProcessSpellCastEventArgs spell)
         {
             try
             {
                 var spellName = spell.SData.Name;
 
-                if (IsAutoAttackReset(spellName) && unit.IsMe)
+                if (unit.IsMe && IsAutoAttackReset(spellName) && Math.Abs(spell.SData.SpellCastTime) <= 0)
                 {
-                    Utility.DelayAction.Add(250, ResetAutoAttackTimer);
+                    ResetAutoAttackTimer();
                 }
 
                 if (!IsAutoAttack(spellName))
@@ -573,15 +810,13 @@ namespace SFXTargetSelector
                 {
                     LastAaTick = Utils.GameTimeTickCount - Game.Ping / 2;
                     _missileLaunched = false;
+                    LastMoveCommandT = 0;
 
                     var target = spell.Target as Obj_AI_Base;
-                    if (target != null)
+                    if (target != null && target.IsValid)
                     {
-                        if (target.IsValid)
-                        {
-                            FireOnTargetSwitch(target);
-                            _lastTarget = target;
-                        }
+                        FireOnTargetSwitch(target);
+                        _lastTarget = target;
                     }
                 }
 
@@ -593,12 +828,40 @@ namespace SFXTargetSelector
             }
         }
 
-        public class BeforeAttackEventArgs
+        public class Delay
         {
+            public float Default { get; set; }
+            public float MinDelay { get; set; }
+            public float MaxDelay { get; set; }
+            public float Probability { get; set; }
+            public bool Randomize { get; set; }
+            public float CurrentDelay { get; set; }
+        }
+
+        /// <summary>
+        ///     The before attack event arguments.
+        /// </summary>
+        public class BeforeAttackEventArgs : EventArgs
+        {
+            /// <summary>
+            ///     <c>true</c> if the orbwalker should continue with the attack.
+            /// </summary>
             private bool _process = true;
+
+            /// <summary>
+            ///     The target
+            /// </summary>
             public AttackableUnit Target;
+
+            /// <summary>
+            ///     The unit
+            /// </summary>
             public Obj_AI_Base Unit = ObjectManager.Player;
 
+            /// <summary>
+            ///     Gets or sets a value indicating whether this <see cref="BeforeAttackEventArgs" /> should continue with the attack.
+            /// </summary>
+            /// <value><c>true</c> if the orbwalker should continue with the attack; otherwise, <c>false</c>.</value>
             public bool Process
             {
                 get { return _process; }
@@ -616,40 +879,80 @@ namespace SFXTargetSelector
         /// </summary>
         public class Orbwalker
         {
+            /// <summary>
+            ///     The lane clear wait time modifier.
+            /// </summary>
             private const float LaneClearWaitTimeMod = 2f;
+
+            /// <summary>
+            ///     The configuration
+            /// </summary>
             private static Menu _config;
+
+            /// <summary>
+            ///     The instances of the orbwalker.
+            /// </summary>
+            public static List<Orbwalker> Instances = new List<Orbwalker>();
+
             private readonly Dictionary<string, bool> _attackableObjects = new Dictionary<string, bool>();
             private readonly string[] _attackleCloneChamps = { "Shaco", "LeBlanc", "Wukong" };
 
             private readonly string[] _attackleObjectChamps =
             {
                 "Zyra", "Heimerdinger", "Shaco", "Teemo", "Gangplank",
-                "Annie", "Yorick", "Mordekaiser", "Malzahar"
+                "Annie", "Yorick", "Mordekaiser", "Malzahar", "Elise"
             };
 
+            /// <summary>
+            ///     The player
+            /// </summary>
+            private readonly Obj_AI_Hero _player;
+
+            /// <summary>
+            ///     The name of the CustomMode if it is set.
+            /// </summary>
+            private string _customModeName;
+
+            /// <summary>
+            ///     The forced target
+            /// </summary>
             private Obj_AI_Base _forcedTarget;
+
+            /// <summary>
+            ///     The orbalker mode
+            /// </summary>
             private OrbwalkingMode _mode = OrbwalkingMode.None;
+
+            /// <summary>
+            ///     The orbwalking point
+            /// </summary>
             private Vector3 _orbwalkingPoint;
+
+            /// <summary>
+            ///     The previous minion the orbwalker was targeting.
+            /// </summary>
             private Obj_AI_Minion _prevMinion;
 
+            /// <summary>
+            ///     Initializes a new instance of the <see cref="Orbwalker" /> class.
+            /// </summary>
+            /// <param name="attachToMenu">The menu the orbwalker should attach to.</param>
             public Orbwalker(Menu attachToMenu)
             {
-                GameObjects.Initialize();
-
                 _config = attachToMenu;
                 /* Drawings submenu */
                 var drawings = new Menu("Drawings", "drawings");
                 drawings.AddItem(
-                    new MenuItem("CircleThickness", "Circle Thickness").SetShared().SetValue(new Slider(5, 1, 10)));
+                    new MenuItem("CircleThickness", "Circle Thickness").SetShared().SetValue(new Slider(4, 1, 10)));
                 drawings.AddItem(
                     new MenuItem("AACircle", "AA Circle").SetShared()
-                        .SetValue(new Circle(false, Color.FromArgb(255, 255, 0, 255))));
+                        .SetValue(new Circle(true, Color.FromArgb(155, 255, 255, 0))));
                 drawings.AddItem(
                     new MenuItem("AACircle2", "Enemy AA Circle").SetShared()
-                        .SetValue(new Circle(false, Color.FromArgb(255, 255, 0, 255))));
+                        .SetValue(new Circle(false, Color.FromArgb(155, 255, 255, 0))));
                 drawings.AddItem(
                     new MenuItem("HoldZone", "Hold Zone").SetShared()
-                        .SetValue(new Circle(false, Color.FromArgb(255, 255, 0, 255))));
+                        .SetValue(new Circle(false, Color.FromArgb(155, 255, 255, 0))));
                 _config.AddSubMenu(drawings);
 
                 var attackables = new Menu("Attackable Objects", "Attackables");
@@ -671,6 +974,8 @@ namespace SFXTargetSelector
                     .ValueChanged += (sender, args) => SetAttackableObject("yorick", args.GetNewValue<bool>());
                 attackables.AddItem(new MenuItem("AttackMalzahar", "Malzahar Voidling").SetShared().SetValue(true))
                     .ValueChanged += (sender, args) => SetAttackableObject("malzahar", args.GetNewValue<bool>());
+                attackables.AddItem(new MenuItem("AttackElise", "Elise Spiderling").SetShared().SetValue(true))
+                    .ValueChanged += (sender, args) => SetAttackableObject("elise", args.GetNewValue<bool>());
                 attackables.AddItem(new MenuItem("AttackMordekaiser", "Mordekaiser Ghost").SetShared().SetValue(true))
                     .ValueChanged += (sender, args) => SetAttackableObject("mordekaiser", args.GetNewValue<bool>());
                 attackables.AddItem(new MenuItem("AttackClone", "Clones").SetShared().SetValue(true)).ValueChanged +=
@@ -727,11 +1032,16 @@ namespace SFXTargetSelector
 
                 _config.AddSubMenu(delayAttack);
 
-                var misc = new Menu("Misc", "Misc");
+                /* Misc options */
+                var misc = new Menu("Miscellaneous", "Misc");
                 misc.AddItem(
-                    new MenuItem("HoldPosRadius", "Hold Position Radius").SetShared().SetValue(new Slider(50, 0, 250)));
-                misc.AddItem(new MenuItem("PriorizeFarm", "Priorize farm over harass").SetShared().SetValue(true));
-                misc.AddItem(new MenuItem("MissileCheck", "Missile Check").SetShared().SetValue(true));
+                    new MenuItem("HoldPosRadius", "Hold Position Radius").SetShared().SetValue(new Slider(0, 0, 250)));
+                misc.AddItem(new MenuItem("PriorizeFarm", "Prioritize Farm Over Harass").SetShared().SetValue(true));
+                misc.AddItem(new MenuItem("Smallminionsprio", "Focus Small Jugnel First").SetShared().SetValue(false));
+                misc.AddItem(
+                    new MenuItem("FocusMinionsOverTurrets", "Focus Minions Over Objectives").SetShared()
+                        .SetValue(new KeyBind('M', KeyBindType.Toggle)));
+                misc.AddItem(new MenuItem("MissileCheck", "Use Missile Check").SetShared().SetValue(true));
 
                 _config.AddSubMenu(misc);
 
@@ -739,20 +1049,19 @@ namespace SFXTargetSelector
 
                 _config.AddItem(
                     new MenuItem("Orbwalk", "Combo").SetShared().SetValue(new KeyBind(32, KeyBindType.Press)));
-
                 _config.AddItem(
                     new MenuItem("Orbwalk2", "Combo Alternate").SetShared().SetValue(new KeyBind(32, KeyBindType.Press)));
-
                 _config.AddItem(
-                    new MenuItem("Farm", "Harass").SetShared().SetValue(new KeyBind('C', KeyBindType.Press)));
-
+                    new MenuItem("StillCombo", "Combo Without Moving").SetShared()
+                        .SetValue(new KeyBind('N', KeyBindType.Press)));
+                _config.AddItem(new MenuItem("Farm", "Mixed").SetShared().SetValue(new KeyBind('C', KeyBindType.Press)));
                 _config.AddItem(
                     new MenuItem("LaneClear", "Lane Clear").SetShared().SetValue(new KeyBind('V', KeyBindType.Press)));
-
                 _config.AddItem(
-                    new MenuItem("Last Hit", "Last Hit").SetShared().SetValue(new KeyBind('X', KeyBindType.Press)));
-
+                    new MenuItem("LastHit", "Last Hit").SetShared().SetValue(new KeyBind('X', KeyBindType.Press)));
                 _config.AddItem(new MenuItem("Flee", "Flee").SetShared().SetValue(new KeyBind('Z', KeyBindType.Press)));
+
+                _player = ObjectManager.Player;
 
                 SetDelay(_config.Item("MovementDelay").GetValue<Slider>().Value, OrbwalkingDelay.Move);
                 SetMinDelay(_config.Item("MovementMinDelay").GetValue<Slider>().Value, OrbwalkingDelay.Move);
@@ -769,13 +1078,23 @@ namespace SFXTargetSelector
                 CustomEvents.Game.OnGameLoad += GameOnOnGameLoad;
                 Game.OnUpdate += GameOnOnGameUpdate;
                 Drawing.OnDraw += DrawingOnOnDraw;
+
+                Instances.Add(this);
             }
 
+            /// <summary>
+            ///     Gets the farm delay.
+            /// </summary>
+            /// <value>The farm delay.</value>
             private int FarmDelay
             {
                 get { return _config.Item("FarmDelay").GetValue<Slider>().Value; }
             }
 
+            /// <summary>
+            ///     Gets a value indicating whether the orbwalker is orbwalking by checking the missiles.
+            /// </summary>
+            /// <value><c>true</c> if the orbwalker is orbwalking by checking the missiles; otherwise, <c>false</c>.</value>
             public static bool MissileCheck
             {
                 get { return _config.Item("MissileCheck").GetValue<bool>(); }
@@ -786,6 +1105,10 @@ namespace SFXTargetSelector
                 get { return _config.Item("HoldPosRadius").GetValue<Slider>().Value; }
             }
 
+            /// <summary>
+            ///     Gets or sets the active mode.
+            /// </summary>
+            /// <value>The active mode.</value>
             public OrbwalkingMode ActiveMode
             {
                 get
@@ -801,6 +1124,11 @@ namespace SFXTargetSelector
                         return OrbwalkingMode.Combo;
                     }
 
+                    if (_config.Item("StillCombo").GetValue<KeyBind>().Active)
+                    {
+                        return OrbwalkingMode.Combo;
+                    }
+
                     if (_config.Item("LaneClear").GetValue<KeyBind>().Active)
                     {
                         return OrbwalkingMode.LaneClear;
@@ -811,7 +1139,7 @@ namespace SFXTargetSelector
                         return OrbwalkingMode.Mixed;
                     }
 
-                    if (_config.Item("Last Hit").GetValue<KeyBind>().Active)
+                    if (_config.Item("LastHit").GetValue<KeyBind>().Active)
                     {
                         return OrbwalkingMode.LastHit;
                     }
@@ -819,6 +1147,12 @@ namespace SFXTargetSelector
                     if (_config.Item("Flee").GetValue<KeyBind>().Active)
                     {
                         return OrbwalkingMode.Flee;
+                    }
+
+                    if (_config.Item(_customModeName) != null &&
+                        _config.Item(_customModeName).GetValue<KeyBind>().Active)
+                    {
+                        return OrbwalkingMode.CustomMode;
                     }
 
                     return OrbwalkingMode.None;
@@ -850,8 +1184,36 @@ namespace SFXTargetSelector
             }
 
             /// <summary>
+            ///     Determines if a target is in auto attack range.
+            /// </summary>
+            /// <param name="target">The target.</param>
+            /// <returns><c>true</c> if a target is in auto attack range, <c>false</c> otherwise.</returns>
+            // ReSharper disable once MemberHidesStaticFromOuterClass
+            public virtual bool InAutoAttackRange(AttackableUnit target)
+            {
+                return Orbwalking.InAutoAttackRange(target);
+            }
+
+            /// <summary>
+            ///     Registers the Custom Mode of the Orbwalker. Useful for adding a flee mode and such.
+            /// </summary>
+            /// <param name="name">The name of the mode Ex. "Myassembly.FleeMode" </param>
+            /// <param name="displayname">The name of the mode in the menu. Ex. Flee</param>
+            /// <param name="key">The default key for this mode.</param>
+            public virtual void RegisterCustomMode(string name, string displayname, uint key)
+            {
+                _customModeName = name;
+                if (_config.Item(name) == null)
+                {
+                    _config.AddItem(
+                        new MenuItem(name, displayname).SetShared().SetValue(new KeyBind(key, KeyBindType.Press)));
+                }
+            }
+
+            /// <summary>
             ///     Enables or disables the auto-attacks.
             /// </summary>
+            /// <param name="b">if set to <c>true</c> the orbwalker will attack units.</param>
             public void SetAttack(bool b)
             {
                 Attack = b;
@@ -860,6 +1222,7 @@ namespace SFXTargetSelector
             /// <summary>
             ///     Enables or disables the movement.
             /// </summary>
+            /// <param name="b">if set to <c>true</c> the orbwalker will move.</param>
             public void SetMovement(bool b)
             {
                 Move = b;
@@ -868,11 +1231,15 @@ namespace SFXTargetSelector
             /// <summary>
             ///     Forces the orbwalker to attack the set target if valid and in range.
             /// </summary>
+            /// <param name="target">The target.</param>
             public void ForceTarget(Obj_AI_Base target)
             {
                 _forcedTarget = target;
             }
 
+            /// <summary>
+            ///     Returns the currently forced target.
+            /// </summary>
             public Obj_AI_Base ForcedTarget()
             {
                 return _forcedTarget;
@@ -881,15 +1248,34 @@ namespace SFXTargetSelector
             /// <summary>
             ///     Forces the orbwalker to move to that point while orbwalking (Game.CursorPos by default).
             /// </summary>
+            /// <param name="point">The point.</param>
             public void SetOrbwalkingPoint(Vector3 point)
             {
                 _orbwalkingPoint = point;
             }
 
+            private void SetAttackableObject(string name, bool value)
+            {
+                if (_attackableObjects.ContainsKey(name.ToLower()))
+                {
+                    _attackableObjects[name.ToLower()] = value;
+                }
+            }
+
+            private bool IsAttackableObject(string name)
+            {
+                return _attackableObjects.ContainsKey(name.ToLower()) && _attackableObjects[name.ToLower()];
+            }
+
+            /// <summary>
+            ///     Determines if the orbwalker should wait before attacking a minion.
+            /// </summary>
+            /// <returns><c>true</c> if the orbwalker should wait before attacking a minion, <c>false</c> otherwise.</returns>
             private bool ShouldWait()
             {
                 return
-                    MinionManager.GetMinions(Player.Position, float.MaxValue)
+                    MinionManager.GetMinions(
+                        Player.Position, float.MaxValue, MinionTypes.All, MinionTeam.Enemy, MinionOrderTypes.None)
                         .Any(
                             minion =>
                                 InAutoAttackRange(minion) &&
@@ -898,6 +1284,10 @@ namespace SFXTargetSelector
                                 Player.GetAutoAttackDamage(minion));
             }
 
+            /// <summary>
+            ///     Gets the target.
+            /// </summary>
+            /// <returns>AttackableUnit.</returns>
             public virtual AttackableUnit GetTarget()
             {
                 AttackableUnit result = null;
@@ -906,7 +1296,7 @@ namespace SFXTargetSelector
                     !_config.Item("PriorizeFarm").GetValue<bool>())
                 {
                     var target = TargetSelector.GetTarget(-1, DamageType.Physical);
-                    if (target != null)
+                    if (target != null && InAutoAttackRange(target))
                     {
                         return target;
                     }
@@ -915,7 +1305,7 @@ namespace SFXTargetSelector
                 var minions = new List<Obj_AI_Minion>();
                 if (ActiveMode != OrbwalkingMode.None && ActiveMode != OrbwalkingMode.Flee)
                 {
-                    minions = GetMinions(ActiveMode == OrbwalkingMode.Combo);
+                    minions = GetAttackableObjects(ActiveMode != OrbwalkingMode.Combo);
                 }
 
                 /*Killable Minion*/
@@ -923,15 +1313,16 @@ namespace SFXTargetSelector
                     ActiveMode == OrbwalkingMode.LastHit)
                 {
                     var minionList =
-                        minions.OrderByDescending(minion => minion.CharData.BaseSkinName.Contains("Siege"))
+                        minions.Where(minion => minion.IsValidTarget() && InAutoAttackRange(minion))
+                            .OrderByDescending(minion => minion.CharData.BaseSkinName.Contains("Siege"))
                             .ThenBy(minion => minion.CharData.BaseSkinName.Contains("Super"))
                             .ThenBy(minion => minion.Health)
                             .ThenByDescending(minion => minion.MaxHealth);
 
                     foreach (var minion in minionList)
                     {
-                        var t = (int) (Player.AttackCastDelay * 1000) - 100 + Game.Ping / 2 +
-                                1000 * (int) Math.Max(0, Player.Distance(minion) - Player.BoundingRadius) /
+                        var t = (int) (_player.AttackCastDelay * 1000) - 100 + Game.Ping / 2 +
+                                1000 * (int) Math.Max(0, _player.Distance(minion) - _player.BoundingRadius) /
                                 (int) GetMyProjectileSpeed();
                         if (minion.MaxHealth <= 10)
                         {
@@ -963,7 +1354,8 @@ namespace SFXTargetSelector
                 }
 
                 /* turrets / inhibitors / nexus */
-                if (ActiveMode == OrbwalkingMode.LaneClear)
+                if (ActiveMode == OrbwalkingMode.LaneClear &&
+                    (!_config.Item("FocusMinionsOverTurrets").GetValue<KeyBind>().Active || !minions.Any()))
                 {
                     /* turrets */
                     foreach (var turret in
@@ -973,10 +1365,10 @@ namespace SFXTargetSelector
                     }
 
                     /* inhibitor */
-                    foreach (var turret in
-                        GameObjects.EnemyInhibitors.Where(t => t.IsValidTarget() && InAutoAttackRange(t)))
+                    foreach (var inhib in
+                        GameObjects.EnemyInhibitors.Where(i => i.IsValidTarget() && InAutoAttackRange(i)))
                     {
-                        return turret;
+                        return inhib;
                     }
 
                     /* nexus */
@@ -997,6 +1389,19 @@ namespace SFXTargetSelector
                     }
                 }
 
+                /*Jungle minions*/
+                if (ActiveMode == OrbwalkingMode.LaneClear || ActiveMode == OrbwalkingMode.Mixed)
+                {
+                    var jminions = minions.Where(m => m.Team == GameObjectTeam.Neutral);
+                    result = _config.Item("Smallminionsprio").GetValue<bool>()
+                        ? jminions.MinOrDefault(mob => mob.MaxHealth)
+                        : jminions.MaxOrDefault(mob => mob.MaxHealth);
+                    if (result != null)
+                    {
+                        return result;
+                    }
+                }
+
                 /*Lane Clear minions*/
                 if (ActiveMode == OrbwalkingMode.LaneClear)
                 {
@@ -1009,14 +1414,13 @@ namespace SFXTargetSelector
                                 return _prevMinion;
                             }
                             var predHealth = HealthPrediction.LaneClearHealthPrediction(
-                                _prevMinion, (int) ((Player.AttackDelay * 1000) * LaneClearWaitTimeMod), FarmDelay);
-                            if (predHealth >= 2 * Player.GetAutoAttackDamage(_prevMinion) ||
+                                _prevMinion, (int) ((_player.AttackDelay * 1000) * LaneClearWaitTimeMod), FarmDelay);
+                            if (predHealth >= 2 * _player.GetAutoAttackDamage(_prevMinion) ||
                                 Math.Abs(predHealth - _prevMinion.Health) < float.Epsilon)
                             {
                                 return _prevMinion;
                             }
                         }
-
                         foreach (var minion in minions.Where(m => m.Team != GameObjectTeam.Neutral))
                         {
                             if (minion.MaxHealth <= 10)
@@ -1037,21 +1441,10 @@ namespace SFXTargetSelector
                                 }
                             }
                         }
-
                         if (result != null)
                         {
                             _prevMinion = (Obj_AI_Minion) result;
                         }
-                    }
-                }
-
-                /*Jungle minions*/
-                if (ActiveMode == OrbwalkingMode.LaneClear || ActiveMode == OrbwalkingMode.Mixed)
-                {
-                    result = minions.Where(m => m.Team == GameObjectTeam.Neutral).MaxOrDefault(mob => mob.MaxHealth);
-                    if (result != null)
-                    {
-                        return result;
                     }
                 }
 
@@ -1070,46 +1463,15 @@ namespace SFXTargetSelector
                 return result;
             }
 
-            private void SetAttackableObject(string name, bool value)
-            {
-                if (_attackableObjects.ContainsKey(name.ToLower()))
-                {
-                    _attackableObjects[name.ToLower()] = value;
-                }
-            }
-
-            private bool IsAttackableObject(string name)
-            {
-                return _attackableObjects.ContainsKey(name.ToLower()) && _attackableObjects[name.ToLower()];
-            }
-
-            private List<Obj_AI_Minion> GetMinions(bool combo = false)
-            {
-                return GetMinions(
-                    !combo, IsAttackableObject("ward"), IsAttackableObject("zyra"), IsAttackableObject("heimerdinger"),
-                    IsAttackableObject("clone"), IsAttackableObject("annie"), IsAttackableObject("teemo"),
-                    IsAttackableObject("shaco"), IsAttackableObject("gangplank"), IsAttackableObject("yorick"),
-                    IsAttackableObject("malzahar"), IsAttackableObject("mordekaiser"));
-            }
-
-            private List<Obj_AI_Minion> GetMinions(bool minion,
-                bool ward,
-                bool zyra,
-                bool heimer,
-                bool clone,
-                bool annie,
-                bool teemo,
-                bool shaco,
-                bool gangplank,
-                bool yorick,
-                bool malzahar,
-                bool mordekaiser)
+            private List<Obj_AI_Minion> GetAttackableObjects(bool minion)
             {
                 var targets = new List<Obj_AI_Minion>();
                 var minions = new List<Obj_AI_Minion>();
                 var clones = new List<Obj_AI_Minion>();
 
-                var units = ward ? GameObjects.EnemyMinions.Concat(GameObjects.EnemyWards) : GameObjects.EnemyMinions;
+                var units = IsAttackableObject("ward")
+                    ? GameObjects.EnemyMinions.Concat(GameObjects.EnemyWards)
+                    : GameObjects.EnemyMinions;
                 foreach (var unit in units.Where(u => u.IsValidTarget() && InAutoAttackRange(u)))
                 {
                     var baseName = unit.CharData.BaseSkinName.ToLower();
@@ -1121,7 +1483,7 @@ namespace SFXTargetSelector
                             continue;
                         }
                     }
-                    if (ward) //wards
+                    if (IsAttackableObject("ward")) //wards
                     {
                         if (baseName.Contains("ward") || baseName.Contains("trinket"))
                         {
@@ -1129,7 +1491,7 @@ namespace SFXTargetSelector
                             continue;
                         }
                     }
-                    if (zyra) //zyra plant
+                    if (IsAttackableObject("zyra")) //zyra plant
                     {
                         if (baseName.Contains("zyra") && baseName.Contains("plant"))
                         {
@@ -1137,7 +1499,7 @@ namespace SFXTargetSelector
                             continue;
                         }
                     }
-                    if (heimer) //heimer turret
+                    if (IsAttackableObject("heimerdinger")) //heimer turret
                     {
                         if (baseName.Contains("heimert"))
                         {
@@ -1145,7 +1507,7 @@ namespace SFXTargetSelector
                             continue;
                         }
                     }
-                    if (annie) //annie tibber
+                    if (IsAttackableObject("annie")) //annie tibber
                     {
                         if (baseName.Contains("annietibbers"))
                         {
@@ -1153,7 +1515,7 @@ namespace SFXTargetSelector
                             continue;
                         }
                     }
-                    if (teemo) //teemo shroom
+                    if (IsAttackableObject("teemo")) //teemo shroom
                     {
                         if (baseName.Contains("teemomushroom"))
                         {
@@ -1161,7 +1523,7 @@ namespace SFXTargetSelector
                             continue;
                         }
                     }
-                    if (shaco) //shaco box
+                    if (IsAttackableObject("shaco")) //shaco box
                     {
                         if (baseName.Contains("shacobox"))
                         {
@@ -1169,7 +1531,7 @@ namespace SFXTargetSelector
                             continue;
                         }
                     }
-                    if (gangplank) //gangplank barrel
+                    if (IsAttackableObject("gangplank")) //gangplank barrel
                     {
                         if (baseName.Contains("gangplankbarrel"))
                         {
@@ -1177,7 +1539,7 @@ namespace SFXTargetSelector
                             continue;
                         }
                     }
-                    if (yorick) //yorick ghouls
+                    if (IsAttackableObject("yorick")) //yorick ghouls
                     {
                         if (baseName.Contains("yorick") && baseName.Contains("ghoul"))
                         {
@@ -1185,7 +1547,7 @@ namespace SFXTargetSelector
                             continue;
                         }
                     }
-                    if (malzahar) //malzahar voidlings
+                    if (IsAttackableObject("malzahar")) //malzahar voidlings
                     {
                         if (baseName.Contains("malzaharvoidling"))
                         {
@@ -1193,7 +1555,15 @@ namespace SFXTargetSelector
                             continue;
                         }
                     }
-                    if (clone) //clones
+                    if (IsAttackableObject("elise")) //elise spiderling
+                    {
+                        if (baseName.Contains("elisespiderling"))
+                        {
+                            targets.Add(unit);
+                            continue;
+                        }
+                    }
+                    if (IsAttackableObject("clone")) //clones
                     {
                         if (baseName.Contains("shaco") || baseName.Contains("leblanc") ||
                             baseName.Contains("monkeyking"))
@@ -1202,7 +1572,7 @@ namespace SFXTargetSelector
                             continue;
                         }
                     }
-                    if (mordekaiser) //Mordekaiser Ghost
+                    if (IsAttackableObject("mordekaiser")) //Mordekaiser Ghost
                     {
                         if (GameObjects.AllyHeroes.Any(e => e.CharData.BaseSkinName.ToLower().Equals(baseName)))
                         {
@@ -1221,6 +1591,10 @@ namespace SFXTargetSelector
                 return finalTargets.Concat(clones).ToList();
             }
 
+            /// <summary>
+            ///     Fired when the game is updated.
+            /// </summary>
+            /// <param name="args">The <see cref="EventArgs" /> instance containing the event data.</param>
             private void GameOnOnGameUpdate(EventArgs args)
             {
                 try
@@ -1230,8 +1604,11 @@ namespace SFXTargetSelector
                         return;
                     }
 
+                    //Block movement if StillCombo is used
+                    Move = !_config.Item("StillCombo").GetValue<KeyBind>().Active;
+
                     //Prevent canceling important spells
-                    if (Player.IsCastingInterruptableSpell(true))
+                    if (_player.IsCastingInterruptableSpell(true))
                     {
                         return;
                     }
@@ -1240,7 +1617,7 @@ namespace SFXTargetSelector
                     Orbwalk(
                         target, (_orbwalkingPoint.To2D().IsValid()) ? _orbwalkingPoint : Game.CursorPos,
                         _config.Item("ExtraWindup").GetValue<Slider>().Value,
-                        _config.Item("HoldPosRadius").GetValue<Slider>().Value);
+                        Math.Max(_config.Item("HoldPosRadius").GetValue<Slider>().Value, 30));
                 }
                 catch (Exception e)
                 {
@@ -1248,13 +1625,17 @@ namespace SFXTargetSelector
                 }
             }
 
+            /// <summary>
+            ///     Fired when the game is drawn.
+            /// </summary>
+            /// <param name="args">The <see cref="EventArgs" /> instance containing the event data.</param>
             private void DrawingOnOnDraw(EventArgs args)
             {
                 var circleThickness = _config.Item("CircleThickness").GetValue<Slider>().Value;
                 if (_config.Item("AACircle").GetValue<Circle>().Active)
                 {
                     Render.Circle.DrawCircle(
-                        Player.Position, GetRealAutoAttackRange(null) + 65,
+                        _player.Position, GetRealAutoAttackRange(null) + 65,
                         _config.Item("AACircle").GetValue<Circle>().Color, circleThickness);
                 }
 
@@ -1264,28 +1645,20 @@ namespace SFXTargetSelector
                         HeroManager.Enemies.FindAll(target => target.IsValidTarget(1175)))
                     {
                         Render.Circle.DrawCircle(
-                            target.Position, GetRealAutoAttackRange(target) + 65,
-                            _config.Item("AACircle2").GetValue<Circle>().Color, circleThickness);
+                            target.Position, GetAttackRange(target), _config.Item("AACircle2").GetValue<Circle>().Color,
+                            circleThickness);
                     }
                 }
 
                 if (_config.Item("HoldZone").GetValue<Circle>().Active)
                 {
                     Render.Circle.DrawCircle(
-                        Player.Position, _config.Item("HoldPosRadius").GetValue<Slider>().Value,
+                        _player.Position, _config.Item("HoldPosRadius").GetValue<Slider>().Value,
                         _config.Item("HoldZone").GetValue<Circle>().Color, circleThickness, true);
                 }
+                _config.Item("FocusMinionsOverTurrets")
+                    .Permashow(_config.Item("FocusMinionsOverTurrets").GetValue<KeyBind>().Active);
             }
         }
-    }
-
-    internal class Delay
-    {
-        public float Default { get; set; }
-        public float MinDelay { get; set; }
-        public float MaxDelay { get; set; }
-        public float Probability { get; set; }
-        public bool Randomize { get; set; }
-        public float CurrentDelay { get; set; }
     }
 }

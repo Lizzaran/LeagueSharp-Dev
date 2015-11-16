@@ -265,7 +265,6 @@ namespace SFXChallenger.SFXTargetSelector
         {
             try
             {
-                LeagueSharp.Common.TargetSelector.CustomTS = true;
                 _menu = menu;
 
                 var drawingMenu = _menu.AddSubMenu(new Menu("Drawings", _menu.Name + ".drawing"));
@@ -299,6 +298,7 @@ namespace SFXChallenger.SFXTargetSelector
                     };
 
                 Mode = GetModeBySelectedIndex(_menu.Item(_menu.Name + ".mode").GetValue<StringList>().SelectedIndex);
+                LeagueSharp.Common.TargetSelector.CustomTS = true;
             }
             catch (Exception ex)
             {

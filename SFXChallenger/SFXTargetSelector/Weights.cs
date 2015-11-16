@@ -109,8 +109,8 @@ namespace SFXChallenger.SFXTargetSelector
                     new Item(
                         "gold", "Acquired Gold", 0, false,
                         t =>
-                            (t.MinionsKilled + t.NeutralMinionsKilled) * 22.35f + t.ChampionsKilled * 300f +
-                            t.Assists * 95f),
+                            (t.MinionsKilled + t.NeutralMinionsKilled) * 27.35f + t.ChampionsKilled * 300f +
+                            t.Assists * 85f),
                     new Item(
                         "team-focus", "Team Focus", 0, false,
                         t =>

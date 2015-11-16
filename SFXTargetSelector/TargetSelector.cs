@@ -28,7 +28,9 @@ using System.Linq;
 using System.Reflection;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXTargetSelector.Others;
 using SharpDX;
+using Orbwalking = SFXTargetSelector.Others.Orbwalking;
 using Version = System.Version;
 
 #endregion
@@ -231,7 +233,6 @@ namespace SFXTargetSelector
 
         public static void AddToMenu(Menu menu)
         {
-            LeagueSharp.Common.TargetSelector.CustomTS = true;
             _menu = menu.AddSubMenu(new Menu("Target Selector", "sfx.ts"));
 
             var drawingMenu = _menu.AddSubMenu(new Menu("Drawings", _menu.Name + ".drawing"));
@@ -266,6 +267,7 @@ namespace SFXTargetSelector
                 };
 
             Mode = GetModeBySelectedIndex(_menu.Item(_menu.Name + ".mode").GetValue<StringList>().SelectedIndex);
+            LeagueSharp.Common.TargetSelector.CustomTS = true;
         }
     }
 }
