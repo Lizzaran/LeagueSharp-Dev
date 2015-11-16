@@ -51,8 +51,6 @@ namespace SFXChallenger.Champions
 {
     internal class Graves : Champion
     {
-        private UltimateManager _ultimate;
-
         protected override ItemFlags ItemFlags
         {
             get { return ItemFlags.Offensive | ItemFlags.Defensive | ItemFlags.Flee; }
@@ -86,7 +84,7 @@ namespace SFXChallenger.Champions
             R2 = new Spell(SpellSlot.R, 700f);
             R2.SetSkillshot(0f, 110f, 1500f, false, SkillshotType.SkillshotCone);
 
-            _ultimate = new UltimateManager
+            Ultimate = new UltimateManager
             {
                 Combo = true,
                 Assisted = true,
@@ -108,7 +106,7 @@ namespace SFXChallenger.Champions
 
         protected override void AddToMenu()
         {
-            _ultimate.AddToMenu(Menu);
+            Ultimate.AddToMenu(Menu);
 
             var comboMenu = Menu.AddSubMenu(new Menu("Combo", Menu.Name + ".combo"));
             HitchanceManager.AddToMenu(
@@ -198,9 +196,9 @@ namespace SFXChallenger.Champions
 
         protected override void OnPostUpdate()
         {
-            if (_ultimate.IsActive(UltimateModeType.Assisted) && R.IsReady())
+            if (Ultimate.IsActive(UltimateModeType.Assisted) && R.IsReady())
             {
-                if (_ultimate.ShouldMove(UltimateModeType.Assisted))
+                if (Ultimate.ShouldMove(UltimateModeType.Assisted))
                 {
                     Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
                 }
@@ -211,7 +209,7 @@ namespace SFXChallenger.Champions
                 }
             }
 
-            if (_ultimate.IsActive(UltimateModeType.Auto) && R.IsReady())
+            if (Ultimate.IsActive(UltimateModeType.Auto) && R.IsReady())
             {
                 if (!RLogic(UltimateModeType.Auto, TargetSelector.GetTarget(R)))
                 {
@@ -249,7 +247,7 @@ namespace SFXChallenger.Champions
             var useQ = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady();
             var useW = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady();
             var useE = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
-            var useR = _ultimate.IsActive(UltimateModeType.Combo) && R.IsReady();
+            var useR = Ultimate.IsActive(UltimateModeType.Combo) && R.IsReady();
 
             if (useR)
             {
@@ -297,10 +295,10 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (_ultimate.IsActive(mode))
+                if (Ultimate.IsActive(mode))
                 {
                     var hits = GetRHits(target);
-                    if (_ultimate.Check(mode, hits.Item2))
+                    if (Ultimate.Check(mode, hits.Item2))
                     {
                         R.Cast(hits.Item3);
                         return true;
@@ -318,9 +316,9 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (_ultimate.ShouldSingle(mode))
+                if (Ultimate.ShouldSingle(mode))
                 {
-                    foreach (var target in GameObjects.EnemyHeroes.Where(t => _ultimate.CheckSingle(mode, t)))
+                    foreach (var target in GameObjects.EnemyHeroes.Where(t => Ultimate.CheckSingle(mode, t)))
                     {
                         var hits = GetRHits(target);
                         if (hits.Item1 > 0)

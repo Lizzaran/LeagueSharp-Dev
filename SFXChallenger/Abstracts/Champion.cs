@@ -49,6 +49,7 @@ namespace SFXChallenger.Abstracts
         protected Spell E;
         protected Spell Q;
         protected Spell R;
+        protected UltimateManager Ultimate;
         protected Spell W;
 
         protected Champion()
@@ -192,6 +193,40 @@ namespace SFXChallenger.Abstracts
             }
         }
 
+        protected void ItemsSummonersLogic(Obj_AI_Hero ultimateTarget, bool single = true)
+        {
+            try
+            {
+                var range = Math.Max(SummonerManager.MaxRange, ItemManager.MaxRange);
+                if (ultimateTarget == null || Ultimate == null || !ultimateTarget.IsValidTarget(range))
+                {
+                    var target = TargetSelector.GetTarget(range);
+                    if (target != null)
+                    {
+                        if (ItemManager.CalculateComboDamage(target) + SummonerManager.CalculateComboDamage(target) >
+                            target.Health)
+                        {
+                            ItemManager.UseComboItems(ultimateTarget);
+                            SummonerManager.UseComboSummoners(ultimateTarget);
+                        }
+                    }
+                }
+                else
+                {
+                    if (Ultimate.GetDamage(ultimateTarget, UltimateModeType.Combo, single ? 1 : 5) >
+                        ultimateTarget.Health)
+                    {
+                        ItemManager.UseComboItems(ultimateTarget);
+                        SummonerManager.UseComboSummoners(ultimateTarget);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
         protected abstract void OnLoad();
         protected abstract void SetupSpells();
         protected abstract void AddToMenu();
@@ -255,7 +290,8 @@ namespace SFXChallenger.Abstracts
                         if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
                         {
                             var enemy = target as Obj_AI_Hero;
-                            if (enemy != null)
+                            if (enemy != null &&
+                                (Ultimate == null || Ultimate.GetDamage(enemy, UltimateModeType.Combo, 1) > enemy.Health))
                             {
                                 ItemManager.UseComboItems(enemy);
                                 SummonerManager.UseComboSummoners(enemy);

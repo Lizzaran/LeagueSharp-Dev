@@ -59,7 +59,6 @@ namespace SFXChallenger.Champions
         private Vector2 _lastPoisonClearPosition;
         private float _lastQPoisonDelay;
         private Obj_AI_Base _lastQPoisonT;
-        private UltimateManager _ultimate;
         public Cassiopeia() : base(1500f) {}
 
         protected override ItemFlags ItemFlags
@@ -96,7 +95,7 @@ namespace SFXChallenger.Champions
             R = new Spell(SpellSlot.R, 825f, DamageType.Magical);
             R.SetSkillshot(0.8f, (float) (80 * Math.PI / 180), float.MaxValue, false, SkillshotType.SkillshotCone);
 
-            _ultimate = new UltimateManager
+            Ultimate = new UltimateManager
             {
                 Combo = true,
                 Assisted = true,
@@ -122,7 +121,7 @@ namespace SFXChallenger.Champions
         {
             DrawingManager.Add("R Flash", R.Range + SummonerManager.Flash.Range);
 
-            var ultimateMenu = _ultimate.AddToMenu(Menu);
+            var ultimateMenu = Ultimate.AddToMenu(Menu);
 
             ultimateMenu.AddItem(
                 new MenuItem(ultimateMenu.Name + ".range", "Range").SetValue(new Slider(700, 400, 825))).ValueChanged +=
@@ -323,9 +322,9 @@ namespace SFXChallenger.Champions
 
         protected override void OnPostUpdate()
         {
-            if (_ultimate.IsActive(UltimateModeType.Flash) && R.IsReady() && SummonerManager.Flash.IsReady())
+            if (Ultimate.IsActive(UltimateModeType.Flash) && R.IsReady() && SummonerManager.Flash.IsReady())
             {
-                if (_ultimate.ShouldMove(UltimateModeType.Flash))
+                if (Ultimate.ShouldMove(UltimateModeType.Flash))
                 {
                     Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
                 }
@@ -347,7 +346,7 @@ namespace SFXChallenger.Champions
                         var castPos = backwards
                             ? Player.Position.Extend(maxHits.Item2, -(Player.Position.Distance(maxHits.Item2) * 2))
                             : Player.Position.Extend(maxHits.Item2, Player.Position.Distance(maxHits.Item2));
-                        if (_ultimate.Check(UltimateModeType.Flash, maxHits.Item1))
+                        if (Ultimate.Check(UltimateModeType.Flash, maxHits.Item1))
                         {
                             if (R.Cast(castPos))
                             {
@@ -355,10 +354,10 @@ namespace SFXChallenger.Champions
                                     300 + (Game.Ping / 2), () => SummonerManager.Flash.Cast(flashPos));
                             }
                         }
-                        else if (_ultimate.ShouldSingle(UltimateModeType.Flash))
+                        else if (Ultimate.ShouldSingle(UltimateModeType.Flash))
                         {
                             if (
-                                maxHits.Item1.Where(hit => _ultimate.CheckSingle(UltimateModeType.Flash, hit))
+                                maxHits.Item1.Where(hit => Ultimate.CheckSingle(UltimateModeType.Flash, hit))
                                     .Any(hit => R.Cast(castPos)))
                             {
                                 Utility.DelayAction.Add(
@@ -369,9 +368,9 @@ namespace SFXChallenger.Champions
                 }
             }
 
-            if (_ultimate.IsActive(UltimateModeType.Assisted) && R.IsReady())
+            if (Ultimate.IsActive(UltimateModeType.Assisted) && R.IsReady())
             {
-                if (_ultimate.ShouldMove(UltimateModeType.Assisted))
+                if (Ultimate.ShouldMove(UltimateModeType.Assisted))
                 {
                     Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
                 }
@@ -382,7 +381,7 @@ namespace SFXChallenger.Champions
                 }
             }
 
-            if (_ultimate.IsActive(UltimateModeType.Auto) && R.IsReady())
+            if (Ultimate.IsActive(UltimateModeType.Auto) && R.IsReady())
             {
                 if (!RLogic(UltimateModeType.Auto, R.GetHitChance("combo")))
                 {
@@ -492,7 +491,7 @@ namespace SFXChallenger.Champions
             try
             {
                 if (sender.IsEnemy && args.DangerLevel == Interrupter2.DangerLevel.High &&
-                    _ultimate.IsActive(UltimateModeType.Interrupt, sender) && sender.IsFacing(Player))
+                    Ultimate.IsActive(UltimateModeType.Interrupt, sender) && sender.IsFacing(Player))
                 {
                     Casting.SkillShot(sender, R, HitChance.High);
                 }
@@ -541,7 +540,7 @@ namespace SFXChallenger.Champions
                 }
                 if (string.IsNullOrEmpty(args.UniqueId))
                 {
-                    if (_ultimate.IsActive(UltimateModeType.Gapcloser, args.Hero) &&
+                    if (Ultimate.IsActive(UltimateModeType.Gapcloser, args.Hero) &&
                         BestTargetOnlyManager.Check("r-gapcloser", R, args.Hero))
                     {
                         if (args.End.Distance(Player.Position) <= R.Range)
@@ -571,7 +570,7 @@ namespace SFXChallenger.Champions
             var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady();
             var w = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady();
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
-            var r = _ultimate.IsActive(UltimateModeType.Combo) && R.IsReady();
+            var r = Ultimate.IsActive(UltimateModeType.Combo) && R.IsReady();
 
             if (q)
             {
@@ -593,12 +592,8 @@ namespace SFXChallenger.Champions
                     single = true;
                 }
             }
-            var target = Targets.FirstOrDefault(t => t.IsValidTarget(R.Range));
-            if (target != null && _ultimate.GetDamage(target, UltimateModeType.Combo, single ? 1 : 5) > target.Health)
-            {
-                ItemManager.UseComboItems(target);
-                SummonerManager.UseComboSummoners(target);
-            }
+
+            ItemsSummonersLogic(null, single);
         }
 
         private float CalcComboDamage(Obj_AI_Hero target,
@@ -746,11 +741,11 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (_ultimate.ShouldSingle(mode))
+                if (Ultimate.ShouldSingle(mode))
                 {
                     foreach (var target in
                         Targets.Where(
-                            t => (!face || t.IsFacing(Player)) && R.CanCast(t) && _ultimate.CheckSingle(mode, t)))
+                            t => (!face || t.IsFacing(Player)) && R.CanCast(t) && Ultimate.CheckSingle(mode, t)))
                     {
                         var pred = R.GetPrediction(target, true);
                         if (pred.Hitchance >= hitChance)
@@ -771,12 +766,12 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (_ultimate.IsActive(mode))
+                if (Ultimate.IsActive(mode))
                 {
                     var maxHits = GetMaxRHits(hitChance);
                     if (maxHits.Item1.Count > 0 && !maxHits.Item2.Equals(Vector3.Zero))
                     {
-                        if (_ultimate.Check(mode, maxHits.Item1))
+                        if (Ultimate.Check(mode, maxHits.Item1))
                         {
                             R.Cast(maxHits.Item2);
                             return true;

@@ -60,7 +60,6 @@ namespace SFXChallenger.Champions
         private Obj_AI_Base _lastQKillableTarget;
         private float _lastRMoveCommand = Environment.TickCount;
         private GameObject _rObject;
-        private UltimateManager _ultimate;
 
         protected override ItemFlags ItemFlags
         {
@@ -97,7 +96,7 @@ namespace SFXChallenger.Champions
             R = new Spell(SpellSlot.R, 700f, DamageType.Magical);
             R.SetSkillshot(0.2f, 300f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
-            _ultimate = new UltimateManager
+            Ultimate = new UltimateManager
             {
                 Combo = true,
                 Assisted = true,
@@ -121,7 +120,7 @@ namespace SFXChallenger.Champions
         {
             DrawingManager.Add("E Max", E.Range + ELength);
 
-            var ultimateMenu = _ultimate.AddToMenu(Menu);
+            var ultimateMenu = Ultimate.AddToMenu(Menu);
             ultimateMenu.AddItem(new MenuItem(ultimateMenu.Name + ".follow", "Auto Follow").SetValue(true));
 
             var comboMenu = Menu.AddSubMenu(new Menu("Combo", Menu.Name + ".combo"));
@@ -289,9 +288,9 @@ namespace SFXChallenger.Champions
             {
                 RFollowLogic();
             }
-            if (_ultimate.IsActive(UltimateModeType.Assisted) && R.IsReady())
+            if (Ultimate.IsActive(UltimateModeType.Assisted) && R.IsReady())
             {
-                if (_ultimate.ShouldMove(UltimateModeType.Assisted))
+                if (Ultimate.ShouldMove(UltimateModeType.Assisted))
                 {
                     Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
                 }
@@ -302,7 +301,7 @@ namespace SFXChallenger.Champions
                 }
             }
 
-            if (_ultimate.IsActive(UltimateModeType.Auto) && R.IsReady())
+            if (Ultimate.IsActive(UltimateModeType.Auto) && R.IsReady())
             {
                 var target = TargetSelector.GetTarget(R);
                 if (target != null && !RLogic(UltimateModeType.Auto, target))
@@ -392,20 +391,17 @@ namespace SFXChallenger.Champions
                     return;
                 }
                 var forced = Orbwalker.ForcedTarget();
-                if (forced != null && forced.IsValidTarget() && Orbwalking.InAutoAttackRange(forced))
+                if (forced != null && forced.IsValidTarget() && forced is Obj_AI_Hero &&
+                    Orbwalking.InAutoAttackRange(forced))
                 {
-                    if (Player.CanAttack || Orbwalking.CanAttack(0))
-                    {
-                        Orbwalker.ForceTarget(null);
-                    }
                     return;
                 }
-                if (HasQBuff() || Game.Time - _lastQCast <= 0.75f)
+                if (HasQBuff() || Game.Time - _lastQCast <= 0.5f + Game.Ping / 1000f)
                 {
                     if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
                     {
                         if ((_rObject == null || !_rObject.IsValid) && R.IsReady() &&
-                            _ultimate.IsActive(UltimateModeType.Combo) &&
+                            Ultimate.IsActive(UltimateModeType.Combo) &&
                             R.Instance.Name.Equals("ViktorChaosStorm", StringComparison.OrdinalIgnoreCase) &&
                             GameObjects.EnemyHeroes.Any(Orbwalking.InAutoAttackRange) &&
                             (RLogicSingle(UltimateModeType.Combo, true) ||
@@ -545,7 +541,7 @@ namespace SFXChallenger.Champions
             try
             {
                 if (sender.IsEnemy && args.DangerLevel == Interrupter2.DangerLevel.High &&
-                    _ultimate.IsActive(UltimateModeType.Interrupt, sender))
+                    Ultimate.IsActive(UltimateModeType.Interrupt, sender))
                 {
                     Utility.DelayAction.Add(
                         DelayManager.Get("ultimate-interrupt-delay"), delegate
@@ -578,7 +574,7 @@ namespace SFXChallenger.Champions
             var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady();
             var w = Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() && W.IsReady();
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
-            var r = _ultimate.IsActive(UltimateModeType.Combo) && R.IsReady();
+            var r = Ultimate.IsActive(UltimateModeType.Combo) && R.IsReady();
 
             var qCasted = false;
             if (e)
@@ -648,11 +644,8 @@ namespace SFXChallenger.Champions
                     }
                 }
             }
-            if (rTarget != null && _ultimate.GetDamage(rTarget, UltimateModeType.Combo, single ? 1 : 5) > rTarget.Health)
-            {
-                ItemManager.UseComboItems(rTarget);
-                SummonerManager.UseComboSummoners(rTarget);
-            }
+
+            ItemsSummonersLogic(rTarget, single);
         }
 
         protected override void Harass()
@@ -837,12 +830,12 @@ namespace SFXChallenger.Champions
             try
             {
                 if (!R.Instance.Name.Equals("ViktorChaosStorm", StringComparison.OrdinalIgnoreCase) ||
-                    !_ultimate.ShouldSingle(mode))
+                    !Ultimate.ShouldSingle(mode))
                 {
                     return false;
                 }
 
-                foreach (var target in GameObjects.EnemyHeroes.Where(t => _ultimate.CheckSingle(mode, t)))
+                foreach (var target in GameObjects.EnemyHeroes.Where(t => Ultimate.CheckSingle(mode, t)))
                 {
                     var pred = CPrediction.Circle(R, target, HitChance.High, false);
                     if (pred.TotalHits > 0)
@@ -871,12 +864,12 @@ namespace SFXChallenger.Champions
             try
             {
                 if (!R.Instance.Name.Equals("ViktorChaosStorm", StringComparison.OrdinalIgnoreCase) ||
-                    !_ultimate.IsActive(mode))
+                    !Ultimate.IsActive(mode))
                 {
                     return false;
                 }
                 var pred = CPrediction.Circle(R, target, HitChance.High, false);
-                if (pred.TotalHits > 0 && _ultimate.Check(mode, pred.Hits))
+                if (pred.TotalHits > 0 && Ultimate.Check(mode, pred.Hits))
                 {
                     if (!simulated)
                     {
@@ -1175,7 +1168,7 @@ namespace SFXChallenger.Champions
                         {
                             startPosition = Player.ServerPosition.Extend(startPosition, E.Range);
                         }
-                        if (mainTarget.Path.Length > 0)
+                        if (mainTarget.Path.Length > 0 && IsSpellUpgraded(E))
                         {
                             var newPos = mainTarget.Path[0];
                             if (mainTarget.Path.Length > 1 &&

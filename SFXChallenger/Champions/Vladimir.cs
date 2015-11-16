@@ -54,7 +54,6 @@ namespace SFXChallenger.Champions
         private MenuItem _eStacks;
         private Obj_AI_Minion _lastAaMinion;
         private float _lastAaMinionEndTime;
-        private UltimateManager _ultimate;
 
         protected override ItemFlags ItemFlags
         {
@@ -87,7 +86,7 @@ namespace SFXChallenger.Champions
             R = new Spell(SpellSlot.R, 700f, DamageType.Magical);
             R.SetSkillshot(0.25f, 175f, float.MaxValue, false, SkillshotType.SkillshotCircle);
 
-            _ultimate = new UltimateManager
+            Ultimate = new UltimateManager
             {
                 Combo = true,
                 Assisted = true,
@@ -110,7 +109,7 @@ namespace SFXChallenger.Champions
 
         protected override void AddToMenu()
         {
-            _ultimate.AddToMenu(Menu);
+            Ultimate.AddToMenu(Menu);
 
             var comboMenu = Menu.AddSubMenu(new Menu("Combo", Menu.Name + ".combo"));
             ResourceManager.AddToMenu(
@@ -282,9 +281,9 @@ namespace SFXChallenger.Champions
                 }
             }
 
-            if (_ultimate.IsActive(UltimateModeType.Assisted) && R.IsReady())
+            if (Ultimate.IsActive(UltimateModeType.Assisted) && R.IsReady())
             {
-                if (_ultimate.ShouldMove(UltimateModeType.Assisted))
+                if (Ultimate.ShouldMove(UltimateModeType.Assisted))
                 {
                     Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
                 }
@@ -295,7 +294,7 @@ namespace SFXChallenger.Champions
                 }
             }
 
-            if (_ultimate.IsActive(UltimateModeType.Auto) && R.IsReady())
+            if (Ultimate.IsActive(UltimateModeType.Auto) && R.IsReady())
             {
                 var target = TargetSelector.GetTarget(R);
                 if (target != null && !RLogic(UltimateModeType.Auto, target))
@@ -354,7 +353,7 @@ namespace SFXChallenger.Champions
             var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady();
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady() &&
                     ResourceManager.Check("combo-e");
-            var r = _ultimate.IsActive(UltimateModeType.Combo) && R.IsReady();
+            var r = Ultimate.IsActive(UltimateModeType.Combo) && R.IsReady();
 
             var rTarget = TargetSelector.GetTarget(R);
             if (r)
@@ -376,11 +375,8 @@ namespace SFXChallenger.Champions
                     E.Cast();
                 }
             }
-            if (rTarget != null && _ultimate.GetDamage(rTarget, UltimateModeType.Combo, single ? 1 : 5) > rTarget.Health)
-            {
-                ItemManager.UseComboItems(rTarget);
-                SummonerManager.UseComboSummoners(rTarget);
-            }
+
+            ItemsSummonersLogic(rTarget, single);
         }
 
         protected override void Harass()
@@ -451,10 +447,10 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (_ultimate.IsActive(mode))
+                if (Ultimate.IsActive(mode))
                 {
                     var pred = CPrediction.Circle(R, target, HitChance.High, false);
-                    if (pred.TotalHits > 0 && _ultimate.Check(mode, pred.Hits))
+                    if (pred.TotalHits > 0 && Ultimate.Check(mode, pred.Hits))
                     {
                         R.Cast(pred.CastPosition);
                         return true;
@@ -472,9 +468,9 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (_ultimate.ShouldSingle(mode))
+                if (Ultimate.ShouldSingle(mode))
                 {
-                    foreach (var target in GameObjects.EnemyHeroes.Where(t => _ultimate.CheckSingle(mode, t)))
+                    foreach (var target in GameObjects.EnemyHeroes.Where(t => Ultimate.CheckSingle(mode, t)))
                     {
                         var pred = CPrediction.Circle(R, target, HitChance.High, false);
                         if (pred.TotalHits > 0)

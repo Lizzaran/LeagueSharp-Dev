@@ -56,7 +56,6 @@ namespace SFXChallenger.Champions
     {
         private float _lastLaneClearQStart;
         private float _rSpreadRadius = 450f;
-        private UltimateManager _ultimate;
         private MenuItem _wStacks;
 
         protected override ItemFlags ItemFlags
@@ -89,7 +88,7 @@ namespace SFXChallenger.Champions
             R = new Spell(SpellSlot.R, 1075f);
             R.SetSkillshot(0.25f, 120f, 1950f, false, SkillshotType.SkillshotLine);
 
-            _ultimate = new UltimateManager
+            Ultimate = new UltimateManager
             {
                 Combo = true,
                 Assisted = true,
@@ -112,7 +111,7 @@ namespace SFXChallenger.Champions
 
         protected override void AddToMenu()
         {
-            var ultimateMenu = _ultimate.AddToMenu(Menu);
+            var ultimateMenu = Ultimate.AddToMenu(Menu);
 
             ultimateMenu.AddItem(
                 new MenuItem(ultimateMenu.Name + ".range", "Range").SetValue(new Slider((int) R.Range, 500, 1200)))
@@ -252,9 +251,9 @@ namespace SFXChallenger.Champions
         protected override void OnPostUpdate()
         {
             Orbwalker.SetAttack(!Q.IsCharging);
-            if (_ultimate.IsActive(UltimateModeType.Assisted) && R.IsReady())
+            if (Ultimate.IsActive(UltimateModeType.Assisted) && R.IsReady())
             {
-                if (_ultimate.ShouldMove(UltimateModeType.Assisted))
+                if (Ultimate.ShouldMove(UltimateModeType.Assisted))
                 {
                     Orbwalking.MoveTo(Game.CursorPos, Orbwalker.HoldAreaRadius);
                 }
@@ -265,7 +264,7 @@ namespace SFXChallenger.Champions
                 }
             }
 
-            if (_ultimate.IsActive(UltimateModeType.Auto) && R.IsReady())
+            if (Ultimate.IsActive(UltimateModeType.Auto) && R.IsReady())
             {
                 if (!RLogic(UltimateModeType.Auto, R.GetHitChance("combo"), TargetSelector.GetTarget(R)))
                 {
@@ -288,7 +287,7 @@ namespace SFXChallenger.Champions
                 }
                 if (string.IsNullOrEmpty(args.UniqueId))
                 {
-                    if (_ultimate.IsActive(UltimateModeType.Gapcloser, args.Hero) &&
+                    if (Ultimate.IsActive(UltimateModeType.Gapcloser, args.Hero) &&
                         BestTargetOnlyManager.Check("r-gapcloser", R, args.Hero))
                     {
                         RLogic(UltimateModeType.Gapcloser, HitChance.High, args.Hero);
@@ -305,7 +304,7 @@ namespace SFXChallenger.Champions
         {
             var q = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>();
             var e = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>();
-            var r = _ultimate.IsActive(UltimateModeType.Combo);
+            var r = Ultimate.IsActive(UltimateModeType.Combo);
 
             if (e && !Q.IsCharging && E.IsReady())
             {
@@ -537,7 +536,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (Q.IsCharging || target == null || !_ultimate.IsActive(mode))
+                if (Q.IsCharging || target == null || !Ultimate.IsActive(mode))
                 {
                     return false;
                 }
@@ -545,7 +544,7 @@ namespace SFXChallenger.Champions
                 if (pred.Hitchance >= hitChance)
                 {
                     var hits = GameObjects.EnemyHeroes.Where(x => x.Distance(target) <= _rSpreadRadius).ToList();
-                    if (_ultimate.Check(mode, hits))
+                    if (Ultimate.Check(mode, hits))
                     {
                         R.Cast(pred.CastPosition);
                         return true;
@@ -563,11 +562,11 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (Q.IsCharging || !_ultimate.ShouldSingle(mode))
+                if (Q.IsCharging || !Ultimate.ShouldSingle(mode))
                 {
                     return;
                 }
-                foreach (var t in GameObjects.EnemyHeroes.Where(t => _ultimate.CheckSingle(mode, t)))
+                foreach (var t in GameObjects.EnemyHeroes.Where(t => Ultimate.CheckSingle(mode, t)))
                 {
                     var pred = R.GetPrediction(t);
                     if (pred.Hitchance >= hitChance)

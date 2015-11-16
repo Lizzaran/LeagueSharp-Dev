@@ -623,6 +623,8 @@ namespace SFXChallenger.Champions
                     }
                 }
             }
+
+            ItemsSummonersLogic(null);
         }
 
         protected override void Harass()
