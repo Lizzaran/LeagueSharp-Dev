@@ -22,8 +22,10 @@
 
 #region
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using LeagueSharp;
 using LeagueSharp.Common;
 
 #endregion
@@ -110,8 +112,7 @@ namespace SFXTargetSelector
                 if (autoPriority.GetValue<bool>())
                 {
                     item.SetShared()
-                        .SetValue(
-                            new Slider((int) GetDefaultPriority(enemy.Hero.ChampionName), MinPriority, MaxPriority));
+                        .SetValue(new Slider((int) GetDefaultPriority(enemy.Hero), MinPriority, MaxPriority));
                 }
             }
 
@@ -123,16 +124,15 @@ namespace SFXTargetSelector
                     {
                         _mainMenu.Item(prioritiesMenu.Name + "." + enemy.Hero.ChampionName)
                             .SetShared()
-                            .SetValue(
-                                new Slider((int) GetDefaultPriority(enemy.Hero.ChampionName), MinPriority, MaxPriority));
+                            .SetValue(new Slider((int) GetDefaultPriority(enemy.Hero), MinPriority, MaxPriority));
                     }
                 }
             };
         }
 
-        public static PriorityType GetDefaultPriority(string name)
+        public static PriorityType GetDefaultPriority(Obj_AI_Hero hero)
         {
-            var item = Items.FirstOrDefault(i => i.Champions.Contains(name));
+            var item = Items.FirstOrDefault(i => i.Champions.Contains(hero.ChampionName));
             if (item != null)
             {
                 return item.Type;
@@ -140,11 +140,11 @@ namespace SFXTargetSelector
             return PriorityType.Low;
         }
 
-        public static int GetPriority(string name)
+        public static int GetPriority(Obj_AI_Hero hero)
         {
             if (_mainMenu != null)
             {
-                var item = _mainMenu.Item(_mainMenu.Name + ".priorities." + name);
+                var item = _mainMenu.Item(_mainMenu.Name + ".priorities." + hero.ChampionName);
                 if (item != null)
                 {
                     return item.GetValue<Slider>().Value;
@@ -153,9 +153,35 @@ namespace SFXTargetSelector
             return (int) PriorityType.Low;
         }
 
+        public static void SetPriority(Obj_AI_Hero hero, int value)
+        {
+            if (_mainMenu != null)
+            {
+                var item = _mainMenu.Item(_mainMenu.Name + ".priorities." + hero.ChampionName);
+                if (item != null)
+                {
+                    item.SetValue(
+                        new Slider(Math.Max(MinPriority, Math.Min(MaxPriority, value)), MinPriority, MaxPriority));
+                }
+            }
+        }
+
+        public static void SetPriority(Obj_AI_Hero hero, PriorityType type)
+        {
+            if (_mainMenu != null)
+            {
+                var item = _mainMenu.Item(_mainMenu.Name + ".priorities." + hero.ChampionName);
+                if (item != null)
+                {
+                    item.SetValue(
+                        new Slider(Math.Max(MinPriority, Math.Min(MaxPriority, (int) type)), MinPriority, MaxPriority));
+                }
+            }
+        }
+
         public static IEnumerable<Targets.Item> OrderChampions(List<Targets.Item> heroes)
         {
-            return heroes.OrderByDescending(x => GetPriority(x.Hero.ChampionName));
+            return heroes.OrderByDescending(x => GetPriority(x.Hero));
         }
 
         public class Item

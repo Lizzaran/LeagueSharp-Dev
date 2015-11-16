@@ -305,5 +305,88 @@ namespace SFXChallenger.SFXTargetSelector
                 Global.Logger.AddItem(new LogItem(ex));
             }
         }
+
+        // For easy switching
+
+        #region Compatibility
+
+        public static Obj_AI_Hero SelectedTarget
+        {
+            get { return Focus ? Selected.Target : null; }
+        }
+
+        public static void SetPriority(Obj_AI_Hero hero, int newPriority)
+        {
+            try
+            {
+                Priorities.SetPriority(hero, newPriority);
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        public static float GetPriority(Obj_AI_Hero hero)
+        {
+            try
+            {
+                switch (Priorities.GetPriority(hero))
+                {
+                    case 2:
+                        return 1.5f;
+                    case 3:
+                        return 1.75f;
+                    case 4:
+                        return 2f;
+                    case 5:
+                        return 2.5f;
+                    default:
+                        return 1f;
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return 1f;
+        }
+
+        public static bool IsInvulnerable(Obj_AI_Base target, DamageType damageType, bool ignoreShields = true)
+        {
+            try
+            {
+                var hero = target as Obj_AI_Hero;
+                return hero != null && Invulnerable.Check(hero, damageType, ignoreShields);
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+            return false;
+        }
+
+
+        public static void SetTarget(Obj_AI_Hero hero)
+        {
+            try
+            {
+                if (hero.IsValidTarget())
+                {
+                    Selected.Target = hero;
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        public static Obj_AI_Hero GetSelectedTarget()
+        {
+            return SelectedTarget;
+        }
+
+        #endregion Compatibility
     }
 }

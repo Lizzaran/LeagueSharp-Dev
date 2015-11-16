@@ -25,6 +25,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Enumerations;
 using SFXChallenger.Library.Logger;
@@ -123,8 +124,7 @@ namespace SFXChallenger.SFXTargetSelector
                     if (autoPriority.GetValue<bool>())
                     {
                         item.SetShared()
-                            .SetValue(
-                                new Slider((int) GetDefaultPriority(enemy.Hero.ChampionName), MinPriority, MaxPriority));
+                            .SetValue(new Slider((int) GetDefaultPriority(enemy.Hero), MinPriority, MaxPriority));
                     }
                 }
 
@@ -138,8 +138,7 @@ namespace SFXChallenger.SFXTargetSelector
                                 _mainMenu.Item(prioritiesMenu.Name + "." + enemy.Hero.ChampionName)
                                     .SetShared()
                                     .SetValue(
-                                        new Slider(
-                                            (int) GetDefaultPriority(enemy.Hero.ChampionName), MinPriority, MaxPriority));
+                                        new Slider((int) GetDefaultPriority(enemy.Hero), MinPriority, MaxPriority));
                             }
                         }
                     };
@@ -150,11 +149,11 @@ namespace SFXChallenger.SFXTargetSelector
             }
         }
 
-        public static TargetSelectorPriorityType GetDefaultPriority(string name)
+        public static TargetSelectorPriorityType GetDefaultPriority(Obj_AI_Hero hero)
         {
             try
             {
-                var item = Items.FirstOrDefault(i => i.Champions.Contains(name));
+                var item = Items.FirstOrDefault(i => i.Champions.Contains(hero.ChampionName));
                 if (item != null)
                 {
                     return item.Type;
@@ -167,13 +166,13 @@ namespace SFXChallenger.SFXTargetSelector
             return TargetSelectorPriorityType.Low;
         }
 
-        public static int GetPriority(string name)
+        public static int GetPriority(Obj_AI_Hero hero)
         {
             try
             {
                 if (_mainMenu != null)
                 {
-                    var item = _mainMenu.Item(_mainMenu.Name + ".priorities." + name);
+                    var item = _mainMenu.Item(_mainMenu.Name + ".priorities." + hero.ChampionName);
                     if (item != null)
                     {
                         return item.GetValue<Slider>().Value;
@@ -187,11 +186,52 @@ namespace SFXChallenger.SFXTargetSelector
             return (int) TargetSelectorPriorityType.Low;
         }
 
+        public static void SetPriority(Obj_AI_Hero hero, int value)
+        {
+            try
+            {
+                if (_mainMenu != null)
+                {
+                    var item = _mainMenu.Item(_mainMenu.Name + ".priorities." + hero.ChampionName);
+                    if (item != null)
+                    {
+                        item.SetValue(
+                            new Slider(Math.Max(MinPriority, Math.Min(MaxPriority, value)), MinPriority, MaxPriority));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        public static void SetPriority(Obj_AI_Hero hero, TargetSelectorPriorityType type)
+        {
+            try
+            {
+                if (_mainMenu != null)
+                {
+                    var item = _mainMenu.Item(_mainMenu.Name + ".priorities." + hero.ChampionName);
+                    if (item != null)
+                    {
+                        item.SetValue(
+                            new Slider(
+                                Math.Max(MinPriority, Math.Min(MaxPriority, (int) type)), MinPriority, MaxPriority));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
         public static IEnumerable<Targets.Item> OrderChampions(List<Targets.Item> heroes)
         {
             try
             {
-                return heroes.OrderByDescending(x => GetPriority(x.Hero.ChampionName));
+                return heroes.OrderByDescending(x => GetPriority(x.Hero));
             }
             catch (Exception ex)
             {

@@ -269,5 +269,58 @@ namespace SFXTargetSelector
             Mode = GetModeBySelectedIndex(_menu.Item(_menu.Name + ".mode").GetValue<StringList>().SelectedIndex);
             LeagueSharp.Common.TargetSelector.CustomTS = true;
         }
+
+        // For easy switching
+
+        #region Compatibility
+
+        public static Obj_AI_Hero SelectedTarget
+        {
+            get { return Focus ? Selected.Target : null; }
+        }
+
+        public static void SetPriority(Obj_AI_Hero hero, int newPriority)
+        {
+            Priorities.SetPriority(hero, newPriority);
+        }
+
+        public static float GetPriority(Obj_AI_Hero hero)
+        {
+            switch (Priorities.GetPriority(hero))
+            {
+                case 2:
+                    return 1.5f;
+                case 3:
+                    return 1.75f;
+                case 4:
+                    return 2f;
+                case 5:
+                    return 2.5f;
+                default:
+                    return 1f;
+            }
+        }
+
+        public static bool IsInvulnerable(Obj_AI_Base target, DamageType damageType, bool ignoreShields = true)
+        {
+            var hero = target as Obj_AI_Hero;
+            return hero != null && Invulnerable.Check(hero, damageType, ignoreShields);
+        }
+
+
+        public static void SetTarget(Obj_AI_Hero hero)
+        {
+            if (hero.IsValidTarget())
+            {
+                Selected.Target = hero;
+            }
+        }
+
+        public static Obj_AI_Hero GetSelectedTarget()
+        {
+            return SelectedTarget;
+        }
+
+        #endregion Compatibility
     }
 }
