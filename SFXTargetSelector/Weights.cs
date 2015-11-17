@@ -223,7 +223,7 @@ namespace SFXTargetSelector
 
         private static void OnGameUpdate(EventArgs args)
         {
-            if (_mainMenu == null || TargetSelector.Mode != ModeType.Weights)
+            if (_mainMenu == null || TargetSelector.Mode != TargetSelector.TargetingMode.Weights)
             {
                 return;
             }
@@ -265,7 +265,7 @@ namespace SFXTargetSelector
 
         private static void OnDrawingDraw(EventArgs args)
         {
-            if (_mainMenu == null || TargetSelector.Mode != ModeType.Weights)
+            if (_mainMenu == null || TargetSelector.Mode != TargetSelector.TargetingMode.Weights)
             {
                 return;
             }

@@ -61,7 +61,7 @@ namespace SFXTargetSelector
 
         private static void OnObjAiBaseAggro(Obj_AI_Base sender, GameObjectAggroEventArgs args)
         {
-            if (!sender.IsEnemy || TargetSelector.Mode != ModeType.Weights)
+            if (!sender.IsEnemy || TargetSelector.Mode != TargetSelector.TargetingMode.Weights)
             {
                 return;
             }

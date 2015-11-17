@@ -36,19 +36,20 @@ namespace SFXTargetSelector.Others
         public static readonly HashSet<Item> Items = new HashSet<Item>
         {
             new Item(
-                "Alistar", "FerociousHowl", null, false,
+                "Alistar", "FerociousHowl", null, false, -1,
                 (target, type) =>
                     ObjectManager.Player.CountEnemiesInRange(Orbwalking.GetRealAutoAttackRange(target)) > 1),
             new Item(
-                "MasterYi", "Meditate", null, false,
+                "MasterYi", "Meditate", null, false, -1,
                 (target, type) =>
                     ObjectManager.Player.CountEnemiesInRange(Orbwalking.GetRealAutoAttackRange(target)) > 1),
-            new Item("Tryndamere", "UndyingRage", null, false, (target, type) => target.HealthPercent < 5),
+            new Item("Tryndamere", "UndyingRage", null, false, 1, (target, type) => target.HealthPercent <= 5),
             new Item("Kayle", "JudicatorIntervention", null, false),
             new Item("Fizz", "fizztrickslamsounddummy", null, false),
             new Item("Vladimir", "VladimirSanguinePool", null, false),
             new Item(null, "BlackShield", DamageType.Magical, true),
             new Item(null, "BansheesVeil", DamageType.Magical, true),
+            new Item(null, "KindredrNoDeathBuff", null, false, 10, (target, type) => target.HealthPercent <= 10),
             new Item("Sivir", "SivirE", null, true),
             new Item("Nocturne", "ShroudofDarkness", null, true)
         };
@@ -69,9 +70,42 @@ namespace SFXTargetSelector.Others
                         {
                             return true;
                         }
-                        if (invulnerable.CustomCheck != null && CustomCheck(invulnerable, target, damageType))
+                        if (invulnerable.CustomCheck != null)
+                        {
+                            return CustomCheck(invulnerable, target, damageType);
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        public static bool Check(Obj_AI_Hero target,
+            float damage,
+            DamageType damageType = DamageType.True,
+            bool ignoreShields = true)
+        {
+            if (target.HasBuffOfType(BuffType.Invulnerability) || target.IsInvulnerable)
+            {
+                return true;
+            }
+            foreach (var invulnerable in Items)
+            {
+                if (invulnerable.Champion == null || invulnerable.Champion == target.ChampionName)
+                {
+                    if (invulnerable.DamageType == null || invulnerable.DamageType == damageType)
+                    {
+                        if (!ignoreShields && invulnerable.IsShield && target.HasBuff(invulnerable.BuffName))
                         {
                             return true;
+                        }
+                        if (invulnerable.CustomCheck != null)
+                        {
+                            if (invulnerable.MinHealthPercent > 0)
+                            {
+                                return (target.Health - damage) / target.MaxHealth * 100 > invulnerable.MinHealthPercent;
+                            }
+                            return CustomCheck(invulnerable, target, damageType);
                         }
                     }
                 }
@@ -104,12 +138,14 @@ namespace SFXTargetSelector.Others
                 string buffName,
                 DamageType? damageType,
                 bool isShield,
+                int minHealthPercent = -1,
                 Func<Obj_AI_Base, DamageType, bool> customCheck = null)
             {
                 Champion = champion;
                 BuffName = buffName;
                 DamageType = damageType;
                 IsShield = isShield;
+                MinHealthPercent = minHealthPercent;
                 CustomCheck = customCheck;
             }
 
@@ -117,6 +153,7 @@ namespace SFXTargetSelector.Others
             public string BuffName { get; private set; }
             public DamageType? DamageType { get; private set; }
             public bool IsShield { get; private set; }
+            public int MinHealthPercent { get; set; }
             public Func<Obj_AI_Base, DamageType, bool> CustomCheck { get; private set; }
         }
     }

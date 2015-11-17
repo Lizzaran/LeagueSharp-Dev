@@ -24,9 +24,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXChallenger.Helpers;
 using SFXChallenger.Library.Logger;
 
 #endregion
@@ -250,6 +252,27 @@ namespace SFXChallenger.Menus
 
                                 _menu.Item(_menu.Name + ".tick").SetValue(new Slider(50, 1, 300));
                             }
+                        }
+                        catch (Exception ex)
+                        {
+                            Global.Logger.AddItem(new LogItem(ex));
+                        }
+                    };
+
+                _menu.AddItem(new MenuItem(_menu.Name + ".report", "Generate Report").SetValue(false)).ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        try
+                        {
+                            if (!args.GetNewValue<bool>())
+                            {
+                                return;
+                            }
+                            Utility.DelayAction.Add(0, () => _menu.Item(_menu.Name + ".report").SetValue(false));
+                            File.WriteAllText(
+                                Path.Combine(Global.BaseDir, string.Format("{0}.report.txt", Global.Name.ToLower())),
+                                GenerateReport.Generate());
+                            Notifications.AddNotification("Report Generated", 5000);
                         }
                         catch (Exception ex)
                         {

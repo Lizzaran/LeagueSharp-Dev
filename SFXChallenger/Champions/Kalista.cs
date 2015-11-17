@@ -914,15 +914,16 @@ namespace SFXChallenger.Champions
                             }
                         }
                     }
+                    var damage = GetDamage(target);
                     var hero = target as Obj_AI_Hero;
                     if (hero != null)
                     {
-                        if (Invulnerable.Check(hero, DamageType.Physical, false))
+                        if (Invulnerable.Check(hero, damage, DamageType.Physical, false))
                         {
                             return false;
                         }
                     }
-                    return GetDamage(target) > target.Health;
+                    return damage > target.Health;
                 }
                 catch (Exception ex)
                 {
@@ -1000,7 +1001,7 @@ namespace SFXChallenger.Champions
                                 damage -= hero.Mana / 2f;
                             }
                         }
-                        damage -= (hero.HPRegenRate / 2f) * 0.25f;
+                        damage -= hero.HPRegenRate * 0.25f;
                     }
                     return damage;
                 }

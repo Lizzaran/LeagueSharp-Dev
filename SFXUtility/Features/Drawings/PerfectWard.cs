@@ -44,15 +44,15 @@ namespace SFXUtility.Features.Drawings
 
         private readonly List<int> _wards = new List<int>
         {
-            ItemData.Warding_Totem_Trinket.Id,
-            ItemData.Vision_Ward.Id,
-            ItemData.Farsight_Alteration.Id,
             ItemData.Sightstone.Id,
             ItemData.Ruby_Sightstone.Id,
             ItemData.Eye_of_the_Equinox.Id,
             ItemData.Eye_of_the_Oasis.Id,
             ItemData.Eye_of_the_Watchers.Id,
-            ItemData.Trackers_Knife.Id
+            ItemData.Trackers_Knife.Id,
+            ItemData.Warding_Totem_Trinket.Id,
+            ItemData.Vision_Ward.Id,
+            ItemData.Farsight_Alteration.Id
         };
 
         private readonly List<WardSpot> _wardSpots = new List<WardSpot>
@@ -299,7 +299,7 @@ namespace SFXUtility.Features.Drawings
                 {
                     return;
                 }
-                if (Menu.Item(Name + "Hotkey").IsActive())
+                if (Menu.Item(Name + "Hotkey").IsActive() || Menu.Item(Name + "PermaShow").GetValue<bool>())
                 {
                     if (
                         Math.Sqrt(
@@ -340,7 +340,7 @@ namespace SFXUtility.Features.Drawings
                     return;
                 }
 
-                if (!Menu.Item(Name + "Hotkey").IsActive() &&
+                if (!Menu.Item(Name + "Hotkey").IsActive() && !Menu.Item(Name + "PermaShow").GetValue<bool>() &&
                     args.EndPosition.Distance(spot.MagneticPosition) <=
                     Menu.Item(Name + "DrawingRadius").GetValue<Slider>().Value)
                 {
@@ -348,7 +348,7 @@ namespace SFXUtility.Features.Drawings
                     _lastWardSpot = default(WardSpot);
                 }
 
-                if (!Menu.Item(Name + "Hotkey").IsActive())
+                if (!Menu.Item(Name + "Hotkey").IsActive() && !Menu.Item(Name + "PermaShow").GetValue<bool>())
                 {
                     return;
                 }

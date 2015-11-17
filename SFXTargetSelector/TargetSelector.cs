@@ -43,15 +43,28 @@ namespace SFXTargetSelector
 {
     public static class TargetSelector
     {
+        public enum TargetingMode
+        {
+            Weights,
+            Priorities,
+            LessAttacksToKill,
+            MostAbilityPower,
+            MostAttackDamage,
+            Closest,
+            NearMouse,
+            LessCastPriority,
+            LeastHealth
+        }
+
         private static Menu _menu;
 
         static TargetSelector()
         {
-            Mode = ModeType.Weights;
+            Mode = TargetingMode.Weights;
 
             CustomEvents.Game.OnGameLoad += delegate
             {
-                Notifications.AddNotification(string.Format("{0} loaded.", Name), 10000);
+                Notifications.AddNotification(string.Format("{0} loaded.", Name), 7500);
                 Game.PrintChat(string.Format("<font color='#259FF8'>{0} v{1} loaded.</font>", Name, Version));
             };
         }
@@ -66,7 +79,7 @@ namespace SFXTargetSelector
             get { return Assembly.GetEntryAssembly().GetName().Version; }
         }
 
-        public static ModeType Mode { get; set; }
+        public static TargetingMode Mode { get; set; }
 
         public static bool ForceFocus
         {
@@ -94,61 +107,54 @@ namespace SFXTargetSelector
         {
             switch (Mode)
             {
-                case ModeType.Weights:
+                case TargetingMode.Weights:
                     return Weights.OrderChampions(items);
 
-                case ModeType.Priorities:
+                case TargetingMode.Priorities:
                     return Priorities.OrderChampions(items);
 
-                case ModeType.LessAttacksToKill:
+                case TargetingMode.LessAttacksToKill:
                     return items.OrderBy(x => x.Hero.Health / ObjectManager.Player.TotalAttackDamage);
 
-                case ModeType.MostAbilityPower:
+                case TargetingMode.MostAbilityPower:
                     return items.OrderByDescending(x => x.Hero.TotalMagicalDamage);
 
-                case ModeType.MostAttackDamage:
+                case TargetingMode.MostAttackDamage:
                     return items.OrderByDescending(x => x.Hero.TotalAttackDamage);
 
-                case ModeType.Closest:
+                case TargetingMode.Closest:
                     return items.OrderBy(x => x.Hero.Distance(ObjectManager.Player));
 
-                case ModeType.NearMouse:
+                case TargetingMode.NearMouse:
                     return items.OrderBy(x => x.Hero.Distance(Game.CursorPos));
 
-                case ModeType.LessCastPriority:
+                case TargetingMode.LessCastPriority:
                     return items.OrderBy(x => x.Hero.Health / ObjectManager.Player.TotalMagicalDamage);
 
-                case ModeType.LeastHealth:
+                case TargetingMode.LeastHealth:
                     return items.OrderBy(x => x.Hero.Health);
             }
             return new List<Targets.Item>();
         }
 
-        private static ModeType GetModeBySelectedIndex(int index)
+        private static TargetingMode GetModeBySelectedIndex(int index)
         {
-            switch (index)
+            try
             {
-                case 0:
-                    return ModeType.Weights;
-                case 1:
-                    return ModeType.Priorities;
-                case 2:
-                    return ModeType.LessAttacksToKill;
-                case 3:
-                    return ModeType.MostAbilityPower;
-                case 4:
-                    return ModeType.MostAttackDamage;
-                case 5:
-                    return ModeType.Closest;
-                case 6:
-                    return ModeType.NearMouse;
-                case 7:
-                    return ModeType.LessCastPriority;
-                case 8:
-                    return ModeType.LeastHealth;
-                default:
-                    return ModeType.Weights;
+                var modes =
+                    Enum.GetNames(typeof(TargetingMode))
+                        .Select(m => (TargetingMode) Enum.Parse(typeof(TargetingMode), m))
+                        .ToArray();
+                if (index < modes.Length && index >= 0)
+                {
+                    return modes[index];
+                }
             }
+            catch
+            {
+                // Ignored
+            }
+            return TargetingMode.Weights;
         }
 
         public static Obj_AI_Hero GetTargetNoCollision(Spell spell,
@@ -207,7 +213,7 @@ namespace SFXTargetSelector
                 return new List<Obj_AI_Hero> { selectedTarget };
             }
 
-            range = Mode == ModeType.Weights && ForceFocus ? Weights.Range : range;
+            range = Mode == TargetingMode.Weights && ForceFocus ? Weights.Range : range;
 
             var targets =
                 Humanizer.FilterTargets(Targets.Items)
@@ -233,7 +239,8 @@ namespace SFXTargetSelector
 
         public static void AddToMenu(Menu menu)
         {
-            _menu = menu.AddSubMenu(new Menu("Target Selector", "sfx.ts"));
+            menu.Name = "sfx.ts";
+            _menu = menu;
 
             var drawingMenu = _menu.AddSubMenu(new Menu("Drawings", _menu.Name + ".drawing"));
 
@@ -255,16 +262,22 @@ namespace SFXTargetSelector
                 new MenuItem(_menu.Name + ".mode", "Mode").SetShared()
                     .SetValue(
                         new StringList(
-                            new[]
-                            {
-                                "Weigths", "Priorities", "Less Attacks To Kill", "Most Ability Power",
-                                "Most Attack Damage", "Closest", "Near Mouse", "Less Cast Priority", "Least Health"
-                            })))
-                .ValueChanged +=
+                            Enum.GetNames(typeof(TargetingMode))
+                                .Select(
+                                    e =>
+                                        string.Concat(e.Select(x => char.IsUpper(x) ? " " + x : x.ToString()))
+                                            .TrimStart(' '))
+                                .ToArray()))).ValueChanged +=
                 delegate(object sender, OnValueChangeEventArgs args)
                 {
                     Mode = GetModeBySelectedIndex(args.GetNewValue<StringList>().SelectedIndex);
                 };
+
+            var infoMenu = _menu.AddSubMenu(new Menu("Info", _menu.Name + ".info"));
+            infoMenu.AddItem(new MenuItem(menu.Name + ".version", string.Format("{0}: {1}", "Version", Version)));
+            infoMenu.AddItem(new MenuItem(menu.Name + ".forum", "Forum: Lizzaran"));
+            infoMenu.AddItem(new MenuItem(menu.Name + ".github", "GitHub: Lizzaran"));
+            infoMenu.AddItem(new MenuItem(menu.Name + ".irc", "IRC: Appril"));
 
             Mode = GetModeBySelectedIndex(_menu.Item(_menu.Name + ".mode").GetValue<StringList>().SelectedIndex);
             LeagueSharp.Common.TargetSelector.CustomTS = true;

@@ -386,6 +386,14 @@ namespace SFXChallenger.Wrappers
             var result = Player.AttackRange + Player.BoundingRadius;
             if (target.IsValidTarget())
             {
+                var aiBase = target as Obj_AI_Base;
+                if (aiBase != null && Player.ChampionName == "Caitlyn")
+                {
+                    if (aiBase.HasBuff("caitlynyordletrapinternal"))
+                    {
+                        result += 650;
+                    }
+                }
                 return result + target.BoundingRadius;
             }
             return result;
@@ -439,15 +447,14 @@ namespace SFXChallenger.Wrappers
         /// <returns><c>true</c> if this instance can attack; otherwise, <c>false</c>.</returns>
         public static bool CanAttack(float extraDelay = 0)
         {
-            if (Player.ChampionName == "Graves" &&
-                (Utils.GameTimeTickCount + Game.Ping / 2 + 25 >= LastAaTick + 1000 + extraDelay && Attack))
+            if (Player.ChampionName == "Graves" && Attack)
             {
-                if (Player.HasBuff("GravesBasicAttackAmmo1") || Player.HasBuff("GravesBasicAttackAmmo2"))
+                if (Utils.GameTimeTickCount + Game.Ping / 2 + 25 >= LastAaTick + 1500 &&
+                    Player.HasBuff("GravesBasicAttackAmmo1"))
                 {
                     return true;
                 }
             }
-
             return Utils.GameTimeTickCount + Game.Ping / 2 + 25 >= LastAaTick + Player.AttackDelay * 1000 + extraDelay &&
                    Attack;
         }

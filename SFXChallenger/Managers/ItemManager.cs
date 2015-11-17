@@ -60,15 +60,21 @@ namespace SFXChallenger.Managers
         private static Menu _menu;
         private static ItemFlags _itemFlags;
         public static CustomItem Youmuu;
-        public static CustomItem Tiamat;
         public static CustomItem Hydra;
         public static CustomItem BilgewaterCutlass;
         public static CustomItem BladeRuinedKing;
         public static CustomItem HextechGunblade;
         public static CustomItem MikaelsCrucible;
         public static CustomItem LocketIronSolari;
+        public static CustomItem FrostQueensClaim;
+        public static CustomItem TalismanOfAscension;
+        public static CustomItem FaceOfTheMountain;
         public static CustomItem Sightstone;
         public static CustomItem RubySightstone;
+        public static CustomItem EyeOfTheWatchers;
+        public static CustomItem EyeOfTheEquinox;
+        public static CustomItem EyeOfTheOasis;
+        public static CustomItem TrackersKnife;
         public static List<CustomItem> Items;
 
         static ItemManager()
@@ -84,25 +90,11 @@ namespace SFXChallenger.Managers
                     Flags = ItemFlags.Offensive | ItemFlags.Flee,
                     CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
                     EffectFlags = EffectFlags.AttackSpeed | EffectFlags.MovementSpeed,
-                    CastType = CastType.Self,
+                    CastType = CastType.None,
                     Range =
                         ObjectManager.Player.IsMelee
                             ? ObjectManager.Player.AttackRange * 3
                             : Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)
-                };
-
-                // AOE damage, only melee
-                Tiamat = new CustomItem
-                {
-                    Name = "tiamat",
-                    DisplayName = "Tiamat",
-                    Item = ItemData.Tiamat_Melee_Only.GetItem(),
-                    Flags = ItemFlags.Offensive,
-                    CombatFlags = CombatFlags.Melee,
-                    EffectFlags = EffectFlags.Damage,
-                    CastType = CastType.Self,
-                    Damage = Damage.DamageItems.Tiamat,
-                    Range = ItemData.Tiamat_Melee_Only.GetItem().Range
                 };
 
                 // AOE damage, only melee
@@ -114,7 +106,7 @@ namespace SFXChallenger.Managers
                     Flags = ItemFlags.Offensive,
                     CombatFlags = CombatFlags.Melee,
                     EffectFlags = EffectFlags.Damage,
-                    CastType = CastType.Self,
+                    CastType = CastType.None,
                     Damage = Damage.DamageItems.Hydra,
                     Range = ItemData.Ravenous_Hydra_Melee_Only.GetItem().Range
                 };
@@ -170,7 +162,7 @@ namespace SFXChallenger.Managers
                     Flags = ItemFlags.Supportive | ItemFlags.Defensive,
                     CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
                     EffectFlags = EffectFlags.Shield,
-                    CastType = CastType.Self,
+                    CastType = CastType.None,
                     Range = ItemData.Locket_of_the_Iron_Solari.GetItem().Range
                 };
 
@@ -185,6 +177,46 @@ namespace SFXChallenger.Managers
                     EffectFlags = EffectFlags.RemoveStun | EffectFlags.Heal,
                     CastType = CastType.Target,
                     Range = ItemData.Mikaels_Crucible.GetItem().Range
+                };
+
+
+                // Slow
+                FrostQueensClaim = new CustomItem
+                {
+                    Name = "frost-queens-claim",
+                    DisplayName = "Frost Queen's Claim",
+                    Item = ItemData.Frost_Queens_Claim.GetItem(),
+                    Flags = ItemFlags.Supportive | ItemFlags.Flee,
+                    CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
+                    EffectFlags = EffectFlags.MovementSlow,
+                    CastType = CastType.None,
+                    Range = ItemData.Frost_Queens_Claim.GetItem().Range
+                };
+
+                // Speed
+                TalismanOfAscension = new CustomItem
+                {
+                    Name = "talisman-of-ascension",
+                    DisplayName = "Talisman of Ascension",
+                    Item = ItemData.Talisman_of_Ascension.GetItem(),
+                    Flags = ItemFlags.Supportive | ItemFlags.Flee,
+                    CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
+                    EffectFlags = EffectFlags.MovementSpeed,
+                    CastType = CastType.None,
+                    Range = ItemData.Talisman_of_Ascension.GetItem().Range
+                };
+
+                // Shield
+                FaceOfTheMountain = new CustomItem
+                {
+                    Name = "face-of-the-mountain",
+                    DisplayName = "Face of the Mountain",
+                    Item = ItemData.Face_of_the_Mountain.GetItem(),
+                    Flags = ItemFlags.Supportive | ItemFlags.Flee | ItemFlags.Defensive,
+                    CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
+                    EffectFlags = EffectFlags.Shield,
+                    CastType = CastType.Self,
+                    Range = ItemData.Face_of_the_Mountain.GetItem().Range
                 };
 
                 // Place wards
@@ -211,18 +243,72 @@ namespace SFXChallenger.Managers
                     Range = ItemData.Ruby_Sightstone.GetItem().Range
                 };
 
+                // Place wards
+                EyeOfTheWatchers = new CustomItem
+                {
+                    Name = "eye-of-the-watchers",
+                    DisplayName = "Eye of the Watchers",
+                    Item = ItemData.Eye_of_the_Watchers.GetItem(),
+                    Flags = ItemFlags.Supportive,
+                    CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
+                    CastType = CastType.Position,
+                    Range = ItemData.Eye_of_the_Watchers.GetItem().Range
+                };
+
+                // Place wards
+                EyeOfTheEquinox = new CustomItem
+                {
+                    Name = "eye-of-the-equinox",
+                    DisplayName = "Eye of the Equinox",
+                    Item = ItemData.Eye_of_the_Equinox.GetItem(),
+                    Flags = ItemFlags.Supportive,
+                    CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
+                    CastType = CastType.Position,
+                    Range = ItemData.Eye_of_the_Equinox.GetItem().Range
+                };
+
+                // Place wards
+                EyeOfTheOasis = new CustomItem
+                {
+                    Name = "eye-of-the-oasis",
+                    DisplayName = "Eye of the Oasis",
+                    Item = ItemData.Eye_of_the_Oasis.GetItem(),
+                    Flags = ItemFlags.Supportive,
+                    CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
+                    CastType = CastType.Position,
+                    Range = ItemData.Eye_of_the_Oasis.GetItem().Range
+                };
+
+                // Place wards
+                TrackersKnife = new CustomItem
+                {
+                    Name = "trackers-knife",
+                    DisplayName = "Tracker's Knife",
+                    Item = ItemData.Trackers_Knife.GetItem(),
+                    Flags = ItemFlags.Supportive,
+                    CombatFlags = CombatFlags.Melee | CombatFlags.Ranged,
+                    CastType = CastType.Position,
+                    Range = ItemData.Trackers_Knife.GetItem().Range
+                };
+
                 Items = new List<CustomItem>
                 {
                     Youmuu,
-                    Tiamat,
                     Hydra,
                     BilgewaterCutlass,
                     BladeRuinedKing,
                     HextechGunblade,
                     MikaelsCrucible,
                     LocketIronSolari,
+                    FrostQueensClaim,
+                    TalismanOfAscension,
+                    FaceOfTheMountain,
                     Sightstone,
-                    RubySightstone
+                    RubySightstone,
+                    EyeOfTheWatchers,
+                    EyeOfTheEquinox,
+                    EyeOfTheOasis,
+                    TrackersKnife
                 };
 
                 MaxRange = Items.Max(s => s.Range);
@@ -386,6 +472,9 @@ namespace SFXChallenger.Managers
                             item.Item.Cast(target);
                             break;
                         case CastType.Self:
+                            item.Item.Cast(ObjectManager.Player);
+                            break;
+                        case CastType.None:
                             item.Item.Cast();
                             break;
                         case CastType.Position:
@@ -498,7 +587,7 @@ namespace SFXChallenger.Managers
                             ObjectManager.Player.HealthPercent >=
                             _menu.Item(_menu.Name + "." + i.Name + ".player-health-above").GetValue<Slider>().Value))
                 {
-                    if (item.CastType != CastType.Self)
+                    if (item.CastType != CastType.None)
                     {
                         var lItem = item;
                         var localItem = item;
@@ -525,6 +614,9 @@ namespace SFXChallenger.Managers
                                 {
                                     case CastType.Target:
                                         localItem.Item.Cast(enemy);
+                                        break;
+                                    case CastType.Self:
+                                        localItem.Item.Cast(ObjectManager.Player);
                                         break;
                                     case CastType.Position:
                                         var prediction = Prediction.GetPrediction(

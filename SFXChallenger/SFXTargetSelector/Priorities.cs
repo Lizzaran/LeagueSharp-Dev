@@ -27,7 +27,6 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXChallenger.Enumerations;
 using SFXChallenger.Library.Logger;
 
 #endregion
@@ -36,6 +35,14 @@ namespace SFXChallenger.SFXTargetSelector
 {
     public static class Priorities
     {
+        public enum Priority
+        {
+            Highest = 4,
+            High = 3,
+            Medium = 2,
+            Low = 1
+        }
+
         public const int MinPriority = 1;
         public const int MaxPriority = 5;
         private static Menu _mainMenu;
@@ -57,7 +64,7 @@ namespace SFXChallenger.SFXTargetSelector
                                 "Orianna", "Quinn", "Sivir", "Syndra", "Talon", "Teemo", "Tristana", "TwistedFate",
                                 "Twitch", "Varus", "Vayne", "Veigar", "VelKoz", "Viktor", "Xerath", "Zed", "Ziggs"
                             },
-                        Type = TargetSelectorPriorityType.Highest
+                        Priority = Priority.Highest
                     },
                     new Item
                     {
@@ -68,7 +75,7 @@ namespace SFXChallenger.SFXTargetSelector
                                 "Kassadin", "Kayle", "Kha'Zix", "Lissandra", "Mordekaiser", "Nidalee", "Riven", "Shaco",
                                 "Vladimir", "Yasuo", "Zilean"
                             },
-                        Type = TargetSelectorPriorityType.High
+                        Priority = Priority.High
                     },
                     new Item
                     {
@@ -79,7 +86,7 @@ namespace SFXChallenger.SFXTargetSelector
                                 "Lee Sin", "Maokai", "Morgana", "Nocturne", "Pantheon", "Poppy", "Rengar", "Rumble",
                                 "Ryze", "Swain", "Trundle", "Tryndamere", "Udyr", "Urgot", "Vi", "XinZhao", "RekSai"
                             },
-                        Type = TargetSelectorPriorityType.Medium
+                        Priority = Priority.Medium
                     },
                     new Item
                     {
@@ -92,7 +99,7 @@ namespace SFXChallenger.SFXTargetSelector
                                 "Sion", "Skarner", "Sona", "Soraka", "Taric", "Thresh", "Volibear", "Warwick",
                                 "MonkeyKing", "Yorick", "Zac", "Zyra"
                             },
-                        Type = TargetSelectorPriorityType.Low
+                        Priority = Priority.Low
                     }
                 };
             }
@@ -149,21 +156,21 @@ namespace SFXChallenger.SFXTargetSelector
             }
         }
 
-        public static TargetSelectorPriorityType GetDefaultPriority(Obj_AI_Hero hero)
+        public static Priority GetDefaultPriority(Obj_AI_Hero hero)
         {
             try
             {
                 var item = Items.FirstOrDefault(i => i.Champions.Contains(hero.ChampionName));
                 if (item != null)
                 {
-                    return item.Type;
+                    return item.Priority;
                 }
             }
             catch (Exception ex)
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
-            return TargetSelectorPriorityType.Low;
+            return Priority.Low;
         }
 
         public static int GetPriority(Obj_AI_Hero hero)
@@ -183,7 +190,7 @@ namespace SFXChallenger.SFXTargetSelector
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
-            return (int) TargetSelectorPriorityType.Low;
+            return (int) Priority.Low;
         }
 
         public static void SetPriority(Obj_AI_Hero hero, int value)
@@ -206,7 +213,7 @@ namespace SFXChallenger.SFXTargetSelector
             }
         }
 
-        public static void SetPriority(Obj_AI_Hero hero, TargetSelectorPriorityType type)
+        public static void SetPriority(Obj_AI_Hero hero, Priority type)
         {
             try
             {
@@ -242,7 +249,7 @@ namespace SFXChallenger.SFXTargetSelector
 
         public class Item
         {
-            public TargetSelectorPriorityType Type { get; set; }
+            public Priority Priority { get; set; }
             public string[] Champions { get; set; }
         }
     }

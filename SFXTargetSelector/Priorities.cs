@@ -34,6 +34,14 @@ namespace SFXTargetSelector
 {
     public static class Priorities
     {
+        public enum Priority
+        {
+            Highest = 4,
+            High = 3,
+            Medium = 2,
+            Low = 1
+        }
+
         public const int MinPriority = 1;
         public const int MaxPriority = 5;
         private static Menu _mainMenu;
@@ -53,7 +61,7 @@ namespace SFXTargetSelector
                             "Sivir", "Syndra", "Talon", "Teemo", "Tristana", "TwistedFate", "Twitch", "Varus", "Vayne",
                             "Veigar", "VelKoz", "Viktor", "Xerath", "Zed", "Ziggs"
                         },
-                    Type = PriorityType.Highest
+                    Priority = Priority.Highest
                 },
                 new Item
                 {
@@ -64,7 +72,7 @@ namespace SFXTargetSelector
                             "Kayle", "Kha'Zix", "Lissandra", "Mordekaiser", "Nidalee", "Riven", "Shaco", "Vladimir",
                             "Yasuo", "Zilean"
                         },
-                    Type = PriorityType.High
+                    Priority = Priority.High
                 },
                 new Item
                 {
@@ -75,7 +83,7 @@ namespace SFXTargetSelector
                             "Lee Sin", "Maokai", "Morgana", "Nocturne", "Pantheon", "Poppy", "Rengar", "Rumble", "Ryze",
                             "Swain", "Trundle", "Tryndamere", "Udyr", "Urgot", "Vi", "XinZhao", "RekSai"
                         },
-                    Type = PriorityType.Medium
+                    Priority = Priority.Medium
                 },
                 new Item
                 {
@@ -88,7 +96,7 @@ namespace SFXTargetSelector
                             "Skarner", "Sona", "Soraka", "Taric", "Thresh", "Volibear", "Warwick", "MonkeyKing",
                             "Yorick", "Zac", "Zyra"
                         },
-                    Type = PriorityType.Low
+                    Priority = Priority.Low
                 }
             };
         }
@@ -130,14 +138,14 @@ namespace SFXTargetSelector
             };
         }
 
-        public static PriorityType GetDefaultPriority(Obj_AI_Hero hero)
+        public static Priority GetDefaultPriority(Obj_AI_Hero hero)
         {
             var item = Items.FirstOrDefault(i => i.Champions.Contains(hero.ChampionName));
             if (item != null)
             {
-                return item.Type;
+                return item.Priority;
             }
-            return PriorityType.Low;
+            return Priority.Low;
         }
 
         public static int GetPriority(Obj_AI_Hero hero)
@@ -150,7 +158,7 @@ namespace SFXTargetSelector
                     return item.GetValue<Slider>().Value;
                 }
             }
-            return (int) PriorityType.Low;
+            return (int) Priority.Low;
         }
 
         public static void SetPriority(Obj_AI_Hero hero, int value)
@@ -166,7 +174,7 @@ namespace SFXTargetSelector
             }
         }
 
-        public static void SetPriority(Obj_AI_Hero hero, PriorityType type)
+        public static void SetPriority(Obj_AI_Hero hero, Priority type)
         {
             if (_mainMenu != null)
             {
@@ -186,7 +194,7 @@ namespace SFXTargetSelector
 
         public class Item
         {
-            public PriorityType Type { get; set; }
+            public Priority Priority { get; set; }
             public string[] Champions { get; set; }
         }
     }

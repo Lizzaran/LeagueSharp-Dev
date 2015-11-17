@@ -346,7 +346,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                var wRange = Player.AttackRange + Player.BoundingRadius + 20 * W.Level;
+                var wRange = Player.AttackRange + Player.BoundingRadius + 60 + 30 * W.Level;
                 if (GameObjects.EnemyHeroes.Any(e => e.Distance(Player) < wRange + e.BoundingRadius))
                 {
                     W.Cast();

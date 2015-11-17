@@ -25,6 +25,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using SFXChallenger.Interfaces;
 using SFXChallenger.Library.Logger;
 
 #endregion
@@ -35,8 +36,11 @@ namespace SFXChallenger
     {
         public static string Prefix = "SFX";
         public static string Name = "SFXChallenger";
+        public static IChampion Champion;
         public static ILogger Logger;
-        public static string LogDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Name + " - Logs");
+        public static string BaseDir = AppDomain.CurrentDomain.BaseDirectory;
+        public static string LogDir = Path.Combine(BaseDir, Name + " - Logs");
+        public static string CacheDir = Path.Combine(BaseDir, Name + " - Cache");
         public static string UpdatePath = "Lizzaran/LeagueSharp-Dev/master/SFXChallenger";
 
         static Global()

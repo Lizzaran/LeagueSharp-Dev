@@ -54,7 +54,6 @@ namespace SFXChallenger.Managers
         public static SummonerSpell BlueSmite;
         public static SummonerSpell RedSmite;
         public static SummonerSpell Ghost;
-        public static SummonerSpell Clarity;
         public static SummonerSpell Heal;
         public static SummonerSpell Barrier;
         public static SummonerSpell Exhaust;
@@ -83,7 +82,6 @@ namespace SFXChallenger.Managers
                     Range = 750f
                 };
                 Ghost = new SummonerSpell { Name = "SummonerHaste", CastType = CastType.Self, Range = float.MaxValue };
-                Clarity = new SummonerSpell { Name = "SummonerMana", CastType = CastType.Self, Range = 600f };
                 Heal = new SummonerSpell { Name = "SummonerHeal", CastType = CastType.Self, Range = 850f };
                 Barrier = new SummonerSpell
                 {
@@ -100,7 +98,6 @@ namespace SFXChallenger.Managers
                 SummonerSpells = new List<SummonerSpell>
                 {
                     Ghost,
-                    Clarity,
                     Heal,
                     Barrier,
                     Exhaust,

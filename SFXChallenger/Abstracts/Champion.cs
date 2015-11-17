@@ -33,6 +33,10 @@ using SFXChallenger.Library.Logger;
 using SFXChallenger.Managers;
 using SFXChallenger.Menus;
 using SFXChallenger.SFXTargetSelector;
+using MinionManager = SFXChallenger.Library.MinionManager;
+using MinionOrderTypes = SFXChallenger.Library.MinionOrderTypes;
+using MinionTeam = SFXChallenger.Library.MinionTeam;
+using MinionTypes = SFXChallenger.Library.MinionTypes;
 using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
@@ -43,7 +47,9 @@ namespace SFXChallenger.Abstracts
 {
     internal abstract class Champion : IChampion
     {
+        private static float _minionSearchRange;
         protected readonly Obj_AI_Hero Player = ObjectManager.Player;
+        private Obj_AI_Base _nearestMinion;
         private List<Spell> _spells;
         private bool _useMuramana;
         protected Spell E;
@@ -97,7 +103,10 @@ namespace SFXChallenger.Abstracts
         {
             try
             {
-                LaneClear();
+                if (_nearestMinion == null || !_nearestMinion.IsValid || _nearestMinion.Team != Player.Team)
+                {
+                    LaneClear();
+                }
             }
             catch (Exception ex)
             {
@@ -109,7 +118,10 @@ namespace SFXChallenger.Abstracts
         {
             try
             {
-                JungleClear();
+                if (_nearestMinion == null || !_nearestMinion.IsValid || _nearestMinion.Team == GameObjectTeam.Neutral)
+                {
+                    JungleClear();
+                }
             }
             catch (Exception ex)
             {
@@ -185,6 +197,14 @@ namespace SFXChallenger.Abstracts
         {
             try
             {
+                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
+                {
+                    _nearestMinion =
+                        MinionManager.GetMinions(
+                            _minionSearchRange, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.None)
+                            .OrderBy(m => m.Distance(Player))
+                            .FirstOrDefault();
+                }
                 OnPostUpdate();
             }
             catch (Exception ex)
@@ -197,7 +217,12 @@ namespace SFXChallenger.Abstracts
         {
             try
             {
-                var range = Math.Max(SummonerManager.MaxRange, ItemManager.MaxRange);
+                var range =
+                    Math.Max(
+                        SummonerManager.SummonerSpells.Where(s => s.CastType == CastType.Target).Max(s => s.Range),
+                        ItemManager.Items.Where(
+                            i => i.EffectFlags.HasFlag(EffectFlags.Damage) && i.Flags.HasFlag(ItemFlags.Offensive))
+                            .Max(i => i.Range));
                 if (ultimateTarget == null || Ultimate == null || !ultimateTarget.IsValidTarget(range))
                 {
                     var target = TargetSelector.GetTarget(range);
@@ -246,6 +271,14 @@ namespace SFXChallenger.Abstracts
                 OnLoad();
                 SetupSpells();
                 SetupMenu();
+
+                _minionSearchRange = Math.Min(
+                    2000,
+                    Math.Max(
+                        ObjectManager.Player.AttackRange + ObjectManager.Player.BoundingRadius * 2,
+                        Spells.Select(spell => spell.IsChargedSpell ? spell.ChargedMaxRange : spell.Range)
+                            .Concat(new[] { _minionSearchRange })
+                            .Max()));
 
                 Weights.Range = Math.Max(
                     Weights.Range,

@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.9.5.22</AssemblyVersion>
+    <AssemblyVersion>0.9.5.25</AssemblyVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -106,14 +106,13 @@
     <Compile Include="Enumerations\ResourceCheckType.cs" />
     <Compile Include="Enumerations\ResourceType.cs" />
     <Compile Include="Enumerations\ResourceValueType.cs" />
-    <Compile Include="Enumerations\TargetSelectorModeType.cs" />
-    <Compile Include="Enumerations\TargetSelectorPriorityType.cs" />
     <Compile Include="Enumerations\DamageType.cs" />
     <Compile Include="Enumerations\UltimateModeType.cs" />
     <Compile Include="Args\InitiatorManagerArgs.cs" />
     <Compile Include="Global.cs" />
     <Compile Include="Helpers\CPrediction.cs" />
     <Compile Include="Helpers\DynamicInitializer.cs" />
+    <Compile Include="Helpers\Report.cs" />
     <Compile Include="Helpers\Utils.cs" />
     <Compile Include="Library\Draw.cs" />
     <Compile Include="Library\Extensions\LeagueSharp\Obj_AI_HeroExtensions.cs" />

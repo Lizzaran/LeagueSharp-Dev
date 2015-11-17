@@ -49,7 +49,6 @@ namespace SFXUtility.Data
 
     internal class Items
     {
-        public static CustomItem Tiamat;
         public static CustomItem Hydra;
         public static CustomItem BilgewaterCutlass;
         public static CustomItem BladeRuinedKing;
@@ -60,15 +59,6 @@ namespace SFXUtility.Data
         {
             try
             {
-                // AOE damage, only melee
-                Tiamat = new CustomItem
-                {
-                    Item = ItemData.Tiamat_Melee_Only.GetItem(),
-                    Damage = Damage.DamageItems.Tiamat,
-                    Target = false,
-                    Range = ItemData.Tiamat_Melee_Only.GetItem().Range
-                };
-
                 // AOE damage, only melee
                 Hydra = new CustomItem
                 {
@@ -105,14 +95,7 @@ namespace SFXUtility.Data
                     Range = ItemData.Hextech_Gunblade.GetItem().Range
                 };
 
-                CustomItems = new List<CustomItem>
-                {
-                    Tiamat,
-                    Hydra,
-                    BilgewaterCutlass,
-                    BladeRuinedKing,
-                    HextechGunblade
-                };
+                CustomItems = new List<CustomItem> { Hydra, BilgewaterCutlass, BladeRuinedKing, HextechGunblade };
             }
             catch (Exception ex)
             {

@@ -679,6 +679,7 @@ namespace SFXChallenger.Champions
                 {
                     if (Q.CastOnUnit(target))
                     {
+                        _lastQCast = Game.Time;
                         if (Orbwalking.InAutoAttackRange(target) && !Player.IsWindingUp)
                         {
                             Player.IssueOrder(GameObjectOrder.AttackUnit, target);
@@ -687,7 +688,6 @@ namespace SFXChallenger.Champions
                         {
                             Orbwalker.ForceTarget(target);
                         }
-                        _lastQCast = Game.Time;
                     }
                 }
             }

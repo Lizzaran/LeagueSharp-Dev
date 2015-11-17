@@ -28,7 +28,6 @@ using System.Drawing;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXChallenger.Enumerations;
 using SFXChallenger.Library;
 using SFXChallenger.Library.Extensions.LeagueSharp;
 using SFXChallenger.Library.Logger;
@@ -262,7 +261,7 @@ namespace SFXChallenger.SFXTargetSelector
         {
             try
             {
-                if (_mainMenu == null || TargetSelector.Mode != TargetSelectorModeType.Weights)
+                if (_mainMenu == null || TargetSelector.Mode != TargetSelector.TargetingMode.Weights)
                 {
                     return;
                 }
@@ -311,7 +310,7 @@ namespace SFXChallenger.SFXTargetSelector
         {
             try
             {
-                if (_mainMenu == null || TargetSelector.Mode != TargetSelectorModeType.Weights)
+                if (_mainMenu == null || TargetSelector.Mode != TargetSelector.TargetingMode.Weights)
                 {
                     return;
                 }
