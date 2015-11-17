@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.9.5.25</AssemblyVersion>
+    <AssemblyVersion>0.9.5.32</AssemblyVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -106,7 +106,6 @@
     <Compile Include="Enumerations\ResourceCheckType.cs" />
     <Compile Include="Enumerations\ResourceType.cs" />
     <Compile Include="Enumerations\ResourceValueType.cs" />
-    <Compile Include="Enumerations\DamageType.cs" />
     <Compile Include="Enumerations\UltimateModeType.cs" />
     <Compile Include="Args\InitiatorManagerArgs.cs" />
     <Compile Include="Global.cs" />
@@ -165,17 +164,24 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\Invulnerable.cs" />
     <Compile Include="SFXTargetSelector\Aggro.cs" />
+    <Compile Include="SFXTargetSelector\Compatibility.cs" />
+    <Compile Include="SFXTargetSelector\Enumerations\Mode.cs" />
+    <Compile Include="SFXTargetSelector\Enumerations\Priority.cs" />
+    <Compile Include="SFXTargetSelector\EventArgs\ModesOnChange.cs" />
     <Compile Include="SFXTargetSelector\Extensions.cs" />
+    <Compile Include="SFXTargetSelector\Focus.cs" />
+    <Compile Include="SFXTargetSelector\Helpers\Utils.cs" />
     <Compile Include="SFXTargetSelector\Humanizer.cs" />
+    <Compile Include="SFXTargetSelector\Modes.cs" />
+    <Compile Include="SFXTargetSelector\Orbwalking.cs" />
     <Compile Include="SFXTargetSelector\Priorities.cs" />
     <Compile Include="SFXTargetSelector\Selected.cs" />
+    <Compile Include="SFXTargetSelector\Targets.cs" />
     <Compile Include="SFXTargetSelector\TargetSelector.cs" />
     <Compile Include="SFXTargetSelector\Weights.cs" />
-    <Compile Include="Helpers\Invulnerable.cs" />
-    <Compile Include="Wrappers\Orbwalking.cs" />
     <Compile Include="Wrappers\Spell.cs" />
-    <Compile Include="SFXTargetSelector\Targets.cs" />
     <Compile Include="Managers\ItemManager.cs" />
     <Compile Include="Managers\SummonerManager.cs" />
     <Compile Include="Program.cs" />

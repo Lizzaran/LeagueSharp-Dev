@@ -32,12 +32,11 @@ using SFXChallenger.Interfaces;
 using SFXChallenger.Library.Logger;
 using SFXChallenger.Managers;
 using SFXChallenger.Menus;
-using SFXChallenger.SFXTargetSelector;
 using MinionManager = SFXChallenger.Library.MinionManager;
 using MinionOrderTypes = SFXChallenger.Library.MinionOrderTypes;
 using MinionTeam = SFXChallenger.Library.MinionTeam;
 using MinionTypes = SFXChallenger.Library.MinionTypes;
-using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+using Orbwalking = SFXChallenger.SFXTargetSelector.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
 
@@ -280,8 +279,8 @@ namespace SFXChallenger.Abstracts
                             .Concat(new[] { _minionSearchRange })
                             .Max()));
 
-                Weights.Range = Math.Max(
-                    Weights.Range,
+                TargetSelector.Weights.Range = Math.Max(
+                    TargetSelector.Weights.Range,
                     Spells.Select(e => e.Range).DefaultIfEmpty(Orbwalking.GetRealAutoAttackRange(null) * 1.2f).Max());
 
                 Core.OnPreUpdate += OnCorePreUpdate;

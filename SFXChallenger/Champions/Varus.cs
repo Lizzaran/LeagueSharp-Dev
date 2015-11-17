@@ -34,16 +34,14 @@ using SFXChallenger.Helpers;
 using SFXChallenger.Library;
 using SFXChallenger.Library.Logger;
 using SFXChallenger.Managers;
-using SFXChallenger.SFXTargetSelector;
 using SharpDX;
 using Collision = LeagueSharp.Common.Collision;
 using Color = System.Drawing.Color;
-using DamageType = SFXChallenger.Enumerations.DamageType;
 using MinionManager = SFXChallenger.Library.MinionManager;
 using MinionOrderTypes = SFXChallenger.Library.MinionOrderTypes;
 using MinionTeam = SFXChallenger.Library.MinionTeam;
 using MinionTypes = SFXChallenger.Library.MinionTypes;
-using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+using Orbwalking = SFXChallenger.SFXTargetSelector.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
 using Utils = SFXChallenger.Helpers.Utils;
@@ -235,7 +233,8 @@ namespace SFXChallenger.Champions
                 }, true);
             BestTargetOnlyManager.AddToMenu(eGapcloserMenu, "e-gapcloser");
 
-            Weights.AddItem(new Weights.Item("w-stacks", "W Stacks", 5, false, t => GetWStacks(t) + 1));
+            TargetSelector.Weights.AddItem(
+                new TargetSelector.Weights.Item("w-stacks", "W Stacks", 5, false, t => GetWStacks(t) + 1));
 
             IndicatorManager.AddToMenu(DrawingManager.Menu, true);
             IndicatorManager.Add("Q", hero => Q.IsReady() ? Q.GetDamage(hero, 1) : 0);

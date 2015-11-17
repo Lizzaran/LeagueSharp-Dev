@@ -1,8 +1,8 @@
-#region License
+﻿#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- IChampion.cs is part of SFXChallenger.
+ ModesOnChange.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -22,26 +22,25 @@
 
 #region
 
-using System.Collections.Generic;
-using LeagueSharp.Common;
-using Orbwalking = SFXChallenger.SFXTargetSelector.Orbwalking;
-using Spell = SFXChallenger.Wrappers.Spell;
+using System;
 
 #endregion
 
-namespace SFXChallenger.Interfaces
+namespace SFXChallenger.SFXTargetSelector
 {
-    internal interface IChampion
+    public static partial class TargetSelector
     {
-        Menu SFXMenu { get; }
-        Menu Menu { get; }
-        Orbwalking.Orbwalker Orbwalker { get; }
-        List<Spell> Spells { get; }
-        void Combo();
-        void Harass();
-        void LaneClear();
-        void JungleClear();
-        void Flee();
-        void Killsteal();
+        public static partial class Modes
+        {
+            public class OnChangeArgs : EventArgs
+            {
+                public OnChangeArgs(Item modeItem)
+                {
+                    ModeItem = modeItem;
+                }
+
+                public Item ModeItem { get; private set; }
+            }
+        }
     }
 }

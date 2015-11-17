@@ -125,9 +125,9 @@ namespace SFXTargetSelector.Others
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                //Ignored
+                Console.WriteLine(ex);
             }
             return false;
         }

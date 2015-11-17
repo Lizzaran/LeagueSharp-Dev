@@ -36,17 +36,17 @@ namespace SFXTargetSelector
         public static Obj_AI_Hero GetTargetNoCollision(this Spell spell,
             bool ignoreShields = true,
             Vector3 from = default(Vector3),
-            IEnumerable<Obj_AI_Hero> ignoredChampions = null)
+            IEnumerable<Obj_AI_Hero> ignoreChampions = null)
         {
-            return TargetSelector.GetTargetNoCollision(spell, ignoreShields, from, ignoredChampions);
+            return TargetSelector.GetTargetNoCollision(spell, ignoreShields, from, ignoreChampions);
         }
 
         public static Obj_AI_Hero GetTarget(this Spell spell,
             bool ignoreShields = true,
             Vector3 from = default(Vector3),
-            IEnumerable<Obj_AI_Hero> ignoredChampions = null)
+            IEnumerable<Obj_AI_Hero> ignoreChampions = null)
         {
-            return TargetSelector.GetTarget(spell, ignoreShields, from, ignoredChampions);
+            return TargetSelector.GetTarget(spell, ignoreShields, from, ignoreChampions);
         }
     }
 }

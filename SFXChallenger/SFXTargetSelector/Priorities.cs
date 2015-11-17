@@ -27,29 +27,19 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXChallenger.Library.Logger;
 
 #endregion
 
 namespace SFXChallenger.SFXTargetSelector
 {
-    public static class Priorities
+    public static partial class TargetSelector
     {
-        public enum Priority
+        public static partial class Priorities
         {
-            Highest = 4,
-            High = 3,
-            Medium = 2,
-            Low = 1
-        }
+            public const int MinPriority = 1;
+            public const int MaxPriority = 5;
 
-        public const int MinPriority = 1;
-        public const int MaxPriority = 5;
-        private static Menu _mainMenu;
-
-        static Priorities()
-        {
-            try
+            static Priorities()
             {
                 Items = new HashSet<Item>
                 {
@@ -72,8 +62,8 @@ namespace SFXChallenger.SFXTargetSelector
                             new[]
                             {
                                 "Akali", "Diana", "Ekko", "Fiddlesticks", "Fiora", "Fizz", "Heimerdinger", "Jayce",
-                                "Kassadin", "Kayle", "Kha'Zix", "Lissandra", "Mordekaiser", "Nidalee", "Riven", "Shaco",
-                                "Vladimir", "Yasuo", "Zilean"
+                                "Kassadin", "Kayle", "Kha'Zix", "Kindred", "Lissandra", "Mordekaiser", "Nidalee",
+                                "Riven", "Shaco", "Vladimir", "Yasuo", "Zilean"
                             },
                         Priority = Priority.High
                     },
@@ -96,38 +86,30 @@ namespace SFXChallenger.SFXTargetSelector
                                 "Alistar", "Amumu", "Bard", "Blitzcrank", "Braum", "Cho'Gath", "Dr. Mundo", "Garen",
                                 "Gnar", "Hecarim", "Janna", "Jarvan IV", "Leona", "Lulu", "Malphite", "Nami", "Nasus",
                                 "Nautilus", "Nunu", "Olaf", "Rammus", "Renekton", "Sejuani", "Shen", "Shyvana", "Singed",
-                                "Sion", "Skarner", "Sona", "Soraka", "Taric", "Thresh", "Volibear", "Warwick",
-                                "MonkeyKing", "Yorick", "Zac", "Zyra"
+                                "Sion", "Skarner", "Sona", "Soraka", "TahmKench", "Taric", "Thresh", "Volibear",
+                                "Warwick", "MonkeyKing", "Yorick", "Zac", "Zyra"
                             },
                         Priority = Priority.Low
                     }
                 };
             }
-            catch (Exception ex)
+
+            public static Menu PrioritiesMenu { get; private set; }
+            public static HashSet<Item> Items { get; private set; }
+
+            internal static void AddToMainMenu()
             {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
-
-        public static HashSet<Item> Items { get; private set; }
-
-        internal static void AddToMenu(Menu mainMenu)
-        {
-            try
-            {
-                _mainMenu = mainMenu;
-
-                var prioritiesMenu = _mainMenu.AddSubMenu(new Menu("Priorities", _mainMenu.Name + ".priorities"));
+                PrioritiesMenu = MainMenu.AddSubMenu(new Menu("Priorities", MainMenu.Name + ".priorities"));
 
                 var autoPriority =
-                    new MenuItem(prioritiesMenu.Name + ".auto", "Auto Priority").SetShared().SetValue(false);
+                    new MenuItem(PrioritiesMenu.Name + ".auto", "Auto Priority").SetShared().SetValue(false);
 
                 foreach (var enemy in Targets.Items)
                 {
                     var item =
-                        new MenuItem(prioritiesMenu.Name + "." + enemy.Hero.ChampionName, enemy.Hero.ChampionName)
+                        new MenuItem(PrioritiesMenu.Name + "." + enemy.Hero.ChampionName, enemy.Hero.ChampionName)
                             .SetShared().SetValue(new Slider(MinPriority, MinPriority, MaxPriority));
-                    prioritiesMenu.AddItem(item);
+                    PrioritiesMenu.AddItem(item);
                     if (autoPriority.GetValue<bool>())
                     {
                         item.SetShared()
@@ -135,14 +117,14 @@ namespace SFXChallenger.SFXTargetSelector
                     }
                 }
 
-                prioritiesMenu.AddItem(autoPriority).ValueChanged +=
+                PrioritiesMenu.AddItem(autoPriority).ValueChanged +=
                     delegate(object sender, OnValueChangeEventArgs args)
                     {
                         if (args.GetNewValue<bool>())
                         {
                             foreach (var enemy in Targets.Items)
                             {
-                                _mainMenu.Item(prioritiesMenu.Name + "." + enemy.Hero.ChampionName)
+                                MainMenu.Item(PrioritiesMenu.Name + "." + enemy.Hero.ChampionName)
                                     .SetShared()
                                     .SetValue(
                                         new Slider((int) GetDefaultPriority(enemy.Hero), MinPriority, MaxPriority));
@@ -150,56 +132,35 @@ namespace SFXChallenger.SFXTargetSelector
                         }
                     };
             }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
 
-        public static Priority GetDefaultPriority(Obj_AI_Hero hero)
-        {
-            try
+            public static Priority GetDefaultPriority(Obj_AI_Hero hero)
             {
                 var item = Items.FirstOrDefault(i => i.Champions.Contains(hero.ChampionName));
                 if (item != null)
                 {
                     return item.Priority;
                 }
+                return Priority.Low;
             }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return Priority.Low;
-        }
 
-        public static int GetPriority(Obj_AI_Hero hero)
-        {
-            try
+            public static int GetPriority(Obj_AI_Hero hero)
             {
-                if (_mainMenu != null)
+                if (MainMenu != null)
                 {
-                    var item = _mainMenu.Item(_mainMenu.Name + ".priorities." + hero.ChampionName);
+                    var item = MainMenu.Item(MainMenu.Name + ".priorities." + hero.ChampionName);
                     if (item != null)
                     {
                         return item.GetValue<Slider>().Value;
                     }
                 }
+                return (int) Priority.Low;
             }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return (int) Priority.Low;
-        }
 
-        public static void SetPriority(Obj_AI_Hero hero, int value)
-        {
-            try
+            public static void SetPriority(Obj_AI_Hero hero, int value)
             {
-                if (_mainMenu != null)
+                if (MainMenu != null)
                 {
-                    var item = _mainMenu.Item(_mainMenu.Name + ".priorities." + hero.ChampionName);
+                    var item = MainMenu.Item(MainMenu.Name + ".priorities." + hero.ChampionName);
                     if (item != null)
                     {
                         item.SetValue(
@@ -207,19 +168,12 @@ namespace SFXChallenger.SFXTargetSelector
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
 
-        public static void SetPriority(Obj_AI_Hero hero, Priority type)
-        {
-            try
+            public static void SetPriority(Obj_AI_Hero hero, Priority type)
             {
-                if (_mainMenu != null)
+                if (MainMenu != null)
                 {
-                    var item = _mainMenu.Item(_mainMenu.Name + ".priorities." + hero.ChampionName);
+                    var item = MainMenu.Item(MainMenu.Name + ".priorities." + hero.ChampionName);
                     if (item != null)
                     {
                         item.SetValue(
@@ -228,29 +182,21 @@ namespace SFXChallenger.SFXTargetSelector
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
 
-        public static IEnumerable<Targets.Item> OrderChampions(List<Targets.Item> heroes)
-        {
-            try
+            public static IEnumerable<Targets.Item> OrderChampions(IEnumerable<Targets.Item> targets)
             {
-                return heroes.OrderByDescending(x => GetPriority(x.Hero));
+                if (targets == null)
+                {
+                    return new List<Targets.Item>();
+                }
+                return targets.OrderByDescending(x => GetPriority(x.Hero));
             }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return new List<Targets.Item>();
-        }
 
-        public class Item
-        {
-            public Priority Priority { get; set; }
-            public string[] Champions { get; set; }
+            public class Item
+            {
+                public Priority Priority { get; set; }
+                public string[] Champions { get; set; }
+            }
         }
     }
 }

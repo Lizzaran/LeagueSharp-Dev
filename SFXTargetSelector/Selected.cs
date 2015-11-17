@@ -33,82 +33,82 @@ using Color = System.Drawing.Color;
 
 namespace SFXTargetSelector
 {
-    public static class Selected
+    public static partial class TargetSelector
     {
-        private static Menu _mainMenu;
-
-        static Selected()
+        public static class Selected
         {
-            ClickBuffer = 100f;
-            Game.OnWndProc += OnGameWndProc;
-        }
-
-        public static float ClickBuffer { get; set; }
-        public static Obj_AI_Hero Target { get; set; }
-
-        internal static void AddToMenu(Menu mainMenu, Menu drawingMenu)
-        {
-            _mainMenu = mainMenu;
-
-            var drawingSelectedMenu = drawingMenu.AddSubMenu(
-                new Menu("Selected Target", drawingMenu.Name + ".selected"));
-            drawingSelectedMenu.AddItem(
-                new MenuItem(drawingSelectedMenu.Name + ".color", "Color").SetShared().SetValue(Color.Yellow));
-            drawingSelectedMenu.AddItem(
-                new MenuItem(drawingSelectedMenu.Name + ".radius", "Radius").SetShared().SetValue(new Slider(35)));
-            drawingSelectedMenu.AddItem(
-                new MenuItem(drawingSelectedMenu.Name + ".enabled", "Enabled").SetShared().SetValue(true));
-
-            Drawing.OnDraw += OnDrawingDraw;
-        }
-
-        public static Obj_AI_Hero GetTarget(float range, DamageType damageType, bool ignoreShields, Vector3 from)
-        {
-            if (Target != null &&
-                TargetSelector.IsValidTarget(
-                    Target, TargetSelector.ForceFocus ? float.MaxValue : range, damageType, ignoreShields, from))
+            static Selected()
             {
-                return Target;
-            }
-            return null;
-        }
-
-        private static void OnDrawingDraw(EventArgs args)
-        {
-            if (_mainMenu == null)
-            {
-                return;
+                ClickBuffer = 100f;
+                Game.OnWndProc += OnGameWndProc;
             }
 
-            if (Target != null && Target.IsValidTarget() && Target.Position.IsOnScreen() && TargetSelector.Focus)
-            {
-                var selectedEnabled = _mainMenu.Item(_mainMenu.Name + ".drawing.selected.enabled").GetValue<bool>();
-                var selectedRadius =
-                    _mainMenu.Item(_mainMenu.Name + ".drawing.selected.radius").GetValue<Slider>().Value;
-                var selectedColor = _mainMenu.Item(_mainMenu.Name + ".drawing.selected.color").GetValue<Color>();
-                var circleThickness =
-                    _mainMenu.Item(_mainMenu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value;
+            public static float ClickBuffer { get; set; }
+            public static Obj_AI_Hero Target { get; set; }
 
-                if (selectedEnabled)
+            internal static void AddToMainMenu()
+            {
+                var drawingSelectedMenu =
+                    DrawingMenu.AddSubMenu(new Menu("Selected Target", DrawingMenu.Name + ".selected"));
+                drawingSelectedMenu.AddItem(
+                    new MenuItem(drawingSelectedMenu.Name + ".color", "Color").SetShared().SetValue(Color.Yellow));
+                drawingSelectedMenu.AddItem(
+                    new MenuItem(drawingSelectedMenu.Name + ".radius", "Radius").SetShared().SetValue(new Slider(35)));
+                drawingSelectedMenu.AddItem(
+                    new MenuItem(drawingSelectedMenu.Name + ".enabled", "Enabled").SetShared().SetValue(true));
+
+                Drawing.OnDraw += OnDrawingDraw;
+            }
+
+            public static Obj_AI_Hero GetTarget(float range, DamageType damageType, bool ignoreShields, Vector3 from)
+            {
+                if (Target != null &&
+                    Utils.IsValidTarget(
+                        Target, Focus.Enabled && Focus.Force ? float.MaxValue : range, damageType, ignoreShields, from))
                 {
-                    Render.Circle.DrawCircle(
-                        Target.Position, Target.BoundingRadius + selectedRadius, selectedColor, circleThickness, true);
+                    return Target;
+                }
+                return null;
+            }
+
+            private static void OnDrawingDraw(EventArgs args)
+            {
+                if (MainMenu == null)
+                {
+                    return;
+                }
+
+                if (Target != null && Target.IsValidTarget() && Target.Position.IsOnScreen() && Focus.Enabled)
+                {
+                    var selectedEnabled = MainMenu.Item(MainMenu.Name + ".drawing.selected.enabled").GetValue<bool>();
+                    var selectedRadius =
+                        MainMenu.Item(MainMenu.Name + ".drawing.selected.radius").GetValue<Slider>().Value;
+                    var selectedColor = MainMenu.Item(MainMenu.Name + ".drawing.selected.color").GetValue<Color>();
+                    var circleThickness =
+                        MainMenu.Item(MainMenu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value;
+
+                    if (selectedEnabled)
+                    {
+                        Render.Circle.DrawCircle(
+                            Target.Position, Target.BoundingRadius + selectedRadius, selectedColor, circleThickness,
+                            true);
+                    }
                 }
             }
-        }
 
-        private static void OnGameWndProc(WndEventArgs args)
-        {
-            if (args.Msg != (ulong) WindowsMessages.WM_LBUTTONDOWN)
+            private static void OnGameWndProc(WndEventArgs args)
             {
-                return;
-            }
+                if (args.Msg != (ulong) WindowsMessages.WM_LBUTTONDOWN)
+                {
+                    return;
+                }
 
-            Target =
-                Targets.Items.Select(t => t.Hero)
-                    .Where(h => h.IsValidTarget() && h.Distance(Game.CursorPos) < h.BoundingRadius + ClickBuffer)
-                    .OrderBy(h => h.Distance(Game.CursorPos))
-                    .FirstOrDefault();
+                Target =
+                    Targets.Items.Select(t => t.Hero)
+                        .Where(h => h.IsValidTarget() && h.Distance(Game.CursorPos) < h.BoundingRadius + ClickBuffer)
+                        .OrderBy(h => h.Distance(Game.CursorPos))
+                        .FirstOrDefault();
+            }
         }
     }
 }

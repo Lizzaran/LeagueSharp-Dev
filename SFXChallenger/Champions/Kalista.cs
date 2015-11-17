@@ -34,16 +34,14 @@ using SFXChallenger.Helpers;
 using SFXChallenger.Library;
 using SFXChallenger.Library.Logger;
 using SFXChallenger.Managers;
-using SFXChallenger.SFXTargetSelector;
 using SharpDX;
 using Collision = LeagueSharp.Common.Collision;
-using DamageType = SFXChallenger.Enumerations.DamageType;
 using ItemData = LeagueSharp.Common.Data.ItemData;
 using MinionManager = SFXChallenger.Library.MinionManager;
 using MinionOrderTypes = SFXChallenger.Library.MinionOrderTypes;
 using MinionTeam = SFXChallenger.Library.MinionTeam;
 using MinionTypes = SFXChallenger.Library.MinionTypes;
-using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+using Orbwalking = SFXChallenger.SFXTargetSelector.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
 using Utils = SFXChallenger.Helpers.Utils;
@@ -230,9 +228,9 @@ namespace SFXChallenger.Champions
             IndicatorManager.Add("E", Rend.GetDamage);
             IndicatorManager.Finale();
 
-            Weights.GetItem("low-health").GetValueFunc = hero => hero.Health - Rend.GetDamage(hero);
-            Weights.AddItem(
-                new Weights.Item(
+            TargetSelector.Weights.GetItem("low-health").GetValueFunc = hero => hero.Health - Rend.GetDamage(hero);
+            TargetSelector.Weights.AddItem(
+                new TargetSelector.Weights.Item(
                     "w-stack", "W Stack", 10, false, hero => hero.HasBuff("kalistacoopstrikemarkally") ? 10 : 0));
         }
 

@@ -26,48 +26,51 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
-using LeagueSharp.Common;
+using SFXTargetSelector.Others;
 
 #endregion
 
 namespace SFXTargetSelector
 {
-    public static class Targets
+    public static partial class TargetSelector
     {
-        static Targets()
+        public static class Targets
         {
-            Items = new HashSet<Item>();
-            foreach (var enemy in HeroManager.Enemies)
+            static Targets()
             {
-                Items.Add(new Item(enemy));
-            }
-            Game.OnUpdate += OnGameUpdate;
-        }
-
-        public static HashSet<Item> Items { get; private set; }
-
-        private static void OnGameUpdate(EventArgs args)
-        {
-            foreach (var item in Items.Where(item => item.Visible != !item.Hero.IsVisible))
-            {
-                item.Visible = item.Hero.IsVisible;
-                item.LastVisibleChange = Game.Time;
-            }
-        }
-
-        public class Item
-        {
-            public Item(Obj_AI_Hero hero)
-            {
-                Hero = hero;
-                LastVisibleChange = Game.Time;
+                Items = new HashSet<Item>();
+                foreach (var enemy in GameObjects.EnemyHeroes)
+                {
+                    Items.Add(new Item(enemy));
+                }
+                Game.OnUpdate += OnGameUpdate;
             }
 
-            public Obj_AI_Hero Hero { get; private set; }
-            public float Weight { get; set; }
-            public float SimulatedWeight { get; set; }
-            public float LastVisibleChange { get; set; }
-            public bool Visible { get; set; }
+            public static HashSet<Item> Items { get; private set; }
+
+            private static void OnGameUpdate(EventArgs args)
+            {
+                foreach (var item in Items.ToArray().Where(item => item.Visible != !item.Hero.IsVisible))
+                {
+                    item.Visible = item.Hero.IsVisible;
+                    item.LastVisibleChange = Game.Time;
+                }
+            }
+
+            public class Item
+            {
+                public Item(Obj_AI_Hero hero)
+                {
+                    Hero = hero;
+                    LastVisibleChange = Game.Time;
+                }
+
+                public Obj_AI_Hero Hero { get; private set; }
+                public float Weight { get; set; }
+                public float SimulatedWeight { get; set; }
+                public float LastVisibleChange { get; set; }
+                public bool Visible { get; set; }
+            }
         }
     }
 }

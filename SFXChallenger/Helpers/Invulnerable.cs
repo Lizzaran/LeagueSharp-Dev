@@ -27,8 +27,7 @@ using System.Collections.Generic;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Library.Logger;
-using DamageType = SFXChallenger.Enumerations.DamageType;
-using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+using Orbwalking = SFXChallenger.SFXTargetSelector.Orbwalking;
 
 #endregion
 

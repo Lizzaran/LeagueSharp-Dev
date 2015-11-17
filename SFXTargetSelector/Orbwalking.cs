@@ -27,12 +27,17 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXTargetSelector.Others;
 using SharpDX;
 using Color = System.Drawing.Color;
+using MinionManager = SFXTargetSelector.Others.MinionManager;
+using MinionOrderTypes = SFXTargetSelector.Others.MinionOrderTypes;
+using MinionTeam = SFXTargetSelector.Others.MinionTeam;
+using MinionTypes = SFXTargetSelector.Others.MinionTypes;
 
 #endregion
 
-namespace SFXTargetSelector.Others
+namespace SFXTargetSelector
 {
     /// <summary>
     ///     This class offers everything related to auto-attacks and orbwalking.
@@ -441,14 +446,14 @@ namespace SFXTargetSelector.Others
         {
             if (Player.ChampionName == "Graves" && Attack)
             {
-                if (Utils.GameTimeTickCount + Game.Ping / 2 + 25 >= LastAaTick + 1500 &&
+                if (LeagueSharp.Common.Utils.GameTimeTickCount + Game.Ping / 2 + 25 >= LastAaTick + 1500 &&
                     Player.HasBuff("GravesBasicAttackAmmo1"))
                 {
                     return true;
                 }
             }
-            return Utils.GameTimeTickCount + Game.Ping / 2 + 25 >= LastAaTick + Player.AttackDelay * 1000 + extraDelay &&
-                   Attack;
+            return LeagueSharp.Common.Utils.GameTimeTickCount + Game.Ping / 2 + 25 >=
+                   LastAaTick + Player.AttackDelay * 1000 + extraDelay && Attack;
         }
 
         /// <summary>
@@ -475,7 +480,7 @@ namespace SFXTargetSelector.Others
             }
 
             return NoCancelChamps.Contains(ChampionName) ||
-                   (Utils.GameTimeTickCount + Game.Ping / 2 >=
+                   (LeagueSharp.Common.Utils.GameTimeTickCount + Game.Ping / 2 >=
                     LastAaTick + Player.AttackCastDelay * 1000 + extraWindup + localExtraWindup);
         }
 
@@ -619,7 +624,7 @@ namespace SFXTargetSelector.Others
                 {
                     Player.IssueOrder(GameObjectOrder.Stop, playerPosition);
                     LastMoveCommandPosition = playerPosition;
-                    LastMoveCommandT = Utils.GameTimeTickCount - 70;
+                    LastMoveCommandT = LeagueSharp.Common.Utils.GameTimeTickCount - 70;
                 }
                 return;
             }
@@ -651,19 +656,20 @@ namespace SFXTargetSelector.Others
                 }
             }
 
-            if (Utils.GameTimeTickCount - LastMoveCommandT < (70 + Math.Min(60, Game.Ping)) && !overrideTimer &&
-                angle < 60)
+            if (LeagueSharp.Common.Utils.GameTimeTickCount - LastMoveCommandT < (70 + Math.Min(60, Game.Ping)) &&
+                !overrideTimer && angle < 60)
             {
                 return;
             }
 
-            if (angle >= 60 && Utils.GameTimeTickCount - LastMoveCommandT < 60)
+            if (angle >= 60 && LeagueSharp.Common.Utils.GameTimeTickCount - LastMoveCommandT < 60)
             {
                 return;
             }
 
             var delay = Delays[OrbwalkingDelay.Move];
-            if (Utils.GameTimeTickCount - LastMoveCommandT < delay.CurrentDelay && !overrideTimer && angle <= 80)
+            if (LeagueSharp.Common.Utils.GameTimeTickCount - LastMoveCommandT < delay.CurrentDelay && !overrideTimer &&
+                angle <= 80)
             {
                 return;
             }
@@ -671,7 +677,7 @@ namespace SFXTargetSelector.Others
 
             Player.IssueOrder(GameObjectOrder.MoveTo, point);
             LastMoveCommandPosition = point;
-            LastMoveCommandT = Utils.GameTimeTickCount;
+            LastMoveCommandT = LeagueSharp.Common.Utils.GameTimeTickCount;
         }
 
         /// <summary>
@@ -690,7 +696,7 @@ namespace SFXTargetSelector.Others
             bool useFixedDistance = true,
             bool randomizeMinDistance = true)
         {
-            if (Utils.GameTimeTickCount - LastAttackCommandT < (70 + Math.Min(60, Game.Ping)))
+            if (LeagueSharp.Common.Utils.GameTimeTickCount - LastAttackCommandT < (70 + Math.Min(60, Game.Ping)))
             {
                 return;
             }
@@ -713,7 +719,7 @@ namespace SFXTargetSelector.Others
 
                         if (Player.IssueOrder(GameObjectOrder.AttackUnit, target))
                         {
-                            LastAttackCommandT = Utils.GameTimeTickCount;
+                            LastAttackCommandT = LeagueSharp.Common.Utils.GameTimeTickCount;
                             _lastTarget = target;
                         }
 
@@ -815,7 +821,7 @@ namespace SFXTargetSelector.Others
                 if (unit.IsMe &&
                     (spell.Target is Obj_AI_Base || spell.Target is Obj_BarracksDampener || spell.Target is Obj_HQ))
                 {
-                    LastAaTick = Utils.GameTimeTickCount - Game.Ping / 2;
+                    LastAaTick = LeagueSharp.Common.Utils.GameTimeTickCount - Game.Ping / 2;
                     _missileLaunched = false;
                     LastMoveCommandT = 0;
 

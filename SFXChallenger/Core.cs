@@ -27,7 +27,7 @@ using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Interfaces;
 using SFXChallenger.Library.Logger;
-using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+using Orbwalking = SFXChallenger.SFXTargetSelector.Orbwalking;
 
 #endregion
 

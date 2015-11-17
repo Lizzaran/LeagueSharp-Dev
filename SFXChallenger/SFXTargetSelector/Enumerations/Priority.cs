@@ -1,8 +1,8 @@
-#region License
+﻿#region License
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- DamageType.cs is part of SFXChallenger.
+ Priority.cs is part of SFXChallenger.
 
  SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,12 +20,19 @@
 
 #endregion License
 
-namespace SFXChallenger.Enumerations
+namespace SFXChallenger.SFXTargetSelector
 {
-    public enum DamageType
+    public static partial class TargetSelector
     {
-        Physical,
-        Magical,
-        True
+        public static partial class Priorities
+        {
+            public enum Priority
+            {
+                Highest = 4,
+                High = 3,
+                Medium = 2,
+                Low = 1
+            }
+        }
     }
 }

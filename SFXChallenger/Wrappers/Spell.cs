@@ -26,7 +26,6 @@ using System;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Library.Logger;
-using DamageType = SFXChallenger.Enumerations.DamageType;
 
 #endregion
 

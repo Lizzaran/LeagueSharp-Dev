@@ -22,6 +22,7 @@
 
 #region
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
@@ -31,29 +32,58 @@ using LeagueSharp.Common;
 
 namespace SFXTargetSelector
 {
-    public class Humanizer
+    public static partial class TargetSelector
     {
-        private static Menu _mainMenu;
-
-        internal static void AddToMenu(Menu mainMenu)
+        public static class Humanizer
         {
-            _mainMenu = mainMenu;
+            public const int MinDelay = 0;
+            private const int MaxDelay = 1500;
+            private static int _fowDelay = 350;
 
-            _mainMenu.AddItem(
-                new MenuItem(_mainMenu.Name + ".fow", "Target Acquire Delay").SetShared()
-                    .SetValue(new Slider(350, 0, 1500)));
-        }
-
-        public static IEnumerable<Targets.Item> FilterTargets(IEnumerable<Targets.Item> targets)
-        {
-            var finalTargets = targets.ToList();
-            var fowDelay = _mainMenu.Item(_mainMenu.Name + ".fow").GetValue<Slider>().Value;
-            if (fowDelay > 0)
+            public static int FowDelay
             {
-                finalTargets =
-                    finalTargets.Where(item => Game.Time - item.LastVisibleChange > fowDelay / 1000f).ToList();
+                get { return _fowDelay; }
+                set
+                {
+                    _fowDelay = Math.Min(MaxDelay, Math.Max(MinDelay, value));
+                    if (MainMenu != null)
+                    {
+                        var item = MainMenu.Item(MainMenu.Name + ".fow");
+                        if (item != null)
+                        {
+                            item.SetValue(new Slider(_fowDelay, MinDelay, MaxDelay));
+                        }
+                    }
+                }
             }
-            return finalTargets;
+
+            internal static void AddToMainMenu()
+            {
+                MainMenu.AddItem(
+                    new MenuItem(MainMenu.Name + ".fow", "Target Acquire Delay").SetShared()
+                        .SetValue(new Slider(_fowDelay, MinDelay, MaxDelay))).ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        _fowDelay = args.GetNewValue<Slider>().Value;
+                    };
+
+                _fowDelay = MainMenu.Item(MainMenu.Name + ".fow").GetValue<Slider>().Value;
+            }
+
+            public static IEnumerable<Targets.Item> FilterTargets(IEnumerable<Targets.Item> targets)
+            {
+                if (targets == null)
+                {
+                    return new List<Targets.Item>();
+                }
+                var finalTargets = targets.ToList();
+                if (FowDelay > 0)
+                {
+                    finalTargets =
+                        finalTargets.Where(item => Game.Time - item.LastVisibleChange > FowDelay / 1000f).ToList();
+                }
+                return finalTargets;
+            }
         }
     }
 }

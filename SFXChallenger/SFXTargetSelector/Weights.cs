@@ -28,9 +28,6 @@ using System.Drawing;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXChallenger.Library;
-using SFXChallenger.Library.Extensions.LeagueSharp;
-using SFXChallenger.Library.Logger;
 using ItemData = LeagueSharp.Common.Data.ItemData;
 
 #endregion
@@ -41,23 +38,21 @@ using ItemData = LeagueSharp.Common.Data.ItemData;
 
 namespace SFXChallenger.SFXTargetSelector
 {
-    public static class Weights
+    public static partial class TargetSelector
     {
-        public const int MinWeight = 0;
-        public const int MaxWeight = 20;
-        private const string InvertedPrefix = "[i] ";
-        private const float BestTargetSwitchDelay = 0.5f;
-        private static Menu _mainMenu;
-        private static Menu _weightsMenu;
-        private static float _range;
-        private static bool _separated;
-        private static List<Targets.Item> _drawingTargets;
-        private static Targets.Item _bestTarget;
-        private static float _lastBestTargetSwitch;
-
-        static Weights()
+        public static partial class Weights
         {
-            try
+            public const int MinWeight = 0;
+            public const int MaxWeight = 20;
+            private const string InvertedPrefix = "[i] ";
+            private const float BestTargetSwitchDelay = 0.5f;
+            private static float _range;
+            private static bool _separated;
+            private static List<Targets.Item> _drawingTargets;
+            private static Targets.Item _bestTarget;
+            private static float _lastBestTargetSwitch;
+
+            static Weights()
             {
                 _drawingTargets = new List<Targets.Item>();
                 Items = new HashSet<Item>
@@ -69,17 +64,16 @@ namespace SFXChallenger.SFXTargetSelector
                         "attack-damage", "Attack Damage", 15, false, delegate(Obj_AI_Hero t)
                         {
                             var ad = t.FlatPhysicalDamageMod;
-                            ad += ad / 100 * (t.Crit * 100) * (t.HasItem(ItemData.Infinity_Edge.Id) ? 2.5f : 2f);
-                            var averageArmor = GameObjects.AllyHeroes.Select(a => a.Armor).DefaultIfEmpty(0).Average() *
+                            ad += ad / 100 * (t.Crit * 100) * (ItemData.Infinity_Edge.GetItem().IsOwned(t) ? 2.5f : 2f);
+                            var averageArmor = HeroManager.Allies.Select(a => a.Armor).DefaultIfEmpty(0).Average() *
                                                t.PercentArmorPenetrationMod - t.FlatArmorPenetrationMod;
                             return (ad * (100 / (100 + (averageArmor > 0 ? averageArmor : 0)))) * t.AttackSpeedMod;
                         }),
                     new Item(
                         "ability-power", "Ability Power", 15, false, delegate(Obj_AI_Hero t)
                         {
-                            var averageMr =
-                                GameObjects.AllyHeroes.Select(a => a.SpellBlock).DefaultIfEmpty(0).Average() *
-                                t.PercentMagicPenetrationMod - t.FlatMagicPenetrationMod;
+                            var averageMr = HeroManager.Allies.Select(a => a.SpellBlock).DefaultIfEmpty(0).Average() *
+                                            t.PercentMagicPenetrationMod - t.FlatMagicPenetrationMod;
                             return t.FlatMagicDamageMod * (100 / (100 + (averageMr > 0 ? averageMr : 0)));
                         }),
                     new Item(
@@ -113,7 +107,7 @@ namespace SFXChallenger.SFXTargetSelector
                     new Item(
                         "team-focus", "Team Focus", 0, false,
                         t =>
-                            Aggro.Items.Where(a => a.Value.Target.Hero.NetworkId == t.NetworkId)
+                            Aggro.Entries.Where(a => a.Value.Target.Hero.NetworkId == t.NetworkId)
                                 .Select(a => a.Value.Value)
                                 .DefaultIfEmpty(0)
                                 .Sum()),
@@ -128,38 +122,30 @@ namespace SFXChallenger.SFXTargetSelector
                 Average = (float) Items.Select(w => w.Weight).DefaultIfEmpty(0).Average();
                 MaxRange = 2000f;
             }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
 
-        public static float Average { get; private set; }
-        public static HashSet<Item> Items { get; private set; }
+            public static Menu WeightsMenu { get; private set; }
+            public static float Average { get; private set; }
+            public static HashSet<Item> Items { get; private set; }
 
-        public static float Range
-        {
-            get { return _range; }
-            set
+            public static float Range
             {
-                if (value <= MaxRange)
+                get { return _range; }
+                set
                 {
-                    _range = value;
+                    if (value <= MaxRange)
+                    {
+                        _range = value;
+                    }
                 }
             }
-        }
 
-        public static float MaxRange { get; set; }
+            public static float MaxRange { get; set; }
 
-        internal static void AddToMenu(Menu mainMenu, Menu drawingMenu)
-        {
-            try
+            internal static void AddToMainMenu()
             {
-                _mainMenu = mainMenu;
+                WeightsMenu = MainMenu.AddSubMenu(new Menu("Weights", MainMenu.Name + ".weights"));
 
-                _weightsMenu = mainMenu.AddSubMenu(new Menu("Weights", mainMenu.Name + ".weights"));
-
-                var heroesMenu = _weightsMenu.AddSubMenu(new Menu("Hero Weight %", _weightsMenu.Name + ".heroes"));
+                var heroesMenu = WeightsMenu.AddSubMenu(new Menu("Hero Weight %", WeightsMenu.Name + ".heroes"));
 
                 foreach (var enemy in Targets.Items)
                 {
@@ -171,21 +157,21 @@ namespace SFXChallenger.SFXTargetSelector
                 foreach (var item in Items)
                 {
                     var localItem = item;
-                    _weightsMenu.AddItem(
+                    WeightsMenu.AddItem(
                         new MenuItem(
-                            _weightsMenu.Name + "." + item.Name,
+                            WeightsMenu.Name + "." + item.UniqueName,
                             item.Inverted ? InvertedPrefix + item.DisplayName : item.DisplayName).SetShared()
                             .SetValue(new Slider(localItem.Weight, MinWeight, MaxWeight)));
-                    _weightsMenu.Item(_weightsMenu.Name + "." + item.Name).ValueChanged +=
+                    WeightsMenu.Item(WeightsMenu.Name + "." + item.UniqueName).ValueChanged +=
                         delegate(object sender, OnValueChangeEventArgs args)
                         {
                             localItem.Weight = args.GetNewValue<Slider>().Value;
                             Average = (float) Items.Select(w => w.Weight).DefaultIfEmpty(0).Average();
                         };
-                    item.Weight = mainMenu.Item(_weightsMenu.Name + "." + item.Name).GetValue<Slider>().Value;
+                    item.Weight = MainMenu.Item(WeightsMenu.Name + "." + item.UniqueName).GetValue<Slider>().Value;
                 }
 
-                var drawingWeightsMenu = drawingMenu.AddSubMenu(new Menu("Weights", drawingMenu.Name + ".weights"));
+                var drawingWeightsMenu = DrawingMenu.AddSubMenu(new Menu("Weights", DrawingMenu.Name + ".weights"));
 
                 var drawingWeightsGroupMenu =
                     drawingWeightsMenu.AddSubMenu(
@@ -204,17 +190,10 @@ namespace SFXChallenger.SFXTargetSelector
 
                 Game.OnInput += OnGameInput;
                 Drawing.OnDraw += OnDrawingDraw;
-                Core.OnPreUpdate += OnCorePreUpdate;
+                Game.OnUpdate += OnGameUpdate;
             }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
 
-        private static void OnGameInput(GameInputEventArgs args)
-        {
-            try
+            private static void OnGameInput(GameInputEventArgs args)
             {
                 if (args.Input == null)
                 {
@@ -227,21 +206,14 @@ namespace SFXChallenger.SFXTargetSelector
                     RestoreDefaultWeights();
                 }
             }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
 
-        public static void RestoreDefaultWeights()
-        {
-            try
+            public static void RestoreDefaultWeights()
             {
                 foreach (var item in Items)
                 {
-                    if (_weightsMenu != null)
+                    if (WeightsMenu != null)
                     {
-                        var menuItem = _weightsMenu.Item(_weightsMenu.Name + "." + item.Name);
+                        var menuItem = WeightsMenu.Item(WeightsMenu.Name + "." + item.UniqueName);
                         if (menuItem != null)
                         {
                             menuItem.SetValue(new Slider(item.DefaultWeight, MinWeight, MaxWeight));
@@ -251,24 +223,17 @@ namespace SFXChallenger.SFXTargetSelector
                 }
                 Average = (float) Items.Select(w => w.Weight).DefaultIfEmpty(0).Average();
             }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
 
-        private static void OnCorePreUpdate(EventArgs args)
-        {
-            try
+            private static void OnGameUpdate(EventArgs args)
             {
-                if (_mainMenu == null || TargetSelector.Mode != TargetSelector.TargetingMode.Weights)
+                if (MainMenu == null || Modes.Current.Mode != Mode.Weights)
                 {
                     return;
                 }
 
                 var highestEnabled =
-                    _mainMenu.Item(_mainMenu.Name + ".drawing.weights.highest-target.enabled").GetValue<bool>();
-                var weightsSimple = _mainMenu.Item(_mainMenu.Name + ".drawing.weights.simple").GetValue<bool>();
+                    MainMenu.Item(MainMenu.Name + ".drawing.weights.highest-target.enabled").GetValue<bool>();
+                var weightsSimple = MainMenu.Item(MainMenu.Name + ".drawing.weights.simple").GetValue<bool>();
                 if (highestEnabled || weightsSimple)
                 {
                     var enemies = Targets.Items.Where(h => h.Hero.IsValidTarget(Range)).ToList();
@@ -280,10 +245,10 @@ namespace SFXChallenger.SFXTargetSelector
                     {
                         var totalWeight = Items.Where(w => w.Weight > 0).Sum(w => CalculatedWeight(w, target, true));
 
-                        if (_mainMenu != null)
+                        if (MainMenu != null)
                         {
                             var heroPercent =
-                                _mainMenu.Item(_mainMenu.Name + ".weights.heroes." + target.Hero.ChampionName)
+                                MainMenu.Item(MainMenu.Name + ".weights.heroes." + target.Hero.ChampionName)
                                     .GetValue<Slider>()
                                     .Value;
 
@@ -300,24 +265,17 @@ namespace SFXChallenger.SFXTargetSelector
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
 
-        private static void OnDrawingDraw(EventArgs args)
-        {
-            try
+            private static void OnDrawingDraw(EventArgs args)
             {
-                if (_mainMenu == null || TargetSelector.Mode != TargetSelector.TargetingMode.Weights)
+                if (MainMenu == null || Modes.Current.Mode != Mode.Weights)
                 {
                     return;
                 }
 
                 var highestEnabled =
-                    _mainMenu.Item(_mainMenu.Name + ".drawing.weights.highest-target.enabled").GetValue<bool>();
-                var weightsSimple = _mainMenu.Item(_mainMenu.Name + ".drawing.weights.simple").GetValue<bool>();
+                    MainMenu.Item(MainMenu.Name + ".drawing.weights.highest-target.enabled").GetValue<bool>();
+                var weightsSimple = MainMenu.Item(MainMenu.Name + ".drawing.weights.simple").GetValue<bool>();
 
                 if (!highestEnabled && !weightsSimple)
                 {
@@ -325,11 +283,11 @@ namespace SFXChallenger.SFXTargetSelector
                 }
 
                 var highestRadius =
-                    _mainMenu.Item(_mainMenu.Name + ".drawing.weights.highest-target.radius").GetValue<Slider>().Value;
+                    MainMenu.Item(MainMenu.Name + ".drawing.weights.highest-target.radius").GetValue<Slider>().Value;
                 var highestColor =
-                    _mainMenu.Item(_mainMenu.Name + ".drawing.weights.highest-target.color").GetValue<Color>();
+                    MainMenu.Item(MainMenu.Name + ".drawing.weights.highest-target.color").GetValue<Color>();
                 var circleThickness =
-                    _mainMenu.Item(_mainMenu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value;
+                    MainMenu.Item(MainMenu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value;
 
                 if (weightsSimple)
                 {
@@ -351,60 +309,59 @@ namespace SFXChallenger.SFXTargetSelector
                         circleThickness, true);
                 }
             }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
 
-        public static void AddItem(Item item)
-        {
-            try
+            /// <exception cref="ArgumentException">Unique Name does already exist.</exception>
+            /// <exception cref="ArgumentException">Display Name is empty or null.</exception>
+            /// <exception cref="ArgumentException">Value Function is null.</exception>
+            public static void AddItem(Item item)
             {
-                if (GetItem(item.Name) != null || Items.Contains(item))
+                if (Items.Any(i => i.UniqueName.Equals(item.UniqueName)))
                 {
-                    return;
+                    throw new ArgumentException(
+                        string.Format("Weights: Unique Name \"{0}\" already exist.", item.UniqueName));
+                }
+                if (string.IsNullOrEmpty(item.DisplayName))
+                {
+                    throw new ArgumentException(
+                        string.Format("Weights: Display Name \"{0}\" can't be empty or null.", item.DisplayName));
+                }
+                if (item.GetValueFunc == null)
+                {
+                    throw new ArgumentException("Modes: Value Function can't be null.");
                 }
 
                 Items.Add(item);
 
-                if (_weightsMenu != null)
+                if (WeightsMenu != null)
                 {
                     if (!_separated)
                     {
-                        _weightsMenu.AddItem(new MenuItem(_weightsMenu.Name + ".separator", string.Empty));
+                        WeightsMenu.AddItem(new MenuItem(WeightsMenu.Name + ".separator", string.Empty));
                         _separated = true;
                     }
-                    _weightsMenu.AddItem(
+                    WeightsMenu.AddItem(
                         new MenuItem(
-                            _weightsMenu.Name + "." + item.Name,
+                            WeightsMenu.Name + "." + item.UniqueName,
                             item.Inverted ? InvertedPrefix + item.DisplayName : item.DisplayName).SetValue(
                                 new Slider(item.Weight, MinWeight, MaxWeight)));
-                    _weightsMenu.Item(_weightsMenu.Name + "." + item.Name).ValueChanged +=
+                    WeightsMenu.Item(WeightsMenu.Name + "." + item.UniqueName).ValueChanged +=
                         delegate(object sender, OnValueChangeEventArgs args)
                         {
                             item.Weight = args.GetNewValue<Slider>().Value;
                             Average = (float) Items.Select(w => w.Weight).DefaultIfEmpty(0).Average();
                         };
-                    item.Weight = _mainMenu.Item(_weightsMenu.Name + "." + item.Name).GetValue<Slider>().Value;
+                    item.Weight = MainMenu.Item(WeightsMenu.Name + "." + item.UniqueName).GetValue<Slider>().Value;
                 }
 
                 Average = (float) Items.Select(w => w.Weight).DefaultIfEmpty(0).Average();
             }
-            catch (Exception ex)
+
+            public static Item GetItem(string name, StringComparison comp = StringComparison.OrdinalIgnoreCase)
             {
-                Global.Logger.AddItem(new LogItem(ex));
+                return Items.FirstOrDefault(w => w.UniqueName.Equals(name, comp));
             }
-        }
 
-        public static Item GetItem(string name, StringComparison comp = StringComparison.OrdinalIgnoreCase)
-        {
-            return Items.FirstOrDefault(w => w.Name.Equals(name, comp));
-        }
-
-        public static float CalculatedWeight(Item item, Targets.Item target, bool simulation = false)
-        {
-            try
+            public static float CalculatedWeight(Item item, Targets.Item target, bool simulation = false)
             {
                 if (item.Weight == 0)
                 {
@@ -416,30 +373,21 @@ namespace SFXChallenger.SFXTargetSelector
                                  : GetValue(item, target)) / (item.Inverted ? GetValue(item, target) : item.MaxValue);
                 return float.IsNaN(weight) || float.IsInfinity(weight) ? MinWeight : weight;
             }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return 0;
-        }
 
-        public static float GetValue(Item item, Targets.Item target)
-        {
-            try
+            public static float GetValue(Item item, Targets.Item target)
             {
-                var value = item.GetValueFunc(target.Hero);
-                return value > 1 ? value : 1;
+                try
+                {
+                    var value = item.GetValueFunc(target.Hero);
+                    return value > 1 ? value : 1;
+                }
+                catch
+                {
+                    return item.Inverted ? item.MaxValue : item.MinValue;
+                }
             }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-                return item.Inverted ? item.MaxValue : item.MinValue;
-            }
-        }
 
-        public static void UpdateMaxMinValue(Item item, IEnumerable<Targets.Item> targets, bool simulation = false)
-        {
-            try
+            private static void UpdateMaxMinValue(Item item, IEnumerable<Targets.Item> targets, bool simulation = false)
             {
                 var min = float.MaxValue;
                 var max = float.MinValue;
@@ -466,29 +414,27 @@ namespace SFXChallenger.SFXTargetSelector
                     item.SimulationMaxValue = max > min ? max : min + 1;
                 }
             }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
 
-        public static IEnumerable<Targets.Item> OrderChampions(List<Targets.Item> targets)
-        {
-            try
+            public static IEnumerable<Targets.Item> OrderChampions(IEnumerable<Targets.Item> targets)
             {
+                if (targets == null)
+                {
+                    return new List<Targets.Item>();
+                }
+                var targetList = targets.ToList();
                 foreach (var item in Items.Where(w => w.Weight > 0))
                 {
-                    UpdateMaxMinValue(item, targets);
+                    UpdateMaxMinValue(item, targetList);
                 }
 
-                foreach (var target in targets)
+                foreach (var target in targetList)
                 {
                     var tmpWeight = Items.Where(w => w.Weight > 0).Sum(w => CalculatedWeight(w, target));
 
-                    if (_mainMenu != null)
+                    if (MainMenu != null)
                     {
                         var heroPercent =
-                            _mainMenu.Item(_mainMenu.Name + ".weights.heroes." + target.Hero.ChampionName)
+                            MainMenu.Item(MainMenu.Name + ".weights.heroes." + target.Hero.ChampionName)
                                 .GetValue<Slider>()
                                 .Value;
 
@@ -497,39 +443,38 @@ namespace SFXChallenger.SFXTargetSelector
 
                     target.Weight = tmpWeight;
                 }
-                return TargetSelector.ForceFocus && targets.Count > 1
-                    ? new List<Targets.Item> { targets.OrderByDescending(t => t.Weight).First() }
-                    : targets.OrderByDescending(t => t.Weight).ToList();
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return new List<Targets.Item>();
-        }
-
-        public class Item
-        {
-            public Item(string name, string displayName, int weight, bool inverted, Func<Obj_AI_Hero, float> getValue)
-            {
-                GetValueFunc = getValue;
-                Name = name;
-                DisplayName = displayName;
-                Weight = weight;
-                DefaultWeight = weight;
-                Inverted = inverted;
+                return Focus.Enabled && Focus.Force && targetList.Count > 1
+                    ? new List<Targets.Item> { targetList.OrderByDescending(t => t.Weight).First() }
+                    : targetList.OrderByDescending(t => t.Weight).ToList();
             }
 
-            public Func<Obj_AI_Hero, float> GetValueFunc { get; set; }
-            public string Name { get; set; }
-            public string DisplayName { get; set; }
-            public int Weight { get; set; }
-            public int DefaultWeight { get; private set; }
-            public bool Inverted { get; set; }
-            public float MaxValue { get; set; }
-            public float MinValue { get; set; }
-            public float SimulationMaxValue { get; set; }
-            public float SimulationMinValue { get; set; }
+            public class Item
+            {
+                public Item(string uniqueName,
+                    string displayName,
+                    int weight,
+                    bool inverted,
+                    Func<Obj_AI_Hero, float> getValue)
+                {
+                    GetValueFunc = getValue;
+                    UniqueName = uniqueName;
+                    DisplayName = displayName;
+                    Weight = weight;
+                    DefaultWeight = weight;
+                    Inverted = inverted;
+                }
+
+                public Func<Obj_AI_Hero, float> GetValueFunc { get; set; }
+                public string UniqueName { get; set; }
+                public string DisplayName { get; set; }
+                public int Weight { get; set; }
+                public int DefaultWeight { get; private set; }
+                public bool Inverted { get; set; }
+                public float MaxValue { get; set; }
+                public float MinValue { get; set; }
+                public float SimulationMaxValue { get; set; }
+                public float SimulationMinValue { get; set; }
+            }
         }
     }
 }

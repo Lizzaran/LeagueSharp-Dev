@@ -35,15 +35,13 @@ using SFXChallenger.Library;
 using SFXChallenger.Library.Extensions.NET;
 using SFXChallenger.Library.Logger;
 using SFXChallenger.Managers;
-using SFXChallenger.SFXTargetSelector;
 using SharpDX;
 using Color = System.Drawing.Color;
-using DamageType = SFXChallenger.Enumerations.DamageType;
 using MinionManager = SFXChallenger.Library.MinionManager;
 using MinionOrderTypes = SFXChallenger.Library.MinionOrderTypes;
 using MinionTeam = SFXChallenger.Library.MinionTeam;
 using MinionTypes = SFXChallenger.Library.MinionTypes;
-using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+using Orbwalking = SFXChallenger.SFXTargetSelector.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
 using Utils = SFXChallenger.Helpers.Utils;
@@ -234,8 +232,8 @@ namespace SFXChallenger.Champions
             IndicatorManager.Add(R);
             IndicatorManager.Finale();
 
-            Weights.AddItem(
-                new Weights.Item(
+            TargetSelector.Weights.AddItem(
+                new TargetSelector.Weights.Item(
                     "short-distance-ball", "Distance to Ball", 0, true, hero => hero.Distance(Ball.Position)));
 
             _ballPositionThickness = DrawingManager.Add("Ball Thickness", new Slider(7, 1, 10));

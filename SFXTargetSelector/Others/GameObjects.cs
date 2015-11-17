@@ -35,7 +35,7 @@ namespace SFXTargetSelector.Others
     /// <summary>
     ///     A static (stack) class which contains a sort-of cached versions of the important game objects.
     /// </summary>
-    internal static class GameObjects
+    public static class GameObjects
     {
         #region Constructors and Destructors
 

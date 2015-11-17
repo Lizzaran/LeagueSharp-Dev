@@ -26,36 +26,30 @@ using System;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXChallenger.Library.Logger;
 using SharpDX;
 using Color = System.Drawing.Color;
-using DamageType = SFXChallenger.Enumerations.DamageType;
 
 #endregion
 
 namespace SFXChallenger.SFXTargetSelector
 {
-    public static class Selected
+    public static partial class TargetSelector
     {
-        private static Menu _mainMenu;
-
-        static Selected()
+        public static class Selected
         {
-            ClickBuffer = 100f;
-            Game.OnWndProc += OnGameWndProc;
-        }
-
-        public static float ClickBuffer { get; set; }
-        public static Obj_AI_Hero Target { get; set; }
-
-        internal static void AddToMenu(Menu mainMenu, Menu drawingMenu)
-        {
-            try
+            static Selected()
             {
-                _mainMenu = mainMenu;
+                ClickBuffer = 100f;
+                Game.OnWndProc += OnGameWndProc;
+            }
 
+            public static float ClickBuffer { get; set; }
+            public static Obj_AI_Hero Target { get; set; }
+
+            internal static void AddToMainMenu()
+            {
                 var drawingSelectedMenu =
-                    drawingMenu.AddSubMenu(new Menu("Selected Target", drawingMenu.Name + ".selected"));
+                    DrawingMenu.AddSubMenu(new Menu("Selected Target", DrawingMenu.Name + ".selected"));
                 drawingSelectedMenu.AddItem(
                     new MenuItem(drawingSelectedMenu.Name + ".color", "Color").SetShared().SetValue(Color.Yellow));
                 drawingSelectedMenu.AddItem(
@@ -65,47 +59,33 @@ namespace SFXChallenger.SFXTargetSelector
 
                 Drawing.OnDraw += OnDrawingDraw;
             }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
 
-        public static Obj_AI_Hero GetTarget(float range, DamageType damageType, bool ignoreShields, Vector3 from)
-        {
-            try
+            public static Obj_AI_Hero GetTarget(float range, DamageType damageType, bool ignoreShields, Vector3 from)
             {
                 if (Target != null &&
-                    TargetSelector.IsValidTarget(
-                        Target, TargetSelector.ForceFocus ? float.MaxValue : range, damageType, ignoreShields, from))
+                    Utils.IsValidTarget(
+                        Target, Focus.Enabled && Focus.Force ? float.MaxValue : range, damageType, ignoreShields, from))
                 {
                     return Target;
                 }
+                return null;
             }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return null;
-        }
 
-        private static void OnDrawingDraw(EventArgs args)
-        {
-            try
+            private static void OnDrawingDraw(EventArgs args)
             {
-                if (_mainMenu == null)
+                if (MainMenu == null)
                 {
                     return;
                 }
 
-                if (Target != null && Target.IsValidTarget() && Target.Position.IsOnScreen() && TargetSelector.Focus)
+                if (Target != null && Target.IsValidTarget() && Target.Position.IsOnScreen() && Focus.Enabled)
                 {
-                    var selectedEnabled = _mainMenu.Item(_mainMenu.Name + ".drawing.selected.enabled").GetValue<bool>();
+                    var selectedEnabled = MainMenu.Item(MainMenu.Name + ".drawing.selected.enabled").GetValue<bool>();
                     var selectedRadius =
-                        _mainMenu.Item(_mainMenu.Name + ".drawing.selected.radius").GetValue<Slider>().Value;
-                    var selectedColor = _mainMenu.Item(_mainMenu.Name + ".drawing.selected.color").GetValue<Color>();
+                        MainMenu.Item(MainMenu.Name + ".drawing.selected.radius").GetValue<Slider>().Value;
+                    var selectedColor = MainMenu.Item(MainMenu.Name + ".drawing.selected.color").GetValue<Color>();
                     var circleThickness =
-                        _mainMenu.Item(_mainMenu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value;
+                        MainMenu.Item(MainMenu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value;
 
                     if (selectedEnabled)
                     {
@@ -115,15 +95,8 @@ namespace SFXChallenger.SFXTargetSelector
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-        }
 
-        private static void OnGameWndProc(WndEventArgs args)
-        {
-            try
+            private static void OnGameWndProc(WndEventArgs args)
             {
                 if (args.Msg != (ulong) WindowsMessages.WM_LBUTTONDOWN)
                 {
@@ -135,10 +108,6 @@ namespace SFXChallenger.SFXTargetSelector
                         .Where(h => h.IsValidTarget() && h.Distance(Game.CursorPos) < h.BoundingRadius + ClickBuffer)
                         .OrderBy(h => h.Distance(Game.CursorPos))
                         .FirstOrDefault();
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
             }
         }
     }

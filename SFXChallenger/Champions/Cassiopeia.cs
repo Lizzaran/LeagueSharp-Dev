@@ -34,15 +34,14 @@ using SFXChallenger.Helpers;
 using SFXChallenger.Library;
 using SFXChallenger.Library.Logger;
 using SFXChallenger.Managers;
-using SFXChallenger.SFXTargetSelector;
 using SharpDX;
-using DamageType = SFXChallenger.Enumerations.DamageType;
 using MinionManager = SFXChallenger.Library.MinionManager;
 using MinionOrderTypes = SFXChallenger.Library.MinionOrderTypes;
 using MinionTeam = SFXChallenger.Library.MinionTeam;
 using MinionTypes = SFXChallenger.Library.MinionTypes;
-using Orbwalking = SFXChallenger.Wrappers.Orbwalking;
+using Orbwalking = SFXChallenger.SFXTargetSelector.Orbwalking;
 using Spell = SFXChallenger.Wrappers.Spell;
+using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
 using Utils = SFXChallenger.Helpers.Utils;
 
 #endregion
@@ -273,8 +272,9 @@ namespace SFXChallenger.Champions
             IndicatorManager.Add(R);
             IndicatorManager.Finale();
 
-            Weights.AddItem(
-                new Weights.Item("poison-time", "Poison Time", 5, false, hero => GetPoisonBuffEndTime(hero) + 1));
+            TargetSelector.Weights.AddItem(
+                new TargetSelector.Weights.Item(
+                    "poison-time", "Poison Time", 5, false, hero => GetPoisonBuffEndTime(hero) + 1));
         }
 
         private void OnBuffManagerBuff(object sender, BuffManagerArgs args)
