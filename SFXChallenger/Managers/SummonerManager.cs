@@ -139,21 +139,28 @@ namespace SFXChallenger.Managers
             return slot == SpellSlot.Unknown ? null : (sender ?? ObjectManager.Player).Spellbook.GetSpell(slot);
         }
 
-        public static void Cast(this SummonerSpell spell, Obj_AI_Hero sender = null)
+        public static void Cast(this SummonerSpell spell, Obj_AI_Hero target)
         {
-            (sender ?? ObjectManager.Player).Spellbook.CastSpell(spell.GetSlot(sender ?? ObjectManager.Player));
+            ObjectManager.Player.Spellbook.CastSpell(spell.GetSlot(ObjectManager.Player), target);
         }
 
         // ReSharper disable once MethodOverloadWithOptionalParameter
         public static void Cast(this SummonerSpell spell, Obj_AI_Hero target, Obj_AI_Hero sender = null)
         {
-            (sender ?? ObjectManager.Player).Spellbook.CastSpell(spell.GetSlot(sender ?? ObjectManager.Player), target);
+            if (sender == null)
+            {
+                sender = ObjectManager.Player;
+            }
+            sender.Spellbook.CastSpell(spell.GetSlot(sender), target);
         }
 
         public static void Cast(this SummonerSpell spell, Vector3 position, Obj_AI_Hero sender = null)
         {
-            (sender ?? ObjectManager.Player).Spellbook.CastSpell(
-                spell.GetSlot(sender ?? ObjectManager.Player), position);
+            if (sender == null)
+            {
+                sender = ObjectManager.Player;
+            }
+            sender.Spellbook.CastSpell(spell.GetSlot(sender), position);
         }
 
         public static float CalculateBlueSmiteDamage()
@@ -257,11 +264,11 @@ namespace SFXChallenger.Managers
                 }
                 if (smite)
                 {
-                    if (distance <= Math.Pow(BlueSmite.Range, 2))
+                    if (BlueSmite.Exists() && distance <= Math.Pow(BlueSmite.Range, 2))
                     {
                         BlueSmite.Cast(target);
                     }
-                    else if (distance <= Math.Pow(RedSmite.Range, 2))
+                    else if (RedSmite.Exists() && distance <= Math.Pow(RedSmite.Range, 2))
                     {
                         RedSmite.Cast(target);
                     }

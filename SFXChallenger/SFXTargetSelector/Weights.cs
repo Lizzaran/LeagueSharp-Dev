@@ -119,12 +119,10 @@ namespace SFXChallenger.SFXTargetSelector
                         })
                 };
 
-                Average = (float) Items.Select(w => w.Weight).DefaultIfEmpty(0).Average();
                 MaxRange = 2000f;
             }
 
             public static Menu WeightsMenu { get; private set; }
-            public static float Average { get; private set; }
             public static HashSet<Item> Items { get; private set; }
 
             public static float Range
@@ -165,8 +163,7 @@ namespace SFXChallenger.SFXTargetSelector
                     WeightsMenu.Item(WeightsMenu.Name + "." + item.UniqueName).ValueChanged +=
                         delegate(object sender, OnValueChangeEventArgs args)
                         {
-                            localItem.Weight = args.GetNewValue<Slider>().Value;
-                            Average = (float) Items.Select(w => w.Weight).DefaultIfEmpty(0).Average();
+                            localItem.OnWeightChange(args.GetNewValue<Slider>().Value);
                         };
                     item.Weight = MainMenu.Item(WeightsMenu.Name + "." + item.UniqueName).GetValue<Slider>().Value;
                 }
@@ -221,7 +218,6 @@ namespace SFXChallenger.SFXTargetSelector
                     }
                     item.Weight = item.DefaultWeight;
                 }
-                Average = (float) Items.Select(w => w.Weight).DefaultIfEmpty(0).Average();
             }
 
             private static void OnGameUpdate(EventArgs args)
@@ -325,7 +321,7 @@ namespace SFXChallenger.SFXTargetSelector
                     throw new ArgumentException(
                         string.Format("Weights: Display Name \"{0}\" can't be empty or null.", item.DisplayName));
                 }
-                if (item.GetValueFunc == null)
+                if (item.ValueFunction == null)
                 {
                     throw new ArgumentException("Modes: Value Function can't be null.");
                 }
@@ -339,26 +335,28 @@ namespace SFXChallenger.SFXTargetSelector
                         WeightsMenu.AddItem(new MenuItem(WeightsMenu.Name + ".separator", string.Empty));
                         _separated = true;
                     }
-                    WeightsMenu.AddItem(
+                    var weightItem =
                         new MenuItem(
                             WeightsMenu.Name + "." + item.UniqueName,
                             item.Inverted ? InvertedPrefix + item.DisplayName : item.DisplayName).SetValue(
-                                new Slider(item.Weight, MinWeight, MaxWeight)));
+                                new Slider(item.Weight, MinWeight, MaxWeight)).SetShared();
+                    if (!string.IsNullOrWhiteSpace(item.Tooltip))
+                    {
+                        weightItem.SetTooltip(item.Tooltip);
+                    }
+                    WeightsMenu.AddItem(weightItem);
                     WeightsMenu.Item(WeightsMenu.Name + "." + item.UniqueName).ValueChanged +=
                         delegate(object sender, OnValueChangeEventArgs args)
                         {
-                            item.Weight = args.GetNewValue<Slider>().Value;
-                            Average = (float) Items.Select(w => w.Weight).DefaultIfEmpty(0).Average();
+                            item.OnWeightChange(args.GetNewValue<Slider>().Value);
                         };
                     item.Weight = MainMenu.Item(WeightsMenu.Name + "." + item.UniqueName).GetValue<Slider>().Value;
                 }
-
-                Average = (float) Items.Select(w => w.Weight).DefaultIfEmpty(0).Average();
             }
 
-            public static Item GetItem(string name, StringComparison comp = StringComparison.OrdinalIgnoreCase)
+            public static Item GetItem(string uniqueName, StringComparison comp = StringComparison.OrdinalIgnoreCase)
             {
-                return Items.FirstOrDefault(w => w.UniqueName.Equals(name, comp));
+                return Items.FirstOrDefault(w => w.UniqueName.Equals(uniqueName, comp));
             }
 
             public static float CalculatedWeight(Item item, Targets.Item target, bool simulation = false)
@@ -378,8 +376,8 @@ namespace SFXChallenger.SFXTargetSelector
             {
                 try
                 {
-                    var value = item.GetValueFunc(target.Hero);
-                    return value > 1 ? value : 1;
+                    var value = item.ValueFunction(target.Hero);
+                    return value >= 0 ? value : 0;
                 }
                 catch
                 {
@@ -450,13 +448,17 @@ namespace SFXChallenger.SFXTargetSelector
 
             public class Item
             {
+                private string _displayName;
+                private string _tooltip;
+                private int _weight;
+
                 public Item(string uniqueName,
                     string displayName,
                     int weight,
                     bool inverted,
-                    Func<Obj_AI_Hero, float> getValue)
+                    Func<Obj_AI_Hero, float> valueFunction)
                 {
-                    GetValueFunc = getValue;
+                    ValueFunction = valueFunction;
                     UniqueName = uniqueName;
                     DisplayName = displayName;
                     Weight = weight;
@@ -464,16 +466,71 @@ namespace SFXChallenger.SFXTargetSelector
                     Inverted = inverted;
                 }
 
-                public Func<Obj_AI_Hero, float> GetValueFunc { get; set; }
-                public string UniqueName { get; set; }
-                public string DisplayName { get; set; }
-                public int Weight { get; set; }
+                public Func<Obj_AI_Hero, float> ValueFunction { get; set; }
+                public string UniqueName { get; private set; }
+
+                public string DisplayName
+                {
+                    get { return _displayName; }
+                    set
+                    {
+                        _displayName = value;
+                        if (WeightsMenu != null)
+                        {
+                            var item = MainMenu.Item(WeightsMenu.Name + "." + UniqueName);
+                            if (item != null)
+                            {
+                                item.DisplayName = DisplayName;
+                            }
+                        }
+                    }
+                }
+
+                public string Tooltip
+                {
+                    get { return _tooltip; }
+                    set
+                    {
+                        _tooltip = value;
+                        if (WeightsMenu != null)
+                        {
+                            var item = MainMenu.Item(WeightsMenu.Name + "." + UniqueName);
+                            if (item != null)
+                            {
+                                item.SetTooltip(Tooltip);
+                            }
+                        }
+                    }
+                }
+
+                public int Weight
+                {
+                    get { return _weight; }
+                    set
+                    {
+                        OnWeightChange(value);
+                        if (WeightsMenu != null)
+                        {
+                            var item = MainMenu.Item(WeightsMenu.Name + "." + UniqueName);
+                            if (item != null)
+                            {
+                                item.SetValue(new Slider(Weight, MinWeight, MaxWeight));
+                            }
+                        }
+                    }
+                }
+
                 public int DefaultWeight { get; private set; }
                 public bool Inverted { get; set; }
-                public float MaxValue { get; set; }
-                public float MinValue { get; set; }
-                public float SimulationMaxValue { get; set; }
-                public float SimulationMinValue { get; set; }
+                public float MaxValue { get; internal set; }
+                public float MinValue { get; internal set; }
+                public float SimulationMaxValue { get; internal set; }
+                public float SimulationMinValue { get; internal set; }
+
+                internal void OnWeightChange(int newWeight)
+                {
+                    _weight = Math.Min(MaxWeight, Math.Max(MinWeight, newWeight));
+                }
             }
         }
     }

@@ -113,6 +113,9 @@ namespace SFXChallenger.Champions
                             hero, resMulti, rangeCheck, Menu.Item(Menu.Name + ".combo.q").GetValue<bool>(),
                             Menu.Item(Menu.Name + ".combo.e").GetValue<bool>(), true)
             };
+
+            Console.WriteLine(SummonerManager.Ignite.Exists());
+            Console.WriteLine(SummonerManager.Ignite.IsReady());
         }
 
         protected override void AddToMenu()

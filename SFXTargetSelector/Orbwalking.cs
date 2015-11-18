@@ -49,6 +49,7 @@ namespace SFXTargetSelector
         /// </summary>
         /// <param name="unit">The unit.</param>
         /// <param name="target">The target.</param>
+        /// <param name="target">The target.</param>
         public delegate void AfterAttackEvenH(AttackableUnit unit, AttackableUnit target);
 
         /// <summary>
@@ -1050,7 +1051,7 @@ namespace SFXTargetSelector
                 misc.AddItem(
                     new MenuItem("HoldPosRadius", "Hold Position Radius").SetShared().SetValue(new Slider(0, 0, 250)));
                 misc.AddItem(new MenuItem("PriorizeFarm", "Prioritize Farm Over Harass").SetShared().SetValue(true));
-                misc.AddItem(new MenuItem("Smallminionsprio", "Focus Small Jugnel First").SetShared().SetValue(false));
+                misc.AddItem(new MenuItem("Smallminionsprio", "Focus Small Jungle First").SetShared().SetValue(false));
                 misc.AddItem(
                     new MenuItem("FocusMinionsOverTurrets", "Focus Minions Over Objectives").SetShared()
                         .SetValue(new KeyBind('M', KeyBindType.Toggle)));

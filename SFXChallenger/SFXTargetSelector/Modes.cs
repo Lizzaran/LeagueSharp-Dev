@@ -24,7 +24,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Security;
 using LeagueSharp;
 using LeagueSharp.Common;
 
@@ -42,52 +44,78 @@ namespace SFXChallenger.SFXTargetSelector
 
             static Modes()
             {
-                ProtectedModes = new List<Item>
+                var protectedModes = new List<Item>
                 {
-                    new Item("weights", "Weights", Mode.Weights, Weights.OrderChampions),
-                    new Item("priorities", "Priorities", Mode.Priorities, Priorities.OrderChampions)
+                    new Item("weights", "Weights", Weights.OrderChampions) { Mode = Mode.Weights },
+                    new Item("priorities", "Priorities", Priorities.OrderChampions) { Mode = Mode.Priorities }
                 };
+
                 Items =
-                    ProtectedModes.Union(
+                    protectedModes.Union(
                         new List<Item>
                         {
                             new Item(
-                                "less-attacks-to-kill", "Less Attacks To Kill", Mode.LessAttacksToKill,
-                                list => list.OrderBy(x => x.Hero.Health / ObjectManager.Player.TotalAttackDamage)),
+                                "less-attacks-to-kill", "Less Attacks To Kill",
+                                list => list.OrderBy(x => x.Hero.Health / ObjectManager.Player.TotalAttackDamage))
+                            {
+                                Mode = Mode.LessAttacksToKill
+                            },
                             new Item(
-                                "less-cast-priority", "Less Cast Priority", Mode.LessCastPriority,
-                                list => list.OrderBy(x => x.Hero.Health / ObjectManager.Player.TotalMagicalDamage)),
+                                "less-cast-priority", "Less Cast Priority",
+                                list => list.OrderBy(x => x.Hero.Health / ObjectManager.Player.TotalMagicalDamage))
+                            {
+                                Mode = Mode.LessCastPriority
+                            },
                             new Item(
-                                "most-ability-power", "Most Ability Power", Mode.MostAbilityPower,
-                                list => list.OrderByDescending(x => x.Hero.TotalMagicalDamage)),
+                                "most-ability-power", "Most Ability Power",
+                                list => list.OrderByDescending(x => x.Hero.TotalMagicalDamage))
+                            {
+                                Mode = Mode.MostAbilityPower
+                            },
                             new Item(
-                                "most-attack-damage", "Most Attack Damage", Mode.MostAttackDamage,
-                                list => list.OrderByDescending(x => x.Hero.TotalAttackDamage)),
+                                "most-attack-damage", "Most Attack Damage",
+                                list => list.OrderByDescending(x => x.Hero.TotalAttackDamage))
+                            {
+                                Mode = Mode.MostAttackDamage
+                            },
                             new Item(
-                                "closest", "Closest", Mode.Closest,
-                                list => list.OrderBy(x => x.Hero.Distance(ObjectManager.Player))),
+                                "closest", "Closest", list => list.OrderBy(x => x.Hero.Distance(ObjectManager.Player)))
+                            {
+                                Mode = Mode.Closest
+                            },
                             new Item(
-                                "near-mouse", "Near Mouse", Mode.NearMouse,
-                                list => list.OrderBy(x => x.Hero.Distance(Game.CursorPos))),
-                            new Item(
-                                "least-health", "Least Health", Mode.Weights, list => list.OrderBy(x => x.Hero.Health))
+                                "near-mouse", "Near Mouse", list => list.OrderBy(x => x.Hero.Distance(Game.CursorPos)))
+                            {
+                                Mode = Mode.NearMouse
+                            },
+                            new Item("least-health", "Least Health", list => list.OrderBy(x => x.Hero.Health))
+                            {
+                                Mode = Mode.LeastHealth
+                            }
                         }).ToList();
+
+                ProtectedModes = protectedModes.AsReadOnly();
 
                 Current = Default;
             }
 
-            public static List<Item> ProtectedModes { get; private set; }
+            public static ReadOnlyCollection<Item> ProtectedModes { get; private set; }
 
             public static Item Default
             {
                 get { return ProtectedModes.FirstOrDefault(); }
             }
 
+            /// <exception cref="ArgumentException" accessor="set">Mode doesn't exist.</exception>
             public static Item Current
             {
                 get { return _current; }
                 set
                 {
+                    if (!Items.Any(i => i.UniqueName.Equals(value.UniqueName)))
+                    {
+                        throw new ArgumentException(string.Format("Modes: \"{0}\" doesn't exist.", value.UniqueName));
+                    }
                     var raiseEvent = _current == null || !_current.UniqueName.Equals(value.UniqueName);
                     _current = value;
                     if (raiseEvent)
@@ -114,6 +142,11 @@ namespace SFXChallenger.SFXTargetSelector
 
                 Current =
                     GetItemBySelectedIndex(MainMenu.Item(MainMenu.Name + ".mode").GetValue<StringList>().SelectedIndex);
+            }
+
+            public static Item GetItem(string name, StringComparison comp = StringComparison.OrdinalIgnoreCase)
+            {
+                return Items.FirstOrDefault(w => w.UniqueName.Equals(name, comp));
             }
 
             private static Item GetItemBySelectedIndex(int index)
@@ -185,6 +218,7 @@ namespace SFXChallenger.SFXTargetSelector
             /// <exception cref="ArgumentException">Unique Name does already exist.</exception>
             /// <exception cref="ArgumentException">Display Name is empty or null.</exception>
             /// <exception cref="ArgumentException">Order Function is null.</exception>
+            /// <exception cref="SecurityException">Can't edit protected mode.</exception>
             public static void Register(Item item)
             {
                 if (Items.Any(i => i.UniqueName.Equals(item.UniqueName)))
@@ -207,7 +241,7 @@ namespace SFXChallenger.SFXTargetSelector
             }
 
             /// <exception cref="ArgumentException">Unique Name does not exist.</exception>
-            /// <exception cref="ArgumentException">Can't deregister protected mode.</exception>
+            /// <exception cref="SecurityException">Can't deregister protected mode.</exception>
             public static void Deregister(Item item)
             {
                 if (!Items.Any(i => i.UniqueName.Equals(item.UniqueName)))
@@ -217,7 +251,7 @@ namespace SFXChallenger.SFXTargetSelector
                 }
                 if (ProtectedModes.Any(m => m.Equals(item)))
                 {
-                    throw new ArgumentException(
+                    throw new SecurityException(
                         string.Format("Modes: Can't remove \"{0}\", it's procted.", item.UniqueName));
                 }
                 if (Current.Mode.Equals(item.Mode))
@@ -229,21 +263,56 @@ namespace SFXChallenger.SFXTargetSelector
 
             public class Item
             {
+                private Mode _mode;
+                private Func<IEnumerable<Targets.Item>, IEnumerable<Targets.Item>> _orderFunction;
+
                 public Item(string uniqueName,
                     string displayName,
-                    Mode mode,
                     Func<IEnumerable<Targets.Item>, IEnumerable<Targets.Item>> orderFunction)
                 {
                     UniqueName = uniqueName;
                     DisplayName = displayName;
-                    Mode = mode;
-                    OrderFunction = orderFunction;
+                    _mode = Mode.Custom;
+                    _orderFunction = orderFunction;
                 }
 
                 public string UniqueName { get; private set; }
                 public string DisplayName { get; private set; }
-                public Mode Mode { get; set; }
-                public Func<IEnumerable<Targets.Item>, IEnumerable<Targets.Item>> OrderFunction { get; set; }
+
+                /// <exception cref="SecurityException">Can't edit protected mode.</exception>
+                public Mode Mode
+                {
+                    get { return _mode; }
+                    set
+                    {
+                        if (IsProtected)
+                        {
+                            throw new SecurityException(
+                                string.Format("Modes: Can't edit \"{0}\", it's procted.", UniqueName));
+                        }
+                        _mode = value;
+                    }
+                }
+
+                /// <exception cref="SecurityException">Can't edit protected mode.</exception>
+                public Func<IEnumerable<Targets.Item>, IEnumerable<Targets.Item>> OrderFunction
+                {
+                    get { return _orderFunction; }
+                    set
+                    {
+                        if (IsProtected)
+                        {
+                            throw new SecurityException(
+                                string.Format("Modes: Can't edit \"{0}\", it's procted.", UniqueName));
+                        }
+                        _orderFunction = value;
+                    }
+                }
+
+                public bool IsProtected
+                {
+                    get { return ProtectedModes != null && ProtectedModes.Contains(this); }
+                }
             }
         }
     }

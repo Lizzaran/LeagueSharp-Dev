@@ -228,7 +228,7 @@ namespace SFXChallenger.Champions
             IndicatorManager.Add("E", Rend.GetDamage);
             IndicatorManager.Finale();
 
-            TargetSelector.Weights.GetItem("low-health").GetValueFunc = hero => hero.Health - Rend.GetDamage(hero);
+            TargetSelector.Weights.GetItem("low-health").ValueFunction = hero => hero.Health - Rend.GetDamage(hero);
             TargetSelector.Weights.AddItem(
                 new TargetSelector.Weights.Item(
                     "w-stack", "W Stack", 10, false, hero => hero.HasBuff("kalistacoopstrikemarkally") ? 10 : 0));

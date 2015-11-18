@@ -216,12 +216,13 @@ namespace SFXChallenger.Abstracts
         {
             try
             {
-                var range =
+                var range = Math.Max(
+                    600,
                     Math.Max(
                         SummonerManager.SummonerSpells.Where(s => s.CastType == CastType.Target).Max(s => s.Range),
                         ItemManager.Items.Where(
                             i => i.EffectFlags.HasFlag(EffectFlags.Damage) && i.Flags.HasFlag(ItemFlags.Offensive))
-                            .Max(i => i.Range));
+                            .Max(i => i.Range)));
                 if (ultimateTarget == null || Ultimate == null || !ultimateTarget.IsValidTarget(range))
                 {
                     var target = TargetSelector.GetTarget(range);
@@ -230,8 +231,8 @@ namespace SFXChallenger.Abstracts
                         if (ItemManager.CalculateComboDamage(target) + SummonerManager.CalculateComboDamage(target) >
                             target.Health)
                         {
-                            ItemManager.UseComboItems(ultimateTarget);
-                            SummonerManager.UseComboSummoners(ultimateTarget);
+                            ItemManager.UseComboItems(target);
+                            SummonerManager.UseComboSummoners(target);
                         }
                     }
                 }
