@@ -2,20 +2,20 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Priorities.cs is part of SFXTargetSelector.
+ Priorities.cs is part of SFXChallenger.
 
- SFXTargetSelector is free software: you can redistribute it and/or modify
+ SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
 
- SFXTargetSelector is distributed in the hope that it will be useful,
+ SFXChallenger is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  GNU General Public License for more details.
 
  You should have received a copy of the GNU General Public License
- along with SFXTargetSelector. If not, see <http://www.gnu.org/licenses/>.
+ along with SFXChallenger. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #endregion License
@@ -39,6 +39,7 @@ namespace SFXChallenger.SFXTargetSelector
             public const int MinPriority = 1;
             public const int MaxPriority = 5;
             private static bool _autoPriority;
+            private static readonly Dictionary<int, int> _priorities = new Dictionary<int, int>();
 
             static Priorities()
             {
@@ -119,7 +120,11 @@ namespace SFXChallenger.SFXTargetSelector
                 {
                     var item =
                         new MenuItem(Menu.Name + "." + enemy.Hero.ChampionName, enemy.Hero.ChampionName).SetShared()
-                            .SetValue(new Slider(MinPriority, MinPriority, MaxPriority));
+                            .SetValue(
+                                new Slider(
+                                    _priorities.ContainsKey(enemy.Hero.NetworkId)
+                                        ? _priorities[enemy.Hero.NetworkId]
+                                        : MinPriority, MinPriority, MaxPriority));
                     Menu.AddItem(item);
                     if (autoPriority.GetValue<bool>())
                     {
@@ -135,7 +140,7 @@ namespace SFXChallenger.SFXTargetSelector
                     {
                         foreach (var enemy in Targets.Items)
                         {
-                            TargetSelector.Menu.Item(Menu.Name + "." + enemy.Hero.ChampionName)
+                            Menu.Item(Menu.Name + "." + enemy.Hero.ChampionName)
                                 .SetShared()
                                 .SetValue(new Slider((int) GetDefaultPriority(enemy.Hero), MinPriority, MaxPriority));
                         }
@@ -157,42 +162,43 @@ namespace SFXChallenger.SFXTargetSelector
 
             public static int GetPriority(Obj_AI_Hero hero)
             {
-                if (TargetSelector.Menu != null)
+                if (hero != null)
                 {
-                    var item = TargetSelector.Menu.Item(TargetSelector.Menu.Name + ".priorities." + hero.ChampionName);
-                    if (item != null)
+                    if (Menu != null)
                     {
-                        return item.GetValue<Slider>().Value;
+                        var item = Menu.Item(Menu.Name + "." + hero.ChampionName);
+                        if (item != null)
+                        {
+                            return item.GetValue<Slider>().Value;
+                        }
                     }
+                    return _priorities.ContainsKey(hero.NetworkId)
+                        ? _priorities[hero.NetworkId]
+                        : (int) GetDefaultPriority(hero);
                 }
                 return (int) Priority.Low;
             }
 
             public static void SetPriority(Obj_AI_Hero hero, int value)
             {
-                if (TargetSelector.Menu != null)
+                value = Math.Max(MinPriority, Math.Min(MaxPriority, value));
+                if (hero != null)
                 {
-                    var item = TargetSelector.Menu.Item(TargetSelector.Menu.Name + ".priorities." + hero.ChampionName);
-                    if (item != null)
+                    if (Menu != null)
                     {
-                        item.SetValue(
-                            new Slider(Math.Max(MinPriority, Math.Min(MaxPriority, value)), MinPriority, MaxPriority));
+                        var item = Menu.Item(Menu.Name + "." + hero.ChampionName);
+                        if (item != null)
+                        {
+                            item.SetValue(new Slider(value, MinPriority, MaxPriority));
+                        }
                     }
+                    _priorities[hero.NetworkId] = value;
                 }
             }
 
             public static void SetPriority(Obj_AI_Hero hero, Priority type)
             {
-                if (TargetSelector.Menu != null)
-                {
-                    var item = TargetSelector.Menu.Item(TargetSelector.Menu.Name + ".priorities." + hero.ChampionName);
-                    if (item != null)
-                    {
-                        item.SetValue(
-                            new Slider(
-                                Math.Max(MinPriority, Math.Min(MaxPriority, (int) type)), MinPriority, MaxPriority));
-                    }
-                }
+                SetPriority(hero, (int) type);
             }
 
             public static IEnumerable<Targets.Item> OrderChampions(IEnumerable<Targets.Item> targets)

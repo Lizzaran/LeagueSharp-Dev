@@ -369,7 +369,7 @@ namespace SFXTargetSelector
                     {
                         if (Menu != null)
                         {
-                            var item = TargetSelector.Menu.Item(Menu.Name + "." + hero.ChampionName);
+                            var item = Menu.Item(Menu.Name + "." + hero.ChampionName);
                             if (item != null)
                             {
                                 return item.GetValue<Slider>().Value;
@@ -382,17 +382,18 @@ namespace SFXTargetSelector
 
                 public static void SetPercentage(Obj_AI_Hero hero, int percentage)
                 {
+                    percentage = Math.Max(MinPercentage, Math.Min(MaxPercentage, percentage));
                     if (hero != null)
                     {
                         if (Menu != null)
                         {
-                            var item = TargetSelector.Menu.Item(Menu.Name + "." + hero.ChampionName);
+                            var item = Menu.Item(Menu.Name + "." + hero.ChampionName);
                             if (item != null)
                             {
                                 item.SetValue(new Slider(percentage, MinPercentage, MaxPercentage));
                             }
                         }
-                        Percentages[hero.NetworkId] = Math.Min(MaxPercentage, Math.Max(MinPercentage, percentage));
+                        Percentages[hero.NetworkId] = percentage;
                     }
                 }
             }

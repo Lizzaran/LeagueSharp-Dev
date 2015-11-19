@@ -2,20 +2,20 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Weights.cs is part of SFXTargetSelector.
+ Weights.cs is part of SFXChallenger.
 
- SFXTargetSelector is free software: you can redistribute it and/or modify
+ SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
 
- SFXTargetSelector is distributed in the hope that it will be useful,
+ SFXChallenger is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  GNU General Public License for more details.
 
  You should have received a copy of the GNU General Public License
- along with SFXTargetSelector. If not, see <http://www.gnu.org/licenses/>.
+ along with SFXChallenger. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #endregion License
@@ -369,7 +369,7 @@ namespace SFXChallenger.SFXTargetSelector
                     {
                         if (Menu != null)
                         {
-                            var item = TargetSelector.Menu.Item(Menu.Name + "." + hero.ChampionName);
+                            var item = Menu.Item(Menu.Name + "." + hero.ChampionName);
                             if (item != null)
                             {
                                 return item.GetValue<Slider>().Value;
@@ -382,17 +382,18 @@ namespace SFXChallenger.SFXTargetSelector
 
                 public static void SetPercentage(Obj_AI_Hero hero, int percentage)
                 {
+                    percentage = Math.Max(MinPercentage, Math.Min(MaxPercentage, percentage));
                     if (hero != null)
                     {
                         if (Menu != null)
                         {
-                            var item = TargetSelector.Menu.Item(Menu.Name + "." + hero.ChampionName);
+                            var item = Menu.Item(Menu.Name + "." + hero.ChampionName);
                             if (item != null)
                             {
                                 item.SetValue(new Slider(percentage, MinPercentage, MaxPercentage));
                             }
                         }
-                        Percentages[hero.NetworkId] = Math.Min(MaxPercentage, Math.Max(MinPercentage, percentage));
+                        Percentages[hero.NetworkId] = percentage;
                     }
                 }
             }
