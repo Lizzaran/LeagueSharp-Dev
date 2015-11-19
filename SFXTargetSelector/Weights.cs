@@ -260,7 +260,7 @@ namespace SFXTargetSelector
 
             public static Item GetItem(string uniqueName, StringComparison comp = StringComparison.OrdinalIgnoreCase)
             {
-                return Items.FirstOrDefault(w => w.UniqueName.Equals(uniqueName, comp));
+                return PItems.FirstOrDefault(w => w.UniqueName.Equals(uniqueName, comp));
             }
 
             public static float CalculatedWeight(Item item, Targets.Item target, bool simulation = false)
