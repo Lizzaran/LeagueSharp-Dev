@@ -138,7 +138,7 @@ namespace SFXTargetSelector
             "lucianq", "monkeykingdoubleattack", "mordekaisermaceofspades", "nasusq", "nautiluspiercinggaze",
             "netherblade", "gangplankqwrapper", "poppydevastatingblow", "powerfist", "renektonpreexecute", "rengarq",
             "shyvanadoubleattack", "sivirw", "takedown", "talonnoxiandiplomacy", "trundletrollsmash", "vaynetumble",
-            "vie", "volibearq", "xenzhaocombotarget", "yorickspectral", "reksaiq", "itemtitanichydracleave"
+            "vie", "volibearq", "xenzhaocombotarget", "yorickspectral", "reksaiq", "itemtitanichydracleave", "masochism"
         };
 
         /// <summary>
@@ -1547,7 +1547,7 @@ namespace SFXTargetSelector
                     }
                     if (IsAttackableObject("gangplank")) //gangplank barrel
                     {
-                        if (baseName.Contains("gangplankbarrel"))
+                        if (baseName.Contains("gangplankbarrel") && unit.IsHPBarRendered)
                         {
                             targets.Add(unit);
                             continue;

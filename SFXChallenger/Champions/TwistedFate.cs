@@ -170,9 +170,10 @@ namespace SFXChallenger.Champions
                     IsWhitelist = false,
                     Allies = false,
                     Enemies = true,
-                    DefaultValue = false
+                    DefaultValue = false,
+                    Enabled = false
                 }, false);
-            BestTargetOnlyManager.AddToMenu(qImmobileMenu, "q-immobile");
+            BestTargetOnlyManager.AddToMenu(qImmobileMenu, "q-immobile", true);
 
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".q-range", "Q Range").SetValue(
@@ -186,6 +187,9 @@ namespace SFXChallenger.Champions
                 new MenuItem(miscMenu.Name + ".w-delay", "Card Pick Delay").SetValue(new Slider(150, 0, 400)))
                 .ValueChanged +=
                 delegate(object sender, OnValueChangeEventArgs args) { Cards.Delay = args.GetNewValue<Slider>().Value; };
+            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-delay", "Pick First Card Pick").SetValue(true))
+                .ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs args) { Cards.PickFirst = args.GetNewValue<bool>(); };
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".mode", "W Mode").SetValue(new StringList(new[] { "Burst", "Team" })));
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r-card", "Pick Card on R").SetValue(true));
@@ -1072,6 +1076,7 @@ namespace SFXChallenger.Champions
             }
 
             public static int Delay { get; set; }
+            public static bool PickFirst { get; set; }
 
             public static bool Has(CardColor color)
             {
@@ -1146,24 +1151,40 @@ namespace SFXChallenger.Champions
                     {
                         Status = SelectStatus.Selected;
                     }
-                    if (
-                        ShouldSelect.Any(
-                            s =>
-                                s == CardColor.Blue && spell.Name == "bluecardlock" ||
-                                s == CardColor.Gold && spell.Name == "goldcardlock" ||
-                                s == CardColor.Red && spell.Name == "redcardlock"))
+                    var time = LeagueSharp.Common.Utils.TickCount - _lastWSent;
+                    if (PickFirst || time - _lastWSent >= 400)
                     {
-                        Utility.DelayAction.Add(
-                            (int)
-                                ((Delay - Game.Ping / 2) *
-                                 (LeagueSharp.Common.Utils.TickCount - _lastWSent <= 200 ? 0.5f : 1f)),
-                            delegate { ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, false); });
+                        if (ShouldSelect.Any(s => s.Equals(GetCurrentCard())))
+                        {
+                            Utility.DelayAction.Add(
+                                (int)
+                                    ((Delay - Game.Ping / 2) *
+                                     (time - _lastWSent <= 200
+                                         ? 0.5f
+                                         : (!PickFirst && time - _lastWSent <= 900 ? 0.75f : 1f))),
+                                delegate { ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, false); });
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
                     Global.Logger.AddItem(new LogItem(ex));
                 }
+            }
+
+            private static CardColor GetCurrentCard()
+            {
+                var spell = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W);
+                switch (spell.Name)
+                {
+                    case "bluecardlock":
+                        return CardColor.Blue;
+                    case "goldcardlock":
+                        return CardColor.Gold;
+                    case "redcardlock":
+                        return CardColor.Red;
+                }
+                return CardColor.None;
             }
 
             private static void OnObjAiBaseProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
