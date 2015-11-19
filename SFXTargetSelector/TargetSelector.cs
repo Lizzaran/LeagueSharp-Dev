@@ -161,12 +161,6 @@ namespace SFXTargetSelector
             Humanizer.AddToMainMenu();
             Modes.AddToMainMenu();
 
-            var infoMenu = MainMenu.AddSubMenu(new Menu("Info", MainMenu.Name + ".info"));
-            infoMenu.AddItem(new MenuItem(menu.Name + ".version", string.Format("{0}: {1}", "Version", Version)));
-            infoMenu.AddItem(new MenuItem(menu.Name + ".forum", "Forum: Lizzaran"));
-            infoMenu.AddItem(new MenuItem(menu.Name + ".github", "GitHub: Lizzaran"));
-            infoMenu.AddItem(new MenuItem(menu.Name + ".irc", "IRC: Appril"));
-
             LeagueSharp.Common.TargetSelector.CustomTS = true;
         }
     }
