@@ -24,8 +24,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using LeagueSharp;
+using LeagueSharp.Common;
 using SFXChallenger.Library;
 
 #endregion
@@ -38,19 +40,19 @@ namespace SFXChallenger.SFXTargetSelector
         {
             static Targets()
             {
-                Items = new HashSet<Item>();
-                foreach (var enemy in GameObjects.EnemyHeroes)
+                Items = new ReadOnlyCollection<Item>(new List<Item>());
+                CustomEvents.Game.OnGameLoad += delegate
                 {
-                    Items.Add(new Item(enemy));
-                }
-                Game.OnUpdate += OnGameUpdate;
+                    Items = new ReadOnlyCollection<Item>(GameObjects.EnemyHeroes.Select(e => new Item(e)).ToList());
+                    Game.OnUpdate += OnGameUpdate;
+                };
             }
 
-            public static HashSet<Item> Items { get; private set; }
+            public static ReadOnlyCollection<Item> Items { get; private set; }
 
             private static void OnGameUpdate(EventArgs args)
             {
-                foreach (var item in Items.ToArray().Where(item => item.Visible != !item.Hero.IsVisible))
+                foreach (var item in Items.Where(item => item.Visible != !item.Hero.IsVisible))
                 {
                     item.Visible = item.Hero.IsVisible;
                     item.LastVisibleChange = Game.Time;

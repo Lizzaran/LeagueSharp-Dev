@@ -28,6 +28,7 @@ using System.Linq;
 using System.Reflection;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SFXTargetSelector.Others;
 using SharpDX;
 using Version = System.Version;
 
@@ -44,9 +45,10 @@ namespace SFXTargetSelector
         static TargetSelector()
         {
             LeagueSharp.Common.TargetSelector.CustomTS = true;
+            GameObjects.Initialize();
             CustomEvents.Game.OnGameLoad += delegate
             {
-                Drawings.Init();
+                Drawings.Initialize();
                 Notifications.AddNotification(string.Format("{0} loaded.", Name), 7500);
                 Game.PrintChat(string.Format("<font color='#259FF8'>{0} v{1} loaded.</font>", Name, Version));
             };

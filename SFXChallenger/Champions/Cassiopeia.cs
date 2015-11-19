@@ -272,7 +272,7 @@ namespace SFXChallenger.Champions
             IndicatorManager.Add(R);
             IndicatorManager.Finale();
 
-            TargetSelector.Weights.AddItem(
+            TargetSelector.Weights.Register(
                 new TargetSelector.Weights.Item(
                     "poison-time", "Poison Time", 5, false, hero => GetPoisonBuffEndTime(hero) + 1));
         }

@@ -2,20 +2,20 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Priorities.cs is part of SFXChallenger.
+ Priorities.cs is part of SFXTargetSelector.
 
- SFXChallenger is free software: you can redistribute it and/or modify
+ SFXTargetSelector is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
 
- SFXChallenger is distributed in the hope that it will be useful,
+ SFXTargetSelector is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  GNU General Public License for more details.
 
  You should have received a copy of the GNU General Public License
- along with SFXChallenger. If not, see <http://www.gnu.org/licenses/>.
+ along with SFXTargetSelector. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #endregion License
@@ -38,6 +38,7 @@ namespace SFXChallenger.SFXTargetSelector
         {
             public const int MinPriority = 1;
             public const int MaxPriority = 5;
+            private static bool _autoPriority;
 
             static Priorities()
             {
@@ -94,22 +95,32 @@ namespace SFXChallenger.SFXTargetSelector
                 };
             }
 
-            public static Menu PrioritiesMenu { get; private set; }
+            public static Menu Menu { get; private set; }
             public static HashSet<Item> Items { get; private set; }
+
+            public static bool AutoPriority
+            {
+                get { return _autoPriority; }
+                set
+                {
+                    _autoPriority = value;
+                    Utils.UpdateMenuItem(Menu, ".auto-priority", _autoPriority);
+                }
+            }
 
             internal static void AddToMainMenu()
             {
-                PrioritiesMenu = MainMenu.AddSubMenu(new Menu("Priorities", MainMenu.Name + ".priorities"));
+                Menu = TargetSelector.Menu.AddSubMenu(new Menu("Priorities", TargetSelector.Menu.Name + ".priorities"));
 
                 var autoPriority =
-                    new MenuItem(PrioritiesMenu.Name + ".auto", "Auto Priority").SetShared().SetValue(false);
+                    new MenuItem(Menu.Name + ".auto-priority", "Auto Priority").SetShared().SetValue(_autoPriority);
 
                 foreach (var enemy in Targets.Items)
                 {
                     var item =
-                        new MenuItem(PrioritiesMenu.Name + "." + enemy.Hero.ChampionName, enemy.Hero.ChampionName)
-                            .SetShared().SetValue(new Slider(MinPriority, MinPriority, MaxPriority));
-                    PrioritiesMenu.AddItem(item);
+                        new MenuItem(Menu.Name + "." + enemy.Hero.ChampionName, enemy.Hero.ChampionName).SetShared()
+                            .SetValue(new Slider(MinPriority, MinPriority, MaxPriority));
+                    Menu.AddItem(item);
                     if (autoPriority.GetValue<bool>())
                     {
                         item.SetShared()
@@ -117,20 +128,21 @@ namespace SFXChallenger.SFXTargetSelector
                     }
                 }
 
-                PrioritiesMenu.AddItem(autoPriority).ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
+                Menu.AddItem(autoPriority).ValueChanged += delegate(object sender, OnValueChangeEventArgs args)
+                {
+                    _autoPriority = args.GetNewValue<bool>();
+                    if (_autoPriority)
                     {
-                        if (args.GetNewValue<bool>())
+                        foreach (var enemy in Targets.Items)
                         {
-                            foreach (var enemy in Targets.Items)
-                            {
-                                MainMenu.Item(PrioritiesMenu.Name + "." + enemy.Hero.ChampionName)
-                                    .SetShared()
-                                    .SetValue(
-                                        new Slider((int) GetDefaultPriority(enemy.Hero), MinPriority, MaxPriority));
-                            }
+                            TargetSelector.Menu.Item(Menu.Name + "." + enemy.Hero.ChampionName)
+                                .SetShared()
+                                .SetValue(new Slider((int) GetDefaultPriority(enemy.Hero), MinPriority, MaxPriority));
                         }
-                    };
+                    }
+                };
+
+                _autoPriority = Utils.GetMenuItemValue<bool>(Menu, ".auto-priority");
             }
 
             public static Priority GetDefaultPriority(Obj_AI_Hero hero)
@@ -145,9 +157,9 @@ namespace SFXChallenger.SFXTargetSelector
 
             public static int GetPriority(Obj_AI_Hero hero)
             {
-                if (MainMenu != null)
+                if (TargetSelector.Menu != null)
                 {
-                    var item = MainMenu.Item(MainMenu.Name + ".priorities." + hero.ChampionName);
+                    var item = TargetSelector.Menu.Item(TargetSelector.Menu.Name + ".priorities." + hero.ChampionName);
                     if (item != null)
                     {
                         return item.GetValue<Slider>().Value;
@@ -158,9 +170,9 @@ namespace SFXChallenger.SFXTargetSelector
 
             public static void SetPriority(Obj_AI_Hero hero, int value)
             {
-                if (MainMenu != null)
+                if (TargetSelector.Menu != null)
                 {
-                    var item = MainMenu.Item(MainMenu.Name + ".priorities." + hero.ChampionName);
+                    var item = TargetSelector.Menu.Item(TargetSelector.Menu.Name + ".priorities." + hero.ChampionName);
                     if (item != null)
                     {
                         item.SetValue(
@@ -171,9 +183,9 @@ namespace SFXChallenger.SFXTargetSelector
 
             public static void SetPriority(Obj_AI_Hero hero, Priority type)
             {
-                if (MainMenu != null)
+                if (TargetSelector.Menu != null)
                 {
-                    var item = MainMenu.Item(MainMenu.Name + ".priorities." + hero.ChampionName);
+                    var item = TargetSelector.Menu.Item(TargetSelector.Menu.Name + ".priorities." + hero.ChampionName);
                     if (item != null)
                     {
                         item.SetValue(

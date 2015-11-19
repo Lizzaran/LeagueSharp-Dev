@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.9.5.36</AssemblyVersion>
+    <AssemblyVersion>0.9.5.42</AssemblyVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -167,6 +167,7 @@
     <Compile Include="Helpers\Invulnerable.cs" />
     <Compile Include="SFXTargetSelector\Aggro.cs" />
     <Compile Include="SFXTargetSelector\Compatibility.cs" />
+    <Compile Include="SFXTargetSelector\Drawings.cs" />
     <Compile Include="SFXTargetSelector\Enumerations\Mode.cs" />
     <Compile Include="SFXTargetSelector\Enumerations\Priority.cs" />
     <Compile Include="SFXTargetSelector\EventArgs\ModesOnChange.cs" />

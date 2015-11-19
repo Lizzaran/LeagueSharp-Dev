@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using LeagueSharp;
 
@@ -37,32 +38,42 @@ namespace SFXChallenger.SFXTargetSelector
         {
             public static class Aggro
             {
+                private static float _fadeTime = 10;
+                private static readonly Dictionary<int, Item> PItems;
+
                 static Aggro()
                 {
-                    Entries = new Dictionary<int, Entry>();
-                    FadeTime = 10;
+                    PItems = new Dictionary<int, Item>();
                     Obj_AI_Base.OnAggro += OnObjAiBaseAggro;
                 }
 
-                public static Dictionary<int, Entry> Entries { get; private set; }
-                public static float FadeTime { get; set; }
+                public static ReadOnlyDictionary<int, Item> Items
+                {
+                    get { return new ReadOnlyDictionary<int, Item>(PItems); }
+                }
 
-                public static Entry GetSenderTargetEntry(Obj_AI_Base sender, Obj_AI_Base target)
+                public static float FadeTime
+                {
+                    get { return _fadeTime; }
+                    set { _fadeTime = value; }
+                }
+
+                public static Item GetSenderTargetEntry(Obj_AI_Base sender, Obj_AI_Base target)
                 {
                     return
                         GetSenderEntries(sender)
                             .FirstOrDefault(entry => entry.Target.Hero.NetworkId.Equals(target.NetworkId));
                 }
 
-                public static IEnumerable<Entry> GetSenderEntries(Obj_AI_Base sender)
+                public static IEnumerable<Item> GetSenderEntries(Obj_AI_Base sender)
                 {
-                    return Entries.Where(i => i.Key.Equals(sender.NetworkId)).Select(i => i.Value);
+                    return PItems.Where(i => i.Key.Equals(sender.NetworkId)).Select(i => i.Value);
                 }
 
-                public static IEnumerable<Entry> GetTargetEntries(Obj_AI_Base target)
+                public static IEnumerable<Item> GetTargetEntries(Obj_AI_Base target)
                 {
-                    return
-                        Entries.Where(i => i.Value.Target.Hero.NetworkId.Equals(target.NetworkId)).Select(i => i.Value);
+                    return PItems.Where(i => i.Value.Target.Hero.NetworkId.Equals(target.NetworkId))
+                        .Select(i => i.Value);
                 }
 
                 private static void OnObjAiBaseAggro(Obj_AI_Base sender, GameObjectAggroEventArgs args)
@@ -75,21 +86,21 @@ namespace SFXChallenger.SFXTargetSelector
                     var target = Targets.Items.FirstOrDefault(h => h.Hero.NetworkId == args.NetworkId);
                     if (hero != null && target != null)
                     {
-                        Entry aggro;
-                        if (Entries.TryGetValue(hero.NetworkId, out aggro))
+                        Item aggro;
+                        if (PItems.TryGetValue(hero.NetworkId, out aggro))
                         {
                             aggro.Target = target;
                         }
                         else
                         {
-                            Entries[target.Hero.NetworkId] = new Entry(hero, target);
+                            PItems[target.Hero.NetworkId] = new Item(hero, target);
                         }
                     }
                 }
 
-                public class Entry
+                public class Item
                 {
-                    public Entry(Obj_AI_Hero sender, Targets.Item target)
+                    public Item(Obj_AI_Hero sender, Targets.Item target)
                     {
                         Sender = sender;
                         Target = target;

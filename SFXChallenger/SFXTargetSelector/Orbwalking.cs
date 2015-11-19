@@ -49,6 +49,7 @@ namespace SFXChallenger.SFXTargetSelector
         /// </summary>
         /// <param name="unit">The unit.</param>
         /// <param name="target">The target.</param>
+        /// <param name="target">The target.</param>
         public delegate void AfterAttackEvenH(AttackableUnit unit, AttackableUnit target);
 
         /// <summary>
@@ -952,6 +953,7 @@ namespace SFXChallenger.SFXTargetSelector
             /// <param name="attachToMenu">The menu the orbwalker should attach to.</param>
             public Orbwalker(Menu attachToMenu)
             {
+                GameObjects.Initialize();
                 _config = attachToMenu;
                 /* Drawings submenu */
                 var drawings = new Menu("Drawings", "drawings");

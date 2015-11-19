@@ -953,6 +953,7 @@ namespace SFXTargetSelector
             /// <param name="attachToMenu">The menu the orbwalker should attach to.</param>
             public Orbwalker(Menu attachToMenu)
             {
+                GameObjects.Initialize();
                 _config = attachToMenu;
                 /* Drawings submenu */
                 var drawings = new Menu("Drawings", "drawings");

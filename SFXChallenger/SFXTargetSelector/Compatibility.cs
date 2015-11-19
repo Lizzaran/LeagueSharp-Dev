@@ -2,20 +2,20 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Compatibility.cs is part of SFXChallenger.
+ Compatibility.cs is part of SFXTargetSelector.
 
- SFXChallenger is free software: you can redistribute it and/or modify
+ SFXTargetSelector is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
 
- SFXChallenger is distributed in the hope that it will be useful,
+ SFXTargetSelector is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  GNU General Public License for more details.
 
  You should have received a copy of the GNU General Public License
- along with SFXChallenger. If not, see <http://www.gnu.org/licenses/>.
+ along with SFXTargetSelector. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #endregion License
@@ -38,7 +38,7 @@ namespace SFXChallenger.SFXTargetSelector
         [Obsolete("Use SFXTargetSelector.TargetSelector.Selected.Target instead.")]
         public static Obj_AI_Hero SelectedTarget
         {
-            get { return Focus.Enabled ? Selected.Target : null; }
+            get { return Selected.Focus.Enabled ? Selected.Target : null; }
         }
 
         [Obsolete("Use SFXTargetSelector.TargetSelector.Priorities.SetPriority instead.")]

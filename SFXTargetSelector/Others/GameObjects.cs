@@ -436,77 +436,72 @@ namespace SFXTargetSelector.Others
 
                 _initialized = true;
 
-                if (Game.Mode == GameMode.Running)
+                CustomEvents.Game.OnGameLoad += delegate
                 {
-                    DoInitialize();
-                }
-                else
-                {
-                    CustomEvents.Game.OnGameLoad += args => DoInitialize();
-                }
+                    Player = ObjectManager.Player;
+
+                    AllyNexus = ObjectManager.Get<Obj_HQ>().FirstOrDefault(o => o.IsAlly);
+                    EnemyNexus = ObjectManager.Get<Obj_HQ>().FirstOrDefault(o => o.IsEnemy);
+
+                    HeroesList.UnionWith(ObjectManager.Get<Obj_AI_Hero>());
+                    MinionsList.UnionWith(
+                        ObjectManager.Get<Obj_AI_Minion>()
+                            .Where(
+                                o =>
+                                    o.Team != GameObjectTeam.Neutral &&
+                                    !o.CharData.BaseSkinName.ToLower().Contains("jarvanivstandard") &&
+                                    !o.CharData.BaseSkinName.ToLower().Contains("ward") &&
+                                    !o.CharData.BaseSkinName.ToLower().Contains("trinket")));
+                    InhibitorsList.UnionWith(ObjectManager.Get<Obj_BarracksDampener>());
+                    TurretsList.UnionWith(ObjectManager.Get<Obj_AI_Turret>());
+                    JungleList.UnionWith(
+                        ObjectManager.Get<Obj_AI_Minion>()
+                            .Where(
+                                o =>
+                                    o.Team == GameObjectTeam.Neutral &&
+                                    !o.CharData.BaseSkinName.ToLower().Contains("barrel")));
+                    WardsList.UnionWith(
+                        ObjectManager.Get<Obj_AI_Minion>()
+                            .Where(
+                                o =>
+                                    o.CharData.BaseSkinName.ToLower().Contains("ward") ||
+                                    o.CharData.BaseSkinName.ToLower().Contains("trinket")));
+                    ShopsList.UnionWith(ObjectManager.Get<Obj_Shop>());
+                    SpawnPointsList.UnionWith(ObjectManager.Get<Obj_SpawnPoint>());
+                    GameObjectsList.UnionWith(ObjectManager.Get<GameObject>());
+
+                    EnemyHeroesList.UnionWith(HeroesList.Where(o => o.IsEnemy));
+                    EnemyMinionsList.UnionWith(MinionsList.Where(o => o.IsEnemy));
+                    EnemyInhibitorsList.UnionWith(InhibitorsList.Where(o => o.IsEnemy));
+                    EnemyTurretsList.UnionWith(TurretsList.Where(o => o.IsEnemy));
+                    EnemyList.UnionWith(
+                        EnemyHeroesList.Concat(EnemyMinionsList.Cast<Obj_AI_Base>()).Concat(EnemyTurretsList));
+
+                    AllyHeroesList.UnionWith(HeroesList.Where(o => o.IsAlly));
+                    AllyMinionsList.UnionWith(MinionsList.Where(o => o.IsAlly));
+                    AllyInhibitorsList.UnionWith(InhibitorsList.Where(o => o.IsAlly));
+                    AllyTurretsList.UnionWith(TurretsList.Where(o => o.IsAlly));
+                    AllyList.UnionWith(
+                        AllyHeroesList.Concat(AllyMinionsList.Cast<Obj_AI_Base>()).Concat(AllyTurretsList));
+
+                    AllyWardsList.UnionWith(WardsList.Where(o => o.IsAlly));
+                    EnemyWardsList.UnionWith(WardsList.Where(o => o.IsEnemy));
+
+                    AllyShopsList.UnionWith(ShopsList.Where(o => o.IsAlly));
+                    EnemyShopsList.UnionWith(ShopsList.Where(o => o.IsEnemy));
+
+                    AllySpawnPointsList.UnionWith(SpawnPointsList.Where(o => o.IsAlly));
+                    EnemySpawnPointsList.UnionWith(SpawnPointsList.Where(o => o.IsEnemy));
+
+                    GameObject.OnCreate += OnGameObjectCreate;
+                    GameObject.OnDelete += OnGameObjectDelete;
+                    Game.OnUpdate += OnGameUpdate;
+                };
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
             }
-        }
-
-        private static void DoInitialize()
-        {
-            Player = ObjectManager.Player;
-
-            AllyNexus = ObjectManager.Get<Obj_HQ>().FirstOrDefault(o => o.IsAlly);
-            EnemyNexus = ObjectManager.Get<Obj_HQ>().FirstOrDefault(o => o.IsEnemy);
-
-            HeroesList.UnionWith(ObjectManager.Get<Obj_AI_Hero>());
-            MinionsList.UnionWith(
-                ObjectManager.Get<Obj_AI_Minion>()
-                    .Where(
-                        o =>
-                            o.Team != GameObjectTeam.Neutral &&
-                            !o.CharData.BaseSkinName.ToLower().Contains("jarvanivstandard") &&
-                            !o.CharData.BaseSkinName.ToLower().Contains("ward") &&
-                            !o.CharData.BaseSkinName.ToLower().Contains("trinket")));
-            InhibitorsList.UnionWith(ObjectManager.Get<Obj_BarracksDampener>());
-            TurretsList.UnionWith(ObjectManager.Get<Obj_AI_Turret>());
-            JungleList.UnionWith(
-                ObjectManager.Get<Obj_AI_Minion>()
-                    .Where(
-                        o => o.Team == GameObjectTeam.Neutral && !o.CharData.BaseSkinName.ToLower().Contains("barrel")));
-            WardsList.UnionWith(
-                ObjectManager.Get<Obj_AI_Minion>()
-                    .Where(
-                        o =>
-                            o.CharData.BaseSkinName.ToLower().Contains("ward") ||
-                            o.CharData.BaseSkinName.ToLower().Contains("trinket")));
-            ShopsList.UnionWith(ObjectManager.Get<Obj_Shop>());
-            SpawnPointsList.UnionWith(ObjectManager.Get<Obj_SpawnPoint>());
-            GameObjectsList.UnionWith(ObjectManager.Get<GameObject>());
-
-            EnemyHeroesList.UnionWith(HeroesList.Where(o => o.IsEnemy));
-            EnemyMinionsList.UnionWith(MinionsList.Where(o => o.IsEnemy));
-            EnemyInhibitorsList.UnionWith(InhibitorsList.Where(o => o.IsEnemy));
-            EnemyTurretsList.UnionWith(TurretsList.Where(o => o.IsEnemy));
-            EnemyList.UnionWith(EnemyHeroesList.Concat(EnemyMinionsList.Cast<Obj_AI_Base>()).Concat(EnemyTurretsList));
-
-            AllyHeroesList.UnionWith(HeroesList.Where(o => o.IsAlly));
-            AllyMinionsList.UnionWith(MinionsList.Where(o => o.IsAlly));
-            AllyInhibitorsList.UnionWith(InhibitorsList.Where(o => o.IsAlly));
-            AllyTurretsList.UnionWith(TurretsList.Where(o => o.IsAlly));
-            AllyList.UnionWith(AllyHeroesList.Concat(AllyMinionsList.Cast<Obj_AI_Base>()).Concat(AllyTurretsList));
-
-            AllyWardsList.UnionWith(WardsList.Where(o => o.IsAlly));
-            EnemyWardsList.UnionWith(WardsList.Where(o => o.IsEnemy));
-
-            AllyShopsList.UnionWith(ShopsList.Where(o => o.IsAlly));
-            EnemyShopsList.UnionWith(ShopsList.Where(o => o.IsEnemy));
-
-            AllySpawnPointsList.UnionWith(SpawnPointsList.Where(o => o.IsAlly));
-            EnemySpawnPointsList.UnionWith(SpawnPointsList.Where(o => o.IsEnemy));
-
-            GameObject.OnCreate += OnGameObjectCreate;
-            GameObject.OnDelete += OnGameObjectDelete;
-            Game.OnUpdate += OnGameUpdate;
         }
 
         /// <summary>

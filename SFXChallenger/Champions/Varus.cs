@@ -233,7 +233,7 @@ namespace SFXChallenger.Champions
                 }, true);
             BestTargetOnlyManager.AddToMenu(eGapcloserMenu, "e-gapcloser");
 
-            TargetSelector.Weights.AddItem(
+            TargetSelector.Weights.Register(
                 new TargetSelector.Weights.Item("w-stacks", "W Stacks", 5, false, t => GetWStacks(t) + 1));
 
             IndicatorManager.AddToMenu(DrawingManager.Menu, true);
