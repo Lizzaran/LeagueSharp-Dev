@@ -38,21 +38,26 @@ namespace SFXChallenger.SFXTargetSelector
     {
         public static class Targets
         {
+            private static readonly List<Item> PItems;
+
             static Targets()
             {
-                Items = new ReadOnlyCollection<Item>(new List<Item>());
+                PItems = new List<Item>();
                 CustomEvents.Game.OnGameLoad += delegate
                 {
-                    Items = new ReadOnlyCollection<Item>(GameObjects.EnemyHeroes.Select(e => new Item(e)).ToList());
+                    PItems.AddRange(GameObjects.EnemyHeroes.Select(e => new Item(e)));
                     Game.OnUpdate += OnGameUpdate;
                 };
             }
 
-            public static ReadOnlyCollection<Item> Items { get; private set; }
+            public static ReadOnlyCollection<Item> Items
+            {
+                get { return PItems.AsReadOnly(); }
+            }
 
             private static void OnGameUpdate(EventArgs args)
             {
-                foreach (var item in Items.Where(item => item.Visible != !item.Hero.IsVisible))
+                foreach (var item in PItems.Where(item => item.Visible != !item.Hero.IsVisible))
                 {
                     item.Visible = item.Hero.IsVisible;
                     item.LastVisibleChange = Game.Time;
