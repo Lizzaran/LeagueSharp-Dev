@@ -22,12 +22,10 @@
 
 #region
 
-using System;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SharpDX;
-using Color = System.Drawing.Color;
 
 #endregion
 
@@ -35,7 +33,7 @@ namespace SFXTargetSelector
 {
     public static partial class TargetSelector
     {
-        public static class Selected
+        public static partial class Selected
         {
             static Selected()
             {
@@ -46,20 +44,6 @@ namespace SFXTargetSelector
             public static float ClickBuffer { get; set; }
             public static Obj_AI_Hero Target { get; set; }
 
-            internal static void AddToMainMenu()
-            {
-                var drawingSelectedMenu =
-                    DrawingMenu.AddSubMenu(new Menu("Selected Target", DrawingMenu.Name + ".selected"));
-                drawingSelectedMenu.AddItem(
-                    new MenuItem(drawingSelectedMenu.Name + ".color", "Color").SetShared().SetValue(Color.Yellow));
-                drawingSelectedMenu.AddItem(
-                    new MenuItem(drawingSelectedMenu.Name + ".radius", "Radius").SetShared().SetValue(new Slider(35)));
-                drawingSelectedMenu.AddItem(
-                    new MenuItem(drawingSelectedMenu.Name + ".enabled", "Enabled").SetShared().SetValue(true));
-
-                Drawing.OnDraw += OnDrawingDraw;
-            }
-
             public static Obj_AI_Hero GetTarget(float range, DamageType damageType, bool ignoreShields, Vector3 from)
             {
                 if (Target != null &&
@@ -69,31 +53,6 @@ namespace SFXTargetSelector
                     return Target;
                 }
                 return null;
-            }
-
-            private static void OnDrawingDraw(EventArgs args)
-            {
-                if (MainMenu == null)
-                {
-                    return;
-                }
-
-                if (Target != null && Target.IsValidTarget() && Target.Position.IsOnScreen() && Focus.Enabled)
-                {
-                    var selectedEnabled = MainMenu.Item(MainMenu.Name + ".drawing.selected.enabled").GetValue<bool>();
-                    var selectedRadius =
-                        MainMenu.Item(MainMenu.Name + ".drawing.selected.radius").GetValue<Slider>().Value;
-                    var selectedColor = MainMenu.Item(MainMenu.Name + ".drawing.selected.color").GetValue<Color>();
-                    var circleThickness =
-                        MainMenu.Item(MainMenu.Name + ".drawing.circle-thickness").GetValue<Slider>().Value;
-
-                    if (selectedEnabled)
-                    {
-                        Render.Circle.DrawCircle(
-                            Target.Position, Target.BoundingRadius + selectedRadius, selectedColor, circleThickness,
-                            true);
-                    }
-                }
             }
 
             private static void OnGameWndProc(WndEventArgs args)

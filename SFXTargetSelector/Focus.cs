@@ -30,58 +30,46 @@ namespace SFXTargetSelector
 {
     public static partial class TargetSelector
     {
-        public static class Focus
+        public static partial class Selected
         {
-            private static bool _force;
-            private static bool _enabled;
-
-            public static bool Force
+            public static class Focus
             {
-                get { return _force; }
-                set
+                private static bool _force;
+                private static bool _enabled = true;
+
+                public static bool Force
                 {
-                    _force = value;
-                    if (MainMenu != null)
+                    get { return _force; }
+                    set
                     {
-                        var item = MainMenu.Item(MainMenu.Name + ".force-focus");
-                        if (item != null)
-                        {
-                            item.SetValue(value);
-                        }
+                        _force = value;
+                        Utils.UpdateMenuItem(Menu, ".force-focus", Enabled);
                     }
                 }
-            }
 
-            public static bool Enabled
-            {
-                get { return _enabled; }
-                set
+                public static bool Enabled
                 {
-                    _enabled = value;
-                    if (MainMenu != null)
+                    get { return _enabled; }
+                    set
                     {
-                        var item = MainMenu.Item(MainMenu.Name + ".focus");
-                        if (item != null)
-                        {
-                            item.SetValue(value);
-                        }
+                        _enabled = value;
+                        Utils.UpdateMenuItem(Menu, ".focus", Enabled);
                     }
                 }
-            }
 
-            internal static void AddToMainMenu()
-            {
-                MainMenu.AddItem(
-                    new MenuItem(MainMenu.Name + ".focus", "Focus Selected Target").SetShared().SetValue(true))
-                    .ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args) { _enabled = args.GetNewValue<bool>(); };
-                MainMenu.AddItem(
-                    new MenuItem(MainMenu.Name + ".force-focus", "Only Attack Selected Target").SetShared()
-                        .SetValue(false)).ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args) { _force = args.GetNewValue<bool>(); };
+                internal static void AddToMainMenu()
+                {
+                    Menu.AddItem(
+                        new MenuItem(Menu.Name + ".focus", "Focus Selected Target").SetShared().SetValue(_enabled))
+                        .ValueChanged += (sender, args) => _enabled = args.GetNewValue<bool>();
+                    Menu.AddItem(
+                        new MenuItem(Menu.Name + ".force-focus", "Only Attack Selected Target").SetShared()
+                            .SetValue(_force)).ValueChanged += (sender, args) => _force = args.GetNewValue<bool>();
 
-                Enabled = MainMenu.Item(MainMenu.Name + ".focus").GetValue<bool>();
-                Force = MainMenu.Item(MainMenu.Name + ".force-focus").GetValue<bool>();
+
+                    _enabled = Utils.GetMenuItemValue<bool>(Menu, ".focus");
+                    _force = Utils.GetMenuItemValue<bool>(Menu, ".force-focus");
+                }
             }
         }
     }

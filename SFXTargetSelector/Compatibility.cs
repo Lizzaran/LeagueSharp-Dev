@@ -38,7 +38,7 @@ namespace SFXTargetSelector
         [Obsolete("Use SFXTargetSelector.TargetSelector.Selected.Target instead.")]
         public static Obj_AI_Hero SelectedTarget
         {
-            get { return Focus.Enabled ? Selected.Target : null; }
+            get { return Selected.Focus.Enabled ? Selected.Target : null; }
         }
 
         [Obsolete("Use SFXTargetSelector.TargetSelector.Priorities.SetPriority instead.")]

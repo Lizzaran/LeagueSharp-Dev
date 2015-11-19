@@ -43,15 +43,16 @@ namespace SFXTargetSelector
     {
         static TargetSelector()
         {
+            LeagueSharp.Common.TargetSelector.CustomTS = true;
             CustomEvents.Game.OnGameLoad += delegate
             {
+                Drawings.Init();
                 Notifications.AddNotification(string.Format("{0} loaded.", Name), 7500);
                 Game.PrintChat(string.Format("<font color='#259FF8'>{0} v{1} loaded.</font>", Name, Version));
             };
         }
 
-        public static Menu MainMenu { get; private set; }
-        public static Menu DrawingMenu { get; private set; }
+        public static Menu Menu { get; private set; }
 
         public static string Name
         {
@@ -119,7 +120,9 @@ namespace SFXTargetSelector
                 return new List<Obj_AI_Hero> { selectedTarget };
             }
 
-            range = Modes.Current.Mode == Mode.Weights && Focus.Enabled && Focus.Force ? Weights.Range : range;
+            range = Modes.Current.Mode == Mode.Weights && Selected.Focus.Enabled && Selected.Focus.Force
+                ? Weights.Range
+                : range;
 
             var targets =
                 Humanizer.FilterTargets(Targets.Items)
@@ -132,36 +135,27 @@ namespace SFXTargetSelector
                 var t = Modes.GetOrderedChampions(targets).ToList();
                 if (t.Count > 0)
                 {
-                    if (Selected.Target != null && Focus.Enabled && t.Count > 1)
+                    if (Selected.Target != null && Selected.Focus.Enabled && t.Count > 1)
                     {
                         t = t.OrderByDescending(x => x.Hero.NetworkId.Equals(Selected.Target.NetworkId)).ToList();
                     }
                     return t.Select(h => h.Hero).ToList();
                 }
             }
-
             return new List<Obj_AI_Hero>();
         }
 
         public static void AddToMenu(Menu menu)
         {
             menu.Name = "sfx.ts";
-            MainMenu = menu;
+            Menu = menu;
 
-            DrawingMenu = MainMenu.AddSubMenu(new Menu("Drawings", MainMenu.Name + ".drawing"));
-
-            DrawingMenu.AddItem(
-                new MenuItem(DrawingMenu.Name + ".circle-thickness", "Circle Thickness").SetShared()
-                    .SetValue(new Slider(5, 1, 10)));
-
-            Selected.AddToMainMenu();
+            Drawings.AddToMainMenu();
             Weights.AddToMainMenu();
             Priorities.AddToMainMenu();
-            Focus.AddToMainMenu();
+            Selected.Focus.AddToMainMenu();
             Humanizer.AddToMainMenu();
             Modes.AddToMainMenu();
-
-            LeagueSharp.Common.TargetSelector.CustomTS = true;
         }
     }
 }

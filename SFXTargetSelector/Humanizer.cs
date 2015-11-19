@@ -37,8 +37,8 @@ namespace SFXTargetSelector
         public static class Humanizer
         {
             public const int MinDelay = 0;
-            private const int MaxDelay = 1500;
-            private static int _fowDelay = 350;
+            public const int MaxDelay = 1500;
+            private static int _fowDelay = 250;
 
             public static int FowDelay
             {
@@ -46,28 +46,18 @@ namespace SFXTargetSelector
                 set
                 {
                     _fowDelay = Math.Min(MaxDelay, Math.Max(MinDelay, value));
-                    if (MainMenu != null)
-                    {
-                        var item = MainMenu.Item(MainMenu.Name + ".fow");
-                        if (item != null)
-                        {
-                            item.SetValue(new Slider(_fowDelay, MinDelay, MaxDelay));
-                        }
-                    }
+                    Utils.UpdateMenuItem(Menu, ".fow", _fowDelay);
                 }
             }
 
             internal static void AddToMainMenu()
             {
-                MainMenu.AddItem(
-                    new MenuItem(MainMenu.Name + ".fow", "Target Acquire Delay").SetShared()
+                Menu.AddItem(
+                    new MenuItem(Menu.Name + ".fow", "Target Acquire Delay").SetShared()
                         .SetValue(new Slider(_fowDelay, MinDelay, MaxDelay))).ValueChanged +=
-                    delegate(object sender, OnValueChangeEventArgs args)
-                    {
-                        _fowDelay = args.GetNewValue<Slider>().Value;
-                    };
+                    (sender, args) => _fowDelay = args.GetNewValue<Slider>().Value;
 
-                _fowDelay = MainMenu.Item(MainMenu.Name + ".fow").GetValue<Slider>().Value;
+                _fowDelay = Utils.GetMenuItemValue<int>(Menu, ".fow");
             }
 
             public static IEnumerable<Targets.Item> FilterTargets(IEnumerable<Targets.Item> targets)
