@@ -1152,17 +1152,15 @@ namespace SFXChallenger.Champions
                     {
                         Status = SelectStatus.Selected;
                     }
-                    var time = LeagueSharp.Common.Utils.TickCount - _lastWSent;
-                    if (PickFirst || time - _lastWSent >= 400)
+                    var time = LeagueSharp.Common.Utils.TickCount - _lastWSent - Game.Ping / 2;
+                    if (PickFirst || time >= 500)
                     {
                         if (ShouldSelect.Any(s => s.Equals(GetCurrentCard())))
                         {
                             Utility.DelayAction.Add(
                                 (int)
                                     ((Delay - Game.Ping / 2) *
-                                     (time - _lastWSent <= 200
-                                         ? 0.5f
-                                         : (!PickFirst && time - _lastWSent <= 900 ? 0.75f : 1f))),
+                                     (time <= 200 ? 0.5f : (!PickFirst && time <= 900 ? 0.75f : 1f))),
                                 delegate { ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, false); });
                         }
                     }
