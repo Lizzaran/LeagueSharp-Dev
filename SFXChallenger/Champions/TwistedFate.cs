@@ -187,7 +187,7 @@ namespace SFXChallenger.Champions
                 new MenuItem(miscMenu.Name + ".w-delay", "Card Pick Delay").SetValue(new Slider(150, 0, 400)))
                 .ValueChanged +=
                 delegate(object sender, OnValueChangeEventArgs args) { Cards.Delay = args.GetNewValue<Slider>().Value; };
-            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-delay", "Pick First Card Pick").SetValue(true))
+            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-first", "Pick First Card Pick").SetValue(true))
                 .ValueChanged +=
                 delegate(object sender, OnValueChangeEventArgs args) { Cards.PickFirst = args.GetNewValue<bool>(); };
             miscMenu.AddItem(
@@ -205,6 +205,7 @@ namespace SFXChallenger.Champions
             Q.Range = Menu.Item(Menu.Name + ".miscellaneous.q-range").GetValue<Slider>().Value;
             W.Range = Menu.Item(Menu.Name + ".miscellaneous.w-range").GetValue<Slider>().Value;
             Cards.Delay = Menu.Item(Menu.Name + ".miscellaneous.w-delay").GetValue<Slider>().Value;
+            Cards.PickFirst = Menu.Item(Menu.Name + ".miscellaneous.w-first").GetValue<bool>();
 
             IndicatorManager.AddToMenu(DrawingManager.Menu, true);
             IndicatorManager.Add(Q);
