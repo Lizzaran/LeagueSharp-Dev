@@ -76,7 +76,7 @@ namespace SFXChallenger.Champions
             W = new Spell(
                 SpellSlot.W,
                 Player.AttackRange + Player.BoundingRadius +
-                GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(50).Average(), DamageType.Magical);
+                GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(30).Min(), DamageType.Magical);
 
             E = new Spell(SpellSlot.E, 1200f, DamageType.Magical);
             E.SetSkillshot(0.25f, 120f, 1400f, false, SkillshotType.SkillshotLine);
@@ -193,6 +193,13 @@ namespace SFXChallenger.Champions
                 });
             BestTargetOnlyManager.AddToMenu(rGapcloserMenu, "r-gapcloser", true);
 
+            miscMenu.AddItem(
+                new MenuItem(miscMenu.Name + ".orbwalk-atk", "Orbwalk if Atk Speed <= x / 100").SetValue(
+                    new Slider(200, 100, 500)));
+            miscMenu.AddItem(
+                new MenuItem(miscMenu.Name + ".spells-atk", "Use Spells if Atk Speed <= x / 100").SetValue(
+                    new Slider(175, 100, 500)));
+
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".r-max", "R Max. Stacks").SetValue(new Slider(5, 1, 10)));
 
             IndicatorManager.AddToMenu(DrawingManager.Menu, true);
@@ -207,12 +214,15 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (R.IsReady())
+                if (ShouldUseSpells())
                 {
-                    if (args.UniqueId.Equals("r-immobile") && BestTargetOnlyManager.Check("r-immobile", R, args.Hero) &&
-                        R.IsInRange(args.Position))
+                    if (R.IsReady())
                     {
-                        R.Cast(args.Position);
+                        if (args.UniqueId.Equals("r-immobile") &&
+                            BestTargetOnlyManager.Check("r-immobile", R, args.Hero) && R.IsInRange(args.Position))
+                        {
+                            R.Cast(args.Position);
+                        }
                     }
                 }
             }
@@ -222,29 +232,29 @@ namespace SFXChallenger.Champions
             }
         }
 
-        protected override void OnPreUpdate() {}
+        protected override void OnPreUpdate()
+        {
+            if (Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.None)
+            {
+                Orbwalker.SetMovement(
+                    !(1f / ObjectManager.Player.AttackDelay >
+                      (Menu.Item(Menu.Name + ".miscellaneous.orbwalk-atk").GetValue<Slider>().Value / 100f) &&
+                      ObjectManager.Player.AbilityPower() < 100));
+            }
+            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Flee)
+            {
+                Orbwalker.SetMovement(true);
+            }
+        }
 
         protected override void OnPostUpdate()
         {
-            if (HeroListManager.Enabled("r-immobile") && R.IsReady())
-            {
-                var target =
-                    GameObjects.EnemyHeroes.FirstOrDefault(
-                        t =>
-                            t.IsValidTarget(R.Range) && HeroListManager.Check("r-immobile", t) &&
-                            BestTargetOnlyManager.Check("r-immobile", R, t) && Utils.IsImmobile(t));
-                if (target != null)
-                {
-                    Casting.SkillShot(target, R, HitChance.VeryHigh);
-                }
-            }
-
             if (W.Level > _wLevel)
             {
                 _wLevel = W.Level;
                 W.Range = Player.AttackRange + Player.BoundingRadius +
-                          GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(50).Average() +
-                          20f * _wLevel;
+                          GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(30).Min() + 60f +
+                          30f * _wLevel;
             }
             if (R.Level > _rLevel)
             {
@@ -257,21 +267,24 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                if (args.UniqueId.Equals("e-gapcloser") && E.IsReady() &&
-                    BestTargetOnlyManager.Check("e-gapcloser", E, args.Hero))
+                if (ShouldUseSpells())
                 {
-                    if (args.End.Distance(Player.Position) <= E.Range)
+                    if (args.UniqueId.Equals("e-gapcloser") && E.IsReady() &&
+                        BestTargetOnlyManager.Check("e-gapcloser", E, args.Hero))
                     {
-                        E.Cast(args.End);
+                        if (args.End.Distance(Player.Position) <= E.Range)
+                        {
+                            E.Cast(args.End);
+                        }
                     }
-                }
-                if (args.UniqueId.Equals("r-gapcloser") && R.IsReady() &&
-                    BestTargetOnlyManager.Check("r-gapcloser", R, args.Hero) &&
-                    Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value > GetRBuffCount())
-                {
-                    if (args.End.Distance(Player.Position) <= R.Range)
+                    if (args.UniqueId.Equals("r-gapcloser") && R.IsReady() &&
+                        BestTargetOnlyManager.Check("r-gapcloser", R, args.Hero) &&
+                        Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value > GetRBuffCount())
                     {
-                        R.Cast(args.End);
+                        if (args.End.Distance(Player.Position) <= R.Range)
+                        {
+                            R.Cast(args.End);
+                        }
                     }
                 }
             }
@@ -281,17 +294,14 @@ namespace SFXChallenger.Champions
             }
         }
 
-        private bool ShouldUseR()
+        private bool ShouldUseSpells()
         {
-            var attackSpeed =
-                (~(int) ((1 / ObjectManager.Player.AttackSpeedMod * 100) - (1 / ObjectManager.Player.AttackDelay * 100)) +
-                 1);
-
-            if (attackSpeed > 70 && Player.HasBuff("KogMawBioArcaneBarrage"))
+            var attackSpeed = 1f / ObjectManager.Player.AttackDelay;
+            if (attackSpeed > (Menu.Item(Menu.Name + ".miscellaneous.spells-atk").GetValue<Slider>().Value / 100f) &&
+                ObjectManager.Player.AbilityPower() < 100)
             {
                 return false;
             }
-
             return true;
         }
 
@@ -300,7 +310,8 @@ namespace SFXChallenger.Champions
             try
             {
                 return
-                    Player.Buffs.Count(x => x.Name.Equals("kogmawlivingartillery", StringComparison.OrdinalIgnoreCase));
+                    Player.Buffs.Count(
+                        x => x.Name.Equals("kogmawlivingartillerycost", StringComparison.OrdinalIgnoreCase));
             }
             catch (Exception ex)
             {
@@ -316,27 +327,30 @@ namespace SFXChallenger.Champions
             var useE = Menu.Item(Menu.Name + ".combo.e").GetValue<bool>() && E.IsReady();
             var useR = Menu.Item(Menu.Name + ".combo.r").GetValue<bool>() && R.IsReady();
 
-            if (useQ)
-            {
-                Casting.SkillShot(Q, Q.GetHitChance("combo"));
-            }
             if (useW)
             {
                 WLogic();
             }
-            if (useE)
+            if (ShouldUseSpells())
             {
-                Casting.SkillShot(E, E.GetHitChance("combo"));
-            }
-            if (useR && ResourceManager.Check("combo-r") &&
-                Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value > GetRBuffCount())
-            {
-                var target = TargetSelector.GetTarget(R);
-                if (target != null &&
-                    Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value > GetRBuffCount() &&
-                    (Player.FlatMagicDamageMod > 50 || ShouldUseR()))
+                if (useQ)
                 {
-                    Casting.SkillShot(R, R.GetHitChance("combo"));
+                    Casting.SkillShot(Q, Q.GetHitChance("combo"));
+                }
+
+                if (useE)
+                {
+                    Casting.SkillShot(E, E.GetHitChance("combo"));
+                }
+                if (useR && ResourceManager.Check("combo-r") &&
+                    Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value > GetRBuffCount())
+                {
+                    var target = TargetSelector.GetTarget(R);
+                    if (target != null &&
+                        Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value > GetRBuffCount())
+                    {
+                        Casting.SkillShot(R, R.GetHitChance("combo"));
+                    }
                 }
             }
         }
@@ -345,7 +359,7 @@ namespace SFXChallenger.Champions
         {
             try
             {
-                var wRange = Player.AttackRange + Player.BoundingRadius + 60 + 30 * W.Level;
+                var wRange = Player.AttackRange + Player.BoundingRadius + 60 + 25 * W.Level;
                 if (GameObjects.EnemyHeroes.Any(e => e.Distance(Player) < wRange + e.BoundingRadius))
                 {
                     W.Cast();
@@ -363,7 +377,7 @@ namespace SFXChallenger.Champions
             {
                 var useQ = Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && Q.IsReady();
                 var useW = Menu.Item(Menu.Name + ".harass.w").GetValue<bool>() && W.IsReady();
-                if (useQ)
+                if (useQ && ShouldUseSpells())
                 {
                     Casting.SkillShot(Q, Q.GetHitChance("harass"));
                 }
@@ -372,13 +386,13 @@ namespace SFXChallenger.Champions
                     WLogic();
                 }
             }
-            if (ResourceManager.Check("harass-r"))
+            if (ResourceManager.Check("harass-r") && ShouldUseSpells())
             {
                 var useR = Menu.Item(Menu.Name + ".harass.r").GetValue<bool>() && R.IsReady();
                 if (useR && Menu.Item(Menu.Name + ".miscellaneous.r-max").GetValue<Slider>().Value > GetRBuffCount())
                 {
                     var target = TargetSelector.GetTarget(R);
-                    if (target != null && (Player.FlatMagicDamageMod > 50 || ShouldUseR()))
+                    if (target != null && (Player.FlatMagicDamageMod > 50))
                     {
                         Casting.SkillShot(R, R.GetHitChance("harass"));
                     }
@@ -404,17 +418,20 @@ namespace SFXChallenger.Champions
                     W, MinionManager.GetMinions(W.Range), 1,
                     Player.AttackRange + Player.BoundingRadius * 1.25f + 20 * W.Level);
             }
-            if (useE)
+            if (ShouldUseSpells())
             {
-                Casting.Farm(
-                    E, MinionManager.GetMinions(E.Range),
-                    Menu.Item(Menu.Name + ".lane-clear.e-min").GetValue<Slider>().Value);
-            }
-            if (useR)
-            {
-                Casting.Farm(
-                    R, MinionManager.GetMinions(R.Range),
-                    Menu.Item(Menu.Name + ".lane-clear.r-min").GetValue<Slider>().Value);
+                if (useE)
+                {
+                    Casting.Farm(
+                        E, MinionManager.GetMinions(E.Range),
+                        Menu.Item(Menu.Name + ".lane-clear.e-min").GetValue<Slider>().Value);
+                }
+                if (useR)
+                {
+                    Casting.Farm(
+                        R, MinionManager.GetMinions(R.Range),
+                        Menu.Item(Menu.Name + ".lane-clear.r-min").GetValue<Slider>().Value);
+                }
             }
         }
 
@@ -437,19 +454,22 @@ namespace SFXChallenger.Champions
                     MinionManager.GetMinions(W.Range, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth),
                     1, Player.AttackRange + Player.BoundingRadius * 1.25f + 20 * W.Level);
             }
-            if (useE)
+            if (ShouldUseSpells())
             {
-                Casting.Farm(
-                    E,
-                    MinionManager.GetMinions(E.Range, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth),
-                    1);
-            }
-            if (useR)
-            {
-                Casting.Farm(
-                    R,
-                    MinionManager.GetMinions(R.Range, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth),
-                    1);
+                if (useE)
+                {
+                    Casting.Farm(
+                        E,
+                        MinionManager.GetMinions(
+                            E.Range, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth), 1);
+                }
+                if (useR)
+                {
+                    Casting.Farm(
+                        R,
+                        MinionManager.GetMinions(
+                            R.Range, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth), 1);
+                }
             }
         }
 

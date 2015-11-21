@@ -1176,12 +1176,9 @@ namespace SFXChallenger.Champions
                                     delay = 200;
                                 }
                                 var maxDelay = 450 - (LeagueSharp.Common.Utils.TickCount - _lastCycleSwitch - ping);
-                                if (delay * multiplier > maxDelay)
+                                if (delay > maxDelay)
                                 {
-                                    if (delay * 0.75f < maxDelay)
-                                    {
-                                        multiplier = 0.75f;
-                                    }
+                                    multiplier = 0.75f;
                                 }
                                 if (delay * multiplier < maxDelay)
                                 {

@@ -49,8 +49,6 @@ namespace SFXChallenger.SFXTargetSelector
             CustomEvents.Game.OnGameLoad += delegate
             {
                 Drawings.Initialize();
-                Notifications.AddNotification(string.Format("{0} loaded.", Name), 7500);
-                Game.PrintChat(string.Format("<font color='#259FF8'>{0} v{1} loaded.</font>", Name, Version));
             };
         }
 
