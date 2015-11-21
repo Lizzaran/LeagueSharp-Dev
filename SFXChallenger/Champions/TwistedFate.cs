@@ -1183,7 +1183,7 @@ namespace SFXChallenger.Champions
                                 if (delay * multiplier < maxDelay)
                                 {
                                     Utility.DelayAction.Add(
-                                        delay,
+                                        (int)(delay * multiplier),
                                         delegate { ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, false); });
                                 }
                             }
