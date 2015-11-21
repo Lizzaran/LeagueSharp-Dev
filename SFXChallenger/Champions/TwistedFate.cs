@@ -1060,6 +1060,9 @@ namespace SFXChallenger.Champions
             public static List<CardColor> ShouldSelect;
             public static CardColor LastCard;
             private static int _lastWSent;
+            private static int _lastCycleSwitch;
+            private static CardColor _currentCycleCard = CardColor.None;
+            private static int _currentCycleIndex;
 
             static Cards()
             {
@@ -1088,9 +1091,7 @@ namespace SFXChallenger.Champions
 
             public static bool Has()
             {
-                return ObjectManager.Player.HasBuff("goldcardpreattack") ||
-                       ObjectManager.Player.HasBuff("redcardpreattack") ||
-                       ObjectManager.Player.HasBuff("bluecardpreattack");
+                return Has(CardColor.Blue) || Has(CardColor.Gold) || Has(CardColor.Red);
             }
 
             public static void Select(CardColor card)
@@ -1152,16 +1153,43 @@ namespace SFXChallenger.Champions
                     {
                         Status = SelectStatus.Selected;
                     }
-                    var time = LeagueSharp.Common.Utils.TickCount - _lastWSent - Game.Ping / 2;
-                    if (PickFirst || time >= 500)
+
+                    if (Status == SelectStatus.Selecting)
                     {
-                        if (ShouldSelect.Any(s => s.Equals(GetCurrentCard())))
+                        var currentCard = GetCurrentCard();
+                        if (currentCard != _currentCycleCard)
                         {
-                            Utility.DelayAction.Add(
-                                (int)
-                                    ((Delay - Game.Ping / 2) *
-                                     (time <= 200 ? 0.5f : (!PickFirst && time <= 900 ? 0.75f : 1f))),
-                                delegate { ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, false); });
+                            _currentCycleCard = currentCard;
+                            _lastCycleSwitch = LeagueSharp.Common.Utils.TickCount;
+                            _currentCycleIndex++;
+                        }
+                        if (PickFirst || _currentCycleIndex > 0)
+                        {
+                            if (ShouldSelect.Any(s => s.Equals(currentCard)))
+                            {
+                                var ping = Game.Ping / 2;
+                                var time = LeagueSharp.Common.Utils.TickCount - _lastWSent - ping;
+                                var multiplier = 1f;
+                                var delay = Delay;
+                                if (PickFirst && time <= 200)
+                                {
+                                    delay = 200;
+                                }
+                                var maxDelay = 450 - (LeagueSharp.Common.Utils.TickCount - _lastCycleSwitch - ping);
+                                if (delay * multiplier > maxDelay)
+                                {
+                                    if (delay * 0.75f < maxDelay)
+                                    {
+                                        multiplier = 0.75f;
+                                    }
+                                }
+                                if (delay * multiplier < maxDelay)
+                                {
+                                    Utility.DelayAction.Add(
+                                        delay,
+                                        delegate { ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, false); });
+                                }
+                            }
                         }
                     }
                 }
@@ -1197,6 +1225,9 @@ namespace SFXChallenger.Champions
 
                     if (args.SData.Name == "PickACard")
                     {
+                        _currentCycleCard = CardColor.None;
+                        _currentCycleIndex = -1;
+                        _lastCycleSwitch = 0;
                         Status = SelectStatus.Selecting;
                     }
                     if (args.SData.Name == "goldcardlock")
