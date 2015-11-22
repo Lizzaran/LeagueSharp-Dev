@@ -234,11 +234,24 @@ namespace SFXChallenger.Champions
 
         protected override void OnPreUpdate()
         {
-            if (Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.None)
+            if (Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.None &&
+                Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.LastHit)
             {
+                var near = false;
+                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
+                {
+                    near =
+                        MinionManager.GetMinions(
+                            Orbwalking.GetRealAutoAttackRange(null), MinionTypes.All, MinionTeam.NotAlly,
+                            MinionOrderTypes.None).Any();
+                }
+                else if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
+                {
+                    near = GameObjects.EnemyHeroes.Any(e => e.IsValidTarget() && Orbwalking.InAutoAttackRange(e));
+                }
                 Orbwalker.SetMovement(
                     !(1f / ObjectManager.Player.AttackDelay >
-                      (Menu.Item(Menu.Name + ".miscellaneous.orbwalk-atk").GetValue<Slider>().Value / 100f) &&
+                      (Menu.Item(Menu.Name + ".miscellaneous.orbwalk-atk").GetValue<Slider>().Value / 100f) && near &&
                       ObjectManager.Player.AbilityPower() < 100));
             }
             if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Flee)
