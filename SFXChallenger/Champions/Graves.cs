@@ -70,7 +70,7 @@ namespace SFXChallenger.Champions
         protected override void SetupSpells()
         {
             Q = new Spell(SpellSlot.Q, 850f);
-            Q.SetSkillshot(0.25f, 15f * (float) Math.PI / 180, 2000f, false, SkillshotType.SkillshotCone);
+            Q.SetSkillshot(0.25f, 60f, 2000f, false, SkillshotType.SkillshotLine);
 
             W = new Spell(SpellSlot.W, 900f, DamageType.Magical);
             W.SetSkillshot(0.35f, 250f, 1650f, false, SkillshotType.SkillshotCircle);
@@ -191,7 +191,10 @@ namespace SFXChallenger.Champions
             IndicatorManager.Finale();
         }
 
-        protected override void OnPreUpdate() {}
+        protected override void OnPreUpdate()
+        {
+            Orbwalker.SetAttack(!IsReloading());
+        }
 
         protected override void OnPostUpdate()
         {
@@ -241,6 +244,16 @@ namespace SFXChallenger.Champions
             }
         }
 
+        private bool IsReloading()
+        {
+            return !Player.HasBuff("gravesbasicattackammo1");
+        }
+
+        private int GetAmmoCount()
+        {
+            return Player.HasBuff("gravesbasicattackammo2") ? 2 : (!IsReloading() ? 1 : 0);
+        }
+
         protected override void Combo()
         {
             var useQ = Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady();
@@ -259,9 +272,10 @@ namespace SFXChallenger.Champions
                     }
                 }
             }
-            if (useE)
+            if (useE && !Player.IsWindingUp && !IsReloading())
             {
-                var target = TargetSelector.GetTarget((E.Range + Player.AttackRange) * 0.9f, E.DamageType);
+                var target = TargetSelector.GetTarget(
+                    (E.Range + Player.AttackRange + Player.BoundingRadius), E.DamageType);
                 if (target != null)
                 {
                     var pos = Menu.Item(Menu.Name + ".combo.e-mode").GetValue<StringList>().SelectedIndex == 0
@@ -269,15 +283,25 @@ namespace SFXChallenger.Champions
                             E, target, Menu.Item(Menu.Name + ".combo.e-safety").GetValue<Slider>().Value)
                         : Player.Position.Extend(
                             Game.CursorPos, Math.Min(E.Range, Player.Position.Distance(Game.CursorPos)));
-                    if (!pos.Equals(Vector3.Zero) && !pos.IsUnderTurret(false))
+
+                    if (!pos.Equals(Vector3.Zero))
                     {
-                        E.Cast(pos);
+                        if (GetAmmoCount() == 1 && !pos.IsUnderTurret(false) ||
+                            (!GameObjects.EnemyHeroes.Any(e => e.IsValidTarget() && Orbwalking.InAutoAttackRange(e)) &&
+                             GameObjects.EnemyHeroes.Any(
+                                 e =>
+                                     e.IsValidTarget() &&
+                                     pos.Distance(e.Position) < Orbwalking.GetRealAutoAttackRange(e)) &&
+                             target.Health < Player.GetAutoAttackDamage(target) * 2))
+                        {
+                            E.Cast(pos);
+                        }
                     }
                 }
             }
             if (useQ)
             {
-                Casting.SkillShot(Q, Q.GetHitChance("combo"));
+                QLogic(Q.GetHitChance("combo"));
             }
             if (useW)
             {
@@ -290,6 +314,27 @@ namespace SFXChallenger.Champions
             }
         }
 
+        private void QLogic(HitChance hitChance)
+        {
+            var target = TargetSelector.GetTarget(Q);
+            if (target != null)
+            {
+                var prediction = CPrediction.Line(Q, target, hitChance, false);
+                if (prediction.TotalHits >= 1)
+                {
+                    var firstHit = prediction.Hits.OrderBy(h => h.Distance(Player)).FirstOrDefault();
+                    if (firstHit != null && !Utils.IsWallBetween(Player.Position, firstHit.Position))
+                    {
+                        if (!GameObjects.EnemyHeroes.Any(e => e.IsValidTarget() && Orbwalking.InAutoAttackRange(e)) ||
+                            IsReloading() || Q.IsKillable(target) || prediction.TotalHits >= 2)
+                        {
+                            Q.Cast(prediction.CastPosition);
+                        }
+                    }
+                }
+            }
+        }
+
         private bool RLogic(UltimateModeType mode, Obj_AI_Hero target)
         {
             try
@@ -297,7 +342,9 @@ namespace SFXChallenger.Champions
                 if (Ultimate.IsActive(mode))
                 {
                     var hits = GetRHits(target);
-                    if (Ultimate.Check(mode, hits.Item2))
+                    if (Ultimate.Check(mode, hits.Item2) &&
+                        (hits.Item2.Any(h => R.GetDamage(h) * 0.95f > h.Health) ||
+                         hits.Item2.Any(h => h.Distance(Player) + 300 < Orbwalking.GetRealAutoAttackRange(h) * 0.9f)))
                     {
                         R.Cast(hits.Item3);
                         return true;
@@ -317,7 +364,12 @@ namespace SFXChallenger.Champions
             {
                 if (Ultimate.ShouldSingle(mode))
                 {
-                    foreach (var target in GameObjects.EnemyHeroes.Where(t => Ultimate.CheckSingle(mode, t)))
+                    foreach (var target in
+                        GameObjects.EnemyHeroes.Where(
+                            t =>
+                                Ultimate.CheckSingle(mode, t) &&
+                                (R.GetDamage(t) * 0.95f > t.Health ||
+                                 t.Distance(Player) + 300 < Orbwalking.GetRealAutoAttackRange(t) * 0.8f)))
                     {
                         var hits = GetRHits(target);
                         if (hits.Item1 > 0)
@@ -435,10 +487,9 @@ namespace SFXChallenger.Champions
             {
                 return;
             }
-
             if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && Q.IsReady())
             {
-                Casting.SkillShot(Q, Q.GetHitChance("harass"));
+                QLogic(Q.GetHitChance("harass"));
             }
         }
 
@@ -452,9 +503,9 @@ namespace SFXChallenger.Champions
             var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
             if (useQ)
             {
-                Casting.Farm(
-                    Q, MinionManager.GetMinions(Q.Range),
-                    Menu.Item(Menu.Name + ".lane-clear.q-min").GetValue<Slider>().Value, 200f);
+                QFarmLogic(
+                    MinionManager.GetMinions(Q.Range),
+                    Menu.Item(Menu.Name + ".lane-clear.q-min").GetValue<Slider>().Value);
             }
         }
 
@@ -468,10 +519,60 @@ namespace SFXChallenger.Champions
             var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
             if (useQ)
             {
-                Casting.Farm(
-                    Q,
+                QFarmLogic(
                     MinionManager.GetMinions(Q.Range, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth),
-                    1, 200f);
+                    1);
+            }
+        }
+
+        private void QFarmLogic(List<Obj_AI_Base> minions, int min)
+        {
+            try
+            {
+                if (!Q.IsReady() || minions.Count == 0)
+                {
+                    return;
+                }
+                var totalHits = 0;
+                var castPos = Vector3.Zero;
+
+                var positions = (from minion in minions
+                    let pred = Q.GetPrediction(minion)
+                    where pred.Hitchance >= HitChance.Medium
+                    where !Utils.IsWallBetween(Player.Position, pred.UnitPosition)
+                    select new Tuple<Obj_AI_Base, Vector3>(minion, pred.UnitPosition)).ToList();
+
+                if (positions.Any())
+                {
+                    foreach (var position in positions)
+                    {
+                        var rect = new Geometry.Polygon.Rectangle(
+                            ObjectManager.Player.Position, ObjectManager.Player.Position.Extend(position.Item2, Q.Range),
+                            Q.Width);
+                        var count =
+                            positions.Select(
+                                position2 =>
+                                    new Geometry.Polygon.Circle(position2.Item2, position2.Item1.BoundingRadius * 0.9f))
+                                .Count(circle => circle.Points.Any(p => rect.IsInside(p)));
+                        if (count > totalHits)
+                        {
+                            totalHits = count;
+                            castPos = position.Item2;
+                        }
+                        if (totalHits == minions.Count)
+                        {
+                            break;
+                        }
+                    }
+                    if (!castPos.Equals(Vector3.Zero) && totalHits >= min)
+                    {
+                        Q.Cast(castPos);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
             }
         }
 
@@ -491,7 +592,7 @@ namespace SFXChallenger.Champions
                     GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(Q.Range * 1.2f) && Q.IsKillable(e))
                         .Select(enemy => Q.GetPrediction(enemy, true))
                         .FirstOrDefault(pred => pred.Hitchance >= HitChance.High);
-                if (fPredEnemy != null)
+                if (fPredEnemy != null && !Utils.IsWallBetween(Player.Position, fPredEnemy.CastPosition))
                 {
                     Q.Cast(fPredEnemy.CastPosition);
                 }

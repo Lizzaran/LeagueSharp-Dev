@@ -273,5 +273,21 @@ namespace SFXChallenger.Helpers
                 }
             }
         }
+        
+        public static bool IsWallBetween(Vector3 start, Vector3 end, int step = 3)
+        {
+            if (start.IsValid() && end.IsValid() && step > 0)
+            {
+                var distance = start.Distance(end);
+                for (int i = 0; i < distance; i = i + step)
+                {
+                    if (NavMesh.GetCollisionFlags(start.Extend(end, i)) == CollisionFlags.Wall)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
     }
 }
