@@ -238,19 +238,22 @@ namespace SFXChallenger.Champions
                 var hero = args.Target as Obj_AI_Hero;
                 if (hero != null)
                 {
-                    args.Process = Cards.Status != SelectStatus.Selecting && !Cards.ShouldWait;
-                    if (args.Process)
+                    if (W.Level > 0)
                     {
-                        if (Cards.Has(CardColor.Gold))
+                        args.Process = Cards.Status != SelectStatus.Selecting && !Cards.ShouldWait;
+                        if (args.Process)
                         {
-                            _wTarget = hero;
-                            _wTargetEndTime = Game.Time + 5f;
-
-                            var target = TargetSelector.GetTarget(W, false);
-                            if (target != null && !target.NetworkId.Equals(hero.NetworkId))
+                            if (Cards.Has(CardColor.Gold))
                             {
-                                Orbwalker.ForceTarget(target);
-                                args.Process = false;
+                                _wTarget = hero;
+                                _wTargetEndTime = Game.Time + 5f;
+
+                                var target = TargetSelector.GetTarget(W, false);
+                                if (target != null && !target.NetworkId.Equals(hero.NetworkId))
+                                {
+                                    Orbwalker.ForceTarget(target);
+                                    args.Process = false;
+                                }
                             }
                         }
                     }
@@ -1183,7 +1186,7 @@ namespace SFXChallenger.Champions
                                 if (delay * multiplier < maxDelay)
                                 {
                                     Utility.DelayAction.Add(
-                                        (int)(delay * multiplier),
+                                        (int) (delay * multiplier),
                                         delegate { ObjectManager.Player.Spellbook.CastSpell(SpellSlot.W, false); });
                                 }
                             }

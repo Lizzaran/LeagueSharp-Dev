@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 
@@ -56,28 +57,15 @@ namespace SFXTargetSelector.Others
 
         public static bool Check(Obj_AI_Hero target, DamageType damageType = DamageType.True, bool ignoreShields = true)
         {
-            if (target.HasBuffOfType(BuffType.Invulnerability) || target.IsInvulnerable)
-            {
-                return true;
-            }
-            foreach (var invulnerable in Items)
-            {
-                if (invulnerable.Champion == null || invulnerable.Champion == target.ChampionName)
-                {
-                    if (invulnerable.DamageType == null || invulnerable.DamageType == damageType)
-                    {
-                        if (!ignoreShields && invulnerable.IsShield && target.HasBuff(invulnerable.BuffName))
-                        {
-                            return true;
-                        }
-                        if (invulnerable.CustomCheck != null)
-                        {
-                            return CustomCheck(invulnerable, target, damageType);
-                        }
-                    }
-                }
-            }
-            return false;
+            return target.HasBuffOfType(BuffType.Invulnerability) || target.IsInvulnerable ||
+                   (from invulnerable in Items
+                       where invulnerable.Champion == null || invulnerable.Champion == target.ChampionName
+                       where invulnerable.DamageType == null || invulnerable.DamageType == damageType
+                       where target.HasBuff(invulnerable.BuffName)
+                       where ignoreShields || invulnerable.IsShield
+                       select invulnerable).Any(
+                           invulnerable =>
+                               invulnerable.CustomCheck == null || CustomCheck(invulnerable, target, damageType));
         }
 
         public static bool Check(Obj_AI_Hero target,
@@ -85,32 +73,17 @@ namespace SFXTargetSelector.Others
             DamageType damageType = DamageType.True,
             bool ignoreShields = true)
         {
-            if (target.HasBuffOfType(BuffType.Invulnerability) || target.IsInvulnerable)
-            {
-                return true;
-            }
-            foreach (var invulnerable in Items)
-            {
-                if (invulnerable.Champion == null || invulnerable.Champion == target.ChampionName)
-                {
-                    if (invulnerable.DamageType == null || invulnerable.DamageType == damageType)
-                    {
-                        if (!ignoreShields && invulnerable.IsShield && target.HasBuff(invulnerable.BuffName))
-                        {
-                            return true;
-                        }
-                        if (invulnerable.CustomCheck != null)
-                        {
-                            if (invulnerable.MinHealthPercent > 0)
-                            {
-                                return (target.Health - damage) / target.MaxHealth * 100 > invulnerable.MinHealthPercent;
-                            }
-                            return CustomCheck(invulnerable, target, damageType);
-                        }
-                    }
-                }
-            }
-            return false;
+            return target.HasBuffOfType(BuffType.Invulnerability) || target.IsInvulnerable ||
+                   (from invulnerable in Items
+                       where invulnerable.Champion == null || invulnerable.Champion == target.ChampionName
+                       where invulnerable.DamageType == null || invulnerable.DamageType == damageType
+                       where target.HasBuff(invulnerable.BuffName)
+                       where ignoreShields || invulnerable.IsShield
+                       where invulnerable.CustomCheck == null || CustomCheck(invulnerable, target, damageType)
+                       select
+                           invulnerable.MinHealthPercent <= 0 ||
+                           (target.Health - damage) / target.MaxHealth * 100 > invulnerable.MinHealthPercent)
+                       .FirstOrDefault();
         }
 
         private static bool CustomCheck(Item invulnerable, Obj_AI_Hero target, DamageType damageType)
