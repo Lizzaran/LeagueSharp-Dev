@@ -31,6 +31,7 @@ using SFXChallenger.Helpers;
 using SFXChallenger.Interfaces;
 using SFXChallenger.Library;
 using SFXChallenger.Library.Logger;
+using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
 
 #endregion
 
@@ -72,10 +73,11 @@ namespace SFXChallenger
                         if (_champion != null)
                         {
                             Global.Champion = _champion;
-                            //if (Global.Reset.Enabled)
-                            //{
-                            //    Reset.Force(Global.Name, Global.Reset.MaxAge, TargetSelector.Weights.RestoreDefaultWeights);
-                            //}
+                            if (Global.Reset.Enabled)
+                            {
+                                Reset.Force(
+                                    Global.Name, Global.Reset.MaxAge, TargetSelector.Weights.RestoreDefaultWeights);
+                            }
                             Update.Check(
                                 Global.Name, Assembly.GetExecutingAssembly().GetName().Version, Global.UpdatePath, 10000);
                             Core.Init(_champion, 50);

@@ -65,8 +65,8 @@ namespace SFXUtility
 
         public class Reset
         {
-            public static bool Enabled = false;
-            public static DateTime MaxAge = new DateTime(1990, 1, 1);
+            public static readonly bool Enabled = false;
+            public static readonly DateTime MaxAge = new DateTime(1990, 1, 1);
         }
     }
 }
