@@ -62,7 +62,7 @@ namespace SFXTargetSelector.Others
                        where invulnerable.Champion == null || invulnerable.Champion == target.ChampionName
                        where invulnerable.DamageType == null || invulnerable.DamageType == damageType
                        where target.HasBuff(invulnerable.BuffName)
-                       where ignoreShields || invulnerable.IsShield
+                       where !ignoreShields || !invulnerable.IsShield
                        select invulnerable).Any(
                            invulnerable =>
                                invulnerable.CustomCheck == null || CustomCheck(invulnerable, target, damageType));
@@ -73,30 +73,43 @@ namespace SFXTargetSelector.Others
             DamageType damageType = DamageType.True,
             bool ignoreShields = true)
         {
-            return target.HasBuffOfType(BuffType.Invulnerability) || target.IsInvulnerable ||
-                   (from invulnerable in Items
-                       where invulnerable.Champion == null || invulnerable.Champion == target.ChampionName
-                       where invulnerable.DamageType == null || invulnerable.DamageType == damageType
-                       where target.HasBuff(invulnerable.BuffName)
-                       where ignoreShields || invulnerable.IsShield
-                       where invulnerable.CustomCheck == null || CustomCheck(invulnerable, target, damageType)
-                       select
-                           invulnerable.MinHealthPercent <= 0 ||
-                           (target.Health - damage) / target.MaxHealth * 100 > invulnerable.MinHealthPercent)
-                       .FirstOrDefault();
+            if (target.HasBuffOfType(BuffType.Invulnerability) || target.IsInvulnerable)
+            {
+                return true;
+            }
+            foreach (var invulnerable in Items)
+            {
+                if (invulnerable.Champion == null || invulnerable.Champion == target.ChampionName)
+                {
+                    if (invulnerable.DamageType == null || invulnerable.DamageType == damageType)
+                    {
+                        if (target.HasBuff(invulnerable.BuffName))
+                        {
+                            if (!ignoreShields || !invulnerable.IsShield)
+                            {
+                                if (invulnerable.CustomCheck == null || CustomCheck(invulnerable, target, damageType))
+                                {
+                                    if (invulnerable.MinHealthPercent > 0 &&
+                                        (target.Health - damage) / target.MaxHealth * 100 <
+                                        invulnerable.MinHealthPercent)
+                                    {
+                                        return true;
+                                    }
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
         }
 
         private static bool CustomCheck(Item invulnerable, Obj_AI_Hero target, DamageType damageType)
         {
             try
             {
-                if (invulnerable != null)
-                {
-                    if (invulnerable.CustomCheck(target, damageType))
-                    {
-                        return true;
-                    }
-                }
+                return invulnerable != null && invulnerable.CustomCheck(target, damageType);
             }
             catch (Exception ex)
             {
