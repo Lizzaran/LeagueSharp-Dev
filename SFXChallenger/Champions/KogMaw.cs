@@ -313,7 +313,7 @@ namespace SFXChallenger.Champions
             if (attackSpeed > (Menu.Item(Menu.Name + ".miscellaneous.spells-atk").GetValue<Slider>().Value / 100f) &&
                 ObjectManager.Player.AbilityPower() < 100)
             {
-                return false;
+                return !GameObjects.EnemyHeroes.Any(Orbwalking.InAutoAttackRange);
             }
             return true;
         }
