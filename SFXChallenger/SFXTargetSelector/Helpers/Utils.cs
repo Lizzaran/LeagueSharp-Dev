@@ -25,7 +25,7 @@
 using System;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXChallenger.Helpers;
+using SFXChallenger.SFXTargetSelector.Others;
 using SharpDX;
 using Color = System.Drawing.Color;
 

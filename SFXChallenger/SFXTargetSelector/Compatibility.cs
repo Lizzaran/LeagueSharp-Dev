@@ -26,7 +26,7 @@ using System;
 using System.Collections.Generic;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SFXChallenger.Helpers;
+using SFXChallenger.SFXTargetSelector.Others;
 using SharpDX;
 
 #endregion

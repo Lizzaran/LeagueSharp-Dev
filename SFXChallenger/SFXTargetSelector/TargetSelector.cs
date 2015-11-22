@@ -46,10 +46,7 @@ namespace SFXChallenger.SFXTargetSelector
         {
             LeagueSharp.Common.TargetSelector.CustomTS = true;
             GameObjects.Initialize();
-            CustomEvents.Game.OnGameLoad += delegate
-            {
-                Drawings.Initialize();
-            };
+            CustomEvents.Game.OnGameLoad += delegate { Drawings.Initialize(); };
         }
 
         public static Menu Menu { get; private set; }
