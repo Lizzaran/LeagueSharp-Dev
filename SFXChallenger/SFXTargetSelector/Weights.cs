@@ -44,12 +44,18 @@ namespace SFXChallenger.SFXTargetSelector
         {
             public const int MinWeight = 0;
             public const int MaxWeight = 20;
+            public const int MinCaching = 0;
+            public const int MaxCaching = 3000;
             private static float _range;
             private static readonly List<Item> PItems;
             private static float _maxRange = 2000f;
+            private static readonly SimpleCache<float> ItemCache;
+            private static readonly SimpleCache<float> LongCache;
 
             static Weights()
             {
+                ItemCache = new SimpleCache<float> { MaxAge = MinCaching };
+                LongCache = new SimpleCache<float> { MaxAge = 3000 };
                 InvertedPrefix = "[i]";
                 CustomPrefix = "[c]";
                 PItems = new List<Item>();
@@ -58,37 +64,52 @@ namespace SFXChallenger.SFXTargetSelector
                     {
                         new Item(
                             "killable", "AA Killable", 20, false,
-                            t => t.Health < ObjectManager.Player.GetAutoAttackDamage(t, true) ? 10 : 0),
+                            t => t.Health < ObjectManager.Player.GetAutoAttackDamage(t, true) ? 1 : 0,
+                            "Checks if target is killable with one auto attack."),
                         new Item(
                             "attack-damage", "Attack Damage", 15, false, delegate(Obj_AI_Hero t)
                             {
                                 var ad = t.FlatPhysicalDamageMod;
-                                ad += ad / 100 * (t.Crit * 100) *
-                                      (ItemData.Infinity_Edge.GetItem().IsOwned(t) ? 2.5f : 2f);
-                                var averageArmor = HeroManager.Allies.Select(a => a.Armor).DefaultIfEmpty(0).Average() *
-                                                   t.PercentArmorPenetrationMod - t.FlatArmorPenetrationMod;
-                                return (ad * (100 / (100 + (averageArmor > 0 ? averageArmor : 0)))) * t.AttackSpeedMod;
-                            }),
+                                var infinity = LongCache.GetOrAdd(
+                                    "infinity-edge-" + t.ChampionName,
+                                    () => ItemData.Infinity_Edge.GetItem().IsOwned(t) ? 2.5f : 2);
+                                ad += ad / 100 * (t.Crit * 100) * (infinity ?? 1f);
+                                var averageArmor = LongCache.GetOrAdd(
+                                    "average-armor",
+                                    delegate
+                                    {
+                                        return HeroManager.Allies.Select(a => a.Armor).DefaultIfEmpty(0).Average() *
+                                               t.PercentArmorPenetrationMod - t.FlatArmorPenetrationMod;
+                                    });
+                                return (ad * (100 / (100 + (averageArmor ?? 0)))) *
+                                       (1f / ObjectManager.Player.AttackDelay);
+                            }, "AD + Pen + Crit + Speed = Higher Weight"),
                         new Item(
                             "ability-power", "Ability Power", 15, false, delegate(Obj_AI_Hero t)
                             {
-                                var averageMr =
-                                    HeroManager.Allies.Select(a => a.SpellBlock).DefaultIfEmpty(0).Average() *
-                                    t.PercentMagicPenetrationMod - t.FlatMagicPenetrationMod;
-                                return t.FlatMagicDamageMod * (100 / (100 + (averageMr > 0 ? averageMr : 0)));
-                            }),
+                                var averageMr = LongCache.GetOrAdd(
+                                    "average-magic-resist",
+                                    delegate
+                                    {
+                                        return
+                                            HeroManager.Allies.Select(a => a.SpellBlock).DefaultIfEmpty(0).Average() *
+                                            t.PercentMagicPenetrationMod - t.FlatMagicPenetrationMod;
+                                    });
+                                return t.FlatMagicDamageMod * (100 / (100 + (averageMr ?? 0)));
+                            }, "AP + Pen = Higher Weight"),
                         new Item(
                             "low-resists", "Resists", 0, true,
                             t =>
                                 ObjectManager.Player.FlatPhysicalDamageMod >= ObjectManager.Player.FlatMagicDamageMod
                                     ? t.Armor
-                                    : t.SpellBlock),
-                        new Item("low-health", "Health", 20, true, t => t.Health),
+                                    : t.SpellBlock, "Low Armor / Magic-Resist = Higher Weight"),
+                        new Item("low-health", "Health", 20, true, t => t.Health, "Low Health = Higher Weight"),
                         new Item(
                             "short-distance-player", "Distance to Player", 5, true,
-                            t => t.Distance(ObjectManager.Player)),
+                            t => t.Distance(ObjectManager.Player), "Close to Player = Higher Weight"),
                         new Item(
-                            "short-distance-cursor", "Distance to Cursor", 0, true, t => t.Distance(Game.CursorPos)),
+                            "short-distance-cursor", "Distance to Cursor", 0, true, t => t.Distance(Game.CursorPos),
+                            "Close to Cursor = Higher Weight"),
                         new Item(
                             "crowd-control", "Crowd Control", 0, false, delegate(Obj_AI_Hero t)
                             {
@@ -100,26 +121,26 @@ namespace SFXChallenger.SFXTargetSelector
                                             x.Type == BuffType.Taunt || x.Type == BuffType.Stun ||
                                             x.Type == BuffType.Slow || x.Type == BuffType.Silence ||
                                             x.Type == BuffType.Snare || x.Type == BuffType.Polymorph).ToList();
-                                return buffs.Any() ? buffs.Max(x => x.EndTime) + 1f : 0f;
-                            }),
+                                return buffs.Any() ? buffs.Select(x => x.EndTime).DefaultIfEmpty(0).Max() : 0;
+                            }, "Checks if the target suffers from any form of crowd control."),
                         new Item(
                             "gold", "Acquired Gold", 0, false,
                             t =>
                                 (t.MinionsKilled + t.NeutralMinionsKilled) * 27.35f + t.ChampionsKilled * 300f +
-                                t.Assists * 85f),
+                                t.Assists * 85f, "Calculates the approx. amount of Gold."),
                         new Item(
                             "team-focus", "Team Focus", 0, false,
                             t =>
                                 Aggro.Items.Where(a => a.Value.Target.Hero.NetworkId == t.NetworkId)
                                     .Select(a => a.Value.Value)
                                     .DefaultIfEmpty(0)
-                                    .Sum()),
+                                    .Sum(), "Checks who your allies are targeting."),
                         new Item(
                             "focus-me", "Focus Me", 0, false, delegate(Obj_AI_Hero t)
                             {
                                 var entry = Aggro.GetSenderTargetEntry(t, ObjectManager.Player);
-                                return entry != null ? entry.Value + 1f : 0;
-                            })
+                                return entry != null ? entry.Value : 0;
+                            }, "Checks who is targeting you.")
                     });
             }
 
@@ -144,18 +165,39 @@ namespace SFXChallenger.SFXTargetSelector
                 set { _maxRange = value; }
             }
 
+            public static int Caching
+            {
+                get { return ItemCache.MaxAge; }
+                set
+                {
+                    ItemCache.MaxAge = Math.Min(MaxCaching, Math.Max(MinCaching, value));
+                    Utils.UpdateMenuItem(Menu, ".caching", ItemCache.MaxAge);
+                }
+            }
+
             internal static void AddToMainMenu()
             {
                 Menu = TargetSelector.Menu.AddSubMenu(new Menu("Weights", TargetSelector.Menu.Name + ".weights"));
 
                 Heroes.AddToWeightMenu();
 
+                Menu.AddItem(
+                    new MenuItem(Menu.Name + ".caching", "Caching %").SetShared()
+                        .SetValue(new Slider(ItemCache.MaxAge, MinCaching, MaxCaching)))
+                    .SetTooltip("0 = Real Time Calculations | Milliseconds")
+                    .ValueChanged += (sender, args) => ItemCache.MaxAge = args.GetNewValue<Slider>().Value;
+
                 foreach (var item in Items)
                 {
                     var localItem = item;
-                    Menu.AddItem(
+                    var weightItem =
                         new MenuItem(Menu.Name + "." + item.UniqueName, GetDisplayNamePrefix(item) + item.DisplayName)
-                            .SetShared().SetValue(new Slider(localItem.Weight, MinWeight, MaxWeight)));
+                            .SetShared().SetValue(new Slider(localItem.Weight, MinWeight, MaxWeight));
+                    if (!string.IsNullOrWhiteSpace(item.Tooltip))
+                    {
+                        weightItem.SetTooltip(item.Tooltip);
+                    }
+                    Menu.AddItem(weightItem);
                     Menu.Item(Menu.Name + "." + item.UniqueName).ValueChanged +=
                         delegate(object sender, OnValueChangeEventArgs args)
                         {
@@ -163,6 +205,8 @@ namespace SFXChallenger.SFXTargetSelector
                         };
                     item.Weight = TargetSelector.Menu.Item(Menu.Name + "." + item.UniqueName).GetValue<Slider>().Value;
                 }
+
+                ItemCache.MaxAge = Utils.GetMenuItemValue<int>(Menu, ".caching");
 
                 Game.OnInput += OnGameInput;
             }
@@ -263,25 +307,42 @@ namespace SFXChallenger.SFXTargetSelector
                 return PItems.FirstOrDefault(w => w.UniqueName.Equals(uniqueName, comp));
             }
 
-            public static float CalculatedWeight(Item item, Targets.Item target, bool simulation = false)
+            public static float CalculatedWeight(Item item,
+                Targets.Item target,
+                bool simulation = false,
+                bool forceRealTime = false)
             {
-                if (item.Weight == 0)
+                if (item.Weight <= MinWeight)
                 {
-                    return 0;
+                    return MinWeight;
                 }
-                var weight = item.Weight *
-                             (item.Inverted
-                                 ? (simulation ? item.SimulationMinValue : item.MinValue)
-                                 : GetValue(item, target)) / (item.Inverted ? GetValue(item, target) : item.MaxValue);
-                return float.IsNaN(weight) || float.IsInfinity(weight) ? MinWeight : weight;
+                var minValue = simulation ? item.SimulationMinValue : item.MinValue;
+                var maxValue = simulation ? item.SimulationMaxValue : item.MaxValue;
+                var minWeight = item.Weight / (maxValue / minValue);
+                var weight = item.Inverted
+                    ? (item.Weight - item.Weight * GetValue(item, target, forceRealTime) / maxValue + minWeight)
+                    : (item.Weight * GetValue(item, target, forceRealTime) / maxValue);
+                return float.IsNaN(weight) || float.IsInfinity(weight)
+                    ? MinWeight
+                    : Math.Min(MaxWeight, Math.Min(item.Weight, Math.Max(MinWeight, Math.Max(weight, minWeight))));
             }
 
-            public static float GetValue(Item item, Targets.Item target)
+            public static float GetValue(Item item, Targets.Item target, bool forceRealTime = false)
             {
                 try
                 {
+                    if (ItemCache.MaxAge > 0 && !forceRealTime)
+                    {
+                        var cacheValue = ItemCache[item.UniqueName];
+                        if (cacheValue != null)
+                        {
+                            return (float) cacheValue;
+                        }
+                    }
                     var value = item.ValueFunction(target.Hero);
-                    return value >= 0 ? value : 0;
+                    value = (value >= 0 ? value : 0) + 1f;
+                    ItemCache.AddOrUpdate(item.UniqueName, value);
+                    return (value >= 0 ? value : 0) + 1f;
                 }
                 catch
                 {
@@ -289,13 +350,16 @@ namespace SFXChallenger.SFXTargetSelector
                 }
             }
 
-            internal static void UpdateMaxMinValue(Item item, IEnumerable<Targets.Item> targets, bool simulation = false)
+            internal static void UpdateMaxMinValue(Item item,
+                IEnumerable<Targets.Item> targets,
+                bool simulation = false,
+                bool forceRealTime = false)
             {
                 var min = float.MaxValue;
                 var max = float.MinValue;
                 foreach (var target in targets)
                 {
-                    var value = GetValue(item, target);
+                    var value = GetValue(item, target, forceRealTime);
                     if (value < min)
                     {
                         min = value;
@@ -408,7 +472,8 @@ namespace SFXChallenger.SFXTargetSelector
                     string displayName,
                     int weight,
                     bool inverted,
-                    Func<Obj_AI_Hero, float> valueFunction)
+                    Func<Obj_AI_Hero, float> valueFunction,
+                    string tooltip = null)
                 {
                     ValueFunction = valueFunction;
                     UniqueName = uniqueName;
@@ -416,6 +481,7 @@ namespace SFXChallenger.SFXTargetSelector
                     Weight = weight;
                     DefaultWeight = weight;
                     Inverted = inverted;
+                    Tooltip = tooltip;
                 }
 
                 public Func<Obj_AI_Hero, float> ValueFunction { get; set; }

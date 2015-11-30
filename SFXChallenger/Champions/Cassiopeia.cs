@@ -274,7 +274,8 @@ namespace SFXChallenger.Champions
 
             TargetSelector.Weights.Register(
                 new TargetSelector.Weights.Item(
-                    "poison-time", "Poison Time", 5, false, hero => GetPoisonBuffEndTime(hero) + 1));
+                    "poison-time", "Poison Time", 5, false, GetPoisonBuffEndTime,
+                    "Long time until poison ends = Higher Weight"));
         }
 
         private void OnBuffManagerBuff(object sender, BuffManagerArgs args)

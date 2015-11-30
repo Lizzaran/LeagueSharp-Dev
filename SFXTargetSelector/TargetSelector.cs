@@ -72,13 +72,7 @@ namespace SFXTargetSelector
             IEnumerable<Obj_AI_Hero> ignoreChampions = null)
         {
             return
-                GetTargets(
-                    spell.Range,
-                    (spell.DamageType == LeagueSharp.Common.TargetSelector.DamageType.True
-                        ? DamageType.True
-                        : (spell.DamageType == LeagueSharp.Common.TargetSelector.DamageType.Physical
-                            ? DamageType.Physical
-                            : DamageType.Magical)), ignoreShields, from, ignoreChampions)
+                GetTargets(spell.Range, Utils.ConvertDamageType(spell.DamageType), ignoreShields, from, ignoreChampions)
                     .FirstOrDefault(t => spell.GetPrediction(t).Hitchance != HitChance.Collision);
         }
 
@@ -91,11 +85,7 @@ namespace SFXTargetSelector
                 GetTarget(
                     (spell.Range + spell.Width +
                      Targets.Items.Select(e => e.Hero.BoundingRadius).DefaultIfEmpty(50).Max()),
-                    (spell.DamageType == LeagueSharp.Common.TargetSelector.DamageType.True
-                        ? DamageType.True
-                        : (spell.DamageType == LeagueSharp.Common.TargetSelector.DamageType.Physical
-                            ? DamageType.Physical
-                            : DamageType.Magical)), ignoreShields, from, ignoreChampions);
+                    Utils.ConvertDamageType(spell.DamageType), ignoreShields, from, ignoreChampions);
         }
 
         public static Obj_AI_Hero GetTarget(float range,

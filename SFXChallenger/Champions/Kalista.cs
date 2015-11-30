@@ -228,10 +228,17 @@ namespace SFXChallenger.Champions
             IndicatorManager.Add("E", Rend.GetDamage);
             IndicatorManager.Finale();
 
-            TargetSelector.Weights.GetItem("low-health").ValueFunction = hero => hero.Health - Rend.GetDamage(hero);
+            var lowHealthWeight = TargetSelector.Weights.GetItem("low-health");
+            if (lowHealthWeight != null)
+            {
+                lowHealthWeight.ValueFunction = hero => hero.Health - Rend.GetDamage(hero);
+                lowHealthWeight.Tooltip = "Low Health (Health - Rend Damage) = Higher Weight";
+            }
+
             TargetSelector.Weights.Register(
                 new TargetSelector.Weights.Item(
-                    "w-stack", "W Stack", 10, false, hero => hero.HasBuff("kalistacoopstrikemarkally") ? 10 : 0));
+                    "w-stack", "W Stack", 10, false, hero => hero.HasBuff("kalistacoopstrikemarkally") ? 1 : 0,
+                    "Has W Debuff = Higher Weight"));
         }
 
         private void OnSpellbookCastSpell(Spellbook sender, SpellbookCastSpellEventArgs args)

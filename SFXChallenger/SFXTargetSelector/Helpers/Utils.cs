@@ -2,20 +2,20 @@
 
 /*
  Copyright 2014 - 2015 Nikita Bernthaler
- Utils.cs is part of SFXTargetSelector.
+ Utils.cs is part of SFXChallenger.
 
- SFXTargetSelector is free software: you can redistribute it and/or modify
+ SFXChallenger is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
 
- SFXTargetSelector is distributed in the hope that it will be useful,
+ SFXChallenger is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  GNU General Public License for more details.
 
  You should have received a copy of the GNU General Public License
- along with SFXTargetSelector. If not, see <http://www.gnu.org/licenses/>.
+ along with SFXChallenger. If not, see <http://www.gnu.org/licenses/>.
 */
 
 #endregion License
@@ -60,6 +60,17 @@ namespace SFXChallenger.SFXTargetSelector
                    target.Distance((from.Equals(default(Vector3)) ? ObjectManager.Player.ServerPosition : from), true) <
                    Math.Pow((range <= 0 ? Orbwalking.GetRealAutoAttackRange(target) : range), 2) &&
                    !Invulnerable.Check(target, damageType, ignoreShields);
+        }
+
+        internal static DamageType ConvertDamageType(LeagueSharp.Common.TargetSelector.DamageType damageType)
+        {
+            return damageType == LeagueSharp.Common.TargetSelector.DamageType.True
+                ? DamageType.True
+                : (damageType == LeagueSharp.Common.TargetSelector.DamageType.Physical
+                    ? DamageType.Physical
+                    : (damageType == LeagueSharp.Common.TargetSelector.DamageType.Magical
+                        ? DamageType.Magical
+                        : DamageType.Mixed));
         }
 
         internal static T GetMenuItemValue<T>(Menu menu, string name, int param = -1)

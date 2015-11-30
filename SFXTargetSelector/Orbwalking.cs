@@ -79,15 +79,6 @@ namespace SFXTargetSelector
         public delegate void OnTargetChangeH(AttackableUnit oldTarget, AttackableUnit newTarget);
 
         /// <summary>
-        ///     The orbwalking delay.
-        /// </summary>
-        public enum OrbwalkingDelay
-        {
-            Move,
-            Attack
-        }
-
-        /// <summary>
         ///     The orbwalking mode.
         /// </summary>
         public enum OrbwalkingMode
@@ -129,6 +120,16 @@ namespace SFXTargetSelector
         }
 
         /// <summary>
+        ///     The orbwalking delay.
+        /// </summary>
+        public enum OrbwalkingRandomize
+        {
+            Move,
+            Attack,
+            AttackSpeed
+        }
+
+        /// <summary>
         ///     Spells that reset the attack timer.
         /// </summary>
         private static readonly string[] AttackResets =
@@ -138,7 +139,8 @@ namespace SFXTargetSelector
             "lucianq", "monkeykingdoubleattack", "mordekaisermaceofspades", "nasusq", "nautiluspiercinggaze",
             "netherblade", "gangplankqwrapper", "poppydevastatingblow", "powerfist", "renektonpreexecute", "rengarq",
             "shyvanadoubleattack", "sivirw", "takedown", "talonnoxiandiplomacy", "trundletrollsmash", "vaynetumble",
-            "vie", "volibearq", "xenzhaocombotarget", "yorickspectral", "reksaiq", "itemtitanichydracleave", "masochism"
+            "vie", "volibearq", "xenzhaocombotarget", "yorickspectral", "reksaiq", "itemtitanichydracleave", "masochism",
+            "illaoiw"
         };
 
         /// <summary>
@@ -173,7 +175,8 @@ namespace SFXTargetSelector
         /// </summary>
         private static readonly string[] NoCancelChamps = { "Kalista" };
 
-        private static readonly Dictionary<OrbwalkingDelay, Delay> Delays = new Dictionary<OrbwalkingDelay, Delay>();
+        private static readonly Dictionary<OrbwalkingRandomize, Randomize> Randomizes =
+            new Dictionary<OrbwalkingRandomize, Randomize>();
 
         /// <summary>
         ///     The last auto attack tick
@@ -452,9 +455,10 @@ namespace SFXTargetSelector
                 {
                     return true;
                 }
+                return false;
             }
             return LeagueSharp.Common.Utils.GameTimeTickCount + Game.Ping / 2 + 25 >=
-                   LastAaTick + Player.AttackDelay * 1000 + extraDelay && Attack;
+                   LastAaTick + Orbwalker.AttackSpeedDelay * 1000 + extraDelay && Attack;
         }
 
         /// <summary>
@@ -485,94 +489,95 @@ namespace SFXTargetSelector
                     LastAaTick + Player.AttackCastDelay * 1000 + extraWindup + localExtraWindup);
         }
 
-        public static void SetDelay(float value, OrbwalkingDelay delay)
+        public static void SetRandomize(float value, OrbwalkingRandomize randomize)
         {
-            Delay delayEntry;
-            if (Delays.TryGetValue(delay, out delayEntry))
+            Randomize randomizeEntry;
+            if (Randomizes.TryGetValue(randomize, out randomizeEntry))
             {
-                delayEntry.Default = value;
+                randomizeEntry.Default = value;
+                randomizeEntry.Current = value;
             }
             else
             {
-                Delays[delay] = new Delay { Default = value };
+                Randomizes[randomize] = new Randomize { Default = value, Current = value };
             }
         }
 
-        public static void SetMinDelay(float value, OrbwalkingDelay delay)
+        public static void SetRandomizeMin(float value, OrbwalkingRandomize randomize)
         {
-            Delay delayEntry;
-            if (Delays.TryGetValue(delay, out delayEntry))
+            Randomize randomizeEntry;
+            if (Randomizes.TryGetValue(randomize, out randomizeEntry))
             {
-                delayEntry.MinDelay = value;
+                randomizeEntry.Min = value;
             }
             else
             {
-                Delays[delay] = new Delay { MinDelay = value };
+                Randomizes[randomize] = new Randomize { Min = value };
             }
         }
 
-        public static void SetMaxDelay(float value, OrbwalkingDelay delay)
+        public static void SetRandomizeMax(float value, OrbwalkingRandomize randomize)
         {
-            Delay delayEntry;
-            if (Delays.TryGetValue(delay, out delayEntry))
+            Randomize randomizeEntry;
+            if (Randomizes.TryGetValue(randomize, out randomizeEntry))
             {
-                delayEntry.MaxDelay = value;
+                randomizeEntry.Max = value;
             }
             else
             {
-                Delays[delay] = new Delay { MaxDelay = value };
+                Randomizes[randomize] = new Randomize { Max = value };
             }
         }
 
-        public static void SetDelayProbability(float value, OrbwalkingDelay delay)
+        public static void SetRandomizeProbability(float value, OrbwalkingRandomize randomize)
         {
-            Delay delayEntry;
-            if (Delays.TryGetValue(delay, out delayEntry))
+            Randomize randomizeEntry;
+            if (Randomizes.TryGetValue(randomize, out randomizeEntry))
             {
-                delayEntry.Probability = value;
+                randomizeEntry.Probability = value;
             }
             else
             {
-                Delays[delay] = new Delay { Probability = value };
+                Randomizes[randomize] = new Randomize { Probability = value };
             }
         }
 
-        public static void SetDelayRandomize(bool value, OrbwalkingDelay delay)
+        public static void SetRandomizeEnabled(bool value, OrbwalkingRandomize randomize)
         {
-            Delay delayEntry;
-            if (Delays.TryGetValue(delay, out delayEntry))
+            Randomize randomizeEntry;
+            if (Randomizes.TryGetValue(randomize, out randomizeEntry))
             {
-                delayEntry.Randomize = value;
+                randomizeEntry.Enabled = value;
             }
             else
             {
-                Delays[delay] = new Delay { Randomize = value };
+                Randomizes[randomize] = new Randomize { Enabled = value };
             }
         }
 
-        private static void SetCurrentDelay(Delay delay)
+        private static void SetRandomizeCurrent(Randomize randomize)
         {
-            if (delay.Randomize && Random.Next(0, 101) >= (100 - delay.Probability))
+            if (randomize.Enabled && Random.Next(0, 101) >= (100 - randomize.Probability))
             {
-                if (delay.Default > 0)
+                if (randomize.Default > 0)
                 {
-                    var min = (delay.Default / 100f) * delay.MinDelay;
-                    var max = (delay.Default / 100f) * delay.MaxDelay;
-                    delay.CurrentDelay = Random.Next(
+                    var min = (randomize.Default / 100f) * randomize.Min;
+                    var max = (randomize.Default / 100f) * randomize.Max;
+                    randomize.Current = Random.Next(
                         (int) Math.Floor(Math.Min(min, max)), (int) Math.Ceiling(Math.Max(min, max)) + 1);
                 }
                 else
                 {
-                    delay.CurrentDelay = 0;
+                    randomize.Current = 0;
                 }
             }
             else
             {
-                delay.CurrentDelay = delay.Default > 0
+                randomize.Current = randomize.Default > 0
                     ? Random.Next(
-                        (int) Math.Floor(delay.Default * (delay.Default >= 50 ? 0.95f : 0.9f)),
-                        (int) Math.Ceiling(delay.Default * (delay.Default >= 50 ? 1.05f : 1.1f)) + 1)
-                    : delay.Default;
+                        (int) Math.Floor(randomize.Default * (randomize.Default >= 50 ? 0.95f : 0.9f)),
+                        (int) Math.Ceiling(randomize.Default * (randomize.Default >= 50 ? 1.05f : 1.1f)) + 1)
+                    : randomize.Default;
             }
         }
 
@@ -668,13 +673,13 @@ namespace SFXTargetSelector
                 return;
             }
 
-            var delay = Delays[OrbwalkingDelay.Move];
-            if (LeagueSharp.Common.Utils.GameTimeTickCount - LastMoveCommandT < delay.CurrentDelay && !overrideTimer &&
+            var randomize = Randomizes[OrbwalkingRandomize.Move];
+            if (LeagueSharp.Common.Utils.GameTimeTickCount - LastMoveCommandT < randomize.Current && !overrideTimer &&
                 angle <= 80)
             {
                 return;
             }
-            SetCurrentDelay(delay);
+            SetRandomizeCurrent(randomize);
 
             Player.IssueOrder(GameObjectOrder.MoveTo, point);
             LastMoveCommandPosition = point;
@@ -704,10 +709,11 @@ namespace SFXTargetSelector
 
             try
             {
-                var delay = Delays[OrbwalkingDelay.Attack];
-                if (target.IsValidTarget() && CanAttack(delay.CurrentDelay))
+                var randomize = Randomizes[OrbwalkingRandomize.Attack];
+                if (target.IsValidTarget() && CanAttack(randomize.Current))
                 {
-                    SetCurrentDelay(delay);
+                    SetRandomizeCurrent(randomize);
+                    SetRandomizeCurrent(Randomizes[OrbwalkingRandomize.AttackSpeed]);
                     DisableNextAttack = false;
                     FireBeforeAttack(target);
 
@@ -842,14 +848,14 @@ namespace SFXTargetSelector
             }
         }
 
-        public class Delay
+        public class Randomize
         {
             public float Default { get; set; }
-            public float MinDelay { get; set; }
-            public float MaxDelay { get; set; }
+            public float Min { get; set; }
+            public float Max { get; set; }
             public float Probability { get; set; }
-            public bool Randomize { get; set; }
-            public float CurrentDelay { get; set; }
+            public bool Enabled { get; set; }
+            public float Current { get; set; }
         }
 
         /// <summary>
@@ -955,7 +961,8 @@ namespace SFXTargetSelector
             {
                 GameObjects.Initialize();
                 _config = attachToMenu;
-                /* Drawings submenu */
+
+                /* Drawings menu */
                 var drawings = new Menu("Drawings", "drawings");
                 drawings.AddItem(
                     new MenuItem("CircleThickness", "Circle Thickness").SetShared().SetValue(new Slider(4, 1, 10)));
@@ -970,6 +977,7 @@ namespace SFXTargetSelector
                         .SetValue(new Circle(false, Color.FromArgb(155, 255, 255, 0))));
                 _config.AddSubMenu(drawings);
 
+                /* Attackables menu */
                 var attackables = new Menu("Attackable Objects", "Attackables");
                 attackables.AddItem(new MenuItem("AttackWard", "Ward").SetShared().SetValue(true)).ValueChanged +=
                     (sender, args) => SetAttackableObject("ward", args.GetNewValue<bool>());
@@ -995,57 +1003,92 @@ namespace SFXTargetSelector
                     .ValueChanged += (sender, args) => SetAttackableObject("mordekaiser", args.GetNewValue<bool>());
                 attackables.AddItem(new MenuItem("AttackClone", "Clones").SetShared().SetValue(true)).ValueChanged +=
                     (sender, args) => SetAttackableObject("clone", args.GetNewValue<bool>());
-
                 _config.AddSubMenu(attackables);
 
+                /* Delays menu */
                 var delays = new Menu("Delays", "Delays");
                 delays.AddItem(new MenuItem("ExtraWindup", "Windup").SetShared().SetValue(new Slider(70, 0, 200)));
-
                 delays.AddItem(new MenuItem("MovementDelay", "Movement").SetShared().SetValue(new Slider(70, 0, 250)))
-                    .ValueChanged += (sender, args) => SetDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
-
+                    .ValueChanged +=
+                    (sender, args) => SetRandomize(args.GetNewValue<Slider>().Value, OrbwalkingRandomize.Move);
                 delays.AddItem(new MenuItem("AttackDelay", "Attack").SetShared().SetValue(new Slider(0, 0, 250)))
                     .ValueChanged +=
-                    (sender, args) => SetDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
-
+                    (sender, args) => SetRandomize(args.GetNewValue<Slider>().Value, OrbwalkingRandomize.Attack);
                 delays.AddItem(new MenuItem("FarmDelay", "Farm").SetShared().SetValue(new Slider(25, 0, 200)));
-
                 _config.AddSubMenu(delays);
 
-                var delayMovement = new Menu("Movement Humanizer", "Movement");
-                delayMovement.AddItem(
-                    new MenuItem("MovementMinDelay", "Min. Multi %").SetShared().SetValue(new Slider(170, 100, 300)))
+                /* Attack Speed Limiter menu */ /* FFS why doesn't this have the same name convention *OCD TRIGGERED* */
+                var attackSpeedLimiter = new Menu("Attack Speed Limiter", "AttackSpeedLimiter");
+                attackSpeedLimiter.AddItem(
+                    new MenuItem("AttackSpeedLimiter.MaxAttackSpeed", "Max. Attack Speed").SetShared()
+                        .SetValue(new Slider(2100, 1000, 3500))).ValueChanged +=
+                    (sender, args) => SetRandomize(args.GetNewValue<Slider>().Value, OrbwalkingRandomize.AttackSpeed);
+                attackSpeedLimiter.AddItem(
+                    new MenuItem("AttackSpeedLimiter.LimitWhen", "Limit When").SetShared()
+                        .SetValue(new StringList(new[] { "Moving / Kiting", "Always" })));
+                attackSpeedLimiter.AddItem(
+                    new MenuItem("AttackSpeedLimiter.Enabled", "Enabled").SetShared().SetValue(false));
+                _config.AddSubMenu(attackSpeedLimiter);
+
+                /* Randomize: Movement menu */
+                var randomizeMovement = new Menu("Movement Humanizer", "Movement");
+                randomizeMovement.AddItem(
+                    new MenuItem("MovementMin", "Min. Multi %").SetShared().SetValue(new Slider(170, 100, 300)))
                     .ValueChanged +=
-                    (sender, args) => SetMinDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
-                delayMovement.AddItem(
-                    new MenuItem("MovementMaxDelay", "Max. Multi %").SetShared().SetValue(new Slider(220, 100, 300)))
+                    (sender, args) => SetRandomizeMin(args.GetNewValue<Slider>().Value, OrbwalkingRandomize.Move);
+                randomizeMovement.AddItem(
+                    new MenuItem("MovementMax", "Max. Multi %").SetShared().SetValue(new Slider(220, 100, 300)))
                     .ValueChanged +=
-                    (sender, args) => SetMaxDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
-                delayMovement.AddItem(
+                    (sender, args) => SetRandomizeMax(args.GetNewValue<Slider>().Value, OrbwalkingRandomize.Move);
+                randomizeMovement.AddItem(
                     new MenuItem("MovementProbability", "Probability %").SetShared().SetValue(new Slider(30)))
                     .ValueChanged +=
-                    (sender, args) => SetDelayProbability(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Move);
-                delayMovement.AddItem(new MenuItem("MovementEnabled", "Enabled").SetShared().SetValue(false))
-                    .ValueChanged += (sender, args) => SetDelayRandomize(args.GetNewValue<bool>(), OrbwalkingDelay.Move);
-                _config.AddSubMenu(delayMovement);
+                    (sender, args) =>
+                        SetRandomizeProbability(args.GetNewValue<Slider>().Value, OrbwalkingRandomize.Move);
+                randomizeMovement.AddItem(new MenuItem("MovementEnabled", "Enabled").SetShared().SetValue(false))
+                    .ValueChanged +=
+                    (sender, args) => SetRandomizeEnabled(args.GetNewValue<bool>(), OrbwalkingRandomize.Move);
+                _config.AddSubMenu(randomizeMovement);
 
-                var delayAttack = new Menu("Attacks Humanizer", "Attack");
-                delayAttack.AddItem(
-                    new MenuItem("AttackMinDelay", "Min. Multi %").SetShared().SetValue(new Slider(170, 100, 300)))
+                /* Randomize: Attacks menu */
+                var randomizeAttack = new Menu("Attacks Humanizer", "Attack");
+                randomizeAttack.AddItem(
+                    new MenuItem("AttackMin", "Min. Multi %").SetShared().SetValue(new Slider(170, 100, 300)))
                     .ValueChanged +=
-                    (sender, args) => SetMinDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
-                delayAttack.AddItem(
-                    new MenuItem("AttackMaxDelay", "Max. Multi %").SetShared().SetValue(new Slider(220, 100, 300)))
+                    (sender, args) => SetRandomizeMin(args.GetNewValue<Slider>().Value, OrbwalkingRandomize.Attack);
+                randomizeAttack.AddItem(
+                    new MenuItem("AttackMax", "Max. Multi %").SetShared().SetValue(new Slider(220, 100, 300)))
                     .ValueChanged +=
-                    (sender, args) => SetMaxDelay(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
-                delayAttack.AddItem(
+                    (sender, args) => SetRandomizeMax(args.GetNewValue<Slider>().Value, OrbwalkingRandomize.Attack);
+                randomizeAttack.AddItem(
                     new MenuItem("AttackProbability", "Probability %").SetShared().SetValue(new Slider(30)))
                     .ValueChanged +=
-                    (sender, args) => SetDelayProbability(args.GetNewValue<Slider>().Value, OrbwalkingDelay.Attack);
-                delayAttack.AddItem(new MenuItem("AttackEnabled", "Enabled").SetShared().SetValue(false)).ValueChanged
-                    += (sender, args) => SetDelayRandomize(args.GetNewValue<bool>(), OrbwalkingDelay.Attack);
+                    (sender, args) =>
+                        SetRandomizeProbability(args.GetNewValue<Slider>().Value, OrbwalkingRandomize.Attack);
+                randomizeAttack.AddItem(new MenuItem("AttackEnabled", "Enabled").SetShared().SetValue(false))
+                    .ValueChanged +=
+                    (sender, args) => SetRandomizeEnabled(args.GetNewValue<bool>(), OrbwalkingRandomize.Attack);
+                _config.AddSubMenu(randomizeAttack);
 
-                _config.AddSubMenu(delayAttack);
+                /* Randomize: Attack Speed Limiter menu */
+                var randomizeAttackSpeed = new Menu("Attack Speed Humanizer", "AttackSpeed");
+                randomizeAttackSpeed.AddItem(
+                    new MenuItem("AttackSpeedMin", "Min. Multi %").SetShared().SetValue(new Slider(90, 50, 200)))
+                    .ValueChanged +=
+                    (sender, args) => SetRandomizeMin(args.GetNewValue<Slider>().Value, OrbwalkingRandomize.AttackSpeed);
+                randomizeAttackSpeed.AddItem(
+                    new MenuItem("AttackSpeedMax", "Max. Multi %").SetShared().SetValue(new Slider(110, 50, 200)))
+                    .ValueChanged +=
+                    (sender, args) => SetRandomizeMax(args.GetNewValue<Slider>().Value, OrbwalkingRandomize.AttackSpeed);
+                randomizeAttackSpeed.AddItem(
+                    new MenuItem("AttackSpeedProbability", "Probability %").SetShared().SetValue(new Slider(40)))
+                    .ValueChanged +=
+                    (sender, args) =>
+                        SetRandomizeProbability(args.GetNewValue<Slider>().Value, OrbwalkingRandomize.AttackSpeed);
+                randomizeAttackSpeed.AddItem(new MenuItem("AttackSpeedEnabled", "Enabled").SetShared().SetValue(false))
+                    .ValueChanged +=
+                    (sender, args) => SetRandomizeEnabled(args.GetNewValue<bool>(), OrbwalkingRandomize.AttackSpeed);
+                _config.AddSubMenu(randomizeAttackSpeed);
 
                 /* Misc options */
                 var misc = new Menu("Miscellaneous", "Misc");
@@ -1061,14 +1104,14 @@ namespace SFXTargetSelector
                 _config.AddSubMenu(misc);
 
                 /*Load the menu*/
-
                 _config.AddItem(
                     new MenuItem("Orbwalk", "Combo").SetShared().SetValue(new KeyBind(32, KeyBindType.Press)));
                 _config.AddItem(
                     new MenuItem("Orbwalk2", "Combo Alternate").SetShared().SetValue(new KeyBind(32, KeyBindType.Press)));
                 _config.AddItem(
                     new MenuItem("StillCombo", "Combo Without Moving").SetShared()
-                        .SetValue(new KeyBind('N', KeyBindType.Press)));
+                        .SetValue(new KeyBind('N', KeyBindType.Press))).ValueChanged +=
+                    (sender, args) => Move = !args.GetNewValue<KeyBind>().Active;
                 _config.AddItem(new MenuItem("Farm", "Mixed").SetShared().SetValue(new KeyBind('C', KeyBindType.Press)));
                 _config.AddItem(
                     new MenuItem("LaneClear", "Lane Clear").SetShared().SetValue(new KeyBind('V', KeyBindType.Press)));
@@ -1078,23 +1121,65 @@ namespace SFXTargetSelector
 
                 _player = ObjectManager.Player;
 
-                SetDelay(_config.Item("MovementDelay").GetValue<Slider>().Value, OrbwalkingDelay.Move);
-                SetMinDelay(_config.Item("MovementMinDelay").GetValue<Slider>().Value, OrbwalkingDelay.Move);
-                SetMaxDelay(_config.Item("MovementMaxDelay").GetValue<Slider>().Value, OrbwalkingDelay.Move);
-                SetDelayProbability(_config.Item("MovementProbability").GetValue<Slider>().Value, OrbwalkingDelay.Move);
-                SetDelayRandomize(_config.Item("MovementEnabled").GetValue<bool>(), OrbwalkingDelay.Move);
+                SetRandomize(_config.Item("MovementDelay").GetValue<Slider>().Value, OrbwalkingRandomize.Move);
+                SetRandomizeMin(_config.Item("MovementMin").GetValue<Slider>().Value, OrbwalkingRandomize.Move);
+                SetRandomizeMax(_config.Item("MovementMax").GetValue<Slider>().Value, OrbwalkingRandomize.Move);
+                SetRandomizeProbability(
+                    _config.Item("MovementProbability").GetValue<Slider>().Value, OrbwalkingRandomize.Move);
+                SetRandomizeEnabled(_config.Item("MovementEnabled").GetValue<bool>(), OrbwalkingRandomize.Move);
 
-                SetDelay(_config.Item("AttackDelay").GetValue<Slider>().Value, OrbwalkingDelay.Attack);
-                SetMinDelay(_config.Item("AttackMinDelay").GetValue<Slider>().Value, OrbwalkingDelay.Attack);
-                SetMaxDelay(_config.Item("AttackMaxDelay").GetValue<Slider>().Value, OrbwalkingDelay.Attack);
-                SetDelayProbability(_config.Item("AttackProbability").GetValue<Slider>().Value, OrbwalkingDelay.Attack);
-                SetDelayRandomize(_config.Item("AttackEnabled").GetValue<bool>(), OrbwalkingDelay.Attack);
+                SetRandomize(_config.Item("AttackDelay").GetValue<Slider>().Value, OrbwalkingRandomize.Attack);
+                SetRandomizeMin(_config.Item("AttackMin").GetValue<Slider>().Value, OrbwalkingRandomize.Attack);
+                SetRandomizeMax(_config.Item("AttackMax").GetValue<Slider>().Value, OrbwalkingRandomize.Attack);
+                SetRandomizeProbability(
+                    _config.Item("AttackProbability").GetValue<Slider>().Value, OrbwalkingRandomize.Attack);
+                SetRandomizeEnabled(_config.Item("AttackEnabled").GetValue<bool>(), OrbwalkingRandomize.Attack);
+
+                SetRandomize(
+                    _config.Item("AttackSpeedLimiter.MaxAttackSpeed").GetValue<Slider>().Value,
+                    OrbwalkingRandomize.AttackSpeed);
+                SetRandomizeMin(
+                    _config.Item("AttackSpeedMin").GetValue<Slider>().Value, OrbwalkingRandomize.AttackSpeed);
+                SetRandomizeMax(
+                    _config.Item("AttackSpeedMax").GetValue<Slider>().Value, OrbwalkingRandomize.AttackSpeed);
+                SetRandomizeProbability(
+                    _config.Item("AttackSpeedProbability").GetValue<Slider>().Value, OrbwalkingRandomize.AttackSpeed);
+                SetRandomizeEnabled(
+                    _config.Item("AttackSpeedEnabled").GetValue<bool>(), OrbwalkingRandomize.AttackSpeed);
 
                 CustomEvents.Game.OnGameLoad += GameOnOnGameLoad;
                 Game.OnUpdate += GameOnOnGameUpdate;
                 Drawing.OnDraw += DrawingOnOnDraw;
 
                 Instances.Add(this);
+            }
+
+            /// <summary>
+            ///     Get the  attack speed delay
+            /// </summary>
+            public static float AttackSpeedDelay
+            {
+                get
+                {
+                    if (_config.Item("AttackSpeedLimiter.Enabled").GetValue<bool>())
+                    {
+                        var speed = Randomizes[OrbwalkingRandomize.AttackSpeed].Current;
+                        switch (_config.Item("AttackSpeedLimiter.LimitWhen").GetValue<StringList>().SelectedIndex)
+                        {
+                            case 0:
+                                return ObjectManager.Player.Path.Count() != 0
+                                    ? ObjectManager.Player.AttackDelay > 1000 / speed
+                                        ? ObjectManager.Player.AttackDelay
+                                        : 1000 / speed
+                                    : ObjectManager.Player.AttackDelay;
+                            case 1:
+                                return ObjectManager.Player.AttackDelay > 1000 / speed
+                                    ? ObjectManager.Player.AttackDelay
+                                    : 1000 / speed;
+                        }
+                    }
+                    return ObjectManager.Player.AttackDelay;
+                }
             }
 
             /// <summary>
@@ -1295,7 +1380,7 @@ namespace SFXTargetSelector
                             minion =>
                                 InAutoAttackRange(minion) &&
                                 HealthPrediction.LaneClearHealthPrediction(
-                                    minion, (int) ((Player.AttackDelay * 1000) * LaneClearWaitTimeMod), FarmDelay) <=
+                                    minion, (int) ((AttackSpeedDelay * 1000) * LaneClearWaitTimeMod), FarmDelay) <=
                                 Player.GetAutoAttackDamage(minion));
             }
 
@@ -1429,7 +1514,7 @@ namespace SFXTargetSelector
                                 return _prevMinion;
                             }
                             var predHealth = HealthPrediction.LaneClearHealthPrediction(
-                                _prevMinion, (int) ((_player.AttackDelay * 1000) * LaneClearWaitTimeMod), FarmDelay);
+                                _prevMinion, (int) ((AttackSpeedDelay * 1000) * LaneClearWaitTimeMod), FarmDelay);
                             if (predHealth >= 2 * _player.GetAutoAttackDamage(_prevMinion) ||
                                 Math.Abs(predHealth - _prevMinion.Health) < float.Epsilon)
                             {
@@ -1445,7 +1530,7 @@ namespace SFXTargetSelector
                             else
                             {
                                 var predHealth = HealthPrediction.LaneClearHealthPrediction(
-                                    minion, (int) ((Player.AttackDelay * 1000) * LaneClearWaitTimeMod), FarmDelay);
+                                    minion, (int) ((AttackSpeedDelay * 1000) * LaneClearWaitTimeMod), FarmDelay);
                                 if (predHealth >= 2 * Player.GetAutoAttackDamage(minion) ||
                                     Math.Abs(predHealth - minion.Health) < float.Epsilon)
                                 {
@@ -1618,9 +1703,6 @@ namespace SFXTargetSelector
                     {
                         return;
                     }
-
-                    //Block movement if StillCombo is used
-                    Move = !_config.Item("StillCombo").GetValue<KeyBind>().Active;
 
                     //Prevent canceling important spells
                     if (_player.IsCastingInterruptableSpell(true))

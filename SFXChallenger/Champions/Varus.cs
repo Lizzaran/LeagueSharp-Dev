@@ -234,7 +234,8 @@ namespace SFXChallenger.Champions
             BestTargetOnlyManager.AddToMenu(eGapcloserMenu, "e-gapcloser");
 
             TargetSelector.Weights.Register(
-                new TargetSelector.Weights.Item("w-stacks", "W Stacks", 5, false, t => GetWStacks(t) + 1));
+                new TargetSelector.Weights.Item(
+                    "w-stacks", "W Stacks", 5, false, t => GetWStacks(t), "High amount of W Stacks = Higher Weight"));
 
             IndicatorManager.AddToMenu(DrawingManager.Menu, true);
             IndicatorManager.Add("Q", hero => Q.IsReady() ? Q.GetDamage(hero, 1) : 0);

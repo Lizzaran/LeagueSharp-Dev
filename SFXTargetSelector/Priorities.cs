@@ -39,10 +39,11 @@ namespace SFXTargetSelector
             public const int MinPriority = 1;
             public const int MaxPriority = 5;
             private static bool _autoPriority;
-            private static readonly Dictionary<int, int> _priorities = new Dictionary<int, int>();
+            private static readonly Dictionary<int, int> _priorities;
 
             static Priorities()
             {
+                _priorities = new Dictionary<int, int>();
                 Items = new HashSet<Item>
                 {
                     new Item
@@ -54,7 +55,7 @@ namespace SFXTargetSelector
                                 "Draven", "Ezreal", "Graves", "Jinx", "Kalista", "Karma", "Karthus", "Katarina",
                                 "Kennen", "KogMaw", "Leblanc", "Lucian", "Lux", "Malzahar", "MasterYi", "MissFortune",
                                 "Orianna", "Quinn", "Sivir", "Syndra", "Talon", "Teemo", "Tristana", "TwistedFate",
-                                "Twitch", "Varus", "Vayne", "Veigar", "VelKoz", "Viktor", "Xerath", "Zed", "Ziggs"
+                                "Twitch", "Varus", "Vayne", "Veigar", "Velkoz", "Viktor", "Xerath", "Zed", "Ziggs"
                             },
                         Priority = Priority.Highest
                     },
@@ -63,9 +64,9 @@ namespace SFXTargetSelector
                         Champions =
                             new[]
                             {
-                                "Akali", "Diana", "Ekko", "Fiddlesticks", "Fiora", "Fizz", "Heimerdinger", "Jayce",
-                                "Kassadin", "Kayle", "Kha'Zix", "Kindred", "Lissandra", "Mordekaiser", "Nidalee",
-                                "Riven", "Shaco", "Vladimir", "Yasuo", "Zilean"
+                                "Akali", "Diana", "Ekko", "Fiddlesticks", "Fiora", "Fizz", "Heimerdinger", "Illaoi",
+                                "Jayce", "Kassadin", "Kayle", "Kha'Zix", "Kindred", "Lissandra", "Mordekaiser",
+                                "Nidalee", "Riven", "Shaco", "Vladimir", "Yasuo", "Zilean"
                             },
                         Priority = Priority.High
                     },
@@ -114,7 +115,9 @@ namespace SFXTargetSelector
                 Menu = TargetSelector.Menu.AddSubMenu(new Menu("Priorities", TargetSelector.Menu.Name + ".priorities"));
 
                 var autoPriority =
-                    new MenuItem(Menu.Name + ".auto-priority", "Auto Priority").SetShared().SetValue(_autoPriority);
+                    new MenuItem(Menu.Name + ".auto-priority", "Auto Priority").SetShared()
+                        .SetValue(_autoPriority)
+                        .SetTooltip("5 = Highest Priority");
 
                 foreach (var enemy in Targets.Items)
                 {

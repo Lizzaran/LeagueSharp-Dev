@@ -62,6 +62,17 @@ namespace SFXTargetSelector
                    !Invulnerable.Check(target, damageType, ignoreShields);
         }
 
+        internal static DamageType ConvertDamageType(LeagueSharp.Common.TargetSelector.DamageType damageType)
+        {
+            return damageType == LeagueSharp.Common.TargetSelector.DamageType.True
+                ? DamageType.True
+                : (damageType == LeagueSharp.Common.TargetSelector.DamageType.Physical
+                    ? DamageType.Physical
+                    : (damageType == LeagueSharp.Common.TargetSelector.DamageType.Magical
+                        ? DamageType.Magical
+                        : DamageType.Mixed));
+        }
+
         internal static T GetMenuItemValue<T>(Menu menu, string name, int param = -1)
         {
             var defaultValue = default(T);

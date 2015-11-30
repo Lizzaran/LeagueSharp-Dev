@@ -234,7 +234,8 @@ namespace SFXChallenger.Champions
 
             TargetSelector.Weights.Register(
                 new TargetSelector.Weights.Item(
-                    "short-distance-ball", "Distance to Ball", 0, true, hero => hero.Distance(Ball.Position)));
+                    "short-distance-ball", "Distance to Ball", 0, true, hero => hero.Distance(Ball.Position),
+                    "Close to Ball = Higher Weight"));
 
             _ballPositionThickness = DrawingManager.Add("Ball Thickness", new Slider(7, 1, 10));
             _ballPositionRadius = DrawingManager.Add("Ball Radius", new Slider(95, 0, 300));

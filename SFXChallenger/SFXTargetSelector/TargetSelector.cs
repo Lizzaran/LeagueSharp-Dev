@@ -46,7 +46,12 @@ namespace SFXChallenger.SFXTargetSelector
         {
             LeagueSharp.Common.TargetSelector.CustomTS = true;
             GameObjects.Initialize();
-            CustomEvents.Game.OnGameLoad += delegate { Drawings.Initialize(); };
+            CustomEvents.Game.OnGameLoad += delegate
+            {
+                Drawings.Initialize();
+                Notifications.AddNotification(string.Format("{0} loaded.", Name), 7500);
+                Game.PrintChat(string.Format("<font color='#259FF8'>{0} v{1} loaded.</font>", Name, Version));
+            };
         }
 
         public static Menu Menu { get; private set; }
@@ -67,13 +72,7 @@ namespace SFXChallenger.SFXTargetSelector
             IEnumerable<Obj_AI_Hero> ignoreChampions = null)
         {
             return
-                GetTargets(
-                    spell.Range,
-                    (spell.DamageType == LeagueSharp.Common.TargetSelector.DamageType.True
-                        ? DamageType.True
-                        : (spell.DamageType == LeagueSharp.Common.TargetSelector.DamageType.Physical
-                            ? DamageType.Physical
-                            : DamageType.Magical)), ignoreShields, from, ignoreChampions)
+                GetTargets(spell.Range, Utils.ConvertDamageType(spell.DamageType), ignoreShields, from, ignoreChampions)
                     .FirstOrDefault(t => spell.GetPrediction(t).Hitchance != HitChance.Collision);
         }
 
@@ -86,11 +85,7 @@ namespace SFXChallenger.SFXTargetSelector
                 GetTarget(
                     (spell.Range + spell.Width +
                      Targets.Items.Select(e => e.Hero.BoundingRadius).DefaultIfEmpty(50).Max()),
-                    (spell.DamageType == LeagueSharp.Common.TargetSelector.DamageType.True
-                        ? DamageType.True
-                        : (spell.DamageType == LeagueSharp.Common.TargetSelector.DamageType.Physical
-                            ? DamageType.Physical
-                            : DamageType.Magical)), ignoreShields, from, ignoreChampions);
+                    Utils.ConvertDamageType(spell.DamageType), ignoreShields, from, ignoreChampions);
         }
 
         public static Obj_AI_Hero GetTarget(float range,

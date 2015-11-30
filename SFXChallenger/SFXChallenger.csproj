@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.9.5.40</AssemblyVersion>
+    <AssemblyVersion>0.9.5.43</AssemblyVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -172,6 +172,7 @@
     <Compile Include="SFXTargetSelector\EventArgs\ModesOnChange.cs" />
     <Compile Include="SFXTargetSelector\Extensions.cs" />
     <Compile Include="SFXTargetSelector\Focus.cs" />
+    <Compile Include="SFXTargetSelector\Helpers\SimpleCache.cs" />
     <Compile Include="SFXTargetSelector\Helpers\Utils.cs" />
     <Compile Include="SFXTargetSelector\Humanizer.cs" />
     <Compile Include="SFXTargetSelector\Modes.cs" />

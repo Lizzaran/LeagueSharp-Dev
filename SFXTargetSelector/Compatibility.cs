@@ -41,7 +41,7 @@ namespace SFXTargetSelector
             get { return Selected.Focus.Enabled ? Selected.Target : null; }
         }
 
-        [Obsolete("Use SFXTargetSelector.TargetSelector.Priorities.SetPriority instead.")]
+        [Obsolete("Use SFXTargetSelector.TargetSelector.Priorities.SetPriority(Obj_AI_Hero, int) instead.")]
         public static void SetPriority(Obj_AI_Hero hero, int newPriority)
         {
             Priorities.SetPriority(hero, newPriority);
@@ -53,11 +53,19 @@ namespace SFXTargetSelector
             return Priorities.GetPriority(hero);
         }
 
-        [Obsolete("Use SFXTargetSelector.Others.Invulnerable.Check instead.")]
+        [Obsolete("Use SFXTargetSelector.Others.Invulnerable.Check(Obj_AI_Hero, DamageType, bool) instead.")]
         public static bool IsInvulnerable(Obj_AI_Base target, DamageType damageType, bool ignoreShields = true)
         {
             var hero = target as Obj_AI_Hero;
             return hero != null && Invulnerable.Check(hero, damageType, ignoreShields);
+        }
+
+        [Obsolete("Use SFXTargetSelector.Others.Invulnerable.Check(Obj_AI_Hero, DamageType, bool) instead.")]
+        public static bool IsInvulnerable(Obj_AI_Base target,
+            LeagueSharp.Common.TargetSelector.DamageType damageType,
+            bool ignoreShields = true)
+        {
+            return IsInvulnerable(target, Utils.ConvertDamageType(damageType), ignoreShields);
         }
 
         [Obsolete("Use SFXTargetSelector.TargetSelector.Selected.Target instead.")]
@@ -75,7 +83,9 @@ namespace SFXTargetSelector
             return Selected.Target;
         }
 
-        [Obsolete("Use SFXTargetSelector.TargetSelector.GetTarget instead.")]
+        [Obsolete(
+            "Use SFXTargetSelector.TargetSelector.GetTarget(float, DamageType, bool, Vector3, IEnumerable<Obj_AI_Hero>) instead."
+            )]
         public static Obj_AI_Hero GetTarget(float range,
             DamageType damageType,
             bool ignoreShield,
@@ -85,7 +95,21 @@ namespace SFXTargetSelector
             return GetTarget(ObjectManager.Player, range, damageType, ignoreShield, ignoredChamps, rangeCheckFrom);
         }
 
-        [Obsolete("Use SFXTargetSelector.TargetSelector.GetTargetNoCollision instead.")]
+        [Obsolete(
+            "Use SFXTargetSelector.TargetSelector.GetTarget(float, DamageType, bool, Vector3, IEnumerable<Obj_AI_Hero>) instead."
+            )]
+        public static Obj_AI_Hero GetTarget(float range,
+            LeagueSharp.Common.TargetSelector.DamageType damageType,
+            bool ignoreShield,
+            IEnumerable<Obj_AI_Hero> ignoredChamps = null,
+            Vector3? rangeCheckFrom = null)
+        {
+            return GetTarget(range, Utils.ConvertDamageType(damageType), ignoreShield, ignoredChamps, rangeCheckFrom);
+        }
+
+        [Obsolete(
+            "Use SFXTargetSelector.TargetSelector.GetTargetNoCollision(Spell, bool, Vector3, IEnumerable<Obj_AI_Hero>) instead."
+            )]
         public static Obj_AI_Hero GetTargetNoCollision(Spell spell,
             bool ignoreShield,
             IEnumerable<Obj_AI_Hero> ignoredChamps = null,
@@ -99,7 +123,9 @@ namespace SFXTargetSelector
                 ignoredChamps);
         }
 
-        [Obsolete("Use SFXTargetSelector.TargetSelector.GetTarget instead.")]
+        [Obsolete(
+            "Use SFXTargetSelector.TargetSelector.GetTarget(float, DamageType, bool, Vector3, IEnumerable<Obj_AI_Hero>) instead."
+            )]
         public static Obj_AI_Hero GetTarget(Obj_AI_Base champion,
             float range,
             DamageType type,
@@ -108,11 +134,25 @@ namespace SFXTargetSelector
             Vector3? rangeCheckFrom = null)
         {
             return GetTarget(
-                range, DamageType.True, ignoreShieldSpells,
+                range, type, ignoreShieldSpells,
                 (rangeCheckFrom == null
                     ? default(Vector3)
                     : new Vector3(rangeCheckFrom.Value.X, rangeCheckFrom.Value.Y, rangeCheckFrom.Value.Z)),
                 ignoredChamps);
+        }
+
+        [Obsolete(
+            "Use SFXTargetSelector.TargetSelector.GetTarget(float, DamageType, bool, Vector3, IEnumerable<Obj_AI_Hero>) instead."
+            )]
+        public static Obj_AI_Hero GetTarget(Obj_AI_Base champion,
+            float range,
+            LeagueSharp.Common.TargetSelector.DamageType type,
+            bool ignoreShieldSpells,
+            IEnumerable<Obj_AI_Hero> ignoredChamps = null,
+            Vector3? rangeCheckFrom = null)
+        {
+            return GetTarget(
+                champion, range, Utils.ConvertDamageType(type), ignoreShieldSpells, ignoredChamps, rangeCheckFrom);
         }
     }
 }
