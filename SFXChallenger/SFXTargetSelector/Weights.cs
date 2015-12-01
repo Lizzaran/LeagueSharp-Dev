@@ -312,13 +312,13 @@ namespace SFXChallenger.SFXTargetSelector
                 bool simulation = false,
                 bool forceRealTime = false)
             {
-                if (item.Weight <= MinWeight)
+                var minValue = simulation ? item.SimulationMinValue : item.MinValue;
+                var maxValue = simulation ? item.SimulationMaxValue : item.MaxValue;
+                if (item.Weight <= MinWeight || maxValue <= 0)
                 {
                     return MinWeight;
                 }
-                var minValue = simulation ? item.SimulationMinValue : item.MinValue;
-                var maxValue = simulation ? item.SimulationMaxValue : item.MaxValue;
-                var minWeight = item.Weight / (maxValue / minValue);
+                var minWeight = minValue > 0 ? item.Weight / (maxValue / minValue) : MinWeight;
                 var weight = item.Inverted
                     ? (item.Weight - item.Weight * GetValue(item, target, forceRealTime) / maxValue + minWeight)
                     : (item.Weight * GetValue(item, target, forceRealTime) / maxValue);
