@@ -24,7 +24,7 @@
     <AssemblyVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyVersionSettings>
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
-    <AssemblyVersion>0.9.0.3</AssemblyVersion>
+    <AssemblyVersion>0.9.0.5</AssemblyVersion>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -116,7 +116,6 @@
     <Compile Include="Features\Drawings\Clock.cs" />
     <Compile Include="Features\Drawings\Drawings.cs" />
     <Compile Include="Features\Drawings\LaneMomentum.cs" />
-    <Compile Include="Features\Drawings\SafeJungleSpot.cs" />
     <Compile Include="Features\Drawings\WallJumpSpot.cs" />
     <Compile Include="Features\Events\AutoLeveler.cs" />
     <Compile Include="Features\Activators\Potion.cs" />

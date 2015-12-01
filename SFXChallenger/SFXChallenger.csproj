@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.9.5.43</AssemblyVersion>
+    <AssemblyVersion>0.9.5.44</AssemblyVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -111,6 +111,7 @@
     <Compile Include="Global.cs" />
     <Compile Include="Helpers\CPrediction.cs" />
     <Compile Include="Helpers\DynamicInitializer.cs" />
+    <Compile Include="Helpers\MDrawing.cs" />
     <Compile Include="Helpers\Report.cs" />
     <Compile Include="Helpers\Utils.cs" />
     <Compile Include="Library\Draw.cs" />

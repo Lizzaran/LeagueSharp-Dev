@@ -36,6 +36,7 @@ namespace SFXChallenger
     {
         public static string Prefix = "SFX";
         public static string Name = "SFXChallenger";
+        public static string DefaultFont = "Calibri";
         public static IChampion Champion;
         public static ILogger Logger;
         public static string BaseDir = AppDomain.CurrentDomain.BaseDirectory;

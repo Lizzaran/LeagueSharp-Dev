@@ -30,18 +30,24 @@ using LeagueSharp.Common;
 using SFXChallenger.Abstracts;
 using SFXChallenger.Args;
 using SFXChallenger.Enumerations;
+using SFXChallenger.Helpers;
 using SFXChallenger.Library;
+using SFXChallenger.Library.Extensions.SharpDX;
 using SFXChallenger.Library.Logger;
 using SFXChallenger.Managers;
 using SFXChallenger.SFXTargetSelector.Others;
 using SharpDX;
+using SharpDX.Direct3D9;
 using Collision = LeagueSharp.Common.Collision;
+using Color = System.Drawing.Color;
 using ItemData = LeagueSharp.Common.Data.ItemData;
 using MinionManager = SFXChallenger.Library.MinionManager;
 using MinionOrderTypes = SFXChallenger.Library.MinionOrderTypes;
 using MinionTeam = SFXChallenger.Library.MinionTeam;
 using MinionTypes = SFXChallenger.Library.MinionTypes;
 using Orbwalking = SFXChallenger.SFXTargetSelector.Orbwalking;
+using ResourceManager = SFXChallenger.Managers.ResourceManager;
+using ResourceType = SFXChallenger.Enumerations.ResourceType;
 using Spell = SFXChallenger.Wrappers.Spell;
 using TargetSelector = SFXChallenger.SFXTargetSelector.TargetSelector;
 using Utils = SFXChallenger.Helpers.Utils;
@@ -52,6 +58,8 @@ namespace SFXChallenger.Champions
 {
     internal class Kalista : Champion
     {
+        private MenuItem _ePercent;
+        private Font _font;
         private float _lastECast;
         private Obj_AI_Hero _soulbound;
 
@@ -67,9 +75,16 @@ namespace SFXChallenger.Champions
 
         protected override void OnLoad()
         {
+            _font = MDrawing.GetFont(23);
+
             Obj_AI_Base.OnProcessSpellCast += OnObjAiBaseProcessSpellCast;
             Spellbook.OnCastSpell += OnSpellbookCastSpell;
             Orbwalking.OnNonKillableMinion += OnOrbwalkingNonKillableMinion;
+            Drawing.OnDraw += OnDrawingDraw;
+
+            IncomingDamageManager.RemoveDelay = 500;
+            IncomingDamageManager.Skillshots = true;
+            IncomingDamageManager.AddChampion(Player);
 
             CheckSoulbound();
         }
@@ -216,6 +231,7 @@ namespace SFXChallenger.Champions
                     DefaultValue = 30
                 });
             miscMenu.AddItem(new MenuItem(miscMenu.Name + ".e-reset", "E Harass Reset").SetValue(true));
+            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".e-death", "E Before Death").SetValue(true));
             miscMenu.AddItem(
                 new MenuItem(miscMenu.Name + ".w-baron", "Hotkey W Baron").SetValue(new KeyBind('J', KeyBindType.Press)));
             miscMenu.AddItem(
@@ -227,6 +243,9 @@ namespace SFXChallenger.Champions
             IndicatorManager.Add(W, true, false);
             IndicatorManager.Add("E", Rend.GetDamage);
             IndicatorManager.Finale();
+
+            _ePercent = DrawingManager.Add("E Percent Damage", new Circle(false, Color.DodgerBlue));
+
 
             var lowHealthWeight = TargetSelector.Weights.GetItem("low-health");
             if (lowHealthWeight != null)
@@ -320,53 +339,56 @@ namespace SFXChallenger.Champions
                     }
                 }
 
-                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear ||
-                    Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
+                var eSiege = (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear ||
+                              Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit) &&
+                             Menu.Item(Menu.Name + ".lasthit.e-siege").GetValue<bool>();
+                var eTurret = (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear ||
+                               Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit) &&
+                              Menu.Item(Menu.Name + ".lasthit.e-turret").GetValue<bool>();
+                var eReset = Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.None &&
+                             Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.Flee &&
+                             Orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.Combo &&
+                             Menu.Item(Menu.Name + ".miscellaneous.e-reset").GetValue<bool>();
+
+                IEnumerable<Obj_AI_Minion> minions = new HashSet<Obj_AI_Minion>();
+                if (eSiege || eTurret || eReset)
                 {
-                    var eSiege = Menu.Item(Menu.Name + ".lasthit.e-siege").GetValue<bool>();
-                    var eTurret = Menu.Item(Menu.Name + ".lasthit.e-turret").GetValue<bool>();
-                    var eReset = Menu.Item(Menu.Name + ".miscellaneous.e-reset").GetValue<bool>();
+                    minions =
+                        GameObjects.EnemyMinions.Where(
+                            e => e.IsValidTarget(E.Range) && Rend.IsKillable(e, e.HealthPercent < 25));
+                }
 
-                    IEnumerable<Obj_AI_Minion> minions = new HashSet<Obj_AI_Minion>();
-                    if (eSiege || eTurret || eReset)
+                if (ResourceManager.Check("lasthit"))
+                {
+                    if (eSiege)
                     {
-                        minions =
-                            GameObjects.EnemyMinions.Where(
-                                e => e.IsValidTarget(E.Range) && Rend.IsKillable(e, e.HealthPercent < 25));
-                    }
-
-                    if (ResourceManager.Check("lasthit"))
-                    {
-                        if (eSiege)
-                        {
-                            if (
-                                minions.Any(
-                                    m =>
-                                        (m.CharData.BaseSkinName.Contains("MinionSiege") ||
-                                         m.CharData.BaseSkinName.Contains("Super"))))
-                            {
-                                CastE();
-                                return;
-                            }
-                        }
-                        if (eTurret)
-                        {
-                            if (minions.Any(m => Utils.UnderAllyTurret(m.Position)))
-                            {
-                                CastE();
-                                return;
-                            }
-                        }
-                    }
-
-                    if (eReset && E.IsReady() && ResourceManager.Check("misc") &&
-                        GameObjects.EnemyHeroes.Any(e => Rend.HasBuff(e) && e.IsValidTarget(E.Range)))
-                    {
-                        if (minions.Any())
+                        if (
+                            minions.Any(
+                                m =>
+                                    (m.CharData.BaseSkinName.Contains("MinionSiege") ||
+                                     m.CharData.BaseSkinName.Contains("Super"))))
                         {
                             CastE();
                             return;
                         }
+                    }
+                    if (eTurret)
+                    {
+                        if (minions.Any(m => Utils.UnderAllyTurret(m.Position)))
+                        {
+                            CastE();
+                            return;
+                        }
+                    }
+                }
+
+                if (eReset && E.IsReady() && ResourceManager.Check("misc") &&
+                    GameObjects.EnemyHeroes.Any(e => Rend.HasBuff(e) && e.IsValidTarget(E.Range)))
+                {
+                    if (minions.Any())
+                    {
+                        CastE();
+                        return;
                     }
                 }
             }
@@ -374,6 +396,14 @@ namespace SFXChallenger.Champions
             if (ShouldSave())
             {
                 R.Cast();
+            }
+
+            if (E.IsReady() && Menu.Item(Menu.Name + ".miscellaneous.e-death").GetValue<bool>())
+            {
+                if (IncomingDamageManager.GetDamage(Player) > Player.Health && GameObjects.EnemyHeroes.Any(Rend.HasBuff))
+                {
+                    CastE();
+                }
             }
         }
 
@@ -505,8 +535,6 @@ namespace SFXChallenger.Champions
                                         b.Name.Equals("kalistacoopstrikeally", StringComparison.OrdinalIgnoreCase)));
                     if (_soulbound != null)
                     {
-                        IncomingDamageManager.RemoveDelay = 500;
-                        IncomingDamageManager.Skillshots = true;
                         IncomingDamageManager.AddChampion(_soulbound);
                     }
                 }
@@ -546,13 +574,15 @@ namespace SFXChallenger.Champions
                 var target = TargetSelector.GetTarget(E, false);
                 if (target != null && Rend.HasBuff(target))
                 {
+                    if (Rend.IsKillable(target, false))
+                    {
+                        CastE();
+                    }
                     if (target.Distance(Player) > Orbwalking.GetRealAutoAttackRange(target))
                     {
                         if (
                             GameObjects.EnemyMinions.Any(
-                                m =>
-                                    m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)) &&
-                                    Rend.IsKillable(m, (m.HealthPercent < 10))))
+                                m => m.IsValidTarget(E.Range * 0.95f) && Rend.IsKillable(m, (m.HealthPercent < 10))))
                         {
                             CastE();
                         }
@@ -585,9 +615,10 @@ namespace SFXChallenger.Champions
                         {
                             var buff = Rend.GetBuff(target);
                             if (buff != null &&
-                                buff.Count >= Menu.Item(Menu.Name + ".combo.e-min").GetValue<Slider>().Value)
+                                buff.Count >= Menu.Item(Menu.Name + ".harass.e-min").GetValue<Slider>().Value)
                             {
-                                if (target.Distance(Player) > E.Range * 0.8 && !target.IsFacing(Player))
+                                if (target.Distance(Player) > E.Range * 0.8 && !target.IsFacing(Player) ||
+                                    buff.EndTime - Game.Time < 0.3)
                                 {
                                     CastE();
                                 }
@@ -636,23 +667,60 @@ namespace SFXChallenger.Champions
                     }
                 }
             }
+
             if (Menu.Item(Menu.Name + ".harass.e").GetValue<bool>() && E.IsReady() && ResourceManager.Check("harass-e"))
             {
-                foreach (var enemy in GameObjects.EnemyHeroes.Where(e => E.IsInRange(e)))
+                var target = TargetSelector.GetTarget(E, false);
+                if (target != null && Rend.HasBuff(target))
                 {
-                    if (Rend.IsKillable(enemy, enemy.HealthPercent < 10))
+                    if (Rend.IsKillable(target, false))
                     {
                         CastE();
                     }
-                    else
+                    if (target.Distance(Player) > Orbwalking.GetRealAutoAttackRange(target))
                     {
-                        var buff = Rend.GetBuff(enemy);
-                        if (buff != null &&
-                            buff.Count >= Menu.Item(Menu.Name + ".harass.e-min").GetValue<Slider>().Value)
+                        if (
+                            GameObjects.EnemyMinions.Any(
+                                m => m.IsValidTarget(E.Range * 0.95f) && Rend.IsKillable(m, (m.HealthPercent < 10))))
                         {
-                            if (enemy.Distance(Player) > E.Range * 0.8 || buff.EndTime - Game.Time < 0.3)
+                            CastE();
+                        }
+                        else
+                        {
+                            var dashObjects =
+                                GetDashObjects(
+                                    GameObjects.EnemyMinions.Where(
+                                        m => m.IsValidTarget(Orbwalking.GetRealAutoAttackRange(m)))
+                                        .Select(e => e as Obj_AI_Base)
+                                        .ToList());
+                            var minion =
+                                dashObjects.FirstOrDefault(
+                                    m =>
+                                        m.Health > Player.GetAutoAttackDamage(m) * 1.1f &&
+                                        m.Health < Player.GetAutoAttackDamage(m) + Rend.GetDamage(m, 1));
+                            if (minion != null)
                             {
-                                CastE();
+                                Orbwalker.ForceTarget(minion);
+                            }
+                        }
+                    }
+                    else if (E.IsInRange(target))
+                    {
+                        if (Rend.IsKillable(target, false))
+                        {
+                            CastE();
+                        }
+                        else
+                        {
+                            var buff = Rend.GetBuff(target);
+                            if (buff != null &&
+                                buff.Count >= Menu.Item(Menu.Name + ".harass.e-min").GetValue<Slider>().Value)
+                            {
+                                if (target.Distance(Player) > E.Range * 0.8 && !target.IsFacing(Player) ||
+                                    buff.EndTime - Game.Time < 0.3)
+                                {
+                                    CastE();
+                                }
                             }
                         }
                     }
@@ -894,6 +962,43 @@ namespace SFXChallenger.Champions
             return null;
         }
 
+        private void OnDrawingDraw(EventArgs args)
+        {
+            if (!Utils.ShouldDraw() || _ePercent == null)
+            {
+                return;
+            }
+            var ePercentCircle = _ePercent.GetValue<Circle>();
+            if (ePercentCircle.Active && E.IsReady())
+            {
+                var sharpColor = new SharpDX.Color(
+                    ePercentCircle.Color.R, ePercentCircle.Color.G, ePercentCircle.Color.B);
+                var maxRange = E.Range * 1.5f;
+                var targets = GameObjects.EnemyHeroes.Cast<Obj_AI_Base>().Concat(GameObjects.Jungle);
+
+                foreach (var enemy in
+                    targets.Where(
+                        e =>
+                            e.IsValidTarget(maxRange) && e.Position.IsOnScreen() &&
+                            (e is Obj_AI_Hero || Utils.IsBigJungle(e))))
+                {
+                    var damage = Rend.GetDamage(enemy);
+                    if (damage > 0)
+                    {
+                        var percent = (int) (damage / enemy.Health * 100);
+                        if (percent > 0)
+                        {
+                            var screen = Drawing.WorldToScreen(enemy.Position);
+                            var position = enemy.Team == GameObjectTeam.Neutral
+                                ? new Vector2(screen.X, screen.Y + 30)
+                                : new Vector2(enemy.HPBarPosition.X + 73, enemy.HPBarPosition.Y - 28);
+                            _font.DrawTextCentered(percent + " %", position, sharpColor);
+                        }
+                    }
+                }
+            }
+        }
+
         internal class Rend
         {
             private static readonly float[] Damage = { 20, 30, 40, 50, 60 };
@@ -975,6 +1080,8 @@ namespace SFXChallenger.Champions
                                 damage *= 0.5f;
                             }
                         }
+                        damage -= Math.Min(
+                            18f, ObjectManager.Player.Level * (target.Team != GameObjectTeam.Neutral ? 2f : 1f));
                     }
                     var hero = target as Obj_AI_Hero;
                     if (hero != null)

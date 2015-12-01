@@ -86,6 +86,19 @@ namespace SFXUtility.Features.Drawings
             OnLoad();
         }
 
+        protected override List<Utility.Map.MapType> MapBlacklist
+        {
+            get
+            {
+                return new List<Utility.Map.MapType>
+                {
+                    Utility.Map.MapType.CrystalScar,
+                    Utility.Map.MapType.HowlingAbyss,
+                    Utility.Map.MapType.TwistedTreeline
+                };
+            }
+        }
+
         public override string Name
         {
             get { return "Lane Momentum"; }
@@ -298,12 +311,6 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                if (Utility.Map.GetMap().Type != Utility.Map.MapType.SummonersRift)
-                {
-                    OnUnload(null, new UnloadEventArgs(true));
-                    return;
-                }
-
                 #region Regions
 
                 _topRegion.Add(new Vector3(1576.24f, 1902.23f, 94.70f));

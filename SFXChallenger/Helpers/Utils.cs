@@ -23,10 +23,12 @@
 #region
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SFXChallenger.Library;
+using SFXChallenger.Library.Extensions.NET;
 using SFXChallenger.Library.Logger;
 using SharpDX;
 
@@ -36,6 +38,24 @@ namespace SFXChallenger.Helpers
 {
     public static class Utils
     {
+        private static readonly List<string> BigMinionList;
+
+        static Utils()
+        {
+            BigMinionList = new List<string>
+            {
+                "SRU_Blue1.1.1",
+                "SRU_Blue7.1.1",
+                "SRU_Blue7.1.1",
+                "SRU_Red4.1.1",
+                "SRU_Red10.1.1",
+                "SRU_Dragon6.1.1",
+                "SRU_RiftHerald",
+                "SRU_Baron12.1.1",
+                "TT_Spiderboss8.1.1"
+            };
+        }
+
         public static bool IsNearTurret(this Obj_AI_Base target, float extraRange = 300f)
         {
             try
@@ -288,6 +308,12 @@ namespace SFXChallenger.Helpers
                 }
             }
             return false;
+        }
+
+        public static bool IsBigJungle(Obj_AI_Base minion)
+        {
+            return minion != null && minion.IsValid && minion.Team == GameObjectTeam.Neutral &&
+                   BigMinionList.Any(b => minion.Name.Contains(b, StringComparison.OrdinalIgnoreCase));
         }
     }
 }

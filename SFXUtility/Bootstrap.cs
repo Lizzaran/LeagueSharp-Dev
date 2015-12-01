@@ -118,7 +118,6 @@ namespace SFXUtility
                             new LasthitMarker(drawings),
                             new PerfectWard(drawings),
                             new Range(drawings),
-                            new SafeJungleSpot(drawings),
                             new WallJumpSpot(drawings),
                             new Waypoint(drawings),
                             new AutoLeveler(events),

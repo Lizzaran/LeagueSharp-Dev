@@ -53,6 +53,18 @@ namespace SFXUtility.Features.Timers
             OnLoad();
         }
 
+        protected override List<Utility.Map.MapType> MapBlacklist
+        {
+            get
+            {
+                return new List<Utility.Map.MapType>
+                {
+                    Utility.Map.MapType.CrystalScar,
+                    Utility.Map.MapType.HowlingAbyss
+                };
+            }
+        }
+
         public override string Name
         {
             get { return "Jungle"; }

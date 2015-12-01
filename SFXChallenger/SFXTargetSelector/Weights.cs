@@ -138,7 +138,7 @@ namespace SFXChallenger.SFXTargetSelector
                         new Item(
                             "focus-me", "Focus Me", 0, false, delegate(Obj_AI_Hero t)
                             {
-                                var entry = Aggro.GetSenderTargetEntry(t, ObjectManager.Player);
+                                var entry = Aggro.GetSenderTargetItem(t, ObjectManager.Player);
                                 return entry != null ? entry.Value : 0;
                             }, "Checks who is targeting you.")
                     });

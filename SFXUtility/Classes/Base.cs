@@ -23,6 +23,8 @@
 #region
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using LeagueSharp.Common;
 using SFXUtility.Library.Extensions.NET;
 using SFXUtility.Library.Logger;
@@ -43,6 +45,12 @@ namespace SFXUtility.Classes
         public bool Initialized { get; protected set; }
         public bool Unloaded { get; protected set; }
         public Menu Menu { get; set; }
+
+        protected virtual List<Utility.Map.MapType> MapBlacklist
+        {
+            get { return new List<Utility.Map.MapType>(); }
+        }
+
         public event EventHandler OnInitialized;
         public event EventHandler OnEnabled;
         public event EventHandler OnDisabled;
@@ -76,6 +84,12 @@ namespace SFXUtility.Classes
             {
                 if (!Initialized && !Unloaded)
                 {
+                    var map = Utility.Map.GetMap().Type;
+                    if (MapBlacklist.Any(m => m.Equals(map)))
+                    {
+                        OnUnload(null, new UnloadEventArgs(true));
+                        return;
+                    }
                     Initialized = true;
                     OnInitialized.RaiseEvent(this, null);
                 }

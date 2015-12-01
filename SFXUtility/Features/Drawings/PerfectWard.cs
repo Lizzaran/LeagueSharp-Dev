@@ -55,6 +55,8 @@ namespace SFXUtility.Features.Drawings
             ItemData.Farsight_Alteration.Id
         };
 
+        #region Spots
+
         private readonly List<WardSpot> _wardSpots = new List<WardSpot>
         {
             new WardSpot(new Vector3(9551.15f, 137.19f, 60.83f)),
@@ -189,6 +191,8 @@ namespace SFXUtility.Features.Drawings
                 new Vector3(8323.9f, 12457.76f, 56.48f), new Vector3(8122.0f, 13206.0f, 52.84f), true)
         };
 
+        #endregion Spots
+
         private float _lastCheck = Environment.TickCount;
         private SpellSlot _lastWardSlot = default(SpellSlot);
         private WardSpot _lastWardSpot = default(WardSpot);
@@ -196,6 +200,19 @@ namespace SFXUtility.Features.Drawings
         public PerfectWard(Drawings parent) : base(parent)
         {
             OnLoad();
+        }
+
+        protected override List<Utility.Map.MapType> MapBlacklist
+        {
+            get
+            {
+                return new List<Utility.Map.MapType>
+                {
+                    Utility.Map.MapType.CrystalScar,
+                    Utility.Map.MapType.HowlingAbyss,
+                    Utility.Map.MapType.TwistedTreeline
+                };
+            }
         }
 
         public override string Name

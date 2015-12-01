@@ -46,6 +46,19 @@ namespace SFXUtility.Features.Drawings
             OnLoad();
         }
 
+        protected override List<Utility.Map.MapType> MapBlacklist
+        {
+            get
+            {
+                return new List<Utility.Map.MapType>
+                {
+                    Utility.Map.MapType.CrystalScar,
+                    Utility.Map.MapType.HowlingAbyss,
+                    Utility.Map.MapType.TwistedTreeline
+                };
+            }
+        }
+
         public override string Name
         {
             get { return "Wall Jump Spot"; }
@@ -115,12 +128,6 @@ namespace SFXUtility.Features.Drawings
         {
             try
             {
-                if (Utility.Map.GetMap().Type != Utility.Map.MapType.SummonersRift)
-                {
-                    OnUnload(null, new UnloadEventArgs(true));
-                    return;
-                }
-
                 SetupPositions();
 
                 if (_walljumpSpots.Count <= 0)

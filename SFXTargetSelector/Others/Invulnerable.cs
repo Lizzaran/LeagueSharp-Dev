@@ -53,6 +53,8 @@ namespace SFXTargetSelector.Others
                 new Item("Kayle", "JudicatorIntervention", null, false),
                 new Item("Fizz", "fizztrickslamsounddummy", null, false),
                 new Item("Vladimir", "VladimirSanguinePool", null, false),
+                new Item("Fiora", "FioraW", null, false),
+                new Item("Jax", "JaxCounterStrike", DamageType.Physical, false),
                 new Item(null, "BlackShield", DamageType.Magical, true),
                 new Item(null, "BansheesVeil", DamageType.Magical, true),
                 new Item(null, "KindredrNoDeathBuff", null, false, 10, (target, type) => target.HealthPercent <= 10),

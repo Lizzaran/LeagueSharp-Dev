@@ -58,19 +58,19 @@ namespace SFXTargetSelector
                     set { _fadeTime = value; }
                 }
 
-                public static Item GetSenderTargetEntry(Obj_AI_Base sender, Obj_AI_Base target)
+                public static Item GetSenderTargetItem(Obj_AI_Base sender, Obj_AI_Base target)
                 {
                     return
-                        GetSenderEntries(sender)
+                        GetSenderItems(sender)
                             .FirstOrDefault(entry => entry.Target.Hero.NetworkId.Equals(target.NetworkId));
                 }
 
-                public static IEnumerable<Item> GetSenderEntries(Obj_AI_Base sender)
+                public static IEnumerable<Item> GetSenderItems(Obj_AI_Base sender)
                 {
                     return PItems.Where(i => i.Key.Equals(sender.NetworkId)).Select(i => i.Value);
                 }
 
-                public static IEnumerable<Item> GetTargetEntries(Obj_AI_Base target)
+                public static IEnumerable<Item> GetTargetItems(Obj_AI_Base target)
                 {
                     return PItems.Where(i => i.Value.Target.Hero.NetworkId.Equals(target.NetworkId))
                         .Select(i => i.Value);
