@@ -317,6 +317,15 @@ namespace SFXChallenger.Champions
         {
             if (E.IsReady())
             {
+                if (Menu.Item(Menu.Name + ".miscellaneous.e-death").GetValue<bool>())
+                {
+                    if (IncomingDamageManager.GetDamage(Player) > Player.Health &&
+                        GameObjects.EnemyHeroes.Any(e => e.IsValidTarget(E.Range) && Rend.HasBuff(e)))
+                    {
+                        CastE();
+                    }
+                }
+
                 var eBig = Menu.Item(Menu.Name + ".lasthit.e-big").GetValue<bool>();
                 var eJungle = Menu.Item(Menu.Name + ".lasthit.e-jungle").GetValue<bool>();
                 if (eBig || eJungle)
@@ -396,14 +405,6 @@ namespace SFXChallenger.Champions
             if (ShouldSave())
             {
                 R.Cast();
-            }
-
-            if (E.IsReady() && Menu.Item(Menu.Name + ".miscellaneous.e-death").GetValue<bool>())
-            {
-                if (IncomingDamageManager.GetDamage(Player) > Player.Health && GameObjects.EnemyHeroes.Any(Rend.HasBuff))
-                {
-                    CastE();
-                }
             }
         }
 
