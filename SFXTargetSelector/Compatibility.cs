@@ -117,10 +117,9 @@ namespace SFXTargetSelector
         {
             return GetTargetNoCollision(
                 spell, ignoreShield,
-                (rangeCheckFrom == null
+                rangeCheckFrom == null
                     ? default(Vector3)
-                    : new Vector3(rangeCheckFrom.Value.X, rangeCheckFrom.Value.Y, rangeCheckFrom.Value.Z)),
-                ignoredChamps);
+                    : new Vector3(rangeCheckFrom.Value.X, rangeCheckFrom.Value.Y, rangeCheckFrom.Value.Z), ignoredChamps);
         }
 
         [Obsolete(
@@ -135,10 +134,9 @@ namespace SFXTargetSelector
         {
             return GetTarget(
                 range, type, ignoreShieldSpells,
-                (rangeCheckFrom == null
+                rangeCheckFrom == null
                     ? default(Vector3)
-                    : new Vector3(rangeCheckFrom.Value.X, rangeCheckFrom.Value.Y, rangeCheckFrom.Value.Z)),
-                ignoredChamps);
+                    : new Vector3(rangeCheckFrom.Value.X, rangeCheckFrom.Value.Y, rangeCheckFrom.Value.Z), ignoredChamps);
         }
 
         [Obsolete(

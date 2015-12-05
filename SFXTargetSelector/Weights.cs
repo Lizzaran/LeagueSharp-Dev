@@ -81,7 +81,7 @@ namespace SFXTargetSelector
                                         return HeroManager.Allies.Select(a => a.Armor).DefaultIfEmpty(0).Average() *
                                                t.PercentArmorPenetrationMod - t.FlatArmorPenetrationMod;
                                     });
-                                return (ad * (100 / (100 + (averageArmor ?? 0)))) *
+                                return ad * (100 / (100 + (averageArmor ?? 0))) *
                                        (1f / ObjectManager.Player.AttackDelay);
                             }, "AD + Pen + Crit + Speed = Higher Weight"),
                         new Item(
@@ -320,8 +320,8 @@ namespace SFXTargetSelector
                 }
                 var minWeight = minValue > 0 ? item.Weight / (maxValue / minValue) : MinWeight;
                 var weight = item.Inverted
-                    ? (item.Weight - item.Weight * GetValue(item, target, forceRealTime) / maxValue + minWeight)
-                    : (item.Weight * GetValue(item, target, forceRealTime) / maxValue);
+                    ? item.Weight - item.Weight * GetValue(item, target, forceRealTime) / maxValue + minWeight
+                    : item.Weight * GetValue(item, target, forceRealTime) / maxValue;
                 return float.IsNaN(weight) || float.IsInfinity(weight)
                     ? MinWeight
                     : Math.Min(MaxWeight, Math.Min(item.Weight, Math.Max(MinWeight, Math.Max(weight, minWeight))));

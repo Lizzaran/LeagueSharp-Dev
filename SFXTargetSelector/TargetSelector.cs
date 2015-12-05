@@ -83,8 +83,8 @@ namespace SFXTargetSelector
         {
             return
                 GetTarget(
-                    (spell.Range + spell.Width +
-                     Targets.Items.Select(e => e.Hero.BoundingRadius).DefaultIfEmpty(50).Max()),
+                    spell.Range + spell.Width +
+                    Targets.Items.Select(e => e.Hero.BoundingRadius).DefaultIfEmpty(50).Max(),
                     Utils.ConvertDamageType(spell.DamageType), ignoreShields, from, ignoreChampions);
         }
 

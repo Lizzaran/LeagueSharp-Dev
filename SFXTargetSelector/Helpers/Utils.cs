@@ -57,8 +57,8 @@ namespace SFXTargetSelector
             Vector3 from = default(Vector3))
         {
             return target.IsValidTarget() &&
-                   target.Distance((from.Equals(default(Vector3)) ? ObjectManager.Player.ServerPosition : from), true) <
-                   Math.Pow((range <= 0 ? Orbwalking.GetRealAutoAttackRange(target) : range), 2) &&
+                   target.Distance(@from.Equals(default(Vector3)) ? ObjectManager.Player.ServerPosition : @from, true) <
+                   Math.Pow(range <= 0 ? Orbwalking.GetRealAutoAttackRange(target) : range, 2) &&
                    !Invulnerable.Check(target, damageType, ignoreShields);
         }
 
@@ -95,15 +95,15 @@ namespace SFXTargetSelector
                         var circle = (Circle) oldValue;
                         if (defaultValue is bool)
                         {
-                            return (T) ((object) circle.Active);
+                            return (T) (object) circle.Active;
                         }
                         if (defaultValue is Color)
                         {
-                            return (T) ((object) circle.Color);
+                            return (T) (object) circle.Color;
                         }
                         if (defaultValue is float)
                         {
-                            return (T) ((object) circle.Radius);
+                            return (T) (object) circle.Radius;
                         }
                     }
                     if (oldValue is Slider)
@@ -114,14 +114,14 @@ namespace SFXTargetSelector
                             switch (param)
                             {
                                 case 0:
-                                    return (T) ((object) slider.Value);
+                                    return (T) (object) slider.Value;
                                 case 1:
-                                    return (T) ((object) slider.MinValue);
+                                    return (T) (object) slider.MinValue;
                                 case 2:
-                                    return (T) ((object) slider.MaxValue);
+                                    return (T) (object) slider.MaxValue;
                             }
                         }
-                        return (T) ((object) slider.Value);
+                        return (T) (object) slider.Value;
                     }
                     if (oldValue is KeyBind)
                     {
@@ -131,14 +131,14 @@ namespace SFXTargetSelector
                             switch (param)
                             {
                                 case 0:
-                                    return (T) ((object) keybind.Key);
+                                    return (T) (object) keybind.Key;
                                 case 1:
-                                    return (T) ((object) keybind.Type);
+                                    return (T) (object) keybind.Type;
                                 case 2:
-                                    return (T) ((object) keybind.Active);
+                                    return (T) (object) keybind.Active;
                             }
                         }
-                        return (T) ((object) keybind.Key);
+                        return (T) (object) keybind.Key;
                     }
                     if (oldValue is StringList)
                     {
@@ -148,12 +148,12 @@ namespace SFXTargetSelector
                             switch (param)
                             {
                                 case 0:
-                                    return (T) ((object) stringList.SList);
+                                    return (T) (object) stringList.SList;
                                 case 1:
-                                    return (T) ((object) stringList.SelectedIndex);
+                                    return (T) (object) stringList.SelectedIndex;
                             }
                         }
-                        return (T) ((object) stringList.SList);
+                        return (T) (object) stringList.SList;
                     }
                 }
             }

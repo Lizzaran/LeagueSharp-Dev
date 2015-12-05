@@ -125,8 +125,7 @@ namespace SFXTargetSelector
         public enum OrbwalkingRandomize
         {
             Move,
-            Attack,
-            AttackSpeed
+            Attack
         }
 
         /// <summary>
@@ -242,6 +241,8 @@ namespace SFXTargetSelector
         ///     The random
         /// </summary>
         private static readonly Random Random = new Random(DateTime.Now.Millisecond);
+
+        private static int _autoattackCounter;
 
         /// <summary>
         ///     Initializes static members of the <see cref="Orbwalking" /> class.
@@ -425,7 +426,7 @@ namespace SFXTargetSelector
             var myRange = GetRealAutoAttackRange(target);
             return
                 Vector2.DistanceSquared(
-                    (target is Obj_AI_Base) ? ((Obj_AI_Base) target).ServerPosition.To2D() : target.Position.To2D(),
+                    target is Obj_AI_Base ? ((Obj_AI_Base) target).ServerPosition.To2D() : target.Position.To2D(),
                     Player.ServerPosition.To2D()) <= myRange * myRange;
         }
 
@@ -450,7 +451,8 @@ namespace SFXTargetSelector
         {
             if (Player.ChampionName == "Graves" && Attack)
             {
-                if (LeagueSharp.Common.Utils.GameTimeTickCount + Game.Ping / 2 + 25 >= LastAaTick + 1500 &&
+                var attackDelay = 1.0740296828d * 1000 * Player.AttackDelay - 716.2381256175d;
+                if (LeagueSharp.Common.Utils.GameTimeTickCount + Game.Ping / 2 + 25 >= LastAaTick + attackDelay &&
                     Player.HasBuff("GravesBasicAttackAmmo1"))
                 {
                     return true;
@@ -458,22 +460,23 @@ namespace SFXTargetSelector
                 return false;
             }
             return LeagueSharp.Common.Utils.GameTimeTickCount + Game.Ping / 2 + 25 >=
-                   LastAaTick + Orbwalker.AttackSpeedDelay * 1000 + extraDelay && Attack;
+                   LastAaTick + Player.AttackDelay * 1000 + extraDelay && Attack;
         }
 
         /// <summary>
         ///     Returns true if moving won't cancel the auto-attack.
         /// </summary>
         /// <param name="extraWindup">The extra windup.</param>
+        /// <param name="disableMissileCheck">Disable missile check.</param>
         /// <returns><c>true</c> if this instance can move the specified extra windup; otherwise, <c>false</c>.</returns>
-        public static bool CanMove(float extraWindup)
+        public static bool CanMove(float extraWindup, bool disableMissileCheck = false)
         {
             if (!Move)
             {
                 return false;
             }
 
-            if (_missileLaunched && Orbwalker.MissileCheck)
+            if (_missileLaunched && Orbwalker.MissileCheck && !disableMissileCheck)
             {
                 return true;
             }
@@ -557,12 +560,12 @@ namespace SFXTargetSelector
 
         private static void SetRandomizeCurrent(Randomize randomize)
         {
-            if (randomize.Enabled && Random.Next(0, 101) >= (100 - randomize.Probability))
+            if (randomize.Enabled && Random.Next(0, 101) >= 100 - randomize.Probability)
             {
                 if (randomize.Default > 0)
                 {
-                    var min = (randomize.Default / 100f) * randomize.Min;
-                    var max = (randomize.Default / 100f) * randomize.Max;
+                    var min = randomize.Default / 100f * randomize.Min;
+                    var max = randomize.Default / 100f * randomize.Max;
                     randomize.Current = Random.Next(
                         (int) Math.Floor(Math.Min(min, max)), (int) Math.Ceiling(Math.Max(min, max)) + 1);
                 }
@@ -640,7 +643,7 @@ namespace SFXTargetSelector
             if (Player.Distance(point, true) < 150 * 150)
             {
                 point = playerPosition.Extend(
-                    position, (randomizeMinDistance ? (Random.NextFloat(0.6f, 1) + 0.2f) * _minDistance : _minDistance));
+                    position, randomizeMinDistance ? (Random.NextFloat(0.6f, 1) + 0.2f) * _minDistance : _minDistance);
             }
             var angle = 0f;
             var currentPath = Player.GetWaypoints();
@@ -662,7 +665,7 @@ namespace SFXTargetSelector
                 }
             }
 
-            if (LeagueSharp.Common.Utils.GameTimeTickCount - LastMoveCommandT < (70 + Math.Min(60, Game.Ping)) &&
+            if (LeagueSharp.Common.Utils.GameTimeTickCount - LastMoveCommandT < 70 + Math.Min(60, Game.Ping) &&
                 !overrideTimer && angle < 60)
             {
                 return;
@@ -702,7 +705,7 @@ namespace SFXTargetSelector
             bool useFixedDistance = true,
             bool randomizeMinDistance = true)
         {
-            if (LeagueSharp.Common.Utils.GameTimeTickCount - LastAttackCommandT < (70 + Math.Min(60, Game.Ping)))
+            if (LeagueSharp.Common.Utils.GameTimeTickCount - LastAttackCommandT < 70 + Math.Min(60, Game.Ping))
             {
                 return;
             }
@@ -713,7 +716,6 @@ namespace SFXTargetSelector
                 if (target.IsValidTarget() && CanAttack(randomize.Current))
                 {
                     SetRandomizeCurrent(randomize);
-                    SetRandomizeCurrent(Randomizes[OrbwalkingRandomize.AttackSpeed]);
                     DisableNextAttack = false;
                     FireBeforeAttack(target);
 
@@ -736,6 +738,11 @@ namespace SFXTargetSelector
 
                 if (CanMove(extraWindup))
                 {
+                    if (Orbwalker.LimitAttackSpeed && (Player.AttackDelay < 1 / 2.6f) && _autoattackCounter % 3 != 0 &&
+                        !CanMove(500, true))
+                    {
+                        return;
+                    }
                     MoveTo(position, holdAreaRadius, false, useFixedDistance, randomizeMinDistance);
                 }
             }
@@ -831,6 +838,7 @@ namespace SFXTargetSelector
                     LastAaTick = LeagueSharp.Common.Utils.GameTimeTickCount - Game.Ping / 2;
                     _missileLaunched = false;
                     LastMoveCommandT = 0;
+                    _autoattackCounter++;
 
                     var target = spell.Target as Obj_AI_Base;
                     if (target != null && target.IsValid)
@@ -1017,19 +1025,6 @@ namespace SFXTargetSelector
                 delays.AddItem(new MenuItem("FarmDelay", "Farm").SetShared().SetValue(new Slider(25, 0, 200)));
                 _config.AddSubMenu(delays);
 
-                /* Attack Speed Limiter menu */ /* FFS why doesn't this have the same name convention *OCD TRIGGERED* */
-                var attackSpeedLimiter = new Menu("Attack Speed Limiter", "AttackSpeedLimiter");
-                attackSpeedLimiter.AddItem(
-                    new MenuItem("AttackSpeedLimiter.MaxAttackSpeed", "Max. Attack Speed").SetShared()
-                        .SetValue(new Slider(2100, 1000, 3500))).ValueChanged +=
-                    (sender, args) => SetRandomize(args.GetNewValue<Slider>().Value, OrbwalkingRandomize.AttackSpeed);
-                attackSpeedLimiter.AddItem(
-                    new MenuItem("AttackSpeedLimiter.LimitWhen", "Limit When").SetShared()
-                        .SetValue(new StringList(new[] { "Moving / Kiting", "Always" })));
-                attackSpeedLimiter.AddItem(
-                    new MenuItem("AttackSpeedLimiter.Enabled", "Enabled").SetShared().SetValue(false));
-                _config.AddSubMenu(attackSpeedLimiter);
-
                 /* Randomize: Movement menu */
                 var randomizeMovement = new Menu("Movement Humanizer", "Movement");
                 randomizeMovement.AddItem(
@@ -1070,32 +1065,14 @@ namespace SFXTargetSelector
                     (sender, args) => SetRandomizeEnabled(args.GetNewValue<bool>(), OrbwalkingRandomize.Attack);
                 _config.AddSubMenu(randomizeAttack);
 
-                /* Randomize: Attack Speed Limiter menu */
-                var randomizeAttackSpeed = new Menu("Attack Speed Humanizer", "AttackSpeed");
-                randomizeAttackSpeed.AddItem(
-                    new MenuItem("AttackSpeedMin", "Min. Multi %").SetShared().SetValue(new Slider(90, 50, 200)))
-                    .ValueChanged +=
-                    (sender, args) => SetRandomizeMin(args.GetNewValue<Slider>().Value, OrbwalkingRandomize.AttackSpeed);
-                randomizeAttackSpeed.AddItem(
-                    new MenuItem("AttackSpeedMax", "Max. Multi %").SetShared().SetValue(new Slider(110, 50, 200)))
-                    .ValueChanged +=
-                    (sender, args) => SetRandomizeMax(args.GetNewValue<Slider>().Value, OrbwalkingRandomize.AttackSpeed);
-                randomizeAttackSpeed.AddItem(
-                    new MenuItem("AttackSpeedProbability", "Probability %").SetShared().SetValue(new Slider(40)))
-                    .ValueChanged +=
-                    (sender, args) =>
-                        SetRandomizeProbability(args.GetNewValue<Slider>().Value, OrbwalkingRandomize.AttackSpeed);
-                randomizeAttackSpeed.AddItem(new MenuItem("AttackSpeedEnabled", "Enabled").SetShared().SetValue(false))
-                    .ValueChanged +=
-                    (sender, args) => SetRandomizeEnabled(args.GetNewValue<bool>(), OrbwalkingRandomize.AttackSpeed);
-                _config.AddSubMenu(randomizeAttackSpeed);
-
                 /* Misc options */
                 var misc = new Menu("Miscellaneous", "Misc");
                 misc.AddItem(
                     new MenuItem("HoldPosRadius", "Hold Position Radius").SetShared().SetValue(new Slider(0, 0, 250)));
                 misc.AddItem(new MenuItem("PriorizeFarm", "Prioritize Farm Over Harass").SetShared().SetValue(true));
                 misc.AddItem(new MenuItem("Smallminionsprio", "Focus Small Jungle First").SetShared().SetValue(false));
+                misc.AddItem(
+                    new MenuItem("LimitAttackSpeed", "Don't Kite if Attack Speed > 2.5").SetShared().SetValue(false));
                 misc.AddItem(
                     new MenuItem("FocusMinionsOverTurrets", "Focus Minions Over Objectives").SetShared()
                         .SetValue(new KeyBind('M', KeyBindType.Toggle)));
@@ -1135,51 +1112,11 @@ namespace SFXTargetSelector
                     _config.Item("AttackProbability").GetValue<Slider>().Value, OrbwalkingRandomize.Attack);
                 SetRandomizeEnabled(_config.Item("AttackEnabled").GetValue<bool>(), OrbwalkingRandomize.Attack);
 
-                SetRandomize(
-                    _config.Item("AttackSpeedLimiter.MaxAttackSpeed").GetValue<Slider>().Value,
-                    OrbwalkingRandomize.AttackSpeed);
-                SetRandomizeMin(
-                    _config.Item("AttackSpeedMin").GetValue<Slider>().Value, OrbwalkingRandomize.AttackSpeed);
-                SetRandomizeMax(
-                    _config.Item("AttackSpeedMax").GetValue<Slider>().Value, OrbwalkingRandomize.AttackSpeed);
-                SetRandomizeProbability(
-                    _config.Item("AttackSpeedProbability").GetValue<Slider>().Value, OrbwalkingRandomize.AttackSpeed);
-                SetRandomizeEnabled(
-                    _config.Item("AttackSpeedEnabled").GetValue<bool>(), OrbwalkingRandomize.AttackSpeed);
-
                 CustomEvents.Game.OnGameLoad += GameOnOnGameLoad;
                 Game.OnUpdate += GameOnOnGameUpdate;
                 Drawing.OnDraw += DrawingOnOnDraw;
 
                 Instances.Add(this);
-            }
-
-            /// <summary>
-            ///     Get the  attack speed delay
-            /// </summary>
-            public static float AttackSpeedDelay
-            {
-                get
-                {
-                    if (_config.Item("AttackSpeedLimiter.Enabled").GetValue<bool>())
-                    {
-                        var speed = Randomizes[OrbwalkingRandomize.AttackSpeed].Current;
-                        switch (_config.Item("AttackSpeedLimiter.LimitWhen").GetValue<StringList>().SelectedIndex)
-                        {
-                            case 0:
-                                return ObjectManager.Player.Path.Count() != 0
-                                    ? ObjectManager.Player.AttackDelay > 1000 / speed
-                                        ? ObjectManager.Player.AttackDelay
-                                        : 1000 / speed
-                                    : ObjectManager.Player.AttackDelay;
-                            case 1:
-                                return ObjectManager.Player.AttackDelay > 1000 / speed
-                                    ? ObjectManager.Player.AttackDelay
-                                    : 1000 / speed;
-                        }
-                    }
-                    return ObjectManager.Player.AttackDelay;
-                }
             }
 
             /// <summary>
@@ -1199,6 +1136,12 @@ namespace SFXTargetSelector
             {
                 get { return _config.Item("MissileCheck").GetValue<bool>(); }
             }
+
+            public static bool LimitAttackSpeed
+            {
+                get { return _config.Item("LimitAttackSpeed").GetValue<bool>(); }
+            }
+
 
             public int HoldAreaRadius
             {
@@ -1380,7 +1323,7 @@ namespace SFXTargetSelector
                             minion =>
                                 InAutoAttackRange(minion) &&
                                 HealthPrediction.LaneClearHealthPrediction(
-                                    minion, (int) ((AttackSpeedDelay * 1000) * LaneClearWaitTimeMod), FarmDelay) <=
+                                    minion, (int) (Player.AttackDelay * 1000 * LaneClearWaitTimeMod), FarmDelay) <=
                                 Player.GetAutoAttackDamage(minion));
             }
 
@@ -1514,7 +1457,7 @@ namespace SFXTargetSelector
                                 return _prevMinion;
                             }
                             var predHealth = HealthPrediction.LaneClearHealthPrediction(
-                                _prevMinion, (int) ((AttackSpeedDelay * 1000) * LaneClearWaitTimeMod), FarmDelay);
+                                _prevMinion, (int) (Player.AttackDelay * 1000 * LaneClearWaitTimeMod), FarmDelay);
                             if (predHealth >= 2 * _player.GetAutoAttackDamage(_prevMinion) ||
                                 Math.Abs(predHealth - _prevMinion.Health) < float.Epsilon)
                             {
@@ -1530,7 +1473,7 @@ namespace SFXTargetSelector
                             else
                             {
                                 var predHealth = HealthPrediction.LaneClearHealthPrediction(
-                                    minion, (int) ((AttackSpeedDelay * 1000) * LaneClearWaitTimeMod), FarmDelay);
+                                    minion, (int) (Player.AttackDelay * 1000 * LaneClearWaitTimeMod), FarmDelay);
                                 if (predHealth >= 2 * Player.GetAutoAttackDamage(minion) ||
                                     Math.Abs(predHealth - minion.Health) < float.Epsilon)
                                 {
@@ -1712,7 +1655,7 @@ namespace SFXTargetSelector
 
                     var target = GetTarget();
                     Orbwalk(
-                        target, (_orbwalkingPoint.To2D().IsValid()) ? _orbwalkingPoint : Game.CursorPos,
+                        target, _orbwalkingPoint.To2D().IsValid() ? _orbwalkingPoint : Game.CursorPos,
                         _config.Item("ExtraWindup").GetValue<Slider>().Value,
                         Math.Max(_config.Item("HoldPosRadius").GetValue<Slider>().Value, 30));
                 }
