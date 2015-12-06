@@ -533,6 +533,16 @@ namespace SFXUtility.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Illaoi {
+            get {
+                object obj = ResourceManager.GetObject("Illaoi", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Irelia {
             get {
                 object obj = ResourceManager.GetObject("Irelia", resourceCulture);

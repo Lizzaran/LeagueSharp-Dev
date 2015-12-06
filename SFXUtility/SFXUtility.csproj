@@ -24,7 +24,7 @@
     <AssemblyVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyVersionSettings>
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
-    <AssemblyVersion>0.9.0.6</AssemblyVersion>
+    <AssemblyVersion>0.9.0.7</AssemblyVersion>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -244,6 +244,7 @@
     <Content Include="Resources\Champions\Graves.png" />
     <Content Include="Resources\Champions\Hecarim.png" />
     <Content Include="Resources\Champions\Heimerdinger.png" />
+    <Content Include="Resources\Champions\Illaoi.png" />
     <Content Include="Resources\Champions\Irelia.png" />
     <Content Include="Resources\Champions\Janna.png" />
     <Content Include="Resources\Champions\JarvanIV.png" />
