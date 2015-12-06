@@ -73,7 +73,7 @@ namespace SFXUtility.Features.Activators
             base.OnDisable();
         }
 
-        protected override sealed void OnLoad()
+        protected sealed override void OnLoad()
         {
             try
             {
@@ -200,9 +200,9 @@ namespace SFXUtility.Features.Activators
                         (HitChance)
                             (Menu.Item(championSpellMenu.Name + "MinHitChance").GetValue<StringList>().SelectedIndex + 3),
                         (TargetSelector.DamageType)
-                            (Menu.Item(championSpellMenu.Name + "DamageType").GetValue<StringList>().SelectedIndex),
+                            Menu.Item(championSpellMenu.Name + "DamageType").GetValue<StringList>().SelectedIndex,
                         (SkillshotType)
-                            (Menu.Item(championSpellMenu.Name + "SkillshotType").GetValue<StringList>().SelectedIndex),
+                            Menu.Item(championSpellMenu.Name + "SkillshotType").GetValue<StringList>().SelectedIndex,
                         Menu.Item(championSpellMenu.Name + "Enabled").GetValue<bool>())
                     {
                         Priority = Menu.Item(championPriorityMenu.Name + spellName).GetValue<Slider>().Value,
@@ -224,10 +224,10 @@ namespace SFXUtility.Features.Activators
                     Menu.Item(championSpellMenu.Name + "DamageType").ValueChanged +=
                         (o, args) =>
                             heroSpell.DamageType =
-                                (TargetSelector.DamageType) (args.GetNewValue<StringList>().SelectedIndex);
+                                (TargetSelector.DamageType) args.GetNewValue<StringList>().SelectedIndex;
                     Menu.Item(championSpellMenu.Name + "SkillshotType").ValueChanged +=
                         (o, args) =>
-                            heroSpell.SkillshotType = (SkillshotType) (args.GetNewValue<StringList>().SelectedIndex);
+                            heroSpell.SkillshotType = (SkillshotType) args.GetNewValue<StringList>().SelectedIndex;
                     Menu.Item(championSpellMenu.Name + "Enabled").ValueChanged +=
                         (o, args) => heroSpell.Enabled = args.GetNewValue<bool>();
 
@@ -299,7 +299,7 @@ namespace SFXUtility.Features.Activators
                                 spell = heroSpell.FirstOrDefault(s => s.Spell.IsReady()) ??
                                         heroSpell.OrderBy(h => h.Spell.Instance.CooldownExpires).First();
                             }
-                            if (spell != null && (spell.Spell.Instance.CooldownExpires - Game.Time) < 3f)
+                            if (spell != null && spell.Spell.Instance.CooldownExpires - Game.Time < 3f)
                             {
                                 damage += spell.CalculateDamage(_currentMinion, false);
                             }
@@ -307,7 +307,7 @@ namespace SFXUtility.Features.Activators
                     }
                     if (_smiteSpell != null && Menu.Item(Name + "SpellSmiteUse").GetValue<bool>())
                     {
-                        if ((_smiteSpell.Instance.CooldownExpires - Game.Time) < 3f)
+                        if (_smiteSpell.Instance.CooldownExpires - Game.Time < 3f)
                         {
                             damage += ObjectManager.Player.GetSummonerSpellDamage(
                                 _currentMinion, Damage.SummonerSpell.Smite);
@@ -656,9 +656,8 @@ namespace SFXUtility.Features.Activators
         public float CalculateHitDelay(Obj_AI_Base target)
         {
             return Delay +
-                   (Speed > 0
-                       ? ((ObjectManager.Player.ServerPosition.Distance(target.ServerPosition) / (Speed / 1000)))
-                       : 0) + Game.Ping / 2f;
+                   (Speed > 0 ? ObjectManager.Player.ServerPosition.Distance(target.ServerPosition) / (Speed / 1000) : 0) +
+                   Game.Ping / 2f;
         }
     }
 }

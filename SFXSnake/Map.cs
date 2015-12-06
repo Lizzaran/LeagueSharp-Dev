@@ -63,7 +63,7 @@ namespace SFXSnake
 
         private Vector2 GetCenter(int width, int height)
         {
-            return new Vector2((Drawing.Width / 2) - (width / 2), (Drawing.Height / 2) - (height / 2));
+            return new Vector2(Drawing.Width / 2 - width / 2, Drawing.Height / 2 - height / 2);
         }
 
         public Vector2 Tile2Positon(Tile tile)

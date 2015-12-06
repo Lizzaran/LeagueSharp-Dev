@@ -122,8 +122,8 @@ namespace SFXUtility.Features.Trackers
 
                 var index = 0;
 
-                var hudWidth = (float) (Math.Ceiling(HudWidth * _scale));
-                var hudHeight = (float) (Math.Ceiling(HudHeight * _scale));
+                var hudWidth = (float) Math.Ceiling(HudWidth * _scale);
+                var hudHeight = (float) Math.Ceiling(HudHeight * _scale);
 
                 var spacing =
                     (float)
@@ -132,7 +132,7 @@ namespace SFXUtility.Features.Trackers
 
                 var offsetTop = Menu.Item(Menu.Name + "DrawingOffsetTop").GetValue<Slider>().Value + hudHeight / 2f;
                 var offsetRight = Drawing.Width - Menu.Item(Menu.Name + "DrawingOffsetRight").GetValue<Slider>().Value -
-                                  (hudWidth + (float) (Math.Ceiling(4 * _scale))) / 2f;
+                                  (hudWidth + (float) Math.Ceiling(4 * _scale)) / 2f;
 
                 foreach (var enemy in _enemyObjects)
                 {
@@ -165,7 +165,7 @@ namespace SFXUtility.Features.Trackers
                                 _summonerTextures[Summoners.FixName(spell.Name)],
                                 new Vector2(
                                     offsetRight + hudWidth * 0.355f,
-                                    offsetTop - hudHeight * 0.275f + offset + ((float) (Math.Ceiling(26 * _scale)) * i)));
+                                    offsetTop - hudHeight * 0.275f + offset + (float) Math.Ceiling(26 * _scale) * i));
                             _sprite.End();
                             if (time > 0)
                             {
@@ -176,11 +176,11 @@ namespace SFXUtility.Features.Trackers
                                         new Vector2(
                                             offsetRight + hudWidth * 0.23f,
                                             offsetTop - hudHeight * 0.28f + offset +
-                                            ((float) (Math.Ceiling(26 * _scale)) * i)),
+                                            (float) Math.Ceiling(26 * _scale) * i),
                                         new Vector2(
-                                            offsetRight + hudWidth * 0.23f + (float) (Math.Ceiling(24 * _scale)),
+                                            offsetRight + hudWidth * 0.23f + (float) Math.Ceiling(24 * _scale),
                                             offsetTop - hudHeight * 0.28f + offset +
-                                            ((float) (Math.Ceiling(26 * _scale)) * i))
+                                            (float) Math.Ceiling(26 * _scale) * i)
                                     }, new Color(0, 0, 0, 175));
                                 _line24.End();
 
@@ -188,8 +188,8 @@ namespace SFXUtility.Features.Trackers
                                     ((int) time).ToStringLookUp(),
                                     new Vector2(
                                         offsetRight + hudWidth * 0.359f,
-                                        offsetTop - hudHeight * 0.28f + offset +
-                                        ((float) (Math.Ceiling(26 * _scale)) * i)), new Color(255, 255, 255, 210), true);
+                                        offsetTop - hudHeight * 0.28f + offset + (float) Math.Ceiling(26 * _scale) * i),
+                                    new Color(255, 255, 255, 210), true);
                             }
                         }
                     }
@@ -201,7 +201,7 @@ namespace SFXUtility.Features.Trackers
                         new Vector2(offsetRight - hudWidth * 0.1f, offsetTop - hudHeight * 0.13f + offset));
 
                     _sprite.DrawCentered(
-                        _hudTexture, new Vector2(offsetRight + (float) (Math.Ceiling(3 * _scale)), offsetTop + offset));
+                        _hudTexture, new Vector2(offsetRight + (float) Math.Ceiling(3 * _scale), offsetTop + offset));
 
                     if (enemy.RSpell != null && enemy.RSpell.Level > 0 && enemy.RSpell.CooldownExpires - Game.Time < 0)
                     {
@@ -227,7 +227,7 @@ namespace SFXUtility.Features.Trackers
                         {
                             new Vector2(offsetRight - hudWidth * 0.035f, offsetTop + hudHeight * 0.035f + offset),
                             new Vector2(
-                                offsetRight - hudWidth * 0.035f + (float) (Math.Ceiling(18 * _scale)),
+                                offsetRight - hudWidth * 0.035f + (float) Math.Ceiling(18 * _scale),
                                 offsetTop + hudHeight * 0.035f + offset)
                         }, new Color(0, 0, 0, 215));
                     _line17.End();
@@ -255,7 +255,7 @@ namespace SFXUtility.Features.Trackers
                         new[] { healthStart, new Vector2(healthStart.X + healthWidth, healthStart.Y) }, Color.Green);
 
 
-                    var resStart = new Vector2(healthStart.X, healthStart.Y + (float) (Math.Ceiling(9 * _scale)));
+                    var resStart = new Vector2(healthStart.X, healthStart.Y + (float) Math.Ceiling(9 * _scale));
                     var resWidth = (float) Math.Ceiling(HealthWidth * _scale);
                     if (!Enumerable.Contains(_champsNoEnergy, enemy.Unit.ChampionName) && enemy.Unit.MaxMana > 0)
                     {
@@ -331,7 +331,7 @@ namespace SFXUtility.Features.Trackers
                                 : (enemy.TeleportStatus == Packet.S2C.Teleport.Status.Finish
                                     ? _teleportFinishTexture
                                     : _teleportAbortTexture),
-                            new Vector2(offsetRight + (float) (Math.Ceiling(3 * _scale)), offsetTop + offset));
+                            new Vector2(offsetRight + (float) Math.Ceiling(3 * _scale), offsetTop + offset));
                         _sprite.End();
                     }
 
@@ -344,7 +344,7 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        protected override sealed void OnLoad()
+        protected sealed override void OnLoad()
         {
             try
             {
@@ -373,11 +373,11 @@ namespace SFXUtility.Features.Trackers
 
                 _scale = Menu.Item(Menu.Name + "DrawingScale").GetValue<Slider>().Value / 10f;
 
-                _text14 = MDrawing.GetFont((int) (Math.Ceiling(14 * _scale)));
-                _text18 = MDrawing.GetFont((int) (Math.Ceiling(18 * _scale)));
-                _line7 = MDrawing.GetLine((int) (Math.Ceiling(7 * _scale)));
-                _line17 = MDrawing.GetLine((int) (Math.Ceiling(17 * _scale)));
-                _line24 = MDrawing.GetLine((int) (Math.Ceiling(24 * _scale)));
+                _text14 = MDrawing.GetFont((int) Math.Ceiling(14 * _scale));
+                _text18 = MDrawing.GetFont((int) Math.Ceiling(18 * _scale));
+                _line7 = MDrawing.GetLine((int) Math.Ceiling(7 * _scale));
+                _line17 = MDrawing.GetLine((int) Math.Ceiling(17 * _scale));
+                _line24 = MDrawing.GetLine((int) Math.Ceiling(24 * _scale));
                 _sprite = MDrawing.GetSprite();
             }
             catch (Exception ex)
@@ -414,7 +414,7 @@ namespace SFXUtility.Features.Trackers
                     _enemyObjects.Add(
                         new EnemyObject(
                             enemy,
-                            ((ImageLoader.Load("SB", enemy.ChampionName) ?? Resources.SB_Default).Scale(_scale))
+                            (ImageLoader.Load("SB", enemy.ChampionName) ?? Resources.SB_Default).Scale(_scale)
                                 .ToTexture()));
                 }
 
@@ -426,9 +426,9 @@ namespace SFXUtility.Features.Trackers
                         if (!_summonerTextures.ContainsKey(Summoners.FixName(spell.Name)))
                         {
                             _summonerTextures[Summoners.FixName(spell.Name)] =
-                                (((Bitmap)
+                                ((Bitmap)
                                     Resources.ResourceManager.GetObject(
-                                        string.Format("SB_{0}", Summoners.FixName(spell.Name)))) ??
+                                        string.Format("SB_{0}", Summoners.FixName(spell.Name))) ??
                                  Resources.SB_summonerbarrier).Scale(_scale).ToTexture();
                         }
                     }
@@ -509,8 +509,8 @@ namespace SFXUtility.Features.Trackers
 
                 var index = 0;
 
-                var hudWidth = (float) (Math.Ceiling(HudWidth * _scale));
-                var hudHeight = (float) (Math.Ceiling(HudHeight * _scale));
+                var hudWidth = (float) Math.Ceiling(HudWidth * _scale);
+                var hudHeight = (float) Math.Ceiling(HudHeight * _scale);
 
                 var spacing =
                     (float)
@@ -519,7 +519,7 @@ namespace SFXUtility.Features.Trackers
 
                 var offsetTop = Menu.Item(Menu.Name + "DrawingOffsetTop").GetValue<Slider>().Value + hudHeight / 2;
                 var offsetRight = Drawing.Width - Menu.Item(Menu.Name + "DrawingOffsetRight").GetValue<Slider>().Value -
-                                  (hudWidth + (float) (Math.Ceiling(4 * _scale))) / 2f;
+                                  (hudWidth + (float) Math.Ceiling(4 * _scale)) / 2f;
 
                 if (args.Msg == (uint) WindowsMessages.WM_RBUTTONUP ||
                     args.Msg == (uint) WindowsMessages.WM_LBUTTONDBLCLCK)
@@ -538,9 +538,8 @@ namespace SFXUtility.Features.Trackers
                                 {
                                     if (Utils.IsUnderRectangle(
                                         pos, offsetRight + hudWidth * 0.359f - SummonerWidth / 2f,
-                                        offsetTop - hudHeight * 0.28f + offset +
-                                        ((float) (Math.Ceiling(26 * _scale)) * i) - SummonerHeight / 2f, SummonerWidth,
-                                        SummonerHeight))
+                                        offsetTop - hudHeight * 0.28f + offset + (float) Math.Ceiling(26 * _scale) * i -
+                                        SummonerHeight / 2f, SummonerWidth, SummonerHeight))
                                     {
                                         var teleportCd = 0f;
                                         if (spell.Name.Contains("Teleport", StringComparison.OrdinalIgnoreCase) &&
@@ -567,7 +566,7 @@ namespace SFXUtility.Features.Trackers
                         {
                             if (enemy.Unit.IsVisible && !enemy.Unit.IsDead &&
                                 Utils.IsUnderRectangle(
-                                    pos, offsetRight - hudWidth / 2f + (hudWidth * 0.1f),
+                                    pos, offsetRight - hudWidth / 2f + hudWidth * 0.1f,
                                     offsetTop + offset - hudHeight / 2f, hudWidth, hudHeight))
                             {
                                 ObjectManager.Player.IssueOrder(GameObjectOrder.MoveTo, enemy.Unit);

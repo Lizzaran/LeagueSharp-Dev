@@ -113,8 +113,8 @@ namespace SFXUtility.Features.Drawings
                         var current = Drawing.WorldToScreen(waypoints[i].To3D());
                         var next = Drawing.WorldToScreen(waypoints[i + 1].To3D());
 
-                        arrivalTime += (Vector3.Distance(waypoints[i].To3D(), waypoints[i + 1].To3D()) /
-                                        (ObjectManager.Player.MoveSpeed / 1000)) / 1000;
+                        arrivalTime += Vector3.Distance(waypoints[i].To3D(), waypoints[i + 1].To3D()) /
+                                       (ObjectManager.Player.MoveSpeed / 1000) / 1000;
                         if (current.IsOnScreen(next))
                         {
                             Drawing.DrawLine(current.X, current.Y, next.X, next.Y, 1, lineColor);
@@ -134,7 +134,7 @@ namespace SFXUtility.Features.Drawings
             }
         }
 
-        protected override sealed void OnLoad()
+        protected sealed override void OnLoad()
         {
             try
             {

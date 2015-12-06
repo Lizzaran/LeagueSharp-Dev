@@ -29,6 +29,7 @@ using LeagueSharp.Common;
 using SFXUtility.Classes;
 using SFXUtility.Library;
 using SFXUtility.Library.Logger;
+using SharpDX;
 
 #endregion
 
@@ -63,7 +64,7 @@ namespace SFXUtility.Features.Others
             base.OnDisable();
         }
 
-        protected override sealed void OnLoad()
+        protected sealed override void OnLoad()
         {
             try
             {
@@ -106,11 +107,11 @@ namespace SFXUtility.Features.Others
             }
             if (args.Path.Any())
             {
-                var last = args.Path.Last();
-                if (last.Distance(_fountain.Position) < FountainRange)
+                var first = args.Path.FirstOrDefault(p => p.Distance(_fountain.Position) < FountainRange);
+                if (!first.Equals(default(Vector3)))
                 {
                     ObjectManager.Player.IssueOrder(
-                        GameObjectOrder.MoveTo, _fountain.Position.Extend(last, FountainRange));
+                        GameObjectOrder.MoveTo, _fountain.Position.Extend(first, FountainRange));
                 }
             }
         }

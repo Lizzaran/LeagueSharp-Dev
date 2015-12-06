@@ -184,7 +184,7 @@ namespace LeagueSharp.Console.Parts
 
             _font.DrawText(
                 null, Content, (int) Offset.X - Width / 2 + 10,
-                (int) Offset.Y + Height / 2 - (_font.MeasureText(null, Content, FontDrawFlags.Center).Height / 2),
+                (int) Offset.Y + Height / 2 - _font.MeasureText(null, Content, FontDrawFlags.Center).Height / 2,
                 ForegroundColor);
         }
     }

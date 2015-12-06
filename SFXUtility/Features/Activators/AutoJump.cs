@@ -75,7 +75,7 @@ namespace SFXUtility.Features.Activators
             base.OnDisable();
         }
 
-        protected override sealed void OnLoad()
+        protected sealed override void OnLoad()
         {
             try
             {
@@ -168,8 +168,8 @@ namespace SFXUtility.Features.Activators
                     return;
                 }
 
-                if (_spell != null && _heroJump != null && _spell.IsReady() &&
-                    (_heroJump.CustomCheck != null && _heroJump.CustomCheck(_spell)))
+                if (_spell != null && _heroJump != null && _spell.IsReady() && _heroJump.CustomCheck != null &&
+                    _heroJump.CustomCheck(_spell))
                 {
                     var jumpPosition = ObjectManager.Player.ServerPosition.Extend(
                         Game.CursorPos, Math.Min(_spell.Range, ObjectManager.Player.Position.Distance(Game.CursorPos)));

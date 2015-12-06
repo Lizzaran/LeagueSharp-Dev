@@ -61,7 +61,7 @@ namespace SFXUtility.Library.Extensions.NET
             try
             {
                 xml = xml.Substring(xml.IndexOf(Convert.ToChar(60)));
-                xml = xml.Substring(0, (xml.LastIndexOf(Convert.ToChar(62)) + 1));
+                xml = xml.Substring(0, xml.LastIndexOf(Convert.ToChar(62)) + 1);
             }
             catch (OverflowException)
             {

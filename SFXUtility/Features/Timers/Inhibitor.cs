@@ -151,7 +151,7 @@ namespace SFXUtility.Features.Timers
             }
         }
 
-        protected override sealed void OnLoad()
+        protected sealed override void OnLoad()
         {
             try
             {

@@ -109,7 +109,7 @@ namespace SFXUtility.Features.Others
                 if (spellInfo != null)
                 {
                     if ((spellInfo.Target && args.Target == ObjectManager.Player) ||
-                        (ObjectManager.Player.Distance(sender.ServerPosition) + ObjectManager.Player.BoundingRadius) <=
+                        ObjectManager.Player.Distance(sender.ServerPosition) + ObjectManager.Player.BoundingRadius <=
                         spellInfo.Range)
                     {
                         var moveTo = _lastMove;
@@ -132,7 +132,7 @@ namespace SFXUtility.Features.Others
             }
         }
 
-        protected override sealed void OnLoad()
+        protected sealed override void OnLoad()
         {
             try
             {

@@ -46,7 +46,7 @@ namespace SFXUtility.Classes
         public bool Unloaded { get; protected set; }
         public Menu Menu { get; set; }
 
-        protected virtual List<Utility.Map.MapType> MapBlacklist
+        protected virtual List<Utility.Map.MapType> BlacklistedMaps
         {
             get { return new List<Utility.Map.MapType>(); }
         }
@@ -84,14 +84,13 @@ namespace SFXUtility.Classes
             {
                 if (!Initialized && !Unloaded)
                 {
-                    var map = Utility.Map.GetMap().Type;
-                    if (MapBlacklist.Any(m => m.Equals(map)))
-                    {
-                        OnUnload(null, new UnloadEventArgs(true));
-                        return;
-                    }
                     Initialized = true;
                     OnInitialized.RaiseEvent(this, null);
+                    var map = Utility.Map.GetMap().Type;
+                    if (BlacklistedMaps.Any(m => m.Equals(map)))
+                    {
+                        OnUnload(null, new UnloadEventArgs(true));
+                    }
                 }
             }
             catch (Exception ex)

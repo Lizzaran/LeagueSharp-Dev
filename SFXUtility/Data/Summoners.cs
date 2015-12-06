@@ -76,7 +76,7 @@ namespace SFXUtility.Data
 
         public static bool IsReady(this SummonerSpell spell)
         {
-            return (spell.Slot != SpellSlot.Unknown && spell.Slot.IsReady());
+            return spell.Slot != SpellSlot.Unknown && spell.Slot.IsReady();
         }
 
         public static List<SummonerSpell> AvailableSummoners()

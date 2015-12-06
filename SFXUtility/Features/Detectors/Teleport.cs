@@ -148,24 +148,25 @@ namespace SFXUtility.Features.Detectors
                                 {
                                     new Vector2(
                                         posX + width,
-                                        (top ? posY - seperatorHeight - barHeight / 2f : posY + barHeight + 2)),
-                                    new Vector2(posX + width, (top ? posY : posY + seperatorHeight * 2 + barHeight + 2))
-                                }, SharpDX.Color.White);
+                                        top ? posY - seperatorHeight - barHeight / 2f : posY + barHeight + 2),
+                                    new Vector2(posX + width, top ? posY : posY + seperatorHeight * 2 + barHeight + 2)
+                                },
+                                SharpDX.Color.White);
 
                             _line.End();
 
                             _barText.DrawTextCentered(
                                 teleport.Hero.ChampionName, (int) (posX + width),
-                                (top
+                                top
                                     ? posY - barHeight - seperatorHeight - 2
-                                    : posY + barHeight * 2 + seperatorHeight * 2 + 2),
+                                    : posY + barHeight * 2 + seperatorHeight * 2 + 2,
                                 new ColorBGRA(color.R, color.G, color.B, color.A));
 
                             _barText.DrawTextCentered(
-                                ((int) (teleport.Hero.HealthPercent)).ToString(), (int) (posX + width - 1),
-                                (top
+                                ((int) teleport.Hero.HealthPercent).ToString(), (int) (posX + width - 1),
+                                top
                                     ? posY - barHeight - 3 - seperatorHeight - _barText.Description.Height + 3
-                                    : posY + barHeight * 2 + 3 + seperatorHeight * 2 + _barText.Description.Height - 1),
+                                    : posY + barHeight * 2 + 3 + seperatorHeight * 2 + _barText.Description.Height - 1,
                                 new ColorBGRA(color.R, color.G, color.B, color.A));
 
                             top = !top;
@@ -205,7 +206,7 @@ namespace SFXUtility.Features.Detectors
             }
         }
 
-        protected override sealed void OnLoad()
+        protected sealed override void OnLoad()
         {
             try
             {
@@ -247,7 +248,7 @@ namespace SFXUtility.Features.Detectors
                         new Slider((int) (Drawing.Height * 0.75d), 0, Drawing.Height)));
                 drawingBarMenu.AddItem(
                     new MenuItem(drawingBarMenu.Name + "OffsetLeft", "Offset Left").SetValue(
-                        new Slider((int) (Drawing.Width / 2f - ((int) (Drawing.Width / 1.5f)) / 2f), 0, Drawing.Width)));
+                        new Slider((int) (Drawing.Width / 2f - (int) (Drawing.Width / 1.5f) / 2f), 0, Drawing.Width)));
                 drawingBarMenu.AddItem(
                     new MenuItem(drawingBarMenu.Name + "AdditionalTime", "Additional Time").SetValue(
                         new Slider(5, 0, 10))).ValueChanged += delegate(object o, OnValueChangeEventArgs args)
@@ -257,6 +258,36 @@ namespace SFXUtility.Features.Detectors
                                 _teleportObjects.ForEach(t => t.AdditionalBarTime = args.GetNewValue<Slider>().Value);
                             }
                         };
+                drawingBarMenu.AddItem(
+                    new MenuItem(drawingBarMenu.Name + "HCenter", "Horizontal Center").SetValue(false)).ValueChanged +=
+                    delegate(object sender, OnValueChangeEventArgs args)
+                    {
+                        if (args.GetNewValue<bool>())
+                        {
+                            Utility.DelayAction.Add(
+                                1, delegate
+                                {
+                                    try
+                                    {
+                                        var dScale = Menu.Item(Name + "DrawingBarScale").GetValue<Slider>().Value / 10d;
+                                        var barWidth =
+                                            (float)
+                                                Math.Ceiling(
+                                                    Menu.Item(Name + "DrawingBarWidth").GetValue<Slider>().Value *
+                                                    dScale);
+
+                                        var centerPoint = (int) (Drawing.Width / 2f - barWidth / 2f);
+                                        Menu.Item(Name + "DrawingBarOffsetLeft")
+                                            .SetValue(new Slider(centerPoint, 0, Drawing.Width));
+                                        Menu.Item(Name + "DrawingBarHCenter").SetValue(false);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Global.Logger.AddItem(new LogItem(ex));
+                                    }
+                                });
+                        }
+                    };
                 drawingBarMenu.AddItem(new MenuItem(drawingBarMenu.Name + "Enabled", "Enabled").SetValue(false));
 
                 drawingMenu.AddSubMenu(drawingTextMenu);
@@ -302,9 +333,9 @@ namespace SFXUtility.Features.Detectors
                 _barText =
                     MDrawing.GetFont(
                         (int)
-                            (Math.Ceiling(
+                            Math.Ceiling(
                                 Menu.Item(Name + "DrawingBarFontSize").GetValue<Slider>().Value *
-                                (Menu.Item(Menu.Name + "DrawingBarScale").GetValue<Slider>().Value / 10d))));
+                                (Menu.Item(Menu.Name + "DrawingBarScale").GetValue<Slider>().Value / 10d)));
                 _line = MDrawing.GetLine(1);
             }
             catch (Exception ex)
@@ -492,17 +523,17 @@ namespace SFXUtility.Features.Detectors
                         {
                             case Packet.S2C.Teleport.Status.Start:
                                 return string.Format(
-                                    "{1}({2}%) {0} ({3:0.00})", "Recalling", Hero.ChampionName,
-                                    (int) (Hero.HealthPercent), time);
+                                    "{1}({2}%) {0} ({3:0.00})", "Recalling", Hero.ChampionName, (int) Hero.HealthPercent,
+                                    time);
 
                             case Packet.S2C.Teleport.Status.Finish:
                                 return string.Format(
-                                    "{1}({2}%) {0} ({3:0.00})", "Recalled", Hero.ChampionName,
-                                    (int) (Hero.HealthPercent), time);
+                                    "{1}({2}%) {0} ({3:0.00})", "Recalled", Hero.ChampionName, (int) Hero.HealthPercent,
+                                    time);
 
                             case Packet.S2C.Teleport.Status.Abort:
                                 return string.Format(
-                                    "{1}({2}%) {0} ({3:0.00})", "Aborted", Hero.ChampionName, (int) (Hero.HealthPercent),
+                                    "{1}({2}%) {0} ({3:0.00})", "Aborted", Hero.ChampionName, (int) Hero.HealthPercent,
                                     time);
                         }
                         break;
@@ -513,16 +544,16 @@ namespace SFXUtility.Features.Detectors
                             case Packet.S2C.Teleport.Status.Start:
                                 return string.Format(
                                     "{1}({2}%) {0} ({3:0.00})", "Teleporting", Hero.ChampionName,
-                                    (int) (Hero.HealthPercent), time);
+                                    (int) Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Finish:
                                 return string.Format(
                                     "{1}({2}%) {0} ({3:0.00})", "Teleported", Hero.ChampionName,
-                                    (int) (Hero.HealthPercent), time);
+                                    (int) Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Abort:
                                 return string.Format(
-                                    "{1}({2}%) {0} ({3:0.00})", "Aborted", Hero.ChampionName, (int) (Hero.HealthPercent),
+                                    "{1}({2}%) {0} ({3:0.00})", "Aborted", Hero.ChampionName, (int) Hero.HealthPercent,
                                     time);
                         }
                         break;
@@ -534,16 +565,16 @@ namespace SFXUtility.Features.Detectors
                             case Packet.S2C.Teleport.Status.Start:
                                 return string.Format(
                                     "{1}({2}%) {0} ({3:0.00})", "Transporting", Hero.ChampionName,
-                                    (int) (Hero.HealthPercent), time);
+                                    (int) Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Finish:
                                 return string.Format(
                                     "{1}({2}%) {0} ({3:0.00})", "Transported", Hero.ChampionName,
-                                    (int) (Hero.HealthPercent), time);
+                                    (int) Hero.HealthPercent, time);
 
                             case Packet.S2C.Teleport.Status.Abort:
                                 return string.Format(
-                                    "{1}({2}%) {0} ({3:0.00})", "Aborted", Hero.ChampionName, (int) (Hero.HealthPercent),
+                                    "{1}({2}%) {0} ({3:0.00})", "Aborted", Hero.ChampionName, (int) Hero.HealthPercent,
                                     time);
                         }
                         break;

@@ -563,7 +563,7 @@ namespace SFXHumanizer_Pro
                 var distance = position.Distance(lastPosition);
                 if (Helpers.AngleBetween(lastPosition, position) > _random.Next(15, 26) && distance > 200)
                 {
-                    var rangeDelay = (int) ((distance * _random.Next(75, 86) / 100) / 100 * percent);
+                    var rangeDelay = (int) (distance * _random.Next(75, 86) / 100 / 100 * percent);
                     return Math.Min(_random.Next(1250, 1500) / 100 * percent, rangeDelay);
                 }
             }

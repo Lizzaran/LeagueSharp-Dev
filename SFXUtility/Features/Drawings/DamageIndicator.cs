@@ -88,8 +88,7 @@ namespace SFXUtility.Features.Drawings
                         {
                             continue;
                         }
-                        var damagePercentage = ((unit.Health - damage) > 0 ? (unit.Health - damage) : 0) /
-                                               unit.MaxHealth;
+                        var damagePercentage = (unit.Health - damage > 0 ? unit.Health - damage : 0) / unit.MaxHealth;
                         var currentHealthPercentage = unit.Health / unit.MaxHealth;
                         var startPoint =
                             new Vector2(
@@ -123,7 +122,7 @@ namespace SFXUtility.Features.Drawings
             base.OnDisable();
         }
 
-        protected override sealed void OnLoad()
+        protected sealed override void OnLoad()
         {
             try
             {

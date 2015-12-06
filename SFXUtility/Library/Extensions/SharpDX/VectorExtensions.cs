@@ -110,7 +110,7 @@ namespace SFXUtility.Library.Extensions.SharpDX
 
         public static bool IsInsideCircle(this Vector2 point, Vector2 circlePos, float circleRad)
         {
-            return Math.Sqrt(Math.Pow((circlePos.X - point.X), 2) + Math.Pow((circlePos.Y - point.Y), 2)) < circleRad;
+            return Math.Sqrt(Math.Pow(circlePos.X - point.X, 2) + Math.Pow(circlePos.Y - point.Y, 2)) < circleRad;
         }
 
         public static bool IsIntersecting(this Vector2 lineStart, Vector2 lineEnd, Vector2 circlePos, float circleRadius)

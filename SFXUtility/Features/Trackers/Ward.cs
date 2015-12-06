@@ -50,10 +50,12 @@ namespace SFXUtility.Features.Trackers
 
         private readonly List<WardStruct> _wardStructs = new List<WardStruct>
         {
-            new WardStruct(60, 1100, "YellowTrinket", "TrinketTotemLvl1", WardType.Green),
-            new WardStruct(int.MaxValue, 1100, "BlueTrinket", "TrinketOrbLvl3", WardType.Green),
-            new WardStruct(150, 1100, "SightWard", "ItemGhostWard", WardType.Green),
-            new WardStruct(150, 1100, "SightWard", "SightWard", WardType.Green),
+            new WardStruct(60 * 1, 1100, "YellowTrinket", "TrinketTotemLvl1", WardType.Green),
+            new WardStruct(60 * 1, 1100, "BlueTrinket", "TrinketOrbLvl3", WardType.Green),
+            new WardStruct(60 * 2, 1100, "YellowTrinketUpgrade", "TrinketTotemLvl2", WardType.Green),
+            new WardStruct(60 * 3, 1100, "SightWard", "ItemGhostWard", WardType.Green),
+            new WardStruct(60 * 3, 1100, "SightWard", "SightWard", WardType.Green),
+            new WardStruct(60 * 3, 1100, "MissileWard", "MissileWard", WardType.Green),
             new WardStruct(int.MaxValue, 1100, "VisionWard", "VisionWard", WardType.Pink),
             new WardStruct(60 * 4, 212, "CaitlynTrap", "CaitlynYordleTrap", WardType.Trap),
             new WardStruct(60 * 10, 212, "TeemoMushroom", "BantamTrap", WardType.Trap),
@@ -74,7 +76,7 @@ namespace SFXUtility.Features.Trackers
             OnLoad();
         }
 
-        protected override List<Utility.Map.MapType> MapBlacklist
+        protected override List<Utility.Map.MapType> BlacklistedMaps
         {
             get { return new List<Utility.Map.MapType> { Utility.Map.MapType.CrystalScar }; }
         }
@@ -110,7 +112,7 @@ namespace SFXUtility.Features.Trackers
             base.OnDisable();
         }
 
-        protected override sealed void OnLoad()
+        protected sealed override void OnLoad()
         {
             try
             {
@@ -247,7 +249,7 @@ namespace SFXUtility.Features.Trackers
                     {
                         if (greenCircle || ward.Data.Type != WardType.Green)
                         {
-                            if ((ward.Object == null || !ward.Object.IsValid) ||
+                            if (ward.Object == null || !ward.Object.IsValid ||
                                 (ward.Object != null && ward.Object.IsValid && !ward.Object.IsVisible))
                             {
                                 Render.Circle.DrawCircle(ward.Position, circleRadius, color, circleThickness);
@@ -260,7 +262,7 @@ namespace SFXUtility.Features.Trackers
                                     "{0} {1} {0}", ward.IsFromMissile ? (ward.Corrected ? "?" : "??") : string.Empty,
                                     (ward.EndTime - Game.Time).FormatTime(totalSeconds)),
                                 Drawing.WorldToScreen(ward.Position),
-                                (new SharpDX.Color(color.R, color.G, color.B, color.A)));
+                                new SharpDX.Color(color.R, color.G, color.B, color.A));
                         }
                     }
                     if (minimap && ward.Data.Type != WardType.Trap)
@@ -368,7 +370,7 @@ namespace SFXUtility.Features.Trackers
                                 var wObj = new WardObject(
                                     ward,
                                     new Vector3(wardObject.Position.X, wardObject.Position.Y, wardObject.Position.Z),
-                                    (int) (Game.Time - (int) ((wardObject.MaxMana - wardObject.Mana))), wardObject);
+                                    (int) (Game.Time - (int) (wardObject.MaxMana - wardObject.Mana)), wardObject);
                                 CheckDuplicateWards(wObj);
                                 _wardObjects.Add(wObj);
                             }
@@ -595,9 +597,7 @@ namespace SFXUtility.Features.Trackers
                             grass.Add(pos);
                         }
                     }
-                    return grass.Count > 0
-                        ? grass[(int) ((grass.Count / 2d) + 0.5d * Math.Sign(grass.Count / 2d))]
-                        : end;
+                    return grass.Count > 0 ? grass[(int) (grass.Count / 2d + 0.5d * Math.Sign(grass.Count / 2d))] : end;
                 }
                 catch (Exception ex)
                 {
@@ -615,7 +615,7 @@ namespace SFXUtility.Features.Trackers
                         for (var i = 0; i < 500; i = i + 5)
                         {
                             var c = new Geometry.Polygon.Circle(end, i, 15).Points;
-                            foreach (var item in c.OrderBy(p => p.Distance(end)).Where(item => !(item.IsWall())))
+                            foreach (var item in c.OrderBy(p => p.Distance(end)).Where(item => !item.IsWall()))
                             {
                                 return new Vector3(item.X, item.Y, NavMesh.GetHeightForPosition(item.X, item.Y));
                             }

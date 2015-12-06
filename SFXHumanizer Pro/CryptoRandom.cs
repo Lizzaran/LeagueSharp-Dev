@@ -86,7 +86,7 @@ namespace SFXHumanizer_Pro
 
                 if (rand < max - remainder)
                 {
-                    return (int) (minValue + (rand % diff));
+                    return (int) (minValue + rand % diff);
                 }
             }
         }
@@ -127,7 +127,7 @@ namespace SFXHumanizer_Pro
                 throw new ArgumentOutOfRangeException("requiredBytes", "can't be greater than buffer");
             }
 
-            if ((_buffer.Length - _bufferPosition) < requiredBytes)
+            if (_buffer.Length - _bufferPosition < requiredBytes)
             {
                 InitBuffer();
             }

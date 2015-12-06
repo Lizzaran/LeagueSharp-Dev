@@ -53,7 +53,7 @@ namespace SFXUtility.Features.Timers
             OnLoad();
         }
 
-        protected override List<Utility.Map.MapType> MapBlacklist
+        protected override List<Utility.Map.MapType> BlacklistedMaps
         {
             get
             {
@@ -264,7 +264,7 @@ namespace SFXUtility.Features.Timers
             }
         }
 
-        protected override sealed void OnLoad()
+        protected sealed override void OnLoad()
         {
             try
             {

@@ -46,7 +46,7 @@ namespace SFXUtility.Library
 
         public static void Rectangle(Vector2 pos, int width, int height, float thickness, Color color)
         {
-            pos.Y = pos.Y - (height / 2f);
+            pos.Y = pos.Y - height / 2f;
             Drawing.DrawLine(pos.X, pos.Y - 1, pos.X + width, pos.Y - 1, thickness, color);
             Drawing.DrawLine(pos.X, pos.Y + height, pos.X + width, pos.Y + height, thickness, color);
 
@@ -56,7 +56,7 @@ namespace SFXUtility.Library
 
         public static void RectangleFilled(Vector2 pos, int width, int height, Color color)
         {
-            pos.Y = pos.Y - (height / 2f);
+            pos.Y = pos.Y - height / 2f;
             Drawing.DrawLine(pos.X, pos.Y, pos.X + width, pos.Y, height, color);
         }
 

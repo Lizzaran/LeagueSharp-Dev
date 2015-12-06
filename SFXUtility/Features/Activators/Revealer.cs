@@ -92,7 +92,7 @@ namespace SFXUtility.Features.Activators
             base.OnDisable();
         }
 
-        protected override sealed void OnLoad()
+        protected sealed override void OnLoad()
         {
             try
             {

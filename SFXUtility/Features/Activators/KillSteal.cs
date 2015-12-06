@@ -60,7 +60,7 @@ namespace SFXUtility.Features.Activators
             base.OnDisable();
         }
 
-        protected override sealed void OnLoad()
+        protected sealed override void OnLoad()
         {
             try
             {
@@ -105,12 +105,11 @@ namespace SFXUtility.Features.Activators
                         {
                             Items.UseComboItems(enemy);
                         }
-                        else if (summoners && summonerDamage > (enemy.Health + enemy.HPRegenRate * 3))
+                        else if (summoners && summonerDamage > enemy.Health + enemy.HPRegenRate * 3)
                         {
                             Summoners.UseComboSummoners(enemy, true, true);
                         }
-                        else if (items && summoners &&
-                                 (summonerDamage + itemDamage) > (enemy.Health + enemy.HPRegenRate * 3))
+                        else if (items && summoners && summonerDamage + itemDamage > enemy.Health + enemy.HPRegenRate * 3)
                         {
                             Items.UseComboItems(enemy);
                             Summoners.UseComboSummoners(enemy, true, true);

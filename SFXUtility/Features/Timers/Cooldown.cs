@@ -112,7 +112,7 @@ namespace SFXUtility.Features.Timers
                         {
                             var cooldown = data.Cooldowns[spell.Level - 1];
                             var cdr = hero.PercentCooldownMod * -1 * 100;
-                            data.Cooldown = cooldown - (cooldown / 100 * (cdr > 40 ? 40 : cdr)) + data.Additional;
+                            data.Cooldown = cooldown - cooldown / 100 * (cdr > 40 ? 40 : cdr) + data.Additional;
                             data.CooldownExpires = Game.Time + data.Cooldown;
                         }
                     }
@@ -124,7 +124,7 @@ namespace SFXUtility.Features.Timers
             }
         }
 
-        protected override sealed void OnLoad()
+        protected sealed override void OnLoad()
         {
             try
             {
@@ -348,8 +348,8 @@ namespace SFXUtility.Features.Timers
                                     ? teleportCd - Game.Time
                                     : (spell.IsReady() ? 0 : spell.CooldownExpires - Game.Time);
                                 var sCd = teleportCd > 0.1f ? TeleportCd : spell.Cooldown;
-                                var percent = (Math.Abs(sCd) > float.Epsilon) ? t / sCd : 1f;
-                                var n = (t > 0) ? (int) (19 * (1f - percent)) : 19;
+                                var percent = Math.Abs(sCd) > float.Epsilon ? t / sCd : 1f;
+                                var n = t > 0 ? (int) (19 * (1f - percent)) : 19;
                                 if (t > 0)
                                 {
                                     _text.DrawTextCentered(
@@ -394,8 +394,8 @@ namespace SFXUtility.Features.Timers
                                             m.Champ.Equals(lHero.ChampionName, StringComparison.OrdinalIgnoreCase));
                                 var t = (manual != null ? manual.CooldownExpires : spell.CooldownExpires) - Game.Time;
                                 var spellCooldown = manual != null ? manual.Cooldown : spell.Cooldown;
-                                var percent = (t > 0 && Math.Abs(spellCooldown) > float.Epsilon)
-                                    ? 1f - (t / spellCooldown)
+                                var percent = t > 0 && Math.Abs(spellCooldown) > float.Epsilon
+                                    ? 1f - t / spellCooldown
                                     : 1f;
                                 if (t > 0 && t < 100)
                                 {
@@ -408,7 +408,7 @@ namespace SFXUtility.Features.Timers
                                 {
                                     _line.Draw(
                                         new[] { new Vector2(x2, y2), new Vector2(x2 + percent * 23, y2) },
-                                        (t > 0) ? new ColorBGRA(235, 137, 0, 255) : new ColorBGRA(0, 168, 25, 255));
+                                        t > 0 ? new ColorBGRA(235, 137, 0, 255) : new ColorBGRA(0, 168, 25, 255));
                                 }
                                 x2 = x2 + 27;
                             }

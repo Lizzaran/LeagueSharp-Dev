@@ -202,7 +202,7 @@ namespace SFXUtility.Features.Drawings
             OnLoad();
         }
 
-        protected override List<Utility.Map.MapType> MapBlacklist
+        protected override List<Utility.Map.MapType> BlacklistedMaps
         {
             get
             {
@@ -238,7 +238,7 @@ namespace SFXUtility.Features.Drawings
             base.OnDisable();
         }
 
-        protected override sealed void OnLoad()
+        protected sealed override void OnLoad()
         {
             try
             {

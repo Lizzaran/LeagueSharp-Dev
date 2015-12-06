@@ -50,7 +50,7 @@ namespace SFXUtility.Features.Timers
             OnLoad();
         }
 
-        protected override List<Utility.Map.MapType> MapBlacklist
+        protected override List<Utility.Map.MapType> BlacklistedMaps
         {
             get { return new List<Utility.Map.MapType> { Utility.Map.MapType.SummonersRift }; }
         }
@@ -176,7 +176,7 @@ namespace SFXUtility.Features.Timers
             }
         }
 
-        protected override sealed void OnLoad()
+        protected sealed override void OnLoad()
         {
             try
             {

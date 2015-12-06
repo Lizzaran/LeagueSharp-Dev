@@ -48,13 +48,13 @@ namespace SFXHumanizer_Pro
             {
                 if (amount > 0)
                 {
-                    amount = rnd.Next((int) (Math.Floor(amount * 0.9f)), (int) (Math.Ceiling(amount * 1.1f)));
+                    amount = rnd.Next((int) Math.Floor(amount * 0.9f), (int) Math.Ceiling(amount * 1.1f));
                     position.X += rnd.Next(0, amount * 2 + 1) - amount;
                     position.Y += rnd.Next(0, amount * 2 + 1) - amount;
                 }
 
-                position.X = Truncate((int) (position.X) + (float) rnd.NextDouble(), 3);
-                position.Y = Truncate((int) (position.Y) + (float) rnd.NextDouble(), 3);
+                position.X = Truncate((int) position.X + (float) rnd.NextDouble(), 3);
+                position.Y = Truncate((int) position.Y + (float) rnd.NextDouble(), 3);
                 position.Z = NavMesh.GetHeightForPosition(position.X, position.Y);
             }
 

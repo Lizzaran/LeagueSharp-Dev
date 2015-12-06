@@ -123,7 +123,7 @@ namespace SFXUtility.Features.Trackers
                         var mpPos = Drawing.WorldToMinimap(pos);
                         var mPos = Drawing.WorldToScreen(pos);
 
-                        if (ssCircle && !lp.LastSeen.Equals(0f) && (Game.Time - lp.LastSeen) > 3f)
+                        if (ssCircle && !lp.LastSeen.Equals(0f) && Game.Time - lp.LastSeen > 3f)
                         {
                             var radius = Math.Abs((Game.Time - lp.LastSeen - 1) * lp.Hero.MoveSpeed * 0.9f);
                             if (radius <= 8000)
@@ -160,7 +160,7 @@ namespace SFXUtility.Features.Trackers
                             }
                         }
 
-                        if (timer && !lp.LastSeen.Equals(0f) && (Game.Time - lp.LastSeen) > 3f)
+                        if (timer && !lp.LastSeen.Equals(0f) && Game.Time - lp.LastSeen > 3f)
                         {
                             var time = (Game.Time - lp.LastSeen).FormatTime(totalSeconds);
                             if (map && pos.IsOnScreen(50))
@@ -241,7 +241,7 @@ namespace SFXUtility.Features.Trackers
             }
         }
 
-        protected override sealed void OnLoad()
+        protected sealed override void OnLoad()
         {
             try
             {

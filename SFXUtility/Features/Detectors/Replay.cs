@@ -113,7 +113,7 @@ namespace SFXUtility.Features.Detectors
             }
         }
 
-        protected override sealed void OnLoad()
+        protected sealed override void OnLoad()
         {
             try
             {
@@ -169,11 +169,11 @@ namespace SFXUtility.Features.Detectors
                         {
                             if (!_isRecording && Menu.Item(Name + "DoRecord").GetValue<bool>())
                             {
-                                _isRecording = (await Spectator.DoRecord());
+                                _isRecording = await Spectator.DoRecord();
                             }
                             if (!_isRecording && Menu.Item(Name + "IsRecording").GetValue<bool>())
                             {
-                                _isRecording = (await Spectator.IsRecoding());
+                                _isRecording = await Spectator.IsRecoding();
                             }
                             if (_isRecording)
                             {

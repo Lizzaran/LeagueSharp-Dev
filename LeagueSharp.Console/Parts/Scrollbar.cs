@@ -67,8 +67,8 @@ namespace LeagueSharp.Console.Parts
         {
             get
             {
-                var percent = ((float) Content.Height / Content.RealHeight) * 100f;
-                return (int) ((Content.Height * (percent > 100 ? 100 : percent)) / 100);
+                var percent = (float) Content.Height / Content.RealHeight * 100f;
+                return (int) (Content.Height * (percent > 100 ? 100 : percent) / 100);
             }
         }
 
@@ -76,7 +76,7 @@ namespace LeagueSharp.Console.Parts
         {
             get
             {
-                var percent = ((float) Content.Height / Content.RealHeight) * 100f;
+                var percent = (float) Content.Height / Content.RealHeight * 100f;
                 return (int) Math.Ceiling(100 / (percent > 100 ? 100 : percent));
             }
         }
@@ -99,7 +99,7 @@ namespace LeagueSharp.Console.Parts
                 {
                     val = 0;
                 }
-                else if (value > (Content.Height - Height))
+                else if (value > Content.Height - Height)
                 {
                     val = Content.Height - Height;
                 }

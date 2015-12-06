@@ -86,7 +86,7 @@ namespace SFXUtility.Features.Drawings
             OnLoad();
         }
 
-        protected override List<Utility.Map.MapType> MapBlacklist
+        protected override List<Utility.Map.MapType> BlacklistedMaps
         {
             get
             {
@@ -139,14 +139,14 @@ namespace SFXUtility.Features.Drawings
 
                     for (var i = 0; i < 3; i++)
                     {
-                        var difference = (i == 0
+                        var difference = i == 0
                             ? _topChaos - _topOrder
-                            : (i == 1 ? _midChaos - _midOrder : _botChaos - _botOrder));
+                            : (i == 1 ? _midChaos - _midOrder : _botChaos - _botOrder);
                         var chaosWins = difference > 0;
                         difference = Math.Abs(difference);
                         if (difference > 0)
                         {
-                            var pWidth = (barWidth / 2f) / maxWeight * Math.Min(maxWeight, difference);
+                            var pWidth = barWidth / 2f / maxWeight * Math.Min(maxWeight, difference);
                             _line.Width = barHeight;
                             _line.Begin();
                             if (chaosWins)
@@ -230,7 +230,7 @@ namespace SFXUtility.Features.Drawings
             base.OnDisable();
         }
 
-        protected override sealed void OnLoad()
+        protected sealed override void OnLoad()
         {
             try
             {
@@ -654,7 +654,7 @@ namespace SFXUtility.Features.Drawings
                     (int)
                         (minion.IsMelee
                             ? points / 100f * minion.HealthPercent
-                            : points - (points / 100f * minion.HealthPercent * 0.75f));
+                            : points - points / 100f * minion.HealthPercent * 0.75f);
 
                 return points;
             }
