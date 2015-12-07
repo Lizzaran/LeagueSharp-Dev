@@ -31,7 +31,7 @@ using SFXChallenger.Library.Logger;
 
 namespace SFXChallenger.Managers
 {
-    internal static class DelayManager
+    public static class DelayManager
     {
         private static readonly Dictionary<string, Menu> Menues = new Dictionary<string, Menu>();
 
@@ -86,7 +86,7 @@ namespace SFXChallenger.Managers
                     var value = menu.Item(menu.Name + ".delay-manager." + uniqueId).GetValue<Slider>().Value;
                     return value < 10 ||
                            Environment.TickCount >=
-                           lastCast + (new Random().Next((int) (value * 0.8f), (int) (value * 1.2f)));
+                           lastCast + new Random().Next((int) (value * 0.8f), (int) (value * 1.2f));
                 }
                 throw new KeyNotFoundException(string.Format("DelayManager: UniqueID \"{0}\" not found.", uniqueId));
             }

@@ -47,7 +47,11 @@ namespace SFXChallenger.Helpers
             set { _boundingRadiusMultiplicator = value; }
         }
 
-        public static Result Circle(Spell spell, Obj_AI_Hero target, HitChance hitChance, bool boundingRadius = true)
+        public static Result Circle(Spell spell,
+            Obj_AI_Hero target,
+            HitChance hitChance,
+            bool boundingRadius = true,
+            bool extended = true)
         {
             try
             {
@@ -58,7 +62,7 @@ namespace SFXChallenger.Helpers
                 var hits = new List<Obj_AI_Hero>();
                 var center = Vector3.Zero;
                 var radius = float.MaxValue;
-                var range = spell.Range + (spell.Width * 0.85f) +
+                var range = spell.Range + (extended ? spell.Width * 0.85f : 0) +
                             (boundingRadius ? target.BoundingRadius * BoundingRadiusMultiplicator : 0);
                 var positions = (from t in GameObjects.EnemyHeroes
                     where t.IsValidTarget(range * 1.5f, true, spell.RangeCheckFrom)
@@ -90,13 +94,13 @@ namespace SFXChallenger.Helpers
                             if (boundingRadius)
                             {
                                 lHits.AddRange(
-                                    (from position in positions
-                                        where
-                                            new Geometry.Polygon.Circle(
-                                                position.UnitPosition,
-                                                (position.Hero.BoundingRadius * BoundingRadiusMultiplicator)).Points.Any
-                                                (p => circle.IsInside(p))
-                                        select position.Hero));
+                                    from position in positions
+                                    where
+                                        new Geometry.Polygon.Circle(
+                                            position.UnitPosition,
+                                            position.Hero.BoundingRadius * BoundingRadiusMultiplicator).Points.Any(
+                                                p => circle.IsInside(p))
+                                    select position.Hero);
                             }
                             else
                             {
@@ -144,7 +148,7 @@ namespace SFXChallenger.Helpers
                     return new Result(Vector3.Zero, new List<Obj_AI_Hero>());
                 }
                 var range = (spell.IsChargedSpell && maxRange ? spell.ChargedMaxRange : spell.Range) +
-                            (spell.Width * 0.9f) +
+                            spell.Width * 0.9f +
                             (boundingRadius ? target.BoundingRadius * BoundingRadiusMultiplicator : 0);
                 var positions = (from t in GameObjects.EnemyHeroes
                     where t.IsValidTarget(range, true, spell.RangeCheckFrom)
@@ -191,11 +195,20 @@ namespace SFXChallenger.Helpers
         internal struct Position
         {
             public readonly Obj_AI_Hero Hero;
+            public readonly Obj_AI_Base Base;
             public readonly Vector3 UnitPosition;
 
             public Position(Obj_AI_Hero hero, Vector3 unitPosition)
             {
                 Hero = hero;
+                Base = null;
+                UnitPosition = unitPosition;
+            }
+
+            public Position(Obj_AI_Base unit, Vector3 unitPosition)
+            {
+                Base = unit;
+                Hero = null;
                 UnitPosition = unitPosition;
             }
         }

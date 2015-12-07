@@ -38,7 +38,7 @@ using Utils = SFXChallenger.Helpers.Utils;
 
 namespace SFXChallenger.Managers
 {
-    internal class UltimateManager
+    public class UltimateManager
     {
         private readonly int _damagePercent = 100;
         private Menu _menu;

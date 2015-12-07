@@ -131,31 +131,52 @@ namespace SFXChallenger.Champions
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", "Use Q").SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", "Use W").SetValue(true));
 
-            var laneclearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
+            var laneClearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
             ResourceManager.AddToMenu(
-                laneclearMenu,
+                laneClearMenu,
                 new ResourceManagerArgs(
                     "lane-clear", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
                 {
                     Advanced = true,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
-                    DefaultValues = new List<int> { 50, 50, 50 },
-                    IgnoreJungleOption = true
+                    DefaultValues = new List<int> { 50, 50, 50 }
                 });
             ResourceManager.AddToMenu(
-                laneclearMenu,
+                laneClearMenu,
                 new ResourceManagerArgs(
                     "lane-clear-blue", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
                 {
                     Prefix = "Blue",
                     Advanced = true,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
-                    DefaultValues = new List<int> { 60, 60, 60 },
-                    IgnoreJungleOption = true
+                    DefaultValues = new List<int> { 60, 60, 60 }
                 });
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q-min", "Q Min.").SetValue(new Slider(4, 1, 5)));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", "Use W").SetValue(true));
+            laneClearMenu.AddItem(new MenuItem(laneClearMenu.Name + ".q", "Use Q").SetValue(true));
+            laneClearMenu.AddItem(new MenuItem(laneClearMenu.Name + ".q-min", "Q Min.").SetValue(new Slider(4, 1, 5)));
+            laneClearMenu.AddItem(new MenuItem(laneClearMenu.Name + ".w", "Use W").SetValue(true));
+
+            var jungleClearMenu = Menu.AddSubMenu(new Menu("Jungle Clear", Menu.Name + ".jungle-clear"));
+            ResourceManager.AddToMenu(
+                jungleClearMenu,
+                new ResourceManagerArgs(
+                    "jungle-clear", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    Advanced = true,
+                    LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
+                    DefaultValues = new List<int> { 30, 30, 30 }
+                });
+            ResourceManager.AddToMenu(
+                jungleClearMenu,
+                new ResourceManagerArgs(
+                    "jungle-clear-blue", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    Prefix = "Blue",
+                    Advanced = true,
+                    LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
+                    DefaultValues = new List<int> { 40, 40, 40 }
+                });
+            jungleClearMenu.AddItem(new MenuItem(jungleClearMenu.Name + ".q", "Use Q").SetValue(true));
+            jungleClearMenu.AddItem(new MenuItem(jungleClearMenu.Name + ".w", "Use W").SetValue(true));
 
             var fleeMenu = Menu.AddSubMenu(new Menu("Flee", Menu.Name + ".flee"));
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".w", "Use Gold Card").SetValue(true));
@@ -620,7 +641,7 @@ namespace SFXChallenger.Champions
                         _wTargetEndTime = 0;
                     }
                 }
-                else if (Utils.IsImmobile(target) || (W.Instance.CooldownExpires - Game.Time) >= 2 || W.Level == 0)
+                else if (Utils.IsImmobile(target) || W.Instance.CooldownExpires - Game.Time >= 2 || W.Level == 0)
                 {
                     var best = BestQPosition(
                         target, GameObjects.EnemyHeroes.Select(e => e as Obj_AI_Base).ToList(), Q.GetHitChance("combo"));
@@ -708,9 +729,9 @@ namespace SFXChallenger.Champions
 
         protected override void JungleClear()
         {
-            var q = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady() &&
-                    (ResourceManager.Check("lane-clear") || ResourceManager.IgnoreJungle("lane-clear"));
-            var w = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>() && W.IsReady();
+            var q = Menu.Item(Menu.Name + ".jungle-clear.q").GetValue<bool>() && Q.IsReady() &&
+                    ResourceManager.Check("jungle-clear");
+            var w = Menu.Item(Menu.Name + ".jungle-clear.w").GetValue<bool>() && W.IsReady();
 
             if (q)
             {
@@ -733,10 +754,7 @@ namespace SFXChallenger.Champions
                     W.Range * 1.2f, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth);
                 if (minions.Any())
                 {
-                    Cards.Select(
-                        (ResourceManager.Check("lane-clear-blue") || ResourceManager.IgnoreJungle("lane-clear-blue"))
-                            ? CardColor.Red
-                            : CardColor.Blue);
+                    Cards.Select(ResourceManager.Check("jungle-clear-blue") ? CardColor.Red : CardColor.Blue);
                 }
             }
         }
@@ -804,7 +822,7 @@ namespace SFXChallenger.Champions
                         for (var i = 0; 3 > i; i++)
                         {
                             Drawing.DrawLine(
-                                x + (i * 20), y, x + (i * 20) + 10, y, 10, (i > stacks ? Color.DarkGray : Color.Orange));
+                                x + i * 20, y, x + i * 20 + 10, y, 10, i > stacks ? Color.DarkGray : Color.Orange);
                         }
                     }
                 }
@@ -823,7 +841,7 @@ namespace SFXChallenger.Champions
                 {
                     return;
                 }
-                if (_rMinimap.GetValue<bool>() && R.Level > 0 && (R.Instance.CooldownExpires - Game.Time) < 3 &&
+                if (_rMinimap.GetValue<bool>() && R.Level > 0 && R.Instance.CooldownExpires - Game.Time < 3 &&
                     !Player.IsDead)
                 {
                     Utility.DrawCircle(Player.Position, R.Range, Color.White, 1, 30, true);

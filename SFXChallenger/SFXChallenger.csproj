@@ -37,7 +37,7 @@
     <AssemblyFileVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>None.None.IncrementOnDemandWithReset.Increment</AssemblyInfoVersionSettings>
     <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
-    <AssemblyVersion>0.9.5.44</AssemblyVersion>
+    <AssemblyVersion>0.9.5.48</AssemblyVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -90,9 +90,12 @@
     <Compile Include="Bootstrap.cs" />
     <Compile Include="Abstracts\TChampion.cs" />
     <Compile Include="Champions\Cassiopeia.cs" />
+    <Compile Include="Champions\Ezreal.cs" />
     <Compile Include="Champions\Graves.cs" />
     <Compile Include="Champions\Kalista.cs" />
+    <Compile Include="Champions\Kindred.cs" />
     <Compile Include="Champions\KogMaw.cs" />
+    <Compile Include="Champions\MissFortune.cs" />
     <Compile Include="Champions\Orianna.cs" />
     <Compile Include="Champions\Sivir.cs" />
     <Compile Include="Champions\TwistedFate.cs" />
@@ -109,6 +112,7 @@
     <Compile Include="Enumerations\UltimateModeType.cs" />
     <Compile Include="Args\InitiatorManagerArgs.cs" />
     <Compile Include="Global.cs" />
+    <Compile Include="Helpers\Conflicts.cs" />
     <Compile Include="Helpers\CPrediction.cs" />
     <Compile Include="Helpers\DynamicInitializer.cs" />
     <Compile Include="Helpers\MDrawing.cs" />
@@ -140,6 +144,7 @@
     <Compile Include="Library\Update.cs" />
     <Compile Include="Library\Utils.cs" />
     <Compile Include="Managers\BestTargetOnlyManager.cs" />
+    <Compile Include="Managers\BlockOrdersManager.cs" />
     <Compile Include="Managers\BuffManager.cs" />
     <Compile Include="Managers\DelayManager.cs" />
     <Compile Include="Managers\DrawingManager.cs" />
@@ -150,6 +155,7 @@
     <Compile Include="Managers\IndicatorManager.cs" />
     <Compile Include="Managers\InitiatorManager.cs" />
     <Compile Include="Managers\KillstealManager.cs" />
+    <Compile Include="Managers\TearStackManager.cs" />
     <Compile Include="Managers\OverkillManager.cs" />
     <Compile Include="Managers\ResourceManager.cs" />
     <Compile Include="Managers\SpellBlockManager.cs" />

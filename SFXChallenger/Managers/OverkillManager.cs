@@ -34,7 +34,7 @@ using SFXChallenger.Library.Logger;
 
 namespace SFXChallenger.Managers
 {
-    internal class OverkillManager
+    public class OverkillManager
     {
         public static bool Enabled { get; set; }
 
@@ -104,7 +104,7 @@ namespace SFXChallenger.Managers
                     var target = args.Target as Obj_AI_Hero;
                     if (target != null)
                     {
-                        if ((!(sender is Obj_AI_Hero) || args.SData.IsAutoAttack()))
+                        if (!(sender is Obj_AI_Hero) || args.SData.IsAutoAttack())
                         {
                             Damages.Add(
                                 target.NetworkId,
@@ -143,7 +143,7 @@ namespace SFXChallenger.Managers
                                     GameObjects.EnemyHeroes.Where(
                                         e => e.IsValidTarget() && e.Distance(args.Start) < 300))
                                 {
-                                    var length = (int) (args.Start.Distance(args.End));
+                                    var length = (int) args.Start.Distance(args.End);
                                     for (int i = 0, l = length > 300 ? 300 : length; i < l; i = i + 50)
                                     {
                                         var pos = args.Start.Extend(args.End, i);

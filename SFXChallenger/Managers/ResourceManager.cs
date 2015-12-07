@@ -34,7 +34,7 @@ using SFXChallenger.Library.Logger;
 
 namespace SFXChallenger.Managers
 {
-    internal class ResourceManager
+    public class ResourceManager
     {
         private static readonly Dictionary<string, Tuple<Menu, ResourceManagerArgs>> Menues =
             new Dictionary<string, Tuple<Menu, ResourceManagerArgs>>();
@@ -94,13 +94,6 @@ namespace SFXChallenger.Managers
                                 string.Format("Level {0} - {1}", levelFrom, levelTo)).SetValue(
                                     new Slider(defaultValue, args.MinValue, args.MaxValue)));
                     }
-
-                    if (args.IgnoreJungleOption)
-                    {
-                        subMenu.AddItem(
-                            new MenuItem(string.Format("{0}.ignore-jungle", subMenu.Name), "Ignore for Jungle"))
-                            .SetValue(true);
-                    }
                 }
                 else
                 {
@@ -118,35 +111,6 @@ namespace SFXChallenger.Managers
             {
                 Global.Logger.AddItem(new LogItem(ex));
             }
-        }
-
-        public static bool IgnoreJungle(string uniqueId)
-        {
-            try
-            {
-                Tuple<Menu, ResourceManagerArgs> tuple;
-                if (Menues.TryGetValue(uniqueId, out tuple))
-                {
-                    var menu = tuple.Item1;
-                    var args = tuple.Item2;
-                    if (args.Advanced && args.IgnoreJungleOption)
-                    {
-                        var subMenuName = string.Format("{0}.{1}-{2}", menu.Name, args.Type, args.UniqueId);
-                        var menuItem = menu.Item(string.Format("{0}.ignore-jungle", subMenuName));
-                        if (menuItem != null)
-                        {
-                            return menuItem.GetValue<bool>();
-                        }
-                    }
-                    return false;
-                }
-                throw new KeyNotFoundException(string.Format("ResourceManager: UniqueID \"{0}\" not found.", uniqueId));
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.AddItem(new LogItem(ex));
-            }
-            return false;
         }
 
         public static bool Check(string uniqueId)

@@ -37,7 +37,7 @@ using Utils = SFXChallenger.Helpers.Utils;
 
 namespace SFXChallenger.Managers
 {
-    internal class DrawingManager
+    public class DrawingManager
     {
         private static IChampion _champion;
         private static bool _separator;

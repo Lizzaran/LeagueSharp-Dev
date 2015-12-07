@@ -31,7 +31,7 @@ using Spell = SFXChallenger.Wrappers.Spell;
 
 namespace SFXChallenger.Interfaces
 {
-    internal interface IChampion
+    public interface IChampion
     {
         Menu SFXMenu { get; }
         Menu Menu { get; }

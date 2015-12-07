@@ -34,7 +34,7 @@ using SFXChallenger.Library.Logger;
 
 namespace SFXChallenger.Managers
 {
-    internal static class IncomingDamageManager
+    public static class IncomingDamageManager
     {
         private static readonly Dictionary<int, float> IncomingDamages = new Dictionary<int, float>();
         private static int _removeDelay = 300;
@@ -82,8 +82,8 @@ namespace SFXChallenger.Managers
                                     hero, (int) (GetTime(sender, hero, args.SData) * 0.3f),
                                     (float) sender.GetAutoAttackDamage(hero, true));
                             }
-                            else if ((args.SData.TargettingType == SpellDataTargetType.Unit ||
-                                      args.SData.TargettingType == SpellDataTargetType.SelfAndUnit))
+                            else if (args.SData.TargettingType == SpellDataTargetType.Unit ||
+                                     args.SData.TargettingType == SpellDataTargetType.SelfAndUnit)
                             {
                                 AddDamage(
                                     hero, (int) (GetTime(sender, hero, args.SData) * 0.3f),
@@ -155,7 +155,7 @@ namespace SFXChallenger.Managers
             try
             {
                 return (Math.Max(2, sData.CastFrame / 30f) - 100 + Game.Ping / 2000f +
-                        (sender.Distance(hero.ServerPosition) / Math.Max(500, Math.Min(5000, sData.MissileSpeed)))) *
+                        sender.Distance(hero.ServerPosition) / Math.Max(500, Math.Min(5000, sData.MissileSpeed))) *
                        1000f;
             }
             catch (Exception ex)

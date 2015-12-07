@@ -35,7 +35,7 @@ using SharpDX;
 
 namespace SFXChallenger.Managers
 {
-    internal class SummonerSpell
+    public class SummonerSpell
     {
         private SpellSlot? _slot;
         public string Name { get; set; }
@@ -48,7 +48,7 @@ namespace SFXChallenger.Managers
         }
     }
 
-    internal static class SummonerManager
+    public static class SummonerManager
     {
         private static Menu _menu;
         public static SummonerSpell BlueSmite;
@@ -119,8 +119,8 @@ namespace SFXChallenger.Managers
 
         public static bool IsReady(this SummonerSpell spell, Obj_AI_Hero sender = null)
         {
-            return (spell.GetSlot(sender ?? ObjectManager.Player) != SpellSlot.Unknown &&
-                    spell.GetSlot(sender ?? ObjectManager.Player).IsReady());
+            return spell.GetSlot(sender ?? ObjectManager.Player) != SpellSlot.Unknown &&
+                   spell.GetSlot(sender ?? ObjectManager.Player).IsReady();
         }
 
         public static List<SummonerSpell> AvailableSummoners()
@@ -135,7 +135,7 @@ namespace SFXChallenger.Managers
 
         public static SpellDataInst GetSpell(this SummonerSpell spell, Obj_AI_Hero sender = null)
         {
-            var slot = spell.GetSlot((sender ?? ObjectManager.Player));
+            var slot = spell.GetSlot(sender ?? ObjectManager.Player);
             return slot == SpellSlot.Unknown ? null : (sender ?? ObjectManager.Player).Spellbook.GetSpell(slot);
         }
 

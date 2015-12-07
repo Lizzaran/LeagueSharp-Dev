@@ -137,19 +137,30 @@ namespace SFXChallenger.Champions
                 });
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", "Use Q").SetValue(true));
 
-            var laneclearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
+            var laneClearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
             ResourceManager.AddToMenu(
-                laneclearMenu,
+                laneClearMenu,
                 new ResourceManagerArgs(
                     "lane-clear", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
                 {
                     Advanced = true,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
-                    DefaultValues = new List<int> { 50, 30, 30 },
-                    IgnoreJungleOption = true
+                    DefaultValues = new List<int> { 50, 30, 30 }
                 });
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q-min", "Q Min.").SetValue(new Slider(3, 1, 5)));
+            laneClearMenu.AddItem(new MenuItem(laneClearMenu.Name + ".q", "Use Q").SetValue(true));
+            laneClearMenu.AddItem(new MenuItem(laneClearMenu.Name + ".q-min", "Q Min.").SetValue(new Slider(3, 1, 5)));
+
+            var jungleClearMenu = Menu.AddSubMenu(new Menu("Jungle Clear", Menu.Name + ".jungle-clear"));
+            ResourceManager.AddToMenu(
+                jungleClearMenu,
+                new ResourceManagerArgs(
+                    "jungle-clear", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    Advanced = true,
+                    LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
+                    DefaultValues = new List<int> { 30, 10, 10 }
+                });
+            jungleClearMenu.AddItem(new MenuItem(jungleClearMenu.Name + ".q", "Use Q").SetValue(true));
 
             var fleeMenu = Menu.AddSubMenu(new Menu("Flee", Menu.Name + ".flee"));
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".e", "Use E").SetValue(true));
@@ -275,7 +286,7 @@ namespace SFXChallenger.Champions
             if (useE && !Player.IsWindingUp && !IsReloading())
             {
                 var target = TargetSelector.GetTarget(
-                    (E.Range + Player.AttackRange + Player.BoundingRadius), E.DamageType);
+                    E.Range + Player.AttackRange + Player.BoundingRadius, E.DamageType);
                 if (target != null)
                 {
                     var pos = Menu.Item(Menu.Name + ".combo.e-mode").GetValue<StringList>().SelectedIndex == 0
@@ -306,10 +317,13 @@ namespace SFXChallenger.Champions
             if (useW)
             {
                 var target = TargetSelector.GetTarget(W);
-                var best = CPrediction.Circle(W, target, W.GetHitChance("combo"));
-                if (best.TotalHits > 0 && !best.CastPosition.Equals(Vector3.Zero))
+                if (target != null)
                 {
-                    W.Cast(best.CastPosition);
+                    var best = CPrediction.Circle(W, target, W.GetHitChance("combo"));
+                    if (best.TotalHits > 0 && !best.CastPosition.Equals(Vector3.Zero))
+                    {
+                        W.Cast(best.CastPosition);
+                    }
                 }
             }
         }
@@ -397,6 +411,7 @@ namespace SFXChallenger.Champions
 
                 var damage = 0f;
                 var totalMana = 0f;
+                var didR = false;
 
                 if (r && R.IsReady() && (!rangeCheck || R.IsInRange(target, R.Range + R2.Range)))
                 {
@@ -405,9 +420,10 @@ namespace SFXChallenger.Champions
                     {
                         totalMana += rMana;
                         damage += R.GetDamage(target);
+                        didR = true;
                     }
                 }
-                if (q && Q.IsReady() && (!rangeCheck || Q.IsInRange(target)))
+                if (q && Q.IsReady() && (!rangeCheck || target.Distance(Player) < Q.Range - (didR ? 200 : 0)))
                 {
                     var qMana = Q.ManaCost * resMulti;
                     if (totalMana + qMana <= Player.Mana)
@@ -415,7 +431,8 @@ namespace SFXChallenger.Champions
                         damage += Q.GetDamage(target);
                     }
                 }
-                if (!rangeCheck || target.Distance(Player) <= Orbwalking.GetRealAutoAttackRange(target) * 0.85f)
+                if (!rangeCheck ||
+                    target.Distance(Player) <= Orbwalking.GetRealAutoAttackRange(target) * (didR ? 0.65 : 0.85f))
                 {
                     damage += 2 * (float) Player.GetAutoAttackDamage(target, true);
                 }
@@ -495,12 +512,8 @@ namespace SFXChallenger.Champions
 
         protected override void LaneClear()
         {
-            if (!ResourceManager.Check("lane-clear"))
-            {
-                return;
-            }
-
-            var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
+            var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady() &&
+                       ResourceManager.Check("lane-clear");
             if (useQ)
             {
                 QFarmLogic(
@@ -511,12 +524,8 @@ namespace SFXChallenger.Champions
 
         protected override void JungleClear()
         {
-            if (!ResourceManager.Check("lane-clear") && !ResourceManager.IgnoreJungle("lane-clear"))
-            {
-                return;
-            }
-
-            var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
+            var useQ = Menu.Item(Menu.Name + ".jungle-clear.q").GetValue<bool>() && Q.IsReady() &&
+                       ResourceManager.Check("jungle-clear");
             if (useQ)
             {
                 QFarmLogic(

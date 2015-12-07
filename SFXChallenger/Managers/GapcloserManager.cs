@@ -37,7 +37,7 @@ using SharpDX;
 
 namespace SFXChallenger.Managers
 {
-    internal static class GapcloserManager
+    public static class GapcloserManager
     {
         private static readonly Dictionary<string, Menu> Menues = new Dictionary<string, Menu>();
         private static readonly Random Random = new Random();
@@ -273,8 +273,7 @@ namespace SFXChallenger.Managers
                         delegate
                         {
                             Check(
-                                true, hero, args.StartPos.To3D(), args.EndPos.To3D(), (args.EndTick / 1000f) - 0.1f,
-                                false);
+                                true, hero, args.StartPos.To3D(), args.EndPos.To3D(), args.EndTick / 1000f - 0.1f, false);
                         });
                 }
             }

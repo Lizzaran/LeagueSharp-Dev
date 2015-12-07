@@ -119,6 +119,10 @@ namespace SFXChallenger.Helpers
             }
             if (spell.IsSkillshot)
             {
+                if (spell.Collision)
+                {
+                    minHit = 1;
+                }
                 if (spell.Type == SkillshotType.SkillshotCircle)
                 {
                     CircleFarm(spell, minions, minHit, overrideWidth);

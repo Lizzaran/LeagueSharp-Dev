@@ -39,7 +39,7 @@ using Utils = SFXChallenger.Helpers.Utils;
 
 namespace SFXChallenger.Managers
 {
-    internal class CustomItem
+    public class CustomItem
     {
         public string Name { get; set; }
         public string DisplayName { get; set; }
@@ -55,7 +55,7 @@ namespace SFXChallenger.Managers
         public float Speed { get; set; }
     }
 
-    internal class ItemManager
+    public class ItemManager
     {
         private static Menu _menu;
         private static ItemFlags _itemFlags;
@@ -332,7 +332,7 @@ namespace SFXChallenger.Managers
                     Items.Where(
                         i =>
                             i.CombatFlags.HasFlag(ObjectManager.Player.IsMelee ? CombatFlags.Melee : CombatFlags.Ranged) &&
-                            ((i.Flags & (_itemFlags)) != 0)))
+                            ((i.Flags & _itemFlags) != 0)))
                 {
                     if (item.Flags.HasFlag(ItemFlags.Offensive) || item.Flags.HasFlag(ItemFlags.Flee))
                     {
@@ -415,7 +415,7 @@ namespace SFXChallenger.Managers
                     (float)
                         Items.Where(
                             i =>
-                                i.EffectFlags.HasFlag(EffectFlags.Damage) && ((i.Flags & (_itemFlags)) != 0) &&
+                                i.EffectFlags.HasFlag(EffectFlags.Damage) && ((i.Flags & _itemFlags) != 0) &&
                                 _menu.Item(_menu.Name + "." + i.Name + ".combo").GetValue<bool>() && i.Item.IsOwned() &&
                                 i.Item.IsReady() &&
                                 (!rangeCheck ||
@@ -449,7 +449,7 @@ namespace SFXChallenger.Managers
                 foreach (var item in
                     Items.Where(
                         i =>
-                            ((i.Flags & (_itemFlags)) != 0) &&
+                            ((i.Flags & _itemFlags) != 0) &&
                             _menu.Item(_menu.Name + "." + i.Name + ".combo").GetValue<bool>() && i.Item.IsOwned() &&
                             i.Item.IsReady() && distance <= Math.Pow(i.Range, 2) &&
                             (killSteal ||

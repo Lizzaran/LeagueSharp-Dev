@@ -134,18 +134,30 @@ namespace SFXChallenger.Champions
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", "Use Q").SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", "Use E").SetValue(true));
 
-            var laneclearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
+            var laneClearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
             ResourceManager.AddToMenu(
-                laneclearMenu,
+                laneClearMenu,
                 new ResourceManagerArgs(
                     "lane-clear-e", ResourceType.Health, ResourceValueType.Percent, ResourceCheckType.Minimum)
                 {
                     Prefix = "E",
                     DefaultValue = 45
                 });
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", "Use E").SetValue(true));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e-min", "E Min.").SetValue(new Slider(3, 1, 5)));
+            laneClearMenu.AddItem(new MenuItem(laneClearMenu.Name + ".q", "Use Q").SetValue(true));
+            laneClearMenu.AddItem(new MenuItem(laneClearMenu.Name + ".e", "Use E").SetValue(true));
+            laneClearMenu.AddItem(new MenuItem(laneClearMenu.Name + ".e-min", "E Min.").SetValue(new Slider(3, 1, 5)));
+
+            var jungleClear = Menu.AddSubMenu(new Menu("Jungle Clear", Menu.Name + ".jungle-clear"));
+            ResourceManager.AddToMenu(
+                jungleClear,
+                new ResourceManagerArgs(
+                    "jungle-clear-e", ResourceType.Health, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    Prefix = "E",
+                    DefaultValue = 25
+                });
+            jungleClear.AddItem(new MenuItem(jungleClear.Name + ".q", "Use Q").SetValue(true));
+            jungleClear.AddItem(new MenuItem(jungleClear.Name + ".e", "Use E").SetValue(true));
 
             var lasthitMenu = Menu.AddSubMenu(new Menu("Last Hit", Menu.Name + ".lasthit"));
             lasthitMenu.AddItem(new MenuItem(lasthitMenu.Name + ".q", "Use Q").SetValue(true));
@@ -306,7 +318,7 @@ namespace SFXChallenger.Champions
                 ResourceManager.Check("auto-e") && !Player.IsRecalling() && !Player.InFountain())
             {
                 var buff = GetEBuff();
-                if (buff == null || (buff.EndTime - Game.Time) <= Game.Ping / 2000f + 0.5f)
+                if (buff == null || buff.EndTime - Game.Time <= Game.Ping / 2000f + 0.5f)
                 {
                     E.Cast();
                 }
@@ -506,8 +518,9 @@ namespace SFXChallenger.Champions
 
         protected override void JungleClear()
         {
-            var q = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
-            var e = Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady();
+            var q = Menu.Item(Menu.Name + ".jungle-clear.q").GetValue<bool>() && Q.IsReady();
+            var e = Menu.Item(Menu.Name + ".jungle-clear.e").GetValue<bool>() && E.IsReady() &&
+                    ResourceManager.Check("jungle-clear-e");
 
             if (q)
             {
@@ -573,7 +586,7 @@ namespace SFXChallenger.Champions
                         for (var i = 0; 4 > i; i++)
                         {
                             Drawing.DrawLine(
-                                x + (i * 20), y, x + (i * 20) + 10, y, 10, (i > stacks ? Color.DarkGray : Color.Orange));
+                                x + i * 20, y, x + i * 20 + 10, y, 10, i > stacks ? Color.DarkGray : Color.Orange);
                         }
                     }
                 }

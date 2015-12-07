@@ -36,7 +36,7 @@ using SharpDX;
 
 namespace SFXChallenger.Managers
 {
-    internal class HeroListManager
+    public class HeroListManager
     {
         private static readonly Dictionary<string, Tuple<Menu, HeroListManagerArgs>> Menues =
             new Dictionary<string, Tuple<Menu, HeroListManagerArgs>>();
@@ -61,7 +61,7 @@ namespace SFXChallenger.Managers
                         string.Format("HeroListManager: UniqueID \"{0}\" already exist.", args.UniqueId));
                 }
 
-                menu.Color = (args.IsWhitelist ? WhitelistColor : BlacklistColor);
+                menu.Color = args.IsWhitelist ? WhitelistColor : BlacklistColor;
 
                 foreach (var hero in GameObjects.Heroes.Where(h => args.Allies && h.IsAlly || args.Enemies && h.IsEnemy)
                     )

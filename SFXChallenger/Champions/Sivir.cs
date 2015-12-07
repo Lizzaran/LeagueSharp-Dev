@@ -97,33 +97,55 @@ namespace SFXChallenger.Champions
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".q", "Use Q").SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", "Use W").SetValue(true));
 
-            var laneclearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
+            var laneClearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
             ResourceManager.AddToMenu(
-                laneclearMenu,
+                laneClearMenu,
                 new ResourceManagerArgs(
                     "lane-clear-q", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
                 {
                     Prefix = "Q",
                     Advanced = true,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
-                    DefaultValues = new List<int> { 60, 50, 50 },
-                    IgnoreJungleOption = true
+                    DefaultValues = new List<int> { 60, 50, 50 }
                 });
             ResourceManager.AddToMenu(
-                laneclearMenu,
+                laneClearMenu,
                 new ResourceManagerArgs(
                     "lane-clear-w", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
                 {
                     Prefix = "W",
                     Advanced = true,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
-                    DefaultValues = new List<int> { 50, 40, 40 },
-                    IgnoreJungleOption = true
+                    DefaultValues = new List<int> { 50, 40, 40 }
                 });
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q-min", "Q Min.").SetValue(new Slider(4, 1, 5)));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", "Use W").SetValue(true));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w-min", "W Min.").SetValue(new Slider(3, 1, 5)));
+            laneClearMenu.AddItem(new MenuItem(laneClearMenu.Name + ".q", "Use Q").SetValue(true));
+            laneClearMenu.AddItem(new MenuItem(laneClearMenu.Name + ".q-min", "Q Min.").SetValue(new Slider(4, 1, 5)));
+            laneClearMenu.AddItem(new MenuItem(laneClearMenu.Name + ".w", "Use W").SetValue(true));
+            laneClearMenu.AddItem(new MenuItem(laneClearMenu.Name + ".w-min", "W Min.").SetValue(new Slider(3, 1, 5)));
+
+            var jungleClearMenu = Menu.AddSubMenu(new Menu("Jungle Clear", Menu.Name + ".jungle-clear"));
+            ResourceManager.AddToMenu(
+                jungleClearMenu,
+                new ResourceManagerArgs(
+                    "jungle-clear-q", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    Prefix = "Q",
+                    Advanced = true,
+                    LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
+                    DefaultValues = new List<int> { 40, 30, 30 }
+                });
+            ResourceManager.AddToMenu(
+                jungleClearMenu,
+                new ResourceManagerArgs(
+                    "jungle-clear-w", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    Prefix = "W",
+                    Advanced = true,
+                    LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
+                    DefaultValues = new List<int> { 30, 20, 20 }
+                });
+            jungleClearMenu.AddItem(new MenuItem(jungleClearMenu.Name + ".q", "Use Q").SetValue(true));
+            jungleClearMenu.AddItem(new MenuItem(jungleClearMenu.Name + ".w", "Use W").SetValue(true));
 
             var fleeMenu = Menu.AddSubMenu(new Menu("Flee", Menu.Name + ".flee"));
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".r", "Use R").SetValue(false));
@@ -216,8 +238,8 @@ namespace SFXChallenger.Champions
             }
             else if (type.Equals(SpellDataTargetType.Self))
             {
-                if ((unit.ChampionName.Equals("Kalista", StringComparison.OrdinalIgnoreCase) &&
-                     Player.Distance(unit) < 350))
+                if (unit.ChampionName.Equals("Kalista", StringComparison.OrdinalIgnoreCase) &&
+                    Player.Distance(unit) < 350)
                 {
                     E.Cast();
                 }
@@ -251,22 +273,26 @@ namespace SFXChallenger.Champions
                             useW = Menu.Item(Menu.Name + ".harass.w").GetValue<bool>();
                             break;
                         case Orbwalking.OrbwalkingMode.LaneClear:
-                            useW = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>();
-                            wMin = target.Team != GameObjectTeam.Neutral
-                                ? Menu.Item(Menu.Name + ".lane-clear.w-min").GetValue<Slider>().Value
-                                : 1;
-                            laneclear = true;
-                            jungleClear = target.Team == GameObjectTeam.Neutral;
+                            if (target.Team == GameObjectTeam.Neutral)
+                            {
+                                useW = Menu.Item(Menu.Name + ".jungle-clear.w").GetValue<bool>() &&
+                                       ResourceManager.Check("jungle-clear-w");
+                                wMin = 1;
+                                jungleClear = true;
+                            }
+                            else
+                            {
+                                useW = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>() &&
+                                       ResourceManager.Check("lane-clear-w");
+                                wMin = Menu.Item(Menu.Name + ".lane-clear.w-min").GetValue<Slider>().Value;
+                                laneclear = true;
+                            }
                             break;
                     }
-                    if (useW &&
-                        (!laneclear ||
-                         (jungleClear
-                             ? (ResourceManager.Check("lane-clear-w") || ResourceManager.IgnoreJungle("lane-clear-w"))
-                             : ResourceManager.Check("lane-clear-w"))))
+                    if (useW)
                     {
                         var range = W.Range + Player.BoundingRadius * 2f;
-                        var targets = laneclear
+                        var targets = laneclear || jungleClear
                             ? MinionManager.GetMinions(range + 450, MinionTypes.All, MinionTeam.NotAlly)
                             : GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(range + 450))
                                 .Cast<Obj_AI_Base>()
@@ -293,8 +319,8 @@ namespace SFXChallenger.Champions
         protected override void Combo()
         {
             if (Menu.Item(Menu.Name + ".combo.q").GetValue<bool>() && Q.IsReady() &&
-                (!Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() ||
-                 (W.Level == 0 || !W.IsReady() || !GameObjects.EnemyHeroes.Any(Orbwalking.InAutoAttackRange))))
+                (!Menu.Item(Menu.Name + ".combo.w").GetValue<bool>() || W.Level == 0 || !W.IsReady() ||
+                 !GameObjects.EnemyHeroes.Any(Orbwalking.InAutoAttackRange)))
             {
                 Casting.SkillShot(Q, Q.GetHitChance("combo"));
             }
@@ -308,8 +334,8 @@ namespace SFXChallenger.Champions
             }
 
             if (Menu.Item(Menu.Name + ".harass.q").GetValue<bool>() && Q.IsReady() &&
-                (!Menu.Item(Menu.Name + ".harass.w").GetValue<bool>() ||
-                 (W.Level == 0 || !W.IsReady() || !GameObjects.EnemyHeroes.Any(Orbwalking.InAutoAttackRange))))
+                (!Menu.Item(Menu.Name + ".harass.w").GetValue<bool>() || W.Level == 0 || !W.IsReady() ||
+                 !GameObjects.EnemyHeroes.Any(Orbwalking.InAutoAttackRange)))
             {
                 Casting.SkillShot(Q, Q.GetHitChance("combo"));
             }
@@ -317,12 +343,8 @@ namespace SFXChallenger.Champions
 
         protected override void LaneClear()
         {
-            if (!ResourceManager.Check("lane-clear-q"))
-            {
-                return;
-            }
-
-            var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
+            var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady() &&
+                       ResourceManager.Check("lane-clear-q");
             if (useQ)
             {
                 Casting.Farm(
@@ -333,12 +355,8 @@ namespace SFXChallenger.Champions
 
         protected override void JungleClear()
         {
-            if (!ResourceManager.Check("lane-clear-q") && !ResourceManager.IgnoreJungle("lane-clear-q"))
-            {
-                return;
-            }
-
-            var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
+            var useQ = Menu.Item(Menu.Name + ".jungle-clear.q").GetValue<bool>() && Q.IsReady() &&
+                       ResourceManager.Check("jungle-clear-q");
             if (useQ)
             {
                 Casting.Farm(

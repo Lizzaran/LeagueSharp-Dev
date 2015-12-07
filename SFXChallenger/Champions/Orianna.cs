@@ -159,19 +159,31 @@ namespace SFXChallenger.Champions
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", "Use W").SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", "Use E").SetValue(false));
 
-            var laneclearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
+            var laneClearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
             ResourceManager.AddToMenu(
-                laneclearMenu,
+                laneClearMenu,
                 new ResourceManagerArgs(
                     "lane-clear", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
                 {
                     Advanced = true,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
-                    DefaultValues = new List<int> { 45, 25, 25 },
-                    IgnoreJungleOption = true
+                    DefaultValues = new List<int> { 45, 25, 25 }
                 });
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", "Use W").SetValue(true));
+            laneClearMenu.AddItem(new MenuItem(laneClearMenu.Name + ".q", "Use Q").SetValue(true));
+            laneClearMenu.AddItem(new MenuItem(laneClearMenu.Name + ".w", "Use W").SetValue(true));
+
+            var jungleClearMenu = Menu.AddSubMenu(new Menu("Jungle Clear", Menu.Name + ".jungle-clear"));
+            ResourceManager.AddToMenu(
+                jungleClearMenu,
+                new ResourceManagerArgs(
+                    "jungle-clear", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    Advanced = true,
+                    LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
+                    DefaultValues = new List<int> { 25, 0, 0 }
+                });
+            jungleClearMenu.AddItem(new MenuItem(jungleClearMenu.Name + ".q", "Use Q").SetValue(true));
+            jungleClearMenu.AddItem(new MenuItem(jungleClearMenu.Name + ".w", "Use W").SetValue(true));
 
             var fleeMenu = Menu.AddSubMenu(new Menu("Flee", Menu.Name + ".flee"));
             fleeMenu.AddItem(new MenuItem(fleeMenu.Name + ".w", "Use W").SetValue(true));
@@ -267,7 +279,7 @@ namespace SFXChallenger.Champions
                 if (circle.Active)
                 {
                     Render.Circle.DrawCircle(
-                        (Ball.Hero != null ? Ball.Hero.Position : Ball.Position),
+                        Ball.Hero != null ? Ball.Hero.Position : Ball.Position,
                         _ballPositionRadius.GetValue<Slider>().Value, circle.Color,
                         _ballPositionThickness.GetValue<Slider>().Value, true);
                 }
@@ -378,7 +390,7 @@ namespace SFXChallenger.Champions
                     var totalDamage = IncomingDamageManager.GetDamage(Player) * 1.1f;
                     if (totalDamage >= Player.Health ||
                         totalDamage >=
-                        (Player.MaxHealth / 100 * Menu.Item(Menu.Name + ".shield.min-damage").GetValue<Slider>().Value))
+                        Player.MaxHealth / 100 * Menu.Item(Menu.Name + ".shield.min-damage").GetValue<Slider>().Value)
                     {
                         E.CastOnUnit(Player);
                     }
@@ -412,7 +424,7 @@ namespace SFXChallenger.Champions
                 var target = TargetSelector.GetTarget(
                     (R.Width + SummonerManager.Flash.Range) * 1.5f, DamageType.Magical);
                 if (target != null && !target.IsDashing() &&
-                    (R.GetPrediction(target).UnitPosition.Distance(Player.Position)) > R.Width)
+                    R.GetPrediction(target).UnitPosition.Distance(Player.Position) > R.Width)
                 {
                     var flashPos = Player.Position.Extend(target.Position, SummonerManager.Flash.Range);
                     var maxHits = GetHits(R, false, -1f, flashPos);
@@ -423,8 +435,7 @@ namespace SFXChallenger.Champions
                         {
                             if (R.Cast(Ball.Position))
                             {
-                                Utility.DelayAction.Add(
-                                    300 + (Game.Ping / 2), () => SummonerManager.Flash.Cast(flashPos));
+                                Utility.DelayAction.Add(300 + Game.Ping / 2, () => SummonerManager.Flash.Cast(flashPos));
                             }
                         }
                         else if (Ultimate.ShouldSingle(UltimateModeType.Flash))
@@ -434,7 +445,7 @@ namespace SFXChallenger.Champions
                                 if (R.Cast(Ball.Position))
                                 {
                                     Utility.DelayAction.Add(
-                                        300 + (Game.Ping / 2), () => SummonerManager.Flash.Cast(flashPos));
+                                        300 + Game.Ping / 2, () => SummonerManager.Flash.Cast(flashPos));
                                 }
                             }
                         }
@@ -835,10 +846,10 @@ namespace SFXChallenger.Champions
                         var prediction = Prediction.GetPrediction(input);
                         if (prediction.Hitchance >= HitChance.High)
                         {
-                            if (!advancedChecks ||
-                                (Utils.IsImmobile(t) || Utils.IsSlowed(t) || t.Distance(fromCheck) < spell.Width * 0.75 ||
-                                 t.Distance(fromCheck) < spell.Width &&
-                                 (fromCheck.Distance(Ball.Position) > 100 || t.IsFacing(fromCheck, 120f))))
+                            if (!advancedChecks || Utils.IsImmobile(t) || Utils.IsSlowed(t) ||
+                                t.Distance(fromCheck) < spell.Width * 0.75 ||
+                                t.Distance(fromCheck) < spell.Width &&
+                                (fromCheck.Distance(Ball.Position) > 100 || t.IsFacing(fromCheck, 120f)))
                             {
                                 positions.Add(new CPrediction.Position(t, prediction.UnitPosition));
                             }
@@ -909,7 +920,7 @@ namespace SFXChallenger.Champions
                     Collision = false,
                     From = Ball.Position,
                     RangeCheckFrom = Ball.Position,
-                    Delay = (Q.Delay + R.Delay) - 0.1f,
+                    Delay = Q.Delay + R.Delay - 0.1f,
                     Range = Q.Range + R.Width / 2f,
                     Speed = Q.Speed,
                     Radius = R.Width,
@@ -1012,7 +1023,7 @@ namespace SFXChallenger.Champions
                 var positions = (from t in GameObjects.EnemyHeroes
                     where t.IsValidTarget(range, true, Q.RangeCheckFrom)
                     let prediction = Q.GetPrediction(t)
-                    where prediction.Hitchance >= (t.NetworkId == target.NetworkId ? hitChance : (hitChance - 1))
+                    where prediction.Hitchance >= (t.NetworkId == target.NetworkId ? hitChance : hitChance - 1)
                     select new CPrediction.Position(t, prediction.UnitPosition)).ToList();
                 if (positions.Any())
                 {
@@ -1042,12 +1053,12 @@ namespace SFXChallenger.Champions
                                         Q.Width);
 
                                 lHits.AddRange(
-                                    (from position in positions
-                                        where
-                                            new Geometry.Polygon.Circle(
-                                                position.UnitPosition, (position.Hero.BoundingRadius * 0.85f)).Points
-                                                .Any(p => circle.IsInside(p))
-                                        select position.Hero));
+                                    from position in positions
+                                    where
+                                        new Geometry.Polygon.Circle(
+                                            position.UnitPosition, position.Hero.BoundingRadius * 0.85f).Points.Any(
+                                                p => circle.IsInside(p))
+                                    select position.Hero);
 
                                 if ((lHits.Count > hits.Count || lHits.Count == hits.Count && mec.Radius < radius ||
                                      lHits.Count == hits.Count &&
@@ -1097,7 +1108,7 @@ namespace SFXChallenger.Champions
                     var rangedMinions = MinionManager.GetMinions(Player.Position, Q.Range + W.Width, MinionTypes.Ranged);
                     var qLocation = Q.GetCircularFarmLocation(allMinions, W.Width);
                     var q2Location = Q.GetCircularFarmLocation(rangedMinions, W.Width);
-                    var bestLocation = (qLocation.MinionsHit > q2Location.MinionsHit + 1) ? qLocation : q2Location;
+                    var bestLocation = qLocation.MinionsHit > q2Location.MinionsHit + 1 ? qLocation : q2Location;
 
                     if (bestLocation.MinionsHit > 0 && bestLocation.Position.Distance(Ball.Position) > 25)
                     {
@@ -1133,12 +1144,12 @@ namespace SFXChallenger.Champions
 
         protected override void JungleClear()
         {
-            if (!ResourceManager.Check("lane-clear") && !ResourceManager.IgnoreJungle("lane-clear") || Ball.IsMoving)
+            if (!ResourceManager.Check("jungle-clear") || Ball.IsMoving)
             {
                 return;
             }
-            var q = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>();
-            var w = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>();
+            var q = Menu.Item(Menu.Name + ".jungle-clear.q").GetValue<bool>();
+            var w = Menu.Item(Menu.Name + ".jungle-clear.w").GetValue<bool>();
 
             if (!q && !w)
             {

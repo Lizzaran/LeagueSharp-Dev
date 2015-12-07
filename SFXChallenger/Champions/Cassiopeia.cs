@@ -161,21 +161,35 @@ namespace SFXChallenger.Champions
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".w", "Use W").SetValue(true));
             harassMenu.AddItem(new MenuItem(harassMenu.Name + ".e", "Use E").SetValue(true));
 
-            var laneclearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
+            var laneClearMenu = Menu.AddSubMenu(new Menu("Lane Clear", Menu.Name + ".lane-clear"));
             ResourceManager.AddToMenu(
-                laneclearMenu,
+                laneClearMenu,
                 new ResourceManagerArgs(
                     "lane-clear", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
                 {
                     Advanced = true,
                     LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
-                    DefaultValues = new List<int> { 50, 30, 30 },
-                    IgnoreJungleOption = true
+                    DefaultValues = new List<int> { 50, 30, 30 }
                 });
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".aa", "Use AutoAttacks").SetValue(true));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".q", "Use Q").SetValue(true));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".w", "Use W").SetValue(true));
-            laneclearMenu.AddItem(new MenuItem(laneclearMenu.Name + ".e", "Use E").SetValue(true));
+            laneClearMenu.AddItem(new MenuItem(laneClearMenu.Name + ".aa", "Use AutoAttacks").SetValue(true));
+            laneClearMenu.AddItem(new MenuItem(laneClearMenu.Name + ".q", "Use Q").SetValue(true));
+            laneClearMenu.AddItem(new MenuItem(laneClearMenu.Name + ".w", "Use W").SetValue(true));
+            laneClearMenu.AddItem(new MenuItem(laneClearMenu.Name + ".e", "Use E").SetValue(true));
+
+            var jungleClearMenu = Menu.AddSubMenu(new Menu("Jungle Clear", Menu.Name + ".jungle-clear"));
+            ResourceManager.AddToMenu(
+                jungleClearMenu,
+                new ResourceManagerArgs(
+                    "jungle-clear", ResourceType.Mana, ResourceValueType.Percent, ResourceCheckType.Minimum)
+                {
+                    Advanced = true,
+                    LevelRanges = new SortedList<int, int> { { 1, 6 }, { 6, 12 }, { 12, 18 } },
+                    DefaultValues = new List<int> { 30, 10, 10 }
+                });
+            jungleClearMenu.AddItem(new MenuItem(jungleClearMenu.Name + ".aa", "Use AutoAttacks").SetValue(true));
+            jungleClearMenu.AddItem(new MenuItem(jungleClearMenu.Name + ".q", "Use Q").SetValue(true));
+            jungleClearMenu.AddItem(new MenuItem(jungleClearMenu.Name + ".w", "Use W").SetValue(true));
+            jungleClearMenu.AddItem(new MenuItem(jungleClearMenu.Name + ".e", "Use E").SetValue(true));
 
             var lasthitMenu = Menu.AddSubMenu(new Menu("Last Hit", Menu.Name + ".lasthit"));
             ResourceManager.AddToMenu(
@@ -299,7 +313,7 @@ namespace SFXChallenger.Champions
 
         protected override void OnPreUpdate()
         {
-            if ((Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit && ResourceManager.Check("lasthit")) &&
+            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit && ResourceManager.Check("lasthit") &&
                 E.IsReady())
             {
                 var ePoison = Menu.Item(Menu.Name + ".lasthit.e-poison").GetValue<bool>();
@@ -335,8 +349,8 @@ namespace SFXChallenger.Champions
                             t.Distance(Player) < (R.Range + R.Width + SummonerManager.Flash.Range) * 1.5f &&
                             !t.IsDashing() &&
                             (t.IsFacing(Player)
-                                ? (t.Distance(Player))
-                                : (R.GetPrediction(t).UnitPosition.Distance(Player.Position))) > R.Range);
+                                ? t.Distance(Player)
+                                : R.GetPrediction(t).UnitPosition.Distance(Player.Position)) > R.Range);
                 var backwards = Menu.Item(Menu.Name + ".ultimate.backwards").GetValue<bool>();
                 foreach (var target in targets)
                 {
@@ -351,8 +365,7 @@ namespace SFXChallenger.Champions
                         {
                             if (R.Cast(castPos))
                             {
-                                Utility.DelayAction.Add(
-                                    300 + (Game.Ping / 2), () => SummonerManager.Flash.Cast(flashPos));
+                                Utility.DelayAction.Add(300 + Game.Ping / 2, () => SummonerManager.Flash.Cast(flashPos));
                             }
                         }
                         else if (Ultimate.ShouldSingle(UltimateModeType.Flash))
@@ -361,8 +374,7 @@ namespace SFXChallenger.Champions
                                 maxHits.Item1.Where(hit => Ultimate.CheckSingle(UltimateModeType.Flash, hit))
                                     .Any(hit => R.Cast(castPos)))
                             {
-                                Utility.DelayAction.Add(
-                                    300 + (Game.Ping / 2), () => SummonerManager.Flash.Cast(flashPos));
+                                Utility.DelayAction.Add(300 + Game.Ping / 2, () => SummonerManager.Flash.Cast(flashPos));
                             }
                         }
                     }
@@ -453,20 +465,21 @@ namespace SFXChallenger.Champions
                 }
                 if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
                 {
-                    args.Process = Menu.Item(Menu.Name + ".lane-clear.aa").GetValue<bool>();
+                    var mode = args.Target.Team == GameObjectTeam.Neutral ? "jungle-clear" : "lane-clear";
+                    args.Process = Menu.Item(Menu.Name + "." + mode + ".aa").GetValue<bool>();
                     if (!args.Process)
                     {
                         var m = args.Target as Obj_AI_Minion;
                         if (m != null && (_lastEEndTime < Game.Time || E.IsReady()) ||
-                            (GetPoisonBuffEndTime(m) < E.ArrivalTime(m) || E.Instance.ManaCost > Player.Mana) ||
-                            !ResourceManager.Check("lane-clear"))
+                            GetPoisonBuffEndTime(m) < E.ArrivalTime(m) || E.Instance.ManaCost > Player.Mana ||
+                            !ResourceManager.Check(mode))
                         {
                             args.Process = true;
                         }
                     }
                 }
 
-                if ((Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit))
+                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
                 {
                     var m = args.Target as Obj_AI_Minion;
                     if (m != null && E.IsReady() && E.CanCast(m) && E.Instance.ManaCost < Player.Mana)
@@ -819,8 +832,8 @@ namespace SFXChallenger.Champions
                     Targets.FirstOrDefault(
                         t =>
                             W.CanCast(t) &&
-                            ((_lastQPoisonDelay < Game.Time && GetPoisonBuffEndTime(t) < W.Delay * 1.2 ||
-                              (_lastQPoisonT == null || _lastQPoisonT.NetworkId != t.NetworkId)) ||
+                            (_lastQPoisonDelay < Game.Time && GetPoisonBuffEndTime(t) < W.Delay * 1.2 ||
+                             _lastQPoisonT == null || _lastQPoisonT.NetworkId != t.NetworkId ||
                              (HeroListManager.Check("w-fleeing", t) && BestTargetOnlyManager.Check("w-fleeing", W, t) &&
                               !t.IsFacing(Player) && t.IsMoving && t.Distance(Player) > 150)));
                 if (ts != null)
@@ -939,7 +952,7 @@ namespace SFXChallenger.Champions
                             var mP =
                                 minions.Count(
                                     p =>
-                                        p.Distance(prediction.Position) < (Q.Width + 30) &&
+                                        p.Distance(prediction.Position) < Q.Width + 30 &&
                                         GetPoisonBuffEndTime(p) >= 0.5f);
                             if (prediction.MinionsHit - mP > 1)
                             {
@@ -959,7 +972,7 @@ namespace SFXChallenger.Champions
                             var mP =
                                 minions.Count(
                                     p =>
-                                        p.Distance(prediction.Position) < (W.Width + 50) &&
+                                        p.Distance(prediction.Position) < W.Width + 50 &&
                                         GetPoisonBuffEndTime(p) >= 0.5f);
                             if (prediction.MinionsHit - mP > 1)
                             {
@@ -975,14 +988,14 @@ namespace SFXChallenger.Champions
 
         protected override void JungleClear()
         {
-            if (!ResourceManager.Check("lane-clear") && !ResourceManager.IgnoreJungle("lane-clear"))
+            if (!ResourceManager.Check("jungle-clear"))
             {
                 return;
             }
 
-            var useQ = Menu.Item(Menu.Name + ".lane-clear.q").GetValue<bool>() && Q.IsReady();
-            var useW = Menu.Item(Menu.Name + ".lane-clear.w").GetValue<bool>() && W.IsReady();
-            var useE = Menu.Item(Menu.Name + ".lane-clear.e").GetValue<bool>() && E.IsReady() &&
+            var useQ = Menu.Item(Menu.Name + ".jungle-clear.q").GetValue<bool>() && Q.IsReady();
+            var useW = Menu.Item(Menu.Name + ".jungle-clear.w").GetValue<bool>() && W.IsReady();
+            var useE = Menu.Item(Menu.Name + ".jungle-clear.e").GetValue<bool>() && E.IsReady() &&
                        DelayManager.Check("e-delay", _lastECast);
 
             if (useE)
@@ -1016,7 +1029,7 @@ namespace SFXChallenger.Champions
                             var mP =
                                 minions.Count(
                                     p =>
-                                        p.Distance(prediction.Position) < (Q.Width + 30) &&
+                                        p.Distance(prediction.Position) < Q.Width + 30 &&
                                         GetPoisonBuffEndTime(p) >= 0.5f);
                             if (prediction.MinionsHit - mP > 1)
                             {
@@ -1036,7 +1049,7 @@ namespace SFXChallenger.Champions
                             var mP =
                                 minions.Count(
                                     p =>
-                                        p.Distance(prediction.Position) < (W.Width + 50) &&
+                                        p.Distance(prediction.Position) < W.Width + 50 &&
                                         GetPoisonBuffEndTime(p) >= 0.5f);
                             if (prediction.MinionsHit - mP > 1)
                             {

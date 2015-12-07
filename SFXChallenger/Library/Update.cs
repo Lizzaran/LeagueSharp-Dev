@@ -25,7 +25,7 @@
 using System;
 using System.Net;
 using System.Text.RegularExpressions;
-using System.Threading;
+using System.Threading.Tasks;
 using LeagueSharp.Common;
 using Version = System.Version;
 
@@ -39,24 +39,22 @@ namespace SFXChallenger.Library
         {
             try
             {
-                new Thread(
-                    async () =>
+                Task.Factory.StartNew(
+                    () =>
                     {
                         try
                         {
                             using (var client = new WebClient())
                             {
                                 var data =
-                                    await
-                                        client.DownloadStringTaskAsync(
-                                            string.Format(
-                                                "https://raw.githubusercontent.com/{0}/Properties/AssemblyInfo.cs", path));
+                                    client.DownloadString(
+                                        string.Format(
+                                            "https://raw.githubusercontent.com/{0}/Properties/AssemblyInfo.cs", path));
 
                                 var gVersion =
                                     Version.Parse(
                                         new Regex("AssemblyFileVersion\\((\"(.+?)\")\\)").Match(data).Groups[1].Value
                                             .Replace("\"", ""));
-
 
                                 if (gVersion > version)
                                 {
@@ -75,7 +73,7 @@ namespace SFXChallenger.Library
                         {
                             Console.WriteLine(ex);
                         }
-                    }).Start();
+                    });
             }
             catch (Exception ex)
             {

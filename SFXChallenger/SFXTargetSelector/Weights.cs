@@ -81,7 +81,7 @@ namespace SFXChallenger.SFXTargetSelector
                                         return HeroManager.Allies.Select(a => a.Armor).DefaultIfEmpty(0).Average() *
                                                t.PercentArmorPenetrationMod - t.FlatArmorPenetrationMod;
                                     });
-                                return (ad * (100 / (100 + (averageArmor ?? 0)))) *
+                                return ad * (100 / (100 + (averageArmor ?? 0))) *
                                        (1f / ObjectManager.Player.AttackDelay);
                             }, "AD + Pen + Crit + Speed = Higher Weight"),
                         new Item(
@@ -312,19 +312,27 @@ namespace SFXChallenger.SFXTargetSelector
                 bool simulation = false,
                 bool forceRealTime = false)
             {
-                var minValue = simulation ? item.SimulationMinValue : item.MinValue;
-                var maxValue = simulation ? item.SimulationMaxValue : item.MaxValue;
-                if (item.Weight <= MinWeight || maxValue <= 0)
+                try
                 {
-                    return MinWeight;
+                    var minValue = simulation ? item.SimulationMinValue : item.MinValue;
+                    var maxValue = simulation ? item.SimulationMaxValue : item.MaxValue;
+                    if (item.Weight <= MinWeight || maxValue <= 0)
+                    {
+                        return MinWeight;
+                    }
+                    var minWeight = minValue > 0 ? item.Weight / (maxValue / minValue) : MinWeight;
+                    var weight = item.Inverted
+                        ? item.Weight - item.Weight * GetValue(item, target, forceRealTime) / maxValue + minWeight
+                        : item.Weight * GetValue(item, target, forceRealTime) / maxValue;
+                    return float.IsNaN(weight) || float.IsInfinity(weight)
+                        ? MinWeight
+                        : Math.Min(MaxWeight, Math.Min(item.Weight, Math.Max(MinWeight, Math.Max(weight, minWeight))));
                 }
-                var minWeight = minValue > 0 ? item.Weight / (maxValue / minValue) : MinWeight;
-                var weight = item.Inverted
-                    ? (item.Weight - item.Weight * GetValue(item, target, forceRealTime) / maxValue + minWeight)
-                    : (item.Weight * GetValue(item, target, forceRealTime) / maxValue);
-                return float.IsNaN(weight) || float.IsInfinity(weight)
-                    ? MinWeight
-                    : Math.Min(MaxWeight, Math.Min(item.Weight, Math.Max(MinWeight, Math.Max(weight, minWeight))));
+                catch
+                {
+                    // Ignored
+                }
+                return MinWeight;
             }
 
             public static float GetValue(Item item, Targets.Item target, bool forceRealTime = false)
@@ -340,9 +348,9 @@ namespace SFXChallenger.SFXTargetSelector
                         }
                     }
                     var value = item.ValueFunction(target.Hero);
-                    value = (value >= 0 ? value : 0) + 1f;
+                    value = Math.Max(0, value);
                     ItemCache.AddOrUpdate(item.UniqueName, value);
-                    return (value >= 0 ? value : 0) + 1f;
+                    return value;
                 }
                 catch
                 {
@@ -371,13 +379,13 @@ namespace SFXChallenger.SFXTargetSelector
                 }
                 if (!simulation)
                 {
-                    item.MinValue = min > 1 ? min : 1;
-                    item.MaxValue = max > min ? max : min + 1;
+                    item.MinValue = Math.Max(0, min);
+                    item.MaxValue = max > min ? max : min;
                 }
                 else
                 {
-                    item.SimulationMinValue = min > 1 ? min : 1;
-                    item.SimulationMaxValue = max > min ? max : min + 1;
+                    item.SimulationMinValue = Math.Max(0, min);
+                    item.SimulationMaxValue = max > min ? max : min;
                 }
             }
 
@@ -388,6 +396,7 @@ namespace SFXChallenger.SFXTargetSelector
                     return new List<Targets.Item>();
                 }
                 var targetList = targets.ToList();
+
                 foreach (var item in Items.Where(w => w.Weight > 0))
                 {
                     UpdateMaxMinValue(item, targetList);
@@ -395,10 +404,10 @@ namespace SFXChallenger.SFXTargetSelector
 
                 foreach (var target in targetList)
                 {
-                    var weight = Items.Where(w => w.Weight > 0).Sum(w => CalculatedWeight(w, target));
-                    var heroPercent = Heroes.GetPercentage(target.Hero);
-                    target.Weight = heroPercent > 0 ? weight / 100 * heroPercent : 0;
+                    target.Weight = Items.Where(w => w.Weight > 0).Sum(w => CalculatedWeight(w, target)) / 100 *
+                                    Heroes.GetPercentage(target.Hero);
                 }
+
                 return Selected.Focus.Enabled && Selected.Focus.Force && targetList.Count > 1
                     ? new List<Targets.Item> { targetList.OrderByDescending(t => t.Weight).First() }
                     : targetList.OrderByDescending(t => t.Weight).ToList();

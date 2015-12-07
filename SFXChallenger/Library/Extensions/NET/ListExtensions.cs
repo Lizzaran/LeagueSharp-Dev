@@ -38,7 +38,7 @@ namespace SFXChallenger.Library.Extensions.NET
         public static IEnumerable<T> Randomize<T>(this IEnumerable<T> target)
         {
             var r = new Random();
-            return target.OrderBy(x => (r.Next()));
+            return target.OrderBy(x => r.Next());
         }
 
         public static T DeepClone<T>(this T input) where T : ISerializable
@@ -102,7 +102,7 @@ namespace SFXChallenger.Library.Extensions.NET
 
         public static IEnumerable<List<T>> ProduceEnumeration<T>(List<T> list)
         {
-            for (var i = 0; i < (1 << list.Count); i++)
+            for (var i = 0; i < 1 << list.Count; i++)
             {
                 yield return ConstructSetFromBits(i).Select(n => list[n]).ToList();
             }

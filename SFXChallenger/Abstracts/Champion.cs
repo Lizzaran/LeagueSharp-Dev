@@ -47,7 +47,7 @@ namespace SFXChallenger.Abstracts
     internal abstract class Champion : IChampion
     {
         private static float _minionSearchRange;
-        protected readonly Obj_AI_Hero Player = ObjectManager.Player;
+        protected readonly Obj_AI_Hero Player;
         private Obj_AI_Base _nearestMinion;
         private List<Spell> _spells;
         private bool _useMuramana;
@@ -59,6 +59,7 @@ namespace SFXChallenger.Abstracts
 
         protected Champion()
         {
+            Player = ObjectManager.Player;
             Core.OnBoot += OnCoreBoot;
         }
 
@@ -175,6 +176,14 @@ namespace SFXChallenger.Abstracts
         {
             try
             {
+                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
+                {
+                    _nearestMinion =
+                        MinionManager.GetMinions(
+                            _minionSearchRange, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.None)
+                            .OrderBy(m => m.Distance(Player))
+                            .FirstOrDefault();
+                }
                 if (!_useMuramana)
                 {
                     ItemManager.Muramana(null, false);
@@ -196,14 +205,6 @@ namespace SFXChallenger.Abstracts
         {
             try
             {
-                if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
-                {
-                    _nearestMinion =
-                        MinionManager.GetMinions(
-                            _minionSearchRange, MinionTypes.All, MinionTeam.NotAlly, MinionOrderTypes.None)
-                            .OrderBy(m => m.Distance(Player))
-                            .FirstOrDefault();
-                }
                 OnPostUpdate();
             }
             catch (Exception ex)
@@ -404,7 +405,12 @@ namespace SFXChallenger.Abstracts
                 Orbwalker = new Orbwalking.Orbwalker(SFXMenu.AddSubMenu(new Menu("Orbwalker", SFXMenu.Name + ".orb")));
 
                 KillstealManager.AddToMenu(SFXMenu.AddSubMenu(new Menu("Killsteal", SFXMenu.Name + ".killsteal")));
-                ItemManager.AddToMenu(SFXMenu.AddSubMenu(new Menu("Items", SFXMenu.Name + ".items")), ItemFlags);
+
+                var itemMenu = SFXMenu.AddSubMenu(new Menu("Items", SFXMenu.Name + ".items"));
+                TearStackManager.AddToMenu(
+                    itemMenu.AddSubMenu(new Menu("Tear Stacking", SFXMenu.Name + ".tear-stack." + Player.ChampionName)),
+                    Spells);
+                ItemManager.AddToMenu(itemMenu, ItemFlags);
                 SummonerManager.AddToMenu(SFXMenu.AddSubMenu(new Menu("Summoners", SFXMenu.Name + ".summoners")));
 
                 InfoMenu.AddToMenu(SFXMenu.AddSubMenu(new Menu("Info", SFXMenu.Name + ".info")));

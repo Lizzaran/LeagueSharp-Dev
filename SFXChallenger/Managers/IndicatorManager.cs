@@ -149,8 +149,7 @@ namespace SFXChallenger.Managers
                         {
                             continue;
                         }
-                        var damagePercentage = ((unit.Health - damage) > 0 ? (unit.Health - damage) : 0) /
-                                               unit.MaxHealth;
+                        var damagePercentage = (unit.Health - damage > 0 ? unit.Health - damage : 0) / unit.MaxHealth;
                         var currentHealthPercentage = unit.Health / unit.MaxHealth;
                         var startPoint =
                             new Vector2(

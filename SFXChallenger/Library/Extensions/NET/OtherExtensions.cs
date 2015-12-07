@@ -82,8 +82,7 @@ namespace SFXChallenger.Library.Extensions.NET
         /// <exception cref="Exception">The operation failed.</exception>
         public static Bitmap Scale(this Bitmap bitmap, float scale)
         {
-            var scaled = new Bitmap(
-                (int) (Math.Ceiling(bitmap.Width * scale)), (int) (Math.Ceiling(bitmap.Height * scale)));
+            var scaled = new Bitmap((int) Math.Ceiling(bitmap.Width * scale), (int) Math.Ceiling(bitmap.Height * scale));
             using (var graphics = Graphics.FromImage(scaled))
             {
                 graphics.CompositingQuality = CompositingQuality.HighQuality;

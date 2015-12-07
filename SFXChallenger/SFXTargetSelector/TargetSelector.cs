@@ -46,12 +46,7 @@ namespace SFXChallenger.SFXTargetSelector
         {
             LeagueSharp.Common.TargetSelector.CustomTS = true;
             GameObjects.Initialize();
-            CustomEvents.Game.OnGameLoad += delegate
-            {
-                Drawings.Initialize();
-                Notifications.AddNotification(string.Format("{0} loaded.", Name), 7500);
-                Game.PrintChat(string.Format("<font color='#259FF8'>{0} v{1} loaded.</font>", Name, Version));
-            };
+            CustomEvents.Game.OnGameLoad += delegate { Drawings.Initialize(); };
         }
 
         public static Menu Menu { get; private set; }
@@ -83,8 +78,8 @@ namespace SFXChallenger.SFXTargetSelector
         {
             return
                 GetTarget(
-                    (spell.Range + spell.Width +
-                     Targets.Items.Select(e => e.Hero.BoundingRadius).DefaultIfEmpty(50).Max()),
+                    spell.Range + spell.Width +
+                    Targets.Items.Select(e => e.Hero.BoundingRadius).DefaultIfEmpty(50).Max(),
                     Utils.ConvertDamageType(spell.DamageType), ignoreShields, from, ignoreChampions);
         }
 

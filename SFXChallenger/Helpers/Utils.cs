@@ -123,12 +123,12 @@ namespace SFXChallenger.Helpers
         {
             try
             {
-                var additional = sender.IsMe ? (Game.Ping / 2000f) + 0.1f : 0f;
+                var additional = sender.IsMe ? Game.Ping / 2000f + 0.1f : 0f;
                 if (prediction && target is Obj_AI_Hero && target.IsMoving)
                 {
                     var predTarget = Prediction.GetPrediction(
                         target,
-                        delay + (sender.ServerPosition.Distance(target.ServerPosition) * 1.1f / speed) + additional);
+                        delay + sender.ServerPosition.Distance(target.ServerPosition) * 1.1f / speed + additional);
                     return delay + (sender.ServerPosition.Distance(predTarget.UnitPosition) * 1.1f / speed + additional);
                 }
                 return delay + (sender.ServerPosition.Distance(target.ServerPosition) / speed + additional);
@@ -165,7 +165,7 @@ namespace SFXChallenger.Helpers
 
         private static float Magn(Vector2 a)
         {
-            return (float) (Math.Sqrt(a.X * a.X + a.Y * a.Y));
+            return (float) Math.Sqrt(a.X * a.X + a.Y * a.Y);
         }
 
         public static bool UnderAllyTurret(Vector3 position)
@@ -245,12 +245,11 @@ namespace SFXChallenger.Helpers
                 if (!point.To3D().IsUnderTurret(false))
                 {
                     if (enemies.Count == 1 &&
-                        (!target.IsMelee ||
-                         (target.HealthPercent <= ObjectManager.Player.HealthPercent - 25 ||
-                          target.Position.Distance(point.To3D()) >= safetyDistance)) ||
+                        (!target.IsMelee || target.HealthPercent <= ObjectManager.Player.HealthPercent - 25 ||
+                         target.Position.Distance(point.To3D()) >= safetyDistance) ||
                         allies.Count >
                         enemies.Count -
-                        (ObjectManager.Player.HealthPercent >= (10 * lowEnemies.Count) ? lowEnemies.Count : 0))
+                        (ObjectManager.Player.HealthPercent >= 10 * lowEnemies.Count ? lowEnemies.Count : 0))
                     {
                         return point.To3D();
                     }
