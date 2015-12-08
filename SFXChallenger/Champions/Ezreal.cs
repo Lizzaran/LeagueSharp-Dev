@@ -65,6 +65,7 @@ namespace SFXChallenger.Champions
         protected override void OnLoad()
         {
             Orbwalking.BeforeAttack += OnOrbwalkingBeforeAttack;
+            Orbwalking.AfterAttack += OnOrbwalkingAfterAttack;
             GapcloserManager.OnGapcloser += OnEnemyGapcloser;
         }
 
@@ -176,6 +177,8 @@ namespace SFXChallenger.Champions
 
             var miscMenu = Menu.AddSubMenu(new Menu("Misc", Menu.Name + ".miscellaneous"));
 
+            miscMenu.AddItem(new MenuItem(miscMenu.Name + ".w-push", "W Pushing").SetValue(true));
+
             var qGapcloserMenu = miscMenu.AddSubMenu(new Menu("Q Gapcloser", miscMenu.Name + "q-gapcloser"));
             GapcloserManager.AddToMenu(
                 qGapcloserMenu,
@@ -229,6 +232,36 @@ namespace SFXChallenger.Champions
                      Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit) && args.Target is Obj_AI_Minion)
                 {
                     args.Process = args.Target.NetworkId != _lastFarmQKill;
+                }
+            }
+            catch (Exception ex)
+            {
+                Global.Logger.AddItem(new LogItem(ex));
+            }
+        }
+
+        private void OnOrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
+        {
+            try
+            {
+                if (!unit.IsMe)
+                {
+                    return;
+                }
+
+                if (Menu.Item(Menu.Name + ".miscellaneous.w-push").GetValue<bool>() && W.IsReady())
+                {
+                    if (target is Obj_BarracksDampener || target is Obj_AI_Turret || target is Obj_HQ)
+                    {
+                        var ally =
+                            GameObjects.AllyHeroes.Where(e => !e.IsMe && e.IsValidTarget(W.Range, false))
+                                .OrderBy(w => w.TotalAttackDamage())
+                                .FirstOrDefault();
+                        if (ally != null)
+                        {
+                            W.Cast(ally);
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -327,7 +360,10 @@ namespace SFXChallenger.Champions
                 if (target != null)
                 {
                     var safety = Menu.Item(Menu.Name + ".combo.e-safety").GetValue<Slider>().Value;
-                    if (Player.CountEnemiesInRange(safety) >= 1)
+                    var playerEnemies =
+                        GameObjects.EnemyHeroes.Where(e => e.IsValidTarget() && e.Distance(Player) < safety).ToList();
+                    if (playerEnemies.Count >= 2 ||
+                        playerEnemies.Count == 1 && playerEnemies.First().HealthPercent > Player.HealthPercent)
                     {
                         var pos = Menu.Item(Menu.Name + ".combo.e-mode").GetValue<StringList>().SelectedIndex == 0
                             ? Utils.GetDashPosition(
@@ -348,7 +384,7 @@ namespace SFXChallenger.Champions
                                 e => e.IsValidTarget() && e.Distance(newPosition) < safety * 1.25f).ToList();
                         var allies =
                             GameObjects.AllyHeroes.Where(
-                                e => e.IsValidTarget(float.MaxValue, false) && e.Distance(newPosition) < safety * 1.25f)
+                                e => e.IsValidTarget(float.MaxValue, false) && e.Distance(newPosition) < safety)
                                 .ToList();
                         var avgEnemyHealth = enemies.Average(e => e.HealthPercent);
                         if (enemies.Count - allies.Count <= 1 ||
@@ -493,7 +529,7 @@ namespace SFXChallenger.Champions
                     }
                 }
                 if (!rangeCheck ||
-                    position.Distance(Player.Position) <= Orbwalking.GetRealAutoAttackRange(target) * 0.95f)
+                    position.Distance(Player.Position) <= Orbwalking.GetRealAutoAttackRange(target) * 0.9f)
                 {
                     damage += 2 * (float) Player.GetAutoAttackDamage(target, true);
                 }

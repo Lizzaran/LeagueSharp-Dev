@@ -40,8 +40,11 @@ namespace SFXChallenger.Managers
 {
     public class UltimateManager
     {
-        private readonly int _damagePercent = 100;
+        private bool _autoDamageCheck = true;
+        private int _damagePercent = 100;
+        private bool _forceDamageCheck = true;
         private Menu _menu;
+        private int _singleDamagePercent = 150;
         public bool Combo { get; set; }
         public bool Assisted { get; set; }
         public bool Auto { get; set; }
@@ -53,24 +56,35 @@ namespace SFXChallenger.Managers
         public bool Interrupt { get; set; }
         public bool InterruptDelay { get; set; }
         public List<Spell> Spells { get; set; }
+        public Func<Obj_AI_Hero, float, bool, float> DamageCalculation { get; set; }
 
         public int DamagePercent
         {
-            get
-            {
-                if (_menu != null)
-                {
-                    var item = _menu.Item(_menu.Name + ".ultimate.damage-percent");
-                    if (item != null)
-                    {
-                        return item.GetValue<Slider>().Value;
-                    }
-                }
-                return _damagePercent;
-            }
+            get { return _damagePercent; }
+            set { _damagePercent = Math.Min(200, Math.Max(1, value)); }
         }
 
-        public Func<Obj_AI_Hero, float, bool, float> DamageCalculation { get; set; }
+        public int SingleDamagePercent
+        {
+            get { return _singleDamagePercent; }
+            set { _singleDamagePercent = Math.Min(200, Math.Max(1, value)); }
+        }
+
+        public bool ForceDamageCheck
+        {
+            get { return _forceDamageCheck; }
+            set { _forceDamageCheck = value; }
+        }
+
+        public bool ComboDamageCheck { get; set; }
+
+        public bool AutoDamageCheck
+        {
+            get { return _autoDamageCheck; }
+            set { _autoDamageCheck = value; }
+        }
+
+        public bool AssistedDamageCheck { get; set; }
 
         public Menu AddToMenu(Menu menu)
         {
@@ -138,7 +152,7 @@ namespace SFXChallenger.Managers
                     if (DamageCalculation != null)
                     {
                         uForceMenu.AddItem(
-                            new MenuItem(uForceMenu.Name + ".damage-check", "Damage Check").SetValue(true));
+                            new MenuItem(uForceMenu.Name + ".damage-check", "Damage Check").SetValue(ForceDamageCheck));
                     }
                     uForceMenu.AddItem(
                         new MenuItem(uForceMenu.Name + ".additional", "Additional Targets").SetValue(
@@ -165,7 +179,7 @@ namespace SFXChallenger.Managers
                     if (DamageCalculation != null)
                     {
                         uComboMenu.AddItem(
-                            new MenuItem(uComboMenu.Name + ".damage-check", "Damage Check").SetValue(false));
+                            new MenuItem(uComboMenu.Name + ".damage-check", "Damage Check").SetValue(ComboDamageCheck));
                     }
                     uComboMenu.AddItem(new MenuItem(uComboMenu.Name + ".enabled", "Enabled").SetValue(true));
                 }
@@ -219,7 +233,8 @@ namespace SFXChallenger.Managers
                     uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".min", "Min. Hits").SetValue(new Slider(3, 1, 5)));
                     if (DamageCalculation != null)
                     {
-                        uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".damage-check", "Damage Check").SetValue(true));
+                        uAutoMenu.AddItem(
+                            new MenuItem(uAutoMenu.Name + ".damage-check", "Damage Check").SetValue(AutoDamageCheck));
                     }
                     uAutoMenu.AddItem(new MenuItem(uAutoMenu.Name + ".enabled", "Enabled").SetValue(true));
                 }
@@ -249,7 +264,8 @@ namespace SFXChallenger.Managers
                     if (DamageCalculation != null)
                     {
                         uAssistedMenu.AddItem(
-                            new MenuItem(uAssistedMenu.Name + ".damage-check", "Damage Check").SetValue(false));
+                            new MenuItem(uAssistedMenu.Name + ".damage-check", "Damage Check").SetValue(
+                                AssistedDamageCheck));
                     }
                     uAssistedMenu.AddItem(new MenuItem(uAssistedMenu.Name + ".enabled", "Enabled").SetValue(true));
                 }
@@ -292,10 +308,10 @@ namespace SFXChallenger.Managers
                 {
                     ultimateMenu.AddItem(
                         new MenuItem(ultimateMenu.Name + ".damage-percent-single", "Single Damage Check %").SetValue(
-                            new Slider(100, 1, 200)));
+                            new Slider(SingleDamagePercent, 1, 200)));
                     ultimateMenu.AddItem(
                         new MenuItem(ultimateMenu.Name + ".damage-percent", "Damage Check %").SetValue(
-                            new Slider(150, 1, 200)));
+                            new Slider(DamagePercent, 1, 200)));
                 }
 
                 return ultimateMenu;

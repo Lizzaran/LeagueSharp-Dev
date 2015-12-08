@@ -35,7 +35,6 @@ using SFXChallenger.Library;
 using SFXChallenger.Library.Logger;
 using SFXChallenger.Managers;
 using SharpDX;
-using Color = System.Drawing.Color;
 using MinionManager = SFXChallenger.Library.MinionManager;
 using MinionOrderTypes = SFXChallenger.Library.MinionOrderTypes;
 using MinionTeam = SFXChallenger.Library.MinionTeam;
@@ -52,7 +51,7 @@ namespace SFXChallenger.Champions
     internal class MissFortuneTesting : Champion
     {
         private float _lastRCast;
-        private Vector3 _lastRPosition;
+        private Vector3 _lastRPosition = Vector3.Zero;
 
         protected override ItemFlags ItemFlags
         {
@@ -82,7 +81,7 @@ namespace SFXChallenger.Champions
             Q.Range += GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(25).Min();
             Q.SetTargetted(0.25f, 1400f);
 
-            Q1 = new Spell(SpellSlot.Q, Q.Range + 500f);
+            Q1 = new Spell(SpellSlot.Q, Q.Range + 450f);
 
             W = new Spell(SpellSlot.W, Orbwalking.GetRealAutoAttackRange(null) * 1.25f);
             W.Range += GameObjects.EnemyHeroes.Select(e => e.BoundingRadius).DefaultIfEmpty(25).Min();
@@ -106,9 +105,11 @@ namespace SFXChallenger.Champions
                 Interrupt = false,
                 InterruptDelay = false,
                 Spells = Spells,
+                SingleDamagePercent = 100,
+                ComboDamageCheck = true,
                 DamageCalculation = (hero, resMulti, rangeCheck) => CalcUltimateDamage(hero, resMulti, rangeCheck)
             };
-
+            /*
             Drawing.OnDraw += delegate
             {
                 var minions = MinionManager.GetMinions(
@@ -141,6 +142,7 @@ namespace SFXChallenger.Champions
                         Drawing.WorldToScreen(coneNormal.Points.Last().To3D()), 3, Color.White);
                 }
             };
+             */
         }
 
         protected override void AddToMenu()
@@ -242,27 +244,8 @@ namespace SFXChallenger.Champions
             {
                 if (sender.IsMe && args.SData.Name.Equals("MissFortuneBulletTime", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (Game.Time - _lastRCast < 10)
-                    {
-                        var hits =
-                            GameObjects.EnemyHeroes.Count(e => e.IsValidTarget(R.Width * 2.5f, true, _lastRPosition));
-                        if (hits <= 0)
-                        {
-                            Utility.DelayAction.Add(
-                                300, delegate
-                                {
-                                    hits =
-                                        GameObjects.EnemyHeroes.Count(
-                                            e => e.IsValidTarget(R.Width * 2.5f, true, _lastRPosition));
-                                    if (hits <= 0)
-                                    {
-                                        BlockOrdersManager.Automatic = false;
-                                        BlockOrdersManager.Enabled = false;
-                                        Utility.DelayAction.Add(5000, delegate { BlockOrdersManager.Automatic = true; });
-                                    }
-                                });
-                        }
-                    }
+                    _lastRPosition = args.End;
+                    _lastRCast = Game.Time;
                 }
             }
             catch (Exception ex)
@@ -317,7 +300,20 @@ namespace SFXChallenger.Champions
             }
         }
 
-        protected override void OnPreUpdate() {}
+        protected override void OnPreUpdate()
+        {
+            if (Game.Time - _lastRCast < 5 && !_lastRPosition.Equals(Vector3.Zero))
+            {
+                var hits = GameObjects.EnemyHeroes.Count(e => e.IsValidTarget(R.Width * 2.5f, true, _lastRPosition));
+                if (hits <= 0)
+                {
+                    BlockOrdersManager.Automatic = false;
+                    BlockOrdersManager.Enabled = false;
+                    Player.IssueOrder(GameObjectOrder.Stop, Player.Position);
+                    Utility.DelayAction.Add(1000, delegate { BlockOrdersManager.Automatic = true; });
+                }
+            }
+        }
 
         protected override void OnPostUpdate()
         {
@@ -600,7 +596,12 @@ namespace SFXChallenger.Champions
                                 waves -= 2;
                             }
                         }
-                        damage += R.GetDamage(target) * Math.Max(3, waves);
+                        waves = Math.Max(3, waves);
+                        if (Player.Position.IsUnderTurret(false))
+                        {
+                            waves = target.Distance(Player) > Orbwalking.GetAttackRange(target) * 1.2f ? 1 : 0;
+                        }
+                        damage += R.GetDamage(target) * waves;
                     }
                 }
                 return damage;
