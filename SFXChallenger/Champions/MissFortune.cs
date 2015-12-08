@@ -106,6 +106,7 @@ namespace SFXChallenger.Champions
                 InterruptDelay = false,
                 Spells = Spells,
                 SingleDamagePercent = 100,
+                DamagePercent = 100,
                 ComboDamageCheck = true,
                 DamageCalculation = (hero, resMulti, rangeCheck) => CalcUltimateDamage(hero, resMulti, rangeCheck)
             };
