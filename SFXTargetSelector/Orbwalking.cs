@@ -983,6 +983,7 @@ namespace SFXTargetSelector
                 drawings.AddItem(
                     new MenuItem("HoldZone", "Hold Zone").SetShared()
                         .SetValue(new Circle(false, Color.FromArgb(155, 255, 255, 0))));
+                drawings.AddItem(new MenuItem("LastHitHelper", "Last Hit Helper").SetShared().SetValue(true));
                 _config.AddSubMenu(drawings);
 
                 /* Attackables menu */
@@ -1698,6 +1699,23 @@ namespace SFXTargetSelector
                 }
                 _config.Item("FocusMinionsOverTurrets")
                     .Permashow(_config.Item("FocusMinionsOverTurrets").GetValue<KeyBind>().Active);
+                if (_config.Item("LastHitHelper").GetValue<bool>())
+                {
+                    foreach (
+                        var minion in
+                            ObjectManager.Get<Obj_AI_Minion>()
+                                .Where(
+                                    x =>
+                                        x.Name.ToLower().Contains("minion") && x.IsVisible && !x.IsDead && !x.IsZombie &&
+                                        x.IsEnemy && x.IsHPBarRendered && x.IsValidTarget(1000)))
+                    {
+                        Render.Circle.DrawCircle(
+                            minion.Position, 50,
+                            minion.Health < ObjectManager.Player.GetAutoAttackDamage(minion, true)
+                                ? Color.LimeGreen
+                                : Color.Red);
+                    }
+                }
             }
         }
     }
