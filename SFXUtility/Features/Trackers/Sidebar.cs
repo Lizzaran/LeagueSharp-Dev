@@ -522,13 +522,13 @@ namespace SFXUtility.Features.Trackers
                                   (hudWidth + (float) Math.Ceiling(4 * _scale)) / 2f;
 
                 if (args.Msg == (uint) WindowsMessages.WM_RBUTTONUP ||
-                    args.Msg == (uint) WindowsMessages.WM_LBUTTONDBLCLCK)
+                    args.Msg == (uint)WindowsMessages.WM_LBUTTONDBLCLK)
                 {
                     var pos = Utils.GetCursorPos();
                     foreach (var enemy in _enemyObjects)
                     {
                         var offset = spacing * index;
-                        if (args.Msg == (uint) WindowsMessages.WM_LBUTTONDBLCLCK)
+                        if (args.Msg == (uint)WindowsMessages.WM_LBUTTONDBLCLK)
                         {
                             var spellData = _spellDatas[enemy.Unit.NetworkId];
                             for (var i = 0; spellData.Count > i; i++)

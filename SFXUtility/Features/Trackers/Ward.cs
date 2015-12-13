@@ -202,7 +202,7 @@ namespace SFXUtility.Features.Trackers
         {
             try
             {
-                if (args.Msg == (ulong) WindowsMessages.WM_LBUTTONDBLCLCK &&
+                if (args.Msg == (ulong) WindowsMessages.WM_LBUTTONDBLCLK &&
                     Menu.Item(Name + "Hotkey").GetValue<KeyBind>().Active)
                 {
                     var ward = _wardObjects.OrderBy(w => Game.CursorPos.Distance(w.Position)).FirstOrDefault();
