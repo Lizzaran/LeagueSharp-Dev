@@ -983,7 +983,9 @@ namespace SFXTargetSelector
                 drawings.AddItem(
                     new MenuItem("HoldZone", "Hold Zone").SetShared()
                         .SetValue(new Circle(false, Color.FromArgb(155, 255, 255, 0))));
-                drawings.AddItem(new MenuItem("LastHitHelper", "Last Hit Helper").SetShared().SetValue(true));
+                drawings.AddItem(
+                    new MenuItem("LastHitHelper", "Last Hit Helper").SetShared()
+                        .SetValue(new Circle(false, Color.LimeGreen)));
                 _config.AddSubMenu(drawings);
 
                 /* Attackables menu */
@@ -1328,6 +1330,28 @@ namespace SFXTargetSelector
                                 Player.GetAutoAttackDamage(minion));
             }
 
+            private bool ShouldWaitUnderTurret(Obj_AI_Minion noneKillableMinion)
+            {
+                return
+                    MinionManager.GetMinions(
+                        Player.Position, float.MaxValue, MinionTypes.All, MinionTeam.Enemy, MinionOrderTypes.None)
+                        .Any(
+                            minion =>
+                                (noneKillableMinion == null || noneKillableMinion.NetworkId != minion.NetworkId) &&
+                                minion.IsValidTarget() && minion.Team != GameObjectTeam.Neutral &&
+                                InAutoAttackRange(minion) && MinionManager.IsMinion(minion) &&
+                                HealthPrediction.LaneClearHealthPrediction(
+                                    minion,
+                                    (int)
+                                        (Player.AttackDelay * 1000 +
+                                         (Player.IsMelee
+                                             ? Player.AttackCastDelay * 1000
+                                             : Player.AttackCastDelay * 1000 +
+                                               1000 * (Player.AttackRange + 2 * Player.BoundingRadius) /
+                                               Player.BasicAttack.MissileSpeed)), FarmDelay) <=
+                                Player.GetAutoAttackDamage(minion));
+            }
+
             /// <summary>
             ///     Gets the target.
             /// </summary>
@@ -1443,6 +1467,142 @@ namespace SFXTargetSelector
                     if (result != null)
                     {
                         return result;
+                    }
+                }
+
+                /* UnderTurret Farming */
+                if (ActiveMode == OrbwalkingMode.LaneClear || ActiveMode == OrbwalkingMode.Mixed ||
+                    ActiveMode == OrbwalkingMode.LastHit)
+                {
+                    Obj_AI_Minion farmUnderTurretMinion = null;
+                    Obj_AI_Minion noneKillableMinion = null;
+                    // return all the minions underturret in auto attack range
+                    var turretMinions =
+                        minions.Where(
+                            minion => minion.MaxHealth > 10 && InAutoAttackRange(minion) && minion.UnderAllyTurret())
+                            .OrderByDescending(minion => minion.CharData.BaseSkinName.Contains("Siege"))
+                            .ThenBy(minion => minion.CharData.BaseSkinName.Contains("Super"))
+                            .ThenByDescending(minion => minion.MaxHealth);
+                    if (turretMinions.Any())
+                    {
+                        // get the turret aggro minion
+                        var turretMinion =
+                            turretMinions.FirstOrDefault(
+                                minion => (minion != null) && HealthPrediction.HasTurretAggro(minion));
+
+                        if (turretMinion != null)
+                        {
+                            var hpLeftBeforeDie = 0;
+                            var hpLeft = 0;
+                            var turretAttackCount = 0;
+                            var turret = HealthPrediction.GetAggroTurret(turretMinion);
+                            if (turret != null)
+                            {
+                                var turretStarTick = HealthPrediction.TurretAggroStartTick(turretMinion);
+                                // from healthprediction (don't blame me :S)
+                                var turretLandTick = turretStarTick + (int) (turret.AttackCastDelay * 1000) +
+                                                     1000 *
+                                                     Math.Max(
+                                                         0,
+                                                         (int) (turretMinion.Distance(turret) - turret.BoundingRadius)) /
+                                                     (int) (turret.BasicAttack.MissileSpeed + 70);
+                                // calculate the HP before try to balance it
+                                for (float i = turretLandTick + 50;
+                                    i < turretLandTick + 3 * turret.AttackDelay * 1000 + 50;
+                                    i = i + turret.AttackDelay * 1000)
+                                {
+                                    var time = (int) i - LeagueSharp.Common.Utils.GameTimeTickCount + Game.Ping / 2;
+                                    var predHp =
+                                        (int)
+                                            HealthPrediction.LaneClearHealthPrediction(
+                                                turretMinion, time > 0 ? time : 0);
+                                    if (predHp > 0)
+                                    {
+                                        hpLeft = predHp;
+                                        turretAttackCount += 1;
+                                        continue;
+                                    }
+                                    hpLeftBeforeDie = hpLeft;
+                                    hpLeft = 0;
+                                    break;
+                                }
+                                // calculate the hits is needed and possibilty to balance
+                                if (hpLeft == 0 && turretAttackCount != 0 && hpLeftBeforeDie != 0)
+                                {
+                                    var damage = (int) Player.GetAutoAttackDamage(turretMinion, true);
+                                    var hits = hpLeftBeforeDie / damage;
+                                    var timeBeforeDie = turretLandTick +
+                                                        (turretAttackCount + 1) * (int) (turret.AttackDelay * 1000) -
+                                                        LeagueSharp.Common.Utils.GameTimeTickCount;
+                                    var timeUntilAttackReady = LastAaTick + (int) (Player.AttackDelay * 1000) >
+                                                               LeagueSharp.Common.Utils.GameTimeTickCount +
+                                                               Game.Ping / 2 + 25
+                                        ? LastAaTick + (int) (Player.AttackDelay * 1000) -
+                                          (LeagueSharp.Common.Utils.GameTimeTickCount + Game.Ping / 2 + 25)
+                                        : 0;
+                                    var timeToLandAttack = Player.IsMelee
+                                        ? Player.AttackCastDelay * 1000
+                                        : Player.AttackCastDelay * 1000 +
+                                          1000 * Math.Max(0, turretMinion.Distance(Player) - Player.BoundingRadius) /
+                                          Player.BasicAttack.MissileSpeed;
+                                    if (hits >= 1 &&
+                                        hits * Player.AttackDelay * 1000 + timeUntilAttackReady + timeToLandAttack <
+                                        timeBeforeDie)
+                                    {
+                                        farmUnderTurretMinion = turretMinion;
+                                    }
+                                    else if (hits >= 1 &&
+                                             hits * Player.AttackDelay * 1000 + timeUntilAttackReady + timeToLandAttack >
+                                             timeBeforeDie)
+                                    {
+                                        noneKillableMinion = turretMinion;
+                                    }
+                                }
+                                else if (hpLeft == 0 && turretAttackCount == 0 && hpLeftBeforeDie == 0)
+                                {
+                                    noneKillableMinion = turretMinion;
+                                }
+                                if (ShouldWaitUnderTurret(noneKillableMinion))
+                                {
+                                    return null;
+                                }
+                                if (farmUnderTurretMinion != null)
+                                {
+                                    return farmUnderTurretMinion;
+                                }
+                                // balance other minions
+                                return
+                                    (from minion in
+                                        turretMinions.Where(
+                                            x =>
+                                                x.NetworkId != turretMinion.NetworkId &&
+                                                !HealthPrediction.HasMinionAggro(x))
+                                        where
+                                            (int) minion.Health % (int) turret.GetAutoAttackDamage(minion, true) >
+                                            (int) Player.GetAutoAttackDamage(minion)
+                                        select minion).FirstOrDefault();
+                            }
+                        }
+                        else
+                        {
+                            if (ShouldWaitUnderTurret(null))
+                            {
+                                return null;
+                            }
+                            // balance other minions
+                            return
+                                (from minion in
+                                    turretMinions.Where(x => (x != null) && !HealthPrediction.HasMinionAggro(x))
+                                    let turret =
+                                        GameObjects.AllyTurrets.FirstOrDefault(
+                                            x => x.IsValidTarget(950, false, minion.Position))
+                                    where
+                                        turret != null &&
+                                        (int) minion.Health % (int) turret.GetAutoAttackDamage(minion, true) >
+                                        (int) Player.GetAutoAttackDamage(minion)
+                                    select minion).FirstOrDefault();
+                        }
+                        return null;
                     }
                 }
 
@@ -1673,47 +1833,45 @@ namespace SFXTargetSelector
             private void DrawingOnOnDraw(EventArgs args)
             {
                 var circleThickness = _config.Item("CircleThickness").GetValue<Slider>().Value;
-                if (_config.Item("AACircle").GetValue<Circle>().Active)
+                var aaCircle = _config.Item("AACircle").GetValue<Circle>();
+                if (aaCircle.Active)
                 {
                     Render.Circle.DrawCircle(
-                        _player.Position, GetRealAutoAttackRange(null) + 65,
-                        _config.Item("AACircle").GetValue<Circle>().Color, circleThickness);
+                        _player.Position, GetRealAutoAttackRange(null) + 65, aaCircle.Color, circleThickness);
                 }
 
-                if (_config.Item("AACircle2").GetValue<Circle>().Active)
+                var aaCircle2 = _config.Item("AACircle2").GetValue<Circle>();
+                if (aaCircle2.Active)
                 {
                     foreach (var target in
                         HeroManager.Enemies.FindAll(target => target.IsValidTarget(1175)))
                     {
                         Render.Circle.DrawCircle(
-                            target.Position, GetAttackRange(target), _config.Item("AACircle2").GetValue<Circle>().Color,
-                            circleThickness);
+                            target.Position, GetAttackRange(target), aaCircle2.Color, circleThickness);
                     }
                 }
 
-                if (_config.Item("HoldZone").GetValue<Circle>().Active)
+                var holdCircle = _config.Item("HoldZone").GetValue<Circle>();
+                if (holdCircle.Active)
                 {
                     Render.Circle.DrawCircle(
-                        _player.Position, _config.Item("HoldPosRadius").GetValue<Slider>().Value,
-                        _config.Item("HoldZone").GetValue<Circle>().Color, circleThickness, true);
+                        _player.Position, _config.Item("HoldPosRadius").GetValue<Slider>().Value, holdCircle.Color,
+                        circleThickness, true);
                 }
+
                 _config.Item("FocusMinionsOverTurrets")
                     .Permashow(_config.Item("FocusMinionsOverTurrets").GetValue<KeyBind>().Active);
-                if (_config.Item("LastHitHelper").GetValue<bool>())
+
+                var helperCircle = _config.Item("LastHitHelper").GetValue<Circle>();
+                if (helperCircle.Active)
                 {
-                    foreach (
-                        var minion in
-                            ObjectManager.Get<Obj_AI_Minion>()
-                                .Where(
-                                    x =>
-                                        x.Name.ToLower().Contains("minion") && x.IsVisible && !x.IsDead && !x.IsZombie &&
-                                        x.IsEnemy && x.IsHPBarRendered && x.IsValidTarget(1000)))
+                    foreach (var minion in
+                        GameObjects.EnemyMinions.Where(x => x.IsHPBarRendered && x.IsValidTarget(1000)))
                     {
-                        Render.Circle.DrawCircle(
-                            minion.Position, 50,
-                            minion.Health < ObjectManager.Player.GetAutoAttackDamage(minion, true)
-                                ? Color.LimeGreen
-                                : Color.Red);
+                        if (minion.Health < ObjectManager.Player.GetAutoAttackDamage(minion, true))
+                        {
+                            Render.Circle.DrawCircle(minion.Position, 50, helperCircle.Color);
+                        }
                     }
                 }
             }
