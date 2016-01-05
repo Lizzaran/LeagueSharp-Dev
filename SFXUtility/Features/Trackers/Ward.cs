@@ -50,18 +50,18 @@ namespace SFXUtility.Features.Trackers
 
         private readonly List<WardStruct> _wardStructs = new List<WardStruct>
         {
-            new WardStruct(60 * 1, 1100, "YellowTrinket", "TrinketTotemLvl1", WardType.Green),
-            new WardStruct(60 * 1, 1100, "BlueTrinket", "TrinketOrbLvl3", WardType.Green),
-            new WardStruct(60 * 2, 1100, "YellowTrinketUpgrade", "TrinketTotemLvl2", WardType.Green),
-            new WardStruct(60 * 3, 1100, "SightWard", "ItemGhostWard", WardType.Green),
-            new WardStruct(60 * 3, 1100, "SightWard", "SightWard", WardType.Green),
-            new WardStruct(60 * 3, 1100, "MissileWard", "MissileWard", WardType.Green),
+            new WardStruct(60*1, 1100, "YellowTrinket", "TrinketTotemLvl1", WardType.Green),
+            new WardStruct(60*1, 1100, "YellowTrinketUpgrade", "TrinketTotemLvl2", WardType.Green),
+            new WardStruct(int.MaxValue, 1100, "BlueTrinket", "TrinketOrbLvl3", WardType.Green),
+            new WardStruct(60*3, 1100, "SightWard", "ItemGhostWard", WardType.Green),
+            new WardStruct(60*3, 1100, "SightWard", "SightWard", WardType.Green),
+            new WardStruct(60*3, 1100, "MissileWard", "MissileWard", WardType.Green),
             new WardStruct(int.MaxValue, 1100, "VisionWard", "VisionWard", WardType.Pink),
-            new WardStruct(60 * 4, 212, "CaitlynTrap", "CaitlynYordleTrap", WardType.Trap),
-            new WardStruct(60 * 10, 212, "TeemoMushroom", "BantamTrap", WardType.Trap),
-            new WardStruct(60 * 1, 212, "ShacoBox", "JackInTheBox", WardType.Trap),
-            new WardStruct(60 * 2, 212, "Nidalee_Spear", "Bushwhack", WardType.Trap),
-            new WardStruct(60 * 10, 212, "Noxious_Trap", "BantamTrap", WardType.Trap)
+            new WardStruct(60*4, 212, "CaitlynTrap", "CaitlynYordleTrap", WardType.Trap),
+            new WardStruct(60*10, 212, "TeemoMushroom", "BantamTrap", WardType.Trap),
+            new WardStruct(60*1, 212, "ShacoBox", "JackInTheBox", WardType.Trap),
+            new WardStruct(60*2, 212, "Nidalee_Spear", "Bushwhack", WardType.Trap),
+            new WardStruct(60*10, 212, "Noxious_Trap", "BantamTrap", WardType.Trap)
         };
 
         private Texture _greenWardTexture;
@@ -78,7 +78,7 @@ namespace SFXUtility.Features.Trackers
 
         protected override List<Utility.Map.MapType> BlacklistedMaps
         {
-            get { return new List<Utility.Map.MapType> { Utility.Map.MapType.CrystalScar }; }
+            get { return new List<Utility.Map.MapType> {Utility.Map.MapType.CrystalScar}; }
         }
 
         public override string Name
@@ -120,7 +120,7 @@ namespace SFXUtility.Features.Trackers
                 var drawingMenu = new Menu("Drawing", Name + "Drawing");
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + "TimeFormat", "Time Format").SetValue(
-                        new StringList(new[] { "mm:ss", "ss" })));
+                        new StringList(new[] {"mm:ss", "ss"})));
                 drawingMenu.AddItem(
                     new MenuItem(drawingMenu.Name + "FontSize", "Font Size").SetValue(new Slider(13, 3, 30)));
                 drawingMenu.AddItem(
@@ -255,7 +255,7 @@ namespace SFXUtility.Features.Trackers
                                 Render.Circle.DrawCircle(ward.Position, circleRadius, color, circleThickness);
                             }
                         }
-                        if (ward.Data.Type == WardType.Green)
+                        if (ward.Data.Type == WardType.Green && !ward.Data.Duration.Equals(int.MaxValue))
                         {
                             _text.DrawTextCentered(
                                 string.Format(
@@ -283,7 +283,7 @@ namespace SFXUtility.Features.Trackers
                             _line.Begin();
                             _line.Draw(
                                 new[]
-                                { Drawing.WorldToScreen(ward.StartPosition), Drawing.WorldToScreen(ward.EndPosition) },
+                                {Drawing.WorldToScreen(ward.StartPosition), Drawing.WorldToScreen(ward.EndPosition)},
                                 SharpDX.Color.White);
                             _line.End();
                         }
@@ -345,7 +345,8 @@ namespace SFXUtility.Features.Trackers
                                             GetWardStructForInvisible(sPos, ePos),
                                             new Vector3(ePos.X, ePos.Y, NavMesh.GetHeightForPosition(ePos.X, ePos.Y)),
                                             (int) Game.Time, null, true,
-                                            new Vector3(sPos.X, sPos.Y, NavMesh.GetHeightForPosition(sPos.X, sPos.Y)));
+                                            new Vector3(sPos.X, sPos.Y, NavMesh.GetHeightForPosition(sPos.X, sPos.Y)),
+                                            missile.SpellCaster);
                                         CheckDuplicateWards(wObj);
                                         _wardObjects.Add(wObj);
                                     }
@@ -388,7 +389,7 @@ namespace SFXUtility.Features.Trackers
         {
             return
                 GameObjects.EnemyHeroes.Where(hero => _heroNoWards.All(h => h.Hero.NetworkId != hero.NetworkId))
-                    .Any(hero => hero.Distance(start.Extend(end, start.Distance(end) / 2f)) <= 1500f) &&
+                    .Any(hero => hero.Distance(start.Extend(end, start.Distance(end)/2f)) <= 1500f) &&
                 GameObjects.EnemyHeroes.Any(e => e.Level > 3)
                     ? _wardStructs[3]
                     : _wardStructs[0];
@@ -436,7 +437,7 @@ namespace SFXUtility.Features.Trackers
                         }
                         if (obj.IsFromMissile && !obj.Corrected)
                         {
-                            var newPoint = obj.StartPosition.Extend(obj.EndPosition, -(range * 1.5f));
+                            var newPoint = obj.StartPosition.Extend(obj.EndPosition, -(range*1.5f));
                             if (wObj.Position.Distance(newPoint) < range)
                             {
                                 _wardObjects.Remove(obj);
@@ -476,7 +477,7 @@ namespace SFXUtility.Features.Trackers
 
                 _wardObjects.RemoveAll(
                     w =>
-                        (w.EndTime <= Game.Time && w.Data.Duration != int.MaxValue) ||
+                        (w.Data.Duration != int.MaxValue && w.EndTime <= Game.Time) ||
                         (w.Object != null && !w.Object.IsValid));
                 foreach (var hw in _heroNoWards.ToArray())
                 {
@@ -521,12 +522,8 @@ namespace SFXUtility.Features.Trackers
             public readonly int StartT;
             private Vector3 _position;
 
-            public WardObject(WardStruct data,
-                Vector3 position,
-                int startT,
-                Obj_AI_Base wardObject = null,
-                bool isFromMissile = false,
-                Vector3 startPosition = default(Vector3))
+            public WardObject(WardStruct data, Vector3 position, int startT, Obj_AI_Base wardObject = null,
+                bool isFromMissile = false, Vector3 startPosition = default(Vector3), Obj_AI_Base spellCaster = null)
             {
                 try
                 {
@@ -554,6 +551,15 @@ namespace SFXUtility.Features.Trackers
                         ? startPosition
                         : RealPosition(startPosition);
                     Object = wardObject;
+                    if (data.ObjectBaseSkinName.Contains("YellowTrinket", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var caster = spellCaster as Obj_AI_Hero;
+                        OverrideDuration = data.Duration +
+                                           (int) Math.Ceiling(caster != null && caster.IsValid
+                                               ? caster.Level
+                                               : Math.Min(18,
+                                                   GameObjects.EnemyHeroes.Select(e => e.Level).Average() + 1)*3.5f);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -578,8 +584,10 @@ namespace SFXUtility.Features.Trackers
 
             public int EndTime
             {
-                get { return StartT + Data.Duration; }
+                get { return StartT + (OverrideDuration > 0 ? OverrideDuration : Data.Duration); }
             }
+
+            private int OverrideDuration { get; set; }
 
             public WardStruct Data { get; private set; }
 
@@ -597,7 +605,7 @@ namespace SFXUtility.Features.Trackers
                             grass.Add(pos);
                         }
                     }
-                    return grass.Count > 0 ? grass[(int) (grass.Count / 2d + 0.5d * Math.Sign(grass.Count / 2d))] : end;
+                    return grass.Count > 0 ? grass[(int) (grass.Count/2d + 0.5d*Math.Sign(grass.Count/2d))] : end;
                 }
                 catch (Exception ex)
                 {
